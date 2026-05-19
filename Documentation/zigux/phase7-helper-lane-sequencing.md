@@ -7,6 +7,7 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 - shared control-surface packet, lane `P7-Y05`:
   - `Documentation/zigux/phase7-helper-lane-sequencing.md`
   - `Documentation/zigux/phase7-string-helpers-slice.md`
+  - `Documentation/zigux/phase7-shared-control-review-checkpoint.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
   - `samples/zigux/README.md`
@@ -75,4 +76,5 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 - If the drift is a partially returned `argv_split` surface, keep the change inside `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, or `scripts/zigux/check-phase7-argv-split-packet.py` while the helper-local packet stays the lane owner.
 - If the drift is a partially returned `cmdline` surface, keep the change inside `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, or `samples/zigux/README.md` while the helper-local packet stays the lane owner.
 - If the drift is a partially returned `rbtree` surface, keep the change inside `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, or `scripts/zigux/check-phase7-rbtree-parity.py` while the restored helper-local packet stays the lane owner.
+- If the drift is the shared docs-root Phase 7 checkpoint, route it to `P7-Y05` and keep the change inside `Documentation/zigux/phase7-shared-control-review-checkpoint.md` only.
 - If the drift is the shared tests-root or scripts-root Phase 7 tranche summary, route it to `P7-Y05` and keep the change inside `zigux/tests/README.md` or `scripts/zigux/README.md` only.
