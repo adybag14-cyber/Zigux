@@ -86,6 +86,21 @@ test "cutoff sequence keeps xa_value, gap, and first two err_ptr raws in distinc
     try testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(second_err_raw));
 }
 
+test "top of err_ptr band stays contiguous and never reenters xa_value lane" {
+    const next_to_top_raw = err_ptr.fromErrorCode(-2);
+    const top_raw = err_ptr.fromErrorCode(-1);
+
+    try testing.expectEqual(next_to_top_raw + 1, top_raw);
+    try testing.expect(err_ptr.isErrValue(next_to_top_raw));
+    try testing.expect(err_ptr.isErrValue(top_raw));
+    try testing.expect(!xa_value.isValue(next_to_top_raw));
+    try testing.expect(!xa_value.isValue(top_raw));
+    try testing.expectEqual(@as(isize, -2), err_ptr.toErrorCode(next_to_top_raw));
+    try testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(top_raw));
+    try testing.expectEqual(@as(usize, 0), next_to_top_raw & xa_value.value_tag_mask);
+    try testing.expectEqual(xa_value.value_tag_mask, top_raw & xa_value.value_tag_mask);
+}
+
 test "gap before err_ptr floor stays pointer-like and never decodes as xa_value" {
     const raw = err_ptr.err_floor - 1;
 
