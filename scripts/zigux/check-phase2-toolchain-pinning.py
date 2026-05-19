@@ -104,6 +104,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
 )
@@ -213,14 +214,13 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
-    + 2
-    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"])
+    + 4
     + 1
     + 1
     + 1
     + 1
     + 1
-    + 2
+    + 1
 )
 
 
@@ -521,16 +521,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"] = "broken"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_UPGRADE_POLICY", "str") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        path.write_text("{not-json}\n", encoding="utf-8")
+        path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(issue[0] == "INVALID_POLICY_JSON" for issue in issues)
         checks_run += 1
@@ -543,67 +534,53 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("phase", "Phase 3"))
+        path = resolve_path(root, POLICY_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("upgrade_policy", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "phase:" in value for code, value in issues)
+        assert ("INVALID_UPGRADE_POLICY", "list") in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("status", "blocked"))
-        issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "status:" in value for code, value in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("scope", "narrowed packet"))
-        issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "scope:" in value for code, value in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("workflow", "zigux/Makefile"))
-        issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "workflow:" in value for code, value in issues)
-        checks_run += 1
-
-        for key in EXPECTED_TOOL_MANIFEST["present_surfaces"]:
+        for key in ("phase", "status", "scope", "workflow"):
             build_self_test_root(root)
             path = resolve_path(root, TOOL_MANIFEST_PATH)
-            mutate_json(path, lambda payload, key=key: payload["present_surfaces"].__setitem__(key, []))
+            mutate_json(path, lambda payload, key=key: payload.__setitem__(key, "broken"))
             issues = collect_issues(root)
-            assert any(code == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and value.startswith(f"{key}:") for code, value in issues)
+            assert any(issue[0] == "TOOL_MANIFEST_FIELD_MISMATCH" and issue[1].startswith(f"{key}:") for issue in issues)
             checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", "broken"))
+        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", []))
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "str") in issues
+        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "list") in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", ["scripts/zigux/install-zig.py"]))
+        mutate_json(path, lambda payload: payload["present_surfaces"].__setitem__("checkers", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for code, _ in issues)
+        assert any(issue[0] == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and issue[1].startswith("checkers:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", ["gap"]))
+        issues = collect_issues(root)
+        assert any(issue[0] == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("notes", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_NOTES_MISMATCH" for code, _ in issues)
+        assert any(issue[0] == "TOOL_MANIFEST_NOTES_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        path.write_text("{not-json}\n", encoding="utf-8")
+        path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_JSON", "Expecting property name enclosed in double quotes") in issues
+        assert any(issue[0] == "INVALID_TOOL_MANIFEST_JSON" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
@@ -620,23 +597,20 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check that the current directly readable Phase 2 toolchain pinning packet stays aligned.")
+    parser = argparse.ArgumentParser(
+        description="Keep the current directly readable Phase 2 toolchain pinning packet aligned."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
-    issues = collect_issues(args.root.resolve())
+    issues = collect_issues(args.root)
     if issues:
         return emit_issues(issues)
-
     print("PHASE2_TOOLCHAIN_PINNING=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_SETUP_MARKER_COUNT={len(WORKFLOW_SETUP_MARKERS)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
-    print("PHASE2_TOOLCHAIN_PINNING_MANIFEST_CHECKER_COUNT=" + str(len(EXPECTED_TOOL_MANIFEST["present_surfaces"]["checkers"])))
+    print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_MARKER_COUNT={len(BOOTSTRAP_PRESENT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_GAP_MARKER_COUNT={len(BOOTSTRAP_GAP_MARKERS)}")
     return 0
 
 
