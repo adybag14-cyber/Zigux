@@ -10,34 +10,48 @@ import tempfile
 
 SURVEY_PATH = Path("Documentation/zigux/phase12-virtio-scsi-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase12_virtio_scsi_manifest.json")
-BUILD_PATH = Path("zigux/tests/phase12_build.zig")
+SURVEY_GATE_PATH = Path("zigux/tests/phase12_virtio_scsi_survey.zig")
 ROLLBACK_GATE_PATH = Path("zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig")
+SUPPORT_MANIFEST_PATH = Path("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json")
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: [
-        "current `master` now carries `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` so the second-cycle rollback contract and post-restore readiness stay explicit",
-        "current `master` still carries `zigux/tests/phase12_build.zig`, and that shared build route still runs the direct `virtio_scsi` tests, syntax-lab smoke, repeated-replan gate, repeated-rollback gate, and packet replay",
-        "reversible-delivery evidence: current `master` keeps the direct test, syntax lab, repeated-replan gate, repeated-rollback gate, support packet, survey note, survey gate, shared `zigux/tests/phase12_build.zig` route, and `zigux/Makefile` wrappers aligned around the same bounded queue-submit-completion-and-recovery packet",
+        "phase12_virtio_scsi_repeated_rollback_gate.zig",
+        "second-cycle rollback contract",
+        "second-cycle rollback readiness",
+        "rollback drill: when this packet moves",
     ],
     MANIFEST_PATH: [
+        '"preexisting_phase12_repeated_rollback_gate_present": true',
         '"id": "phase12-virtio-scsi-repeated-rollback-gate"',
         '"status": "landed_on_master"',
-        '"kind": "validation"',
         '"zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"',
         '"why_now": "The repeated-rollback gate keeps the second-cycle rollback contract and post-restore readiness explicit without claiming runtime reset execution."',
     ],
-    BUILD_PATH: [
-        '.root_source_file = b.path("phase12_virtio_scsi_repeated_rollback_gate.zig"),',
-        '.name = "phase12-virtio-scsi-repeated-rollback-gate-tests",',
-        "run_repeated_rollback_tests.setCwd(b.path(\"../..\"));",
-        "smoke_step.dependOn(&run_repeated_rollback_tests.step);",
-        "test_step.dependOn(&run_repeated_rollback_tests.step);",
+    SURVEY_GATE_PATH: [
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_scsi_repeated_rollback_gate.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback contract") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback readiness") != null);',
+        'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"));',
     ],
     ROLLBACK_GATE_PATH: [
         'test "phase12 virtio scsi repeated rollback gate reuses only replanned queue and depth state" {',
         "_ = try lab.restoreAfterTransportReset();",
         "try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());",
         "try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);",
+    ],
+    SUPPORT_MANIFEST_PATH: [
+        '"zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"',
+        "existing Phase 12 virtio_scsi survey packet",
+    ],
+}
+
+FORBIDDEN_MARKERS = {
+    SURVEY_PATH: [
+        "shared build route still runs the direct `virtio_scsi` tests",
+    ],
+    ROLLBACK_GATE_PATH: [
+        "shared `smoke` step",
     ],
 }
 
@@ -54,6 +68,16 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 errors.append(f"{relative_path}: missing marker: {marker}")
+
+    for relative_path, markers in FORBIDDEN_MARKERS.items():
+        path = root / relative_path
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in text:
+                errors.append(f"{relative_path}: forbidden stale marker: {marker}")
+
     return errors
 
 
@@ -77,24 +101,44 @@ def run_self_test() -> int:
             path = broken_root / relative_path
             path.parent.mkdir(parents=True, exist_ok=True)
             text = "\n".join(markers) + "\n"
-            if relative_path == BUILD_PATH:
+            if relative_path == SURVEY_GATE_PATH:
                 text = text.replace(
-                    "test_step.dependOn(&run_repeated_rollback_tests.step);\n", ""
+                    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback readiness") != null);\n',
+                    "",
                 )
             path.write_text(text, encoding="utf-8")
 
         broken_errors = validate(broken_root)
         expected = (
-            f"{BUILD_PATH}: missing marker: "
-            "test_step.dependOn(&run_repeated_rollback_tests.step);"
+            f"{SURVEY_GATE_PATH}: missing marker: "
+            'try std.testing.expect(std.mem.indexOf(u8, survey_note, "second-cycle rollback readiness") != null);'
         )
         if expected not in broken_errors:
-            print("self-test did not catch missing repeated rollback build wiring", file=sys.stderr)
+            print("self-test did not catch missing survey-gate rollback marker", file=sys.stderr)
+            print("PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST=fail")
+            return 1
+
+        stale_root = root / "stale"
+        for relative_path, markers in REQUIRED_MARKERS.items():
+            path = stale_root / relative_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            text = "\n".join(markers) + "\n"
+            if relative_path == SURVEY_PATH:
+                text += "shared build route still runs the direct `virtio_scsi` tests\n"
+            path.write_text(text, encoding="utf-8")
+
+        stale_errors = validate(stale_root)
+        stale_expected = (
+            f"{SURVEY_PATH}: forbidden stale marker: "
+            "shared build route still runs the direct `virtio_scsi` tests"
+        )
+        if stale_expected not in stale_errors:
+            print("self-test did not catch stale shared-build wording", file=sys.stderr)
             print("PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST=fail")
             return 1
 
     print("PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST_CASES=2")
+    print("PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST_CASES=3")
     return 0
 
 
