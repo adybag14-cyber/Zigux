@@ -29,7 +29,8 @@
       "fixture_surfaces": [
         "zigux/tests/fixtures/phase6_base64_vectors.zig"
       ],
-      "checker_surfaces": [
+      "checker_surfaces": [],
+      "still_missing_direct_companions": [
         "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
         "zigux/tests/phase6_base64_c_parity.zig",
         "zigux/tests/phase6_base64_c_casegen.zig",
