@@ -63,6 +63,8 @@ EXPECTED_ZIG_MARKERS = {
     "fd_exact_not_elf": 'test "fd-backed exact non-ELF header exits with stderr at EOF" {',
     "invalid_class_trailing": 'test "classifies unsupported ELF class with trailing bytes silently" {',
     "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
+    "render_not_elf": 'test "renders non-ELF error" {',
+    "render_invalid_class": 'test "renders invalid class silently" {',
 }
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
