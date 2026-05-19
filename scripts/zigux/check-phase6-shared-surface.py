@@ -18,7 +18,7 @@ REQUIRED_SCRIPTS_SNIPPETS = [
     "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test` replay the shipped shared-surface and present-entrypoint guards",
     "- `scripts/zigux/check-phase6-shared-surface.py` and `scripts/zigux/check-phase6-present-entrypoints.py` keep the direct-readback warning, the helper-evidence catalog packet, and the shared replay inventory explicit from the scripts root",
     "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
-    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`",
+    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, but current public raw readback rematerializes both files, so treat those broader parity and perf reminder paths as current public-tree-backed companion evidence rather than as direct scripts-root proof",
     "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-bsearch-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
     "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
 ]
@@ -51,17 +51,21 @@ REQUIRED_PARITY_MANIFEST_SNIPPETS = [
     '"packet": "phase6-helper-parity"',
     '"phase": "Phase 6"',
     '"lane_scope": "shared helper-parity rows and machine-readable manifest only"',
-    '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
-    '"make -C zigux phase6-bsearch-perf"',
+    '"public_tree_backed_shared_companions": [',
+    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
+    '"Documentation/zigux/phase6-perf-gate-survey.md"',
+    '"perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-19',
+    '"make -C zigux phase6-perf"',
     '"scripts/zigux/check-phase6-shared-surface.py"',
     '"scripts/zigux/check-phase6-present-entrypoints.py"',
 ]
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 6
 
 
 class ValidationError(RuntimeError):
     """Raised when a required shared-surface marker is missing."""
+
 
 
 def read_text(path: Path) -> str:
@@ -69,6 +73,7 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
+
 
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
@@ -80,6 +85,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             )
 
 
+
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
@@ -87,9 +93,11 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / HELPER_PARITY_MANIFEST_PATH, REQUIRED_PARITY_MANIFEST_SNIPPETS)
 
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def scaffold_repo(root: Path) -> None:
@@ -97,6 +105,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_MANIFEST_PATH, "\n".join(REQUIRED_EVIDENCE_MANIFEST_SNIPPETS) + "\n")
     write(root / HELPER_PARITY_MANIFEST_PATH, "\n".join(REQUIRED_PARITY_MANIFEST_SNIPPETS) + "\n")
+
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
@@ -116,6 +125,7 @@ def expect_failure(root: Path, path: Path, snippet: str) -> None:
         write(path, original)
 
 
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -125,9 +135,14 @@ def run_self_test() -> None:
         cases_run = 0
         for path, snippet in [
             (root / SCRIPTS_README_PATH, "## Phase 6"),
+            (
+                root / SCRIPTS_README_PATH,
+                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, but current public raw readback rematerializes both files, so treat those broader parity and perf reminder paths as current public-tree-backed companion evidence rather than as direct scripts-root proof",
+            ),
             (root / HELPER_EVIDENCE_CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
             (root / HELPER_EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-bsearch-perf"'),
-            (root / HELPER_PARITY_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"'),
+            (root / HELPER_PARITY_MANIFEST_PATH, '"public_tree_backed_shared_companions": ['),
+            (root / HELPER_PARITY_MANIFEST_PATH, '"make -C zigux phase6-perf"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
@@ -141,11 +156,13 @@ def run_self_test() -> None:
     print(f"PHASE6_SHARED_SURFACE_SELF_TEST_CASE_COUNT={cases_run}")
 
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
+
 
 
 def main() -> int:
