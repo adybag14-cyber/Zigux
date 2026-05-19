@@ -7,34 +7,42 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 - `PHASE14_ROADMAP_DESTINATION=kernel/rcu/tree_bridge.zig`
 - `PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`
 - survey provenance captured against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
-- current review packet:
-  - `zigux/tests/phase14_rcu_tree_manifest.json`
-  - `zigux/tests/phase14_rcu_tree_survey.zig`
+- directly readable dedicated packet surfaces on current `master`:
   - `Documentation/zigux/phase14-rcu-tree-survey.md`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- executable packet companions still missing through current contents-path readback:
+  - `zigux/tests/phase14_rcu_tree_manifest.json`
+  - `zigux/tests/phase14_rcu_tree_survey.zig`
+- dedicated rollback guard surface:
+  - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+
 ## Why this packet exists
 The Phase 14 roadmap treats `kernel/rcu/tree.c` as a freeze-in-C anchor even while it recommends `kernel/rcu/tree_bridge.zig` as a possible long-horizon destination.
-This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, and the exact survey surfaces reviewers should use before anyone talks about a bridge again. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
+
+This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, the exact dedicated note that remains directly readable on `master`, and the executable companions that still have not returned through the same contents-path readback. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
+
 ## Exact evidence captured
 - freeze-map posture:
   - `Documentation/zigux/freeze-map.md` keeps `kernel/rcu/tree.c` in `Freeze In C Initially`
-- dedicated packet surfaces:
+- directly readable dedicated packet surfaces on current `master`:
+  - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `Documentation/zigux/phase14-core-boundary-traceability.md`
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `Documentation/zigux/freeze-map.md`
+- executable packet companions still missing through current contents-path readback:
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
-  - `Documentation/zigux/phase14-rcu-tree-survey.md`
-- shared Phase 14 replay surfaces:
-  - `zigux/tests/phase14_build.zig`
-  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- shared Phase 14 reminder surfaces that still carry the bounded owner-map tie-back:
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
-  - `make -C zigux phase14-validate`
-  - `make -C zigux phase14-smoke`
-  - `make -C zigux phase14-test`
+- packet-local rerun vocabulary that remains historical until the executable companions return:
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- dedicated rollback guard surface:
+  - `python3 scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+
 ## Boundary findings
 - grace-period sequence publication still stays in C because `rcu_start_this_gp`, `rcu_gp_init`, and `__note_gp_changes` remain coupled to the live `rcu_node` hierarchy and GP sequencing state
 - the memory-ordering lock network still stays in C because `raw_spin_lock_rcu_node`, `smp_mb__after_unlock_lock`, and `smp_store_release` remain a live ordering contract rather than a detachable bridge seam
@@ -47,11 +55,14 @@ This packet keeps that distinction honest: it records the current boundary evide
 - poll-cookie sequencing and synchronize_rcu wait-head rollover still stays in C because `rcu_poll_gp_seq_start_unlocked`, `rcu_poll_gp_seq_end_unlocked`, and `rcu_sr_normal_gp_init` still share `gp_seq_polled` visibility, grace-period completion state, and wait-head rollover inside the live Tree RCU state machine
 - public wait and callback-barrier ownership still stays in C because `synchronize_rcu`, `get_state_synchronize_rcu`, `poll_state_synchronize_rcu`, and `rcu_barrier` still couple public waiting, polling-cookie APIs, and callback-drain guarantees to deep-core Tree RCU sequencing
 - CPU hotplug callback migration still stays in C because `rcutree_prepare_cpu`, `rcutree_offline_cpu`, and `rcutree_migrate_callbacks` remain tied to live CPU enrollment, teardown, and callback migration state
+
 ## Bridge blocker
 `kernel/rcu/tree_bridge.zig` remains blocked by `phase14-rcu-tree-bridge-blocker`.
 The current survey evidence still shows force-quiescent-state escalation, poll-cookie sequencing plus synchronize_rcu wait-head rollover, public wait and callback-barrier ownership, CPU hotplug callback migration, expedited waits, grace-period publication, NOCB offload, idle-watch re-entry, quiescent-state propagation, callback enqueue, and the memory-ordering lock network as one live deep-core ownership surface. That is still a freeze-in-C posture, not a review-ready bridge seam.
+
 ## Rollback guardrail
 - manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
+- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, missing-companion wording, rollback owner, and required reopen evidence.
 - rollback owner: `Repo Tooling Pod`
 - required evidence before any status review:
   - `Architecture Council` reopen record linked from the active review packet
@@ -60,12 +71,14 @@ The current survey evidence still shows force-quiescent-state escalation, poll-c
 - automatic return-to-blocked triggers:
   - any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record
   - missing parity scorecard evidence, benchmark notes, or replay command in the active review packet
-  - freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner
+  - freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the missing-companion warning, or the rollback owner
+
 ## Non-goals
 - any live `kernel/rcu/tree_bridge.zig` ownership claim
 - any freeze-map status change
 - any Architecture Council reopen request
 - any claim that Tree RCU is now a study-only anchor instead of a freeze-in-C anchor
+
 ## Next bounded step
-Keep this dedicated RCU packet aligned only when the manifest, the dedicated survey test, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
-If the lane reopens again, keep the follow-through to one packet-local survey note, manifest, or survey-test truthfulness repair before touching any neighboring blocked-bridge checklist or shared smoke surface.
+Keep this dedicated RCU packet aligned only when the dedicated note, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
+If the missing executable companions return through current contents-path readback, update this note and the dedicated checker together before restoring any stronger survey-backed wording.
