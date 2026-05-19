@@ -163,6 +163,15 @@
     "expected": "version_before_missing_short_option_argument_expected.json"
   },
   {
+    "name": "abbreviated_long_version_before_missing_short_option_argument",
+    "argv": [
+      "--ver",
+      "-r"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_missing_short_option_argument_expected.json"
+  },
+  {
     "name": "version_before_short_help",
     "argv": [
       "-Vh"
