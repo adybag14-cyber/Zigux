@@ -590,6 +590,15 @@ def run_self_test() -> None:
     assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS"]
     case_count += 1
 
+    missing_rbtree_iteration_output = ok_output.replace(
+        "\nPHASE1_BENCH_RBTREE_ITERATIONS=4000",
+        "",
+    )
+    kind, payload = validate_output(expectations, missing_rbtree_iteration_output)
+    assert kind == "missing_rbtree_iterations"
+    assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
+    case_count += 1
+
     rbtree_iteration_mismatch_output = ok_output.replace(
         "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
         "PHASE1_BENCH_RBTREE_ITERATIONS=4",
