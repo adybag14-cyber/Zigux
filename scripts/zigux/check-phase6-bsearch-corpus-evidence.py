@@ -14,6 +14,8 @@ class ValidationError(RuntimeError):
 
 SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
+HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 LIB_PATH = Path("lib/bsearch.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_bsearch.zig")
 PERF_TEST_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
@@ -36,6 +38,30 @@ REQUIRED_SNIPPETS = {
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
         "- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
     ],
+    HELPER_EVIDENCE_MANIFEST_PATH: [
+        '"key": "bsearch"',
+        '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+        '"checker_surfaces": [',
+        '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+        '"case_labels": [',
+        '"len15"',
+        '"len64"',
+        '"len1024"',
+        '"query_count": 16',
+        '"zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"',
+        '"make -C zigux phase6-bsearch-perf"',
+    ],
+    HELPER_PARITY_MANIFEST_PATH: [
+        '"key": "bsearch"',
+        '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+        '"budget_model": "comparison_budget"',
+        '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
+        '"runtime_selected_c_abi_replays": [',
+        '"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"',
+        '"zigux/tests/phase6_bsearch_c_abi_budget.zig"',
+        '"make -C zigux phase6-bsearch-perf"',
+        '"make -C zigux phase6-perf"',
+    ],
     LIB_PATH: [
         "pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
@@ -51,13 +77,13 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {',
     ],
     PERF_TEST_PATH: [
-        'phase6-bsearch-perf',
-        'fixtures.perf_cases',
-        'fixtures.seedDeterministicQueries',
-        'avg_compare_calls',
-        'max_compare_calls',
-        'max_compare_budget',
-        'try std.testing.expect(worst_compare_calls <= max_compare_budget);',
+        "phase6-bsearch-perf",
+        "fixtures.perf_cases",
+        "fixtures.seedDeterministicQueries",
+        "avg_compare_calls",
+        "max_compare_calls",
+        "max_compare_budget",
+        "try std.testing.expect(worst_compare_calls <= max_compare_budget);",
     ],
     LOWER_BOUND_TEST_PATH: [
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
@@ -98,6 +124,16 @@ SELF_TEST_CASES = [
     ),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
     (
+        HELPER_EVIDENCE_MANIFEST_PATH,
+        '"query_count": 16',
+        '"query_count": 8',
+    ),
+    (
+        HELPER_PARITY_MANIFEST_PATH,
+        '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
+        '"bound_budget_formula": "std.math.log2_int_floor(len) + 1"',
+    ),
+    (
         LIB_PATH,
         "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
         "pub fn bsearchEqualRangeMutableBytes(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
@@ -113,7 +149,7 @@ SELF_TEST_CASES = [
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
     ),
     (FIXTURES_PATH, "pub const query_count: usize = 16;", "pub const query_count: usize = 15;"),
-    (PERF_TEST_PATH, 'avg_compare_calls', 'avg_probe_calls'),
+    (PERF_TEST_PATH, "avg_compare_calls", "avg_probe_calls"),
     (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
 ]
 
