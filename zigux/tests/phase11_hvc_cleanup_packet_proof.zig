@@ -59,11 +59,11 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explici
     );
     try expectContains(
         survey_doc,
-        "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
+        "starter-depth packet framed as archival or repo-reality-gap vocabulary until",
     );
     try expectContains(
         survey_doc,
-        "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+        "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`",
     );
     try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");
     try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`");
@@ -107,6 +107,10 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
     try expectContains(
         verify_boundary,
         "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
+    );
+    try expectContains(
+        verify_boundary,
+        "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup` keep the hangup-only and combined cleanup trigger split explicit beside the earlier final-close-only path.",
     );
     try expectContains(
         verify_boundary,
