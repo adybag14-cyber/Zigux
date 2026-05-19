@@ -1,6 +1,6 @@
 # Phase 9 Runtime Trace-Events Module Slice
 
-PHASE9_SURVEYED_COMMIT=70542337d15e9f26941f6a247da00077dddcebe8
+PHASE9_SURVEYED_COMMIT=11db15ce30c044bcf24007b31a5875881eec98d5
 
 This note keeps the owner-facing trace-events pilot-module slice aligned with the narrow current-master packet and its restored family-local survey witness.
 
