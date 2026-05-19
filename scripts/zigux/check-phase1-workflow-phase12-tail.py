@@ -245,7 +245,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_guard_line")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, note_text + PHASE12_GUARD_LINE + "\n")
