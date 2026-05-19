@@ -7,6 +7,7 @@ The planner stays intentionally narrow:
 - accepts already-decided allocation inputs rather than talking to live hardware state
 - records whether a successful planned coherent allocation retains detach-time cleanup ownership on success
 - turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`
+- records whether that planned coherent free consumes the retained release record and releases the allocation from devres
 - records whether a failed allocation frees the release record and avoids retaining detach-time cleanup ownership
 - keeps `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, and `sg_*` lifecycle ownership out of scope
 - does not claim live DMA allocation side effects, IOMMU state, DMA attributes, device-managed pool mutation, or wider devres group teardown behavior
