@@ -13,6 +13,8 @@
 - `lowerBound`
 - `lowerBoundMutable`
 - `upperBoundIndex`
+- `upperBound`
+- `upperBoundMutable`
 - `IndexRange`
 - `equalRangeIndex`
 - `equalRange`
@@ -24,6 +26,8 @@
 - `bsearchLowerBound`
 - `bsearchLowerBoundMutable`
 - `bsearchUpperBoundIndex`
+- `bsearchUpperBound`
+- `bsearchUpperBoundMutable`
 - `bsearchEqualRangeIndex`
 - `bsearchEqualRange`
 - `bsearchEqualRangeMutable`
