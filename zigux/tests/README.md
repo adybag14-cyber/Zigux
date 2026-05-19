@@ -109,6 +109,8 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
@@ -162,7 +164,7 @@ Keep the stable contributor-facing reminder handle explicit through `Documentati
 Keep `zigux/helpers/notifier_chain_view.zig` framed as an adjacent repo-reality gap rather than a shipped shared surface.
 
 Tests-root reviewer prompt:
-- Do the contributor workflow guide, the shared-helper sequencing note, the release coordination and release-notes reminder surfaces, the roadmap-traceability note, the shared review checklist, the contributor-surface sync note, the shipped shared-summary guard, the helper-local `libfs`, `devres`, and Landlock packet anchors, the stable contributor-facing reminder handle, the explicit repo-reality gaps, and the adjacent notifier evidence all stay aligned on the same bounded Phase 13 contributor packet without promoting the missing Phase 13 make routes or notifier-chain helper into shipped tests-root evidence?
+- Do the contributor workflow guide, the shared-helper sequencing note, the release coordination and release-notes reminder surfaces, the roadmap-traceability note, the shared-summary-gap and notifier-summary-gap notes, the shared review checklist, the contributor-surface sync note, the shipped shared-summary guard, the helper-local `libfs`, `devres`, and Landlock packet anchors, the stable contributor-facing reminder handle, the explicit repo-reality gaps, and the adjacent notifier evidence all stay aligned on the same bounded Phase 13 contributor packet without promoting the missing Phase 13 make routes or notifier-chain helper into shipped tests-root evidence?
 
 ## Phase 14 shared smoke packet
 
