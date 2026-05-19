@@ -19,6 +19,7 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
+    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
@@ -129,6 +130,7 @@ EXPECTED_TOOL_MANIFEST = {
         ],
         "checkers": [
             "scripts/zigux/check-zig-toolchain.py",
+            "scripts/zigux/check-kconfig-bridge.py",
             "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             "scripts/zigux/check-phase2-kbuild-routes.py",
             "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -173,7 +175,7 @@ EXPECTED_TOOL_MANIFEST = {
     },
     "repo_reality_gaps": [],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, cross-selftest checker, and the restored tranche-closure note.",
         "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
