@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 66
+EXPECTED_SELF_TEST_CASE_COUNT = 75
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -115,6 +115,8 @@ def read_text(root: Path, path: Path) -> str:
         return resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except OSError as exc:
+        raise SystemExit(f"required file unreadable: {resolved}") from exc
 
 
 def read_manifest(root: Path) -> dict[str, object]:
@@ -123,6 +125,8 @@ def read_manifest(root: Path) -> dict[str, object]:
         raw = resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except OSError as exc:
+        raise SystemExit(f"manifest is unreadable: {resolved}") from exc
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -675,9 +679,30 @@ def run_self_test() -> int:
             assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
             checks_run += 1
 
+        for path in (CLOSURE_DOC, BOOTSTRAP_NOTES, PHASE2_VALIDATOR, PHASE2_CLOSURE_VALIDATOR):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+            checks_run += 1
+
+            build_self_test_root(root)
+            unreadable = resolve_path(root, path)
+            unreadable.unlink()
+            unreadable.mkdir(parents=True)
+            assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
+            unreadable.rmdir()
+            checks_run += 1
+
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
         assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
+        resolve_path(root, MANIFEST).mkdir(parents=True)
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is unreadable:")
+        resolve_path(root, MANIFEST).rmdir()
         checks_run += 1
 
         build_self_test_root(root)
