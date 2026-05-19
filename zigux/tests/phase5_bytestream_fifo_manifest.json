@@ -59,7 +59,7 @@
     {
       "id": "occupancy-summary-boundary",
       "kind": "capacity_accounting",
-      "expected": "occupancySummary() reports (used=0, available=32, empty=true, full=false, wrapped_window=false) when cold and again after reset and exit, (used=5, available=27, empty=false, full=false, wrapped_window=false) after enqueueing \"hello\", (used=32, available=0, empty=false, full=true, wrapped_window=false) at full capacity before a skip, and (used=32, available=0, empty=false, full=true, wrapped_window=true) after the skip-plus-refill wraparound case"
+      "expected": "occupancySummary() reports queue_len=0, available=32, and wrapped=false when cold and again after reset and exit, queue_len=5, available=27, and wrapped=false after enqueueing \"hello\", queue_len=10, available=22, and wrapped=false after runPreviewBoundaryReplay(), queue_len=32, available=0, and wrapped=false at full capacity before a skip, and queue_len=32, available=0, and wrapped=true after the skip-plus-refill wraparound case"
     },
     {
       "id": "wrapped-storage-window-boundary",
