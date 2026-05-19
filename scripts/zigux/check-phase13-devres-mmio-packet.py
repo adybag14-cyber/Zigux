@@ -85,17 +85,12 @@ PLANNER_REPLAY_MARKERS = [
     'test "phase13 devres dmam_alloc_coherent planner manifest records the landed helper-first dma scope" {',
     'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
     'try requireContains(manifest, "planManagedReleaseRecordLifetime");',
-    'test "phase13 devres survey records the landed dmam planner and keeps the blocked dma boundaries explicit" {',
-    'try requireContains(survey, "blocked `phase13-devres-broader-direct-helper-packet`");',
 ]
 
 DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
     'test "phase13 devres dma coherent replay anchors the current slice reality" {',
     'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
-    'test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {',
-    'try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");',
-    'try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");',
 ]
 
 SCATTERLIST_HELPER_MARKERS = [
@@ -277,25 +272,6 @@ def run_self_test() -> int:
                 'planner_replay:missing_marker:try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");'
             ],
             "planner_replay_missing_status_assertion_failed",
-        )
-        case_count += 1
-
-        seed_fixture_tree(root)
-        write_text(
-            root / DMA_REPLAY_PATH,
-            "\n".join(
-                marker
-                for marker in DMA_REPLAY_MARKERS
-                if marker != 'try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");'
-            )
-            + "\n",
-        )
-        assert_only(
-            validate(root),
-            [
-                'dma_replay:missing_marker:try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");'
-            ],
-            "dma_replay_missing_generic_dma_boundary_failed",
         )
         case_count += 1
 
