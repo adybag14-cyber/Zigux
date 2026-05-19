@@ -24,15 +24,27 @@ REQUIRED_SOURCE_MARKERS = {
         "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U",
         "struct zigux_boundary_header {",
         "struct zigux_interop_policy {",
+        "struct zigux_export_status {",
         "struct zigux_notifier_block {",
         "struct zigux_list_head {",
         "struct zigux_hlist_head {",
         "struct zigux_hlist_node {",
         "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
         "static inline int zigux_notifier_first_chain_priority_increase(",
+        "static inline int zigux_list_has_consistent_backlinks(",
+        "static inline int zigux_hlist_has_consistent_prev_links(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+        "static inline zigux_boundary_header zigux_compatible_header(",
+        "static inline int zigux_abi_version_is_current(uint16_t abi_version)",
         "static inline int zigux_header_is_canonical(zigux_boundary_header header)",
+        "static inline int zigux_header_is_compatible(zigux_boundary_header header)",
+        "static inline int zigux_header_extends_boundary(zigux_boundary_header header)",
         "static inline uint32_t zigux_header_requested_extra_bytes(",
+        "static inline zigux_boundary_header zigux_header_canonicalize(",
+        "static inline struct zigux_interop_policy zigux_default_interop_policy(void)",
+        "static inline struct zigux_export_status zigux_make_status(",
+        "static inline struct zigux_export_status zigux_ok_status(uint16_t facility)",
+        "static inline int zigux_export_status_ok(struct zigux_export_status status)",
     ),
     ABI_BINDINGS_PATH: (
         "pub const ABI_VERSION: u16 = 1;",
@@ -40,6 +52,7 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const UNSAFE_RAW_POINTER_BRIDGE: u8 = 2;",
         "pub const BoundaryHeader = extern struct {",
         "pub const InteropPolicy = extern struct {",
+        "pub const ExportStatus = extern struct {",
         "pub const NotifierBlock = notifier_abi.NotifierBlock;",
         "pub const ListHead = notifier_abi.ListHead;",
         "pub const HListHead = notifier_abi.HListHead;",
@@ -49,8 +62,16 @@ REQUIRED_SOURCE_MARKERS = {
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
         "pub fn defaultHeader(flags: u16) BoundaryHeader {",
+        "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
+        "pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {",
         "pub fn headerIsCanonical(header: BoundaryHeader) bool {",
+        "pub fn headerIsCompatible(header: BoundaryHeader) bool {",
+        "pub fn extendsBoundary(header: BoundaryHeader) bool {",
         "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {",
+        "pub fn defaultInteropPolicy() InteropPolicy {",
+        "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {",
+        "pub fn okStatus(facility: Facility) ExportStatus {",
         "pub fn statusIsOk(status: ExportStatus) bool {",
     ),
     NOTIFIER_BINDINGS_PATH: (
@@ -214,19 +235,90 @@ static inline int zigux_notifier_first_chain_priority_increase(
 {
     return head != 0 && out != 0;
 }
+static inline int zigux_list_has_consistent_backlinks(
+    const struct zigux_list_head *head)
+{
+    return head != 0;
+}
+static inline int zigux_hlist_has_consistent_prev_links(
+    const struct zigux_hlist_head *head)
+{
+    return head != 0;
+}
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
 {
     zigux_boundary_header header = { .size = 8u, .abi_version = 1u, .flags = flags };
     return header;
 }
+static inline zigux_boundary_header zigux_compatible_header(
+    uint32_t size,
+    uint16_t flags)
+{
+    zigux_boundary_header header = zigux_default_header(flags);
+    header.size = size;
+    return header;
+}
+static inline int zigux_abi_version_is_current(uint16_t abi_version)
+{
+    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+}
 static inline int zigux_header_is_canonical(zigux_boundary_header header)
 {
-    return header.abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+    return header.size == 8u &&
+        zigux_abi_version_is_current(header.abi_version);
+}
+static inline int zigux_header_is_compatible(zigux_boundary_header header)
+{
+    return header.size >= 8u &&
+        zigux_abi_version_is_current(header.abi_version);
+}
+static inline int zigux_header_extends_boundary(zigux_boundary_header header)
+{
+    return zigux_header_is_compatible(header) &&
+        !zigux_header_is_canonical(header);
 }
 static inline uint32_t zigux_header_requested_extra_bytes(
     zigux_boundary_header header)
 {
-    return header.size > 8u ? header.size - 8u : 0u;
+    if (!zigux_header_extends_boundary(header))
+        return 0u;
+    return header.size - 8u;
+}
+static inline zigux_boundary_header zigux_header_canonicalize(
+    zigux_boundary_header header)
+{
+    header.size = 8u;
+    header.abi_version = (uint16_t)ZIGUX_ABI_VERSION;
+    return header;
+}
+static inline struct zigux_interop_policy zigux_default_interop_policy(void)
+{
+    struct zigux_interop_policy policy = {
+        .panic_mode = 0u,
+        .allocator_mode = 0u,
+        .unsafe_scope = 0u,
+        .reserved = 0u,
+    };
+    return policy;
+}
+static inline struct zigux_export_status zigux_make_status(
+    int32_t code,
+    uint16_t facility)
+{
+    struct zigux_export_status status = {
+        .code = code,
+        .facility = facility,
+        .flags = (uint16_t)(code < 0 ? 1u : 0u),
+    };
+    return status;
+}
+static inline struct zigux_export_status zigux_ok_status(uint16_t facility)
+{
+    return zigux_make_status(0, facility);
+}
+static inline int zigux_export_status_ok(struct zigux_export_status status)
+{
+    return status.flags == 0;
 }
 """
 
@@ -249,6 +341,18 @@ pub const InteropPolicy = extern struct {
     allocator_mode: u8,
     unsafe_scope: u8,
     reserved: u8,
+};
+pub const Facility = enum(u16) {
+    kernel = FACILITY_KERNEL,
+};
+pub const PanicMode = enum(u8) {
+    abort = 0,
+};
+pub const AllocatorMode = enum(u8) {
+    caller_provided = 0,
+};
+pub const UnsafeScope = enum(u8) {
+    none = 0,
 };
 pub const ChainPriorityIncrease = extern struct {
     previous_index: usize,
@@ -303,12 +407,52 @@ pub fn defaultHeader(flags: u16) BoundaryHeader {
         .flags = flags,
     };
 }
+pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
+    var header = defaultHeader(flags);
+    header.size = size;
+    return header;
+}
+pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
+    return abi_version == ABI_VERSION;
+}
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return header.abi_version == ABI_VERSION;
+    return header.size == @sizeOf(BoundaryHeader) and
+        headerHasCurrentAbiVersion(header.abi_version);
+}
+pub fn headerIsCompatible(header: BoundaryHeader) bool {
+    return header.size >= @sizeOf(BoundaryHeader) and
+        headerHasCurrentAbiVersion(header.abi_version);
+}
+pub fn extendsBoundary(header: BoundaryHeader) bool {
+    return headerIsCompatible(header) and !headerIsCanonical(header);
 }
 pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
-    if (header.size <= @sizeOf(BoundaryHeader)) return 0;
+    if (!extendsBoundary(header)) return 0;
     return header.size - @as(u32, @sizeOf(BoundaryHeader));
+}
+pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
+    var canonical = header;
+    canonical.size = @sizeOf(BoundaryHeader);
+    canonical.abi_version = ABI_VERSION;
+    return canonical;
+}
+pub fn defaultInteropPolicy() InteropPolicy {
+    return .{
+        .panic_mode = @intFromEnum(PanicMode.abort),
+        .allocator_mode = @intFromEnum(AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(UnsafeScope.none),
+        .reserved = 0,
+    };
+}
+pub fn makeStatus(code: i32, facility: Facility) ExportStatus {
+    return .{
+        .code = code,
+        .facility = @intFromEnum(facility),
+        .flags = if (code < 0) 1 else 0,
+    };
+}
+pub fn okStatus(facility: Facility) ExportStatus {
+    return makeStatus(0, facility);
 }
 pub fn statusIsOk(status: ExportStatus) bool {
     return status.flags == 0;
@@ -664,11 +808,40 @@ def run_self_test() -> int:
         _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
 
         _write(
+            root / ABI_HEADER_PATH,
+            SELF_TEST_HEADER.replace(
+                "static inline zigux_boundary_header zigux_compatible_header(\n"
+                "    uint32_t size,\n"
+                "    uint16_t flags)\n"
+                "{\n"
+                "    zigux_boundary_header header = zigux_default_header(flags);\n"
+                "    header.size = size;\n"
+                "    return header;\n"
+                "}\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing include/zigux/abi.h marker: "
+            "static inline zigux_boundary_header zigux_compatible_header("
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing compatibility helper marker was not reported")
+            return 1
+
+        _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
+
+        _write(
             root / ABI_BINDINGS_PATH,
             SELF_TEST_BINDINGS.replace(
-                "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {\n"
-                "    if (header.size <= @sizeOf(BoundaryHeader)) return 0;\n"
-                "    return header.size - @as(u32, @sizeOf(BoundaryHeader));\n"
+                "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {\n"
+                "    var canonical = header;\n"
+                "    canonical.size = @sizeOf(BoundaryHeader);\n"
+                "    canonical.abi_version = ABI_VERSION;\n"
+                "    return canonical;\n"
                 "}\n",
                 "",
                 1,
@@ -677,11 +850,64 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         expected = (
             "missing zigux/bindings/abi.zig marker: "
-            "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {"
+            "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {"
         )
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing ABI helper marker was not reported")
+            print("expected missing canonicalize helper marker was not reported")
+            return 1
+
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+
+        _write(
+            root / ABI_BINDINGS_PATH,
+            SELF_TEST_BINDINGS.replace(
+                "pub fn defaultInteropPolicy() InteropPolicy {\n"
+                "    return .{\n"
+                "        .panic_mode = @intFromEnum(PanicMode.abort),\n"
+                "        .allocator_mode = @intFromEnum(AllocatorMode.caller_provided),\n"
+                "        .unsafe_scope = @intFromEnum(UnsafeScope.none),\n"
+                "        .reserved = 0,\n"
+                "    };\n"
+                "}\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/bindings/abi.zig marker: "
+            "pub fn defaultInteropPolicy() InteropPolicy {"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing interop policy helper marker was not reported")
+            return 1
+
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+
+        _write(
+            root / ABI_BINDINGS_PATH,
+            SELF_TEST_BINDINGS.replace(
+                "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {\n"
+                "    return .{\n"
+                "        .code = code,\n"
+                "        .facility = @intFromEnum(facility),\n"
+                "        .flags = if (code < 0) 1 else 0,\n"
+                "    };\n"
+                "}\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/bindings/abi.zig marker: "
+            "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing status helper marker was not reported")
             return 1
 
         _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
@@ -765,7 +991,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
