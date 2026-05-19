@@ -43,6 +43,15 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
+def run_checked(label: str, cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    try:
+        return run(cmd, **kwargs)
+    except FileNotFoundError as exc:
+        raise SystemExit(f"{label} failed: missing executable: {cmd[0]}") from exc
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(f"{label} failed with exit {exc.returncode}: {' '.join(cmd)}") from exc
+
+
 def resolve_tool(candidate: str, missing_message: str) -> str:
     resolved = shutil.which(candidate)
     if resolved:
@@ -96,21 +105,21 @@ def compare_json(label: str, left: Path, right: Path) -> None:
 
 def compile_run_c(root: Path, tmp_dir: Path, harness: Path, inputs: Path, actual: Path, compiler: str) -> None:
     exe = tmp_dir / "genksyms-crc-c"
-    run([compiler, "-std=c11", "-Wall", "-Wextra", "-o", str(exe), str(harness)], cwd=str(root))
-    result = run([str(exe), str(inputs)], cwd=str(root), capture_output=True)
+    run_checked("compile C harness", [compiler, "-std=c11", "-Wall", "-Wextra", "-o", str(exe), str(harness)], cwd=str(root))
+    result = run_checked("run C harness", [str(exe), str(inputs)], cwd=str(root), capture_output=True)
     actual.write_text(result.stdout, encoding="utf-8", newline="\n")
 
 
 def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, actual: Path, zig: str) -> None:
     exe = tmp_dir / "genksyms-crc-zig"
-    run([zig, "build-exe", str(zig_tool), "-femit-bin=" + str(exe)], cwd=str(root))
-    result = run([str(exe), str(inputs)], cwd=str(root), capture_output=True)
+    run_checked("build Zig CRC helper", [zig, "build-exe", str(zig_tool), "-femit-bin=" + str(exe)], cwd=str(root))
+    result = run_checked("run Zig CRC helper", [str(exe), str(inputs)], cwd=str(root), capture_output=True)
     actual.write_text(result.stdout, encoding="utf-8", newline="\n")
 
 
-def write_fake_executable(path: Path) -> Path:
+def write_fake_executable(path: Path, body: str = "#!/bin/sh\nexit 0\n") -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="\n")
+    path.write_text(body, encoding="utf-8", newline="\n")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
@@ -271,6 +280,19 @@ def run_self_test() -> int:
             else:
                 os.environ["ZIG"] = saved_zig
 
+    with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_run_checked_") as run_checked_tmp_dir_str:
+        run_checked_tmp_dir = Path(run_checked_tmp_dir_str)
+        fake_missing = run_checked_tmp_dir / "missing-tool"
+        fake_fail = write_fake_executable(run_checked_tmp_dir / "fail-tool", "#!/bin/sh\nexit 7\n")
+        expect_system_exit_contains(
+            lambda: run_checked("selftest-missing-tool", [str(fake_missing)]),
+            f"selftest-missing-tool failed: missing executable: {fake_missing}",
+        )
+        expect_system_exit_contains(
+            lambda: run_checked("selftest-failing-tool", [str(fake_fail)]),
+            f"selftest-failing-tool failed with exit 7: {fake_fail}",
+        )
+
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         left = tmp_dir / "left.json"
@@ -310,7 +332,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=25")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
