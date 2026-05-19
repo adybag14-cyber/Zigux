@@ -46,6 +46,7 @@ SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "current authenticated contents readback keeps the bounded HVC current-head",
     "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
+    "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
 )
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
@@ -76,6 +77,7 @@ MATRIX_MARKERS = (
     "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable",
     "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and",
     "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
 )
 EXPORT_PROOF_MARKERS = (
     'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
@@ -314,6 +316,7 @@ def build_fixture(root: Path) -> None:
                 "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
                 "current authenticated contents readback keeps the bounded HVC current-head packet reviewable through:",
                 "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
+                "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
                 "",
             ]
         ),
@@ -368,6 +371,7 @@ def build_fixture(root: Path) -> None:
                 "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable",
                 "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on current `master`.",
                 "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
+                "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
                 "",
             ]
         ),
@@ -494,6 +498,20 @@ def run_self_test() -> int:
         )
         expect_failure(missing_survey, "keep the deeper verify helper")
 
+        missing_survey_route_boundary = tmpdir / "missing_survey_route_boundary"
+        shutil.copytree(fixture, missing_survey_route_boundary, dirs_exist_ok=True)
+        write(
+            missing_survey_route_boundary / SURVEY_PATH,
+            read_text(missing_survey_route_boundary / SURVEY_PATH).replace(
+                "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+                "",
+            ),
+        )
+        expect_failure(
+            missing_survey_route_boundary,
+            "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+        )
+
         missing_companion = tmpdir / "missing_companion"
         shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
         write(
@@ -593,6 +611,20 @@ def run_self_test() -> int:
         )
         expect_failure(missing_matrix, "do not treat the deeper verify helper")
 
+        missing_matrix_route_boundary = tmpdir / "missing_matrix_route_boundary"
+        shutil.copytree(fixture, missing_matrix_route_boundary, dirs_exist_ok=True)
+        write(
+            missing_matrix_route_boundary / MATRIX_PATH,
+            read_text(missing_matrix_route_boundary / MATRIX_PATH).replace(
+                "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+                "",
+            ),
+        )
+        expect_failure(
+            missing_matrix_route_boundary,
+            "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+        )
+
         missing_matrix_export_build = tmpdir / "missing_matrix_export_build"
         shutil.copytree(fixture, missing_matrix_export_build, dirs_exist_ok=True)
         write(
@@ -658,7 +690,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=18")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=20")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
