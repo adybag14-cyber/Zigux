@@ -5,6 +5,9 @@ pub const LayoutError = error{
     SizeMismatch,
     AlignMismatch,
     OffsetMismatch,
+    FieldTypeMismatch,
+    FieldCountMismatch,
+    FieldNameMismatch,
 };
 
 pub fn expectSize(comptime T: type, expected: usize) LayoutError!void {
@@ -24,6 +27,28 @@ pub fn expectLayout(comptime T: type, size: usize, alignment: usize) LayoutError
     try expectAlign(T, alignment);
 }
 
+pub fn expectFieldCount(comptime T: type, expected: usize) LayoutError!void {
+    if (std.meta.fields(T).len != expected) return error.FieldCountMismatch;
+}
+
+pub fn expectFieldType(
+    comptime T: type,
+    comptime field_name: []const u8,
+    comptime Expected: type,
+) LayoutError!void {
+    if (@TypeOf(@field(@as(T, undefined), field_name)) != Expected) return error.FieldTypeMismatch;
+}
+
+pub fn expectFieldNameAt(
+    comptime T: type,
+    comptime field_index: usize,
+    comptime expected_name: []const u8,
+) LayoutError!void {
+    const fields = std.meta.fields(T);
+    if (field_index >= fields.len) return error.FieldCountMismatch;
+    if (!std.mem.eql(u8, fields[field_index].name, expected_name)) return error.FieldNameMismatch;
+}
+
 pub fn expectFieldLayout(
     comptime T: type,
     comptime field_name: []const u8,
@@ -34,6 +59,13 @@ pub fn expectFieldLayout(
 
 pub fn assertBoundaryHeaderLayout() LayoutError!void {
     try expectLayout(abi.BoundaryHeader, 8, 4);
+    try expectFieldCount(abi.BoundaryHeader, 3);
+    try expectFieldNameAt(abi.BoundaryHeader, 0, "size");
+    try expectFieldNameAt(abi.BoundaryHeader, 1, "abi_version");
+    try expectFieldNameAt(abi.BoundaryHeader, 2, "flags");
+    try expectFieldType(abi.BoundaryHeader, "size", u32);
+    try expectFieldType(abi.BoundaryHeader, "abi_version", u16);
+    try expectFieldType(abi.BoundaryHeader, "flags", u16);
     try expectFieldLayout(abi.BoundaryHeader, "size", 0);
     try expectFieldLayout(abi.BoundaryHeader, "abi_version", 4);
     try expectFieldLayout(abi.BoundaryHeader, "flags", 6);
@@ -41,6 +73,13 @@ pub fn assertBoundaryHeaderLayout() LayoutError!void {
 
 pub fn assertExportStatusLayout() LayoutError!void {
     try expectLayout(abi.ExportStatus, 8, 4);
+    try expectFieldCount(abi.ExportStatus, 3);
+    try expectFieldNameAt(abi.ExportStatus, 0, "code");
+    try expectFieldNameAt(abi.ExportStatus, 1, "facility");
+    try expectFieldNameAt(abi.ExportStatus, 2, "flags");
+    try expectFieldType(abi.ExportStatus, "code", i32);
+    try expectFieldType(abi.ExportStatus, "facility", u16);
+    try expectFieldType(abi.ExportStatus, "flags", u16);
     try expectFieldLayout(abi.ExportStatus, "code", 0);
     try expectFieldLayout(abi.ExportStatus, "facility", 4);
     try expectFieldLayout(abi.ExportStatus, "flags", 6);
@@ -48,6 +87,15 @@ pub fn assertExportStatusLayout() LayoutError!void {
 
 pub fn assertInteropPolicyLayout() LayoutError!void {
     try expectLayout(abi.InteropPolicy, 4, 1);
+    try expectFieldCount(abi.InteropPolicy, 4);
+    try expectFieldNameAt(abi.InteropPolicy, 0, "panic_mode");
+    try expectFieldNameAt(abi.InteropPolicy, 1, "allocator_mode");
+    try expectFieldNameAt(abi.InteropPolicy, 2, "unsafe_scope");
+    try expectFieldNameAt(abi.InteropPolicy, 3, "reserved");
+    try expectFieldType(abi.InteropPolicy, "panic_mode", u8);
+    try expectFieldType(abi.InteropPolicy, "allocator_mode", u8);
+    try expectFieldType(abi.InteropPolicy, "unsafe_scope", u8);
+    try expectFieldType(abi.InteropPolicy, "reserved", u8);
     try expectFieldLayout(abi.InteropPolicy, "panic_mode", 0);
     try expectFieldLayout(abi.InteropPolicy, "allocator_mode", 1);
     try expectFieldLayout(abi.InteropPolicy, "unsafe_scope", 2);
@@ -59,6 +107,13 @@ pub fn assertNotifierBlockLayout() LayoutError!void {
     const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(abi.NotifierBlock));
 
     try expectLayout(abi.NotifierBlock, expected_size, @alignOf(usize));
+    try expectFieldCount(abi.NotifierBlock, 3);
+    try expectFieldNameAt(abi.NotifierBlock, 0, "notifier_call");
+    try expectFieldNameAt(abi.NotifierBlock, 1, "next");
+    try expectFieldNameAt(abi.NotifierBlock, 2, "priority");
+    try expectFieldType(abi.NotifierBlock, "notifier_call", usize);
+    try expectFieldType(abi.NotifierBlock, "next", usize);
+    try expectFieldType(abi.NotifierBlock, "priority", i32);
     try expectFieldLayout(abi.NotifierBlock, "notifier_call", 0);
     try expectFieldLayout(abi.NotifierBlock, "next", @sizeOf(usize));
     try expectFieldLayout(abi.NotifierBlock, "priority", @sizeOf(usize) * 2);
@@ -70,6 +125,15 @@ pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {
         @sizeOf(usize) * 2 + @sizeOf(i32) * 2,
         @alignOf(usize),
     );
+    try expectFieldCount(abi.ChainPriorityIncrease, 4);
+    try expectFieldNameAt(abi.ChainPriorityIncrease, 0, "previous_index");
+    try expectFieldNameAt(abi.ChainPriorityIncrease, 1, "current_index");
+    try expectFieldNameAt(abi.ChainPriorityIncrease, 2, "previous_priority");
+    try expectFieldNameAt(abi.ChainPriorityIncrease, 3, "current_priority");
+    try expectFieldType(abi.ChainPriorityIncrease, "previous_index", usize);
+    try expectFieldType(abi.ChainPriorityIncrease, "current_index", usize);
+    try expectFieldType(abi.ChainPriorityIncrease, "previous_priority", i32);
+    try expectFieldType(abi.ChainPriorityIncrease, "current_priority", i32);
     try expectFieldLayout(abi.ChainPriorityIncrease, "previous_index", 0);
     try expectFieldLayout(abi.ChainPriorityIncrease, "current_index", @sizeOf(usize));
     try expectFieldLayout(abi.ChainPriorityIncrease, "previous_priority", @sizeOf(usize) * 2);
@@ -82,23 +146,43 @@ pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {
 
 pub fn assertListHeadLayout() LayoutError!void {
     try expectLayout(abi.ListHead, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldCount(abi.ListHead, 2);
+    try expectFieldNameAt(abi.ListHead, 0, "next");
+    try expectFieldNameAt(abi.ListHead, 1, "prev");
+    try expectFieldType(abi.ListHead, "next", usize);
+    try expectFieldType(abi.ListHead, "prev", usize);
     try expectFieldLayout(abi.ListHead, "next", 0);
     try expectFieldLayout(abi.ListHead, "prev", @sizeOf(usize));
 }
 
 pub fn assertHListHeadLayout() LayoutError!void {
     try expectLayout(abi.HListHead, @sizeOf(usize), @alignOf(usize));
+    try expectFieldCount(abi.HListHead, 1);
+    try expectFieldNameAt(abi.HListHead, 0, "first");
+    try expectFieldType(abi.HListHead, "first", usize);
     try expectFieldLayout(abi.HListHead, "first", 0);
 }
 
 pub fn assertHListNodeLayout() LayoutError!void {
     try expectLayout(abi.HListNode, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldCount(abi.HListNode, 2);
+    try expectFieldNameAt(abi.HListNode, 0, "next");
+    try expectFieldNameAt(abi.HListNode, 1, "pprev");
+    try expectFieldType(abi.HListNode, "next", usize);
+    try expectFieldType(abi.HListNode, "pprev", usize);
     try expectFieldLayout(abi.HListNode, "next", 0);
     try expectFieldLayout(abi.HListNode, "pprev", @sizeOf(usize));
 }
 
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 12, 4);
+    try expectFieldCount(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 3);
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 0, "ack_window");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 1, "delivery_window");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 2, "status");
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status", u32);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window", 0);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window", 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status", 8);
@@ -106,6 +190,13 @@ pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() L
 
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 12, 4);
+    try expectFieldCount(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 3);
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 0, "applied");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 1, "skipped");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 2, "delivered");
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered", u32);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied", 0);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped", 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered", 8);
@@ -113,6 +204,13 @@ pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout(
 
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 12, 4);
+    try expectFieldCount(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 3);
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 0, "budget");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 1, "window");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 2, "flags");
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags", u32);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget", 0);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window", 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags", 8);
@@ -120,24 +218,16 @@ pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayo
 
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 12, 4);
+    try expectFieldCount(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 3);
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 0, "attempted");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 1, "applied");
+    try expectFieldNameAt(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 2, "skipped");
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied", u32);
+    try expectFieldType(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped", u32);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted", 0);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied", 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped", 8);
-}
-
-pub fn assertPublishedAbiLayouts() LayoutError!void {
-    try assertBoundaryHeaderLayout();
-    try assertExportStatusLayout();
-    try assertInteropPolicyLayout();
-    try assertNotifierBlockLayout();
-    try assertNotifierChainPriorityIncreaseLayout();
-    try assertListHeadLayout();
-    try assertHListHeadLayout();
-    try assertHListNodeLayout();
-    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
-    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
-    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
-    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
 }
 
 pub fn assertInteropPolicyModeValues() void {
@@ -173,11 +263,27 @@ test "layout assert keeps starter header layouts explicit" {
     };
 
     try expectLayout(BoundaryHeader, 8, 4);
+    try expectFieldCount(BoundaryHeader, 3);
+    try expectFieldNameAt(BoundaryHeader, 0, "size");
+    try expectFieldNameAt(BoundaryHeader, 1, "abi_version");
+    try expectFieldNameAt(BoundaryHeader, 2, "flags");
+    try expectFieldType(BoundaryHeader, "size", u32);
+    try expectFieldType(BoundaryHeader, "abi_version", u16);
+    try expectFieldType(BoundaryHeader, "flags", u16);
     try expectFieldLayout(BoundaryHeader, "size", 0);
     try expectFieldLayout(BoundaryHeader, "abi_version", 4);
     try expectFieldLayout(BoundaryHeader, "flags", 6);
 
     try expectLayout(InteropPolicy, 4, 1);
+    try expectFieldCount(InteropPolicy, 4);
+    try expectFieldNameAt(InteropPolicy, 0, "panic_mode");
+    try expectFieldNameAt(InteropPolicy, 1, "allocator_mode");
+    try expectFieldNameAt(InteropPolicy, 2, "unsafe_scope");
+    try expectFieldNameAt(InteropPolicy, 3, "reserved");
+    try expectFieldType(InteropPolicy, "panic_mode", u8);
+    try expectFieldType(InteropPolicy, "allocator_mode", u8);
+    try expectFieldType(InteropPolicy, "unsafe_scope", u8);
+    try expectFieldType(InteropPolicy, "reserved", u8);
     try expectFieldLayout(InteropPolicy, "panic_mode", 0);
     try expectFieldLayout(InteropPolicy, "allocator_mode", 1);
     try expectFieldLayout(InteropPolicy, "unsafe_scope", 2);
@@ -191,12 +297,36 @@ test "layout assert reports mismatches without widening the call site" {
         flags: u16,
     };
 
+    const SwappedSummary = extern struct {
+        skipped: u32,
+        applied: u32,
+        delivered: u32,
+    };
+
     try expectLayout(ExportStatus, 8, 4);
+    try expectFieldCount(ExportStatus, 3);
+    try expectFieldType(ExportStatus, "code", i32);
     try std.testing.expectError(error.SizeMismatch, expectSize(ExportStatus, 12));
     try std.testing.expectError(error.AlignMismatch, expectAlign(ExportStatus, 2));
     try std.testing.expectError(error.OffsetMismatch, expectOffset(ExportStatus, "flags", 4));
+    try std.testing.expectError(error.FieldTypeMismatch, expectFieldType(ExportStatus, "facility", u32));
+    try std.testing.expectError(error.FieldCountMismatch, expectFieldCount(ExportStatus, 2));
+    try std.testing.expectError(error.FieldNameMismatch, expectFieldNameAt(SwappedSummary, 0, "applied"));
 }
 
-test "layout assert aggregates the published ABI layouts" {
-    try assertPublishedAbiLayouts();
+test "layout assert exported ABI guards keep field order explicit" {
+    try assertBoundaryHeaderLayout();
+    try assertExportStatusLayout();
+    try assertInteropPolicyLayout();
+    try assertNotifierBlockLayout();
+    try assertNotifierChainPriorityIncreaseLayout();
+    try assertListHeadLayout();
+    try assertHListHeadLayout();
+    try assertHListNodeLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
+    assertInteropPolicyModeValues();
+    assertNotifierResultValues();
 }
