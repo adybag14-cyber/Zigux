@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {
+test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -25,6 +25,7 @@ test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated su
     try expectContains(survey_note, "drivers/virtio/virtio_mmio.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_manifest.json");
     try expectContains(survey_note, "interrupt-ack disposition review");
     try expectContains(survey_note, "config-write disposition reporting");
     try expectContains(survey_note, "feature-negotiation deltas");
