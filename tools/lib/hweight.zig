@@ -65,6 +65,34 @@ fn expectUnionIntersectionIdentityU64(counter: fn (u64) u64, left: u64, right: u
     try std.testing.expectEqual(counter(left | right) + counter(left & right), counter(left) + counter(right));
 }
 
+fn bitMaskU32(bits: u6) u32 {
+    return if (bits == 32) std.math.maxInt(u32) else (@as(u32, 1) << @intCast(bits)) - 1;
+}
+
+fn bitMaskU64(bits: u7) u64 {
+    return if (bits == 64) std.math.maxInt(u64) else (@as(u64, 1) << @intCast(bits)) - 1;
+}
+
+fn rotateWithinU32(value: u32, amount: u6, bits: u6) u32 {
+    const mask = bitMaskU32(bits);
+    const narrowed = value & mask;
+    const shift = amount % bits;
+    if (shift == 0) {
+        return narrowed;
+    }
+    return ((narrowed << @intCast(shift)) | (narrowed >> @intCast(bits - shift))) & mask;
+}
+
+fn rotateWithinU64(value: u64, amount: u7, bits: u7) u64 {
+    const mask = bitMaskU64(bits);
+    const narrowed = value & mask;
+    const shift = amount % bits;
+    if (shift == 0) {
+        return narrowed;
+    }
+    return ((narrowed << @intCast(shift)) | (narrowed >> @intCast(bits - shift))) & mask;
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -214,5 +242,79 @@ test "software hweight helpers preserve union-intersection counts for overlaps" 
             hweight_long(pair[0] | pair[1]) + hweight_long(pair[0] & pair[1]),
             hweight_long(pair[0]) + hweight_long(pair[1]),
         );
+    }
+}
+
+test "software hweight helpers preserve popcount under in-width rotations" {
+    var value8: u32 = 0;
+    while (value8 <= 0xff) : (value8 += 1) {
+        var shift8: u6 = 0;
+        while (shift8 < 8) : (shift8 += 1) {
+            const rotated = rotateWithinU32(value8, shift8, 8);
+            try std.testing.expectEqual(swHweight8(value8), swHweight8(rotated));
+            try std.testing.expectEqual(__sw_hweight8(value8), __sw_hweight8(rotated));
+        }
+    }
+
+    const cases16 = [_]u32{ 0x0001, 0x00f0, 0x1234, 0x8001, 0xa55a, 0xff00 };
+    const shifts16 = [_]u6{ 1, 4, 7, 12, 15 };
+    for (cases16) |value| {
+        for (shifts16) |shift| {
+            const rotated = rotateWithinU32(value, shift, 16);
+            try std.testing.expectEqual(swHweight16(value), swHweight16(rotated));
+            try std.testing.expectEqual(__sw_hweight16(value), __sw_hweight16(rotated));
+        }
+    }
+
+    const cases32 = [_]u32{ 0x0000_0001, 0x00f0_f00f, 0x1234_5678, 0x8000_0001, 0xa55a_5aa5, 0xff00_ff00 };
+    const shifts32 = [_]u6{ 1, 5, 13, 19, 31 };
+    for (cases32) |value| {
+        for (shifts32) |shift| {
+            const rotated = rotateWithinU32(value, shift, 32);
+            try std.testing.expectEqual(swHweight32(value), swHweight32(rotated));
+            try std.testing.expectEqual(__sw_hweight32(value), __sw_hweight32(rotated));
+        }
+    }
+
+    const cases64 = [_]u64{
+        0x0000_0000_0000_0001,
+        0x00f0_f00f_0ff0_f00f,
+        0x1234_5678_9abc_def0,
+        0x8000_0000_0000_0001,
+        0xa55a_5aa5_9669_6996,
+        0xff00_ff00_00ff_00ff,
+    };
+    const shifts64 = [_]u7{ 1, 7, 17, 29, 63 };
+    for (cases64) |value| {
+        for (shifts64) |shift| {
+            const rotated = rotateWithinU64(value, shift, 64);
+            try std.testing.expectEqual(swHweight64(value), swHweight64(rotated));
+            try std.testing.expectEqual(__sw_hweight64(value), __sw_hweight64(rotated));
+        }
+    }
+
+    const native_cases = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0001, 0x00f0_f00f, 0x1234_5678, 0xa55a_5aa5, 0xff00_ff00 }
+    else
+        [_]usize{
+            0x0000_0000_0000_0001,
+            0x00f0_f00f_0ff0_f00f,
+            0x1234_5678_9abc_def0,
+            0xa55a_5aa5_9669_6996,
+            0xff00_ff00_00ff_00ff,
+        };
+    const native_shifts = if (@sizeOf(usize) == 4)
+        [_]u7{ 1, 5, 13, 31 }
+    else
+        [_]u7{ 1, 7, 17, 63 };
+    for (native_cases) |value| {
+        for (native_shifts) |shift| {
+            const rotated = if (@sizeOf(usize) == 4)
+                @as(usize, @intCast(rotateWithinU32(@intCast(value), @intCast(shift), 32)))
+            else
+                @as(usize, @intCast(rotateWithinU64(@intCast(value), shift, 64)));
+            try std.testing.expectEqual(hweightLong(value), hweightLong(rotated));
+            try std.testing.expectEqual(hweight_long(value), hweight_long(rotated));
+        }
     }
 }
