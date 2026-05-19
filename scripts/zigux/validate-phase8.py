@@ -17,12 +17,14 @@ def _default_root() -> Path:
 
 
 ROOT = _default_root()
+LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
+    LIBBPF_SEGMENT_SURVEY,
     Path("Documentation/zigux/review-checklist.md"),
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
@@ -41,6 +43,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "phase8-exec-cmd-test:",
         "phase8-file-path-handle-bridge-test:",
+        "phase8-libbpf-segments-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8-test:",
     ),
@@ -49,6 +52,16 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "make -C zigux phase8-validate",
         "Run focused Phase 8 exec-cmd tests",
         "Run Phase 8 tooling tests",
+    ),
+    LIBBPF_SEGMENT_SURVEY: (
+        "survey checkpoint: refreshed against current `master` readback on",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "make -C zigux phase8-libbpf-segments-test",
+        "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        "make -C zigux phase8-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
     ),
     Path("Documentation/zigux/review-checklist.md"): (
         "if the change touches the parked Phase 8 `exec-cmd` packet",
@@ -199,6 +212,7 @@ def _passing_fixture(root: Path) -> None:
                 "\tpython3 scripts/zigux/validate-phase8.py",
                 "phase8-exec-cmd-test:",
                 "phase8-file-path-handle-bridge-test:",
+                "phase8-libbpf-segments-test:",
                 "phase8-perf-buffer-poll-test:",
                 "phase8-test:",
             )
@@ -216,6 +230,10 @@ def _passing_fixture(root: Path) -> None:
         ),
     )
     _write(root / "Documentation/zigux/README.md", "Phase 8 notes\n")
+    _write(
+        root / LIBBPF_SEGMENT_SURVEY,
+        "\n".join(FILE_MARKERS[LIBBPF_SEGMENT_SURVEY]),
+    )
     _write(
         root / "Documentation/zigux/review-checklist.md",
         "\n".join(FILE_MARKERS[Path("Documentation/zigux/review-checklist.md")]),
@@ -277,14 +295,35 @@ def run_self_test() -> int:
         makefile = root / "zigux/Makefile"
         original_makefile = _read(makefile)
         makefile.write_text(
-            original_makefile.replace("phase8-file-path-handle-bridge-test:\n", "", 1),
+            original_makefile.replace("phase8-libbpf-segments-test:\n", "", 1),
             encoding="utf-8",
         )
         missing_make_marker = validate_root(root)
-        expected_make_marker = "zigux/Makefile:phase8-file-path-handle-bridge-test:"
+        expected_make_marker = "zigux/Makefile:phase8-libbpf-segments-test:"
         if expected_make_marker not in missing_make_marker.missing_markers:
-            raise AssertionError("expected missing makefile route marker to be reported")
+            raise AssertionError("expected missing makefile libbpf route marker to be reported")
         makefile.write_text(original_makefile, encoding="utf-8")
+
+        survey = root / LIBBPF_SEGMENT_SURVEY
+        original_survey = _read(survey)
+        survey.write_text(
+            original_survey.replace("make -C zigux phase8-libbpf-segments-test", "", 1),
+            encoding="utf-8",
+        )
+        missing_survey_marker = validate_root(root)
+        expected_survey_marker = (
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
+            "make -C zigux phase8-libbpf-segments-test"
+        )
+        if expected_survey_marker not in missing_survey_marker.missing_markers:
+            raise AssertionError("expected missing survey wrapper marker to be reported")
+        survey.write_text(original_survey, encoding="utf-8")
+
+        survey.unlink()
+        missing_survey = validate_root(root)
+        if LIBBPF_SEGMENT_SURVEY.as_posix() not in missing_survey.missing_files:
+            raise AssertionError("expected missing libbpf survey file to be reported")
+        _write(root / LIBBPF_SEGMENT_SURVEY, original_survey)
 
         exec_test = root / "zigux/tests/phase8_exec_cmd.zig"
         original_exec_test = _read(exec_test)
@@ -309,7 +348,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
