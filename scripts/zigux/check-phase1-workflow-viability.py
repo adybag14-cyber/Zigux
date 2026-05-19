@@ -315,6 +315,7 @@ def build_note_text() -> str:
             "- keep the workflow-viability pair immediately after the current Phase 1 shared reminder packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.",
             "- keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist, trace-events packet, companion sample tests, and the current survey witness before the Phase 7 shared-control pair.",
             "- keep the current Phase 12 build-only, release-readiness, validation, smoke, and shared-test ladder intact before the dedicated tail guard pair and the throughput-parity anchor.",
+            "- if the workflow moves again, refresh this same lane-local packet first instead of widening into unrelated reminder or closure lanes.",
             "",
         )
     )
@@ -370,6 +371,33 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "note:expected=1:actual=0" not in failures:
             print("self-test:missing_preflight_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PREFLIGHT_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_preflight_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE1_PRE_BUFFER_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase1_prebuffer_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE1_PRE_BUFFER_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase1_prebuffer_note_marker_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
@@ -432,10 +460,73 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE8_BUFFER_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase8_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE8_BUFFER_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase8_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_NOTE_LINE + "\n"))
         failures = collect_failures(root)
         if "note:expected=1:actual=0" not in failures:
             print("self-test:missing_phase12_tail_note")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_tail_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_GUARD_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase12_guard_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_GUARD_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_guard_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_ADJACENCY_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase12_adjacency_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_ADJACENCY_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_adjacency_note_marker_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
