@@ -8,12 +8,14 @@ This document records the bounded Phase 15 roadmap-facing survey for the live pa
 - `PHASE15_STATUS=parity_scorecard_survey_landed`
 - `PHASE15_SLICE=parity-roadmap-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
+- scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, dedicated Zig guard, study-only accounting companion, and focused survey checker without widening into new deep-core implementation or shared-summary follow-through
 - survey rechecked against current `master` on 2026-05-19; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-19`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
   - `zigux/tests/phase15_parity_scorecard.zig`
+  - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+  - `scripts/zigux/check-phase15-parity-scorecard-survey.py`
   - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 
 ## Why this survey exists
@@ -29,8 +31,10 @@ The 2026-05-19 reread shows these dedicated parity-scorecard surfaces present on
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `scripts/zigux/check-phase15-parity-scorecard-survey.py`
 
-Those three surfaces now agree on the dedicated parity-scorecard packet shape:
+Those three dedicated parity-scorecard surfaces now agree on the dedicated parity-scorecard packet shape:
 
 - lane key: `P15-L03`
 - slice: `parity-scorecard-baseline`
@@ -55,18 +59,21 @@ The live anchor inventory remains:
 - `kernel/rcu/tree.c`
 - `net/core/skbuff.c`
 
+`Documentation/zigux/phase15-study-only-anchor-accounting.md` keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` parked outside the blocked status-change rows, matching the scorecard's study-only count of `2`.
+
 Each anchor still carries explicit lane owner, phase, current status bucket, required approver set, validation gate summary, rollback owner, current blocker, evidence-archive path, benchmark-notes status, replay command, and next honest posture.
 
 ## Current roadmap posture
 
 The roadmap-required parity scorecard packet is no longer missing on current `master`.
 
-The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig guard are all present and aligned, so the core parity-tracking requirement named by the roadmap is currently satisfied inside the Phase 15 governance packet.
+The dedicated scorecard note, machine-readable JSON companion, dedicated Zig guard, study-only accounting companion, and focused survey checker are all present and aligned, so the core parity-tracking requirement named by the roadmap is currently satisfied inside the Phase 15 governance packet.
 
 The only same-lane drift this survey needed to close was survey truthfulness:
 
 - this survey note still reported a 2026-05-18 reread after the dedicated parity-scorecard packet moved to the 2026-05-19 dated-readback posture
 - it still repeated the older dated-readback marker even though the live dedicated packet now agrees on `current-master-readback-2026-05-19`
+- it counted two study-only anchors outside the scorecard without pointing directly at the companion note that keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit
 
 That survey-local truthfulness gap is now closed.
 
@@ -80,6 +87,7 @@ The honest bounded Phase 15 statement on current `master` is:
 - no Architecture Council approval is recorded for any freeze-map status change
 - all four freeze-in-C anchors remain blocked from a direct Zigux port claim
 - the dedicated parity-scorecard packet now belongs to `P15-L03`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md` keeps the two study-only anchors explicit outside the blocked status-change rows
 - this survey lane should stay parked unless roadmap-versus-repo truthfulness drifts again
 
 ## Recorded gaps
@@ -90,6 +98,8 @@ The current lane state is:
 - landed `phase15-parity-scorecard-doc`
 - landed `phase15-parity-scorecard-json`
 - landed `phase15-parity-scorecard-zig-guard`
+- landed `phase15-parity-scorecard-study-only-accounting-sync`
+- landed `phase15-parity-scorecard-survey-checker`
 - landed `phase15-parity-scorecard-survey-truthfulness-refresh`
 - blocked `phase15-deep-core-status-change-blocker`
 
@@ -110,4 +120,4 @@ This survey does not claim:
 
 Keep `P15-L09` parked unless a fresh roadmap-versus-repo reread shows the parity-scorecard packet drifting away from the product requirement again.
 
-If it reopens, compare the roadmap, this survey note, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig` together before touching any neighboring Phase 15 packet.
+If it reopens, compare the roadmap, this survey note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, and `scripts/zigux/check-phase15-parity-scorecard-survey.py` together before touching any neighboring Phase 15 packet.
