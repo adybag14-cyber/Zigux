@@ -284,15 +284,46 @@ Keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and 
 Tests-root reviewer prompt:
 - Does the bounded Phase 14 reminder keep the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary truthfulness guard, the directly readable workqueue reviewability shard, the historical attached-toolchain wrapper vocabulary, the readable current `zigux/Makefile` surface that now exposes shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while still omitting all `phase14-*` targets, and the still-missing executable-layer gaps aligned without reviving the older `phase14-*` Makefile routes as shipped current-`master` evidence?
 
-## Phase 15 shared governance packet
+## Phase 15 governance packet
 
-Keep the current directly readable Phase 15 reminder packet explicit through `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_freeze_map_governance.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_handoff_next_steps_manifest.json`.
+Keep the current bounded Phase 15 governance reminder explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
 
-Keep the active-governance replay entrypoints explicit here too: `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py`.
+Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.
 
-Current `master` does materialize `scripts/zigux/check-phase15-readiness-gate-packet.py`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, and `zigux/tests/phase15_indefinite_c_policy.zig`, so keep those returned readiness, handoff survey, handoff-manifest, shared-summary, and stay-in-C packet members explicit in the tests-root reminder instead of leaving them in a missing-evidence bucket.
+Keep the directly readable tests-root Phase 15 governance packet explicit through:
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `Documentation/zigux/phase15-shared-summary-gap.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_handoff_next_steps_manifest.json`
 
-Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those validator-first, route-level, build-level, and lane-owner-alignment surfaces framed as repo-reality gaps unless fresh current-tree reads restore them.
+Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
+
+Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.
+
+Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned readiness, handoff survey, and handoff-manifest packet members, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, build-level, and lane-owner-alignment surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence?
+- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned readiness, handoff survey, and handoff-manifest packet members, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, build-level, and lane-owner-alignment surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
