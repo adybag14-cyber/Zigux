@@ -7,9 +7,12 @@
   "shared_direct_evidence": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
