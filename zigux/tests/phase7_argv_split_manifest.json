@@ -1,9 +1,9 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-19T06:04:00Z",
+  "verified_on_utc": "2026-05-19T06:44:00Z",
   "anchor": "lib/argv_split.c",
-  "current_master_state": "helper_slice_test_survey_manifest_anchor",
+  "current_master_state": "helper_slice_test_fixture_survey_manifest_anchor",
   "review_surfaces": [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -11,6 +11,7 @@
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "samples/zigux/README.md"
   ],
@@ -22,15 +23,14 @@
     "ArgvSplitResult.deinit",
     "ArgvSplitResult.cArgv"
   ],
-  "missing_paths": [
-    "zigux/tests/fixtures/phase7_argv_split_vectors.zig"
-  ],
+  "missing_paths": [],
   "ownership_focus": [
     "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage",
     "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix",
     "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet",
     "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
+    "fixture vectors keep copied-storage, blank-input, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
     "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to the remaining argv_split fixture vectors or helper-local survey-manifest-checker truthfulness while the dedicated replay stays part of the returned helper-local packet."
+  "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof while the dedicated replay stays part of the current helper-local packet."
 }
