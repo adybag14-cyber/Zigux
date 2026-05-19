@@ -37,43 +37,44 @@ REQUIRED_CATALOG_SNIPPETS = [
 ]
 
 REQUIRED_EVIDENCE_MANIFEST_SNIPPETS = [
-    '"packet": "phase6-helper-evidence"',
-    '"phase": "Phase 6"',
-    '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"',
-    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
-    '"zigux/tests/phase6_helper_parity_manifest.json"',
-    '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"key": "base64"',
-    '"key": "bsearch"',
-    '"key": "checksum"',
-    '"key": "hexdump"',
-    '"current_review_posture": "direct-helper-readback-restored"',
-    '"current_review_posture": "direct-readback-limited"',
-    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
-    '"Documentation/zigux/phase6-perf-gate-survey.md"',
-    '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
-    '"scripts/zigux/check-phase6-checksum-c-parity.py"',
-    '"scripts/zigux/check-phase6-hexdump-packet.py"',
-    '"make -C zigux phase6-hexdump-perf"',
+    '\"packet\": \"phase6-helper-evidence\"',
+    '\"phase\": \"Phase 6\"',
+    '\"lane_scope\": \"shared helper-evidence rows and machine-readable manifest only\"',
+    '\"Documentation/zigux/phase6-helper-evidence-catalog.md\"',
+    '\"zigux/tests/phase6_helper_parity_manifest.json\"',
+    '\"scripts/zigux/check-phase6-present-entrypoints.py\"',
+    '\"key\": \"base64\"',
+    '\"key\": \"bsearch\"',
+    '\"key\": \"checksum\"',
+    '\"key\": \"hexdump\"',
+    '\"current_review_posture\": \"direct-helper-readback-restored\"',
+    '\"current_review_posture\": \"direct-readback-limited\"',
+    '\"Documentation/zigux/phase6-helper-parity-catalog.md\"',
+    '\"Documentation/zigux/phase6-perf-gate-survey.md\"',
+    '\"scripts/zigux/check-phase6-base64-corpus-determinism.py\"',
+    '\"scripts/zigux/check-phase6-bsearch-corpus-evidence.py\"',
+    '\"scripts/zigux/check-phase6-checksum-c-parity.py\"',
+    '\"scripts/zigux/check-phase6-hexdump-packet.py\"',
+    '\"make -C zigux phase6-hexdump-perf\"',
 ]
 
 REQUIRED_PARITY_MANIFEST_SNIPPETS = [
-    '"packet": "phase6-helper-parity"',
-    '"phase": "Phase 6"',
-    '"lane_scope": "shared helper-parity rows and machine-readable manifest only"',
-    '"Record the current directly readable Phase 6 helper-parity packet without overstating missing shared reminder, checker, or perf-note surfaces as returned evidence."',
-    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
-    '"scripts/zigux/check-phase6-shared-surface.py"',
-    '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"key": "base64"',
-    '"key": "bsearch"',
-    '"key": "checksum"',
-    '"key": "hexdump"',
-    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
-    '"Documentation/zigux/phase6-perf-gate-survey.md"',
+    '\"packet\": \"phase6-helper-parity\"',
+    '\"phase\": \"Phase 6\"',
+    '\"lane_scope\": \"shared helper-parity rows and machine-readable manifest only\"',
+    '\"Record the current directly readable Phase 6 helper-parity packet without overstating missing shared reminder, checker, or perf-note surfaces as returned evidence.\"',
+    '\"Documentation/zigux/phase6-helper-evidence-catalog.md\"',
+    '\"scripts/zigux/check-phase6-shared-surface.py\"',
+    '\"scripts/zigux/check-phase6-present-entrypoints.py\"',
+    '\"key\": \"base64\"',
+    '\"key\": \"bsearch\"',
+    '\"key\": \"checksum\"',
+    '\"key\": \"hexdump\"',
+    '\"Documentation/zigux/phase6-helper-parity-catalog.md\"',
+    '\"Documentation/zigux/phase6-perf-gate-survey.md\"',
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 19
 
 
 class ValidationError(RuntimeError):
@@ -180,43 +181,47 @@ def run_self_test() -> None:
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"packet": "phase6-helper-evidence"',
+                '\"packet\": \"phase6-helper-evidence\"',
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"zigux/tests/phase6_helper_parity_manifest.json"',
+                '\"zigux/tests/phase6_helper_parity_manifest.json\"',
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+                '\"scripts/zigux/check-phase6-base64-corpus-determinism.py\"',
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-checksum-c-parity.py"',
+                '\"scripts/zigux/check-phase6-bsearch-corpus-evidence.py\"',
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"key": "hexdump"',
+                '\"scripts/zigux/check-phase6-checksum-c-parity.py\"',
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"make -C zigux phase6-hexdump-perf"',
+                '\"key\": \"hexdump\"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '\"make -C zigux phase6-hexdump-perf\"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
-                '"packet": "phase6-helper-parity"',
+                '\"packet\": \"phase6-helper-parity\"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-shared-surface.py"',
+                '\"scripts/zigux/check-phase6-shared-surface.py\"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
-                '"key": "checksum"',
+                '\"key\": \"checksum\"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
-                '"Documentation/zigux/phase6-perf-gate-survey.md"',
+                '\"Documentation/zigux/phase6-perf-gate-survey.md\"',
             ),
         ]:
             expect_failure(root, path, snippet)
