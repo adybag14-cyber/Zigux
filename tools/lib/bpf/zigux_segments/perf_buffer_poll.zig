@@ -119,6 +119,8 @@ pub const BufferFdLookupError = error{
     MissingFd,
 };
 
+pub const ReadyBufferFdLookupError = ReadyBufferAttemptLookupError || BufferFdLookupError;
+
 pub const BufferWindowObservation = struct {
     mapped_size: usize = 0,
 };
@@ -679,6 +681,25 @@ pub fn resolveBufferFdLookupReturnAtIndex(
     return resolveBufferFdLookupReturn(summarizeBufferFdLookup(buffer_fds, buffer_index));
 }
 
+pub fn resolveReadyBufferFdAtAttempt(
+    buffers: []const BufferObservation,
+    buffer_fds: []const ?i32,
+    attempt_index: usize,
+) ReadyBufferFdLookupError!i32 {
+    const buffer_index = try resolveReadyBufferAttemptAtIndex(buffers, attempt_index);
+    return resolveBufferFdAtIndex(buffer_fds, buffer_index);
+}
+
+pub fn resolveReadyBufferFdLookupReturnAtAttempt(
+    buffers: []const BufferObservation,
+    buffer_fds: []const ?i32,
+    attempt_index: usize,
+) i32 {
+    const buffer_index = resolveReadyBufferAttemptIndex(buffers, attempt_index) orelse
+        return -@as(i32, @intFromEnum(std.os.linux.E.NOENT));
+    return resolveBufferFdLookupReturnAtIndex(buffer_fds, buffer_index);
+}
+
 pub fn summarizeBufferWindowLookup(
     buffer_windows: []const ?BufferWindowObservation,
     buffer_index: usize,
@@ -1135,6 +1156,55 @@ test "phase8 perf-buffer poll resolves typed fd lookups without manual summary p
     try std.testing.expectEqual(@as(i32, 21), try resolveBufferFdAtIndex(&buffer_fds, 2));
     try std.testing.expectError(error.MissingFd, resolveBufferFdAtIndex(&buffer_fds, 1));
     try std.testing.expectError(error.InvalidIndex, resolveBufferFdAtIndex(&buffer_fds, 4));
+}
+
+test "phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_fds = [_]?i32{ null, 9, null, 21 };
+
+    try std.testing.expectEqual(@as(i32, 9), try resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 0));
+    try std.testing.expectEqual(@as(i32, 21), try resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 1));
+    try std.testing.expectError(error.MissingReadyBuffer, resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 2));
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectError(error.InvalidIndex, resolveReadyBufferFdAtAttempt(&buffers, &short_fds, 1));
+
+    const missing_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectError(error.MissingFd, resolveReadyBufferFdAtAttempt(&buffers, &missing_fd, 1));
+}
+
+test "phase8 perf-buffer poll keeps ready-buffer fd lookup returns errno-shaped" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_fds = [_]?i32{ null, 9, null, 21 };
+
+    try std.testing.expectEqual(@as(i32, 9), resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 0));
+    try std.testing.expectEqual(@as(i32, 21), resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 1));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &short_fds, 1),
+    );
+
+    const missing_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
 }
 
 test "phase8 perf-buffer poll resolves errno-shaped fd and window lookups without manual summary plumbing" {
