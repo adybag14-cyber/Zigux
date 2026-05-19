@@ -96,7 +96,6 @@ def write_text(root: Path, relpath: str, content: str) -> None:
 
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
-
     script_path = root / "scripts/zigux/check-phase13-shared-summary-surfaces.py"
     if not script_path.exists():
         issues.append("missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py")
@@ -136,6 +135,10 @@ def populate_repo(root: Path) -> None:
         write_text(root, relpath, "\n".join(markers) + "\n")
 
 
+def expect_issue(issues: list[str], expected: str) -> None:
+    assert expected in issues, f"missing expected issue: {expected}"
+
+
 def run_self_test() -> int:
     tempdir = Path(tempfile.mkdtemp(prefix="phase13-shared-summary-surfaces-"))
     checks_run = 0
@@ -145,210 +148,13 @@ def run_self_test() -> int:
         checks_run += 1
 
         (tempdir / "scripts/zigux/check-phase13-shared-summary-surfaces.py").unlink()
-        issues = collect_issues(tempdir)
-        assert "missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py" in issues
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py",
+        )
+        checks_run += 1
+
         populate_repo(tempdir)
-        checks_run += 1
-
-        workflow_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
-        workflow_path.writeText(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        contributor_sync_path = tempdir / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
-        contributor_sync_path.write_text(
-            contributor_sync_path.read_text(encoding="utf-8").replace(
-                "- keep the shared contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, while keeping `scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard beside that stable handle, while keeping `zigux/Makefile` explicit only as the returned file and keeping `make -C zigux phase13-validate` plus blocked convenience route `make -C zigux phase13` framed as the still-missing shared build routes on current `master`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:- keep the shared contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, while keeping `scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard beside that stable handle, while keeping `zigux/Makefile` explicit only as the returned file and keeping `make -C zigux phase13-validate` plus blocked convenience route `make -C zigux phase13` framed as the still-missing shared build routes on current `master`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
-        gap_path.write_text(
-            gap_path.read_text(encoding="utf-8")
-            + "`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        scripts_readme = tempdir / "scripts/zigux/README.md"
-        scripts_readme.write_text(
-            scripts_readme.read_text(encoding="utf-8")
-            + "scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:scripts/zigux/README.md:scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        scripts_readme.write_text(
-            scripts_readme.read_text(encoding="utf-8")
-            + "`zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` stay explicit as adjacent notifier evidence rather than a fifth helper family\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:scripts/zigux/README.md:`zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` stay explicit as adjacent notifier evidence rather than a fifth helper family"
-            in issues
-        )
-        populateRepo(tempdir)
-        checks_run += 1
-
-        roadmap_path = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
-        roadmap_path.write_text(
-            roadmap_path.read_text(encoding="utf-8").replace(
-                "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that shared wrapper file with current Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes as a materialized shared Phase 13 surface.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that shared wrapper file with current Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes as a materialized shared Phase 13 surface."
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        notifier_gap_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
-        notifier_gap_path.write_text(
-            notifier_gap_path.read_text(encoding="utf-8").replace(
-                "Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned."
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        tests_readme = tempdir / "zigux/tests/README.md"
-        tests_readme.write_text(
-            tests_readme.read_text(encoding="utf-8").replace(
-                "Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:zigux/tests/README.md:Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps."
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        tests_readme.write_text(
-            tests_readme.read_text(encoding="utf-8")
-            + "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:zigux/tests/README.md:Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        roadmap_path.write_text(
-            roadmap_path.read_text(encoding="utf-8")
-            + "Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet.\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet."
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8")
-            + "`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "forbidden_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        sequencing_path = tempdir / "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
-        sequencing_path.write_text(
-            sequencing_path.read_text(encoding="utf-8").replace(
-                "`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`"
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
-        matrix_path = tempdir / "Documentation/zigux/phase13-release-coordination-matrix.md"
-        matrix_path.write_text(
-            matrix_path.read_text(encoding="utf-8").replace(
-                "The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`."
-            in issues
-        )
-        populate_repo(tempdir)
-        checks_run += 1
-
         release_notes_path = tempdir / "Documentation/zigux/phase13-release-notes-survey.md"
         release_notes_path.write_text(
             release_notes_path.read_text(encoding="utf-8").replace(
@@ -358,14 +164,14 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps."
-            in issues
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.",
         )
-        populate_repo(tempdir)
         checks_run += 1
 
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
                 "- `Documentation/zigux/phase13-release-notes-survey.md`\n",
@@ -374,28 +180,23 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:- `Documentation/zigux/phase13-release-notes-survey.md`"
-            in issues
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:- `Documentation/zigux/phase13-release-notes-survey.md`",
         )
-        populate_repo(tempdir)
         checks_run += 1
 
-        sequencing_path.write_text(
-            sequencing_path.read_text(encoding="utf-8").replace(
-                "- adjacent notifier evidence owns only release-surface truthfulness through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`, not a fifth helper family\n",
-                "",
-                1,
-            ),
+        populate_repo(tempdir)
+        notifier_gap_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
+        notifier_gap_path.write_text(
+            notifier_gap_path.read_text(encoding="utf-8")
+            + "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`\n",
             encoding="utf-8",
         )
-        issues = collect_issues(tempdir)
-        assert (
-            "missing_marker:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:- adjacent notifier evidence owns only release-surface truthfulness through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`, not a fifth helper family"
-            in issues
+        expect_issue(
+            collect_issues(tempdir),
+            "forbidden_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
         )
-        populate_repo(tempdir)
         checks_run += 1
     finally:
         shutil.rmtree(tempdir)
