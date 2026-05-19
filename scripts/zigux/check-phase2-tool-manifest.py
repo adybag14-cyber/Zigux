@@ -114,6 +114,16 @@ def read_manifest(path: Path) -> dict:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def find_duplicate_strings(entries: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for entry in entries:
+        if entry in seen and entry not in duplicates:
+            duplicates.append(entry)
+        seen.add(entry)
+    return duplicates
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
@@ -129,8 +139,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if not isinstance(entries, list):
                 issues.append(("MISSING_SURFACE_CATEGORY", category))
                 continue
+            non_string_entries = [repr(entry) for entry in entries if not isinstance(entry, str)]
+            for entry in non_string_entries:
+                issues.append(("INVALID_SURFACE_ENTRY", f"{category}:{entry}"))
+            string_entries = [entry for entry in entries if isinstance(entry, str)]
+            for entry in find_duplicate_strings(string_entries):
+                issues.append(("DUPLICATE_SURFACE_ENTRY", f"{category}:{entry}"))
             for entry in required_entries:
-                if entry not in entries:
+                if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
     if manifest.get("repo_reality_gaps") != []:
         issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
@@ -138,8 +154,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
     else:
+        non_string_notes = [repr(note) for note in notes if not isinstance(note, str)]
+        for note in non_string_notes:
+            issues.append(("INVALID_NOTE_ENTRY", note))
+        string_notes = [note for note in notes if isinstance(note, str)]
+        for marker in find_duplicate_strings(string_notes):
+            issues.append(("DUPLICATE_NOTE_ENTRY", marker))
         for marker in REQUIRED_NOTE_MARKERS:
-            if marker not in notes:
+            if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
     return issues
 
@@ -181,9 +203,13 @@ def run_self_test() -> int:
         + 1
         + len(REQUIRED_PRESENT_SURFACES)
         + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
+        + len(REQUIRED_PRESENT_SURFACES)
+        + len(REQUIRED_PRESENT_SURFACES)
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + 1
+        + 1
         + 1
     )
     checks_run = 0
@@ -219,6 +245,16 @@ def run_self_test() -> int:
                 write_manifest(manifest_path, manifest)
                 assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
                 checks_run += 1
+            manifest = build_self_test_manifest()
+            manifest["present_surfaces"][category].append(entries[0])
+            write_manifest(manifest_path, manifest)
+            assert ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}") in collect_issues(root)
+            checks_run += 1
+            manifest = build_self_test_manifest()
+            manifest["present_surfaces"][category].append(123)
+            write_manifest(manifest_path, manifest)
+            assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
+            checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
@@ -238,6 +274,18 @@ def run_self_test() -> int:
             write_manifest(manifest_path, manifest)
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
+        write_manifest(manifest_path, manifest)
+        assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append(123)
+        write_manifest(manifest_path, manifest)
+        assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
+        checks_run += 1
 
         manifest_path.unlink()
         try:
