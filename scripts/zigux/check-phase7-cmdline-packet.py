@@ -55,6 +55,7 @@ REQUIRED_MARKERS = {
         'const cmdline = @import("cmdline");',
         'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
+        'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
@@ -81,7 +82,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -266,6 +267,16 @@ def run_self_test() -> None:
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_validator_only_cursor_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = 'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {'
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_negative_range_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
