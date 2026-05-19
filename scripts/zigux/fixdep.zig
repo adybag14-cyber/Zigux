@@ -519,7 +519,7 @@ test "config parsing accepts CONFIG tokens after punctuation" {
 
     try processor.parseConfigFile(
         &capture,
-        "(CONFIG_ZIGUX_WRAP) + CONFIG_ZIGUX_AFTER_MODULE",
+        "(CONFIG_ZIGUX_WRAP) + CONFIG_ZIGUX_AFTER_MODULE,HELLO_CONFIG_ZIGUX_IGNORED",
     );
 
     try std.testing.expectEqualStrings(
