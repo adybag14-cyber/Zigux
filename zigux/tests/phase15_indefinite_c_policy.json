@@ -17,7 +17,8 @@
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/README.md"
+    "Documentation/zigux/README.md",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
   ],
   "indefinite_c_requirements": [
     {
@@ -76,14 +77,15 @@
   "maintenance_handoff": {
     "current_lane_posture": "maintenance_mode",
     "replay_before_trusting": [
-      "zig test zigux/tests/phase15_indefinite_c_policy.zig"
+      "zig test zigux/tests/phase15_indefinite_c_policy.zig",
+      "zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
     ],
     "reopen_conditions": [
       "the freeze-in-C blocker posture changes",
       "the review-process packet changes its required field inventory for a stay-in-C closeout",
       "the parity scorecard changes the blocked-posture accounting that this policy references"
     ],
-    "next_future_target": "Keep this lane parked unless one of those packet-local conditions fires; if it does, reread the policy note, manifest, direct Zig guard, review-process note, decision-record template, parity scorecard, freeze-map governance note, and review checklist together, then keep the repair inside the policy packet and its direct companions only."
+    "next_future_target": "Keep this lane parked unless one of those packet-local conditions fires; if it does, reread the policy note, manifest, direct Zig guard, lane-owner alignment companion, review-process note, decision-record template, parity scorecard, freeze-map governance note, and review checklist together, then keep the repair inside the policy packet and its direct companions only."
   },
   "gaps": [
     {
@@ -127,6 +129,13 @@
       "kind": "companion_sync",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
       "why_now": "The roadmap-required ownership, phase, status, validation, and rollback vocabulary for a stay-in-C closeout should stay explicitly coupled to the direct Architecture Council decision-record template instead of living only as prose inside the policy packet."
+    },
+    {
+      "id": "phase15-indefinite-c-lane-owner-companion-sync",
+      "status": "landed",
+      "kind": "companion_sync",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+      "why_now": "The direct lane-owner alignment replay already materializes on current master and should stay explicit beside the policy note so lane-owner and approver vocabulary do not drift into neighboring Phase 15 packets only."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
