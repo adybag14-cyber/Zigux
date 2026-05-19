@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-18",
+  "surveyed_commit": "current-master-readback-2026-05-19",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit_mode_reason": "This freeze-map packet now uses a dated master-readback marker because the previously recorded exact head drifted behind current master while the freeze anchor set and blocker posture stayed the same.",
   "anchor": "Documentation/zigux/freeze-map.md",
