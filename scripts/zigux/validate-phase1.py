@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 BENCH_EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")
 ARTIFACT_DIFF_HELPER_REL = Path("scripts/zigux/artifact_diff.py")
+PHASE1_HELPERS_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
+PHASE1_REPLAY_BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
 
 REQUIRED_PATHS = (
     "Documentation/zigux/README.md",
@@ -75,7 +77,7 @@ OPTIONAL_CHECKS = (
         self_test_args=("--self-test",),
         live_args=("--root", "{root}"),
         required=False,
-        requires=("zigux/tests/fixtures/phase1_replay_blockers.json",),
+        requires=(str(PHASE1_REPLAY_BLOCKERS_REL),),
     ),
     CheckSpec(
         name="phase1-direct-anchor-manifest-gate",
@@ -90,7 +92,7 @@ OPTIONAL_CHECKS = (
         self_test_args=("--self-test",),
         live_args=("--root", "{root}"),
         required=False,
-        requires=("zigux/tests/fixtures/phase1_replay_blockers.json",),
+        requires=(str(PHASE1_REPLAY_BLOCKERS_REL),),
     ),
     CheckSpec(
         name="artifact-diff-contract",
@@ -106,6 +108,22 @@ OPTIONAL_CHECKS = (
         self_test_args=("--self-test",),
         live_args=("--root", "{root}"),
         required=False,
+    ),
+    CheckSpec(
+        name="phase1-shared-fixture-gate",
+        script_rel="scripts/zigux/check-phase1-shared-fixture-gate.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+        requires=(str(PHASE1_HELPERS_FIXTURE_REL),),
+    ),
+    CheckSpec(
+        name="phase1-shared-replay-roster",
+        script_rel="scripts/zigux/check-phase1-shared-replay-roster.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+        requires=(str(PHASE1_HELPERS_FIXTURE_REL), str(PHASE1_REPLAY_BLOCKERS_REL)),
     ),
 )
 
@@ -274,7 +292,8 @@ def build_sample_repo(root: Path) -> None:
 
     write_text(root / BENCH_EXPECTATIONS_REL, "{\n  \"status\": \"pass\"\n}\n")
     write_text(root / ARTIFACT_DIFF_HELPER_REL, "print('artifact diff helper placeholder')\n")
-    write_text(root / "zigux/tests/fixtures/phase1_replay_blockers.json", "{\n  \"status\": \"parked\"\n}\n")
+    write_text(root / PHASE1_HELPERS_FIXTURE_REL, "{\n  \"status\": \"pass\"\n}\n")
+    write_text(root / PHASE1_REPLAY_BLOCKERS_REL, "{\n  \"status\": \"parked\"\n}\n")
 
 
 def run_self_test() -> int:
@@ -335,6 +354,32 @@ def run_self_test() -> int:
         issues, _ = collect_issues(optional_scripts_readme_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-scripts-readme-alignment")
+            for issue in issues
+        ), issues
+        case_count += 1
+
+        optional_shared_fixture_live_root = base / "optional_shared_fixture_live"
+        build_sample_repo(optional_shared_fixture_live_root)
+        build_stub_script(
+            optional_shared_fixture_live_root / "scripts/zigux/check-phase1-shared-fixture-gate.py",
+            live_exit=1,
+        )
+        issues, _ = collect_issues(optional_shared_fixture_live_root)
+        assert any(
+            issue.startswith("optional_live_failed:phase1-shared-fixture-gate")
+            for issue in issues
+        ), issues
+        case_count += 1
+
+        optional_shared_replay_live_root = base / "optional_shared_replay_live"
+        build_sample_repo(optional_shared_replay_live_root)
+        build_stub_script(
+            optional_shared_replay_live_root / "scripts/zigux/check-phase1-shared-replay-roster.py",
+            live_exit=1,
+        )
+        issues, _ = collect_issues(optional_shared_replay_live_root)
+        assert any(
+            issue.startswith("optional_live_failed:phase1-shared-replay-roster")
             for issue in issues
         ), issues
         case_count += 1
