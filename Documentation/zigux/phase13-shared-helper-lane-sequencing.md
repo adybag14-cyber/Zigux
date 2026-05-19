@@ -55,7 +55,7 @@ do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zig
 
 This note does not widen Phase 13 into:
 
-- a direct filesystem parity claim beyond the roadmap-owned `libfs` anchor while its starter, reviewability, and manifest packet remain repo-reality gaps on current `master`
+- a direct filesystem parity claim beyond the roadmap-owned `libfs` anchor while its deeper slice, addressability, and shared build-route companions still remain repo-reality gaps on current `master`
 - a separate shared replay step for notifier evidence
 - broader security policy ownership outside the landed Landlock notes
 - a claim that the Phase 13 packet is closed or frozen
