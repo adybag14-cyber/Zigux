@@ -463,7 +463,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture(root: Path) -> None:
-    manifest_commit = "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"
+    manifest_commit = "ee789f026f11a0c5c70ded9a868979cdf4f55393"
     input_manifest = {
         "lane_key": "P10-L13",
         "surveyed_commit": manifest_commit,
@@ -592,7 +592,7 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-input-survey.md",
-                "PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+                "PHASE10_SURVEYED_COMMIT=ee789f026f11a0c5c70ded9a868979cdf4f55393",
                 "PHASE10_SURVEYED_COMMIT=deadbeef",
                 "survey_note:surveyed_commit_alignment",
             ),
