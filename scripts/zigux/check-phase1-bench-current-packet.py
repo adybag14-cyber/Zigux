@@ -114,6 +114,20 @@ def mutate_duplicate(root: Path, relative_path: str, marker: str) -> None:
     path.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
+def expected_issue(relative_path: str, needle: str | None, operation: str) -> str:
+    if operation == "unlink":
+        return f"missing_file:{relative_path}"
+    if operation == "remove":
+        assert needle is not None
+        return f"{relative_path}:marker_count:{needle}:expected=1:actual=0"
+    if operation == "duplicate":
+        assert needle is not None
+        return f"{relative_path}:marker_count:{needle}:expected=1:actual=2"
+    assert operation == "append"
+    assert needle is not None
+    return f"{relative_path}:forbidden:{needle}:actual=1"
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-ok-") as tmpdir:
         root = Path(tmpdir)
@@ -125,7 +139,7 @@ def run_self_test() -> int:
                 print(issue)
             return 1
 
-    cases: list[tuple[str, str | None, str | None, str | None]] = []
+    cases: list[tuple[str, str, str | None, str]] = []
     for relative_path in REQUIRED_FILES:
         cases.append((f"missing_file:{relative_path}", relative_path, None, "unlink"))
     for relative_path, markers in MARKERS.items():
@@ -136,11 +150,10 @@ def run_self_test() -> int:
         for fragment in fragments:
             cases.append((f"forbidden:{relative_path}", relative_path, fragment, "append"))
 
-    for _, relative_path, needle, operation in cases:
+    for label, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            assert relative_path is not None
             target = root / relative_path
             if operation == "unlink":
                 target.unlink()
@@ -154,9 +167,11 @@ def run_self_test() -> int:
                 assert needle is not None
                 target.write_text(target.read_text(encoding="utf-8") + needle + "\n", encoding="utf-8")
             issues = collect_issues(root)
-            if not issues:
+            if issues != [expected_issue(relative_path, needle, operation)]:
                 print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-                print(f"expected failure for {operation}:{relative_path}")
+                print(f"case={label}")
+                print(f"expected={expected_issue(relative_path, needle, operation)}")
+                print(f"actual={issues!r}")
                 return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
