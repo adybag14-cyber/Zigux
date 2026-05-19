@@ -21,6 +21,7 @@
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-handoff-note-alignment.py"
   ],
   "still_missing_broader_paths": [
