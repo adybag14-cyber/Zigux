@@ -17,6 +17,12 @@ pub fn build(b: *std.Build) void {
     });
     layout_assert_module.addImport("abi_bindings", abi_bindings_module);
 
+    const hvc_console_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const hv_ops_proof_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),
         .target = target,
@@ -35,6 +41,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    export_surface_proof_module.addImport("hvc_console", hvc_console_module);
     export_surface_proof_module.addImport("layout_assert", layout_assert_module);
 
     const export_surface_proof_tests = b.addTest(.{
