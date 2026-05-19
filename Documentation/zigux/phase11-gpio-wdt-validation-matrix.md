@@ -21,6 +21,7 @@ The directly readable gpio watchdog matrix packet on current `master` is:
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 Current direct contents reads in this run do not rematerialize
@@ -41,16 +42,17 @@ below:
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver plus the paired module slice and teardown note keep the
-bounded `descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
-`platformDrvdataCheckpointSummary()`, `watchdogDrvdataCheckpointSummary()`,
-`rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`,
-`registrationHandoffSummary()`, `registrationPlanSummary()`,
-`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`,
-and `summarizeTeardown()` checkpoint names reviewable as driver-backed teardown
-and failure-mode surfaces.
+The returned driver plus the paired module slice, teardown note, and
+remove-handoff note keep the bounded `descriptorRequestSummary()`,
+`timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
+`watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
+`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
+`registrationPlanSummary()`, `registerDeviceCallSummary()`,
+`registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()`
+checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
 
 ## Teardown And Failure-Mode Review Surface
 
@@ -63,6 +65,10 @@ and failure-mode surfaces.
   keeps the bounded stop-request split, reboot-glue transition, and
   register-device failure cues explicit without claiming live remove-hook or
   reboot-backed shutdown execution.
+- remove-handoff handoff: `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
+  keeps the bounded remove-handoff packet explicit without claiming live
+  platform cleanup callbacks, platform-driver removal, watchdog-core unregister,
+  or host-backed shutdown execution.
 - failure-mode packet: `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   keeps the bounded checkpoint names explicit without claiming live GPIO,
   `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution, or
@@ -82,14 +88,14 @@ and failure-mode surfaces.
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
   `watchdog_stop_on_reboot()` execution,
   `devm_watchdog_register_device()` execution, platform-driver registration,
-  watchdog-core registration, remove hooks, reboot-backed teardown execution, or
-  hardware-validated parity.
+  watchdog-core registration, live platform cleanup callbacks, live remove-hook
+  execution, reboot-backed teardown execution, or hardware-validated parity.
 - If a future reread restores any gpio replay, manifest, survey gate, or
   shared-route file, refresh this matrix together with the reopened companion
   surface in one bounded pass.
 
 ## Next Blocked Step
 
-The next honest gpio-only follow-up is still one equally small same-lane
-remove-hook checkpoint or validation-truthfulness repair, rather than new
-runtime behavior.
+The next honest gpio-only follow-up is still one equally small replay,
+manifest, checker, or validation-truthfulness repair, rather than new runtime
+behavior.
