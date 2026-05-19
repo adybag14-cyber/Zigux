@@ -16,6 +16,7 @@ const ReviewProcessManifest = struct {
     required_review_fields: []const []const u8,
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
+    indefinite_c_policy_required_markers: []const []const u8,
     decision_record_template_required_markers: []const []const u8,
     handoff_required_markers: []const []const u8,
     shared_gap_expected_present_paths: []const []const u8,
@@ -64,11 +65,28 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.shared_gap_expected_missing_paths.len);
 
+    try expectSliceContains(
+        manifest.indefinite_c_policy_required_markers,
+        "required approver set",
+    );
+    try expectSliceContains(
+        manifest.indefinite_c_policy_required_markers,
+        "automatic return-to-blocked trigger",
+    );
+    try expectSliceContains(
+        manifest.indefinite_c_policy_required_markers,
+        "trigger-specific evidence refresh",
+    );
+    try expectSliceContains(
+        manifest.indefinite_c_policy_required_markers,
+        "parity scorecard link or blocker record",
+    );
     try expectSliceContains(
         manifest.handoff_required_markers,
         "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
@@ -110,6 +128,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 16 * 1024);
     defer std.testing.allocator.free(decision_record_template);
 
+    const indefinite_c_policy = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 16 * 1024);
+    defer std.testing.allocator.free(indefinite_c_policy);
+
     const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 20 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
@@ -149,6 +170,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     }
     for (manifest.reopen_evidence_fields) |field| {
         try expectContains(review_process, field);
+    }
+    for (manifest.indefinite_c_policy_required_markers) |marker| {
+        try expectContains(indefinite_c_policy, marker);
     }
     for (manifest.decision_record_template_required_markers) |marker| {
         try expectContains(decision_record_template, marker);
