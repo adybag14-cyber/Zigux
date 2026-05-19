@@ -111,7 +111,17 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 39
+SELF_TEST_MARKER_GROUPS = (
+    (CLOSURE_DOC, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
+    (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+    (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"),
+    (TESTS_README, EXPECTED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
+    (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"),
+    (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
+)
+
+SELF_TEST_NON_MARKER_CASE_COUNT = 32
+EXPECTED_SELF_TEST_CASE_COUNT = 1 + sum(len(markers) for _, markers, _ in SELF_TEST_MARKER_GROUPS) + SELF_TEST_NON_MARKER_CASE_COUNT
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -355,6 +365,12 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement)
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_selftest_") as tmp_dir:
@@ -363,19 +379,13 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, marker, code in (
-            (CLOSURE_DOC, EXPECTED_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
-            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS[0], "MISSING_DOCS_ROOT_MARKERS"),
-            (TESTS_README, EXPECTED_TESTS_README_MARKERS[0], "MISSING_TESTS_README_MARKERS"),
-            (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS[0], "MISSING_REVIEW_CHECKLIST_MARKERS"),
-            (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS[0], "MISSING_SCRIPTS_README_MARKERS"),
-        ):
-            build_self_test_root(root)
-            target = resolve_path(root, path)
-            target.write_text(replace_once(target.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert (code, marker) in collect_issues(root)
-            checks_run += 1
+        for path, markers, code in SELF_TEST_MARKER_GROUPS:
+            for marker in markers:
+                build_self_test_root(root)
+                target = resolve_path(root, path)
+                target.write_text(replace_all(target.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (code, marker) in collect_issues(root)
+                checks_run += 1
 
         for field, kwargs in (
             ("packet", {"packet": "wrong"}),
