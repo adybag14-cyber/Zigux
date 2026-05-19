@@ -143,7 +143,7 @@ REQUIRED_MARKERS = {
         "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
         "keep the degraded rerun order honest by relying on the repo-local `.zig-toolchain` fallback in `zigux/Makefile` before the attached-Zig `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` vocabulary.",
         "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate,",
-        "Keep the bounded packet split explicit here too: `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet",
+        "Keep the bounded packet split explicit here too: `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.",
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 12 build-only surface checker",
