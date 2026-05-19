@@ -99,7 +99,7 @@ const boundary_areas = [_]BoundaryArea{
         .summary = "Keep flush, drain, and cancellation completion ownership explicitly in C.",
         .ownership = .stay_in_c,
         .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "drain_workqueue", "__cancel_work_sync" },
-        .rationale = "The bridge can describe color accounting and in-flight coordination, but completion semantics still depend on active-color progression, chained flushers, and worker progress owned by the current C implementation.",
+        .rationale = "The bridge can describe color accounting, in-flight coordination, and cancellation wait state, but completion semantics still depend on active-color progression, chained flushers, `WORK_OFFQ_CANCELING`, and worker progress owned by the current C implementation.",
     },
     .{
         .id = "worker-pool-concurrency",
@@ -243,10 +243,10 @@ const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "flush-drain-color-governance",
         .anchor_symbol = "__flush_workqueue/drain_workqueue",
-        .summary = "Keep color accounting, chained flushers, and in-flight tracking under explicit stay-in-C governance.",
+        .summary = "Keep color accounting, chained flushers, cancellation completion waits, and in-flight tracking under explicit stay-in-C governance.",
         .guard = .flush_color_progression,
-        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "pwq->nr_in_flight" },
-        .blocked_by = "__flush_workqueue() and drain_workqueue() coordinate active colors, chained flushers, and in-flight progression under the live C runtime, so Zigux should describe the boundary without claiming completion ownership.",
+        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "pwq->nr_in_flight", "WORK_OFFQ_CANCELING", "work->data" },
+        .blocked_by = "__flush_workqueue(), drain_workqueue(), and __cancel_work_sync() coordinate active colors, chained flushers, cancellation wait bits, and in-flight progression under the live C runtime, so Zigux should describe the boundary without claiming completion ownership.",
         .ownership = .stay_in_c,
     },
     .{
