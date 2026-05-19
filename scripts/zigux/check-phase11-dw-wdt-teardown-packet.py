@@ -282,7 +282,6 @@ def run_self_test() -> None:
         manifest_path = manifest_pm_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
         data["gaps"][1]["status"] = "ready_next"
-        manifest_path.writeText = None
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         expect_failure(manifest_pm_case, "manifest_pm_status:'ready_next'")
         case_count += 1
