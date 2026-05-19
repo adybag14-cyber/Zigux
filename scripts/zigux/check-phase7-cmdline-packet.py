@@ -57,6 +57,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+        'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
         '"anchor": "lib/cmdline.c"',
@@ -75,7 +76,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(path: Path) -> str:
@@ -242,6 +243,16 @@ def run_self_test() -> None:
             "missing_companion_leading_whitespace_boundary_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        quoted_empty_marker = 'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {'
+        companion_path.write_text(companion_text.replace(quoted_empty_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_quoted_empty_token_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {quoted_empty_marker}",
         )
         write_fixture_root(tmp_root)
 
