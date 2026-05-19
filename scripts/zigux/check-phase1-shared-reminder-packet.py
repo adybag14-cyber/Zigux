@@ -119,6 +119,13 @@ FORBIDDEN_FRAGMENTS = (
     "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
 )
 
+FORBIDDEN_FRAGMENT_SURFACES = (
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+)
+
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -207,6 +214,12 @@ def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
+def mutate_append_forbidden_fragment(root: Path, relative_path: str) -> None:
+    target = root / relative_path
+    text = target.read_text(encoding="utf-8")
+    target.write_text(text + FORBIDDEN_FRAGMENTS[0] + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-success-") as tmpdir:
         root = Path(tmpdir)
@@ -233,21 +246,21 @@ def run_self_test() -> int:
             ),
         )
 
+    def make_forbidden_fragment_case(relative_path: str):
+        return (
+            f"forbidden_fragment_{relative_path.replace('/', '_').replace('.', '_')}",
+            lambda root, relative_path=relative_path: mutate_append_forbidden_fragment(
+                root, relative_path
+            ),
+        )
+
     cases = [make_missing_file_case(relative_path) for relative_path in REQUIRED_FILES]
     for relative_path, markers in MARKERS.items():
         for marker in markers:
             cases.append(make_marker_case(relative_path, marker, "remove"))
             cases.append(make_marker_case(relative_path, marker, "duplicate"))
-    cases.append(
-        (
-            "forbidden_fragment",
-            lambda root: write_text(
-                root,
-                "Documentation/zigux/README.md",
-                read_text(root, "Documentation/zigux/README.md") + FORBIDDEN_FRAGMENTS[0] + "\n",
-            ),
-        )
-    )
+    for relative_path in FORBIDDEN_FRAGMENT_SURFACES:
+        cases.append(make_forbidden_fragment_case(relative_path))
 
     for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
