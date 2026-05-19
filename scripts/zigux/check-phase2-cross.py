@@ -120,6 +120,10 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def format_expected_actual(expected: list[str] | tuple[str, ...], actual: list[str]) -> str:
+    return f"expected={','.join(expected)};actual={','.join(actual)}"
+
+
 def load_toolchain_policy(root: Path) -> tuple[Path, dict[str, object]]:
     policy_path = resolve_path(root, TOOLCHAIN_POLICY)
     payload = read_json(policy_path)
@@ -224,9 +228,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     if set(archive_sha256_targets) != set(archive_target_scope):
-        issues.append(("ARCHIVE_HASH_SCOPE_MISMATCH", ",".join(sorted(archive_sha256_targets))))
+        issues.append(
+            (
+                "ARCHIVE_HASH_SCOPE_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_sha256_targets),
+            )
+        )
     elif archive_sha256_targets != archive_target_scope:
-        issues.append(("ARCHIVE_HASH_SCOPE_ORDER_MISMATCH", ",".join(archive_sha256_targets)))
+        issues.append(
+            (
+                "ARCHIVE_HASH_SCOPE_ORDER_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_sha256_targets),
+            )
+        )
 
     if not isinstance(fixture, dict):
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
@@ -248,9 +262,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(fixture_scope_issues)
     if fixture_scope is not None:
         if set(fixture_scope) != set(archive_target_scope):
-            issues.append(("ARCHIVE_SCOPE_MISMATCH", ",".join(archive_target_scope)))
+            issues.append(
+                (
+                    "ARCHIVE_SCOPE_MISMATCH",
+                    format_expected_actual(archive_target_scope, fixture_scope),
+                )
+            )
         elif fixture_scope != archive_target_scope:
-            issues.append(("ARCHIVE_SCOPE_ORDER_MISMATCH", ",".join(fixture_scope)))
+            issues.append(
+                (
+                    "ARCHIVE_SCOPE_ORDER_MISMATCH",
+                    format_expected_actual(archive_target_scope, fixture_scope),
+                )
+            )
 
     cross_targets = fixture.get("cross_targets")
     if not isinstance(cross_targets, list) or not cross_targets:
@@ -311,15 +335,33 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             archive_required_target_order.append(target)
 
     if seen_targets != set(EXPECTED_CROSS_TARGETS):
-        issues.append(("CROSS_TARGET_SET_MISMATCH", ",".join(sorted(seen_targets))))
+        issues.append(
+            (
+                "CROSS_TARGET_SET_MISMATCH",
+                format_expected_actual(list(EXPECTED_CROSS_TARGET_ORDER), target_order),
+            )
+        )
     if target_order != list(EXPECTED_CROSS_TARGET_ORDER):
-        issues.append(("CROSS_TARGET_ORDER_MISMATCH", ",".join(target_order)))
+        issues.append(
+            (
+                "CROSS_TARGET_ORDER_MISMATCH",
+                format_expected_actual(list(EXPECTED_CROSS_TARGET_ORDER), target_order),
+            )
+        )
 
     if archive_required_targets != set(archive_target_scope):
-        issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(archive_required_targets))))
+        issues.append(
+            (
+                "ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_required_target_order),
+            )
+        )
     if archive_required_target_order != archive_target_scope:
         issues.append(
-            ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", ",".join(archive_required_target_order))
+            (
+                "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_required_target_order),
+            )
         )
 
     return issues
@@ -453,21 +495,21 @@ def run_self_test() -> int:
         path = resolve_path(root, TOOLCHAIN_POLICY)
         path.write_text(
             """{
-  "phase": "Phase 2",
-  "phase": "Phase 2",
-  "channel": "0.17.0-dev.87+9b177a7d2",
-  "minimum_version": "0.17.0-dev.87+9b177a7d2",
-  "archive_sha256": {
-    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
+  \"phase\": \"Phase 2\",
+  \"phase\": \"Phase 2\",
+  \"channel\": \"0.17.0-dev.87+9b177a7d2\",
+  \"minimum_version\": \"0.17.0-dev.87+9b177a7d2\",
+  \"archive_sha256\": {
+    \"x86_64-linux\": \"3333333333333333333333333333333333333333333333333333333333333333\"
   },
-  "upgrade_policy": {
-    "channel_minimum_lockstep": true,
-    "archive_target_scope": [
-      "x86_64-linux"
+  \"upgrade_policy\": {
+    \"channel_minimum_lockstep\": true,
+    \"archive_target_scope\": [
+      \"x86_64-linux\"
     ],
-    "required_make_routes": [
-      "phase2-toolchain",
-      "phase2-validate"
+    \"required_make_routes\": [
+      \"phase2-toolchain\",
+      \"phase2-validate\"
     ]
   }
 }
@@ -487,7 +529,10 @@ def run_self_test() -> int:
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux,x86_64-linux") in collect_issues(root)
+        assert (
+            "ARCHIVE_HASH_SCOPE_MISMATCH",
+            "expected=x86_64-linux;actual=x86_64-linux,aarch64-linux",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -496,7 +541,10 @@ def run_self_test() -> int:
         del payload["archive_sha256"]["x86_64-linux"]
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux") in collect_issues(root)
+        assert (
+            "ARCHIVE_HASH_SCOPE_MISMATCH",
+            "expected=x86_64-linux;actual=aarch64-linux",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -552,8 +600,14 @@ def run_self_test() -> int:
         fixture["archive_target_scope"] = ["aarch64-linux", "x86_64-linux"]
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("ARCHIVE_SCOPE_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
-        assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux,aarch64-linux") not in issues
+        assert (
+            "ARCHIVE_SCOPE_ORDER_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) in issues
+        assert (
+            "ARCHIVE_SCOPE_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) not in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -566,33 +620,39 @@ def run_self_test() -> int:
         }
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("ARCHIVE_HASH_SCOPE_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
-        assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux,x86_64-linux") not in issues
+        assert (
+            "ARCHIVE_HASH_SCOPE_ORDER_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) in issues
+        assert (
+            "ARCHIVE_HASH_SCOPE_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) not in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         path.write_text(
             """{
-  "phase": "Phase 2",
-  "status": "active",
-  "route": "make -C zigux phase2-cross",
-  "archive_target_scope": [
-    "x86_64-linux"
+  \"phase\": \"Phase 2\",
+  \"status\": \"active\",
+  \"route\": \"make -C zigux phase2-cross\",
+  \"archive_target_scope\": [
+    \"x86_64-linux\"
   ],
-  "cross_targets": [
+  \"cross_targets\": [
     {
-      "target": "x86_64-linux",
-      "review_status": "pinned bootstrap archive",
-      "validation_mode": "archive_required",
-      "validation_mode": "archive_required",
-      "route": "make -C zigux phase2-cross"
+      \"target\": \"x86_64-linux\",
+      \"review_status\": \"pinned bootstrap archive\",
+      \"validation_mode\": \"archive_required\",
+      \"validation_mode\": \"archive_required\",
+      \"route\": \"make -C zigux phase2-cross\"
     },
     {
-      "target": "aarch64-linux",
-      "review_status": "route contract only",
-      "validation_mode": "route_contract_only",
-      "route": "make -C zigux phase2-cross"
+      \"target\": \"aarch64-linux\",
+      \"review_status\": \"route contract only\",
+      \"validation_mode\": \"route_contract_only\",
+      \"route\": \"make -C zigux phase2-cross\"
     }
   ]
 }
@@ -636,7 +696,10 @@ def run_self_test() -> int:
         fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux") in collect_issues(root)
+        assert (
+            "ARCHIVE_SCOPE_MISMATCH",
+            "expected=x86_64-linux;actual=aarch64-linux",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -646,7 +709,10 @@ def run_self_test() -> int:
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("INVALID_CROSS_TARGET_EXPECTED_MODE", "x86_64-linux") in issues
-        assert ("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", "") in issues
+        assert (
+            "ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",
+            "expected=x86_64-linux;actual=",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -691,7 +757,10 @@ def run_self_test() -> int:
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("UNEXPECTED_CROSS_TARGET", "riscv64-linux") in issues
-        assert ("CROSS_TARGET_SET_MISMATCH", "riscv64-linux,x86_64-linux") in issues
+        assert (
+            "CROSS_TARGET_SET_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=x86_64-linux,riscv64-linux",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -700,8 +769,14 @@ def run_self_test() -> int:
         fixture["cross_targets"] = [fixture["cross_targets"][1], fixture["cross_targets"][0]]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
-        assert ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", "x86_64-linux") not in issues
+        assert (
+            "CROSS_TARGET_ORDER_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) in issues
+        assert (
+            "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
+            "expected=x86_64-linux;actual=x86_64-linux",
+        ) not in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -719,8 +794,14 @@ def run_self_test() -> int:
         fixture["archive_target_scope"] = ["x86_64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
-        assert ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", "x86_64-linux") not in issues
+        assert (
+            "CROSS_TARGET_ORDER_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+        ) in issues
+        assert (
+            "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
+            "expected=x86_64-linux;actual=x86_64-linux",
+        ) not in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -760,8 +841,11 @@ def run_self_test() -> int:
         with contextlib.redirect_stdout(capture):
             exit_code = emit_issues(
                 [
-                    ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux"),
-                    ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux"),
+                    (
+                        "CROSS_TARGET_ORDER_MISMATCH",
+                        "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
+                    ),
+                    ("ARCHIVE_SCOPE_MISMATCH", "expected=x86_64-linux;actual=aarch64-linux"),
                     ("MISSING_MAKEFILE_LINE", "phase2-cross:"),
                 ]
             )
@@ -772,10 +856,10 @@ def run_self_test() -> int:
             "phase2-cross:",
             "MISSING_MAKEFILE_LINE_END",
             "ARCHIVE_SCOPE_MISMATCH_START",
-            "x86_64-linux",
+            "expected=x86_64-linux;actual=aarch64-linux",
             "ARCHIVE_SCOPE_MISMATCH_END",
             "CROSS_TARGET_ORDER_MISMATCH_START",
-            "aarch64-linux,x86_64-linux",
+            "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
             "CROSS_TARGET_ORDER_MISMATCH_END",
         ]
         checks_run += 1
