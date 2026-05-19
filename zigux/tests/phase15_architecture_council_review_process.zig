@@ -14,6 +14,7 @@ const ReviewProcessManifest = struct {
     build_gate: []const u8,
     review_checklist_entry_prompt: []const u8,
     review_checklist_boundary_rule: []const u8,
+    review_checklist_stay_in_c_policy_boundary_rule: []const u8,
     required_review_fields: []const []const u8,
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
@@ -66,6 +67,10 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("zigux/tests/phase15_architecture_council_review_process_build.zig", manifest.build_gate);
     try std.testing.expectEqualStrings("if a freeze-map anchor is entering Architecture Council status review", manifest.review_checklist_entry_prompt);
     try expectContains(manifest.review_checklist_boundary_rule, "exact Architecture Council field inventory stays owned by this note");
+    try std.testing.expectEqualStrings(
+        "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
+        manifest.review_checklist_stay_in_c_policy_boundary_rule,
+    );
     try std.testing.expectEqualStrings(
         "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
         manifest.decision_record_template_study_only_rule,
@@ -148,6 +153,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     const indefinite_c_policy = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 16 * 1024);
     defer std.testing.allocator.free(indefinite_c_policy);
 
+    const review_checklist = try readRepoFile("Documentation/zigux/review-checklist.md", 48 * 1024);
+    defer std.testing.allocator.free(review_checklist);
+
     const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 20 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
@@ -178,6 +186,10 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "defaults that record to dated-master-readback provenance");
     try expectContains(review_process, manifest.review_checklist_boundary_rule);
     try expectContains(decision_record_template, manifest.decision_record_template_study_only_rule);
+    try expectContains(review_checklist, manifest.review_checklist_entry_prompt);
+    try expectContains(review_checklist, manifest.review_process_note);
+    try expectContains(review_checklist, manifest.decision_record_template);
+    try expectContains(review_checklist, manifest.review_checklist_stay_in_c_policy_boundary_rule);
 
     for (manifest.required_review_fields) |field| {
         try expectContains(review_process, field);
@@ -221,7 +233,7 @@ test "phase 15 review-process build gate stays aligned with the focused replay p
 }
 
 test "phase 15 review-process handoff checker fails closed on missing present paths" {
-    const checker = try readRepoFile("scripts/zigux/check-phase15-review-process-handoff.py", 24 * 1024);
+    const checker = try readRepoFile("scripts/zigux/check-phase15-review-process-handoff.py", 28 * 1024);
     defer std.testing.allocator.free(checker);
 
     const review_process = try readRepoFile("Documentation/zigux/phase15-architecture-council-review-process.md", 20 * 1024);
@@ -233,7 +245,8 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "shared-summary gap note claims materialized path is missing from repo");
     try expectContains(checker, "focused review-process Zig replay is missing from repo");
     try expectContains(checker, "review-process note is missing the review-checklist boundary rule");
-    try expectContains(checker, "decision-record template is missing the study-only anchor review rule");
+    try expectContains(checker, "review checklist entry prompt is missing required stay-in-C policy boundary marker");
+    try expectContains(checker, "decision-record template is missing the study-only anchor boundary rule");
     try expectContains(checker, "review-process note is missing study-only boundary marker");
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
