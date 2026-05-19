@@ -36,12 +36,14 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 The same reread also confirmed that current `master` now keeps the restored direct bytestream packet, the restored direct kretprobe packet, and the bounded trace-events formatting companion visible from the sample root, while the kobject anchor remains a roadmap-backed target plus shared reminder or repo-reality-gap surface until a fresh reread proves its older sample-root and tests-root packet returned on current `master`.
 
 Keep this shared note truthful about that narrower current packet instead of repeating older missing-sample wording for bytestream or older broader direct-sample wording for kobject or trace-events.
+Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.
 
 ## Current sample-root reality
 
@@ -115,4 +117,4 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 
 ## Next-step posture
 
-The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without overstating kobject direct sample-root visibility, flattening the narrower trace-events formatting packet, or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.
+The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without overstating kobject direct sample-root visibility, flattening the narrower trace-events formatting packet, or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof. If the lane reopens soon, compare `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before widening any sample behavior.
