@@ -69,13 +69,17 @@ WORKFLOW_COMMAND_MARKERS = [
     "workflow_dispatch:",
     "group: ${{ format('{0}-{1}', github.workflow, github.ref) }}",
     "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
-    "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
-    "if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then",
+    'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+    'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
     "if try_local_archive; then",
-    "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
-    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
+    'curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"',
+    'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
+    'echo "$extract_root" >> "$GITHUB_PATH"',
+    '"$zig_path" version',
+    'if [ "${#scripts[@]}" -eq 0 ]; then',
+    'python3 -m py_compile "${scripts[@]}"',
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
@@ -99,6 +103,10 @@ WORKFLOW_COMMAND_MARKERS = [
 ]
 
 WORKFLOW_EXACT_LINES = [
+    '          echo "$extract_root" >> "$GITHUB_PATH"',
+    '          "$zig_path" version',
+    '          if [ "${#scripts[@]}" -eq 0 ]; then',
+    '          python3 -m py_compile "${scripts[@]}"',
     "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
@@ -251,10 +259,17 @@ jobs:
           curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"
           python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"
           echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org'
+          echo "$extract_root" >> "$GITHUB_PATH"
+          "$zig_path" version
       - name: Compile current scripts
         run: |
           set -euxo pipefail
           mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo 'no Python scripts found under scripts/zigux' >&2
+            exit 1
+          fi
+          python3 -m py_compile "${scripts[@]}"
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
       - name: Check current Zig toolchain policy packet
@@ -387,6 +402,36 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                '          echo "$extract_root" >> "$GITHUB_PATH"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            'workflow_exact_line:echo "$extract_root" >> "$GITHUB_PATH":expected=1:actual=0',
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                '          python3 -m py_compile "${scripts[@]}"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            'workflow_exact_line:python3 -m py_compile "${scripts[@]}":expected=1:actual=0',
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "      - name: Run current Phase 2 toolchain make route\n        run: make -C zigux phase2-toolchain\n",
                 "",
                 1,
@@ -508,7 +553,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
