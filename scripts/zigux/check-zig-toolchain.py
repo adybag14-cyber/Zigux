@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -222,7 +223,13 @@ def normalize_explicit_zig_path(explicit_zig: str) -> str:
         raise ValueError(f"explicit zig path does not exist: {normalized}")
     if normalized.is_dir():
         raise ValueError(f"explicit zig path is a directory, expected an executable file: {normalized}")
+    if not os.access(normalized, os.X_OK):
+        raise ValueError(f"explicit zig path is not executable: {normalized}")
     return str(normalized)
+
+
+def is_executable_file(path: Path) -> bool:
+    return path.is_file() and os.access(path, os.X_OK)
 
 
 def iter_repo_local_zig_candidates(
@@ -273,7 +280,7 @@ def resolve_zig_executable(
 
     pinned_channel = load_pinned_channel(policy_path)
     for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
-        if candidate.is_file():
+        if is_executable_file(candidate):
             return str(candidate)
     return which("zig")
 
@@ -320,6 +327,10 @@ def archive_name_matches_policy(path_name: str, expected_filename: str) -> bool:
     return path_name == expected_filename or archive_name_has_duplicate_suffix(path_name, expected_filename)
 
 
+def normalize_explicit_archive_path(explicit_archive: str) -> Path:
+    return Path(explicit_archive).expanduser()
+
+
 def describe_missing_archive(
     archive_path: Path | None,
     *,
@@ -327,7 +338,7 @@ def describe_missing_archive(
     search_roots: list[Path],
 ) -> tuple[str, str | None]:
     if explicit_archive is not None:
-        resolved = archive_path or Path(explicit_archive)
+        resolved = archive_path or normalize_explicit_archive_path(explicit_archive)
         return f"explicit archive path does not exist: {resolved}", None
     return "pinned Zig archive not found in archive search roots", format_search_roots(search_roots)
 
@@ -394,7 +405,7 @@ def resolve_policy_archive(
 ) -> tuple[str | None, Path | None]:
     payload = load_policy(policy_path)
     if payload is None:
-        return explicit_target, Path(explicit_archive) if explicit_archive is not None else None
+        return explicit_target, normalize_explicit_archive_path(explicit_archive) if explicit_archive is not None else None
 
     archive_targets = [str(target) for target in payload["upgrade_policy"]["archive_target_scope"]]
     target = explicit_target
@@ -409,7 +420,7 @@ def resolve_policy_archive(
             if len(archive_targets) != 1:
                 raise ValueError("archive target must be explicit when policy covers multiple archive targets")
             target = archive_targets[0]
-        return target, Path(explicit_archive)
+        return target, normalize_explicit_archive_path(explicit_archive)
 
     candidates = iter_repo_local_archive_candidates(root=root, policy_path=policy_path)
     if target is not None:
@@ -643,15 +654,18 @@ def run_self_test() -> int:
         toolchain_dir.mkdir(parents=True)
         pinned_zig = toolchain_dir / "zig"
         pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        pinned_zig.chmod(0o755)
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(pinned_zig))
         alt_toolchain = root / ".zig-toolchain" / "fallback" / "bin"
         alt_toolchain.mkdir(parents=True)
         alt_zig = alt_toolchain / "zig"
         alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        alt_zig.chmod(0o755)
         pinned_zig.unlink()
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(alt_zig))
         explicit_zig = root / "custom-zig"
         explicit_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        explicit_zig.chmod(0o755)
         expect_equal(
             resolve_zig_executable(str(explicit_zig), root=root, policy_path=policy_path, which=lambda _: None),
             str(explicit_zig),
@@ -659,7 +673,12 @@ def run_self_test() -> int:
         explicit_dir = root / "explicit-zig-dir"
         explicit_dir.mkdir()
         expect_raises(lambda: resolve_zig_executable(str(explicit_dir), root=root, policy_path=policy_path, which=lambda _: None), "expected an executable file")
+        nonexec_zig = root / "nonexec-zig"
+        nonexec_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        nonexec_zig.chmod(0o644)
+        expect_raises(lambda: resolve_zig_executable(str(nonexec_zig), root=root, policy_path=policy_path, which=lambda _: None), "not executable")
         pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        pinned_zig.chmod(0o755)
         expect_equal(
             iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
             [pinned_zig, toolchain_dir / "bin" / "zig"],
@@ -681,8 +700,13 @@ def run_self_test() -> int:
         parent_pinned_root.mkdir(parents=True, exist_ok=True)
         parent_pinned_zig = parent_pinned_root / "zig"
         parent_pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        parent_pinned_zig.chmod(0o755)
         pinned_zig.unlink()
         alt_zig.unlink()
+        repo_nonexec_zig = root / ".zig-toolchain" / "repo-nonexec-zig"
+        repo_nonexec_zig.parent.mkdir(parents=True, exist_ok=True)
+        repo_nonexec_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        repo_nonexec_zig.chmod(0o644)
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(parent_pinned_zig))
         expect_equal(
             describe_missing_zig(
@@ -793,6 +817,35 @@ def run_self_test() -> int:
                 None,
             ),
         )
+        original_home = os.environ.get("HOME")
+        os.environ["HOME"] = str(root)
+        try:
+            expanded_missing_archive = root / "missing-under-home.tar.xz"
+            expect_equal(
+                resolve_policy_archive(
+                    "~/missing-under-home.tar.xz",
+                    "x86_64-linux",
+                    root=root,
+                    policy_path=policy_path,
+                ),
+                ("x86_64-linux", expanded_missing_archive),
+            )
+            expect_equal(
+                describe_missing_archive(
+                    expanded_missing_archive,
+                    explicit_archive="~/missing-under-home.tar.xz",
+                    search_roots=iter_archive_search_roots(root),
+                ),
+                (
+                    f"explicit archive path does not exist: {expanded_missing_archive}",
+                    None,
+                ),
+            )
+        finally:
+            if original_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = original_home
         explicit_archive_dir = root / "archive-dir"
         explicit_archive_dir.mkdir()
         expect_equal(
