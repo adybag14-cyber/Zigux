@@ -35,6 +35,7 @@ REQUIRED_MARKERS = {
         "zigux/bindings/notifier_abi.zig",
         "zigux/kernel/export_shim.zig",
         "scripts/zigux/check-phase3-abi.py",
+        "scripts/zigux/phase3_catalog.py",
         "scripts/zigux/validate-phase3.py",
     ),
     ABI_HEADER: (
@@ -166,6 +167,10 @@ SELF_TEST_CASES = (
     (
         ABI_SLICE_NOTE,
         "scripts/zigux/check-phase3-abi.py",
+    ),
+    (
+        ABI_SLICE_NOTE,
+        "scripts/zigux/phase3_catalog.py",
     ),
     (
         BINDING_ABI,
