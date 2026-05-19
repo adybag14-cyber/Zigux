@@ -25,9 +25,15 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 RELEASE_BOUNDARY_PATH = "Documentation/zigux/phase14-release-boundary-survey.md"
 PRODUCTIZATION_GAP_PATH = "Documentation/zigux/phase14-productization-gap-survey.md"
+SHARED_SMOKE_GAP_PATH = "Documentation/zigux/phase14-shared-smoke-current-master-gap.md"
+ATTACHED_TOOLCHAIN_GUIDANCE_PATH = "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
+CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
+WORKQUEUE_SURVEY_PATH = "Documentation/zigux/phase14-workqueue-bridge-survey.md"
+SKBUFF_SURVEY_PATH = "Documentation/zigux/phase14-skbuff-bridge-survey.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKQUEUE_BRIDGE_PATH = "kernel/workqueue_bridge.zig"
@@ -41,9 +47,15 @@ REQUIRED_FILES = [
     SMOKE_SURVEY_PATH,
     RELEASE_BOUNDARY_PATH,
     PRODUCTIZATION_GAP_PATH,
+    SHARED_SMOKE_GAP_PATH,
+    ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
+    CORE_BOUNDARY_TRACEABILITY_PATH,
+    WORKQUEUE_SURVEY_PATH,
+    SKBUFF_SURVEY_PATH,
     STUDY_ONLY_ACCOUNTING_PATH,
     SCRIPTS_README_PATH,
     ROLLBACK_CHECKER_PATH,
+    RELEASE_BOUNDARY_CHECKER_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
     WORKQUEUE_BRIDGE_PATH,
@@ -72,7 +84,7 @@ REQUIRED_MARKERS = {
         "  * fallback path: keep this shared smoke lane aligned with the current gap notes",
         "  * automatic return-to-blocked triggers:",
         "    * workqueue-boundary-shard drift",
-        "    * `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
+        "        * `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
         "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`",
     ],
     RELEASE_BOUNDARY_PATH: [
@@ -87,6 +99,36 @@ REQUIRED_MARKERS = {
         "but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
         "The higher-value same-lane task is reminder-surface truthfulness",
     ],
+    SHARED_SMOKE_GAP_PATH: [
+        "PHASE14_GAP_KIND=shared_smoke_current_master_readback_gap",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+        "the next same-lane follow-through should keep the visible post-Phase-2 Makefile route families and the readable non-owner posture explicit",
+        "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md",
+    ],
+    ATTACHED_TOOLCHAIN_GUIDANCE_PATH: [
+        "the shared smoke note now treats those same wrapper names as historical packet-local vocabulary instead of current fallback guidance",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again through the current contents path",
+        "`zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+        "`zigux/tests/phase14_workqueue_reviewability.zig`",
+    ],
+    CORE_BOUNDARY_TRACEABILITY_PATH: [
+        "`kernel/workqueue.c`: `Study / Boundary Only`",
+        "`net/core/skbuff.c`: `Freeze In C Initially`",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again as the release-facing truthfulness guard",
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+    ],
+    WORKQUEUE_SURVEY_PATH: [
+        "`PHASE14_ANCHOR=kernel/workqueue.c`",
+        "`PHASE14_BLOCKER=phase14-workqueue-live-execution-blocker`",
+        "`kernel/workqueue.c` remains `Study / Boundary Only`",
+        "`zig test zigux/tests/phase14_workqueue_reviewability.zig`",
+    ],
+    SKBUFF_SURVEY_PATH: [
+        "`PHASE14_LANE_KEY=P14-L11`",
+        "`PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing`",
+        "there is therefore no honest skbuff-local compile route to claim today",
+        "explicit stay-in-C ownership for queue publication, skb lifetime, checksum state, destructor coordination, segmentation metadata, and the final sock-owned tail transfer remains the Phase 14 boundary",
+    ],
     STUDY_ONLY_ACCOUNTING_PATH: [
         "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only",
         "`kernel/workqueue.c` remains a boundary-study target first, not a rewrite target",
@@ -100,10 +142,16 @@ REQUIRED_MARKERS = {
     ],
     ROLLBACK_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=rollback_threshold_sequencing",
-        "ROLLBACK_OWNER = \"Repo Tooling Pod\"",
+        'ROLLBACK_OWNER = "Repo Tooling Pod"',
         "ROLLBACK_TRIGGER_MARKERS = [",
         "MAKEFILE_ABSENT_ROUTE_MARKERS = [",
         "PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass",
+    ],
+    RELEASE_BOUNDARY_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
+        'RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")',
+        "EXECUTABLE_GAP_MARKERS = [",
+        "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
     ],
     TESTS_README_PATH: [
         "Keep the current bounded Phase 14 reminder packet explicit",
@@ -196,6 +244,11 @@ def fixture_text(rel_path: str) -> str:
         SMOKE_SURVEY_PATH: "# Phase 14 End-to-End Smoke Survey",
         RELEASE_BOUNDARY_PATH: "# Phase 14 Release Boundary Survey",
         PRODUCTIZATION_GAP_PATH: "# Phase 14 Productization Gap Survey",
+        SHARED_SMOKE_GAP_PATH: "# Phase 14 Shared Smoke Current-Master Gap",
+        ATTACHED_TOOLCHAIN_GUIDANCE_PATH: "# Phase 14 Attached Toolchain Guidance Gap",
+        CORE_BOUNDARY_TRACEABILITY_PATH: "# Phase 14 Core Boundary Traceability",
+        WORKQUEUE_SURVEY_PATH: "# Phase 14 Workqueue Bridge Survey",
+        SKBUFF_SURVEY_PATH: "# Phase 14 Skbuff Bridge Survey",
         STUDY_ONLY_ACCOUNTING_PATH: "# Phase 15 Study-Only Anchor Accounting",
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
@@ -245,8 +298,13 @@ def run_self_test() -> int:
 
         missing_file_cases = [
             PRODUCTIZATION_GAP_PATH,
+            SHARED_SMOKE_GAP_PATH,
+            ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
+            WORKQUEUE_SURVEY_PATH,
+            SKBUFF_SURVEY_PATH,
             SCRIPTS_README_PATH,
             ROLLBACK_CHECKER_PATH,
+            RELEASE_BOUNDARY_CHECKER_PATH,
             MAKEFILE_PATH,
             WORKQUEUE_REVIEWABILITY_PATH,
             WORKQUEUE_MANIFEST_PATH,
@@ -260,8 +318,14 @@ def run_self_test() -> int:
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][2]),
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][0]),
+            (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][0]),
+            (ATTACHED_TOOLCHAIN_GUIDANCE_PATH, REQUIRED_MARKERS[ATTACHED_TOOLCHAIN_GUIDANCE_PATH][0]),
+            (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][2]),
+            (WORKQUEUE_SURVEY_PATH, REQUIRED_MARKERS[WORKQUEUE_SURVEY_PATH][0]),
+            (SKBUFF_SURVEY_PATH, REQUIRED_MARKERS[SKBUFF_SURVEY_PATH][0]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (ROLLBACK_CHECKER_PATH, REQUIRED_MARKERS[ROLLBACK_CHECKER_PATH][0]),
+            (RELEASE_BOUNDARY_CHECKER_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_CHECKER_PATH][0]),
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][2]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][1]),
             (WORKQUEUE_REVIEWABILITY_PATH, REQUIRED_MARKERS[WORKQUEUE_REVIEWABILITY_PATH][0]),
@@ -298,8 +362,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the rollback "
-            "threshold checker, mixed-source validator surface, workqueue reviewability shard, "
-            "and current Makefile route reality."
+            "threshold checker, recovered reminder packet, release-boundary checker, "
+            "workqueue reviewability shard, and current Makefile route reality."
         )
     )
     parser.add_argument(
