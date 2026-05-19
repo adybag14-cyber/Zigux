@@ -34,6 +34,7 @@ Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
+- `zigux/tests/phase10_virtio_core.zig`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
@@ -55,9 +56,14 @@ Keep these evidence surfaces aligned in the same review:
 - `zigux/tests/phase10_build.zig`
 - `zigux/Makefile`
 
+Keep the current repo-reality split explicit too:
+
+- `zigux/tests/phase10_virtio_core.zig` is back as the returned bounded core replay inside the shared closure packet.
+- `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
+
 Reviewer prompts:
 
-- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
 - Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
 
 ## Phase 11: Simple-driver packet
@@ -102,7 +108,7 @@ Keep these evidence surfaces aligned in the same review:
 Keep the current repo-reality gaps explicit too:
 
 - `zigux/Makefile` is present on current `master`, and its live body now exposes the shared `make -C zigux phase11-validate` route. `make -C zigux phase11` and `make -C zigux phase11-contract` still remain repo-reality gaps.
-- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
 
 Reviewer prompts:
 
