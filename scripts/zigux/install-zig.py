@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -153,7 +154,12 @@ def copy_response_chunks(response, destination: Path, *, append: bool) -> None:
     mode = 'ab' if append else 'wb'
     with open(destination, mode) as out:
         while True:
-            chunk = response.read(DOWNLOAD_CHUNK_SIZE)
+            try:
+                chunk = response.read(DOWNLOAD_CHUNK_SIZE)
+            except http.client.IncompleteRead as exc:
+                if exc.partial:
+                    out.write(exc.partial)
+                raise
             if not chunk:
                 return
             out.write(chunk)
@@ -221,6 +227,10 @@ def copy_url_to_file(
                 copy_response_chunks(response, destination, append=append)
             return
         except TimeoutError as exc:
+            last_error = exc
+        except http.client.IncompleteRead as exc:
+            last_error = exc
+        except ConnectionResetError as exc:
             last_error = exc
         except urllib.error.URLError as exc:
             last_error = exc
@@ -475,6 +485,34 @@ def run_self_test() -> int:
             temp_path.unlink()
         temp_path.parent.rmdir()
 
+    incomplete_headers: list[str | None] = []
+
+    def incomplete_read_open_url(target: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
+        del retries, timeout
+        if isinstance(target, urllib.request.Request):
+            range_header = target.headers.get('Range')
+        else:
+            range_header = None
+        incomplete_headers.append(range_header)
+        if range_header is None:
+            return FakeResponse([b'zig-', http.client.IncompleteRead(b'd', 4)], status=200)
+        assert range_header == 'bytes=5-'
+        return FakeResponse([b'ata'], status=206)
+
+    temp_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_incomplete_')) / 'archive.tar.xz'
+    try:
+        shutil.which = lambda name: None if name == 'curl' else original_which(name)
+        globals()['open_url'] = incomplete_read_open_url
+        copy_url_to_file('https://example.invalid/archive.tar.xz', temp_path, retries=2, timeout=1.0)
+        assert temp_path.read_bytes() == b'zig-data'
+        assert incomplete_headers == [None, 'bytes=5-']
+    finally:
+        shutil.which = original_which
+        globals()['open_url'] = original_open_url
+        if temp_path.exists():
+            temp_path.unlink()
+        temp_path.parent.rmdir()
+
     curl_commands: list[list[str]] = []
 
     def fake_run(cmd: list[str], *, check: bool) -> None:
@@ -572,7 +610,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=32')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=33')
     return 0
 
 
