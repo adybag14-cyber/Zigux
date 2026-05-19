@@ -25,13 +25,10 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
-    "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/genksyms.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
-    "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
@@ -68,13 +65,12 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
-    "run: zig test scripts/zigux/genksyms.zig",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 DISALLOWED_WORKFLOW_LINES: tuple[str, ...] = ()
 
-REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 
 REQUIRED_MAKEFILE_LINES = (
@@ -96,11 +92,7 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
-    "phase2-genksyms:",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
