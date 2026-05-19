@@ -400,6 +400,38 @@ test "cpumask starter helpers keep exact-word windows explicit" {
     try testing.expectEqual(bitmap_view.bits_per_word + 1, summary.weight);
 }
 
+test "cpumask starter helpers keep exact-word bitmap projection parity explicit" {
+    var backing = [_]usize{
+        ~@as(usize, 0),
+        (@as(usize, 1) << 5),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word * 2);
+    const projected = binding.asBitmap(view);
+    const cpumask_summary = cpumask_view.summarize(view);
+    const bitmap_summary = bitmap_view.summarize(projected);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expectEqual(view.words_addr, projected.words_addr);
+    try testing.expectEqual(view.nbits, projected.nbits);
+    try testing.expectEqual(view.word_count, projected.word_count);
+    try testing.expectEqual(
+        cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 5),
+        bitmap_view.testBit(projected, bitmap_view.bits_per_word + 5),
+    );
+    try testing.expectEqual(
+        cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 6),
+        bitmap_view.testBit(projected, bitmap_view.bits_per_word + 6),
+    );
+    try testing.expectEqual(cpumask_view.firstCpu(view), bitmap_view.firstSet(projected));
+    try testing.expectEqual(cpumask_view.firstAbsentCpu(view), bitmap_view.firstZero(projected));
+    try testing.expectEqual(cpumask_view.weight(view), bitmap_view.weight(projected));
+    try testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
 test "cpumask starter helpers keep large bounded word counts predictable" {
     const max_nbits = std.math.maxInt(u32);
     const expected = bitmap_view.wordCount(max_nbits);
