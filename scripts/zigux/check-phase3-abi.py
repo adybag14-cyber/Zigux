@@ -225,6 +225,9 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-abi-slice.md"',
         '"zigux/bindings/abi.zig"',
         '"zigux/bindings/notifier_abi.zig"',
+        '"scripts/zigux/validate-phase3.py"',
+        '"scripts/zigux/phase3_catalog.py"',
+        '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"zigux/tests/phase3_abi.zig"',
         '"zigux/tests/phase3_abi_dump_current.zig"',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
@@ -270,6 +273,9 @@ REQUIRED_PACKET_FILES = (
     "zigux/bindings/abi.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -301,23 +307,18 @@ SAMPLE_MANIFEST = {
     "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work",
 }
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
-
 def _header_names(text: str) -> set[str]:
     return set(HEADER_DEFINE_RE.findall(text))
 
-
 def _binding_names(text: str) -> set[str]:
     return set(BINDING_CONST_RE.findall(text))
-
 
 def _append_duplicate_list_entry_issues(
     manifest_name: str,
@@ -336,7 +337,6 @@ def _append_duplicate_list_entry_issues(
             f"{manifest_name} duplicate {field_name} entry: "
             f"{value!r} (first index {first_index}, duplicate index {index})"
         )
-
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -447,7 +447,6 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     return issues
 
-
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_check_") as temp_dir:
         root = Path(temp_dir)
@@ -510,7 +509,6 @@ def run_self_test() -> int:
     print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate the current bounded Phase 3 shared ABI packet."
@@ -537,7 +535,6 @@ def main() -> int:
     print("PHASE3_ABI_CHECK=pass")
     print("PHASE3_ABI_SCOPE=shared-abi-packet")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
