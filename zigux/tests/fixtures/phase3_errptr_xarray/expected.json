@@ -54,16 +54,6 @@
       "decoded_value": null
     },
     {
-      "name": "err_enomem",
-      "kind": "err_ptr",
-      "raw_hex": "0xfffffffffffffff4",
-      "raw_decimal": "18446744073709551604",
-      "is_err": true,
-      "is_value": false,
-      "decoded_error": -12,
-      "decoded_value": null
-    },
-    {
       "name": "err_max",
       "kind": "err_ptr",
       "raw_hex": "0xfffffffffffff001",
@@ -71,6 +61,26 @@
       "is_err": true,
       "is_value": false,
       "decoded_error": -4095,
+      "decoded_value": null
+    },
+    {
+      "name": "err_floor_plus_one",
+      "kind": "err_ptr",
+      "raw_hex": "0xfffffffffffff002",
+      "raw_decimal": "18446744073709547522",
+      "is_err": true,
+      "is_value": false,
+      "decoded_error": -4094,
+      "decoded_value": null
+    },
+    {
+      "name": "err_enomem",
+      "kind": "err_ptr",
+      "raw_hex": "0xfffffffffffffff4",
+      "raw_decimal": "18446744073709551604",
+      "is_err": true,
+      "is_value": false,
+      "decoded_error": -12,
       "decoded_value": null
     }
   ]
