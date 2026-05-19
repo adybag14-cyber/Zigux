@@ -44,6 +44,7 @@ REQUIRED_SNIPPETS = {
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
+        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
         'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {',
         'test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {',
         'test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {',
@@ -90,6 +91,11 @@ REQUIRED_SNIPPETS = {
 
 SELF_TEST_CASES = [
     (SLICE_PATH, "- `zigux/tests/phase6_bsearch_perf.zig`", "- `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (
+        HELPER_TEST_PATH,
+        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
+        'test "phase 6 bsearch direct descending bounds wrappers keep duplicate-span and write-through coverage aligned" {',
+    ),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
     (PERF_TEST_PATH, 'avg_compare_calls', 'avg_probe_calls'),
     (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
