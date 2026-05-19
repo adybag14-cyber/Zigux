@@ -31,10 +31,12 @@ CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-tra
 WORKQUEUE_SLICE_PATH = "Documentation/zigux/phase14-workqueue-bridge-slice.md"
 WORKQUEUE_SURVEY_PATH = "Documentation/zigux/phase14-workqueue-bridge-survey.md"
 SKBUFF_SURVEY_PATH = "Documentation/zigux/phase14-skbuff-bridge-survey.md"
+RCU_TREE_SURVEY_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SHARED_SMOKE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-shared-smoke-route.py"
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -57,10 +59,12 @@ REQUIRED_FILES = [
     WORKQUEUE_SLICE_PATH,
     WORKQUEUE_SURVEY_PATH,
     SKBUFF_SURVEY_PATH,
+    RCU_TREE_SURVEY_PATH,
     STUDY_ONLY_ACCOUNTING_PATH,
     SCRIPTS_README_PATH,
     SHARED_SMOKE_ROUTE_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
+    RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -116,6 +120,17 @@ REQUIRED_MARKERS = {
         "current `master` ships the bounded skbuff anchor packet again through `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, and `zigux/tests/phase14_build.zig`",
         "`zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` and `phase14_skbuff_bridge.zig` into the dedicated Phase 14 build shard, so there is now a live skbuff-local review route on current `master`",
     ],
+    RCU_TREE_SURVEY_PATH: [
+        "`PHASE14_LANE_KEY=P14-L16`",
+        "`PHASE14_STATUS_BUCKET=freeze_in_c`",
+        "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
+        "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
+        "`phase14-rcu-tree-rollback-threshold-guardrail`",
+        "rollback owner: `Repo Tooling Pod`",
+        "`Architecture Council` reopen record",
+        "parity scorecard evidence and benchmark notes",
+        "validation replay command and evidence archive path",
+    ],
     STUDY_ONLY_ACCOUNTING_PATH: [
         "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only",
         "`kernel/workqueue.c` remains a boundary-study target first, not a rewrite target",
@@ -135,6 +150,12 @@ REQUIRED_MARKERS = {
     RELEASE_BOUNDARY_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
         "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
+    ],
+    RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
+        "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
+        "`PHASE14_LANE_KEY=P14-L16`",
+        "`phase14-rcu-tree-rollback-threshold-guardrail`",
+        "Check that the dedicated Phase 14 RCU rollback note stays aligned",
     ],
     TESTS_README_CHECKER_PATH: [
         "Check that the shared Phase 14 tests-root reminder stays aligned with repo reality.",
@@ -230,6 +251,7 @@ def fixture_text(rel_path: str) -> str:
         WORKQUEUE_SLICE_PATH: "# Phase 14 Workqueue Bridge Slice",
         WORKQUEUE_SURVEY_PATH: "# Phase 14 Workqueue Bridge Survey",
         SKBUFF_SURVEY_PATH: "# Phase 14 Skbuff Bridge Survey",
+        RCU_TREE_SURVEY_PATH: "# Phase 14 RCU Tree Survey",
         STUDY_ONLY_ACCOUNTING_PATH: "# Phase 15 Study-Only Anchor Accounting",
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
@@ -280,6 +302,8 @@ def run_self_test() -> int:
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
             RELEASE_BOUNDARY_CHECKER_PATH,
+            RCU_TREE_SURVEY_PATH,
+            RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
             WORKFLOW_PATH,
             WORKQUEUE_MANIFEST_PATH,
@@ -293,6 +317,8 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
+            (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
+            (RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, REQUIRED_MARKERS[RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
         ]
@@ -314,7 +340,8 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the release-boundary "
-            "exact-count guard, and the returned workqueue reviewability shard."
+            "exact-count guard, the dedicated RCU rollback guardrail, and the returned "
+            "workqueue reviewability shard."
         )
     )
     parser.add_argument(
