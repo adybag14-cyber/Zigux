@@ -95,6 +95,8 @@ REQUIRED_MARKERS = {
         "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
         "keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit ahead of the shipped wrapper reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "Keep the degraded-workflow validator-side support bundle explicit beside that same order too:",
+        "  * `scripts/zigux/validate-phase12.py`",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
