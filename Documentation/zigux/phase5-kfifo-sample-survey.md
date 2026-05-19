@@ -58,7 +58,7 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 - keep the Linux anchor path explicit through a descriptor or note
 - keep ownership and lifetime boundaries visible through explicit initialization, replay, reset, and teardown states
 - keep non-destructive preview and snapshot behavior explicit so reviewers can inspect queued state without inferring hidden mutation
-- keep rollover and queue-shape cues explicit through `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
+- keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
 - keep helper-boundary behavior explicit at empty, short-drain, full, overflow, skip-at-capacity, and reset edges
 - keep bitmap helper or runtime bitmap claims out of this packet; current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample
 - keep procfs, user-copy, locking, and module-registration claims out of scope unless a later runtime lane lands the required substrate first
