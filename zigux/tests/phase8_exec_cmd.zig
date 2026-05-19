@@ -37,6 +37,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const checklist = try readRepoFile("Documentation/zigux/review-checklist.md");
     defer std.testing.allocator.free(checklist);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`zigux/tests/phase8_exec_cmd.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-exec-cmd-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
 
     const scripts_root = try readRepoFile("scripts/zigux/README.md");
@@ -46,7 +48,9 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
 
     const tests_root = try readRepoFile("zigux/tests/README.md");
     defer std.testing.allocator.free(tests_root);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "Phase 8 flow") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "make -C zigux phase8-exec-cmd-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "make -C zigux phase8-validate") != null);
 
     const makefile = try readRepoFile("zigux/Makefile");
@@ -57,6 +61,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
     defer std.testing.allocator.free(workflow);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 8 tooling routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "Run focused Phase 8 exec-cmd tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") != null);
 }
 
