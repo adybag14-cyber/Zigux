@@ -37,7 +37,7 @@ That means the current parity-tracking gap is maintenance-only: keep the scoreca
 
 ## Current reminder route
 
-- the current directly materialized reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
+- the current directly materialized reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
 - anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - the broader validator-first and shared-build route wording through `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` remains repo-reality gap vocabulary on current `master`, not shipped evidence
 
@@ -119,6 +119,7 @@ This scorecard does not claim:
 1. run the current directly materialized reminder route
    - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
+   - `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
    - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 2. run the dedicated parity scorecard replay
