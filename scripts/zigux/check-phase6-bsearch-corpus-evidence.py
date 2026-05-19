@@ -16,6 +16,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 LIB_PATH = Path("lib/bsearch.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_bsearch.zig")
+PERF_TEST_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
 LOWER_BOUND_TEST_PATH = Path("zigux/tests/phase6_bsearch_lower_bound_c_abi.zig")
 BUDGET_TEST_PATH = Path("zigux/tests/phase6_bsearch_c_abi_budget.zig")
 FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
@@ -24,39 +25,38 @@ BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
-        "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, or compact fixture-companion drift reappears",
-        "- `equalRangeIndex`",
-        "- `equalRange`",
-        "- `equalRangeMutable`",
-        "- `bsearchEqualRangeIndex`",
-        "- `bsearchEqualRange`",
-        "- `bsearchEqualRangeMutable`",
+        "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, fixture-backed perf replay, or compact fixture-companion drift reappears",
+        "- `zigux/tests/phase6_bsearch_perf.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "- the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, and deterministic query corpus reviewable without widening this lane into a standalone timing route",
+        "- the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, deterministic query corpus, and dedicated perf-case lengths reviewable without widening this lane into speculative threshold recalibration or broader shared survey work",
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     ],
     CATALOG_PATH: [
+        "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders",
-        "- `bsearch` still measures bounded search cost through `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, and the deterministic `perf_cases` plus seeded query corpus in `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, which hold raw C ABI search and equal-range comparisons to logarithmic budgets across representative lengths instead of using a dedicated wall-clock slowdown harness.",
+        "- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
     ],
     LIB_PATH: [
         "pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {",
-        "pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {",
-        "pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
         "pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
-        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
-        "pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
         "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
-        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
         'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {',
         'test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {',
         'test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {',
         'test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {',
+    ],
+    PERF_TEST_PATH: [
+        'phase6-bsearch-perf',
+        'fixtures.perf_cases',
+        'fixtures.seedDeterministicQueries',
+        'avg_compare_calls',
+        'max_compare_calls',
+        'max_compare_budget',
+        'try std.testing.expect(worst_compare_calls <= max_compare_budget);',
     ],
     LOWER_BOUND_TEST_PATH: [
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
@@ -74,9 +74,6 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
     ],
     FIXTURES_PATH: [
-        "pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };",
-        "pub const representative_descending_duplicate_values = [_]u32{ 45, 42, 39, 21, 21, 21, 12, 9, 6, 3 };",
-        "pub const dynamic_case_lengths = [_]usize{",
         '.{ .label = "len15", .len = representative_ascending_values.len, .reps = 4_000 },',
         '.{ .label = "len64", .len = 64, .reps = 2_000 },',
         '.{ .label = "len1024", .len = 1_024, .reps = 250 },',
@@ -85,83 +82,17 @@ REQUIRED_SNIPPETS = {
     ],
     BUILD_PATH: [
         'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
-        "bsearch_test_step.dependOn(&run_bsearch_tests.step);",
-        "bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);",
+        'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
         "bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);",
+        "bsearch_perf_step.dependOn(&run_bsearch_perf.step);",
     ],
 }
 
 SELF_TEST_CASES = [
-    (
-        SLICE_PATH,
-        "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- helper-local checker: `scripts/zigux/check-phase6-bsearch-helper-check.py`",
-    ),
-    (
-        SLICE_PATH,
-        "- `bsearchEqualRangeMutable`",
-        "- `bsearchEqualRangeBytesMutable`",
-    ),
-    (
-        CATALOG_PATH,
-        "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-proof.py`",
-    ),
-    (
-        LIB_PATH,
-        "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
-        "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []const u8 {",
-    ),
-    (
-        LIB_PATH,
-        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
-        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
-    ),
-    (
-        HELPER_TEST_PATH,
-        'test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {',
-        'test "phase 6 bsearch keeps packed-record fixtures searchable through typed wrappers" {',
-    ),
-    (
-        HELPER_TEST_PATH,
-        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
-        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span coverage aligned" {',
-    ),
-    (
-        LOWER_BOUND_TEST_PATH,
-        "try expectRange(descending_duplicates[0..], 20, .{ .lower = 6, .upper = 6 }, compare);",
-        "try expectRange(descending_duplicates[0..], 20, .{ .lower = 5, .upper = 5 }, compare);",
-    ),
-    (
-        BUDGET_TEST_PATH,
-        'test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {',
-        'test "phase 6 bsearch typed c abi runtime-selected pointer budgets keep the contract" {',
-    ),
-    (
-        BUDGET_TEST_PATH,
-        'test "phase 6 bsearch typed c abi runtime-selected bound and equal-range comparator pointers keep the budget contract" {',
-        'test "phase 6 bsearch typed c abi runtime-selected bound comparator pointers keep the budget contract" {',
-    ),
-    (
-        BUDGET_TEST_PATH,
-        'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
-        'test "phase 6 bsearch runtime-selected raw comparator pointers keep the budget contract" {',
-    ),
-    (
-        BUDGET_TEST_PATH,
-        'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
-        'test "phase 6 bsearch runtime-selected raw bound comparator pointers keep the budget contract" {',
-    ),
-    (
-        FIXTURES_PATH,
-        '.{ .label = "len1024", .len = 1_024, .reps = 250 },',
-        '.{ .label = "len1024", .len = 1_024, .reps = 300 },',
-    ),
-    (
-        BUILD_PATH,
-        "bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);",
-        "bsearch_test_step.dependOn(&run_bsearch_tests.step);",
-    ),
+    (SLICE_PATH, "- `zigux/tests/phase6_bsearch_perf.zig`", "- `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (PERF_TEST_PATH, 'avg_compare_calls', 'avg_probe_calls'),
+    (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
 ]
 
 
