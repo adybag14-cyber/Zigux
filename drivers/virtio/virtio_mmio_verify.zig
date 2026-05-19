@@ -5,6 +5,7 @@ pub const TransportIdentitySummary = virtio_mmio.TransportIdentitySummary;
 pub const ProbePreflightSummary = virtio_mmio.ProbePreflightSummary;
 pub const SelectedQueueReadinessSummary = virtio_mmio.SelectedQueueReadinessSummary;
 pub const ConfigWriteDispositionSummary = virtio_mmio.ConfigWriteDispositionSummary;
+pub const ConfigWritePlanFreshnessSummary = virtio_mmio.ConfigWritePlanFreshnessSummary;
 pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;
 pub const InterruptAckDispositionSummary = virtio_mmio.InterruptAckDispositionSummary;
 
@@ -26,6 +27,10 @@ pub fn summarizeFeatureNegotiation(device: *const virtio_mmio.VirtioMmioLab) Fea
 
 pub fn summarizeConfigWriteDisposition(device: *const virtio_mmio.VirtioMmioLab) !ConfigWriteDispositionSummary {
     return device.configWriteDispositionSummary();
+}
+
+pub fn summarizeConfigWritePlanFreshness(device: *const virtio_mmio.VirtioMmioLab) ConfigWritePlanFreshnessSummary {
+    return device.configWritePlanFreshnessSummary();
 }
 
 pub fn summarizeInterruptAckDisposition(
@@ -55,6 +60,10 @@ pub fn hasFeatureNegotiationDrift(summary: FeatureNegotiationSummary) bool {
 
 pub fn requiresLegacyGuestPageSize(summary: ProbePreflightSummary) bool {
     return !summary.legacy_guest_page_size_ready;
+}
+
+pub fn hasFreshConfigWritePlan(summary: ConfigWritePlanFreshnessSummary) bool {
+    return summary.available_for_disposition;
 }
 
 test "phase10 virtio mmio verify keeps probe wrapper transitions explicit" {
@@ -128,6 +137,30 @@ test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explici
     try std.testing.expect(summary.driver_features_known);
     try std.testing.expect(!summary.negotiation_possible);
     try std.testing.expectEqual(@as(u6, 0), negotiatedFeatureBitCount(summary));
+}
+
+test "phase10 virtio mmio verify keeps config-write plan freshness below config application" {
+    var device = try virtio_mmio.VirtioMmioLab.init(83, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    var summary = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
+    try std.testing.expect(!summary.plan_present);
+    try std.testing.expect(!hasFreshConfigWritePlan(summary));
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    summary = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expect(summary.plan_present);
+    try std.testing.expect(summary.plan_matches_generation);
+    try std.testing.expectEqual(@as(u32, 4), summary.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), summary.absolute_offset);
+    try std.testing.expect(hasFreshConfigWritePlan(summary));
+
+    device.bumpConfigGeneration();
+    summary = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expect(!summary.plan_present);
+    try std.testing.expectEqual(@as(u32, 1), summary.current_generation);
+    try std.testing.expect(!hasFreshConfigWritePlan(summary));
 }
 
 test "phase10 virtio mmio verify counts changed config bytes without mutating staged data" {
