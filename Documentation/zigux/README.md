@@ -146,6 +146,50 @@ keep the live Phase 9 docs-root packet review-first and narrow: `samples/zigux/r
   * the current docs-root Phase 9 reminder packet should stay parked on `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/README.md`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/runtime_trace_events_survey.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and the surviving trace-events sample family so the docs root matches the same narrow Phase 9 packet already described by the lane-sequencing note, checklist, scripts-root reminder, tests-root witness, and sample-root packet.
   * current `master` does not currently expose the broader shared runtime-loader packet, so `zigux/tests/phase9_build.zig`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, dedicated `phase9-*` routes in `zigux/Makefile`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds stay backlog references unless a fresh repo reread proves they have returned.
   * keep the older cross-phase non-owner boundaries explicit here too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
+Phase 11 notes
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`
+- `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`
+- `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-slice.md`
+- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `drivers/watchdog/dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
+- `drivers/tty/hvc/hvc_console.zig`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+keep the bounded Phase 11 docs-root packet explicit through the shared sequencing and matrix-gap notes, the directly readable gpio and HVC validation matrices, the current DesignWare owner packet, the narrower HVC current-head continuity packet, the coupled inventory and proof-backed adjunct builds, and the broad contributor and tests-root reminders instead of reviving the older shared replay-contract stack or absent Phase 11 build routes as if they were current `master` evidence.
+  * the current docs-root Phase 11 reminder packet should stay parked on `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-validation-matrix-gap-survey.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` so the docs root matches the same current-head simple-driver packet already described by the dedicated Phase 11 notes, the shared contributor sync note, and the tests-root companion.
+  * current direct contents reads still do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, or `zigux/tests/phase11_build.zig`, while `zigux/Makefile` is current repo evidence again but still exposes no dedicated `make -C zigux phase11`, `make -C zigux phase11-validate`, or `make -C zigux phase11-contract` routes, so keep those matrix, shared-summary, shared-replay, and shared-route handles framed as repo-reality gaps or reminder vocabulary until a future reread proves they returned on current `master`.
+  * `python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`, `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, and `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig` replay the bounded current Phase 11 reminder packet without widening it into platform-backed watchdog registration, notifier execution, khvcd execution, live sysrq dispatch, live MMIO validation, or hardware-backed teardown claims.
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-release-readiness-survey.md`
