@@ -47,7 +47,7 @@ The bridge packet now carries explicit review-only coverage for:
   * hotplug topology rebinding
   * scheduler-visible worker-state transitions around `wq_worker_running()` and `wq_worker_sleeping()`
 
-That is enough to keep the workqueue anchor reviewable as a bounded boundary-study packet. It is not enough to claim live ownership over worker execution, callback dispatch, scheduler parity, runtime `max_active` retuning, hotplug migration, or delayed-work control.
+That is enough to keep the workqueue anchor reviewable as a bounded boundary-study packet. It is not enough to claim live ownership over worker execution, callback dispatch, flush, drain, or cancellation completion, delayed-work requeue control, runtime `max_active` retuning, scheduler-visible worker-state parity, rescuer execution, or hotplug migration and topology rebinding.
 
 ## Reviewability contract
 
