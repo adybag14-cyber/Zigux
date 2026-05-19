@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L13",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-18",
+  "surveyed_commit": "current-master-readback-2026-05-19",
   "surveyed_commit_mode": "dated_master_readback",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
