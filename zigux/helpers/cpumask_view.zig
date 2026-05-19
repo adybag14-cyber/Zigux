@@ -460,3 +460,40 @@ test "drifted all-clear cpumasks keep their projected bitmap window distinct fro
     try std.testing.expectEqual(@as(u32, 0), cpumask_summary.weight);
     try std.testing.expectEqual(@as(u32, 0), cpumask_summary.reserved);
 }
+
+test "drifted full tail-masked cpumasks keep their projected bitmap window explicit" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        bitmap.lastWordMask(bitmap.bits_per_word + 11),
+    };
+    var invalid = viewFromWords(backing[0..], bitmap.bits_per_word + 11);
+    invalid.nr_cpu_ids = bitmap.bits_per_word + 10;
+    const projected = binding.asBitmap(invalid);
+    const cpumask_summary = summarize(invalid);
+    const bitmap_summary = bitmap.summarize(projected);
+
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expectEqual(invalid.words_addr, projected.words_addr);
+    try std.testing.expectEqual(invalid.nbits, projected.nbits);
+    try std.testing.expectEqual(invalid.word_count, projected.word_count);
+    try std.testing.expect(bitmap.testBit(projected, bitmap.bits_per_word + 10));
+    try std.testing.expect(!bitmap.testBit(projected, bitmap.bits_per_word + 11));
+    try std.testing.expectEqual(@as(u32, 0), bitmap.firstSet(projected));
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, bitmap.firstZero(projected));
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, bitmap.weight(projected));
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.first_set);
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, bitmap_summary.first_zero);
+    try std.testing.expectEqual(bitmap.bits_per_word + 11, bitmap_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.reserved);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expect(!cpuIsSet(invalid, bitmap.bits_per_word + 10));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.reserved);
+}
