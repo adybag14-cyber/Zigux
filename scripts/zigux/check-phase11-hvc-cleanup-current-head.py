@@ -73,6 +73,8 @@ MATRIX_MARKERS = (
     "the current matrix packet now stays aligned with the smaller",
     "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
     "keep helper-local failure-mode edges reviewable through",
+    "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable",
+    "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and",
     "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
 )
 EXPORT_PROOF_MARKERS = (
@@ -363,6 +365,8 @@ def build_fixture(root: Path) -> None:
                 "the current matrix packet now stays aligned with the smaller authenticated-readback companion stack rather than the older starter-depth public-readback packet",
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
                 "keep helper-local failure-mode edges reviewable through `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` rather than treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor",
+                "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable",
+                "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on current `master`.",
                 "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
                 "",
             ]
@@ -386,17 +390,6 @@ def build_fixture(root: Path) -> None:
                 '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
                 '.name = "phase11-hvc-export-surface-layout-proof",',
                 'const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");',
-                "",
-            ]
-        ),
-    )
-    write(
-        root / HV_OPS_PROOF_PATH,
-        "\n".join(
-            [
-                'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
-                'try layout_assert.expectOffset(HvOps, "notifier_hangup", 40);',
-                'try expectContains(hvc_header, "(*dtr_rts)");',
                 "",
             ]
         ),
@@ -538,7 +531,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify_targeted_unregister, dirs_exist_ok=True)
         write(
             missing_verify_targeted_unregister / VERIFY_PATH,
-            read_text(missing_verify_targeted_unregister / VERIFY_PATH).replace(
+            readText(missing_verify_targeted_unregister / VERIFY_PATH).replace(
                 "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.",
                 "",
             ),
@@ -600,6 +593,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_matrix_export_build, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`")
 
+        missing_matrix_starter_failure_modes = tmpdir / "missing_matrix_starter_failure_modes"
+        shutil.copytree(fixture, missing_matrix_starter_failure_modes, dirs_exist_ok=True)
+        write(
+            missing_matrix_starter_failure_modes / MATRIX_PATH,
+            read_text(missing_matrix_starter_failure_modes / MATRIX_PATH).replace(
+                "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable",
+                "",
+            ),
+        )
+        expect_failure(missing_matrix_starter_failure_modes, "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable")
+
         missing_export_build_marker = tmpdir / "missing_export_build_marker"
         shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
         write(
@@ -643,7 +647,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=17")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=18")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
