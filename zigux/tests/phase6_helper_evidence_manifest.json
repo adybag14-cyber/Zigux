@@ -13,6 +13,10 @@
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
+  "public_tree_backed_shared_companions": [
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md"
+  ],
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -112,8 +116,6 @@
     }
   ],
   "current_repo_reality_gaps": [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
