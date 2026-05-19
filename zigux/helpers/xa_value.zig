@@ -50,3 +50,24 @@ test "err_ptr encodings with the low tag bit set never classify as xa_values" {
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
 }
+
+test "highest representable inline value stays below the err_ptr floor" {
+    const raw = try makeValue(safe_inline_limit);
+
+    try std.testing.expect(canRepresent(safe_inline_limit));
+    try std.testing.expect(isValue(raw));
+    try std.testing.expectEqual(safe_inline_limit, toValue(raw));
+    try std.testing.expect(raw < err_ptr.err_floor);
+    try std.testing.expectEqual(err_ptr.err_floor - 2, raw);
+}
+
+test "first rejected inline value aliases the err_ptr floor" {
+    const overlapping_value = safe_inline_limit + 1;
+    const raw = (overlapping_value << 1) | value_tag_mask;
+
+    try std.testing.expect(!canRepresent(overlapping_value));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(overlapping_value));
+    try std.testing.expectEqual(err_ptr.err_floor, raw);
+    try std.testing.expect(err_ptr.isErrValue(raw));
+    try std.testing.expect(!isValue(raw));
+}
