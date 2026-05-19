@@ -152,6 +152,15 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
     for line in text.splitlines():
@@ -259,6 +268,12 @@ def run_self_test() -> int:
             expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
             checks += 1
 
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
+            expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
+            checks += 1
+
         build_self_test_root(root)
         write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), REQUIRED_PHASE2_PHONY_LINE, "# removed"))
         expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
@@ -268,6 +283,12 @@ def run_self_test() -> int:
             build_self_test_root(root)
             write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), marker, "# removed"))
             expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
+            checks += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
+            expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
             checks += 1
 
         for rel in REQUIRED_PATHS[:-1]:
