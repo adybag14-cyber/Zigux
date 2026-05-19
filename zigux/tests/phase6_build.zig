@@ -135,6 +135,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_checksum_tests = b.addRunArtifact(checksum_tests);
     run_checksum_tests.skip_foreign_checks = true;
+    const checksum_perf_matrix_tests = b.addTest(.{
+        .name = "phase6-checksum-perf-matrix-tests",
+        .root_module = checksum_perf_root_module,
+    });
+    const run_checksum_perf_matrix_tests = b.addRunArtifact(checksum_perf_matrix_tests);
+    run_checksum_perf_matrix_tests.skip_foreign_checks = true;
 
     const hexdump_tests = b.addTest(.{
         .name = "phase6-hexdump-tests",
@@ -180,6 +186,7 @@ pub fn build(b: *std.Build) void {
 
     const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
     checksum_test_step.dependOn(&run_checksum_tests.step);
+    checksum_test_step.dependOn(&run_checksum_perf_matrix_tests.step);
 
     const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
     hexdump_test_step.dependOn(&run_hexdump_tests.step);
@@ -207,6 +214,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
+    test_step.dependOn(&run_checksum_perf_matrix_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
     test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
 }
