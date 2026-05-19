@@ -410,7 +410,7 @@ pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) T
         .target_present = request.target_present,
         .notifier_registered = request.notifier_registered,
         .targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,
-        .unregister_requested = request.unregister_requested and request.target_present,
+        .unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,
         .keeps_live_notifier_execution_out_of_scope = request.keeps_live_notifier_execution_out_of_scope,
     };
 }
@@ -869,6 +869,20 @@ test "phase11 hvc console keeps targetless notifier no-unregister edge reviewabl
     try std.testing.expect(!targeted.targetless_no_unregister_edge);
     try std.testing.expect(targeted.unregister_requested);
     try std.testing.expect(targeted.keeps_live_notifier_execution_out_of_scope);
+}
+
+test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {
+    const summary = summarizeTargetlessNotifierEdge(.{
+        .target_present = true,
+        .notifier_registered = false,
+        .unregister_requested = true,
+    });
+
+    try std.testing.expect(summary.target_present);
+    try std.testing.expect(!summary.notifier_registered);
+    try std.testing.expect(!summary.targetless_no_unregister_edge);
+    try std.testing.expect(!summary.unregister_requested);
+    try std.testing.expect(summary.keeps_live_notifier_execution_out_of_scope);
 }
 
 test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {
