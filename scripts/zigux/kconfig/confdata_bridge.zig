@@ -829,7 +829,7 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=7
-        \\CONFIG_ALPHA=\"final\"
+        \\CONFIG_ALPHA="final"
         \\CONFIG_BETA=m
         \\
     );
@@ -849,11 +849,11 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=\"stable\"
-        \\CONFIG_ALPHA=\"unterminated
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="unterminated
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_DEBUG=\"broken
-        \\CONFIG_GAMMA=\"still-broken
+        \\CONFIG_DEBUG="broken
+        \\CONFIG_GAMMA="still-broken
         \\CONFIG_BETA=y
         \\
     );
@@ -874,7 +874,7 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
 
     var unset_preserved = try parseConfig(allocator,
         \\# CONFIG_DELTA is not set
-        \\CONFIG_DELTA=\"broken
+        \\CONFIG_DELTA="broken
         \\CONFIG_EPSILON=7
         \\
     );
@@ -921,7 +921,7 @@ test "confdata bridge keeps only the last state across unset and set transitions
 
     const input =
         \\# CONFIG_ALPHA is not set
-        \\CONFIG_ALPHA=\"enabled\"
+        \\CONFIG_ALPHA="enabled"
         \\CONFIG_BETA=m
         \\# CONFIG_BETA is not set
         \\CONFIG_BETA=7
@@ -970,11 +970,38 @@ test "confdata bridge keeps only the last state across unset and set transitions
     try std.testing.expectEqualStrings("7", duplicate_unset.entries[1].value);
 }
 
+test "confdata bridge keeps explicit empty assignments distinct from quoted empty strings" {
+    const allocator = std.testing.allocator;
+    const input =
+        \\CONFIG_EMPTY=
+        \\CONFIG_QUOTED=""
+        \\# CONFIG_SWITCH is not set
+        \\CONFIG_SWITCH=
+        \\
+    ;
+
+    var summary = try parseConfig(allocator, input);
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_EMPTY", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_QUOTED", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_SWITCH", summary.entries[2].name);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("", summary.entries[2].value);
+}
+
 fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_BETA=\"zigux\"
+        \\CONFIG_BETA="zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
