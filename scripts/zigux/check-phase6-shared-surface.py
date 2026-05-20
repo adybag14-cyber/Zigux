@@ -8,6 +8,7 @@ import json
 import tempfile
 from pathlib import Path
 
+HELPER_EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
@@ -42,13 +43,17 @@ EXPECTED_PARITY_DIRECT_EVIDENCE = [
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
 ]
+REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
+    "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, so keep that broader perf note as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
+    "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.",
+]
 REQUIRED_VALIDATOR_SNIPPETS = [
     'HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")',
     'HELPER_PARITY_MANIFEST = Path("zigux/tests/phase6_helper_parity_manifest.json")',
     'run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")',
     'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 8
 
 
 class ValidationError(RuntimeError):
@@ -94,6 +99,7 @@ def validate(repo_root: Path) -> None:
     if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 helper-parity public companion mismatch")
 
+    require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_EVIDENCE_CATALOG_SNIPPETS)
     require_snippets(repo_root / VALIDATOR_PATH, REQUIRED_VALIDATOR_SNIPPETS)
 
 
@@ -103,6 +109,7 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
+    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_EVIDENCE_CATALOG_SNIPPETS) + "\n")
     write(
         root / HELPER_EVIDENCE_MANIFEST_PATH,
         json.dumps(
@@ -157,6 +164,10 @@ def run_self_test() -> None:
             fn(data)
             write(path, json.dumps(data, indent=2) + "\n")
 
+        expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[0] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[1] + "\n", "", 1)))
+        cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
