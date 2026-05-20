@@ -58,8 +58,8 @@ REQUIRED_SNIPPETS = {
         "# Phase 6 Hexdump Perf Refresh Evidence",
         "* owner lane: `P6-Y09`",
         "`Documentation/zigux/phase6-hexdump-slice.md` plus `scripts/zigux/check-phase6-hexdump-packet.py`",
-        "`16B-plain`: `max_slowdown_pct = 175` remained sufficient, with the successful replay recording `slowdown_pct = 139`",
-        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 518`",
+        "`16B-plain`: `max_slowdown_pct = 175` remains the narrow plain formatter ceiling",
+        "`32B-ascii-g2`: the grouped ASCII formatter replay keeps the wider grouped-output ceiling at `max_slowdown_pct = 550`",
         "`zigux/tests/phase6_helper_parity_manifest.json` records the same helper-local hexdump replay and threshold cases",
         "This note now serves as the bounded rationale for why the grouped ASCII formatter case keeps a higher ceiling than the plain formatter case",
     ],
@@ -175,8 +175,8 @@ SELF_TEST_CASES = [
     ),
     (
         PERF_REFRESH_PATH,
-        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 518`",
-        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 418`",
+        "`32B-ascii-g2`: the grouped ASCII formatter replay keeps the wider grouped-output ceiling at `max_slowdown_pct = 550`",
+        "`32B-ascii-g2`: the grouped ASCII formatter replay keeps the wider grouped-output ceiling at `max_slowdown_pct = 450`",
     ),
     (
         PERF_REFRESH_PATH,
