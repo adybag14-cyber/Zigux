@@ -47,6 +47,7 @@ TEXT_MARKERS = {
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-20`",
+        "receive-refill replay",
         "rollback-only split machine-checkable",
     ],
     FALLBACK_CATALOG_PATH: [
@@ -234,6 +235,19 @@ def check(root: Path) -> list[str]:
     for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
         if gap_statuses.get(gap_id) != expected_status:
             errors.append(f"survey manifest gap drift: {gap_id}")
+
+    build_gap = next(
+        (
+            gap
+            for gap in survey_manifest.get("gaps", [])
+            if isinstance(gap, dict) and gap.get("id") == "phase12-build-gate"
+        ),
+        None,
+    )
+    if build_gap is None:
+        errors.append("survey manifest phase12-build-gate entry missing")
+    elif "receive-refill replay" not in build_gap.get("why_now", ""):
+        errors.append("survey manifest phase12-build-gate why_now drift")
 
     return errors
 
