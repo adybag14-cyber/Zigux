@@ -17,6 +17,8 @@ Fresh authenticated GitHub reread in this slot directly returned:
 - `Documentation/zigux/phase7-rbtree-slice.md`
 - `tools/lib/rbtree.zig`
 - `zigux/tests/phase7_rbtree.zig`
+- `zigux/tests/phase7_rbtree_survey.zig`
+- `zigux/tests/phase7_rbtree_manifest.json`
 - `scripts/zigux/check-phase7-rbtree-parity.py`
 
 Fresh authenticated GitHub reread in this slot also directly returned this shared non-owner surface:
