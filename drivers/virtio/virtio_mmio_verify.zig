@@ -111,6 +111,18 @@ test "phase10 virtio mmio verify keeps queue readiness wrapper below transport c
     try std.testing.expect(summary.queue_size_matches_advertised);
     try std.testing.expect(summary.queue_ready_for_handoff);
 
+    _ = try device.writeRegister(.queue_num, 8);
+    summary = try summarizeSelectedQueueReadiness(&device);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 16);
+    summary = try summarizeSelectedQueueReadiness(&device);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(summary.queue_size_matches_advertised);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+
     _ = try device.writeRegister(.queue_sel, 0);
     summary = try summarizeSelectedQueueReadiness(&device);
     try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
