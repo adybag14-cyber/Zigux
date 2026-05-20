@@ -1,4 +1,7 @@
 const std = @import("std");
+const abi = @import("abi_bindings");
+
+const invalid_argument: i32 = -22;
 
 pub const abi_major: u32 = 0;
 pub const abi_minor: u32 = 1;
@@ -46,6 +49,11 @@ pub fn matchesCurrent(version: Version) bool {
     return hasCurrentAbiMajor(version.abi_major) and
         hasCurrentAbiMinor(version.abi_minor) and
         hasCurrentHeaderFamilyRevision(version.header_family_revision);
+}
+
+pub fn validate(version: Version) abi.ExportStatus {
+    if (matchesCurrent(version)) return abi.okStatus(.kernel);
+    return abi.makeStatus(invalid_argument, .kernel);
 }
 
 comptime {
@@ -104,4 +112,23 @@ test "version helpers preserve layout and equality semantics" {
 
     try std.testing.expect(eql(left, same));
     try std.testing.expect(!eql(left, different));
+}
+
+test "version helpers expose status-tagged compatibility validation" {
+    const live = current();
+    const stale = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor + 1,
+        .header_family_revision = header_family_revision,
+    };
+    const valid = validate(live);
+    const invalid = validate(stale);
+
+    try std.testing.expectEqual(@as(i32, 0), valid.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.kernel)), valid.facility);
+    try std.testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try std.testing.expectEqual(@as(i32, invalid_argument), invalid.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.kernel)), invalid.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid.flags);
 }
