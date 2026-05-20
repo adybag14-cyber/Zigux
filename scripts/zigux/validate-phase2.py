@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -28,11 +29,17 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/genksyms.zig",
+    "scripts/zigux/fixdep.zig",
     "scripts/zigux/zig-toolchain-policy.json",
+    "third_party/README.md",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
@@ -46,6 +53,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/fixdep/cases.json",
     MAKEFILE,
 )
 
@@ -53,7 +61,16 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -84,6 +101,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
+    "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-tools",
     "run: make -C zigux phase2-validate",
     "run: python3 scripts/zigux/validate-phase2.py",
@@ -91,7 +109,7 @@ REQUIRED_WORKFLOW_LINES = (
 
 DISALLOWED_WORKFLOW_LINES: tuple[str, ...] = ()
 
-REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 
 REQUIRED_MAKEFILE_LINES = (
@@ -118,7 +136,13 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
+    "phase2-fixdep:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
@@ -127,10 +151,11 @@ REQUIRED_MAKEFILE_LINES = (
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
-    try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
+    if not path.exists():
+        raise SystemExit(f"required file missing: {path}")
+    if not path.is_file():
+        raise SystemExit(f"required file is not a file: {path}")
+    return path.read_text(encoding="utf-8")
 
 
 def write_text(root: Path, rel: str, content: str) -> None:
@@ -199,8 +224,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     for rel in REQUIRED_PATHS:
-        if not (root / rel).exists():
+        path = root / rel
+        if not path.exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
+        elif not path.is_file():
+            issues.append(("REQUIRED_PATH_NOT_FILE", rel))
 
     return issues
 
@@ -220,6 +248,8 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
     write_text(
         root,
@@ -248,6 +278,18 @@ def expect_issue(root: Path, expected: tuple[str, str]) -> None:
 
 
 def run_self_test() -> int:
+    expected_case_count = (
+        1
+        + len(REQUIRED_WORKFLOW_LINES)
+        + len(REQUIRED_WORKFLOW_LINES)
+        + len(DISALLOWED_WORKFLOW_LINES)
+        + 1
+        + len(REQUIRED_MAKEFILE_LINES)
+        + len(REQUIRED_MAKEFILE_LINES)
+        + (len(REQUIRED_PATHS) - 1)
+        + (len(REQUIRED_PATHS) - 1)
+        + 2
+    )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
@@ -262,16 +304,16 @@ def run_self_test() -> int:
             expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
             checks += 1
 
-        for marker in DISALLOWED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            write_text(root, WORKFLOW, read_text(root, WORKFLOW) + marker + "\n")
-            expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
-            checks += 1
-
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
             expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
+            checks += 1
+
+        for marker in DISALLOWED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, read_text(root, WORKFLOW) + marker + "\n")
+            expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
             checks += 1
 
         build_self_test_root(root)
@@ -297,13 +339,46 @@ def run_self_test() -> int:
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
             checks += 1
 
+        for rel in REQUIRED_PATHS[:-1]:
+            build_self_test_root(root)
+            path = root / rel
+            path.unlink()
+            path.mkdir()
+            expect_issue(root, ("REQUIRED_PATH_NOT_FILE", rel))
+            checks += 1
+
+        build_self_test_root(root)
+        workflow_path = root / WORKFLOW
+        workflow_path.unlink()
+        workflow_path.mkdir()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert str(exc) == f"required file is not a file: {workflow_path}"
+            checks += 1
+        else:
+            raise AssertionError("workflow directory shape did not abort")
+
+        build_self_test_root(root)
+        makefile_path = root / MAKEFILE
+        makefile_path.unlink()
+        makefile_path.mkdir()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert str(exc) == f"required file is not a file: {makefile_path}"
+            checks += 1
+        else:
+            raise AssertionError("makefile directory shape did not abort")
+
+    assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, and genksyms packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
