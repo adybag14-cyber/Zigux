@@ -31,6 +31,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit",
         "Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.",
+        "This slice must stay truthful about the current direct helper path. The readable helper is still rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`.",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
@@ -40,6 +41,8 @@ REQUIRED_MARKERS = {
         "- `scripts/zigux/check-phase7-rbtree-parity.py`",
         "- `tools/lib/rbtree.zig`",
         "- `zigux/tests/phase7_rbtree.zig`",
+        "- `zigux/tests/phase7_rbtree_survey.zig`",
+        "- `zigux/tests/phase7_rbtree_manifest.json`",
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
@@ -94,7 +97,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -199,6 +202,26 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        note_marker = "- `zigux/tests/phase7_rbtree_survey.zig`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_returned_survey_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "- `zigux/tests/phase7_rbtree_manifest.json`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_returned_manifest_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         note_marker = "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
@@ -283,6 +306,16 @@ def run_self_test() -> None:
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_slice_shared_validator_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_marker = "This slice must stay truthful about the current direct helper path. The readable helper is still rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`."
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_slice_roadmap_gap_marker",
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
         )
