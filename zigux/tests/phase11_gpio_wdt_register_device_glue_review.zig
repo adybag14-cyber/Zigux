@@ -41,6 +41,43 @@ test "phase11 gpio watchdog keeps always-running registration call reviewable be
     try std.testing.expect(summary.blocked_on_reboot_glue);
 }
 
+test "phase11 gpio watchdog keeps watchdog-core setup order explicit before the first register-device request" {
+    var prestarted = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, true);
+    const prestarted_intent = prestarted.registrationIntentCheckpointSummary(true);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", prestarted_intent.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, prestarted_intent.hw_algo);
+    try std.testing.expectEqual(@as(u32, 250), prestarted_intent.hw_margin_ms);
+    try std.testing.expect(prestarted_intent.always_running);
+    try std.testing.expect(prestarted_intent.timeout_init_requested);
+    try std.testing.expect(prestarted_intent.nowayout_from_module_param);
+    try std.testing.expect(prestarted_intent.stop_on_reboot_requested);
+    try std.testing.expect(prestarted_intent.pre_registration_start_requested);
+    try std.testing.expect(prestarted_intent.timeout_init_stays_before_nowayout);
+    try std.testing.expect(prestarted_intent.nowayout_stays_before_stop_on_reboot);
+    try std.testing.expect(prestarted_intent.stop_on_reboot_stays_before_pre_registration_start);
+    try std.testing.expect(prestarted_intent.pre_registration_start_stays_before_registration);
+    try std.testing.expect(prestarted_intent.blocked_on_live_gpio_lookup);
+    try std.testing.expect(prestarted_intent.blocked_on_platform_registration);
+
+    var dormant = try gpio_wdt.GpioWatchdogLab.init(.level, 400, false);
+    const dormant_intent = dormant.registrationIntentCheckpointSummary(false);
+
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, dormant_intent.hw_algo);
+    try std.testing.expectEqual(@as(u32, 400), dormant_intent.hw_margin_ms);
+    try std.testing.expect(!dormant_intent.always_running);
+    try std.testing.expect(dormant_intent.timeout_init_requested);
+    try std.testing.expect(!dormant_intent.nowayout_from_module_param);
+    try std.testing.expect(dormant_intent.stop_on_reboot_requested);
+    try std.testing.expect(!dormant_intent.pre_registration_start_requested);
+    try std.testing.expect(dormant_intent.timeout_init_stays_before_nowayout);
+    try std.testing.expect(dormant_intent.nowayout_stays_before_stop_on_reboot);
+    try std.testing.expect(dormant_intent.stop_on_reboot_stays_before_pre_registration_start);
+    try std.testing.expect(dormant_intent.pre_registration_start_stays_before_registration);
+    try std.testing.expect(dormant_intent.blocked_on_live_gpio_lookup);
+    try std.testing.expect(dormant_intent.blocked_on_platform_registration);
+}
+
 test "phase11 gpio watchdog keeps register-device failure summary tied to the same reboot-glue checkpoint" {
     var lab = try gpio_wdt.GpioWatchdogLab.init(.toggle, gpio_wdt.min_hw_margin_ms, false);
     const summary = lab.registerDeviceFailureSummary(true);
