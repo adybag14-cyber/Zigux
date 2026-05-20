@@ -1026,7 +1026,7 @@ def main() -> int:
         return 0
 
     zig: str | None = None
-    min_version_raw: str | None = args.min-version
+    min_version_raw: str | None = args.min_version
     expected_channel_raw: str | None = None
     version: str | None = None
     try:
