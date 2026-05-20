@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-19",
+  "surveyed_commit": "master-readback-2026-05-20",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-dmam-alloc-coherent-planner",
   "status": "starter_landed",
@@ -27,6 +27,8 @@
   ],
   "required_markers": [
     "pure `dmam_alloc_coherent()` planning surface",
+    "provides_release_record_lifetime_planning",
+    "provides_dmam_free_coherent_cleanup_planning",
     "planManagedDmamAllocCoherent",
     "planManagedReleaseRecordLifetime",
     "planManagedDmamFreeCoherent",
