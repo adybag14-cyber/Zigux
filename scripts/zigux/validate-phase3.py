@@ -105,12 +105,16 @@ REQUIRED_SOURCE_MARKERS = {
     ),
     TESTS_BUILD_PATH: (
         'const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);',
+        'const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);',
         'const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);',
         'root_source_file = b.path("phase3_abi.zig"),',
+        'root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         'root_source_file = b.path("phase3_abi_dump_current.zig"),',
         '"phase3-abi-core-packet"',
+        '"phase3-export-uapi-layout"',
         '"phase3-dump"',
-        'phase3_abi_core_step.dependOn(&phase3_abi_core_packet.step);',
+        'phase3_test_step.dependOn(&phase3_abi_core_packet.step);',
+        'phase3_test_step.dependOn(&phase3_export_uapi_layout.step);',
         'phase3_dump_step.dependOn(&phase3_abi_dump.step);',
     ),
     ABI_TEST_PATH: (
@@ -124,9 +128,12 @@ REQUIRED_SOURCE_MARKERS = {
     EXPORT_UAPI_LAYOUT_PATH: (
         'test "export and uapi dev_t layouts stay aligned" {',
         'test "export and uapi version layouts stay aligned" {',
+        'test "header-family binding keeps the bounded relay surface explicit" {',
         'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim reuses the canonical boundary header contract" {',
         'test "export shim mirrors boundary header predicate helpers" {',
+        'test "export shim keeps facility tagged statuses explicit" {',
+        'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
     ),
     EXPORT_UAPI_LAYOUT_BUILD_PATH: (
         '.root_source_file = b.path("../uapi/dev_t.zig"),',
@@ -139,8 +146,14 @@ REQUIRED_SOURCE_MARKERS = {
         '"phase": "Phase 3"',
         '"lane": "abi-runtime"',
         '"slug": "phase3-abi-packet"',
+        '"status": "shared_abi_and_header_family_binding_surface_present"',
+        '"scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay"',
         '"zigux/tests/phase3_abi.zig"',
+        '"zigux/tests/phase3_export_uapi_layout.zig"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
+        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig"',
+        '"next_safe_step": "wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further"',
     ),
 }
 
@@ -149,7 +162,8 @@ REQUIRED_MANIFEST_FIELDS = {
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
     "status": "shared_abi_and_header_family_binding_surface_present",
-    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+    "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+    "next_safe_step": "wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further",
 }
 
 REQUIRED_MANIFEST_PACKET_FILES = (
@@ -166,8 +180,13 @@ REQUIRED_MANIFEST_PACKET_FILES = (
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+)
+
+REQUIRED_MANIFEST_REPO_REALITY_GAPS = (
+    "shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig",
 )
 
 ABI_LAYOUT_STRUCTS = (
@@ -353,7 +372,6 @@ static inline int zigux_export_status_ok(struct zigux_export_status status)
     return status.flags == 0;
 }
 """
-
 SELF_TEST_BINDINGS = """\
 pub const ABI_VERSION: u16 = 1;
 pub const FACILITY_KERNEL: u16 = 1;
@@ -475,7 +493,6 @@ pub fn statusIsOk(status: ExportStatus) bool {
     return status.flags == 0;
 }
 """
-
 SELF_TEST_NOTIFIER_BINDINGS = """\
 pub const NotifierBlock = extern struct {
     notifier_call: usize,
@@ -516,7 +533,6 @@ pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
     return true;
 }
 """
-
 SELF_TEST_CHECKER = """\
 ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_HEADER = Path("include/zigux/abi.h")
@@ -529,7 +545,6 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 print("PHASE3_ABI_CHECK_SELF_TEST=pass")
 """
-
 SELF_TEST_CATALOG = """\
 PHASE3_CATALOG_PHASE = "Phase 3"
 PHASE3_CATALOG_SCOPE = "abi-runtime"
@@ -539,17 +554,29 @@ def build_catalog(repo_root: Path) -> dict[str, object]:
 
 print("PHASE3_CATALOG_SELF_TEST=pass")
 """
-
 SELF_TEST_BUILD = """\
 const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
+const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
 const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+const phase3_test_step = b.step(
+    "phase3-test",
+    "Run the Phase 3 bounded tests from zigux/tests",
+);
+phase3_test_step.dependOn(&phase3_abi_core_packet.step);
+phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
 const phase3_abi_core_step = b.step(
     "phase3-abi-core-packet",
     "Run the shared Phase 3 ABI core packet from zigux/tests",
 );
-phase3_abi_core_step.dependOn(&phase3_abi_core_packet.step);
 const root_module = b.createModule(.{
     .root_source_file = b.path("phase3_abi.zig"),
+});
+const export_step = b.step(
+    "phase3-export-uapi-layout",
+    "Run the Phase 3 export/UAPI layout packet from zigux/tests",
+);
+const export_root = b.createModule(.{
+    .root_source_file = b.path("phase3_export_uapi_layout.zig"),
 });
 const dump_module = b.createModule(.{
     .root_source_file = b.path("phase3_abi_dump_current.zig"),
@@ -560,7 +587,6 @@ const phase3_dump_step = b.step(
 );
 phase3_dump_step.dependOn(&phase3_abi_dump.step);
 """
-
 SELF_TEST_ABI_TEST = """\
 test "phase3 abi keeps shared layout assertions wired into the replay" {
     try layout_assert.assertPublishedAbiLayouts();
@@ -574,11 +600,12 @@ test "phase3 abi keeps policy helper decoding aligned with interop policy bytes"
 test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {
 }
 """
-
 SELF_TEST_EXPORT_UAPI_LAYOUT = """\
 test "export and uapi dev_t layouts stay aligned" {
 }
 test "export and uapi version layouts stay aligned" {
+}
+test "header-family binding keeps the bounded relay surface explicit" {
 }
 test "export shim relays version compatibility without widening the boundary" {
 }
@@ -586,8 +613,11 @@ test "export shim reuses the canonical boundary header contract" {
 }
 test "export shim mirrors boundary header predicate helpers" {
 }
+test "export shim keeps facility tagged statuses explicit" {
+}
+test "export shim relays starter dev_t validation and range checks through the focused replay" {
+}
 """
-
 SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD = """\
 const uapi_dev_t = b.createModule(.{
     .root_source_file = b.path("../uapi/dev_t.zig"),
@@ -613,11 +643,11 @@ SELF_TEST_MANIFEST = json.dumps(
         "lane": "abi-runtime",
         "slug": "phase3-abi-packet",
         "status": "shared_abi_and_header_family_binding_surface_present",
-        "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+        "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
         "packet_files": list(REQUIRED_MANIFEST_PACKET_FILES),
         "replay_routes": list(REQUIRED_MANIFEST_REPLAY_ROUTES),
-        "repo_reality_gaps": [],
-        "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
+        "repo_reality_gaps": list(REQUIRED_MANIFEST_REPO_REALITY_GAPS),
+        "next_safe_step": "wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further",
     },
     indent=2,
 ) + "\n"
@@ -715,6 +745,10 @@ def _validate_manifest(text: str) -> list[str]:
     repo_reality_gaps = manifest.get("repo_reality_gaps")
     if not isinstance(repo_reality_gaps, list):
         issues.append("phase3_abi_manifest.json repo_reality_gaps is not a list")
+    else:
+        for required in REQUIRED_MANIFEST_REPO_REALITY_GAPS:
+            if required not in repo_reality_gaps:
+                issues.append(f"phase3_abi_manifest.json missing repo reality gap: {required}")
     return issues
 
 
@@ -774,6 +808,8 @@ def run_self_test() -> int:
             (ABI_BINDINGS_PATH, '    facility: u16,\n    flags: u16,\n', 'layout mismatch for zigux_export_status vs ExportStatus:'),
             (NOTIFIER_BINDINGS_PATH, 'pub const ListHead = extern struct {\n', 'missing zigux/bindings/notifier_abi.zig marker: pub const ListHead = extern struct {'),
             (ABI_TEST_PATH, 'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {\n', 'missing zigux/tests/phase3_abi.zig marker: test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {'),
+            (TESTS_BUILD_PATH, 'const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);\n', 'missing zigux/tests/build.zig marker: const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);'),
+            (EXPORT_UAPI_LAYOUT_PATH, 'test "header-family binding keeps the bounded relay surface explicit" {\n', 'missing zigux/tests/phase3_export_uapi_layout.zig marker: test "header-family binding keeps the bounded relay surface explicit" {'),
         ]
 
         for rel_path, needle, expected in cases:
@@ -796,17 +832,17 @@ def run_self_test() -> int:
             _write(root / ABI_MANIFEST_PATH, SELF_TEST_MANIFEST)
 
         manifest = json.loads(_read(root / ABI_MANIFEST_PATH))
-        manifest['replay_routes'].remove('zig build phase3-dump --build-file zigux/tests/build.zig')
+        manifest['repo_reality_gaps'].clear()
         _write(root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = 'phase3_abi_manifest.json missing replay route: zig build phase3-dump --build-file zigux/tests/build.zig'
+        expected = 'phase3_abi_manifest.json missing repo reality gap: shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig'
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print(f"expected issue was not reported: {expected}")
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
