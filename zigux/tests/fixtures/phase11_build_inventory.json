@@ -49,7 +49,8 @@
     "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
-    "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig"
+    "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
   ],
   "workflow_phase11_steps": [
     {
@@ -79,6 +80,10 @@
     {
       "name": "Run current Phase 11 HVC cleanup packet proof",
       "run": "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig"
+    },
+    {
+      "name": "Run current Phase 11 HVC targetless-unregister gap witness",
+      "run": "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
     }
   ],
   "dedicated_survey_replays": [],
