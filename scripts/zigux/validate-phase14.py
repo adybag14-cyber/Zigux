@@ -108,6 +108,7 @@ REQUIRED_MARKERS = {
         "`kernel/workqueue.c`: `Study / Boundary Only`",
         "`net/core/skbuff.c`: `Freeze In C Initially`",
         "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        "public GitHub web readback confirms the returned bridge, focused gate, manifest, and build shard",
     ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
@@ -335,6 +336,7 @@ def run_self_test() -> int:
             (RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, REQUIRED_MARKERS[RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
+            (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
