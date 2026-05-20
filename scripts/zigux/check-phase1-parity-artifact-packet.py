@@ -19,11 +19,20 @@ REQUIRED_FILES = (
     "zigux/tests/fixtures/phase1_replay_blockers.json",
 )
 
-ARTIFACT_DIFF_MARKERS = (
-    'MODE_CHOICES = ("text", "json", "bytes")',
-    'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
+ARTIFACT_DIFF_COMMON_MARKERS = (
     'print("ARTIFACT_DIFF_SELF_TEST=pass")',
 )
+
+ARTIFACT_DIFF_FAMILY_MARKERS = {
+    "bytes": (
+        'MODE_CHOICES = ("text", "json", "bytes")',
+        'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
+    ),
+    "sha256": (
+        'parser.add_argument("--mode", choices=["text", "json", "sha256"])',
+        'elif mode == "sha256":',
+    ),
+}
 
 EXPECTED_FIXTURE_ORDER = (
     "find_bit",
@@ -154,6 +163,30 @@ def collect_required_file_failures(root: Path) -> list[str]:
     return failures
 
 
+def detect_artifact_diff_family(artifact_diff_text: str) -> tuple[str | None, list[str]]:
+    failures: list[str] = []
+    for marker in ARTIFACT_DIFF_COMMON_MARKERS:
+        count = artifact_diff_text.count(marker)
+        if count != 1:
+            failures.append(issue(f"artifact_diff_marker:{marker}", 1, count))
+
+    matched_families: list[str] = []
+    for family, markers in ARTIFACT_DIFF_FAMILY_MARKERS.items():
+        if all(artifact_diff_text.count(marker) == 1 for marker in markers):
+            matched_families.append(family)
+
+    if not matched_families:
+        failures.append(
+            "artifact_diff_family:no_match:"
+            + ",".join(sorted(ARTIFACT_DIFF_FAMILY_MARKERS))
+        )
+        return None, failures
+    if len(matched_families) > 1:
+        failures.append(issue("artifact_diff_family", "single_match", tuple(sorted(matched_families))))
+        return None, failures
+    return matched_families[0], failures
+
+
 def load_json_file(root: Path, relative_path: str, *, label: str, failures: list[str]) -> object | None:
     try:
         text = read_text(root, relative_path)
@@ -177,10 +210,8 @@ def collect_failures(root: Path) -> list[str]:
         return failures
 
     artifact_diff_text = read_text(root, "scripts/zigux/artifact_diff.py")
-    for marker in ARTIFACT_DIFF_MARKERS:
-        count = artifact_diff_text.count(marker)
-        if count != 1:
-            failures.append(issue(f"artifact_diff_marker:{marker}", 1, count))
+    _family, artifact_family_failures = detect_artifact_diff_family(artifact_diff_text)
+    failures.extend(artifact_family_failures)
 
     fixture = load_json_file(
         root,
@@ -359,6 +390,18 @@ def sample_artifact_diff_text() -> str:
     )
 
 
+def sample_sha256_artifact_diff_text() -> str:
+    return "\n".join(
+        (
+            "#!/usr/bin/env python3",
+            'print("ARTIFACT_DIFF_SELF_TEST=pass")',
+            'elif mode == "sha256":',
+            'parser.add_argument("--mode", choices=["text", "json", "sha256"])',
+            "",
+        )
+    )
+
+
 def sample_fixture() -> dict[str, object]:
     return {
         "find_bit": {"bits_per_long": 64, "tail_clamped_empty_last": 69},
@@ -424,8 +467,12 @@ def sample_blockers() -> dict[str, object]:
     }
 
 
-def build_sample_repo(root: Path) -> None:
-    write_text(root, "scripts/zigux/artifact_diff.py", sample_artifact_diff_text())
+def build_sample_repo(root: Path, *, artifact_diff_text: str | None = None) -> None:
+    write_text(
+        root,
+        "scripts/zigux/artifact_diff.py",
+        artifact_diff_text if artifact_diff_text is not None else sample_artifact_diff_text(),
+    )
     write_text(
         root,
         "zigux/tests/fixtures/phase1_helpers.json",
@@ -446,7 +493,7 @@ def build_sample_repo(root: Path) -> None:
 def mutate_remove_artifact_marker(root: Path) -> None:
     path = root / "scripts/zigux/artifact_diff.py"
     text = path.read_text(encoding="utf-8")
-    marker = ARTIFACT_DIFF_MARKERS[1]
+    marker = ARTIFACT_DIFF_COMMON_MARKERS[0]
     path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
 
 
@@ -530,36 +577,46 @@ def mutate_blockers_invalid_json(root: Path) -> None:
     write_text(root, "zigux/tests/fixtures/phase1_replay_blockers.json", '{"status":\n')
 
 
-def run_self_test() -> int:
-    cases = (
-        ("success", None),
-        ("missing_artifact_diff", lambda root: (root / "scripts/zigux/artifact_diff.py").unlink()),
-        ("required_file_not_regular", mutate_required_file_not_regular),
-        ("missing_artifact_marker", mutate_remove_artifact_marker),
-        ("fixture_order", mutate_fixture_order),
-        ("fixture_sentinel", mutate_fixture_sentinel),
-        ("fixture_invalid_json", mutate_fixture_invalid_json),
-        ("fixture_not_object", mutate_fixture_not_object),
-        ("manifest_count", mutate_manifest_count),
-        ("manifest_summary", mutate_manifest_summary),
-        ("manifest_invalid_json", mutate_manifest_invalid_json),
-        ("blocker_manifest", mutate_blocker_manifest),
-        ("blocker_shared_count", mutate_blocker_shared_count),
-        ("replay_blocker_id", mutate_replay_blocker_id),
-        ("c_harness_blocker_id", mutate_c_harness_blocker_id),
-        ("blockers_invalid_json", mutate_blockers_invalid_json),
+def mutate_unknown_artifact_family(root: Path) -> None:
+    write_text(
+        root,
+        "scripts/zigux/artifact_diff.py",
+        "#!/usr/bin/env python3\nprint(\"ARTIFACT_DIFF_SELF_TEST=pass\")\n",
     )
 
-    for name, mutation in cases:
+
+def run_self_test() -> int:
+    cases = (
+        ("success", None, None),
+        ("sha256_artifact_family", None, sample_sha256_artifact_diff_text()),
+        ("missing_artifact_diff", lambda root: (root / "scripts/zigux/artifact_diff.py").unlink(), None),
+        ("required_file_not_regular", mutate_required_file_not_regular, None),
+        ("missing_artifact_marker", mutate_remove_artifact_marker, None),
+        ("unknown_artifact_family", mutate_unknown_artifact_family, None),
+        ("fixture_order", mutate_fixture_order, None),
+        ("fixture_sentinel", mutate_fixture_sentinel, None),
+        ("fixture_invalid_json", mutate_fixture_invalid_json, None),
+        ("fixture_not_object", mutate_fixture_not_object, None),
+        ("manifest_count", mutate_manifest_count, None),
+        ("manifest_summary", mutate_manifest_summary, None),
+        ("manifest_invalid_json", mutate_manifest_invalid_json, None),
+        ("blocker_manifest", mutate_blocker_manifest, None),
+        ("blocker_shared_count", mutate_blocker_shared_count, None),
+        ("replay_blocker_id", mutate_replay_blocker_id, None),
+        ("c_harness_blocker_id", mutate_c_harness_blocker_id, None),
+        ("blockers_invalid_json", mutate_blockers_invalid_json, None),
+    )
+
+    for name, mutation, artifact_diff_text in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-parity-artifact-packet-") as tmpdir:
             root = Path(tmpdir)
-            build_sample_repo(root)
+            build_sample_repo(root, artifact_diff_text=artifact_diff_text)
             if mutation is not None:
                 mutation(root)
             failures = collect_failures(root)
-            if name == "success":
+            if name in {"success", "sha256_artifact_family"}:
                 if failures:
-                    print("self-test:success:unexpected_failures")
+                    print(f"self-test:{name}:unexpected_failures")
                     for failure in failures:
                         print(failure)
                     return 1
