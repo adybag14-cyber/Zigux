@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """PHASE12_CHECK_PACKET=virtio_scsi_libbpf_boundary
 
-Fail-closed checker for the bounded Phase 12 virtio_scsi survey packet and the
-shared libbpf verify-shard boundary that sits beside it.
+Fail-closed checker for the exact Phase 12 boundary between the rollback-only
+`virtio_scsi` survey packet and the adjacent parked libbpf segment packet.
 """
 
 from __future__ import annotations
@@ -14,93 +14,79 @@ from pathlib import Path
 
 MARKER = "PHASE12_CHECK_PACKET=virtio_scsi_libbpf_boundary"
 
-VIRTIO_SCSI_SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
+VIRTIO_SCSI_SLICE_PATH = "Documentation/zigux/phase12-virtio-scsi-slice.md"
+VIRTIO_SCSI_SURVEY_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
 VIRTIO_SCSI_FALLBACK_PATH = (
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+)
+VIRTIO_SCSI_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
+VIRTIO_SCSI_SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
+COMPLEX_DRIVER_NOTE_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 )
 LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 LIBBPF_VERIFY_NOTE_PATH = "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 LIBBPF_HEAVY_CONSUMER_PATH = (
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 )
-LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
-RELEASE_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 
 REQUIRED_FILES = [
-    VIRTIO_SCSI_SURVEY_GATE_PATH,
+    VIRTIO_SCSI_SLICE_PATH,
+    VIRTIO_SCSI_SURVEY_PATH,
     VIRTIO_SCSI_FALLBACK_PATH,
+    VIRTIO_SCSI_MANIFEST_PATH,
+    VIRTIO_SCSI_SURVEY_GATE_PATH,
+    COMPLEX_DRIVER_NOTE_PATH,
     LIBBPF_SURVEY_PATH,
     LIBBPF_VERIFY_NOTE_PATH,
     LIBBPF_HEAVY_CONSUMER_PATH,
-    LIBBPF_SNAPSHOT_PATH,
-    RELEASE_MATRIX_PATH,
 ]
 
-VIRTIO_SCSI_SURVEY_GATE_MARKERS = [
-    'test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery packet truthful"',
-    "Documentation/zigux/phase12-virtio-scsi-survey.md",
-    "zigux/tests/phase12_virtio_scsi_manifest.json",
-    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
-    "scripts/zigux/check-phase12-virtio-scsi-packet.py",
-]
+REQUIRED_MARKERS = {
+    VIRTIO_SCSI_SURVEY_PATH: [
+        "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
+        "PHASE12_LANE=P12-L13",
+        "rollback-only split machine-checkable",
+    ],
+    VIRTIO_SCSI_MANIFEST_PATH: [
+        '"lane_key": "P12-L13"',
+        '"preexisting_phase12_direct_test_present": false',
+        '"phase12-virtio-scsi-runtime-request-flow"',
+    ],
+    VIRTIO_SCSI_SURVEY_GATE_PATH: [
+        'test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthful"',
+        'pathExists("drivers/scsi/virtio_scsi.zig")',
+        'Documentation/zigux/phase12-virtio-scsi-survey.md',
+    ],
+    COMPLEX_DRIVER_NOTE_PATH: [
+        "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`",
+        "keep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth",
+        "shared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members",
+    ],
+    LIBBPF_SURVEY_PATH: [
+        "current `master` still exposes a bounded directly readable `zigux_segments` footing",
+        "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "older `manifest.json` catalog is no longer directly readable on current `master`",
+    ],
+    LIBBPF_VERIFY_NOTE_PATH: [
+        "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`",
+        "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
+    ],
+}
 
-VIRTIO_SCSI_FALLBACK_MARKERS = [
-    "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
-    "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
-    "`Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`",
-]
+FORBIDDEN_MARKERS = {
+    COMPLEX_DRIVER_NOTE_PATH: [
+        "current `master` now directly rematerializes the bounded `virtio_scsi` rollback-lab packet through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`",
+    ],
+    LIBBPF_VERIFY_NOTE_PATH: [
+        "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
+    ],
+}
 
-LIBBPF_SNAPSHOT_MARKERS = [
-    '"lane_key": "P12-L16"',
-    '"phase": "Phase 12"',
-    '"tracked_file_count": 4',
-    '"Documentation/zigux/phase12-libbpf-segment-survey.md"',
-    '"Documentation/zigux/phase12-libbpf-verify-shard-note.md"',
-    '"Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"',
-    '"Documentation/zigux/phase12-release-coordination-matrix.md"',
-]
 
-LIBBPF_VERIFY_NOTE_MARKERS = [
-    "- `PHASE12_STATUS=parked`",
-    "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`",
-    "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
-    "the older `tools/lib/bpf/zigux_segments/manifest.json` helper catalog remains historical packet context",
-]
-
-LIBBPF_VERIFY_NOTE_FORBIDDEN_MARKERS = [
-    "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
-]
-
-LIBBPF_SURVEY_MARKERS = [
-    "That matters because current `master` still exposes a bounded directly readable `zigux_segments` footing through `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `perf_buffer_poll.zig`, `online_cpu_routing.zig`, and `verify.zig`, while the older `manifest.json` catalog is no longer directly readable on current `master`.",
-    "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` remain parked note-owned boundaries",
-    "`scripts/zigux/check-phase12-libbpf-snapshot.py` now fails closed on both the same four note-owned support anchors",
-    "the current lane therefore needs survey truthfulness more than a new helper claim",
-]
-
-LIBBPF_SURVEY_FORBIDDEN_MARKERS = [
-    "the direct `phase12_libbpf_*` replay files plus `verify.zig` and `file_path_handle_bridge.zig` remain parked note-owned boundaries",
-    "The same boundary applies to the current checked-in `tools/lib/bpf/zigux_segments/manifest.json` story",
-]
-
-LIBBPF_HEAVY_CONSUMER_MARKERS = [
-    "while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard",
-    "keep the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries, while staying clear that `tools/lib/bpf/zigux_segments/verify.zig` remains directly readable current-master helper footing",
-]
-
-LIBBPF_HEAVY_CONSUMER_FORBIDDEN_MARKERS = [
-    "Keep the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries, while staying clear that `tools/lib/bpf/zigux_segments/manifest.json` remains present as that legacy helper catalog",
-]
-
-RELEASE_MATRIX_MARKERS = [
-    "the parked verify-shard note keeping the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries while `tools/lib/bpf/zigux_segments/verify.zig` stays explicit as the directly readable compile-together shard",
-    "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through the parked verify-shard packet until those files land again on current `master`, while `tools/lib/bpf/zigux_segments/verify.zig` remains directly readable helper footing",
-]
-
-RELEASE_MATRIX_FORBIDDEN_MARKERS = [
-    "the parked verify-shard note keeping the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries",
-    "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through the parked verify-shard packet until those files land again on current `master`",
-]
+def repo_root() -> Path:
+    resolved = Path(__file__).resolve()
+    return resolved.parents[2] if len(resolved.parents) >= 3 else resolved.parent
 
 
 def read_text(path: Path) -> str:
@@ -110,26 +96,6 @@ def read_text(path: Path) -> str:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-def require_markers(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
-    for marker in markers:
-        count = text.count(marker)
-        if count != 1:
-            errors.append(
-                f"marker count drift in {rel_path}: {marker} (expected 1, found {count})"
-            )
-
-
-def require_absent(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
-    for marker in markers:
-        if marker in text:
-            errors.append(f"forbidden marker present in {rel_path}: {marker}")
-
-
-def repo_root() -> Path:
-    resolved = Path(__file__).resolve()
-    return resolved.parents[2] if len(resolved.parents) >= 3 else resolved.parent
 
 
 def check(root: Path, source_text: str | None = None) -> list[str]:
@@ -144,150 +110,35 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     if MARKER not in checker_source:
         errors.append("checker marker missing from checker source")
 
-    text = read_text(root / VIRTIO_SCSI_SURVEY_GATE_PATH)
-    require_markers(errors, VIRTIO_SCSI_SURVEY_GATE_PATH, text, VIRTIO_SCSI_SURVEY_GATE_MARKERS)
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        text = read_text(root / rel_path)
+        for marker in markers:
+            if marker not in text:
+                errors.append(f"missing marker in {rel_path}: {marker}")
 
-    text = read_text(root / VIRTIO_SCSI_FALLBACK_PATH)
-    require_markers(errors, VIRTIO_SCSI_FALLBACK_PATH, text, VIRTIO_SCSI_FALLBACK_MARKERS)
-
-    text = read_text(root / LIBBPF_SNAPSHOT_PATH)
-    require_markers(errors, LIBBPF_SNAPSHOT_PATH, text, LIBBPF_SNAPSHOT_MARKERS)
-
-    text = read_text(root / LIBBPF_VERIFY_NOTE_PATH)
-    require_markers(errors, LIBBPF_VERIFY_NOTE_PATH, text, LIBBPF_VERIFY_NOTE_MARKERS)
-    require_absent(errors, LIBBPF_VERIFY_NOTE_PATH, text, LIBBPF_VERIFY_NOTE_FORBIDDEN_MARKERS)
-
-    text = read_text(root / LIBBPF_SURVEY_PATH)
-    require_markers(errors, LIBBPF_SURVEY_PATH, text, LIBBPF_SURVEY_MARKERS)
-    require_absent(errors, LIBBPF_SURVEY_PATH, text, LIBBPF_SURVEY_FORBIDDEN_MARKERS)
-
-    text = read_text(root / LIBBPF_HEAVY_CONSUMER_PATH)
-    require_markers(errors, LIBBPF_HEAVY_CONSUMER_PATH, text, LIBBPF_HEAVY_CONSUMER_MARKERS)
-    require_absent(
-        errors,
-        LIBBPF_HEAVY_CONSUMER_PATH,
-        text,
-        LIBBPF_HEAVY_CONSUMER_FORBIDDEN_MARKERS,
-    )
-
-    text = read_text(root / RELEASE_MATRIX_PATH)
-    require_markers(errors, RELEASE_MATRIX_PATH, text, RELEASE_MATRIX_MARKERS)
-    require_absent(errors, RELEASE_MATRIX_PATH, text, RELEASE_MATRIX_FORBIDDEN_MARKERS)
+    for rel_path, markers in FORBIDDEN_MARKERS.items():
+        text = read_text(root / rel_path)
+        for marker in markers:
+            if marker in text:
+                errors.append(f"forbidden marker in {rel_path}: {marker}")
 
     return errors
 
 
-def good_virtio_scsi_survey_gate_text() -> str:
-    return "\n".join(
-        [
-            'test "phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery packet truthful" {',
-            '    _ = "Documentation/zigux/phase12-virtio-scsi-survey.md";',
-            '    _ = "zigux/tests/phase12_virtio_scsi_manifest.json";',
-            '    _ = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md";',
-            '    _ = "scripts/zigux/check-phase12-virtio-scsi-packet.py";',
-            "}",
-            "",
-        ]
-    )
-
-
-def good_virtio_scsi_fallback_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog",
-            "",
-            "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
-            "- current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
-            "- `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`",
-            "",
-        ]
-    )
-
-
-def good_snapshot_text() -> str:
-    return "\n".join(
-        [
-            "{",
-            '  "lane_key": "P12-L16",',
-            '  "phase": "Phase 12",',
-            '  "tracked_file_count": 4,',
-            '  "tracked_paths": [',
-            '    "Documentation/zigux/phase12-libbpf-segment-survey.md",',
-            '    "Documentation/zigux/phase12-libbpf-verify-shard-note.md",',
-            '    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",',
-            '    "Documentation/zigux/phase12-release-coordination-matrix.md"',
-            "  ]",
-            "}",
-            "",
-        ]
-    )
-
-
-def good_verify_note_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 12 Libbpf Verify Shard Note",
-            "",
-            "- `PHASE12_STATUS=parked`",
-            "- `tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`",
-            "- the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
-            "- the older `tools/lib/bpf/zigux_segments/manifest.json` helper catalog remains historical packet context",
-            "",
-        ]
-    )
-
-
-def good_libbpf_survey_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 12 Libbpf Segment Survey",
-            "",
-            "That matters because current `master` still exposes a bounded directly readable `zigux_segments` footing through `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `perf_buffer_poll.zig`, `online_cpu_routing.zig`, and `verify.zig`, while the older `manifest.json` catalog is no longer directly readable on current `master`.",
-            "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` remain parked note-owned boundaries",
-            "`scripts/zigux/check-phase12-libbpf-snapshot.py` now fails closed on both the same four note-owned support anchors",
-            "the current lane therefore needs survey truthfulness more than a new helper claim",
-            "",
-        ]
-    )
-
-
-def good_heavy_consumer_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
-            "",
-            "- while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard",
-            "- keep the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries, while staying clear that `tools/lib/bpf/zigux_segments/verify.zig` remains directly readable current-master helper footing",
-            "",
-        ]
-    )
-
-
-def good_release_matrix_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 12 Release Coordination Matrix",
-            "",
-            "- the parked verify-shard note keeping the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` explicit as parked note-owned boundaries while `tools/lib/bpf/zigux_segments/verify.zig` stays explicit as the directly readable compile-together shard",
-            "- the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through the parked verify-shard packet until those files land again on current `master`, while `tools/lib/bpf/zigux_segments/verify.zig` remains directly readable helper footing",
-            "",
-        ]
-    )
-
-
 def write_fixture_tree(root: Path) -> None:
-    write_text(root / VIRTIO_SCSI_SURVEY_GATE_PATH, good_virtio_scsi_survey_gate_text())
-    write_text(root / VIRTIO_SCSI_FALLBACK_PATH, good_virtio_scsi_fallback_text())
-    write_text(root / LIBBPF_SNAPSHOT_PATH, good_snapshot_text())
-    write_text(root / LIBBPF_VERIFY_NOTE_PATH, good_verify_note_text())
-    write_text(root / LIBBPF_SURVEY_PATH, good_libbpf_survey_text())
-    write_text(root / LIBBPF_HEAVY_CONSUMER_PATH, good_heavy_consumer_text())
-    write_text(root / RELEASE_MATRIX_PATH, good_release_matrix_text())
-
-
-def expect_contains(errors: list[str], needle: str, label: str) -> None:
-    if not any(needle in error for error in errors):
-        raise SystemExit(f"{label}: {errors!r}")
+    fixture_text = {
+        VIRTIO_SCSI_SLICE_PATH: "# Phase 12 virtio_scsi Slice\n- `PHASE12_SLICE=virtio-scsi-rollback-evidence`\n",
+        VIRTIO_SCSI_SURVEY_PATH: "# Phase 12 Virtio SCSI Survey\nPHASE12_STATUS=rollback-evidence-only-live-starter-missing\nPHASE12_LANE=P12-L13\nrollback-only split machine-checkable\n",
+        VIRTIO_SCSI_FALLBACK_PATH: "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog\n",
+        VIRTIO_SCSI_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "preexisting_phase12_direct_test_present": false,\n  "gaps": ["phase12-virtio-scsi-runtime-request-flow"]\n}\n',
+        VIRTIO_SCSI_SURVEY_GATE_PATH: 'test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthful" {\n    _ = pathExists("drivers/scsi/virtio_scsi.zig");\n    _ = "Documentation/zigux/phase12-virtio-scsi-survey.md";\n}\n',
+        COMPLEX_DRIVER_NOTE_PATH: "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`\nkeep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth\nshared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members\n",
+        LIBBPF_SURVEY_PATH: "current `master` still exposes a bounded directly readable `zigux_segments` footing\n`tools/lib/bpf/zigux_segments/verify.zig`\nolder `manifest.json` catalog is no longer directly readable on current `master`\n",
+        LIBBPF_VERIFY_NOTE_PATH: "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`\nthe direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`\n",
+        LIBBPF_HEAVY_CONSUMER_PATH: "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing\n",
+    }
+    for rel_path in REQUIRED_FILES:
+        write_text(root / rel_path, fixture_text[rel_path])
 
 
 def run_self_test() -> int:
@@ -298,56 +149,24 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test expected success but failed: {errors!r}")
 
         write_fixture_tree(tmp_root)
-        write_text(tmp_root / LIBBPF_SURVEY_PATH, good_libbpf_survey_text().replace("verify.zig", "verify_absent.zig", 1))
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            f"marker count drift in {LIBBPF_SURVEY_PATH}",
-            "missing current survey marker",
-        )
+        write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace("rollback-evidence-only", "rollback-lab", 1))
+        if not any("missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("expected complex-driver marker failure")
 
         write_fixture_tree(tmp_root)
-        write_text(
-            tmp_root / LIBBPF_VERIFY_NOTE_PATH,
-            good_verify_note_text()
-            + LIBBPF_VERIFY_NOTE_FORBIDDEN_MARKERS[0]
-            + "\n",
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            f"forbidden marker present in {LIBBPF_VERIFY_NOTE_PATH}",
-            "stale verify boundary",
-        )
+        write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH) + FORBIDDEN_MARKERS[COMPLEX_DRIVER_NOTE_PATH][0] + "\n")
+        if not any("forbidden marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("expected complex-driver forbidden-marker failure")
 
         write_fixture_tree(tmp_root)
-        write_text(
-            tmp_root / LIBBPF_SNAPSHOT_PATH,
-            good_snapshot_text().replace(
-                '"Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",\n',
-                "",
-                1,
-            ),
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            f"marker count drift in {LIBBPF_SNAPSHOT_PATH}",
-            "snapshot drift",
-        )
-
-        write_fixture_tree(tmp_root)
-        write_text(
-            tmp_root / RELEASE_MATRIX_PATH,
-            good_release_matrix_text() + RELEASE_MATRIX_FORBIDDEN_MARKERS[0] + "\n",
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            f"forbidden marker present in {RELEASE_MATRIX_PATH}",
-            "stale release matrix wording",
-        )
+        write_text(tmp_root / LIBBPF_VERIFY_NOTE_PATH, read_text(tmp_root / LIBBPF_VERIFY_NOTE_PATH).replace("file_path_handle_bridge.zig", "file_path_handle_bridge_absent.zig", 1))
+        if not any("missing marker in" in error and LIBBPF_VERIFY_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("expected libbpf verify-note marker failure")
     finally:
-        shutil.rmtree(tmp_root)
+        shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=4")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=3")
     return 0
 
 
