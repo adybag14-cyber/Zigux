@@ -255,6 +255,12 @@ def emit_summary(mode: str, targets: list[str]) -> None:
     print(f"PHASE2_CROSS_TARGET_REPLAY_FILE_COUNT={len(ZIG_TEST_FILES)}")
 
 
+def emit_completed_targets(mode: str, completed_targets: list[str]) -> None:
+    print(f"PHASE2_CROSS_TARGET_REPLAY_MODE={mode}")
+    print(f"PHASE2_CROSS_TARGET_REPLAY_COMPLETED_TARGET_COUNT={len(completed_targets)}")
+    print(f"PHASE2_CROSS_TARGET_REPLAY_COMPLETED_TARGETS={','.join(completed_targets)}")
+
+
 def replay_target(
     root: Path,
     zig: str,
@@ -312,11 +318,13 @@ def run_single_target(root: Path, zig: str, target: str, timeout_seconds: int) -
 
 def run_all_targets(root: Path, zig: str, timeout_seconds: int) -> int:
     targets = load_targets(root)
+    completed_targets: list[str] = []
     for target in targets:
         result = replay_target(root, zig, target, timeout_seconds, emit_pass_summary=False)
         if result != 0:
-            print("PHASE2_CROSS_TARGET_REPLAY_MODE=all-targets")
+            emit_completed_targets("all-targets", completed_targets)
             return result
+        completed_targets.append(target)
 
     emit_summary("all-targets", targets)
     return 0
@@ -372,7 +380,10 @@ def build_self_test_root(root: Path) -> None:
         write_text(resolve_repo_path(root, rel_path), 'test {\n    try @import("std").testing.expect(true);\n}\n')
 
 
-def build_fake_zig(path: Path, log_path: Path) -> None:
+def build_fake_zig(path: Path, log_path: Path, *, fail_target: str | None = None) -> None:
+    fail_condition = "False"
+    if fail_target is not None:
+        fail_condition = repr(fail_target) + " in sys.argv"
     write_text(
         path,
         "\n".join(
@@ -383,6 +394,8 @@ def build_fake_zig(path: Path, log_path: Path) -> None:
                 "log_path.parent.mkdir(parents=True, exist_ok=True)",
                 "with log_path.open('a', encoding='utf-8') as handle:",
                 "    handle.write(' '.join(sys.argv[1:]) + '\\n')",
+                f"if {fail_condition}:",
+                "    raise SystemExit(9)",
                 "raise SystemExit(0)",
             )
         )
@@ -495,339 +508,4 @@ def run_self_test() -> int:
         assert "fixture:cross_target_target:0:' x86_64-linux '" in collect_fixture_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["cross_targets"][1]["review_status"] = " route contract only "
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert (
-            "fixture:cross_target_review_status:aarch64-linux:' route contract only '"
-            in collect_fixture_issues(root)
-        )
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["archive_target_scope"] = [" x86_64-linux "]
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_fixture_issues(root)
-        assert "fixture:archive_target_scope_entry:0:' x86_64-linux '" in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_fixture_issues(root)
-        assert "fixture:duplicate_archive_target_scope:x86_64-linux" in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux "]
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        try:
-            collect_fixture_issues(root)
-        except SystemExit as exc:
-            assert "invalid archive_target_scope entry" in str(exc)
-        else:
-            raise AssertionError("expected whitespace-padded archive_target_scope entry to fail closed")
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        try:
-            collect_fixture_issues(root)
-        except SystemExit as exc:
-            assert "duplicate archive_target_scope entry" in str(exc)
-        else:
-            raise AssertionError("expected duplicate archive_target_scope entry to fail closed")
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path.write_text(
-            """{
-  \"phase\": \"Phase 2\",
-  \"phase\": \"Phase 2\",
-  \"channel\": \"0.17.0-dev.87+9b177a7d2\",
-  \"minimum_version\": \"0.17.0-dev.87+9b177a7d2\",
-  \"archive_sha256\": {
-    \"x86_64-linux\": \"3333333333333333333333333333333333333333333333333333333333333333\"
-  },
-  \"upgrade_policy\": {
-    \"channel_minimum_lockstep\": true,
-    \"archive_target_scope\": [
-      \"x86_64-linux\"
-    ],
-    \"required_make_routes\": [
-      \"phase2-toolchain\",
-      \"phase2-validate\"
-    ]
-  }
-}
-""",
-            encoding="utf-8",
-        )
-        try:
-            collect_fixture_issues(root)
-        except SystemExit as exc:
-            assert "duplicate json key" in str(exc)
-        else:
-            raise AssertionError("expected duplicate policy json key to fail closed")
-        checks_run += 1
-
-        build_self_test_root(root)
-        fixture_path.write_text(
-            """{
-  \"phase\": \"Phase 2\",
-  \"status\": \"active\",
-  \"route\": \"make -C zigux phase2-cross\",
-  \"archive_target_scope\": [
-    \"x86_64-linux\"
-  ],
-  \"cross_targets\": [
-    {
-      \"target\": \"x86_64-linux\",
-      \"review_status\": \"pinned bootstrap archive\",
-      \"validation_mode\": \"archive_required\",
-      \"validation_mode\": \"archive_required\",
-      \"route\": \"make -C zigux phase2-cross\"
-    },
-    {
-      \"target\": \"aarch64-linux\",
-      \"review_status\": \"route contract only\",
-      \"validation_mode\": \"route_contract_only\",
-      \"route\": \"make -C zigux phase2-cross\"
-    }
-  ]
-}
-""",
-            encoding="utf-8",
-        )
-        try:
-            collect_fixture_issues(root)
-        except SystemExit as exc:
-            assert "duplicate json key" in str(exc)
-        else:
-            raise AssertionError("expected duplicate fixture json key to fail closed")
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0]["target"] = "riscv64-linux"
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_fixture_issues(root)
-        assert "fixture:unexpected_target:riscv64-linux" in issues
-        assert (
-            "fixture:target_set_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['riscv64-linux', 'aarch64-linux']"
-            in issues
-        )
-        assert "fixture:archive_required_target_outside_scope:riscv64-linux" in issues
-        assert any(issue.startswith("fixture:archive_required_target_set_mismatch:") for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "aarch64-linux"]
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_fixture_issues(root)
-        assert "fixture:archive_target_scope:['x86_64-linux']" in issues
-        assert any(issue.startswith("fixture:archive_required_target_set_mismatch:") for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "riscv64-linux"]
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        result, output = capture_stdout(run_checked, root, None, None, False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "unsupported archive_target_scope target in required file" in output
-        assert "riscv64-linux" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["cross_targets"] = {}
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert "fixture:cross_targets:{}" in collect_fixture_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0] = "broken"
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert "fixture:cross_target_entry:0:str" in collect_fixture_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-        payload["cross_targets"] = [payload["cross_targets"][1], payload["cross_targets"][0]]
-        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_fixture_issues(root)
-        assert (
-            "fixture:target_order_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['aarch64-linux', 'x86_64-linux']"
-            in issues
-        )
-        assert (
-            "fixture:target_set_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['aarch64-linux', 'x86_64-linux']"
-            not in issues
-        )
-        checks_run += 1
-
-        build_self_test_root(root)
-        resolve_repo_path(root, ZIG_TEST_FILES[1]).unlink()
-        assert collect_replay_file_issues(root) == [
-            "replay:file_missing:scripts/zigux/kconfig/confdata_bridge.zig"
-        ]
-        checks_run += 1
-
-        build_self_test_root(root)
-        resolve_repo_path(root, ZIG_TEST_FILES[0]).unlink()
-        result, output = capture_stdout(run_checked, root, None, None, False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "replay:file_missing:scripts/zigux/kconfig/conf_bridge.zig" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        result, output = capture_stdout(run_checked, root, None, None, False, 60)
-        assert result == 0
-        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=summary" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_TARGET_COUNT=2" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        result, output = capture_stdout(run_checked, root, None, None, False, 0)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "--timeout-seconds must be a positive integer" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        result, output = capture_stdout(run_checked, root, None, "x86_64-linux", False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "zig not found on PATH" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        result, output = capture_stdout(run_checked, root, None, None, True, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "zig not found on PATH" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        fake_zig = root / "fake-zig"
-        log_path = root / "fake-zig.log"
-        if log_path.exists():
-            log_path.unlink()
-        build_fake_zig(fake_zig, log_path)
-        result, output = capture_stdout(run_single_target, root, str(fake_zig), "x86_64-linux", 60)
-        assert result == 0
-        log_lines = log_path.read_text(encoding="utf-8").splitlines()
-        assert len(log_lines) == len(ZIG_TEST_FILES)
-        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=single-target" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux" in output
-        assert log_lines[0] == "test scripts/zigux/kconfig/conf_bridge.zig -target x86_64-linux --test-no-exec"
-        assert log_lines[1] == "test scripts/zigux/kconfig/confdata_bridge.zig -target x86_64-linux --test-no-exec"
-        checks_run += 1
-
-        build_self_test_root(root)
-        fake_zig = root / "fake-zig"
-        log_path = root / "fake-zig.log"
-        if log_path.exists():
-            log_path.unlink()
-        build_fake_zig(fake_zig, log_path)
-        result, output = capture_stdout(run_all_targets, root, str(fake_zig), 60)
-        assert result == 0
-        log_lines = log_path.read_text(encoding="utf-8").splitlines()
-        assert len(log_lines) == len(ZIG_TEST_FILES) * 2
-        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=all-targets" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_TARGET_COUNT=2" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux,aarch64-linux" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=single-target" not in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        result, output = capture_stdout(run_single_target, root, "/definitely-missing-zig", "x86_64-linux", 60)
-        assert result == 1
-        assert "failed to execute zig" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        fake_zig = root / "fake-zig"
-        log_path = root / "fake-zig.log"
-        if log_path.exists():
-            log_path.unlink()
-        build_fake_zig(fake_zig, log_path)
-        result, output = capture_stdout(run_single_target, root, str(fake_zig), "riscv64-linux", 60)
-        assert result == 1
-        assert "target not listed in fixture" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        fixture_path.unlink()
-        result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "required file missing" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path.unlink()
-        result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "required file missing" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        fixture_path.write_text("{\n", encoding="utf-8")
-        result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "invalid json in required file" in output
-        checks_run += 1
-
-        build_self_test_root(root)
-        fake_zig = root / "fake-zig"
-        log_path = root / "fake-zig.log"
-        if log_path.exists():
-            log_path.unlink()
-        build_fake_zig(fake_zig, log_path)
-        result, output = capture_stdout(run_checked, root, str(fake_zig), "x86_64-linux", True, 60)
-        assert result == 1
-        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
-        assert "--target and --all-targets are mutually exclusive" in output
-        checks_run += 1
-
-    print("PHASE2_CROSS_TARGET_REPLAY_SELF_TEST=pass")
-    print(f"PHASE2_CROSS_TARGET_REPLAY_SELF_TEST_CASE_COUNT={checks_run}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Compile-check the current Phase 2 cross-target fixture against the live bridge Zig files."
-    )
-    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--zig", help="Path to the Zig binary to use")
-    parser.add_argument("--target", help="Single target from phase2_cross_targets.json to replay")
-    parser.add_argument("--all-targets", action="store_true", help="Replay every target from the fixture")
-    parser.add_argument("--timeout-seconds", type=int, default=DEFAULT_TIMEOUT_SECONDS)
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    args = parser.parse_args()
-
-    root = args.root.resolve()
-    if args.self_test:
-        return run_self_test()
-
-    zig = resolve_zig(args.zig)
-    return run_checked(root, zig, args.target, args.all_targets, args.timeout_seconds)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        build_selfTestRoot(root)
