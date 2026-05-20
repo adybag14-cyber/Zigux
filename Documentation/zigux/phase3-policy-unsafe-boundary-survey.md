@@ -15,12 +15,12 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-decoder-plus-permits-and-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=7598cfcfb87a863dd40d60e5150fa8493d1dc8ed`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=140c792c323eaa69b9ceb6eb9e7e0ecf93f4cb23`
+- `PHASE3_MMIO_BLOB_SHA=80bb8185281d1495f8a4389002c0b83f4b0d574c`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
-- `PHASE3_UNSAFE_BLOB_SHA=0ce01e9d472d0a3ce651808dacb0219a225b4012`
+- `PHASE3_UNSAFE_BLOB_SHA=086463703abc6b51b273545c71a790d7a88b3087`
 - `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=fefaca671e37ade8a5cc3aae3b843d858c7001b1`
-- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=e38183c47ceca74e307bba8293e8edc649ece057`
+- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=3d790043d771e58daf6f18251b683b03007dded0`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 - `PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py`
