@@ -163,3 +163,32 @@ test "scnprintfPad reuses the caller buffer after an earlier scratch overflow" {
     try std.testing.expectEqualStrings("id   ", buffer[0 .. buffer.len - 1]);
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
+
+test "scnprintf family respects offset caller slices and leaves neighboring bytes untouched" {
+    var scn_backing = [_]u8{0xaa} ** 10;
+    const scn_view = scn_backing[2..8];
+    const scn_written = scnprintf(scn_view, "{s}:{d}", .{ "id", 7 });
+    try std.testing.expectEqual(@as(usize, 4), scn_written);
+    try std.testing.expectEqualStrings("id:7", scn_view[0..scn_written]);
+    try std.testing.expectEqual(@as(u8, 0), scn_view[scn_written]);
+    try std.testing.expectEqual(@as(u8, 0xaa), scn_backing[1]);
+    try std.testing.expectEqual(@as(u8, 0xaa), scn_backing[8]);
+
+    var vscn_backing = [_]u8{0xbb} ** 10;
+    const vscn_view = vscn_backing[1..7];
+    const vscn_written = vscnprintf(vscn_view, "{s}:{d}", .{ "ok", 3 });
+    try std.testing.expectEqual(@as(usize, 4), vscn_written);
+    try std.testing.expectEqualStrings("ok:3", vscn_view[0..vscn_written]);
+    try std.testing.expectEqual(@as(u8, 0), vscn_view[vscn_written]);
+    try std.testing.expectEqual(@as(u8, 0xbb), vscn_backing[0]);
+    try std.testing.expectEqual(@as(u8, 0xbb), vscn_backing[7]);
+
+    var pad_backing = [_]u8{0xcc} ** 10;
+    const pad_view = pad_backing[3..9];
+    const pad_written = scnprintfPad(pad_view, pad_view.len - 1, "{s}", .{"id"});
+    try std.testing.expectEqual(@as(usize, pad_view.len - 1), pad_written);
+    try std.testing.expectEqualStrings("id   ", pad_view[0..pad_written]);
+    try std.testing.expectEqual(@as(u8, 0), pad_view[pad_written]);
+    try std.testing.expectEqual(@as(u8, 0xcc), pad_backing[2]);
+    try std.testing.expectEqual(@as(u8, 0xcc), pad_backing[9]);
+}
