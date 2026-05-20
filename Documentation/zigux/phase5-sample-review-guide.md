@@ -101,6 +101,7 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 * `ownership_and_lifetime`
 
 Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
+Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test zigux/tests/phase5_bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays only current public-tree-backed companion evidence.
 
 Keep the current split explicit too:
 
