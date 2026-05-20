@@ -34,6 +34,7 @@ EXACT_CURRENT_CHECKS = [
     "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 ]
 
 BUILD_TEST_NAMES = [
@@ -290,6 +291,9 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
+    for rel in (SURVEY_PATH, COMPANION_PATH, VERIFY_PATH, MATRIX_PATH, DRIVER_PATH, EXPORT_PROOF_PATH, EXPORT_BUILD_PATH, HV_OPS_PROOF_PATH, HV_OPS_BUILD_PATH, PROOF_PATH, BUILD_PATH):
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+
     write(
         root / SURVEY_PATH,
         "\n".join(
@@ -390,10 +394,7 @@ def build_fixture(root: Path) -> None:
             ]
         ),
     )
-    write(
-        root / DRIVER_PATH,
-        "\n".join([*DRIVER_MARKERS, ""]),
-    )
+    write(root / DRIVER_PATH, "\n".join([*DRIVER_MARKERS, ""]))
     write(root / EXPORT_PROOF_PATH, "\n".join([*EXPORT_PROOF_MARKERS, ""]))
     write(root / EXPORT_BUILD_PATH, "\n".join([*EXPORT_BUILD_MARKERS, ""]))
     write(root / HV_OPS_PROOF_PATH, "\n".join([*HV_OPS_PROOF_MARKERS, ""]))
