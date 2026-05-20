@@ -161,11 +161,14 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 
+
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
+
 def run_capture(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
+
 
 def run_redirected(
     cmd: list[str],
@@ -194,6 +197,7 @@ def run_redirected(
         stderr=result.stderr or "",
     )
 
+
 def find_compiler(explicit: str | None) -> str:
     if explicit:
         return explicit
@@ -202,6 +206,7 @@ def find_compiler(explicit: str | None) -> str:
         if path:
             return path
     raise FileNotFoundError("no C compiler found on PATH")
+
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -217,14 +222,17 @@ def find_zig(explicit: str | None) -> str:
         return str(fallback)
     raise FileNotFoundError("no zig executable found; set --zig or ZIG")
 
+
 def load_cases(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
 
 def validate_tool_sources(c_fixdep: Path, zig_fixdep: Path) -> None:
     if c_fixdep != EXPECTED_C_FIXDEP:
         raise ValueError(f"fixdep:c_tool={c_fixdep},expected={EXPECTED_C_FIXDEP}")
     if zig_fixdep != EXPECTED_ZIG_FIXDEP:
         raise ValueError(f"fixdep:zig_tool={zig_fixdep},expected={EXPECTED_ZIG_FIXDEP}")
+
 
 def validate_fixture_inventory(
     fixture_dir: Path = FIXTURE_DIR,
@@ -238,6 +246,7 @@ def validate_fixture_inventory(
     if unexpected:
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
+
 def require_non_empty_string(
     case: dict[str, object],
     name: str,
@@ -248,6 +257,7 @@ def require_non_empty_string(
     if not isinstance(value, str) or not value:
         raise ValueError(f"{CASES_PATH}:{name}:{error_suffix}")
     return value
+
 
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
@@ -346,14 +356,8 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
     if seen_names != EXPECTED_CASE_ORDER:
         raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
 
-    if len(validated) != len(EXPECTED_CASES):
-        raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")
-
-    missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)
-    if missing_names:
-        raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")
-
     return validated
+
 
 def expect_failure(label: str, callback, expected_message: str) -> None:
     try:
@@ -367,8 +371,10 @@ def expect_failure(label: str, callback, expected_message: str) -> None:
         return
     raise SystemExit(f"fixdep:self-test:{label}:missing_failure:{expected_message!r}")
 
+
 def copy_valid_cases(valid_cases: list[dict[str, object]]) -> list[dict[str, object]]:
     return [dict(case) for case in valid_cases]
+
 
 def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, object]:
     for case in valid_cases:
@@ -514,6 +520,15 @@ def run_self_test() -> int:
         lambda: validate_cases(reordered_cases),
         f"{CASES_PATH}:case_order="
         f"{[case['name'] for case in reordered_cases]!r},expected={EXPECTED_CASE_ORDER!r}",
+    )
+    self_test_case_count += 1
+
+    truncated_cases = copy_valid_cases(valid_cases[:-1])
+    expect_failure(
+        "truncated_case_packet",
+        lambda: validate_cases(truncated_cases),
+        f"{CASES_PATH}:case_order="
+        f"{[case['name'] for case in truncated_cases]!r},expected={EXPECTED_CASE_ORDER!r}",
     )
     self_test_case_count += 1
 
@@ -756,11 +771,13 @@ def run_self_test() -> int:
     print(f"FIXDEP_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
+
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(":").lower()
     tail = resolved.as_posix().split(":", 1)[1]
     return f"/mnt/{drive}{tail}"
+
 
 def compile_run_c_wsl(
     tmp_dir: Path,
@@ -817,6 +834,7 @@ def compile_run_c_wsl(
         stderr=stderr_path.read_text(encoding="utf-8"),
     )
 
+
 def compile_run_c(
     tmp_dir: Path,
     compiler: str,
@@ -843,6 +861,7 @@ def compile_run_c(
     run(compile_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
+
 def run_zig(
     zig: str,
     tmp_dir: Path,
@@ -856,16 +875,20 @@ def run_zig(
     run(build_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
+
 def compare_returncode(label: str, expected: int, actual: int) -> None:
     if expected != actual:
         raise RuntimeError(f"{label} return code mismatch: expected {expected}, got {actual}")
+
 
 def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.CompletedProcess[str]) -> None:
     stdout_path.write_text(result.stdout, encoding="utf-8")
     stderr_path.write_text(result.stderr, encoding="utf-8")
 
+
 def diff_text(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bounded fixdep C/Zig artifact parity.")
@@ -950,6 +973,7 @@ def main() -> int:
         print("FIXDEP_DETERMINISM=pass")
         print(f"FIXTURE_DIR={FIXTURE_DIR}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
