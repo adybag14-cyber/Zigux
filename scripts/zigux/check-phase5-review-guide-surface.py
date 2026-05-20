@@ -67,6 +67,7 @@ DOCS_ROOT_MARKERS = (
     "keep the current `kobject` ownership-and-lifetime split explicit too:",
     "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
     "keep the bounded `kobject` attr-group companion explicit here too: `samples/zigux/kobject_example_attr_group_contract.zig` is current direct sample-root evidence for the `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, and NULL-terminated attribute-list slot rather than a fifth Phase 5 sample family.",
+    "keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the current `kobject` anchor split explicit instead of falling back to older repo-reality-gap wording.",
 )
 
 APPROVED_IDIOM_MARKERS = (
@@ -220,7 +221,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 13
+    expected_case_count = 14
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -272,6 +273,7 @@ def run_self_test() -> int:
                     DOCS_ROOT_MARKERS[1],
                     DOCS_ROOT_MARKERS[2],
                     DOCS_ROOT_MARKERS[4],
+                    DOCS_ROOT_MARKERS[5],
                 ),
             ),
         )
@@ -292,6 +294,7 @@ def run_self_test() -> int:
                     DOCS_ROOT_MARKERS[1],
                     DOCS_ROOT_MARKERS[2],
                     DOCS_ROOT_MARKERS[3],
+                    DOCS_ROOT_MARKERS[5],
                 ),
             ),
         )
@@ -299,6 +302,27 @@ def run_self_test() -> int:
         expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[4]}"]
         if failures != expected:
             raise AssertionError(f"unexpected docs-root attr-group failure: {failures}")
+        checks_run += 1
+
+        missing_docs_root_runtime_boundary_root = root / "missing_docs_root_runtime_boundary"
+        _seed(missing_docs_root_runtime_boundary_root)
+        _write(
+            missing_docs_root_runtime_boundary_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[3],
+                    DOCS_ROOT_MARKERS[4],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_runtime_boundary_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[5]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root runtime-boundary failure: {failures}")
         checks_run += 1
 
         missing_scripts_root_bytestream_build_marker_root = root / "missing_scripts_root_bytestream_build_marker"
