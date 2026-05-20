@@ -57,6 +57,9 @@
         "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
         "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
+        "test \"bitmap scnprintf truncates and keeps a terminator slot\"",
+        "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
+        "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
         "test \"bitmap Linux-style aliases mirror copy logical range and format helpers\"",
         "test \"bitmap Linux-style aliases mirror size state and allocation helpers\"",
         "test \"bitmap allocation helpers size zero fill and reset optionals\""
