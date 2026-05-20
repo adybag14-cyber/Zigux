@@ -355,7 +355,8 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
         inserted = (
@@ -381,7 +382,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         note_path = root / NOTE_REL
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
@@ -397,6 +398,18 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        missing_note_lines = tuple(f"{line}\n" for line in REQUIRED_NOTE_LINES)
+        for missing_line in missing_note_lines:
+            build_sampleRepo(root)
+            note_path = root / NOTE_REL
+            note_text = note_path.read_text(encoding="utf-8")
+            note_path.write_text(rewrite_once(note_text, missing_line), encoding="utf-8")
+            failures = collect_failures(root)
+            if "note:expected=1:actual=0" not in failures:
+                print(f"self-test:missing_note_line_not_detected:{missing_line.rstrip()}")
+                return 1
+            case_count += 1
+
         duplicate_note_lines = (
             "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 closure packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`\n",
             "- `PHASE1_WORKFLOW_STATUS=active`\n",
@@ -410,7 +423,7 @@ def run_self_test() -> int:
             "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zig build test --build-file zigux/tests/build.zig,zig build bench --build-file zigux/tests/build.zig,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench`\n",
         )
         for duplicate_line in duplicate_note_lines:
-            build_sample_repo(root)
+            build_sampleRepo(root)
             note_path = root / NOTE_REL
             note_text = note_path.read_text(encoding="utf-8")
             note_path.write_text(note_text + duplicate_line, encoding="utf-8")
@@ -461,7 +474,7 @@ def run_self_test() -> int:
             ("Check current Phase 4 artifact-diff validator replay packet", "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "duplicate_phase4_validator"),
         )
         for step_name, run_command, label in duplicate_workflow_checks:
-            build_sample_repo(root)
+            build_sampleRepo(root)
             workflow_path = root / WORKFLOW_REL
             workflow_text = workflow_path.read_text(encoding="utf-8")
             workflow_path.write_text(
@@ -477,7 +490,7 @@ def run_self_test() -> int:
                 return 1
             case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
