@@ -131,6 +131,18 @@ EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "reseed behavior stay owned by direct helper-local anchors until another committed "
     "cached-root field lands."
 )
+EXPECTED_RBTREE_SHARED_REPLAY_SUMMARY = (
+    "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, "
+    "and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools "
+    "smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` "
+    "cached-root leftmost-return sequence on current master"
+)
+EXPECTED_RBTREE_CACHED_ROOT_DIRECT_REVIEW_SUMMARY = (
+    "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, "
+    "detach, and reseed behavior remain owned by direct helper-local anchors, while the exact "
+    "`cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, "
+    "the shared host-tools smoke replay, and the committed fixture"
+)
 EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
     "across the string review packet and this lane note unless dedicated shared sysfs "
@@ -221,7 +233,7 @@ REQUIRED_EXACT_LINES = {
         "phase1_direct_packet": "  * current direct-readback Phase 1 reminder packet:",
         "phase1_historical_warning": "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
         "phase1_bench_checker_present": "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-        "phase1_makefile_readback": "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
+        "phase1_makefile_readback": "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
         "phase1_followthrough_alignment": "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
     },
     SCRIPTS_README_REL: {
@@ -255,6 +267,8 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/bitmap.zig", "next_safe_step_note"): EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"): EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/rbtree.zig", "shared_replay_summary"): EXPECTED_RBTREE_SHARED_REPLAY_SUMMARY,
+    ("review_anchors", "tools/lib/rbtree.zig", "cached_root_direct_review_summary"): EXPECTED_RBTREE_CACHED_ROOT_DIRECT_REVIEW_SUMMARY,
     ("review_anchors", "tools/lib/rbtree.zig", "ordered_alias_anchor"): EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR,
     ("review_anchors", "tools/lib/rbtree.zig", "low_level_alias_anchor"): EXPECTED_RBTREE_LOW_LEVEL_ALIAS_ANCHOR,
     ("review_anchors", "tools/lib/rbtree.zig", "phase1_helper_replay_anchor"): EXPECTED_RBTREE_PHASE1_HELPER_REPLAY_ANCHOR,
@@ -357,6 +371,8 @@ def sample_manifest() -> str:
                     },
                     "tools/lib/rbtree.zig": {
                         "next_safe_step_note": EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+                        "shared_replay_summary": EXPECTED_RBTREE_SHARED_REPLAY_SUMMARY,
+                        "cached_root_direct_review_summary": EXPECTED_RBTREE_CACHED_ROOT_DIRECT_REVIEW_SUMMARY,
                         "ordered_alias_anchor": EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR,
                         "low_level_alias_anchor": EXPECTED_RBTREE_LOW_LEVEL_ALIAS_ANCHOR,
                         "phase1_helper_replay_anchor": EXPECTED_RBTREE_PHASE1_HELPER_REPLAY_ANCHOR,
