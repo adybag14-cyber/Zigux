@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=helper-local`
 - lane-key note: `helper-local` keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary
-- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/check-phase7-string-helpers-packet.py`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
+- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/check-phase7-string-helpers-packet.py`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar, so keep parse-int-array reviewability anchored to `lib/string_helpers.zig` instead of reviving a duplicate helper-local file. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
 
 ## Why This Slice Exists
 
@@ -74,6 +74,8 @@ The expanded starter packet on current `master` covers:
 - `stringLower()` and `string_lower()`
 - `memcpyAndPad()` and `memcpy_and_pad()`
 - `strreplace()`
+
+Keep `parseIntArray()` and `parse_int_array()` review inside `lib/string_helpers.zig`; do not treat a standalone `lib/string_helpers_parse_int_array.zig` sidecar as part of the current helper-local packet.
 
 The current starter replay keeps these proofs explicit:
 
