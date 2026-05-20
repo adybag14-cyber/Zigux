@@ -8,6 +8,7 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 
+
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
         if (candidate / "zigux/tests/phase12_build.zig").exists() and (
@@ -16,6 +17,7 @@ def infer_repo_root() -> Path:
             return candidate
     return SELF_PATH.parent
 
+
 ROOT = infer_repo_root()
 
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
@@ -23,6 +25,10 @@ RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+DOCS_ROOT_README_PATH = "Documentation/zigux/README.md"
+RELEASE_CLOSURE_CHECKLIST_PATH = (
+    "Documentation/zigux/phase12-release-closure-checklist.md"
+)
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -60,6 +66,13 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
     "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
 ]
+DOCS_ROOT_MARKERS = [
+    "* keep the degraded-read fallback split explicit here too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.",
+]
+RELEASE_CLOSURE_CHECKLIST_MARKERS = [
+    "- shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "- The fallback split stays truthful: one commit-pinned `virtio_scsi` replay catalog, one current-master `nvme_pci` gap-inventory companion, and two shared-tree anchors.",
+]
 SCRIPTS_README_MARKERS = [
     "- `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
     "- `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
@@ -90,6 +103,8 @@ REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
+    DOCS_ROOT_README_PATH,
+    RELEASE_CLOSURE_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -114,6 +129,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "stale reminder vocabulary",
     ],
+    DOCS_ROOT_README_PATH: DOCS_ROOT_MARKERS,
+    RELEASE_CLOSURE_CHECKLIST_PATH: RELEASE_CLOSURE_CHECKLIST_MARKERS,
     SCRIPTS_README_PATH: SCRIPTS_README_MARKERS,
     TESTS_README_PATH: TESTS_README_MARKERS,
     MAKEFILE_PATH: [
@@ -357,6 +374,8 @@ def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
         title = {
             VALIDATOR_PATH: "# Phase 12 Support Validator",
+            DOCS_ROOT_README_PATH: "# Zigux Documentation",
+            RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
             WORKFLOW_PATH: "name: zigux-bootstrap",
@@ -543,8 +562,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
-            "returned smoke-and-test wrappers, the scripts-root and tests-root "
-            "degraded fallback wording, and the split-helper virtio_net packet."
+            "returned smoke-and-test wrappers, the docs-root, scripts-root, tests-root, "
+            "and closure-checklist degraded fallback wording, and the split-helper "
+            "virtio_net packet."
         )
     )
     parser.add_argument(
