@@ -70,6 +70,7 @@ EXPECTED_ZIG_MARKERS = {
     "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
     "readheader_exact_elf64_failure": 'test "readHeader keeps exact 64-bit ELF bytes when the next read would fail" {',
     "readheader_exact_invalid_class_failure": 'test "readHeader keeps exact invalid-class bytes when the next read would fail" {',
+    "readheader_exact_not_elf_failure": 'test "readHeader keeps exact non-ELF bytes when the next read would fail" {',
     "readheader_split_fill": 'test "readHeader stops after filling the first ELF header across split reads" {',
     "readheader_split_truncated_count": 'test "readHeader preserves truncated byte count across split reads" {',
     "readheader_immediate_error": 'test "readHeader treats an immediate read error like truncated input" {',
