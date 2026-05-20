@@ -152,7 +152,14 @@ fn writeTooManyReferenceFilesError(writer: anytype) !void {
     try writer.writeAll("too many reference files\n");
 }
 
-fn writeParseFailureOutput(writer: anytype, parsed_failure: ParsedFailure) !void {
+fn failureShowsUsage(reason: ParseFailure) bool {
+    return switch (reason) {
+        .too_many_reference_files => false,
+        else => true,
+    };
+}
+
+fn writeFailureOutput(writer: anytype, parsed_failure: ParsedFailure) !void {
     for (0..parsed_failure.version_count) |_| {
         try writer.writeAll(version_text);
     }
@@ -163,7 +170,9 @@ fn writeParseFailureOutput(writer: anytype, parsed_failure: ParsedFailure) !void
         .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(writer, option),
         .too_many_reference_files => try writeTooManyReferenceFilesError(writer),
     }
-    try writer.writeAll(usage_text);
+    if (failureShowsUsage(parsed_failure.reason)) {
+        try writer.writeAll(usage_text);
+    }
 }
 
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
@@ -484,7 +493,7 @@ pub fn main(init: std.process.Init) !void {
         .failure => |parsed_failure| {
             var stderr_buffer: [1024]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try writeParseFailureOutput(&stderr_writer.interface, parsed_failure);
+            try writeFailureOutput(&stderr_writer.interface, parsed_failure);
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
@@ -805,6 +814,34 @@ test "genksyms bridge renders missing short option argument like the fixture" {
     );
 }
 
+test "genksyms bridge appends usage after getopt-style parse failures" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeFailureOutput(&output.writer, .{
+        .reason = .{ .invalid_option = "--unknown" },
+        .version_count = 1,
+    });
+    try testing.expectEqualStrings(
+        version_text ++ "unrecognized option '--unknown'\n" ++ usage_text,
+        output.written(),
+    );
+}
+
+test "genksyms bridge leaves tool-local reference-limit failure message unchanged" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeFailureOutput(&output.writer, .{
+        .reason = .too_many_reference_files,
+        .version_count = 0,
+    });
+    try testing.expectEqualStrings(
+        "too many reference files\n",
+        output.written(),
+    );
+}
+
 test "genksyms bridge help output only advertises implemented flags" {
     const usage_line = "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver";
     try testing.expect(std.mem.containsAtLeast(u8, usage_text, 1, usage_line));
@@ -862,33 +899,6 @@ test "genksyms bridge keeps version side effect before unexpected long option ar
         },
         else => return error.ExpectedFailure,
     }
-}
-
-test "genksyms bridge appends usage after parse failures like Linux getopt" {
-    var output: std.Io.Writer.Allocating = .init(testing.allocator);
-    defer output.deinit();
-
-    try writeParseFailureOutput(&output.writer, .{
-        .reason = .{ .invalid_option = "x" },
-    });
-    try testing.expectEqualStrings(
-        "invalid option -- 'x'\n" ++ usage_text,
-        output.written(),
-    );
-}
-
-test "genksyms bridge keeps version side effects ahead of usage on parse failures" {
-    var output: std.Io.Writer.Allocating = .init(testing.allocator);
-    defer output.deinit();
-
-    try writeParseFailureOutput(&output.writer, .{
-        .reason = .{ .unexpected_option_argument = "--help" },
-        .version_count = 1,
-    });
-    try testing.expectEqualStrings(
-        version_text ++ "option '--help' doesn't allow an argument\n" ++ usage_text,
-        output.written(),
-    );
 }
 
 test "genksyms bridge canonicalizes unexpected long option argument failures" {
