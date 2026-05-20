@@ -27,6 +27,7 @@ REQUIRED_STEPS = [
 REQUIRED_CHECKER_MARKERS = [
     'parser.add_argument("--policy-only", action="store_true"',
     'parser.add_argument("--archive-only", action="store_true"',
+    'parser.add_argument("--allow-missing", action="store_true"',
     'parser.add_argument("--archive", help="Explicit Zig archive path for archive-integrity validation.")',
     'parser.add_argument("--archive-target", help="Archive target key from scripts/zigux/zig-toolchain-policy.json.")',
     'parser.add_argument("--self-test", action="store_true"',
@@ -174,6 +175,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy-only", action="store_true", help="policy only")
     parser.add_argument("--archive-only", action="store_true", help="archive only")
+    parser.add_argument("--allow-missing", action="store_true", help="allow missing")
     parser.add_argument("--archive", help="Explicit Zig archive path for archive-integrity validation.")
     parser.add_argument("--archive-target", help="Archive target key from scripts/zigux/zig-toolchain-policy.json.")
     parser.add_argument("--self-test", action="store_true", help="self-test")
@@ -266,13 +268,26 @@ def run_self_test() -> int:
         checker_path = root / TOOLCHAIN_CHECKER
         checker_path.write_text(
             checker_path.read_text(encoding="utf-8").replace(
-                'parser.add_argument("--archive-only", action="store_true", help="archive only")\n',
+                'parser.add_argument(\"--archive-only\", action=\"store_true\", help=\"archive only\")\n',
                 "",
             ),
             encoding="utf-8",
         )
         issues = validate_root(root)
         assert any(issue.startswith("checker:missing_marker:parser.add_argument(\"--archive-only\"") for issue in issues)
+        case_count += 1
+
+        build_sample_root(root)
+        checker_path = root / TOOLCHAIN_CHECKER
+        checker_path.write_text(
+            checker_path.read_text(encoding="utf-8").replace(
+                'parser.add_argument(\"--allow-missing\", action=\"store_true\", help=\"allow missing\")\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert any(issue.startswith("checker:missing_marker:parser.add_argument(\"--allow-missing\"") for issue in issues)
         case_count += 1
 
         build_sample_root(root)
