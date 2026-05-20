@@ -40,7 +40,7 @@ const Manifest = struct {
 
 const phase4_gate_evidence_self_test_cases_line =
     "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift," ++
-    "missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift," ++
+    "missing_exact_readback_heading,forbidden_gate_evidence_checker_self_pin,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift," ++
     "phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift," ++
     "doc_readme_blob_pin_drift,script_readme_blob_pin_drift,tests_readme_blob_pin_drift," ++
     "gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift," ++
@@ -221,7 +221,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try expectBlobShaMatchesSource(manifest.phase4_validator_blob_sha, validate_phase4_source);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("de6613c6fea93616ed3780477da016a60c3b4e83", manifest.phase9_build_blob_sha);
+    try std.testing.expectEqualStrings("2f8eb1b1410d14cc5e9589873b2d2a2b7a7467e0", manifest.phase9_build_blob_sha);
     try expectBlobShaMatchesSource(manifest.phase9_build_blob_sha, phase9_build_source);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
@@ -389,8 +389,8 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper and runtime blob p
     try expectMarker(gate_evidence_source, runtime_atomic64_diff_blob_marker);
 
     try expectMarker(gate_evidence_source, phase4_gate_evidence_self_test_cases_line);
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
