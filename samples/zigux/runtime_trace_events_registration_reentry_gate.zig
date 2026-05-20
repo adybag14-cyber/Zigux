@@ -200,10 +200,10 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(usize, 6), before_exit.main_thread_events);
     try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), before_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
-    try std.testing.expectEqual(@as(?usize, 6), before_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_exit.last_main_conditional_event_count);
     try std.testing.expectEqual(@as(i32, 0), before_exit.last_main_count);
