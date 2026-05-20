@@ -6,11 +6,14 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
+import tempfile
 
 
 HERE = Path(__file__).resolve()
-ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
-EXPECTATIONS = ROOT / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")
+BUILD_FILE_REL = Path("zigux/tests/build.zig")
 EXPECTED_ITERATIONS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
     "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
@@ -86,6 +89,20 @@ class DuplicateTrackingDict(dict[str, object]):
             if key in self and key not in self.duplicate_keys:
                 self.duplicate_keys.append(key)
             self[key] = value
+
+
+def resolve_root(explicit: str | None) -> Path:
+    if explicit:
+        return Path(explicit).resolve()
+    return DEFAULT_ROOT
+
+
+def expectations_path(root: Path) -> Path:
+    return root / EXPECTATIONS_REL
+
+
+def build_file_path(root: Path) -> Path:
+    return root / BUILD_FILE_REL
 
 
 def find_zig(explicit: str | None) -> str:
@@ -805,176 +822,247 @@ def run_self_test() -> None:
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
             "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(missing_hweight_exact)
-    assert kind == "expectations_checksums_hweight_exact_required"
-    assert payload == "PHASE1_BENCH_HWEIGHT_CHECKSUM"
+    assert kind == \"expectations_checksums_hweight_exact_required\"
+    assert payload == \"PHASE1_BENCH_HWEIGHT_CHECKSUM\"
     case_count += 1
 
     missing_list_sort_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        \"status\": \"pass\",
+        \"iterations\": dict(EXPECTED_ITERATIONS),
+        \"checksums\": list(EXPECTED_CHECKSUMS),
+        \"exact_checksums\": {
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
+            \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
+            \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
+            \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
+            \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
+            \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(missing_list_sort_exact)
-    assert kind == "expectations_checksums_list_sort_exact_required"
-    assert payload == "PHASE1_BENCH_LIST_SORT_CHECKSUM"
+    assert kind == \"expectations_checksums_list_sort_exact_required\"
+    assert payload == \"PHASE1_BENCH_LIST_SORT_CHECKSUM\"
     case_count += 1
 
     missing_find_next_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        \"status\": \"pass\",
+        \"iterations\": dict(EXPECTED_ITERATIONS),
+        \"checksums\": list(EXPECTED_CHECKSUMS),
+        \"exact_checksums\": {
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
+            \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
+            \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
+            \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
+            \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
+            \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(missing_find_next_exact)
-    assert kind == "expectations_checksums_find_bit_exact_required"
-    assert payload == "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"
+    assert kind == \"expectations_checksums_find_bit_exact_required\"
+    assert payload == \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\"
     case_count += 1
 
     missing_find_bit_edge_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        \"status\": \"pass\",
+        \"iterations\": dict(EXPECTED_ITERATIONS),
+        \"checksums\": list(EXPECTED_CHECKSUMS),
+        \"exact_checksums\": {
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
+            \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
+            \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
+            \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
+            \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
+            \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(missing_find_bit_edge_exact)
-    assert kind == "expectations_checksums_find_bit_exact_required"
-    assert payload == "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"
+    assert kind == \"expectations_checksums_find_bit_exact_required\"
+    assert payload == \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\"
     case_count += 1
 
     missing_rbtree_iterations = {
-        "status": "pass",
-        "iterations": {
+        \"status\": \"pass\",
+        \"iterations\": {
             key: value
             for key, value in EXPECTED_ITERATIONS.items()
-            if key != "PHASE1_BENCH_RBTREE_ITERATIONS"
+            if key != \"PHASE1_BENCH_RBTREE_ITERATIONS\"
         },
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        \"checksums\": list(EXPECTED_CHECKSUMS),
+        \"exact_checksums\": {
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
+            \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
+            \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
+            \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
+            \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
+            \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
+            \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(missing_rbtree_iterations)
-    assert kind == "expectations_missing_rbtree_iterations"
-    assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
+    assert kind == \"expectations_missing_rbtree_iterations\"
+    assert payload == [\"PHASE1_BENCH_RBTREE_ITERATIONS\"]
     case_count += 1
 
     reordered_checksums = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": [
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
-            "PHASE1_BENCH_STRING_CHECKSUM",
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM",
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM",
-            "PHASE1_BENCH_RBTREE_CHECKSUM",
+        \"status\": \"pass\",
+        \"iterations\": dict(EXPECTED_ITERATIONS),
+        \"checksums\": [
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
+            \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
+            \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
+            \"PHASE1_BENCH_STRING_CHECKSUM\",
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
+            \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\",
         ],
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+        \"exact_checksums\": {
+            \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
+            \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
+            \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
+            \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
+            \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
+            \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
+            \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
+            \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
+            \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
+            \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
+            \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
+            \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
         },
     }
     kind, payload = validate_expectations(reordered_checksums)
-    assert kind == "expectations_checksum_order"
-    assert payload == reordered_checksums["checksums"]
+    assert kind == \"expectations_checksum_order\"
+    assert payload == reordered_checksums[\"checksums\"]
     case_count += 1
 
-    print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
-    print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        result = subprocess.run(
+            [sys.executable, str(HERE), \"--root\", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        expected_path = expectations_path(temp_root)
+        assert \"PHASE1_BENCH_CHECK=fail\" in result.stdout
+        assert \"PHASE1_BENCH_CHECK_REASON=expectations_missing\" in result.stdout
+        assert f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text("{\n", encoding=\"utf-8\")
+        result = subprocess.run(
+            [sys.executable, str(HERE), \"--root\", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert \"PHASE1_BENCH_CHECK=fail\" in result.stdout
+        assert \"PHASE1_BENCH_CHECK_REASON=expectations_json_error\" in result.stdout
+        assert f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\" in result.stdout
+        assert \"EXPECTATIONS_JSON_ERROR=\" in result.stdout
+        assert \"EXPECTATIONS_JSON_LINE=\" in result.stdout
+        assert \"EXPECTATIONS_JSON_COLUMN=\" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(
+            json.dumps(
+                {
+                    \"status\": \"pass\",
+                    \"iterations\": dict(EXPECTED_ITERATIONS),
+                    \"checksums\": list(EXPECTED_CHECKSUMS),
+                    \"exact_checksums\": expectations[\"exact_checksums\"],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + \"\n\",
+            encoding=\"utf-8\",
+        )
+        build_file = build_file_path(temp_root)
+        build_file.parent.mkdir(parents=True, exist_ok=True)
+        build_file.write_text("// bench build file is not executed by /bin/sh\n", encoding=\"utf-8\")
+        result = subprocess.run(
+            [sys.executable, str(HERE), \"--root\", temp_dir, \"--zig\", \"/bin/sh\"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert \"PHASE1_BENCH_CHECK=fail\" in result.stdout
+        assert \"PHASE1_BENCH_CHECK_REASON=bench_command_exit\" in result.stdout
+        assert f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\" in result.stdout
+        assert \"BENCH_COMMAND_EXIT=\" in result.stdout
+        case_count += 1
+
+    print(\"PHASE1_BENCH_CHECK_SELF_TEST=pass\")
+    print(f\"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}\")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run and validate the bounded Phase 1 benchmark smoke output.")
-    parser.add_argument("--zig", help="Path to Zig executable")
-    parser.add_argument("--self-test", action="store_true", help="Run checker self-test cases without invoking Zig.")
+    parser = argparse.ArgumentParser(description=\"Run and validate the bounded Phase 1 benchmark smoke output.\")
+    parser.add_argument(\"--root\", help=\"Repository root to validate\")
+    parser.add_argument(\"--zig\", help=\"Path to Zig executable\")
+    parser.add_argument(\"--self-test\", action=\"store_true\", help=\"Run checker self-test cases without invoking Zig.\")
     args = parser.parse_args()
 
     if args.self_test:
         run_self_test()
         return 0
 
-    kind, payload = load_runtime_expectations(EXPECTATIONS)
-    if kind == "missing_expectations_file":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(f"EXPECTATIONS_PATH={payload}")
+    root = resolve_root(args.root)
+    expected_path = expectations_path(root)
+    kind, payload = load_runtime_expectations(expected_path)
+    if kind == \"missing_expectations_file\":
+        print(\"PHASE1_BENCH_CHECK=fail\")
+        print(\"PHASE1_BENCH_CHECK_REASON=expectations_missing\")
+        print(f\"PHASE1_BENCH_EXPECTATIONS={payload}\")
         return 1
-    if kind == "expectations_json_error":
+    if kind == \"expectations_json_error\":
         exc = payload
         assert isinstance(exc, json.JSONDecodeError)
-        print("PHASE1_BENCH_CHECK=fail")
-        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
-        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
-        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
+        print(\"PHASE1_BENCH_CHECK=fail\")
+        print(\"PHASE1_BENCH_CHECK_REASON=expectations_json_error\")
+        print(f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\")
+        print(\"EXPECTATIONS_JSON_ERROR={}\".format(exc.msg))
+        print(\"EXPECTATIONS_JSON_LINE={}\".format(exc.lineno))
+        print(\"EXPECTATIONS_JSON_COLUMN={}\".format(exc.colno))
         return 1
-    if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    if kind != \"pass\":
+        print(\"PHASE1_BENCH_CHECK=fail\")
+        print(f\"PHASE1_BENCH_CHECK_REASON={kind}\")
         print(payload)
         return 1
 
@@ -983,32 +1071,34 @@ def main() -> int:
 
     zig = find_zig(args.zig)
     result = subprocess.run(
-        [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
-        cwd=str(ROOT),
+        [zig, \"build\", \"bench\", \"--build-file\", str(BUILD_FILE_REL), \"-Doptimize=ReleaseSafe\"],
+        cwd=str(root),
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"BENCH_COMMAND_EXIT={result.returncode}")
+        print(\"PHASE1_BENCH_CHECK=fail\")
+        print(\"PHASE1_BENCH_CHECK_REASON=bench_command_exit\")
+        print(f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\")
+        print(f\"BENCH_COMMAND_EXIT={result.returncode}\")
         if result.stdout:
-            print(result.stdout.rstrip("\n"))
+            print(result.stdout.rstrip(\"\\n\"))
         if result.stderr:
-            print(result.stderr.rstrip("\n"))
+            print(result.stderr.rstrip(\"\\n\"))
         return 1
 
     kind, payload = validate_output(expectations, result.stdout)
-    if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    if kind != \"pass\":
+        print(\"PHASE1_BENCH_CHECK=fail\")
+        print(f\"PHASE1_BENCH_CHECK_REASON={kind}\")
         print(payload)
         return 1
 
-    print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
-    print(f"PHASE1_BENCH_ZIG={zig}")
+    print(\"PHASE1_BENCH_CHECK=pass\")
+    print(f\"PHASE1_BENCH_EXPECTATIONS={expected_path}\")
+    print(f\"PHASE1_BENCH_ZIG={zig}\")
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == \"__main__\":
     raise SystemExit(main())
