@@ -43,6 +43,7 @@ BINDING_PATHS = (
 
 HELPER_PATHS = (
     Path("zigux/kernel/export_shim.zig"),
+    Path("zigux/helpers/layout_assert.zig"),
     Path("zigux/helpers/panic_policy.zig"),
     Path("zigux/helpers/allocator_policy.zig"),
     Path("zigux/helpers/unsafe_policy.zig"),
