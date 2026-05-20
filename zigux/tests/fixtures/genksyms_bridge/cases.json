@@ -79,5 +79,52 @@
       "-d"
     ],
     "expected_file": "lone_dash_passthrough_expected.json"
+  },
+  {
+    "name": "version_before_short_help",
+    "args": [
+      "-Vh"
+    ],
+    "expected_file": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "long_version_before_short_help",
+    "args": [
+      "--version",
+      "-h"
+    ],
+    "expected_file": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_short_help",
+    "args": [
+      "--ver",
+      "-h"
+    ],
+    "expected_file": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "version_before_long_help",
+    "args": [
+      "-V",
+      "--help"
+    ],
+    "expected_file": "version_before_long_help_expected.json"
+  },
+  {
+    "name": "long_version_before_long_help",
+    "args": [
+      "--version",
+      "--help"
+    ],
+    "expected_file": "version_before_long_help_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_long_help",
+    "args": [
+      "--ver",
+      "--help"
+    ],
+    "expected_file": "version_before_long_help_expected.json"
   }
 ]
