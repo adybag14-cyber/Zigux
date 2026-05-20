@@ -9,8 +9,6 @@ from pathlib import Path
 
 
 NOTE_PATH = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
-ABI_SLICE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
-CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 ATOMIC_PATH = Path("zigux/helpers/atomic.zig")
 BARRIER_PATH = Path("zigux/helpers/barrier.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
@@ -44,21 +42,6 @@ REQUIRED_MARKERS = {
         "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
         "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one returned shared Makefile replay gate, and one direct replay command are directly readable, while the separately readable Phase 3 catalog-selftest guard stays adjacent cross-packet support rather than extra low-level-wrapper proof.",
         "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, and the adjacent catalog-selftest guard through `scripts/zigux/check-phase3-catalog-selftest.py`, and those separate surfaces should stay framed as cross-packet support rather than as landed same-lane proof.",
-    ),
-    ABI_SLICE_PATH: (
-        "one adjacent low-level-wrapper reminder surface built around the surviving atomic helper shard, one directly readable barrier helper companion, one directly readable MMIO helper companion, one directly readable helper-local unsafe-policy companion, the shared unsafe-scope decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
-        "one adjacent low-level-wrapper reminder surface built around zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig, while broader later Phase 3 routes remain outside this bounded packet",
-        "and it separately reaches one adjacent low-level-wrapper reminder surface through Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig. Earlier survey wording that the separate broader header-family binding follow-through remains the wider gap is now historical rather than current repo reality because zigux/bindings/header_family.zig and the focused replay route are both present on master.",
-        "Current `master` still presents the honest same-lane outcome as a bounded starter-packet set plus a bounded shared ABI binding surface, a landed shared header-family binding relay, one focused export-or-UAPI layout replay, one dedicated header-family survey follow-through, and one bounded low-level-wrapper reminder surface, not as full Phase 3 completion.",
-        "That reminder surface keeps the landed header-family binding relay, one directly readable MMIO helper companion, the directly coupled helper-local `zigux/helpers/unsafe_policy.zig` companion, the manifest-backed shared ABI inventory companion, the shared validator entrypoint, the shared ABI checker, the Phase 3 catalog helper, the returned catalog-selftest guard, the export/UAPI survey validator, the dedicated header-family survey validator, the dedicated header-family survey note, the returned linux-header governance companion, the dedicated low-level-wrapper survey validator, the focused replay shard, and the dedicated shared build companion explicit without implying that the broader unfinished Phase 3 routes already ship.",
-        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
-    ),
-    CHECKER_PATH: (
-        '"""Fail-close the current bounded Phase 3 shared ABI packet."""',
-        'ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")',
-        'BINDING_ABI = Path("zigux/bindings/abi.zig")',
-        'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")',
-        'print("PHASE3_ABI_CHECK=pass")',
     ),
     ATOMIC_PATH: (
         "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {",
