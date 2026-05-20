@@ -251,6 +251,42 @@ test "phase11 dw_wdt pm suspend keeps running-hardware stop handoff explicit" {
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
 
+test "phase11 dw_wdt pm suspend keeps idle path explicit without teardown hooks" {
+    const summary = summarizePmSuspend(.{
+        .drvdata_published = true,
+        .hardware_running = false,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = false,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqual(PmSuspendState.idle_suspend_ready, summary.state);
+    try std.testing.expect(!summary.stop_requested);
+    try std.testing.expect(summary.reset_assert_ready);
+    try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm suspend keeps missing hook teardown explicit during running stop" {
+    const summary = summarizePmSuspend(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .reset_control_available = false,
+        .stop_on_reboot_registered = false,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqual(PmSuspendState.running_suspend_requires_stop, summary.state);
+    try std.testing.expect(summary.stop_requested);
+    try std.testing.expect(!summary.reset_assert_ready);
+    try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(summary.blocked_on_live_mmio);
+}
+
 test "phase11 dw_wdt pm resume keeps imported-running handoff explicit" {
     const summary = summarizePmResume(.{
         .drvdata_published = true,
@@ -378,6 +414,24 @@ test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal ex
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
 
+test "phase11 dw_wdt pm shutdown keeps running stop explicit when reset assert is unavailable" {
+    const summary = summarizePmShutdown(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .reset_control_available = false,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqual(PmShutdownState.running_shutdown_requires_stop, summary.state);
+    try std.testing.expect(summary.stop_requested);
+    try std.testing.expect(!summary.reset_assert_ready);
+    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(summary.blocked_on_live_mmio);
+}
+
 test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop" {
     const summary = summarizePmShutdown(.{
         .drvdata_published = true,
@@ -392,6 +446,24 @@ test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop"
     try std.testing.expect(!summary.reset_assert_ready);
     try std.testing.expect(summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm shutdown keeps idle no-hook teardown explicit" {
+    const summary = summarizePmShutdown(.{
+        .drvdata_published = true,
+        .hardware_running = false,
+        .reset_control_available = false,
+        .stop_on_reboot_registered = false,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqual(PmShutdownState.idle_unregister_only, summary.state);
+    try std.testing.expect(!summary.stop_requested);
+    try std.testing.expect(!summary.reset_assert_ready);
+    try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(!summary.clear_restart_priority_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
