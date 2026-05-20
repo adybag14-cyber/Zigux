@@ -23,9 +23,9 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_MARKERS = {
     NOTE_PATH: (
-        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
-        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig; adjacent shared Phase 3 validator, shared ABI checker, shared ABI catalog helper, export/UAPI survey-validator, and catalog-selftest guard surfaces now read separately on current master, while the low-level-wrapper packet stays bounded to its own helper-local evidence",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one shared tests-root reminder, and one returned shared Makefile replay gate",
+        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, zigux/tests/phase3_low_level_wrappers_build.zig, zigux/tests/README.md, zigux/tests/build.zig, and zigux/Makefile; adjacent shared Phase 3 validator, shared ABI checker, shared ABI catalog helper, export/UAPI survey-validator, and catalog-selftest guard surfaces now read separately on current master, while the low-level-wrapper packet stays bounded to its own helper-local evidence",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the shared tests-root reminder, the direct zig build phase3-low-level-wrappers-test replay route, and the returned Makefile replay gate while the adjacent catalog-selftest guard stays outside this wrapper packet",
         "`zigux/helpers/atomic.zig`",
         "`zigux/helpers/barrier.zig`",
         "`zigux/helpers/mmio.zig`",
@@ -34,6 +34,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
         "`zigux/tests/phase3_low_level_wrappers.zig`",
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`zigux/tests/README.md`",
+        "`zigux/tests/build.zig`",
         "`zigux/Makefile`",
         "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
         "`make -C zigux phase3-low-level-wrappers-test`",
@@ -119,10 +121,10 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
-        "try std.testing.expectEqual(@as(u16, 0x0F00), try readInteropPolicy(u16, mmio_policy, const_register_ptr));",
-        "try writeInteropPolicy(u16, mmio_policy, register_ptr, 0x00F0);",
-        "try std.testing.expectEqual(@as(u16, 0x00F0), try exchangeInteropPolicy(u16, mmio_policy, register_ptr, 0xF000));",
-        "try writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0)",
+        "try std.testing.expectEqual(@as(u16, 0x0F00), try mmio.readInteropPolicy(u16, mmio_policy, const_register_ptr));",
+        "try mmio.writeInteropPolicy(u16, mmio_policy, register_ptr, 0x00F0);",
+        "try std.testing.expectEqual(@as(u16, 0x00F0), try mmio.exchangeInteropPolicy(u16, mmio_policy, register_ptr, 0xF000));",
+        "try std.testing.expectEqual(@as(u16, 0xF0A0), try mmio.writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0));",
     ),
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/atomic.zig"),',
