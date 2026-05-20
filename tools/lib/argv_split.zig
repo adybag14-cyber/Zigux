@@ -194,6 +194,23 @@ test "countArgc ignores hidden suffix arguments beyond the first embedded NUL" {
     try std.testing.expectEqual(@as(usize, 1), countArgc(token_nul[0..]));
 }
 
+test "argvSplit keeps countArgc aligned with every representative embedded-NUL placement" {
+    const source = [_]u8{ ' ', 'a', 'l', 'p', 'h', 'a', ' ', '\t', 'b', 'e', 't', 'a', '\n', 'g', 'a', 'm', 'm', 'a' };
+    const expected_argc = [_]usize{ 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 };
+
+    for (0..source.len) |nul_index| {
+        var probe = source;
+        probe[nul_index] = 0;
+
+        var result = try argvSplit(std.testing.allocator, probe[0..]);
+        defer result.deinit();
+
+        try std.testing.expectEqual(expected_argc[nul_index], countArgc(probe[0..]));
+        try std.testing.expectEqual(expected_argc[nul_index], result.argc());
+        try std.testing.expectEqual(expected_argc[nul_index], result.argv.len);
+    }
+}
+
 fn argvSplitAllocationProbe(allocator: std.mem.Allocator, text: []const u8) !void {
     var result = try argvSplit(allocator, text);
     defer result.deinit();
