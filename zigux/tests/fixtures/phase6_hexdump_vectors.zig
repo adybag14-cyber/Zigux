@@ -59,6 +59,7 @@ pub const PerfCase = struct {
     ascii: bool,
     reps: usize,
     max_slowdown_pct: u64,
+    expected_text: ExpectedText,
 };
 
 fn same(text: []const u8) ExpectedText {
@@ -351,10 +352,58 @@ pub const length_cases = [_]LengthCase{
 };
 
 pub const perf_cases = [_]PerfCase{
-    .{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },
-    .{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },
-    .{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },
-    .{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },
+    .{
+        .label = "16B-plain-g1",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 1,
+        .ascii = false,
+        .reps = 40_000,
+        .max_slowdown_pct = 175,
+        .expected_text = .{
+            .little = "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b",
+            .big = "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b",
+        },
+    },
+    .{
+        .label = "32B-ascii-g2",
+        .len = 32,
+        .rowsize = 32,
+        .groupsize = 2,
+        .ascii = true,
+        .reps = 10_000,
+        .max_slowdown_pct = 550,
+        .expected_text = .{
+            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...",
+            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C...",
+        },
+    },
+    .{
+        .label = "16B-ascii-g4",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = true,
+        .reps = 20_000,
+        .max_slowdown_pct = 550,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
+        },
+    },
+    .{
+        .label = "16B-ascii-g8",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 8,
+        .ascii = true,
+        .reps = 20_000,
+        .max_slowdown_pct = 600,
+        .expected_text = .{
+            .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
+            .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
+        },
+    },
 };
 
 test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {
@@ -394,4 +443,8 @@ test "phase 6 hexdump empty-length fixtures keep plain and ascii rows silent" {
 test "phase 6 hexdump perf packet stays aligned with the documented matrix" {
     try std.testing.expectEqual(@as(usize, 4), perf_cases.len);
     try std.testing.expectEqual(@as(u64, 600), perf_cases[3].max_slowdown_pct);
+    try std.testing.expectEqualStrings("be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b", perf_cases[0].expected_text.current());
+    try std.testing.expectEqualStrings("16B-ascii-g8", perf_cases[3].label);
+    try std.testing.expectEqualStrings("b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.", perf_cases[3].expected_text.little);
+    try std.testing.expectEqualStrings("be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.", perf_cases[3].expected_text.big);
 }
