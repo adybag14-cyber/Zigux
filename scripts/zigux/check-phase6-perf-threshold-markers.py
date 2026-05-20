@@ -14,6 +14,8 @@ class ValidationError(RuntimeError):
 
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+BSEARCH_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
+BSEARCH_PERF_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
@@ -42,6 +44,22 @@ REQUIRED_SNIPPETS = {
         "if (encode_slowdown > case.max_encode_slowdown_pct) {",
         "if (decode_slowdown > case.max_decode_slowdown_pct) {",
     ],
+    BSEARCH_VECTORS_PATH: [
+        '.{ .label = "len15", .len = representative_ascending_values.len, .reps = 4_000 },',
+        '.{ .label = "len64", .len = 64, .reps = 2_000 },',
+        '.{ .label = "len1024", .len = 1_024, .reps = 250 },',
+        "pub const query_count: usize = 16;",
+        'test "phase 6 bsearch perf seeds stay deterministic" {',
+    ],
+    BSEARCH_PERF_PATH: [
+        "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;",
+        "var queries: [fixtures.query_count]u32 = undefined;",
+        "fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);",
+        "try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));",
+        "try std.testing.expect(worst_compare_calls <= max_compare_budget);",
+        "witness_max_compare_calls={} witness_case_count={}",
+    ],
     CHECKSUM_VECTORS_PATH: [
         '.{ .label = "64B", .bytes = &perf_payload_64b, .iterations = 200_000, .max_slowdown_pct = 150 },',
         '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
@@ -60,7 +78,7 @@ REQUIRED_SNIPPETS = {
         '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
         '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
         '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
-        'try std.testing.expectEqual(@as(usize, 4), perf_cases.len);',
+        "try std.testing.expectEqual(@as(usize, 4), perf_cases.len);",
     ],
     HEXDUMP_PERF_PATH: [
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
@@ -69,6 +87,7 @@ REQUIRED_SNIPPETS = {
     ],
     PHASE6_BUILD_PATH: [
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
+        'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
         'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
     ],
@@ -84,6 +103,16 @@ SELF_TEST_CASES = [
         BASE64_PERF_PATH,
         "for (fixtures.perf_cases[idx + 1 ..]) |other| {",
         "for (fixtures.perf_cases[0..0]) |other| {",
+    ),
+    (
+        BSEARCH_VECTORS_PATH,
+        '.{ .label = "len1024", .len = 1_024, .reps = 250 },',
+        '.{ .label = "len2048", .len = 2_048, .reps = 250 },',
+    ),
+    (
+        BSEARCH_PERF_PATH,
+        "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;",
+        "const max_compare_budget = std.math.log2_int_floor(usize, case.len) + 1;",
     ),
     (
         CHECKSUM_VECTORS_PATH,
@@ -107,8 +136,8 @@ SELF_TEST_CASES = [
     ),
     (
         PHASE6_BUILD_PATH,
-        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
-        'const checksum_perf_step = b.step("phase6-checksum-perf-missing", "Run Phase 6 checksum helper perf gate");',
+        'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
+        'const bsearch_perf_step = b.step("phase6-bsearch-profile", "Run Phase 6 bsearch helper perf gate");',
     ),
 ]
 
