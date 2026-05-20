@@ -71,7 +71,7 @@ NOTE_MARKERS = (
 
 WARNING_MARKERS = (
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
-    "EXPECTED_PIN_SELF_TEST_CASES = 14",
+    "EXPECTED_PIN_SELF_TEST_CASES = 18",
     '\"scripts/zigux/check-phase4-reversible-delivery-pins.py\"',
     '\"scripts/zigux/check-phase4-perf-baseline-packet.py\"',
     "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
@@ -142,7 +142,7 @@ def baseline_repo_warning() -> str:
         "#!/usr/bin/env python3",
         'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
         "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
-        "EXPECTED_PIN_SELF_TEST_CASES = 14",
+        "EXPECTED_PIN_SELF_TEST_CASES = 18",
         '\"scripts/zigux/check-phase4-reversible-delivery-pins.py\"',
         '\"scripts/zigux/check-phase4-perf-baseline-packet.py\"',
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
@@ -185,7 +185,7 @@ def run_self_test() -> int:
             (NOTE, ATOMIC64_PACKET_SENTENCE, "Atomic64 packet wording drifted."),
             (NOTE, ATOMIC64_RETURNED_SENTENCE, "Atomic64 return wording drifted."),
             (NOTE, "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, the roadmap-backed `atomic64_diff` pair, and the now-returned validator, build, and bitmap replay companions, while exact blob-pin refresh for those broader companions remains the remaining authenticated-readback gap in this handoff.", "Follow-up wording drifted."),
-            (REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 14", "EXPECTED_PIN_SELF_TEST_CASES = 12"),
+            (REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 18", "EXPECTED_PIN_SELF_TEST_CASES = 12"),
             (REPO_REALITY_WARNING, '\"scripts/zigux/check-phase4-reversible-delivery-pins.py\"', '\"scripts/zigux/check-phase4-other-file.py\"'),
         )
         for rel, old, new in mutations:
