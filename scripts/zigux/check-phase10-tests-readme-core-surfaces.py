@@ -192,6 +192,18 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
     else:
         raise AssertionError("expected tests-root build gate failure")
 
+    missing_tests_root_checker = good_tests_root.replace(
+        "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+        "`scripts/zigux/check-phase10-tests-readme-core-surfaces-missing.py`",
+        1,
+    )
+    try:
+        check_tests_root_readme(missing_tests_root_checker)
+    except SystemExit as exc:
+        assert "tests-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected tests-root checker marker failure")
+
     bad_scripts_root = good_scripts_root.replace(
         "`scripts/zigux/check-phase10-input-packet.py`",
         "`scripts/zigux/check-phase10-input-packet-missing.py`",
@@ -203,6 +215,18 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
         assert "scripts-readme" in str(exc)
     else:
         raise AssertionError("expected scripts-root marker failure")
+
+    missing_scripts_validator = good_scripts_root.replace(
+        "`scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py`",
+        "`scripts/zigux/validate-phase10-closure.py`",
+        1,
+    )
+    try:
+        check_scripts_readme(missing_scripts_validator)
+    except SystemExit as exc:
+        assert "scripts-readme" in str(exc)
+    else:
+        raise AssertionError("expected scripts-root validator-pair marker failure")
 
     bad_mmio_companion = good_companion.replace(
         "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
@@ -241,7 +265,7 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
         raise AssertionError("expected missing returned core replay marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
