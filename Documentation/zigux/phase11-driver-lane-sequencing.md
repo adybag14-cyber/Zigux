@@ -74,6 +74,9 @@ surfaces that were reread in this run:
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/README.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
@@ -107,10 +110,13 @@ fallback rereads rematerialized both driver-local matrix notes, so keep all
 four driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
 
-Current rereads in this run also keep `scripts/zigux/validate-phase11.py`,
+Current rereads in this run also keep
+`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
+`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
+`scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
 `zigux/Makefile`, and the returned `make -C zigux phase11-validate` route
-explicit as the shared validation-and-build gate for the broader
-contributor-facing reminder family, while `make -C zigux phase11` and
+explicit as the broader contributor-facing reminder family for the shared
+Phase 11 packet, while `make -C zigux phase11` and
 `make -C zigux phase11-contract` still remain missing on current `master`.
 
 Keep the returned gpio, bcm2835, and DesignWare validation matrices explicit as
