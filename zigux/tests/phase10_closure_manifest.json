@@ -159,6 +159,7 @@
       "phase10-notify-prepare-helper",
       "phase10-notification-data-summary-helper",
       "phase10-broken-queue-poll-guard",
+      "phase10-queue-publish-readiness-helper",
       "phase10-queue-reset-helper",
       "phase10-queue-reset-readiness-helper",
       "phase10-ring-verify-replay",
