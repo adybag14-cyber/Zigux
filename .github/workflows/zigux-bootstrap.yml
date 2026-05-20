@@ -400,6 +400,15 @@ jobs:
       - name: Check current Phase 4 artifact-diff validator replay packet
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 
+      - name: Validate current Phase 6 helper packet
+        run: make -C zigux phase6-validate
+
+      - name: Run current Phase 6 leaf helper tests
+        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
+
+      - name: Run current Phase 6 shared perf route
+        run: make -C zigux phase6-perf
+
       - name: Validate Phase 8 tooling routes
         run: make -C zigux phase8-validate
       - name: Run focused Phase 8 exec-cmd tests
@@ -437,7 +446,6 @@ jobs:
 
       - name: Run current Phase 9 registration reentry companion tests
         run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
-
       - name: Run current Phase 9 trace-events survey witness
         run: zig test zigux/tests/runtime_trace_events_survey.zig
 
