@@ -14,4 +14,5 @@ sample_dependency_continuation.o: zigux/tests/fixtures/fixdep/sample_dependency_
  zigux/tests/fixtures/fixdep/sample.rmeta \
  zigux/tests/fixtures/fixdep/shared\#config.h \
  zigux/tests/fixtures/fixdep/sample.rlib \
- zigux/tests/fixtures/fixdep/shared\:config.h
+ zigux/tests/fixtures/fixdep/shared\:config.h \
+ include/generated/autoconf.h
