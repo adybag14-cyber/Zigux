@@ -52,13 +52,16 @@ Keep the current lane split explicit:
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
   `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`,
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
-  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and
-  `zigux/tests/phase11_hvc_cleanup_packet_build.zig` authoritative for the
-  current-head continuity packet and helper-local teardown or failure-mode
-  evidence while the broader starter-depth archival landing remains `P11-L13`;
-  keep the deeper verify helper, sysrq helper, focused survey replay, manifest,
-  dedicated survey-checker, and teardown-note anchors framed as archival or
-  repo-reality-gap vocabulary until a fresh reread proves they returned
+  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`,
+  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+  `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and
+  `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` authoritative
+  for the current-head continuity packet and helper-local teardown or
+  failure-mode evidence while the broader starter-depth archival landing remains
+  `P11-L13`; keep the deeper verify helper, sysrq helper, focused survey
+  replay, manifest, dedicated survey-checker, and teardown-note anchors framed
+  as archival or repo-reality-gap vocabulary until a fresh reread proves they
+  returned
 - contributor-note lane `P11-L18` owns broad cross-phase reminder wording in
   `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
@@ -105,11 +108,14 @@ surfaces that were reread in this run:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 Current rereads in this run rematerialized the gpio watchdog and HVC
 driver-local validation matrices named by the roadmap together with the
 narrower HVC current-head continuity packet plus its cleanup companion,
-current-head checker, build inventory, and proof-backed adjunct stack.
+current-head checker, build inventory, proof-backed adjunct stack, and the
+standalone targetless-unregister witness pair.
 Authenticated contents reads still clip
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` and
 `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master`
@@ -140,8 +146,10 @@ shared matrix-boundary evidence while preserving bcm2835 and DesignWare deeper
 owner-packet follow-through as separate continuity lanes.
 
 HVC still has the smaller current-head continuity packet rather than the deeper
-starter-depth replay or manifest stack. bcm2835, gpio, and DesignWare reminder
-follow-through still belong to their own lanes.
+starter-depth replay or manifest stack, but that smaller packet now includes the
+standalone targetless-unregister witness pair beside the shared three-proof
+inventory. bcm2835, gpio, and DesignWare reminder follow-through still belong
+to their own lanes.
 
 ## Sequencing Rules
 
@@ -169,9 +177,10 @@ Use this note to keep the bounded work order honest:
    `drivers/watchdog/dw_wdt_pm_scaffold.zig`, and the HVC current-head
    continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
-   inventory anchor, and proof-backed adjunct stack; keep it explicit that the
-   bcm2835 and DesignWare matrix notes currently return through raw `master`
-   fallback rather than this runtime's authenticated contents bridge.
+   inventory anchor, proof-backed adjunct stack, and standalone
+   targetless-unregister witness pair; keep it explicit that the bcm2835 and
+   DesignWare matrix notes currently return through raw `master` fallback rather
+   than this runtime's authenticated contents bridge.
 4. Keep bcm2835 and DesignWare follow-through parked in their own lanes; do not
    widen either lane into live watchdog-core execution, PM plumbing, reset
    execution, IRQ execution, live MMIO validation, or claims of hardware-backed
@@ -189,10 +198,12 @@ Use this note to keep the bounded work order honest:
    `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
    `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`,
    `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
-   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and
-   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`; do not widen that packet
-   into tty registration, notifier execution, khvcd execution, sysrq dispatch,
-   or host-backed teardown.
+   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`,
+   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+   `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and
+   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`; do not widen
+   that packet into tty registration, notifier execution, khvcd execution,
+   sysrq dispatch, or host-backed teardown.
 6. Do not imply broader platform registration, PM plumbing, reset execution,
    IRQ execution, MMIO validation, notifier execution, sysrq execution, khvcd
    execution, or hardware-backed closure beyond the helper, proof, note, and
@@ -201,7 +212,8 @@ Use this note to keep the bounded work order honest:
    returned four-matrix shared packet, the directly readable DesignWare teardown
    checker plus adjacent PM helper pair, the narrower HVC current-head
    continuity packet plus its cleanup companion, current-head checker, shared
-   build inventory, proof-backed adjunct stack, the returned shared validator
+   build inventory, proof-backed adjunct stack, standalone targetless-unregister
+   witness pair, the returned shared validator
    `scripts/zigux/validate-phase11.py`, and the returned `zigux/Makefile`
    surface plus `make -C zigux phase11-validate` build gate instead of reviving
    broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
