@@ -193,18 +193,18 @@ REQUIRED_MARKERS = {
     VIRTIO_SCSI_FALLBACK_PATH: [
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
-        "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
+        "- survey gate: `zigux/tests/phase12_virtio_scsi_survey.zig`",
         "- `scripts/zigux/validate-phase12.py`",
         "- reminder-only validator wrapper vocabulary until it returns: `make -C zigux phase12-validate`",
-        "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
+        "current authoritative packet truth therefore lives in the rollback-evidence survey companions on `master`",
     ],
     VIRTIO_SCSI_SURVEY_PATH: [
-        "PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey",
+        "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
         "PHASE12_LANE=P12-L13",
         "fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "still does not claim live DMA-safe request submission",
-        "control-path governance",
-        "frozen control-path restore-order surface inside `recoveryControlPathGovernanceSummary()`",
+        "rollback-only split machine-checkable",
+        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
     ],
     VIRTIO_NET_PACKET_CHECKER_PATH: [
         "PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass",
@@ -231,7 +231,7 @@ REQUIRED_MARKERS = {
         "\"phase12-virtio-scsi-runtime-request-flow\"",
     ],
     VIRTIO_SCSI_SURVEY_GATE_PATH: [
-        "test \"phase12 virtio scsi survey manifest keeps the bounded queue-and-recovery packet truthful\"",
+        "test \"phase12 virtio scsi survey manifest keeps the rollback-only packet truthful\"",
         "Documentation/zigux/phase12-virtio-scsi-survey.md",
         "zigux/tests/phase12_virtio_scsi_manifest.json",
         "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
