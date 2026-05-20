@@ -226,6 +226,46 @@ def classify_required_path(path: Path, relative_path: str) -> str | None:
     return None
 
 
+def duplicate_values(values: tuple[str, ...]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for value in values:
+        if value in seen:
+            if value not in duplicates:
+                duplicates.append(value)
+            continue
+        seen.add(value)
+    return tuple(duplicates)
+
+
+def collect_roster_issues(
+    mandatory_checks: tuple[CheckSpec, ...],
+    optional_checks: tuple[CheckSpec, ...],
+) -> list[str]:
+    issues: list[str] = []
+
+    for name in duplicate_values(tuple(spec.name for spec in mandatory_checks)):
+        issues.append(f"duplicate_mandatory_check_name:{name}")
+    for script_rel in duplicate_values(tuple(spec.script_rel for spec in mandatory_checks)):
+        issues.append(f"duplicate_mandatory_check_script:{script_rel}")
+    for name in duplicate_values(tuple(spec.name for spec in optional_checks)):
+        issues.append(f"duplicate_optional_check_name:{name}")
+    for script_rel in duplicate_values(tuple(spec.script_rel for spec in optional_checks)):
+        issues.append(f"duplicate_optional_check_script:{script_rel}")
+
+    mandatory_names = {spec.name for spec in mandatory_checks}
+    optional_names = {spec.name for spec in optional_checks}
+    for name in sorted(mandatory_names & optional_names):
+        issues.append(f"overlapping_check_name:{name}")
+
+    mandatory_scripts = {spec.script_rel for spec in mandatory_checks}
+    optional_scripts = {spec.script_rel for spec in optional_checks}
+    for script_rel in sorted(mandatory_scripts & optional_scripts):
+        issues.append(f"overlapping_check_script:{script_rel}")
+
+    return issues
+
+
 def should_run_optional(spec: CheckSpec, root: Path) -> tuple[bool, str | None]:
     script_path = root / spec.script_rel
     if not script_path.exists():
@@ -239,7 +279,12 @@ def should_run_optional(spec: CheckSpec, root: Path) -> tuple[bool, str | None]:
     return (True, None)
 
 
-def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]:
+def collect_issues(
+    root: Path,
+    *,
+    mandatory_checks: tuple[CheckSpec, ...] = MANDATORY_CHECKS,
+    optional_checks: tuple[CheckSpec, ...] = OPTIONAL_CHECKS,
+) -> tuple[list[str], list[str], ValidationSummary]:
     issues: list[str] = []
     notes: list[str] = []
     optional_run_count = 0
@@ -247,6 +292,19 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
     optional_run_names: list[str] = []
     optional_skip_notes: list[str] = []
     mandatory_self_test_failures: set[str] = set()
+
+    issues.extend(collect_roster_issues(mandatory_checks, optional_checks))
+    if issues:
+        return (
+            issues,
+            notes,
+            ValidationSummary(
+                optional_run_count=optional_run_count,
+                optional_skip_count=optional_skip_count,
+                optional_run_names=tuple(optional_run_names),
+                optional_skip_notes=tuple(optional_skip_notes),
+            ),
+        )
 
     for rel in REQUIRED_PATHS:
         failure = classify_required_path(root / rel, rel)
@@ -265,14 +323,14 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             ),
         )
 
-    for spec in MANDATORY_CHECKS:
+    for spec in mandatory_checks:
         self_test_result = run_command(command_for(spec, root, self_test=True), root)
         if self_test_result.returncode != 0:
             mandatory_self_test_failures.add(spec.name)
             issues.append(f"mandatory_self_test_failed:{spec.name}:exit={self_test_result.returncode}")
             append_output(issues, f"mandatory_self_test_failed:{spec.name}", self_test_result)
 
-    for spec in MANDATORY_CHECKS:
+    for spec in mandatory_checks:
         if spec.name == "phase1-bench-self-test" or spec.name in mandatory_self_test_failures:
             continue
         live_result = run_command(command_for(spec, root, self_test=False), root)
@@ -282,7 +340,7 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
 
     bench_expectations = root / BENCH_EXPECTATIONS_REL
     if bench_expectations.is_file():
-        bench_spec = next(spec for spec in MANDATORY_CHECKS if spec.name == "phase1-bench-self-test")
+        bench_spec = next(spec for spec in mandatory_checks if spec.name == "phase1-bench-self-test")
         if bench_spec.name in mandatory_self_test_failures:
             notes.append("skipped_bench_live:self_test_failed")
         else:
@@ -295,7 +353,7 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
     else:
         notes.append(f"skipped_bench_live:missing_required_path:{BENCH_EXPECTATIONS_REL}")
 
-    for spec in OPTIONAL_CHECKS:
+    for spec in optional_checks:
         should_run, reason = should_run_optional(spec, root)
         if not should_run:
             optional_skip_count += 1
@@ -398,14 +456,19 @@ def build_stub_script(path: Path, *, self_test_exit: int = 0, live_exit: int = 0
     os.chmod(path, 0o755)
 
 
-def build_sample_repo(root: Path) -> None:
+def build_sample_repo(
+    root: Path,
+    *,
+    mandatory_checks: tuple[CheckSpec, ...] = MANDATORY_CHECKS,
+    optional_checks: tuple[CheckSpec, ...] = OPTIONAL_CHECKS,
+) -> None:
     for rel in REQUIRED_PATHS:
         write_text(root / rel, f"sample:{rel}\n")
 
-    for spec in MANDATORY_CHECKS:
+    for spec in mandatory_checks:
         build_stub_script(root / spec.script_rel)
 
-    for spec in OPTIONAL_CHECKS:
+    for spec in optional_checks:
         build_stub_script(root / spec.script_rel)
 
     write_text(root / BENCH_EXPECTATIONS_REL, "{\n  \"status\": \"pass\"\n}\n")
@@ -429,6 +492,69 @@ def run_self_test() -> int:
         assert summary.optional_skip_count == 0, summary
         assert summary.optional_run_names == tuple(spec.name for spec in OPTIONAL_CHECKS), summary
         assert summary.optional_skip_notes == (), summary
+        case_count += 1
+
+        duplicate_optional_name_root = base / "duplicate_optional_name"
+        duplicate_optional_name_checks = OPTIONAL_CHECKS + (
+            CheckSpec(
+                name="phase1-direct-anchor-manifest-gate",
+                script_rel="scripts/zigux/check-phase1-direct-anchor-manifest-gate-copy.py",
+                self_test_args=("--self-test",),
+                live_args=("--root", "{root}"),
+                required=False,
+            ),
+        )
+        build_sample_repo(duplicate_optional_name_root, optional_checks=duplicate_optional_name_checks)
+        issues, _, summary = collect_issues(
+            duplicate_optional_name_root,
+            optional_checks=duplicate_optional_name_checks,
+        )
+        assert "duplicate_optional_check_name:phase1-direct-anchor-manifest-gate" in issues, issues
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
+        duplicate_mandatory_script_root = base / "duplicate_mandatory_script"
+        duplicate_mandatory_script_checks = MANDATORY_CHECKS + (
+            CheckSpec(
+                name="phase1-bench-shadow",
+                script_rel="scripts/zigux/check-phase1-bench.py",
+                self_test_args=("--self-test",),
+                live_args=(),
+            ),
+        )
+        build_sample_repo(
+            duplicate_mandatory_script_root,
+            mandatory_checks=duplicate_mandatory_script_checks,
+        )
+        issues, _, summary = collect_issues(
+            duplicate_mandatory_script_root,
+            mandatory_checks=duplicate_mandatory_script_checks,
+        )
+        assert "duplicate_mandatory_check_script:scripts/zigux/check-phase1-bench.py" in issues, issues
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
+        overlapping_check_root = base / "overlapping_check"
+        overlapping_optional_checks = OPTIONAL_CHECKS + (
+            CheckSpec(
+                name="phase1-closure",
+                script_rel="scripts/zigux/validate-phase1-closure.py",
+                self_test_args=("--self-test",),
+                live_args=("--root", "{root}"),
+                required=False,
+            ),
+        )
+        build_sample_repo(overlapping_check_root, optional_checks=overlapping_optional_checks)
+        issues, _, summary = collect_issues(
+            overlapping_check_root,
+            optional_checks=overlapping_optional_checks,
+        )
+        assert "overlapping_check_name:phase1-closure" in issues, issues
+        assert "overlapping_check_script:scripts/zigux/validate-phase1-closure.py" in issues, issues
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         missing_required_root = base / "missing_required"
