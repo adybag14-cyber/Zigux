@@ -8,7 +8,6 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 
-
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
         if (candidate / "zigux/tests/phase12_build.zig").exists() and (
@@ -16,7 +15,6 @@ def infer_repo_root() -> Path:
         ).exists():
             return candidate
     return SELF_PATH.parent
-
 
 ROOT = infer_repo_root()
 
@@ -71,6 +69,7 @@ TESTS_README_MARKERS = [
     "Keep `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py` explicit as the shipped shared support bundle so the tests-root summary does not undercount the dedicated release-readiness checker.",
     "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
     "Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.",
+    "Keep `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` explicit as the shared anti-overlap companion so the tests-root reminder stays aligned with the same complex-driver packet boundary already named by the release-order, closure, coordination, and fallback notes.",
     "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate, while `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.",
 ]
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
@@ -469,13 +468,13 @@ def run_self_test() -> int:
         tests_readme_path = base / TESTS_README_PATH
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(
-                TESTS_README_MARKERS[3], "", 1
+                TESTS_README_MARKERS[4], "", 1
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            "missing_marker:" f"{TESTS_README_PATH}:{TESTS_README_MARKERS[3]}",
+            "missing_marker:" f"{TESTS_README_PATH}:{TESTS_README_MARKERS[4]}",
         )
 
         write_fixture_tree(base)
