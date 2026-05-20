@@ -27,6 +27,8 @@ SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
+        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
@@ -158,6 +160,11 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
 
 def run_self_test() -> int:
     marker_cases = (
+        (
+            SURVEY_PATH,
+            "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
+            "expected missing linux-facing header survey path marker was not reported",
+        ),
         (
             SURVEY_PATH,
             "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
