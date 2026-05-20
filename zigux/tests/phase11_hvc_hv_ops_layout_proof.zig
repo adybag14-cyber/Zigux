@@ -15,6 +15,15 @@ const HvOps = extern struct {
     dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void,
 };
 
+fn assertExactType(comptime Actual: type, comptime Expected: type) void {
+    if (Actual != Expected) {
+        @compileError(std.fmt.comptimePrint(
+            "type mismatch: expected {s}, found {s}",
+            .{ @typeName(Expected), @typeName(Actual) },
+        ));
+    }
+}
+
 fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
@@ -38,6 +47,47 @@ test "phase11 hvc hv_ops layout proof keeps callback table explicit" {
     try layout_assert.expectOffset(HvOps, "tiocmget", 48);
     try layout_assert.expectOffset(HvOps, "tiocmset", 56);
     try layout_assert.expectOffset(HvOps, "dtr_rts", 64);
+}
+
+test "phase11 hvc hv_ops layout proof keeps callback signatures exact" {
+    comptime {
+        assertExactType(
+            @FieldType(HvOps, "get_chars"),
+            ?*const fn (u32, [*]u8, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "put_chars"),
+            ?*const fn (u32, [*]const u8, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "flush"),
+            ?*const fn (u32, bool) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "notifier_add"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "notifier_del"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(HvOps, "notifier_hangup"),
+            ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(HvOps, "tiocmget"),
+            ?*const fn (*HvcStruct) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "tiocmset"),
+            ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(HvOps, "dtr_rts"),
+            ?*const fn (*HvcStruct, bool) callconv(.c) void,
+        );
+    }
 }
 
 test "phase11 hvc hv_ops layout proof stays tied to the exported header" {
