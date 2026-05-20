@@ -54,6 +54,7 @@ MARKERS = {
         'assert kind == "missing_bitmap_exact_checksums"',
         '("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM", "3"),',
         'assert kind == "missing_find_bit_exact_checksums"',
+        'kind, payload = load_runtime_expectations(EXPECTATIONS)',
         'print(f"EXPECTATIONS_PATH={payload}")',
         'print(f"BENCH_COMMAND_EXIT={result.returncode}")',
         'print(f"PHASE1_BENCH_ZIG={zig}")',
@@ -218,6 +219,19 @@ EXPECTED_ASSERT_BLOCKS = {
             'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
             'print(payload)',
             'return 1',
+        ),
+        (
+            'expectations = payload',
+            'assert isinstance(expectations, dict)',
+            'zig = find_zig(args.zig)',
+        ),
+        (
+            'result = subprocess.run(',
+            '[zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],',
+            'cwd=str(ROOT),',
+            'capture_output=True,',
+            'text=True,',
+            ')',
         ),
         (
             'kind, payload = validate_output(expectations, result.stdout)',
