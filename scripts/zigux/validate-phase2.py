@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import tempfile
 from pathlib import Path
 
@@ -77,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 50
+EXPECTED_SELF_TEST_CASE_COUNT = 52
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -236,6 +238,12 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def emit_note(note: str) -> int:
+    print("PHASE2_VALIDATION=fail")
+    print(f"PHASE2_VALIDATION_NOTE={note}")
+    return 1
+
+
 def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
@@ -294,6 +302,28 @@ def assert_system_exit_contains(callback, expected_fragment: str) -> None:
         assert expected_fragment in str(exc), str(exc)
         return
     raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
+def run_validator(root: Path) -> int:
+    try:
+        issues = collect_issues(root)
+    except SystemExit as exc:
+        return emit_note(str(exc))
+
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_VALIDATION=pass")
+    print(f"PHASE2_REQUIRED_CHECKER_COUNT={len(CHECKERS)}")
+    print(f"PHASE2_REQUIRED_ROUTE_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
+    return 0
+
+
+def capture_run_validator(root: Path) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = run_validator(root)
+    return result, stdout.getvalue()
 
 
 def run_self_test() -> int:
@@ -380,7 +410,27 @@ def run_self_test() -> int:
             unreadable.unlink()
             unreadable.mkdir()
             assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file unreadable:")
+            unreadable.rmdir()
             checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, SCRIPTS_README).unlink()
+        result, output = capture_run_validator(root)
+        assert result == 1
+        assert "PHASE2_VALIDATION=fail" in output
+        assert "PHASE2_VALIDATION_NOTE=required file missing:" in output
+        checks_run += 1
+
+        build_self_test_root(root)
+        unreadable = resolve_path(root, SCRIPTS_README)
+        unreadable.unlink()
+        unreadable.mkdir()
+        result, output = capture_run_validator(root)
+        assert result == 1
+        assert "PHASE2_VALIDATION=fail" in output
+        assert "PHASE2_VALIDATION_NOTE=required file unreadable:" in output
+        unreadable.rmdir()
+        checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
             build_self_test_root(root)
@@ -425,14 +475,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root)
-    if issues:
-        return emit_issues(issues)
-
-    print("PHASE2_VALIDATION=pass")
-    print(f"PHASE2_REQUIRED_CHECKER_COUNT={len(CHECKERS)}")
-    print(f"PHASE2_REQUIRED_ROUTE_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
-    return 0
+    return run_validator(args.root)
 
 
 if __name__ == "__main__":
