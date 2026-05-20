@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE = "zigux/Makefile"
+WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
@@ -40,6 +41,12 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+)
+
+REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
 )
 
 
@@ -155,7 +162,7 @@ def parse_args(argv: list[str]) -> dict[str, object]:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for rel in (GENKSYMS_ZIG, HELP_FIXTURE, CASES_FIXTURE, *EXPECTED_FIXTURES, MAKEFILE):
+    for rel in (GENKSYMS_ZIG, HELP_FIXTURE, CASES_FIXTURE, *EXPECTED_FIXTURES, MAKEFILE, WORKFLOW):
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
@@ -163,6 +170,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     makefile_text = read_text(root, MAKEFILE)
+    workflow_text = read_text(root, WORKFLOW)
     genksyms_text = read_text(root, GENKSYMS_ZIG)
 
     for marker in REQUIRED_MAKEFILE_LINES:
@@ -171,6 +179,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_WORKFLOW_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
         issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
@@ -214,6 +229,16 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root,
+        WORKFLOW,
+        "      - name: Self-test current Phase 2 genksyms bridge checker\n"
+        "        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
+        "      - name: Check current Phase 2 genksyms bridge packet\n"
+        "        run: python3 scripts/zigux/check-genksyms-bridge.py\n"
+        "      - name: Run current Phase 2 genksyms unit replay\n"
+        "        run: zig test scripts/zigux/genksyms.zig\n",
+    )
+    write_text(
+        root,
         GENKSYMS_ZIG,
         'const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");\n',
     )
@@ -225,7 +250,7 @@ def build_self_test_root(root: Path) -> None:
             [
                 {"name": "minimal", "args": [], "expected_file": "minimal_expected.json"},
                 {
-                    "name": "debug_reference_types",
+                    "name": "debug_reference_types", 
                     "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
                     "expected_file": "debug_reference_types_expected.json",
                 },
@@ -295,11 +320,11 @@ def run_self_test() -> int:
                     ],
                     "options": {
                         "debug_level": 1,
-                        "warnings": false,
-                        "dump_defs": false,
-                        "preserve": false,
+                        "warnings": True,
+                        "dump_defs": False,
+                        "preserve": False,
                         "reference_files": ["foo.symref"],
-                        "dump_types_file": null,
+                        "dump_types_file": None,
                     },
                 },
                 indent=2,
@@ -307,6 +332,26 @@ def run_self_test() -> int:
             + "\n",
         )
         assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, WORKFLOW, "      - name: Self-test current Phase 2 genksyms bridge checker\n")
+        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            "      - name: Self-test current Phase 2 genksyms bridge checker\n"
+            "        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
+            "      - name: Check current Phase 2 genksyms bridge packet\n"
+            "        run: python3 scripts/zigux/check-genksyms-bridge.py\n"
+            "      - name: Run current Phase 2 genksyms unit replay\n"
+            "        run: zig test scripts/zigux/genksyms.zig\n"
+            "        run: zig test scripts/zigux/genksyms.zig\n",
+        )
+        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[2]}:count=2") in collect_issues(root)
         checks += 1
 
     print("GENKSYMS_BRIDGE_SELF_TEST=pass")
@@ -330,7 +375,7 @@ def main() -> int:
     case_count = len(json.loads(read_text(args.root.resolve(), CASES_FIXTURE)))
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={2 + len(EXPECTED_FIXTURES) + 2}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + 5}")
     return 0
 
 
