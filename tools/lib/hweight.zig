@@ -318,3 +318,51 @@ test "software hweight helpers preserve popcount under in-width rotations" {
         }
     }
 }
+
+test "larger hweight helpers equal the sum of their smaller-width chunks" {
+    const cases16 = [_]u32{ 0x0000, 0x00ff, 0x1234, 0xa55a, 0xffff };
+    for (cases16) |value| {
+        const sum8 = swHweight8(value & 0xff) + swHweight8((value >> 8) & 0xff);
+        try std.testing.expectEqual(sum8, swHweight16(value));
+        try std.testing.expectEqual(sum8, __sw_hweight16(value));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_ffff, 0x1234_5678, 0xa55a_5aa5, 0xffff_ffff };
+    for (cases32) |value| {
+        const sum16 = swHweight16(value & 0xffff) + swHweight16((value >> 16) & 0xffff);
+        try std.testing.expectEqual(sum16, swHweight32(value));
+        try std.testing.expectEqual(sum16, __sw_hweight32(value));
+    }
+
+    const cases64 = [_]u64{
+        0x0000_0000_0000_0000,
+        0x0000_0000_ffff_ffff,
+        0x1234_5678_9abc_def0,
+        0xa55a_5aa5_9669_6996,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (cases64) |value| {
+        const sum32 = swHweight32(@intCast(value & 0xffff_ffff)) + swHweight32(@intCast(value >> 32));
+        try std.testing.expectEqual(sum32, swHweight64(value));
+        try std.testing.expectEqual(sum32, __sw_hweight64(value));
+    }
+
+    const native_cases = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0000, 0x0000_ffff, 0x1234_5678, 0xa55a_5aa5, 0xffff_ffff }
+    else
+        [_]usize{
+            0x0000_0000_0000_0000,
+            0x0000_0000_ffff_ffff,
+            0x1234_5678_9abc_def0,
+            0xa55a_5aa5_9669_6996,
+            0xffff_ffff_ffff_ffff,
+        };
+    for (native_cases) |value| {
+        const expected = if (@sizeOf(usize) == 4)
+            @as(usize, @intCast(swHweight16(@intCast(value & 0xffff)) + swHweight16(@intCast(value >> 16))))
+        else
+            @as(usize, @intCast(swHweight32(@intCast(value & 0xffff_ffff)) + swHweight32(@intCast(value >> 32))));
+        try std.testing.expectEqual(expected, hweightLong(value));
+        try std.testing.expectEqual(expected, hweight_long(value));
+    }
+}
