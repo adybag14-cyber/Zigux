@@ -160,3 +160,28 @@ test "phase12 nvme pci direct replay keeps admin replay blocker explicit even af
     try std.testing.expect(!blocked.host_dma_parity_recovered);
     try std.testing.expect(!blocked.can_clear_rollback_gate);
 }
+
+test "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const blocked = lab.summarizeDroppedIoRetirement();
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", blocked.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, blocked.state);
+    try std.testing.expectEqual(@as(u32, 1), blocked.reset_generation);
+    try std.testing.expect(!blocked.admin_queue_replayed_after_reset);
+    try std.testing.expect(blocked.admin_queue_must_be_replayed);
+    try std.testing.expect(blocked.queue_numbering_restarted);
+    try std.testing.expectEqual(@as(usize, 2), blocked.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), blocked.remaining_io_queue_count);
+    try std.testing.expect(!blocked.can_retire_dropped_io_backlog);
+}
