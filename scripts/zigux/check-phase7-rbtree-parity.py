@@ -30,7 +30,7 @@ REQUIRED_MARKERS = {
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit",
-        "Keep `scripts/zigux/validate-phase7.py` explicit as directly readable shared-validator evidence rather than helper-local ownership.",
+        "Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
@@ -279,7 +279,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        slice_marker = "Keep `scripts/zigux/validate-phase7.py` explicit as directly readable shared-validator evidence rather than helper-local ownership."
+        slice_marker = "Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership."
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_slice_shared_validator_boundary_marker",
