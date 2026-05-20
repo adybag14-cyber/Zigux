@@ -124,6 +124,11 @@ def read_manifest(path: Path) -> dict:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
 def find_duplicate_strings(entries: list[str]) -> list[str]:
     seen: set[str] = set()
     duplicates: list[str] = []
@@ -132,6 +137,19 @@ def find_duplicate_strings(entries: list[str]) -> list[str]:
             duplicates.append(entry)
         seen.add(entry)
     return duplicates
+
+
+def is_repo_relative_path(entry: str) -> bool:
+    return not entry.startswith("make -C ")
+
+
+def iter_required_repo_paths() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (category, entry)
+        for category, entries in REQUIRED_PRESENT_SURFACES.items()
+        for entry in entries
+        if is_repo_relative_path(entry)
+    )
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -158,6 +176,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             for entry in required_entries:
                 if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
+            for entry in string_entries:
+                if is_repo_relative_path(entry) and not (root / entry).exists():
+                    issues.append(("MISSING_SURFACE_PATH", f"{category}:{entry}"))
     if manifest.get("repo_reality_gaps") != []:
         issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
     notes = manifest.get("notes")
@@ -206,6 +227,12 @@ def build_self_test_manifest() -> dict:
     }
 
 
+def build_self_test_root(root: Path) -> None:
+    write_manifest(root / MANIFEST, build_self_test_manifest())
+    for _, entry in iter_required_repo_paths():
+        write_text(root / entry, "present\n")
+
+
 def run_self_test() -> int:
     expected_case_count = (
         1
@@ -215,6 +242,7 @@ def run_self_test() -> int:
         + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
         + len(REQUIRED_PRESENT_SURFACES)
         + len(REQUIRED_PRESENT_SURFACES)
+        + len(iter_required_repo_paths())
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
@@ -226,7 +254,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
         manifest_path = root / MANIFEST
-        write_manifest(manifest_path, build_self_test_manifest())
+        build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
 
@@ -234,6 +262,8 @@ def run_self_test() -> int:
             manifest = build_self_test_manifest()
             manifest[key] = "broken"
             write_manifest(manifest_path, manifest)
+            for _, entry in iter_required_repo_paths():
+                write_text(root / entry, "present\n")
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
@@ -247,34 +277,52 @@ def run_self_test() -> int:
             manifest = build_self_test_manifest()
             del manifest["present_surfaces"][category]
             write_manifest(manifest_path, manifest)
+            for _, entry in iter_required_repo_paths():
+                write_text(root / entry, "present\n")
             assert ("MISSING_SURFACE_CATEGORY", category) in collect_issues(root)
             checks_run += 1
             for entry in entries:
                 manifest = build_self_test_manifest()
                 manifest["present_surfaces"][category].remove(entry)
                 write_manifest(manifest_path, manifest)
+                for _, required_entry in iter_required_repo_paths():
+                    write_text(root / required_entry, "present\n")
                 assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
                 checks_run += 1
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(entries[0])
             write_manifest(manifest_path, manifest)
+            for _, entry in iter_required_repo_paths():
+                write_text(root / entry, "present\n")
             assert ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}") in collect_issues(root)
             checks_run += 1
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(123)
             write_manifest(manifest_path, manifest)
+            for _, entry in iter_required_repo_paths():
+                write_text(root / entry, "present\n")
             assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
+            checks_run += 1
+
+        for category, entry in iter_required_repo_paths():
+            build_self_test_root(root)
+            (root / entry).unlink()
+            assert ("MISSING_SURFACE_PATH", f"{category}:{entry}") in collect_issues(root)
             checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
+        for _, entry in iter_required_repo_paths():
+            write_text(root / entry, "present\n")
         assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
         write_manifest(manifest_path, manifest)
+        for _, entry in iter_required_repo_paths():
+            write_text(root / entry, "present\n")
         assert ("MISSING_NOTES", "notes") in collect_issues(root)
         checks_run += 1
 
@@ -282,18 +330,24 @@ def run_self_test() -> int:
             manifest = build_self_test_manifest()
             manifest["notes"].remove(marker)
             write_manifest(manifest_path, manifest)
+            for _, entry in iter_required_repo_paths():
+                write_text(root / entry, "present\n")
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
         write_manifest(manifest_path, manifest)
+        for _, entry in iter_required_repo_paths():
+            write_text(root / entry, "present\n")
         assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"].append(123)
         write_manifest(manifest_path, manifest)
+        for _, entry in iter_required_repo_paths():
+            write_text(root / entry, "present\n")
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
         checks_run += 1
 
