@@ -25,11 +25,13 @@ REQUIRED_MARKERS = {
         "This note keeps the shared Phase 13 release summary honest against the live current-`master` packet.",
         "The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces and their active shared companions:",
         "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+        "Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary and tests-readme guards instead of carrying it in the repo-reality-gap bucket.",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
         "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface",
+        "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
@@ -61,6 +63,12 @@ REQUIRED_MARKERS = {
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
         "This matrix does not imply a shipped Makefile-backed review handle.",
+    ],
+    "Documentation/zigux/phase13-release-notes-survey.md": [
+        "- `scripts/zigux/validate-phase13-release.py`",
+    ],
+    "Documentation/zigux/phase13-roadmap-traceability.md": [
+        "- `scripts/zigux/validate-phase13-release.py`",
     ],
     "scripts/zigux/README.md": [
         "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
