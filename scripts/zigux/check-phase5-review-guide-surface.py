@@ -27,6 +27,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/README.md",
     "samples/zigux/bytestream_fifo.zig",
     "samples/zigux/kobject_example.zig",
+    "samples/zigux/kobject_example_attr_group_contract.zig",
     "samples/zigux/kretprobe_example.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
     "scripts/zigux/README.md",
@@ -97,6 +98,7 @@ TESTS_ROOT_MARKERS = (
 LANE_SEQUENCING_MARKERS = (
     "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
     "Keep shared contributor guidance honest about that mixed direct-versus-public-tree-backed split instead of repeating older kobject-reread-needed wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
+    "Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.",
 )
 
 SAMPLE_ROOT_MARKERS = (
