@@ -60,8 +60,7 @@ pub fn versionMatchesCurrent(candidate: Version) bool {
 }
 
 pub fn validateVersion(candidate: Version) ExportStatus {
-    if (versionMatchesCurrent(candidate)) return okStatus(.kernel);
-    return errorStatus(invalid_argument, .kernel);
+    return version.validate(candidate);
 }
 
 pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
@@ -189,6 +188,11 @@ test "export shim relays starter version compatibility through status helpers" {
     try testing.expect(!versionMatchesCurrent(stale_major));
     try testing.expect(!versionMatchesCurrent(stale_minor));
     try testing.expect(!versionMatchesCurrent(stale_revision));
+
+    try testing.expectEqual(version.validate(live), valid);
+    try testing.expectEqual(version.validate(stale_major), invalid_major);
+    try testing.expectEqual(version.validate(stale_minor), invalid_minor);
+    try testing.expectEqual(version.validate(stale_revision), invalid_revision);
 
     try testing.expectEqual(@as(i32, 0), valid.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), valid.facility);
