@@ -44,27 +44,45 @@ REQUIRED_PATHS = (
 @dataclass(frozen=True)
 class CheckSpec:
     name: str
-    script_rel: str
+    command: tuple[str, ...]
 
 
 CHECKS = (
-    CheckSpec("phase11-build-inventory", "scripts/zigux/check-phase11-build-inventory.py"),
-    CheckSpec("phase11-matrix-gap-survey", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
+    CheckSpec(
+        "phase11-build-inventory",
+        ("python", "scripts/zigux/check-phase11-build-inventory.py"),
+    ),
+    CheckSpec(
+        "phase11-matrix-gap-survey",
+        ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
+    ),
     CheckSpec(
         "phase11-validation-matrix-gap-survey",
-        "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+        ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
     ),
     CheckSpec(
         "phase11-hvc-cleanup-current-head",
-        "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+        ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-teardown-packet",
-        "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
+        ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-verify-alignment",
-        "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+        ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
+    ),
+    CheckSpec(
+        "phase11-hvc-hv-ops-layout-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-hvc-export-surface-layout-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-hvc-cleanup-packet-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
     ),
 )
 
@@ -74,7 +92,14 @@ def repo_root(root_arg: str | None) -> Path:
 
 
 def command_for(spec: CheckSpec, root: Path) -> list[str]:
-    return [sys.executable, str(root / spec.script_rel)]
+    command = list(spec.command)
+    if not command:
+        raise ValueError(f"empty command for {spec.name}")
+    if command[0] == "python":
+        return [sys.executable, str(root / command[1]), *command[2:]]
+    if command[0] == "zig":
+        return ["zig", *command[1:]]
+    raise ValueError(f"unsupported command kind for {spec.name}: {command[0]}")
 
 
 def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -156,6 +181,34 @@ def build_stub_script(path: Path, *, exit_code: int = 0) -> None:
     os.chmod(path, 0o755)
 
 
+def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
+    fail_literal = repr(fail_build_file) if fail_build_file is not None else "None"
+    write_text(
+        path,
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "from __future__ import annotations",
+                "import sys",
+                f"FAIL_BUILD_FILE = {fail_literal}",
+                "args = sys.argv[1:]",
+                "if args[:2] != ['build', 'test']:",
+                "    raise SystemExit(2)",
+                "try:",
+                "    build_file = args[args.index('--build-file') + 1]",
+                "except (ValueError, IndexError):",
+                "    raise SystemExit(3)",
+                "if FAIL_BUILD_FILE is not None and build_file == FAIL_BUILD_FILE:",
+                "    print(f'fake zig failed for {build_file}')",
+                "    raise SystemExit(1)",
+                "raise SystemExit(0)",
+            ]
+        )
+        + "\n",
+    )
+    os.chmod(path, 0o755)
+
+
 def build_sample_repo(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         path = root / rel
@@ -166,9 +219,15 @@ def build_sample_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    original_path = os.environ.get("PATH", "")
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_validate_") as tmp_dir:
         root = Path(tmp_dir)
         build_sample_repo(root)
+        tool_root = root / ".tools"
+        tool_root.mkdir(parents=True, exist_ok=True)
+        fake_zig = tool_root / "zig"
+        build_fake_zig(fake_zig)
+        os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
 
         baseline_issues = collect_issues(root)
         if baseline_issues:
@@ -187,6 +246,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_build_inventory_script = root / "scripts/zigux/check-phase11-build-inventory.py"
         build_stub_script(failing_build_inventory_script, exit_code=1)
         issues = collect_issues(root)
@@ -198,6 +258,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_matrix_gap_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
         build_stub_script(failing_matrix_gap_script, exit_code=1)
         issues = collect_issues(root)
@@ -209,6 +270,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
         build_stub_script(failing_script, exit_code=1)
         issues = collect_issues(root)
@@ -220,6 +282,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_hvc_cleanup_script = root / "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
         build_stub_script(failing_hvc_cleanup_script, exit_code=1)
         issues = collect_issues(root)
@@ -231,6 +294,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_dw_teardown_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
         build_stub_script(failing_dw_teardown_script, exit_code=1)
         issues = collect_issues(root)
@@ -242,6 +306,7 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_dw_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
         build_stub_script(failing_dw_script, exit_code=1)
         issues = collect_issues(root)
@@ -252,8 +317,48 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        build_fake_zig(
+            fake_zig,
+            fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+        )
+        issues = collect_issues(root)
+        expected_hv_ops_build_failure = "live_failed:phase11-hvc-hv-ops-layout-build:exit=1"
+        if expected_hv_ops_build_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:hv_ops_build_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(
+            fake_zig,
+            fail_build_file="zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+        )
+        issues = collect_issues(root)
+        expected_export_build_failure = "live_failed:phase11-hvc-export-surface-layout-build:exit=1"
+        if expected_export_build_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:export_build_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(
+            fake_zig,
+            fail_build_file="zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+        )
+        issues = collect_issues(root)
+        expected_cleanup_build_failure = "live_failed:phase11-hvc-cleanup-packet-build:exit=1"
+        if expected_cleanup_build_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:cleanup_build_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+    os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
