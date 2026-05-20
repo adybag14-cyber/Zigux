@@ -234,7 +234,7 @@ TEST_MARKERS = {
         'test "phase10 virtio input probe preflight helper keeps blocker tags and ready transition reviewable" {',
     ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
-        'test "phase10 virtio input queue callback preflight tracks queue and ready-state gating" {',
+        'test "phase10 virtio input queue callback preflight helper tracks queue and ready-state gating" {',
     ],
     "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
         'test "phase10 virtio input registration preflight helper exposes blocker tags and ready transition" {',
