@@ -396,10 +396,34 @@ def run_self_test() -> int:
             print("expected missing abi-header-family count marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_policy_unsafe_pass_path = root / SELFTEST_COMMANDS[14][0]
+        _write_synthetic_script(
+            missing_policy_unsafe_pass_path,
+            None,
+            "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing policy-unsafe pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_policy_unsafe_count_path = root / SELFTEST_COMMANDS[14][0]
+        _write_synthetic_script(
+            missing_policy_unsafe_count_path,
+            "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing policy-unsafe count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 10}"
+        f"{len(missing_cases) + 12}"
     )
     return 0
 
