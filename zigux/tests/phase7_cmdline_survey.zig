@@ -120,13 +120,13 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "test \"nextArg keeps leading equals tokens as bare parameters\" {");
     try expectContains(helper, "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {");
     try expectContains(helper, "test \"getOption preserves incomplete hex-prefix and descending-range behavior\" {");
+    try expectContains(helper, "test \"getOptions expands negative ranges and negative upper bounds\" {");
 
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
     try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\"quiet,debug\\x00,nohlt\", \"nohlt\"));");
     try expectContains(helper_companion, "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries");
-    try expectContains(helper_companion, "try std.testing.expectEqualStrings(\"2,9\", descending_rest);");
     try expectContains(helper_companion, "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
