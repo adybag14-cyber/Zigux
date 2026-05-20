@@ -13,7 +13,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the four approved Linux anchors.
 
 The bounded same-lane job here is not to widen runtime behavior.
-It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions in the repo-reality-gap bucket while the contents route still misses them, keep the older shared `zigux/tests/phase5_build.zig` route visible only as shared reminder vocabulary until direct reread returns it, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
+It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them, keep the older shared `zigux/tests/phase5_build.zig` route visible only as shared companion evidence until direct reread returns it, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
 
 ## Current repo reality on `master`
 Fresh mixed reread on 2026-05-20 still directly reconfirmed the roadmap anchor plus the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` through authenticated sample-root readback.
@@ -27,10 +27,10 @@ That same 2026-05-20 reread also kept the broader non-runtime trace-events sampl
 - `zigux/tests/phase5_build.zig`
 
 Authenticated contents readback still returned `404` for the five sample-local companion paths and the shared build route above on 2026-05-20.
-Fresh public sample-root tree inspection in this run also did not surface `samples/zigux/trace_events_sample.zig` in the live `samples/zigux/` file listing, so this note should keep those broader paths framed as repo-reality-gap, shared-reminder, or historical-support references rather than as current public-tree-backed proof.
+Fresh public current-`master` reread in this run also surfaced those broader companion paths again through their live GitHub blob pages, so this note should keep them framed as current public-tree-backed companion or historical-support references rather than collapsing them into repo absence.
 
-The bounded formatting companion is therefore the only direct sample-root trace-events evidence this run could reconfirm.
-Treat the focused `zig test` routes for the broader sample-local packet and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route as previously recorded support vocabulary until a fresh reread returns those files directly again.
+The bounded formatting companion is therefore the strongest direct sample-root trace-events evidence this run could reconfirm.
+Treat the focused `zig test` routes for the broader sample-local packet and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route as current public-tree-backed support vocabulary until a fresh reread returns those files directly again.
 
 ## Shared reminder posture
 The directly coupled trace-events packet is currently strongest in the bounded formatting companion and the shared reminder surfaces that keep its limits explicit.
@@ -44,10 +44,10 @@ Aligned reminder surfaces in this run:
 - `scripts/zigux/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` formatting cue positioned as the approved bounded formatting reminder instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
-They also should keep the broader non-runtime trace-events companions framed as repo-reality gaps or shared reminder vocabulary until the contents route actually returns those files again.
+They also should keep the broader non-runtime trace-events companions framed as current public-tree-backed companion or shared reminder vocabulary until the contents route actually returns those files again.
 
 A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-root reminder is still aligned on the narrow direct packet:
-- `samples/zigux/README.md` keeps the bounded formatting companion as the direct authenticated proof and keeps the broader non-runtime trace-events companions framed as shared-reminder, historical-support, or repo-reality-gap surfaces until a fresh reread proves they returned directly on current `master`
+- `samples/zigux/README.md` keeps the bounded formatting companion as the direct authenticated proof and keeps the broader non-runtime trace-events companions framed as shared-reminder, historical-support, or current public-tree-backed companion surfaces until a fresh reread proves they returned directly on current `master`
 
 The tests-root shared reminder is only inventory-aligned in this run:
 - `zigux/tests/README.md` still names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
@@ -64,17 +64,16 @@ That direct packet still keeps these reviewable cues explicit:
 - the approved formatting idiom remains the selected-string plus `iter=%d` cue described in `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - bounded destination behavior remains part of the approved idiom reminder: `formatIterationMessageInto(12, [5]u8)` stays a no-space boundary, while `formatIterationMessageInto(12, [7]u8)` stays the success-sized `iter=12` case without turning this packet into a standalone formatting-helper sample
 
-Broader helper-level trace-events cues from the older sample-local replay packet should stay framed as historical-support vocabulary until `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig` return through the same current read path again.
+Broader helper-level trace-events cues from the older sample-local replay packet should stay framed as current public-tree-backed or historical-support vocabulary until `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig` return through the same current direct authenticated read path again.
 
 ## Recorded gap vs roadmap
 The precise current gap is not that Zigux lacks every trace-events reminder surface.
 The more accurate same-lane state on 2026-05-20 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
-- the broader non-runtime sample-local packet is not currently re-readable through the contents route used in this run, and the live `samples/zigux/` tree listing in this run did not surface `samples/zigux/trace_events_sample.zig`
-- the shared `zigux/tests/phase5_build.zig` route also stayed outside the directly readable packet in this run
-- same-lane documentation should therefore keep the broader sample-local packet and shared build route framed as repo-reality-gap, shared-reminder, or historical-support references instead of calling them directly readable proof
+- the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` again through their live GitHub blob pages
+- same-lane documentation should therefore keep the broader sample-local packet and shared build route framed as current public-tree-backed companion or historical-support references instead of calling them repo absence or directly readable proof
 
-So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked until a future reread returns those files directly again.
+So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again.
 
 ## Non-goals
 This survey does not claim:
