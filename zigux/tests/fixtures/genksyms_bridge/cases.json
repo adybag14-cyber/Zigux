@@ -103,6 +103,15 @@
     "expected": "missing_long_dump_types_argument_expected.json"
   },
   {
+    "name": "abbreviated_long_version_before_missing_long_dump_types_argument",
+    "argv": [
+      "--ver",
+      "--dump-types"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_missing_long_dump_types_argument_expected.json"
+  },
+  {
     "name": "empty_inline_abbreviated_long_dump_types_argument",
     "argv": [
       "--dump-t="
