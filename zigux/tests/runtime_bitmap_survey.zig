@@ -142,6 +142,10 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&exited_source));");
     try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&cold_source));");
     try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, target.copyFrom(&source));");
+    try expectContains(top_bit_file, "try std.testing.expectEqual(source_before.first_set, source_after.first_set);");
+    try expectContains(top_bit_file, "try std.testing.expectEqual(source_before.weight, source_after.weight);");
+    try expectContains(top_bit_file, "try std.testing.expectEqual(target_before.first_set, target_after.first_set);");
+    try expectContains(top_bit_file, "try std.testing.expectEqual(target_before.exit_runs, target_after.exit_runs);");
 
     inline for (present_bitmap_family_files) |path| {
         try expectPresent(path);
