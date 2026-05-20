@@ -43,7 +43,7 @@ test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence exp
 }
 
 test "phase4 perf baseline survey keeps rollback, decision, and wrapper ownership explicit" {
-    try requireMarker("\"lane_key\": \"P4-L20\"");
+    try requireMarker("\"lane_key\": \"P4-L22\"");
     try requireMarker("\"phase\": \"Phase 4\"");
     try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
     try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
