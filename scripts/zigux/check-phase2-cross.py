@@ -69,8 +69,47 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
-
-EXPECTED_SELF_TEST_CASE_COUNT = 45
+PRIMARY_PATHS = (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE)
+INVALID_FIXTURE_FIELD_CASES = (
+    ("phase", "Phase X"),
+    ("status", "inactive"),
+    ("route", "make -C zigux phase2"),
+    ("archive_target_scope", "x86_64-linux"),
+    ("cross_targets", []),
+)
+STATIC_SELF_TEST_CASE_LABELS = (
+    "baseline_clean_packet",
+    "duplicate_policy_archive_scope_aborts",
+    "whitespace_policy_archive_scope_aborts",
+    "duplicate_policy_json_key_aborts",
+    "archive_hash_scope_extra_target",
+    "archive_hash_scope_wrong_target",
+    "whitespace_archive_sha256_key_aborts",
+    "short_archive_sha256_value_aborts",
+    "whitespace_archive_sha256_value_aborts",
+    "fixture_archive_scope_order_mismatch",
+    "archive_hash_scope_order_mismatch",
+    "invalid_fixture_shape",
+    "duplicate_fixture_json_key_aborts",
+    "unexpected_fixture_field",
+    "duplicate_fixture_archive_scope",
+    "whitespace_fixture_archive_scope_entry",
+    "fixture_archive_scope_mismatch",
+    "archive_required_expected_mode_mismatch",
+    "unexpected_review_status_text",
+    "whitespace_review_status_text",
+    "unexpected_cross_target_field",
+    "whitespace_cross_target_name",
+    "unexpected_cross_target_name",
+    "cross_target_order_mismatch_full_swap",
+    "cross_target_order_mismatch_without_archive_required_order_mismatch",
+    "archive_required_target_order_mismatch",
+    "duplicate_cross_target",
+    "invalid_cross_target_route",
+    "empty_cross_target_review_status",
+    "invalid_cross_target_mode",
+    "emit_issue_code_order",
+)
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -455,6 +494,16 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def expected_self_test_case_count() -> int:
+    return (
+        len(STATIC_SELF_TEST_CASE_LABELS)
+        + len(MAKEFILE_LINES)
+        + len(MAKEFILE_LINES)
+        + len(INVALID_FIXTURE_FIELD_CASES)
+        + len(PRIMARY_PATHS)
+    )
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_route_") as tmp_dir:
@@ -514,21 +563,21 @@ def run_self_test() -> int:
         path = resolve_path(root, TOOLCHAIN_POLICY)
         path.write_text(
             """{
-  "phase": "Phase 2",
-  "phase": "Phase 2",
-  "channel": "0.17.0-dev.87+9b177a7d2",
-  "minimum_version": "0.17.0-dev.87+9b177a7d2",
-  "archive_sha256": {
-    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
+  \"phase\": \"Phase 2\",
+  \"phase\": \"Phase 2\",
+  \"channel\": \"0.17.0-dev.87+9b177a7d2\",
+  \"minimum_version\": \"0.17.0-dev.87+9b177a7d2\",
+  \"archive_sha256\": {
+    \"x86_64-linux\": \"3333333333333333333333333333333333333333333333333333333333333333\"
   },
-  "upgrade_policy": {
-    "channel_minimum_lockstep": true,
-    "archive_target_scope": [
-      "x86_64-linux"
+  \"upgrade_policy\": {
+    \"channel_minimum_lockstep\": true,
+    \"archive_target_scope\": [
+      \"x86_64-linux\"
     ],
-    "required_make_routes": [
-      "phase2-toolchain",
-      "phase2-validate"
+    \"required_make_routes\": [
+      \"phase2-toolchain\",
+      \"phase2-validate\"
     ]
   }
 }
@@ -655,13 +704,7 @@ def run_self_test() -> int:
         assert ("INVALID_FIXTURE_SHAPE", "root") in collect_issues(root)
         checks_run += 1
 
-        for field, bad_value in (
-            ("phase", "Phase X"),
-            ("status", "inactive"),
-            ("route", "make -C zigux phase2"),
-            ("archive_target_scope", "x86_64-linux"),
-            ("cross_targets", []),
-        ):
+        for field, bad_value in INVALID_FIXTURE_FIELD_CASES:
             build_self_test_root(root)
             path = resolve_path(root, FIXTURE)
             fixture = json.loads(path.read_text(encoding="utf-8"))
@@ -674,25 +717,25 @@ def run_self_test() -> int:
         path = resolve_path(root, FIXTURE)
         path.write_text(
             """{
-  "phase": "Phase 2",
-  "status": "active",
-  "route": "make -C zigux phase2-cross",
-  "archive_target_scope": [
-    "x86_64-linux"
+  \"phase\": \"Phase 2\",
+  \"status\": \"active\",
+  \"route\": \"make -C zigux phase2-cross\",
+  \"archive_target_scope\": [
+    \"x86_64-linux\"
   ],
-  "cross_targets": [
+  \"cross_targets\": [
     {
-      "target": "x86_64-linux",
-      "review_status": "pinned bootstrap archive",
-      "validation_mode": "archive_required",
-      "validation_mode": "archive_required",
-      "route": "make -C zigux phase2-cross"
+      \"target\": \"x86_64-linux\",
+      \"review_status\": \"pinned bootstrap archive\",
+      \"validation_mode\": \"archive_required\",
+      \"validation_mode\": \"archive_required\",
+      \"route\": \"make -C zigux phase2-cross\"
     },
     {
-      "target": "aarch64-linux",
-      "review_status": "route contract only",
-      "validation_mode": "route_contract_only",
-      "route": "make -C zigux phase2-cross"
+      \"target\": \"aarch64-linux\",
+      \"review_status\": \"route contract only\",
+      \"validation_mode\": \"route_contract_only\",
+      \"route\": \"make -C zigux phase2-cross\"
     }
   ]
 }
@@ -947,7 +990,7 @@ def run_self_test() -> int:
         ]
         checks_run += 1
 
-        for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
+        for primary_path in PRIMARY_PATHS:
             build_self_test_root(root)
             resolve_path(root, primary_path).unlink()
             try:
@@ -958,7 +1001,7 @@ def run_self_test() -> int:
                 raise AssertionError(f"missing primary file did not abort: {primary_path}")
             checks_run += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks_run == expected_self_test_case_count()
     print("PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST=pass")
     print(f"PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -979,13 +1022,13 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
 
-    fixture = read_json(resolve_path(args.root.resolve(), FIXTURE))
-    assert isinstance(fixture, dict)
-    cross_targets = fixture.get("cross_targets")
-    assert isinstance(cross_targets, list)
+    cross_targets = read_json(resolve_path(args.root.resolve(), FIXTURE))["cross_targets"]
     print("PHASE2_DIRECT_CROSS_ROUTE=pass")
     print(f"PHASE2_DIRECT_CROSS_ROUTE_TARGET_COUNT={len(cross_targets)}")
-    print(f"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT={len(load_archive_target_scope(args.root.resolve()))}")
+    print(
+        "PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT="
+        f"{len(load_archive_target_scope(args.root.resolve()))}"
+    )
     return 0
 
 
