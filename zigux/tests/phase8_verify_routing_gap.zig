@@ -39,6 +39,58 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
 }
 
+test "phase 8 verify routing witness records the current dedicated verifier shards" {
+    const online_cpu_verify = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig",
+    );
+    defer std.testing.allocator.free(online_cpu_verify);
+
+    try expectContains(
+        online_cpu_verify,
+        "test \"phase8 online-cpu route helpers keep typed cpu-index wrappers stable\" {",
+    );
+    try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndex(");
+    try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(");
+    try expectContains(
+        online_cpu_verify,
+        "test \"phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32\" {",
+    );
+
+    const ready_buffer_fd_verify = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig",
+    );
+    defer std.testing.allocator.free(ready_buffer_fd_verify);
+
+    try expectContains(
+        ready_buffer_fd_verify,
+        "test \"phase8 ready-buffer fd helper entrypoints stay explicit\" {",
+    );
+    try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdAtAttempt");
+    try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdLookupReturnAtAttempt");
+
+    const ready_buffer_window_verify = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig",
+    );
+    defer std.testing.allocator.free(ready_buffer_window_verify);
+
+    try expectContains(
+        ready_buffer_window_verify,
+        "test \"phase8 ready-buffer window helper entrypoints stay explicit\" {",
+    );
+    try expectContains(
+        ready_buffer_window_verify,
+        "resolveReadyBufferWindowMappedSizeAtAttempt",
+    );
+    try expectContains(
+        ready_buffer_window_verify,
+        "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
+    );
+    try expectContains(
+        ready_buffer_window_verify,
+        "resolveReadyBufferWindowLookupReturnAtAttempt",
+    );
+}
+
 test "phase 8 verify routing witness records the current direct-readback libbpf survey packet" {
     const survey = try readRepoFile("Documentation/zigux/phase8-libbpf-segment-survey.md");
     defer std.testing.allocator.free(survey);
