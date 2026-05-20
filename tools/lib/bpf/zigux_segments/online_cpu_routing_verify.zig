@@ -86,6 +86,110 @@ test "phase8 online-cpu route helpers keep errno-shaped cpu-index wrappers stabl
     );
 }
 
+test "phase8 online-cpu route helpers keep typed buffer-fd wrappers stable" {
+    const found = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &.{ false, true, false, true },
+        0,
+        &.{ 11, 17 },
+        0,
+    );
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        try online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(found),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 17),
+        try online_cpu_routing.resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &.{ false, true, false, true },
+            2,
+            &.{ 11, 17 },
+            1,
+        ),
+    );
+
+    const missing_slot = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(missing_slot),
+    );
+
+    const missing_fd = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{ 11, null, 29 },
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(missing_fd),
+    );
+
+    const exhausted = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &.{ false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectError(
+        error.NoMoreOnlineCpu,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(exhausted),
+    );
+}
+
+test "phase8 online-cpu route helpers keep errno-shaped buffer-fd wrappers stable" {
+    const found = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &.{ false, true, false, true },
+        0,
+        &.{ 11, 17 },
+        0,
+    );
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturn(found),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 17),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ false, true, false, true },
+            2,
+            &.{ 11, 17 },
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
+}
+
 test "phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32" {
     const impossible = online_cpu_routing.OnlineCpuRouteAttemptSummary{
         .start_index = 0,
