@@ -53,7 +53,7 @@ test "phase13 devres dma coherent replay anchors the current slice reality" {
     const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-slice.md");
     defer std.testing.allocator.free(slice);
 
-    try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");
+    try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");
     try requireContains(slice, "`Documentation/zigux/phase13-devres-survey.md`");
     try requireContains(slice, "`lib/devres.zig`");
     try requireContains(slice, "repo-reality gaps");
@@ -91,7 +91,8 @@ test "phase13 devres dma coherent replay anchors the survey-side scatterlist bou
     defer std.testing.allocator.free(survey);
 
     try requireContains(survey, "helper-first scatterlist helper and replay");
-    try requireContains(survey, "`lib/devres_scatterlist.zig` and `zigux/tests/phase13_devres_scatterlist.zig` keep the helper-first scatterlist lifetime slice reviewable");
+    try requireContains(survey, "`Documentation/zigux/phase13-devres-scatterlist-planner.md` records a landed pure scatterlist lifetime planning surface");
+    try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` marks the packet as `starter_landed`");
     try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");
     try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");
     try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");
@@ -117,4 +118,6 @@ test "phase13 devres dma coherent replay keeps scatterlist helper evidence helpe
     try requireContains(replay, "phase13 devres descriptor records helper-first scatterlist planning");
     try requireContains(replay, "phase13 devres rejects scatterlist planning when the release record cannot be allocated");
     try requireContains(replay, "phase13 devres scatterlist release matching stays exact across original and mapped counts");
+    try requireContains(replay, "phase13 devres scatterlist planner manifest records the dedicated helper-first packet");
+    try requireContains(replay, "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded");
 }
