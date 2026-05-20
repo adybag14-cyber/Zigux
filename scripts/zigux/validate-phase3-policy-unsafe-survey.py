@@ -17,6 +17,14 @@ ALLOCATOR_POLICY_PATH = Path("zigux/helpers/allocator_policy.zig")
 UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
+POLICY_STARTER_PACKET_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
+POLICY_STARTER_PACKET_BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
+POLICY_STARTER_PACKET_MANIFEST_PATH = Path(
+    "zigux/tests/phase3_policy_starter_packet_manifest.json"
+)
+POLICY_STARTER_PACKET_CHECK_PATH = Path(
+    "scripts/zigux/check-phase3-policy-starter-packet.py"
+)
 POLICY_DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 POLICY_DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 POLICY_DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
@@ -99,6 +107,46 @@ REQUIRED_MARKERS = {
         "pub fn pointerAtInteropPolicyBytes(",
         "pub fn writeValueAtInteropPolicyBytes(",
     ),
+    POLICY_STARTER_PACKET_PATH: (
+        'test "policy starter packet decodes shared interop policy records" {',
+        'test "policy starter packet keeps interop-policy layout explicit" {',
+        'test "policy starter packet exercises exported layout assertion guards" {',
+        'test "policy starter packet keeps narrow-surface decoding aligned" {',
+        'test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {',
+        'test "policy starter packet keeps panic and allocator byte guards explicit" {',
+        'test "panic policy starter packet keeps escalation semantics explicit" {',
+        'test "allocator policy starter packet keeps init ownership semantics explicit" {',
+        'test "unsafe policy starter packet keeps access semantics explicit" {',
+    ),
+    POLICY_STARTER_PACKET_BUILD_PATH: (
+        '.root_source_file = b.path("../bindings/abi.zig"),',
+        '.root_source_file = b.path("../helpers/panic_policy.zig"),',
+        '.root_source_file = b.path("../helpers/allocator_policy.zig"),',
+        '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
+        '.root_source_file = b.path("../helpers/layout_assert.zig"),',
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
+        'root_module.addImport("narrow_surface", narrow_surface);',
+        '"phase3-policy-starter-packet-test"',
+    ),
+    POLICY_STARTER_PACKET_MANIFEST_PATH: (
+        '"slug": "phase3-policy-starter-packet"',
+        '"status": "policy_slice_present"',
+        '"scope": "layout, panic, allocator, and unsafe interop policy decoding replay"',
+        '"zigux/helpers/layout_assert.zig"',
+        '"zigux/helpers/unsafe_policy.zig"',
+        '"zigux/unsafe/narrow.zig"',
+        '"scripts/zigux/check-phase3-policy-starter-packet.py"',
+        '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
+        '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
+    ),
+    POLICY_STARTER_PACKET_CHECK_PATH: (
+        '"""Fail-close the current Phase 3 policy starter packet."""',
+        "zigux/tests/phase3_policy_starter_packet.zig",
+        "zigux/tests/phase3_policy_starter_packet_build.zig",
+        "zigux/tests/phase3_policy_starter_packet_manifest.json",
+        "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
+        "PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass",
+    ),
     POLICY_DUMP_PATH: (
         "safe-default",
         "mmio-bug",
@@ -172,6 +220,22 @@ SELF_TEST_CASES = (
     (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {"),
     (MMIO_PATH, "pub fn exchangeInteropPolicyBytes("),
     (NARROW_PATH, "pub fn pointerAtInteropPolicyBytes("),
+    (
+        POLICY_STARTER_PACKET_PATH,
+        'test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {',
+    ),
+    (
+        POLICY_STARTER_PACKET_BUILD_PATH,
+        'root_module.addImport("narrow_surface", narrow_surface);',
+    ),
+    (
+        POLICY_STARTER_PACKET_MANIFEST_PATH,
+        '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
+    ),
+    (
+        POLICY_STARTER_PACKET_CHECK_PATH,
+        "PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass",
+    ),
     (POLICY_DUMP_PATH, "raw-bridge-warn"),
     (POLICY_DUMP_BUILD_PATH, '.root_source_file = b.path("../unsafe/narrow.zig"),'),
     (POLICY_DUMP_CHECK_PATH, "python3 scripts/zigux/check-phase3-policy-dump.py --self-test"),
