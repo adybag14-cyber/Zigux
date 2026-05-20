@@ -9,6 +9,7 @@ const RbtreeManifest = struct {
     current_direct_readback_state: []const u8,
     visible_paths: []const []const u8,
     readable_non_owner_paths: []const []const u8,
+    public_fallback_non_owner_paths: []const []const u8,
     missing_paths: []const []const u8,
     absent_makefile_markers: []const []const u8,
     absent_workflow_markers: []const []const u8,
@@ -145,6 +146,12 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/Makefile");
     try expectSliceContains(manifest.readable_non_owner_paths, ".github/workflows/zigux-bootstrap.yml");
 
+    try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");
+    try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/validate-phase7.py");
+    try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "zigux/Makefile");
+    try expectSliceNotContains(manifest.public_fallback_non_owner_paths, ".github/workflows/zigux-bootstrap.yml");
+
     try expectSliceNotContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectSliceContains(manifest.missing_paths, "lib/rbtree.zig");
     try expectSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
@@ -173,6 +180,8 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim");
     try expectSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the roadmap-path port and dedicated fixture pair still do not directly materialize on current master");
     try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads");
+    try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");
+    try expectContains(manifest.next_bounded_step, "public-fallback provenance");
     try expectContains(manifest.next_bounded_step, "slice-backed direct-helper packet");
     try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig`");
     try expectContains(manifest.next_bounded_step, "`zigux/tests/fixtures/phase7_rbtree.json`");
