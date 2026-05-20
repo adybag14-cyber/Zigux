@@ -42,7 +42,16 @@ EXPECTED_GAPS = [
     "Documentation/zigux/README.md Phase 7 shared reminder packet",
 ]
 EXPECTED_HELPERS = [
-    ("string_helpers", "lib/string_helpers.zig", ["pub const STRING_UNITS_10", "pub const KasprintfStrarrayResult"]),
+    (
+        "string_helpers",
+        "lib/string_helpers.zig",
+        [
+            "pub const STRING_UNITS_10",
+            "pub const KasprintfStrarrayResult",
+            "pub fn kstrdupQuotable",
+            "pub fn kstrdupQuotableCmdline",
+        ],
+    ),
     ("string_helpers_parse_int_array", "lib/string_helpers_parse_int_array.zig", ["pub const ParseIntArrayResult", "pub fn parseIntArray"]),
     ("cmdline", "lib/cmdline.zig", ["pub fn parseOptionStr", "pub fn getOption"]),
     ("argv_split", "lib/argv_split.zig", ["pub const ArgvSplitResult", "pub fn argvSplit"]),
@@ -61,12 +70,14 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase7-validate`",
     "## Current repo-reality gaps",
     "- `lib/rbtree.zig`",
+    "`kstrdupQuotable()`",
+    "`kstrdupQuotableCmdline()`",
 ]
 REQUIRED_MAKEFILE_SNIPPETS = [
     "phase7-validate:",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 
 
 class ValidationError(RuntimeError):
@@ -185,10 +196,11 @@ def run_self_test() -> None:
         for path, snippet in [
             (root / CATALOG_PATH, "- `lib/string_helpers_parse_int_array.zig`"),
             (root / CATALOG_PATH, "- `make -C zigux phase7-validate`"),
+            (root / CATALOG_PATH, "`kstrdupQuotable()`"),
             (root / MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py"),
             (root / MANIFEST_PATH, '"current_repo_reality_gaps"'),
             (root / MANIFEST_PATH, '"make -C zigux phase7-validate"'),
-            (root / Path("lib/cmdline.zig"), "pub fn getOption"),
+            (root / Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
             (root / Path("lib/argv_split.zig"), "pub fn argvSplit"),
         ]:
             expect_failure(root, path, snippet)
