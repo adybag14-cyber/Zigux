@@ -77,12 +77,21 @@ The same narrower inventory also records 3 adjunct build replays through
 `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head
 HVC build routes explicit as adjacent continuity evidence rather than treating
 them as a cross-driver replay roster.
+The same narrower continuity packet also stays `layout_assert`-backed through
+`zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and
+`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those
+surviving ABI proof shards explicit as adjacent HVC continuity evidence instead
+of treating the three build routes as prose-only review support.
 The directly readable HVC current-head packet also now includes the standalone
 `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and
 `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so
 keep that targetless-unregister failure-mode evidence explicit beside the
 narrower three-proof inventory instead of silently collapsing it into the shared
 proof-backed roster.
+That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap
+on current `master`: the repo does not yet rematerialize a broader shared
+replay or survey route that would carry cross-driver public-struct ABI proof
+beyond those surviving `layout_assert` shards.
 
 Current `master` also materializes `scripts/zigux/validate-phase11.py` and
 `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`,
@@ -117,6 +126,9 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
   `phase11-hvc-hv-ops-layout-proof-tests`,
   `phase11-hvc-export-surface-layout-proof-tests`, and
   `phase11-hvc-cleanup-packet-proof`.
+  Those surviving proof tests still hang off the `layout_assert`-backed
+  `hv_ops` and exported-surface proof shards rather than a broader shared ABI
+  replay.
   The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   build shard also stay directly readable beside that smaller proof inventory.
@@ -139,8 +151,13 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - Keep the driver-local matrix packet explicit through gpio and HVC
   authenticated-contents rereads plus bcm2835 and DesignWare raw `master`
   fallback rereads, while preserving the narrower HVC build inventory, its
-  adjunct build routes, and the standalone targetless-unregister witness as
-  adjacent continuity evidence rather than a cross-driver replay roster.
+  adjunct build routes, the surviving `layout_assert`-backed ABI proof shards,
+  and the standalone targetless-unregister witness as adjacent continuity
+  evidence rather than a cross-driver replay roster.
+- Keep the roadmap-facing ABI proof gap explicit until current `master`
+  rematerializes a broader shared replay or survey route that carries
+  cross-driver public-struct ABI proof beyond the surviving HVC-centered
+  `layout_assert` shards.
 - If a reread driver-local matrix returns or disappears, update this survey, the
   shared validation-and-build gate wording, and both matrix-gap checkers in the
   same bounded pass so the shared packet description stays honest.
