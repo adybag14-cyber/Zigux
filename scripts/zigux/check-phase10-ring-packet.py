@@ -64,8 +64,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
+        '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
         '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
+        '.name = "phase10-virtio-ring-publish-readiness-tests",',
         '.name = "phase10-virtio-ring-verify-tests",',
         '.name = "phase10-virtio-ring-prepare-kick-idempotent-tests",',
         '.name = "phase10-virtio-ring-reset-reuse-tests",',
@@ -73,6 +75,7 @@ REQUIRED_MARKERS = {
         '.name = "phase10-virtio-ring-delayed-callback-budget-tests",',
         '.name = "phase10-virtio-ring-survey-tests",',
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
     ],
@@ -283,7 +286,19 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_build.zig",
+                '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                '.name = "phase10-virtio-ring-publish-readiness-tests",',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
                 '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
             ),
             (
                 "zigux/tests/phase10_build.zig",
