@@ -55,6 +55,25 @@ test "phase 7 argv split companion replays copied-storage token ownership" {
     }
 }
 
+test "phase 7 argv split companion replays non-blank cross-call ownership independence" {
+    var first = try argv_split.argvSplit(std.testing.allocator, "alpha beta");
+    defer first.deinit(std.testing.allocator);
+    var second = try argv_split.argvSplit(std.testing.allocator, "alpha beta");
+    defer second.deinit(std.testing.allocator);
+
+    try std.testing.expect(first.storage.ptr != second.storage.ptr);
+    try std.testing.expect(first.argv.ptr != second.argv.ptr);
+    try std.testing.expect(first.argv_null_terminated.ptr != second.argv_null_terminated.ptr);
+    try std.testing.expect(@intFromPtr(first.cArgv()) != @intFromPtr(second.cArgv()));
+
+    for (first.argv, second.argv, 0..) |first_token, second_token, index| {
+        try std.testing.expectEqualStrings(first_token, second_token);
+        try std.testing.expect(first_token.ptr != second_token.ptr);
+        try std.testing.expectEqual(@intFromPtr(first_token.ptr), @intFromPtr(first.cArgv()[index].?));
+        try std.testing.expectEqual(@intFromPtr(second_token.ptr), @intFromPtr(second.cArgv()[index].?));
+    }
+}
+
 test "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation" {
     var blank_argc: usize = std.math.maxInt(usize);
     var blank = try argv_split.argvSplitWithArgc(std.testing.allocator, " \t\n", &blank_argc);
