@@ -21,6 +21,7 @@ DOC_PATHS = (
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
 )
 
 HEADER_PATHS = (
