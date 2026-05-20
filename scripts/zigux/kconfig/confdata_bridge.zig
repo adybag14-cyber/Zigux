@@ -141,7 +141,14 @@ fn isTristateValue(raw_value: []const u8) bool {
 }
 
 fn isConfigSymbol(name: []const u8) bool {
-    return std.mem.startsWith(u8, name, config_prefix) and name.len > config_prefix.len;
+    if (!std.mem.startsWith(u8, name, config_prefix) or name.len <= config_prefix.len) {
+        return false;
+    }
+
+    for (name[config_prefix.len..]) |char| {
+        if (!(std.ascii.isAlphanumeric(char) or char == '_')) return false;
+    }
+    return true;
 }
 
 fn parseUnsetSymbol(line: []const u8) ?[]const u8 {
@@ -605,11 +612,14 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
 
 test "confdata bridge ignores empty CONFIG symbol names" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_=y
-        \\# CONFIG_ is not set
-        \\CONFIG_VALID=m
-        \\
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_=y\n" ++
+            "# CONFIG_ is not set\n" ++
+            "CONFIG_BAD-NAME=y\n" ++
+            "CONFIG_BAD.NAME=m\n" ++
+            "CONFIG_TAB\t=y\n" ++
+            "CONFIG_VALID=m\n",
     );
     defer deinitSummary(allocator, &summary);
 
@@ -622,11 +632,13 @@ test "confdata bridge ignores empty CONFIG symbol names" {
 
 test "confdata bridge ignores malformed unset comments with extra tokens" {
     const testing_allocator = std.testing.allocator;
-    var summary = try parseConfig(testing_allocator,
-        \\CONFIG_ALPHA=y
-        \\# CONFIG_ALPHA extra is not set
-        \\# CONFIG_DEBUG is not set trailing
-        \\
+    var summary = try parseConfig(
+        testing_allocator,
+        "CONFIG_ALPHA=y\n" ++
+            "# CONFIG_ALPHA extra is not set\n" ++
+            "# CONFIG_DEBUG is not set trailing\n" ++
+            "# CONFIG_BAD-NAME is not set\n" ++
+            "# CONFIG_TAB\t is not set\n",
     );
     defer deinitSummary(testing_allocator, &summary);
 
@@ -667,12 +679,15 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
     var capture = try Capture.init(testing_allocator);
     defer capture.deinit();
 
-    try runConfdataBridge(testing_allocator,
-        \\CONFIG_ALPHA=y
-        \\# CONFIG_ALPHA extra is not set
-        \\# CONFIG_DEBUG is not set trailing
-        \\
-    , &capture);
+    try runConfdataBridge(
+        testing_allocator,
+        "CONFIG_ALPHA=y\n" ++
+            "# CONFIG_ALPHA extra is not set\n" ++
+            "# CONFIG_DEBUG is not set trailing\n" ++
+            "# CONFIG_BAD-NAME is not set\n" ++
+            "# CONFIG_TAB\t is not set\n",
+        &capture,
+    );
 
     try std.testing.expectEqualStrings(
         "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"tristate\",\"value\":\"y\"}]}\n",
@@ -793,12 +808,15 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
     var capture = try Capture.init(std.testing.allocator);
     defer capture.deinit();
 
-    try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_=y
-        \\# CONFIG_ is not set
-        \\CONFIG_VALID=m
-        \\
-    , &capture);
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_=y\n" ++
+            "# CONFIG_ is not set\n" ++
+            "CONFIG_BAD-NAME=y\n" ++
+            "CONFIG_TAB\t=y\n" ++
+            "CONFIG_VALID=m\n",
+        &capture,
+    );
 
     try std.testing.expectEqualStrings(
         "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_VALID\",\"kind\":\"tristate\",\"value\":\"m\"}]}\n",
@@ -811,7 +829,7 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=7
-        \\CONFIG_ALPHA="final"
+        \\CONFIG_ALPHA=\"final\"
         \\CONFIG_BETA=m
         \\
     );
@@ -831,11 +849,11 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA="stable"
-        \\CONFIG_ALPHA="unterminated
+        \\CONFIG_ALPHA=\"stable\"
+        \\CONFIG_ALPHA=\"unterminated
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_DEBUG="broken
-        \\CONFIG_GAMMA="still-broken
+        \\CONFIG_DEBUG=\"broken
+        \\CONFIG_GAMMA=\"still-broken
         \\CONFIG_BETA=y
         \\
     );
@@ -856,7 +874,7 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
 
     var unset_preserved = try parseConfig(allocator,
         \\# CONFIG_DELTA is not set
-        \\CONFIG_DELTA="broken
+        \\CONFIG_DELTA=\"broken
         \\CONFIG_EPSILON=7
         \\
     );
@@ -903,7 +921,7 @@ test "confdata bridge keeps only the last state across unset and set transitions
 
     const input =
         \\# CONFIG_ALPHA is not set
-        \\CONFIG_ALPHA="enabled"
+        \\CONFIG_ALPHA=\"enabled\"
         \\CONFIG_BETA=m
         \\# CONFIG_BETA is not set
         \\CONFIG_BETA=7
@@ -956,7 +974,7 @@ fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_BETA="zigux"
+        \\CONFIG_BETA=\"zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
