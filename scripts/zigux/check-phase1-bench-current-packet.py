@@ -59,6 +59,18 @@ MARKERS = {
 EXPECTED_ASSERT_BLOCKS = {
     BENCH_CHECKER_REL: (
         (
+            'status_mismatch_output = ok_output.replace(',
+            'kind, payload = validate_output(expectations, status_mismatch_output)',
+            'assert kind == "status"',
+            'assert payload == ("pass", "fail")',
+        ),
+        (
+            'missing_status_output = ok_output.replace("PHASE1_BENCH=pass\\n", "", 1)',
+            'kind, payload = validate_output(expectations, missing_status_output)',
+            'assert kind == "status"',
+            'assert payload == ("pass", None)',
+        ),
+        (
             'kind, payload = validate_output(expectations, missing_rbtree_iteration_output)',
             'assert kind == "missing_rbtree_iterations"',
             'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
@@ -67,6 +79,14 @@ EXPECTED_ASSERT_BLOCKS = {
             'kind, payload = validate_output(expectations, mismatch_output)',
             'assert kind == "exact_checksum_mismatch"',
             'assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)',
+        ),
+        (
+            'for key, value, expected_kind in (',
+            'missing_output = ok_output.replace(f"\\n{key}={value}", "")',
+            'kind, payload = validate_output(expectations, missing_output)',
+            'assert kind == expected_kind',
+            'assert payload == [key]',
+            'case_count += 1',
         ),
         (
             'kind, payload = validate_expectations(reordered_checksums)',
