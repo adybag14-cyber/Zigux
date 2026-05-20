@@ -10,6 +10,7 @@ from pathlib import Path
 SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -18,6 +19,7 @@ REQUIRED_FILES = (
     SCRIPT_PATH,
     SURVEY_PATH,
     BRIDGE_BOUNDARY_SURVEY_PATH,
+    BRIDGE_TEST_PATH,
     DOCS_README_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -43,6 +45,12 @@ REQUIRED_MARKERS = {
         "`perf_event_open()` setup",
         "`PERF_EVENT_IOC_ENABLE` enablement",
         "epoll-backed perf FD registration",
+    ),
+    BRIDGE_TEST_PATH: (
+        "fdinfo-map-info-helpers",
+        "map-reuse-compatibility",
+        "file-path-and-handle-bridge",
+        "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
     ),
     DOCS_README_PATH: (
         "Phase 8 notes",
