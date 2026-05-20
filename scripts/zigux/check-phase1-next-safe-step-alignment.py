@@ -61,6 +61,12 @@ EXPECTED_LANE_NOTE_LINES = (
     "names by default`",
 )
 
+EXPECTED_STRING_SYSFS_LANE_NOTE = (
+    "- If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
+    "across the string review packet and this lane note unless dedicated shared sysfs "
+    "fixture keys land; do not reopen missing closure-side validator names by default."
+)
+
 EXPECTED_DIRECT_ANCHOR_HELPERS = [
     "tools/lib/bitmap.zig",
     "tools/lib/find_bit.zig",
@@ -161,6 +167,13 @@ def collect_failures(root: Path) -> list[str]:
                 marker,
             )
         )
+    failures.extend(
+        require_exact_line(
+            lane_note_text,
+            f"{LANE_NOTE_REL.as_posix()}:string_sysfs_followup",
+            EXPECTED_STRING_SYSFS_LANE_NOTE,
+        )
+    )
 
     manifest = load_json(root, MANIFEST_REL)
     if not isinstance(manifest, dict):
@@ -201,7 +214,13 @@ def sample_manifest() -> str:
 
 def write_sample_root(root: Path) -> None:
     write_text(root, PHASE1_CLOSURE_REL, "# sample\n\n" + EXPECTED_CLOSURE_LINE + "\n")
-    write_text(root, LANE_NOTE_REL, "# sample\n\n" + "\n".join(EXPECTED_LANE_NOTE_LINES) + "\n")
+    write_text(
+        root,
+        LANE_NOTE_REL,
+        "# sample\n\n"
+        + "\n".join(EXPECTED_LANE_NOTE_LINES + (EXPECTED_STRING_SYSFS_LANE_NOTE,))
+        + "\n",
+    )
     write_text(root, MANIFEST_REL, sample_manifest())
 
 
@@ -232,6 +251,19 @@ def run_self_test() -> int:
                     load_text(root, LANE_NOTE_REL),
                     EXPECTED_LANE_NOTE_LINES[1],
                     EXPECTED_LANE_NOTE_LINES[1] + "\n" + EXPECTED_LANE_NOTE_LINES[1],
+                ),
+            ),
+            False,
+        ),
+        (
+            "missing_string_sysfs_lane_note",
+            lambda root: write_text(
+                root,
+                LANE_NOTE_REL,
+                replace_once(
+                    load_text(root, LANE_NOTE_REL),
+                    EXPECTED_STRING_SYSFS_LANE_NOTE + "\n",
+                    "",
                 ),
             ),
             False,
@@ -330,7 +362,7 @@ def main() -> int:
     print(f"PHASE1_NEXT_SAFE_STEP_ALIGNMENT_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_NEXT_SAFE_STEP_ALIGNMENT_REQUIRED_MARKER_COUNT="
-        f"{1 + len(EXPECTED_LANE_NOTE_LINES) + len(EXPECTED_NEXT_SAFE_STEP_NOTES)}"
+        f"{2 + len(EXPECTED_LANE_NOTE_LINES) + len(EXPECTED_NEXT_SAFE_STEP_NOTES)}"
     )
     return 0
 
