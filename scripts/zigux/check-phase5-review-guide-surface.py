@@ -70,7 +70,15 @@ APPROVED_IDIOM_MARKERS = (
     "Fresh mixed reread on 2026-05-20 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:",
     "Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-20.",
     "Keep the approved formatting idiom bounded to the current landed reminder packet:",
+    "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
     "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
+    "## Exact checks run on 2026-05-20",
+    "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
+    "The exact checks that passed were:",
+    "- `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`",
+    "- `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`",
+    "- `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`",
+    "- `phase 5 trace-events formatting companion keeps bounded destination failures explicit`",
     "Current `master` also still ships no standalone Phase 5 `samples/zigux/*string*`, `*kasprintf*`, `*strarray*`, `*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
 )
 
@@ -212,7 +220,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 6
+    expected_case_count = 7
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -234,6 +242,19 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected approved-idiom failure: {failures}")
         checks_run += 1
 
+        missing_exact_checks_root = root / "missing_exact_checks"
+        _seed(missing_exact_checks_root)
+        trimmed_markers = tuple(marker for marker in APPROVED_IDIOM_MARKERS if marker != APPROVED_IDIOM_MARKERS[11])
+        _write(
+            missing_exact_checks_root / APPROVED_IDIOM_PATH,
+            _placeholder_text(APPROVED_IDIOM_PATH, trimmed_markers),
+        )
+        failures = collect_failures(missing_exact_checks_root)
+        expected = [f"{APPROVED_IDIOM_PATH}:missing_text:{APPROVED_IDIOM_MARKERS[11]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected exact-check marker failure: {failures}")
+        checks_run += 1
+
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
         _seed(missing_sample_root_marker_root)
         _write(
@@ -248,9 +269,9 @@ def run_self_test() -> int:
 
         missing_direct_path_root = root / "missing_direct_path"
         _seed(missing_direct_path_root)
-        (missing_direct_path_root / DIRECT_PACKET_PATHS[8]).unlink()
+        (missing_direct_path_root / DIRECT_PACKET_PATHS[11]).unlink()
         failures = collect_failures(missing_direct_path_root)
-        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"]
+        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[11]}"]
         if failures != expected:
             raise AssertionError(f"unexpected direct-path failure: {failures}")
         checks_run += 1
@@ -303,6 +324,7 @@ def main() -> int:
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_COMPANION_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_MARKER_COUNT={len(APPROVED_IDIOM_MARKERS)}")
     return 0
 
 
