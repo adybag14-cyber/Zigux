@@ -16,11 +16,18 @@ pub fn build(b: *std.Build) void {
     });
     layout_assert_module.addImport("abi_bindings", abi_bindings_module);
 
+    const hvc_console_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const proof_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
+    proof_module.addImport("hvc_console", hvc_console_module);
     proof_module.addImport("layout_assert", layout_assert_module);
 
     const proof_tests = b.addTest(.{
