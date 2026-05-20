@@ -15,7 +15,7 @@ Zigux Phase 11 simple-driver packet.
 
 ## Current Repo Reality
 
-The directly readable gpio watchdog matrix packet on current `master` is:
+The current gpio watchdog matrix packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -25,17 +25,17 @@ The directly readable gpio watchdog matrix packet on current `master` is:
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-Current direct contents reads in this run do not rematerialize the older wider
-replay and route surfaces
+The older wider replay and route surfaces
 `zigux/tests/phase11_gpio_wdt.zig`,
 `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`,
 `zigux/tests/phase11_gpio_wdt_manifest.json`,
 `zigux/tests/phase11_gpio_wdt_survey.zig`,
-`Documentation/zigux/phase11-shared-replay-contract.md`, or
-`zigux/tests/phase11_build.zig`, so this matrix cannot present those deeper
-replay and route surfaces as current direct-readback packet members.
+`Documentation/zigux/phase11-shared-replay-contract.md`, and
+`zigux/tests/phase11_build.zig` are not part of the current `master` packet, so
+this matrix keeps the lane grounded on the returned driver, proof, and directly
+coupled docs surface only.
 
-## Current Direct-Readback Matrix
+## Current Matrix
 
 Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof
 packet below:
@@ -73,7 +73,7 @@ checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
   keeps the bounded stop-request split, reboot-glue transition, and
   register-device failure cues explicit without claiming live remove-hook or
   reboot-backed shutdown execution.
-- remove-handoff handoff: `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
+- remove-handoff note: `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
   keeps the bounded remove-handoff packet explicit without claiming live
   platform cleanup callbacks, platform-driver removal, watchdog-core unregister,
   or host-backed shutdown execution.
@@ -81,16 +81,17 @@ checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
   keeps the bounded checkpoint names explicit without claiming live GPIO,
   `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution, or
   watchdog-core side effects.
-- matrix posture: this matrix records only those returned driver, proof, and
-  documentation surfaces and does not treat absent wider replay, manifest,
-  survey gate, shared-contract, or build-route files as current-head evidence.
+- matrix posture: this matrix records only the current driver, proof, and
+  directly coupled documentation surfaces and does not treat absent wider
+  replay, manifest, survey gate, shared-contract, or build-route files as
+  current-head evidence.
 
 ## Review Guardrails
 
-- Treat this matrix as current direct-readback truthfulness only, not as proof
-  of live platform behavior or hardware-backed validation.
-- Keep teardown and failure-mode parity bounded to the returned driver, direct
-  proof, and directly coupled docs packet until future rereads restore the
+- Treat this matrix as current-head truthfulness only, not as proof of live
+  platform behavior or hardware-backed validation.
+- Keep teardown and failure-mode parity bounded to the current driver, direct
+  proof, and directly coupled docs packet until a later repo change restores
   wider replay or build-route surfaces.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
@@ -98,9 +99,9 @@ checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
   `devm_watchdog_register_device()` execution, platform-driver registration,
   watchdog-core registration, live platform cleanup callbacks, live remove-hook
   execution, reboot-backed teardown execution, or hardware-validated parity.
-- If a future reread restores any wider gpio replay, manifest, survey gate, or
-  shared-route file, refresh this matrix together with the reopened companion
-  surface in one bounded pass.
+- If a future repo change restores any wider gpio replay, manifest, survey gate,
+  or shared-route file, refresh this matrix together with the reopened
+  companion surface in one bounded pass.
 
 ## Next Blocked Step
 
