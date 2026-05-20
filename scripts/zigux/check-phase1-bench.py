@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 
 
 HERE = Path(__file__).resolve()
@@ -122,9 +125,9 @@ def load_runtime_expectations(path: Path) -> tuple[str, object]:
     try:
         expectations = load_expectations(path)
     except FileNotFoundError:
-        return ("missing_expectations_file", path)
+        return ("expectations_missing", path)
     except json.JSONDecodeError as exc:
-        return ("expectations_json_error", exc)
+        return ("expectations_json_error", (path, exc))
 
     kind, payload = validate_expectations(expectations)
     if kind != "pass":
@@ -343,6 +346,129 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     return ("pass", parsed)
 
 
+def emit_expectations_failure(
+    kind: str,
+    payload: object,
+    expectations_path: Path | None = None,
+) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+
+    if kind == "expectations_missing":
+        assert isinstance(payload, Path)
+        print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
+        return 1
+    if kind == "expectations_json_error":
+        path, exc = payload
+        assert isinstance(path, Path)
+        assert isinstance(exc, json.JSONDecodeError)
+        print(f"PHASE1_BENCH_EXPECTATIONS={path}")
+        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
+        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
+        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
+        return 1
+
+    if expectations_path is not None:
+        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(payload)
+    return 1
+
+
+def emit_validation_failure(kind: str, payload: object, expectations_path: Path) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(payload)
+    return 1
+
+
+def emit_bench_command_failure(
+    exit_code: int,
+    stdout: str,
+    stderr: str,
+    expectations_path: Path,
+) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print("PHASE1_BENCH_CHECK_REASON=bench_command_exit")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(f"BENCH_COMMAND_EXIT={exit_code}")
+    if stdout:
+        print(stdout.rstrip("\n"))
+    if stderr:
+        print(stderr.rstrip("\n"))
+    return 1
+
+
+def emit_bench_command_missing(error: FileNotFoundError, expectations_path: Path) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print("PHASE1_BENCH_CHECK_REASON=bench_command_missing")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(f"BENCH_COMMAND_MISSING={error.filename}")
+    return 1
+
+
+def emit_success_packet(expectations: dict[str, object]) -> int:
+    print("PHASE1_BENCH_CHECK=pass")
+    print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
+    return 0
+
+
+def capture_expectations_failure_output(
+    kind: str,
+    payload: object,
+    expectations_path: Path | None = None,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        exit_code = emit_expectations_failure(kind, payload, expectations_path)
+    assert exit_code == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_validation_failure_output(
+    kind: str,
+    payload: object,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        exit_code = emit_validation_failure(kind, payload, expectations_path)
+    assert exit_code == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_bench_command_failure_output(
+    exit_code: int,
+    stdout: str,
+    stderr: str,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_bench_command_failure(exit_code, stdout, stderr, expectations_path)
+    assert result == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_bench_command_missing_output(
+    error: FileNotFoundError,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_bench_command_missing(error, expectations_path)
+    assert result == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_success_packet(expectations)
+    assert result == 0
+    return buffer.getvalue().splitlines()
+
+
 def run_self_test() -> None:
     case_count = 0
     expectations = {
@@ -369,45 +495,45 @@ def run_self_test() -> None:
     case_count += 1
 
     duplicate_top_level_text = """{
-  \"status\": \"pass\",
-  \"status\": \"fail\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000
+  "status": "pass",
+  "status": "fail",
+  "iterations": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000
   },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
+  "checksums": [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12
+  "exact_checksums": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+    "PHASE1_BENCH_STRING_CHECKSUM": 5,
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+    "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))
@@ -416,45 +542,45 @@ def run_self_test() -> None:
     case_count += 1
 
     duplicate_iteration_text = """{
-  \"status\": \"pass\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4001
+  "status": "pass",
+  "iterations": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4001
   },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
+  "checksums": [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12
+  "exact_checksums": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+    "PHASE1_BENCH_STRING_CHECKSUM": 5,
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+    "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_iteration_text))
@@ -463,45 +589,45 @@ def run_self_test() -> None:
     case_count += 1
 
     duplicate_exact_checksum_text = """{
-  \"status\": \"pass\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000
+  "status": "pass",
+  "iterations": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000
   },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
+  "checksums": [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 13
+  "exact_checksums": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+    "PHASE1_BENCH_STRING_CHECKSUM": 5,
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+    "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 13
   }
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_exact_checksum_text))
@@ -562,6 +688,71 @@ def run_self_test() -> None:
     assert kind == "pass"
     case_count += 1
 
+    missing_expectations_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-missing.json"
+    if missing_expectations_path.exists():
+        missing_expectations_path.unlink()
+    kind, payload = load_runtime_expectations(missing_expectations_path)
+    assert kind == "expectations_missing"
+    assert payload == missing_expectations_path
+    case_count += 1
+
+    missing_output = capture_expectations_failure_output(kind, payload)
+    assert missing_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=expectations_missing",
+        f"PHASE1_BENCH_EXPECTATIONS={missing_expectations_path}",
+    ]
+    case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-self-test-json-") as tmpdir:
+        invalid_expectations_path = Path(tmpdir) / "phase1-bench-expectations.json"
+        invalid_expectations_path.write_text("{", encoding="utf-8")
+        kind, payload = load_runtime_expectations(invalid_expectations_path)
+        assert kind == "expectations_json_error"
+        path, exc = payload
+        assert path == invalid_expectations_path
+        assert isinstance(exc, json.JSONDecodeError)
+        assert exc.lineno == 1
+        assert exc.colno == 2
+        case_count += 1
+
+        malformed_output = capture_expectations_failure_output(kind, payload)
+        assert malformed_output == [
+            "PHASE1_BENCH_CHECK=fail",
+            "PHASE1_BENCH_CHECK_REASON=expectations_json_error",
+            f"PHASE1_BENCH_EXPECTATIONS={invalid_expectations_path}",
+            "EXPECTATIONS_JSON_ERROR=Expecting property name enclosed in double quotes",
+            "EXPECTATIONS_JSON_LINE=1",
+            "EXPECTATIONS_JSON_COLUMN=2",
+        ]
+        case_count += 1
+
+    status_mismatch_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-invalid-status.json"
+    kind, payload = validate_expectations(
+        {
+            "status": "fail",
+            "iterations": dict(EXPECTED_ITERATIONS),
+            "checksums": list(EXPECTED_CHECKSUMS),
+            "exact_checksums": dict(expectations["exact_checksums"]),
+        }
+    )
+    assert kind == "expectations_status"
+    assert payload == "fail"
+    case_count += 1
+
+    invalid_status_output = capture_expectations_failure_output(
+        kind,
+        payload,
+        status_mismatch_path,
+    )
+    assert invalid_status_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=expectations_status",
+        f"PHASE1_BENCH_EXPECTATIONS={status_mismatch_path}",
+        "fail",
+    ]
+    case_count += 1
+
     status_mismatch_output = ok_output.replace(
         "PHASE1_BENCH=pass",
         "PHASE1_BENCH=fail",
@@ -570,6 +761,52 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, status_mismatch_output)
     assert kind == "status"
     assert payload == ("pass", "fail")
+    case_count += 1
+
+    bench_status_drift_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-status-drift.json"
+    status_drift_output = capture_validation_failure_output(
+        kind,
+        payload,
+        bench_status_drift_path,
+    )
+    assert status_drift_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=status",
+        f"PHASE1_BENCH_EXPECTATIONS={bench_status_drift_path}",
+        "('pass', 'fail')",
+    ]
+    case_count += 1
+
+    command_failure_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-command-failure.json"
+    command_failure_output = capture_bench_command_failure_output(
+        7,
+        "stdout-line-1\nstdout-line-2\n",
+        "stderr-line-1\nstderr-line-2\n",
+        command_failure_path,
+    )
+    assert command_failure_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=bench_command_exit",
+        f"PHASE1_BENCH_EXPECTATIONS={command_failure_path}",
+        "BENCH_COMMAND_EXIT=7",
+        "stdout-line-1",
+        "stdout-line-2",
+        "stderr-line-1",
+        "stderr-line-2",
+    ]
+    case_count += 1
+
+    command_missing_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-command-missing.json"
+    command_missing_output = capture_bench_command_missing_output(
+        FileNotFoundError(2, "No such file or directory", "/missing/zig"),
+        command_missing_path,
+    )
+    assert command_missing_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=bench_command_missing",
+        f"PHASE1_BENCH_EXPECTATIONS={command_missing_path}",
+        "BENCH_COMMAND_MISSING=/missing/zig",
+    ]
     case_count += 1
 
     missing_status_output = ok_output.replace("PHASE1_BENCH=pass\n", "", 1)
@@ -606,6 +843,29 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, rbtree_iteration_mismatch_output)
     assert kind == "rbtree_iteration_mismatch"
     assert payload == ("PHASE1_BENCH_RBTREE_ITERATIONS", 4000, "4")
+    case_count += 1
+
+    exact_checksum_mismatch_output = ok_output.replace(
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120",
+    )
+    kind, payload = validate_output(expectations, exact_checksum_mismatch_output)
+    assert kind == "exact_checksum_mismatch"
+    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)
+    case_count += 1
+
+    checksum_drift_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-checksum-drift.json"
+    checksum_drift_output = capture_validation_failure_output(
+        kind,
+        payload,
+        checksum_drift_path,
+    )
+    assert checksum_drift_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=exact_checksum_mismatch",
+        f"PHASE1_BENCH_EXPECTATIONS={checksum_drift_path}",
+        "('PHASE1_BENCH_RBTREE_CACHED_CHECKSUM', 12, 120)",
+    ]
     case_count += 1
 
     for key, value in (
@@ -651,15 +911,6 @@ def run_self_test() -> None:
         assert kind == expected_kind
         assert payload == [key]
         case_count += 1
-
-    mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120",
-    )
-    kind, payload = validate_output(expectations, mismatch_output)
-    assert kind == "exact_checksum_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)
-    case_count += 1
 
     duplicate_mismatch_output = ok_output.replace(
         "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
@@ -944,6 +1195,13 @@ def run_self_test() -> None:
     assert payload == reordered_checksums["checksums"]
     case_count += 1
 
+    success_output = capture_success_packet_output(expectations)
+    assert success_output == [
+        "PHASE1_BENCH_CHECK=pass",
+        f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}",
+    ]
+    case_count += 1
+
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
     print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -959,55 +1217,35 @@ def main() -> int:
         return 0
 
     kind, payload = load_runtime_expectations(EXPECTATIONS)
-    if kind == "missing_expectations_file":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(f"EXPECTATIONS_PATH={payload}")
-        return 1
-    if kind == "expectations_json_error":
-        exc = payload
-        assert isinstance(exc, json.JSONDecodeError)
-        print("PHASE1_BENCH_CHECK=fail")
-        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
-        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
-        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
-        return 1
     if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(payload)
-        return 1
+        return emit_expectations_failure(kind, payload, EXPECTATIONS)
 
     expectations = payload
     assert isinstance(expectations, dict)
 
     zig = find_zig(args.zig)
-    result = subprocess.run(
-        [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        return emit_bench_command_missing(error, EXPECTATIONS)
     if result.returncode != 0:
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"BENCH_COMMAND_EXIT={result.returncode}")
-        if result.stdout:
-            print(result.stdout.rstrip("\n"))
-        if result.stderr:
-            print(result.stderr.rstrip("\n"))
-        return 1
+        return emit_bench_command_failure(
+            result.returncode,
+            result.stdout,
+            result.stderr,
+            EXPECTATIONS,
+        )
 
     kind, payload = validate_output(expectations, result.stdout)
     if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(payload)
-        return 1
+        return emit_validation_failure(kind, payload, EXPECTATIONS)
 
-    print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
-    print(f"PHASE1_BENCH_ZIG={zig}")
-    return 0
+    return emit_success_packet(expectations)
 
 
 if __name__ == "__main__":
