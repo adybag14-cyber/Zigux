@@ -389,6 +389,14 @@ def require_manifest_list(issues: list[tuple[str, str]], manifest: dict[str, obj
             issues.append(("INVALID_MANIFEST_SHAPE", key))
             return None
         normalized.append(item)
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for item in normalized:
+        if item in seen and item not in duplicates:
+            duplicates.append(item)
+        seen.add(item)
+    for item in duplicates:
+        issues.append(("DUPLICATE_MANIFEST_SURFACE", f"{key}:{item}"))
     return normalized
 
 
@@ -788,6 +796,30 @@ def run_self_test() -> int:
         payload["present_surfaces"]["fixdep_support"] = []
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("MISSING_MANIFEST_SURFACE", "fixdep_support:scripts/zigux/check-phase2-fixdep-gate.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["checkers"].append("scripts/zigux/check-genksyms-bridge.py")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("DUPLICATE_MANIFEST_SURFACE", "checkers:scripts/zigux/check-genksyms-bridge.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["make_wrappers"].append("make -C zigux phase2-cross")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("DUPLICATE_MANIFEST_SURFACE", "make_wrappers:make -C zigux phase2-cross") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["fixture_roster"].append("zigux/tests/fixtures/genksyms_bridge/cases.json")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("DUPLICATE_MANIFEST_SURFACE", "fixture_roster:zigux/tests/fixtures/genksyms_bridge/cases.json") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
