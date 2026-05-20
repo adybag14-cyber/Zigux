@@ -278,7 +278,7 @@ REQUIRED_MARKERS = {
         "const header_is_canonical = abi.headerIsCanonical(default_header);",
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
-        '@offsetOf(abi.NotifierBlock, \"priority\"),',
+        '@offsetOf(abi.NotifierBlock, "priority"),',
         '"  \\\"abi_version\\\": {},\\n"',
         '"  \\\"notifier\\\": {{\\n"',
     ),
@@ -287,7 +287,7 @@ REQUIRED_MARKERS = {
         '"lane": "abi-runtime"',
         '"slug": "phase3-abi-packet"',
         '"status": "shared_abi_and_header_family_binding_surface_present"',
-        '"scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay"',
+        '"scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay"',
         '"Documentation/zigux/phase3-abi-slice.md"',
         '"Documentation/zigux/phase3-abi-header-family-survey.md"',
         '"zigux/bindings/abi.zig"',
@@ -300,10 +300,11 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_abi_dump_current.zig"',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
-        '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work"',
+        '"next_safe_step": "keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"',
     ),
 }
 
@@ -391,8 +392,8 @@ REQUIRED_MANIFEST_FIELDS = {
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
     "status": "shared_abi_and_header_family_binding_surface_present",
-    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
-    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
+    "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+    "next_safe_step": "keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again",
 }
 
 REQUIRED_PACKET_FILES = (
@@ -435,6 +436,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
@@ -447,11 +449,11 @@ SAMPLE_MANIFEST = {
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
     "status": "shared_abi_and_header_family_binding_surface_present",
-    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+    "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
     "packet_files": list(REQUIRED_PACKET_FILES),
     "replay_routes": list(REQUIRED_REPLAY_ROUTES),
     "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
-    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
+    "next_safe_step": "keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again",
 }
 
 
