@@ -21,6 +21,7 @@ REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
+ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
@@ -41,6 +42,7 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
     STRING_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
+    ROUTE_SUMMARY_CHECKER_REL,
     BENCH_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
@@ -239,6 +241,7 @@ EXPECTED_MARKERS = {
         "zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`"
     ),
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
+    "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "next_step": (
@@ -257,6 +260,7 @@ FORBIDDEN_MARKERS = {
 DELEGATED_CHECKERS = (
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
+    (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
     (BENCH_CHECKER_REL, "phase1-bench"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
 )
@@ -421,6 +425,7 @@ def make_fixture_tree(root: Path) -> None:
                 EXPECTED_MARKERS["reminder_packet"],
                 EXPECTED_MARKERS["gap_packet"],
                 EXPECTED_MARKERS["closure_validator"],
+                EXPECTED_MARKERS["route_summary_guard"],
                 EXPECTED_MARKERS["shared_tests_route"],
                 EXPECTED_MARKERS["validator_state"],
                 EXPECTED_MARKERS["next_step"],
@@ -455,6 +460,7 @@ def make_fixture_tree(root: Path) -> None:
 
     make_checker_stub(root / STRING_REVIEW_CHECKER_REL)
     make_checker_stub(root / DIRECT_OWNER_CHECKER_REL)
+    make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL)
     make_checker_stub(root / BENCH_CHECKER_REL)
     make_checker_stub(root / SHARED_REMINDER_CHECKER_REL)
 
@@ -473,6 +479,13 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
                 replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["restore_state"], "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`"),
+            ),
+        ),
+        (
+            "missing_route_summary_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["route_summary_guard"] + "\n", ""),
             ),
         ),
         (
@@ -582,6 +595,14 @@ def run_self_test() -> int:
         (
             "failing_direct_owner_checker",
             lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False),
+        ),
+        (
+            "missing_route_summary_checker",
+            lambda root: (root / ROUTE_SUMMARY_CHECKER_REL).unlink(),
+        ),
+        (
+            "failing_route_summary_checker",
+            lambda root: make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL, ok=False),
         ),
         (
             "missing_bench_checker",
