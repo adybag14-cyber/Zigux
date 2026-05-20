@@ -55,7 +55,7 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          eval "$(python3 - <<'PY2'
+          eval "$(python3 - <<'PY'
           import json
           from pathlib import Path
 
@@ -71,7 +71,7 @@ jobs:
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
-          PY2
+          PY
           )"
           mkdir -p .zig-toolchain
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
@@ -164,7 +164,6 @@ jobs:
 
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
-
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
 
@@ -247,6 +246,9 @@ jobs:
 
       - name: Run current Phase 2 tools make route
         run: make -C zigux phase2-tools
+
+      - name: Run current Phase 2 kconfig make route
+        run: make -C zigux phase2-kconfig
 
       - name: Run current Phase 2 fixdep make route
         run: make -C zigux phase2-fixdep
@@ -335,6 +337,12 @@ jobs:
       - name: Check current Phase 3 interop packet
         run: python3 scripts/zigux/run-phase3-checks.py
 
+      - name: Run current Phase 3 policy starter-packet replay
+        run: make -C zigux phase3-policy-starter-packet-test
+
+      - name: Run current Phase 3 policy dump replay
+        run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig
+
       - name: Self-test current Phase 3 low-level wrapper survey validator
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
 
@@ -370,8 +378,21 @@ jobs:
 
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
+
+      - name: Validate Phase 4 rollback routes
+        run: make -C zigux phase4-validate
+
+      - name: Run Phase 4 rollback tests
+        run: make -C zigux phase4-test
+
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
+
+      - name: Self-test current Phase 4 artifact-diff contract checker
+        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
+
+      - name: Check current Phase 4 artifact-diff contract packet
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
 
       - name: Self-test current Phase 4 artifact-diff determinism checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
@@ -384,6 +405,15 @@ jobs:
 
       - name: Check current Phase 4 artifact-diff validator replay packet
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
+
+      - name: Validate current Phase 6 helper packet
+        run: make -C zigux phase6-validate
+
+      - name: Run current Phase 6 leaf helper tests
+        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
+
+      - name: Run current Phase 6 shared perf route
+        run: make -C zigux phase6-perf
 
       - name: Validate Phase 8 tooling routes
         run: make -C zigux phase8-validate
@@ -422,7 +452,6 @@ jobs:
 
       - name: Run current Phase 9 registration reentry companion tests
         run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
-
       - name: Run current Phase 9 trace-events survey witness
         run: zig test zigux/tests/runtime_trace_events_survey.zig
 
@@ -462,6 +491,12 @@ jobs:
       - name: Check current Phase 11 HVC cleanup current-head packet
         run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
 
+      - name: Run current Phase 11 HVC hv_ops layout proof
+        run: zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+
+      - name: Run current Phase 11 HVC export surface layout proof
+        run: zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+
       - name: Run current Phase 11 HVC cleanup packet proof
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
 
@@ -485,6 +520,9 @@ jobs:
 
       - name: Run current Phase 12 shared test packet
         run: make -C zigux phase12-test
+
+      - name: Run current Phase 12 aggregate route
+        run: make -C zigux phase12
 
       - name: Self-test current Phase 14 shared smoke route checker
         run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
