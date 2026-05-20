@@ -42,6 +42,8 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 
@@ -87,6 +89,10 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-cleanup-packet-build",
         ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-hvc-targetless-unregister-gap-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
     ),
 )
 
@@ -273,7 +279,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         build_fake_zig(fake_zig)
         failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
         build_stub_script(failing_script, exit_code=1)
@@ -360,9 +366,22 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        build_fake_zig(
+            fake_zig,
+            fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        )
+        issues = collect_issues(root)
+        expected_targetless_gap_failure = "live_failed:phase11-hvc-targetless-unregister-gap-build:exit=1"
+        if expected_targetless_gap_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:targetless_gap_build_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
