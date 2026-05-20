@@ -224,8 +224,12 @@ test "phase3 abi keeps malformed notifier list relays visible through the shared
     list_second.next = @intFromPtr(&list_head);
     list_second.prev = @intFromPtr(&list_head);
 
+    const list_break = abi.firstBrokenBacklink(&list_head) orelse return error.TestUnexpectedResult;
     try std.testing.expect(!abi.listHasConsistentBacklinks(&list_head));
     try std.testing.expect(!abi.listHasConsistentBacklinks(null));
+    try std.testing.expectEqual(@as(usize, 1), list_break.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&list_first)), list_break.expected_prev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&list_head)), list_break.actual_prev);
 
     var hlist_head = abi.HListHead{ .first = 0 };
     var hlist_first = abi.HListNode{ .next = 0, .pprev = 0 };
@@ -237,6 +241,10 @@ test "phase3 abi keeps malformed notifier list relays visible through the shared
     hlist_second.next = 0;
     hlist_second.pprev = @intFromPtr(&hlist_head.first);
 
+    const hlist_break = abi.firstBrokenPrevLink(&hlist_head) orelse return error.TestUnexpectedResult;
     try std.testing.expect(!abi.hlistHasConsistentPrevLinks(&hlist_head));
     try std.testing.expect(!abi.hlistHasConsistentPrevLinks(null));
+    try std.testing.expectEqual(@as(usize, 1), hlist_break.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&hlist_first.next)), hlist_break.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&hlist_head.first)), hlist_break.actual_pprev);
 }
