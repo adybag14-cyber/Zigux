@@ -175,8 +175,10 @@ Use this note to keep the bounded work order honest:
 This note does not widen Phase 11 into:
 
 - a claim that the overall simple-driver tranche is closed
-- a claim that the missing shared-validator surfaces `scripts/zigux/validate-phase11.py`
-  or `make -C zigux phase11-validate` are already present on current `master`
+- a claim that the missing shared-validator surface `scripts/zigux/validate-phase11.py`
+  or the broader absent `make -C zigux phase11` and
+  `make -C zigux phase11-contract` routes are already present on current
+  `master` beyond the now-returned `make -C zigux phase11-validate` path
 - a claim that bcm2835 or DesignWare broader reminder packets, helper stacks, or
   replay routes have all returned just because the driver-local validation
   matrices now reread through raw `master` fallback
