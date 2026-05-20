@@ -91,6 +91,8 @@ The active shared reminder gaps are now narrower:
 
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
