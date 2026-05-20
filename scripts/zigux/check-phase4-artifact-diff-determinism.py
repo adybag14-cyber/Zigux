@@ -55,14 +55,14 @@ SURVEY_MARKERS = (
     "current direct-readback helper-and-contract packet:",
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
     "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=20`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=25`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=23`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=28`",
 )
 
 NOTE_MARKERS = (
-    "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
     "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`",
 )
@@ -103,6 +103,7 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "bytes_missing_both",
     "legacy_sha256_alias",
     "invalid_mode_rejected",
+    "extra_positional_rejected",
 )
 
 
@@ -166,7 +167,7 @@ def require_current_helper_contract(text: str) -> None:
     self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES"))
     if self_test_cases != HELPER_EXPECTED_SELF_TEST_CASES:
         raise RuntimeError(
-            f"{DIRECT_HELPER.as_posix()} must keep the current 20-case self-test catalog"
+            f"{DIRECT_HELPER.as_posix()} must keep the current 21-case self-test catalog"
         )
 
 
