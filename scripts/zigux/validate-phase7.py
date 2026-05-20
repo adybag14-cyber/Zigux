@@ -16,6 +16,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
+ARGV_SPLIT_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -35,6 +36,7 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     MAKEFILE_PATH,
     CHECKER_PATH,
+    ARGV_SPLIT_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -43,7 +45,7 @@ REQUIRED_FILES = [
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 7
 
 
 class ValidationError(RuntimeError):
@@ -61,9 +63,9 @@ def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
 
 
-def run_checker(root: Path) -> None:
+def run_checker(root: Path, checker_path: Path) -> None:
     result = subprocess.run(
-        [sys.executable, str(root / CHECKER_PATH), "--repo-root", str(root)],
+        [sys.executable, str(root / checker_path), "--repo-root", str(root)],
         cwd=root,
         text=True,
         capture_output=True,
@@ -71,7 +73,7 @@ def run_checker(root: Path) -> None:
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
-        raise ValidationError(f"{CHECKER_PATH.as_posix()} failed: {detail}")
+        raise ValidationError(f"{checker_path.as_posix()} failed: {detail}")
 
 
 def validate(root: Path) -> None:
@@ -93,7 +95,8 @@ def validate(root: Path) -> None:
     if "phase7-validate:" not in makefile or "$(PYTHON) scripts/zigux/validate-phase7.py" not in makefile:
         raise ValidationError("phase7 make route missing")
 
-    run_checker(root)
+    run_checker(root, CHECKER_PATH)
+    run_checker(root, ARGV_SPLIT_CHECKER_PATH)
 
 
 def write(path: Path, content: str) -> None:
@@ -216,6 +219,8 @@ def scaffold_repo(root: Path) -> None:
         write(root / rel_path, content)
     checker_text = (source_root / "check-phase7-shared-surface.py").read_text(encoding="utf-8")
     write(root / CHECKER_PATH, checker_text)
+    argv_split_checker_text = (source_root / "check-phase7-argv-split-packet.py").read_text(encoding="utf-8")
+    write(root / ARGV_SPLIT_CHECKER_PATH, argv_split_checker_text)
 
 
 def expect_failure(root: Path, rel_path: Path, transform: str) -> None:
@@ -243,6 +248,7 @@ def run_self_test() -> None:
             (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
             (Path("lib/argv_split.zig"), "pub fn argvSplit"),
             (CHECKER_PATH, "delete"),
+            (ARGV_SPLIT_CHECKER_PATH, "delete"),
             (DOCS_README_PATH, "delete"),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
