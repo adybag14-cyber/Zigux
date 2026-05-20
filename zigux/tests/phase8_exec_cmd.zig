@@ -46,6 +46,13 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, scripts_root, "## Phase 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, scripts_root, "scripts/zigux/validate-phase8.py") != null);
 
+    const validator = try readRepoFile("scripts/zigux/validate-phase8.py");
+    defer std.testing.allocator.free(validator);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "EXEC_CMD_TEST = Path(\"zigux/tests/phase8_exec_cmd.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "EXEC_CMD_BUILD = Path(\"zigux/tests/phase8_exec_cmd_only_build.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "Path(\"zigux/tests/phase8_exec_cmd.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "tools/lib/subcmd/exec-cmd.zig") != null);
+
     const tests_root = try readRepoFile("zigux/tests/README.md");
     defer std.testing.allocator.free(tests_root);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "Phase 8 flow") != null);
