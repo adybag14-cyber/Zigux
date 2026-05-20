@@ -17,6 +17,7 @@ EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
 )
 
 HELP_USAGE = (
@@ -57,7 +58,8 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 
 def parse_args(argv: list[str]) -> dict[str, object]:
-    rendered = list(argv)
+    rendered: list[str] = []
+    positional_args: list[str] = []
     debug_level = 0
     warnings = False
     dump_defs = False
@@ -67,45 +69,72 @@ def parse_args(argv: list[str]) -> dict[str, object]:
     idx = 0
     while idx < len(argv):
         arg = argv[idx]
+        if arg == "--":
+            rendered.extend(positional_args)
+            rendered.append(arg)
+            rendered.extend(argv[idx + 1 :])
+            break
+        if not arg or arg[0] != "-" or arg == "-":
+            positional_args.append(arg)
+            idx += 1
+            continue
         if arg == "-d":
             debug_level += 1
+            rendered.append(arg)
         elif arg == "-D":
             dump_defs = True
+            rendered.append(arg)
         elif arg == "-p":
             preserve = True
+            rendered.append(arg)
         elif arg == "-w":
             warnings = True
+            rendered.append(arg)
         elif arg == "-q":
             warnings = False
+            rendered.append(arg)
         elif arg == "-r":
             idx += 1
             reference_files.append(argv[idx])
+            rendered.extend((arg, argv[idx]))
         elif arg == "-T":
             idx += 1
             dump_types_file = argv[idx]
+            rendered.extend((arg, argv[idx]))
         elif arg == "--debug":
             debug_level += 1
+            rendered.append(arg)
         elif arg == "--dump":
             dump_defs = True
+            rendered.append(arg)
         elif arg == "--preserve":
             preserve = True
+            rendered.append(arg)
         elif arg == "--warnings":
             warnings = True
+            rendered.append(arg)
         elif arg == "--quiet":
             warnings = False
+            rendered.append(arg)
         elif arg.startswith("--reference="):
             reference_files.append(arg.split("=", 1)[1])
+            rendered.append(arg)
         elif arg == "--reference":
             idx += 1
             reference_files.append(argv[idx])
+            rendered.extend((arg, argv[idx]))
         elif arg.startswith("--dump-types="):
             dump_types_file = arg.split("=", 1)[1]
+            rendered.append(arg)
         elif arg == "--dump-types":
             idx += 1
             dump_types_file = argv[idx]
+            rendered.extend((arg, argv[idx]))
         else:
             raise ValueError(f"unsupported fixture arg: {arg}")
         idx += 1
+    else:
+        rendered.extend(positional_args)
 
     return {
         "tool": "scripts/genksyms/genksyms",
@@ -210,6 +239,11 @@ def build_self_test_root(root: Path) -> None:
                     "args": ["--warnings", "--quiet", "--reference", "bar.symref"],
                     "expected_file": "quiet_overrides_warning_expected.json",
                 },
+                {
+                    "name": "positional_passthrough",
+                    "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+                    "expected_file": "positional_passthrough_expected.json",
+                },
             ],
             indent=2,
         )
@@ -220,6 +254,7 @@ def build_self_test_root(root: Path) -> None:
         "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
         "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json": ["--debug", "--dump", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
         "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json": ["--warnings", "--quiet", "--reference", "bar.symref"],
+        "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
     }.items():
         write_text(root, rel, json.dumps(parse_args(argv), indent=2) + "\n")
 
@@ -239,6 +274,39 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, MAKEFILE, "phase2-genksyms:\n")
         assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+            json.dumps(
+                {
+                    "tool": "scripts/genksyms/genksyms",
+                    "stdin": "cpp-stream",
+                    "stdout": "symversions",
+                    "argv": [
+                        "scripts/genksyms/genksyms",
+                        "leftover.c",
+                        "-d",
+                        "rightover.h",
+                        "-r",
+                        "foo.symref",
+                    ],
+                    "options": {
+                        "debug_level": 1,
+                        "warnings": false,
+                        "dump_defs": false,
+                        "preserve": false,
+                        "reference_files": ["foo.symref"],
+                        "dump_types_file": null,
+                    },
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
         checks += 1
 
     print("GENKSYMS_BRIDGE_SELF_TEST=pass")
