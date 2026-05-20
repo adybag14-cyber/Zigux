@@ -46,7 +46,7 @@ Current `master` still does not expose:
 
 Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded Phase 9 build bundle rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, module, diff, loader, survey, and top-bit targets rather than a broader shared runtime-loader or trace-events build packet.
 
-Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family.
+Current `master` does still keep the separate Phase 9 runtime bitmap reminder packet explicit through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, so the absent-loader wording above is about the older trace-events loader-backed packet rather than proof that any direct bitmap sample-family file has returned.
 
 So this survey packet closes one bounded roadmap gap by restoring a direct review witness under `zigux/tests/runtime_*`, but it does not claim returned shared loader parity, live `module_init()` or `module_exit()` wiring, depmod-visible registration, or broader runtime-substrate readiness.
 
