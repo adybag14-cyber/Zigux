@@ -65,6 +65,7 @@ pub const CreateRulesetPlan = struct {
 pub const CreateRulesetSyscallRequest = struct {
     initialized: bool = true,
     attr_present: bool = true,
+    ruleset_fops_present: bool = true,
     input: CreateRulesetInput = .{},
 };
 
@@ -124,7 +125,6 @@ pub const AddRuleSyscallRequest = struct {
     initialized: bool = true,
     attr_present: bool = true,
     ruleset_fd_present: bool = true,
-    flags: u32 = 0,
     input: AddRuleInput = .{},
 };
 
@@ -132,7 +132,6 @@ pub const AddRuleSyscallPlan = struct {
     anchor: []const u8,
     checks_initialization_gate: bool,
     checks_attr_presence_before_copy_from_user: bool,
-    validates_flags: bool,
     reuses_add_rule_validation: bool,
     add_rule_plan: AddRulePlan,
 };
@@ -278,7 +277,9 @@ pub const SyscallsHelperLab = struct {
         }
 
         const ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
-            .create_handle => try planInstallRulesetFd(.{}),
+            .create_handle => try planInstallRulesetFd(.{
+                .ruleset_fops_present = request.ruleset_fops_present,
+            }),
             .abi_version_query => null,
         };
 
@@ -362,15 +363,11 @@ pub const SyscallsHelperLab = struct {
         if (!request.attr_present) {
             return error.BadUserPointer;
         }
-        if (request.flags != 0) {
-            return error.UnsupportedAddRuleFlags;
-        }
 
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
-            .validates_flags = true,
             .reuses_add_rule_validation = true,
             .add_rule_plan = try planAddRule(request.input, request.ruleset_fd_present),
         };
@@ -596,6 +593,15 @@ test "landlock syscalls top-level wrapper threads ruleset fd install only for cr
     try std.testing.expect(install_plan.releases_ruleset_on_fd_failure);
 }
 
+test "landlock syscalls top-level wrapper propagates missing ruleset_fops for create path" {
+    try std.testing.expectError(error.MissingRulesetFileOperations, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .ruleset_fops_present = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
+}
+
 test "landlock syscalls top-level wrapper requires attr presence for create path" {
     try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
         .attr_present = false,
@@ -711,12 +717,11 @@ test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
-    try std.testing.expect(wrapper.validates_flags);
     try std.testing.expect(wrapper.reuses_add_rule_validation);
     try std.testing.expect(wrapper.add_rule_plan.performs_copy_from_user);
 }
 
-test "landlock syscalls add-rule top-level wrapper rejects disabled boot missing attr and non-zero flags" {
+test "landlock syscalls add-rule top-level wrapper rejects disabled boot and missing attr" {
     try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockAddRule(.{
         .initialized = false,
         .input = .{
@@ -725,12 +730,6 @@ test "landlock syscalls add-rule top-level wrapper rejects disabled boot missing
     }));
     try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockAddRule(.{
         .attr_present = false,
-        .input = .{
-            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
-        },
-    }));
-    try std.testing.expectError(error.UnsupportedAddRuleFlags, SyscallsHelperLab.planLandlockAddRule(.{
-        .flags = 1,
         .input = .{
             .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
         },
