@@ -15,6 +15,7 @@ pub const uapi_dev_t_packet_present: u32 = 1;
 pub const Version = version_binding.Version;
 pub const BoundaryHeader = abi.BoundaryHeader;
 pub const ExportStatus = abi.ExportStatus;
+pub const Facility = abi.Facility;
 pub const DevTFields = dev_t_binding.Fields;
 
 pub const version_size: usize = version_binding.version_size;
@@ -57,8 +58,8 @@ pub fn versionMatchesCurrent(version: Version) bool {
 }
 
 pub fn validateVersionStatus(version: Version) ExportStatus {
-    if (versionMatchesCurrent(version)) return abi.okStatus(.kernel);
-    return abi.makeStatus(invalid_argument, .kernel);
+    if (versionMatchesCurrent(version)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
 }
 
 pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {
@@ -127,8 +128,8 @@ pub fn validateDevTFields(fields: DevTFields) bool {
 }
 
 pub fn validateDevTFieldsStatus(fields: DevTFields) ExportStatus {
-    if (validateDevTFields(fields)) return abi.okStatus(.kernel);
-    return abi.makeStatus(invalid_argument, .kernel);
+    if (validateDevTFields(fields)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
 }
 
 pub fn validateDevTComponentsStatus(major: u32, minor: u32) ExportStatus {
@@ -140,8 +141,20 @@ pub fn validateDevTRange(start: DevTFields, end: DevTFields) bool {
 }
 
 pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {
-    if (validateDevTRange(start, end)) return abi.okStatus(.kernel);
-    return abi.makeStatus(invalid_argument, .kernel);
+    if (validateDevTRange(start, end)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
+pub fn okStatus(facility: Facility) ExportStatus {
+    return abi.okStatus(facility);
+}
+
+pub fn errorStatus(code: i32, facility: Facility) ExportStatus {
+    return abi.makeStatus(code, facility);
+}
+
+pub fn statusIsOk(status: ExportStatus) bool {
+    return abi.statusIsOk(status);
 }
 
 test "header family binding mirrors current version compatibility surface" {
@@ -193,17 +206,23 @@ test "header family binding relays Linux-facing validator statuses" {
     const valid_fields = initDevTFields(11, 29);
     const invalid_fields = initDevTFields(max_major + 1, 0);
     const earlier = initDevTFields(11, 28);
-    const ok = abi.okStatus(.kernel);
-    const invalid = abi.makeStatus(invalid_argument, .kernel);
+    const ok = okStatus(.kernel);
+    const invalid = errorStatus(invalid_argument, .kernel);
 
+    try std.testing.expect(statusIsOk(validateVersionStatus(live)));
+    try std.testing.expect(!statusIsOk(validateVersionStatus(stale_version)));
     try std.testing.expect(std.meta.eql(ok, validateVersionStatus(live)));
     try std.testing.expect(std.meta.eql(invalid, validateVersionStatus(stale_version)));
 
+    try std.testing.expect(statusIsOk(validateDevTFieldsStatus(valid_fields)));
+    try std.testing.expect(!statusIsOk(validateDevTFieldsStatus(invalid_fields)));
     try std.testing.expect(std.meta.eql(ok, validateDevTFieldsStatus(valid_fields)));
     try std.testing.expect(std.meta.eql(invalid, validateDevTFieldsStatus(invalid_fields)));
     try std.testing.expect(std.meta.eql(ok, validateDevTComponentsStatus(11, 29)));
     try std.testing.expect(std.meta.eql(invalid, validateDevTComponentsStatus(max_major + 1, 0)));
 
+    try std.testing.expect(statusIsOk(validateDevTRangeStatus(earlier, valid_fields)));
+    try std.testing.expect(!statusIsOk(validateDevTRangeStatus(valid_fields, earlier)));
     try std.testing.expect(std.meta.eql(ok, validateDevTRangeStatus(earlier, valid_fields)));
     try std.testing.expect(std.meta.eql(invalid, validateDevTRangeStatus(valid_fields, earlier)));
 }
