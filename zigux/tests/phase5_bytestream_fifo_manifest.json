@@ -9,7 +9,7 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the same sample packet still keeps StorageBacking.embedded_fixed_buffer explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue",
     "the contributor packet still frames the landed sample as an approved Phase 5 in-memory FIFO idiom instead of a runtime-substrate claim",
-    "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the short-drain \"hel\" plus queued \"lo\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
+    "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), runReinitBoundaryReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \"hel\" plus queued \"lo\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
     "the approved in-memory FIFO idiom still keeps queue-shape evidence explicit so previewInto(), snapshotInto(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), available(), occupancySummary(), visibleSpanSummary(), writableSpanSummary(), and usesWrappedStorageWindow() stay aligned across the same cold, full, wrapped-window, and rollover boundaries that reviewers expect from a bounded ring sample",
     "the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, directly readable focused replay packet, directly readable manifest companion, directly readable survey gate, and the public-tree-backed phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
@@ -90,6 +90,11 @@
       "id": "short-drain-prefix",
       "kind": "helper_contract",
       "expected": "draining a three-byte destination from the queued string \"hello\" yields exactly \"hel\", leaves the remaining prefix \"lo\" queued in order, and a follow-up drain on the now-empty queue returns 0"
+    },
+    {
+      "id": "reinit-after-exit",
+      "kind": "ownership_lifetime",
+      "expected": "runReinitBoundaryReplay() proves the sample can exit the first anchor replay, reinitialize to an empty queue with available() back at 32, replay the exact final drain sequence again, and finish with init_runs = 2 and exit_runs = 2"
     },
     {
       "id": "lifecycle-boundary",
