@@ -99,6 +99,19 @@ test "phase12 throughput parity gate rejects missing refill baselines" {
     }));
 }
 
+test "phase12 throughput parity gate rejects zero wake thresholds for stopped queues" {
+    try std.testing.expectError(error.StoppedQueueWakeThresholdMissing, throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 0,
+        .wake_threshold = 0,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+    }));
+}
+
 test "phase12 throughput parity gate rejects out-of-range target ratios" {
     try std.testing.expectError(error.ExpectedRatioOutOfRange, throughput_parity.summarizeThroughputParity(.{
         .queue_pairs_before_reset = 1,
