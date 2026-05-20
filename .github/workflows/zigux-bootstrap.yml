@@ -55,7 +55,7 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          eval "$(python3 - <<'PY'
+          eval "$(python3 - <<'PY2'
           import json
           from pathlib import Path
 
@@ -71,7 +71,7 @@ jobs:
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
-          PY
+          PY2
           )"
           mkdir -p .zig-toolchain
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
@@ -322,6 +322,12 @@ jobs:
 
       - name: Check current Phase 1 closure packet
         run: python3 scripts/zigux/validate-phase1-closure.py
+
+      - name: Self-test current Phase 1 workflow viability checker
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
+
+      - name: Check current Phase 1 workflow viability
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py
 
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
