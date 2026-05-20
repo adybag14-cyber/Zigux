@@ -26,6 +26,7 @@ VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_buil
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
+LOGGING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging_verify.zig")
 ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")
 READY_BUFFER_ATTEMPT_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig")
 READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig")
@@ -59,6 +60,7 @@ REQUIRED_FILES = (
     VERIFY_SEGMENT,
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
+    LOGGING_VERIFY_SEGMENT,
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
     READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
     READY_BUFFER_FD_VERIFY_SEGMENT,
@@ -106,6 +108,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     LIBBPF_SEGMENT_SURVEY: (
         "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/logging_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`",
@@ -114,7 +117,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names_verify.zig`",
         "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
         "standalone timer or clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
     ),
@@ -198,6 +201,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing" {',
     ),
     VERIFY_SEGMENT: (
+        'const logging_verify = @import("logging_verify.zig");',
+        "std.testing.refAllDecls(logging_verify);",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit",
@@ -206,6 +211,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+    ),
+    LOGGING_VERIFY_SEGMENT: (
+        "phase8 logging helper entrypoints stay explicit",
+        "parseLogLevelSetting",
+        "formatLibbpfError",
     ),
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
         "phase8 online-cpu routing verifier keeps cpu-index wrappers explicit",
@@ -367,6 +377,7 @@ def _passing_fixture(root: Path) -> None:
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
     for helper in (
+        LOGGING_VERIFY_SEGMENT,
         ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
         READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
         READY_BUFFER_FD_VERIFY_SEGMENT,
@@ -470,7 +481,7 @@ def run_self_test() -> int:
         survey = root / LIBBPF_SEGMENT_SURVEY
         original_survey = _read(survey)
         unique_survey_marker = (
-            "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit."
+            "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit."
         )
         survey.write_text(
             original_survey.replace(unique_survey_marker, "", 1),
@@ -510,6 +521,13 @@ def run_self_test() -> int:
         if expected_ready_window_marker not in missing_ready_window_marker.missing_markers:
             raise AssertionError("expected missing ready-buffer window build marker to be reported")
         build_file.write_text(original_build_file, encoding="utf-8")
+
+        logging_verify = root / LOGGING_VERIFY_SEGMENT
+        logging_verify.unlink()
+        missing_logging_verify = validate_root(root)
+        if LOGGING_VERIFY_SEGMENT.as_posix() not in missing_logging_verify.missing_files:
+            raise AssertionError("expected missing logging verify file to be reported")
+        _write(logging_verify, "\n".join(FILE_MARKERS[LOGGING_VERIFY_SEGMENT]) + "\n")
 
         online_cpu_verify = root / ONLINE_CPU_ROUTING_VERIFY_SEGMENT
         online_cpu_verify.unlink()
@@ -578,7 +596,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
