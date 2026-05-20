@@ -38,6 +38,8 @@ When shared Phase 13 wording changes, keep these current shared surfaces aligned
 
 Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that shared wrapper file with current Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 11, and Phase 12 routes as a materialized shared Phase 13 surface.
 
+Keep `scripts/zigux/validate-phase13-release.py` explicit as shipped validator-side support for that same reminder packet instead of letting the top-level owner map undercount a current shared Phase 13 evidence surface that the release-note and repo-reality sections already rely on.
+
 ## Traceability Snapshot
 
 Use this compact reread before editing the broader Phase 13 reminder packet.
