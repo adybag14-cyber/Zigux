@@ -54,6 +54,7 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         "Documentation/zigux/phase11-hvc-console-survey.md",
         (
+            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
             "standalone targetless-unregister witness pair",
@@ -185,6 +186,7 @@ def make_fixture(root: Path) -> None:
         "\n".join(
             (
                 "# survey",
+                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
                 "standalone targetless-unregister witness pair",
@@ -255,6 +257,16 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected validation matrix fragment check to fail")
+
+        make_fixture(temp_dir)
+        survey = temp_dir / "Documentation/zigux/phase11-hvc-console-survey.md"
+        survey.write_text("# survey\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected survey fragment check to fail")
 
         make_fixture(temp_dir)
         inventory_path = temp_dir / "zigux/tests/fixtures/phase11_build_inventory.json"
