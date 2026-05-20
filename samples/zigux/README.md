@@ -39,6 +39,15 @@ Keep that kobject packet framed as the approved in-memory ownership-and-lifetime
 
 Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.zig` as a bounded kobject companion. Keep that file framed as reviewability help for the current `foo`/`baz`/`bar` attribute-group contract, `0664` modes, unnamed-group cue, and NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.
 
+Current `master` also keeps the direct non-runtime kretprobe packet visible as current direct sample-root proof through directly readable paired test evidence for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+
+Keep that kretprobe packet framed as the approved in-memory handler and teardown idiom for the Phase 5 anchor:
+
+* `runAnchorReplay()` keeps skipped kernel-thread handling, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and replay `maxactive = 20` explicit
+* pre-init `retargetSymbol("do_sys_openat2")` and `retargetMaxactive(3)` stay explicit as in-memory choices, with empty-symbol and zero-value rejection, rather than as `module_param` or runtime registration parity
+* the focused test pair keeps outstanding-instance exit rejection, recovered duration `60`, `entry_stamp_ns = -1` reset, and post-exit `recordMissedInstance()` rejection explicit
+* keep `register_kretprobe`, `unregister_kretprobe`, `pt_regs or regs_return_value`, and loadable module wiring out of scope
+
 Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.
 
 ## Phase 9 runtime pilot family
