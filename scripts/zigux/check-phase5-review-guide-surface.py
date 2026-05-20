@@ -12,6 +12,8 @@ APPROVED_IDIOM_PATH = Path("Documentation/zigux/phase5-trace-events-approved-idi
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_ROOT_PATH = Path("scripts/zigux/README.md")
 TESTS_ROOT_PATH = Path("zigux/tests/README.md")
+LANE_SEQUENCING_PATH = Path("Documentation/zigux/phase5-sample-lane-sequencing.md")
+SAMPLE_ROOT_PATH = Path("samples/zigux/README.md")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -132,6 +134,18 @@ TESTS_ROOT_REQUIRED_TEXT = (
     "Tests-root reviewer prompt:",
 )
 
+LANE_SEQUENCING_REQUIRED_TEXT = (
+    "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
+    "Keep shared contributor guidance honest about that mixed tree-visible-versus-authenticated-readback split instead of repeating older split-readback wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
+    "The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without flattening the narrower trace-events formatting packet, collapsing the still-visible kobject packet into repo absence, or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.",
+)
+
+SAMPLE_ROOT_REQUIRED_TEXT = (
+    "The same mixed reread also kept the roadmap-backed `kobject` packet split explicit in this runtime: authenticated contents readback again directly returned `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while fresh public-tree readback still carried `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` as the current companion-evidence pair.",
+    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` stay public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly. Keep shared contributor guidance honest about that split-readback packet instead of repeating the older kobject-reread-needed sample-root wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
+    "For the trace-events anchor, current `master` still keeps the direct non-runtime evidence narrowed to the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet carried by `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as repo-reality-gap, historical-support, or public-tree-backed companion references until a fresh authenticated reread proves they returned directly. Keep the shared `zigux/tests/phase5_build.zig` route framed as current public-tree-backed companion evidence rather than direct authenticated proof.",
+)
+
 APPROVED_IDIOM_REQUIRED_PATHS = (
     "samples/trace_events/trace-events-sample.c",
     "samples/zigux/trace_events_string_formatting_sample.zig",
@@ -207,6 +221,8 @@ def collect_failures(root: Path) -> list[str]:
     review_checklist = _read(root / REVIEW_CHECKLIST_PATH)
     scripts_root = _read(root / SCRIPTS_ROOT_PATH)
     tests_root = _read(root / TESTS_ROOT_PATH)
+    lane_sequencing = _read(root / LANE_SEQUENCING_PATH)
+    sample_root = _read(root / SAMPLE_ROOT_PATH)
     failures: list[str] = []
 
     for marker in REQUIRED_TEXT:
@@ -236,6 +252,14 @@ def collect_failures(root: Path) -> list[str]:
     for marker in TESTS_ROOT_REQUIRED_TEXT:
         if marker not in tests_root:
             failures.append(f"tests_root:missing_text:{marker}")
+
+    for marker in LANE_SEQUENCING_REQUIRED_TEXT:
+        if marker not in lane_sequencing:
+            failures.append(f"lane_sequencing:missing_text:{marker}")
+
+    for marker in SAMPLE_ROOT_REQUIRED_TEXT:
+        if marker not in sample_root:
+            failures.append(f"sample_root:missing_text:{marker}")
 
     for marker in BYTESTREAM_CONTRACT_MARKERS:
         if marker not in guide:
@@ -336,6 +360,14 @@ def _sample_tests_root() -> str:
     return "\n".join(("# zigux/tests", "", *TESTS_ROOT_REQUIRED_TEXT)) + "\n"
 
 
+def _sample_lane_sequencing() -> str:
+    return "\n".join(("# Phase 5 Sample Lane Sequencing", "", *LANE_SEQUENCING_REQUIRED_TEXT)) + "\n"
+
+
+def _sample_sample_root() -> str:
+    return "\n".join(("# samples/zigux", "", *SAMPLE_ROOT_REQUIRED_TEXT)) + "\n"
+
+
 def _seed(root: Path) -> None:
     _write(root / GUIDE_PATH, _sample_guide())
     _write(root / DOCS_ROOT_PATH, _sample_docs_root())
@@ -343,6 +375,8 @@ def _seed(root: Path) -> None:
     _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
     _write(root / SCRIPTS_ROOT_PATH, _sample_scripts_root())
     _write(root / TESTS_ROOT_PATH, _sample_tests_root())
+    _write(root / LANE_SEQUENCING_PATH, _sample_lane_sequencing())
+    _write(root / SAMPLE_ROOT_PATH, _sample_sample_root())
     for rel in DIRECT_PACKET_PATHS + KOBJECT_DIRECT_PACKET_PATHS + KOBJECT_PUBLIC_TREE_PACKET_PATHS:
         if Path(rel) in {
             GUIDE_PATH,
@@ -351,6 +385,8 @@ def _seed(root: Path) -> None:
             REVIEW_CHECKLIST_PATH,
             SCRIPTS_ROOT_PATH,
             TESTS_ROOT_PATH,
+            LANE_SEQUENCING_PATH,
+            SAMPLE_ROOT_PATH,
         }:
             continue
         _write(root / rel, "present\n")
@@ -358,7 +394,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 14
+    expected_case_count = 16
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -506,6 +542,30 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-tests-root-marker failure: {failures}")
         checks_run += 1
 
+        missing_lane_sequencing_marker_root = root / "missing_lane_sequencing_marker"
+        _seed(missing_lane_sequencing_marker_root)
+        _write(
+            missing_lane_sequencing_marker_root / LANE_SEQUENCING_PATH,
+            _sample_lane_sequencing().replace(LANE_SEQUENCING_REQUIRED_TEXT[0], "", 1),
+        )
+        failures = collect_failures(missing_lane_sequencing_marker_root)
+        expected = [f"lane_sequencing:missing_text:{LANE_SEQUENCING_REQUIRED_TEXT[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-lane-sequencing-marker failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_marker_root = root / "missing_sample_root_marker"
+        _seed(missing_sample_root_marker_root)
+        _write(
+            missing_sample_root_marker_root / SAMPLE_ROOT_PATH,
+            _sample_sample_root().replace(SAMPLE_ROOT_REQUIRED_TEXT[1], "", 1),
+        )
+        failures = collect_failures(missing_sample_root_marker_root)
+        expected = [f"sample_root:missing_text:{SAMPLE_ROOT_REQUIRED_TEXT[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-sample-root-marker failure: {failures}")
+        checks_run += 1
+
         missing_scripts_root_file = root / "missing_scripts_root_file"
         _seed(missing_scripts_root_file)
         (missing_scripts_root_file / SCRIPTS_ROOT_PATH).unlink()
@@ -552,6 +612,8 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_REVIEW_CHECKLIST_REQUIRED_TEXT_COUNT={len(REVIEW_CHECKLIST_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_SCRIPTS_ROOT_REQUIRED_TEXT_COUNT={len(SCRIPTS_ROOT_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_TESTS_ROOT_REQUIRED_TEXT_COUNT={len(TESTS_ROOT_REQUIRED_TEXT)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_LANE_SEQUENCING_REQUIRED_TEXT_COUNT={len(LANE_SEQUENCING_REQUIRED_TEXT)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_SAMPLE_ROOT_REQUIRED_TEXT_COUNT={len(SAMPLE_ROOT_REQUIRED_TEXT)}")
     return 0
 
 
