@@ -61,6 +61,17 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-perf",
 ]
+EXPECTED_HEXDUMP_PERF_CASES = [
+    {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
+    {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
+]
+EXPECTED_HEXDUMP_RERUN_ROUTES = [
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
 EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
 EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
 EXPECTED_CHECKSUM_RERUN_ROUTES = [
@@ -85,7 +96,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 15
 
 
 class ValidationError(RuntimeError):
@@ -177,6 +188,13 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 hexdump perf-matrix preflight mismatch")
     if hexdump.get("current_review_posture") != EXPECTED_HEXDUMP_REVIEW_POSTURE:
         raise ValidationError("phase6 hexdump review posture mismatch")
+    hexdump_perf = hexdump.get("current_perf_evidence")
+    if not isinstance(hexdump_perf, dict):
+        raise ValidationError("phase6 hexdump perf evidence missing")
+    if hexdump_perf.get("cases") != EXPECTED_HEXDUMP_PERF_CASES:
+        raise ValidationError("phase6 hexdump perf cases mismatch")
+    if hexdump_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
+        raise ValidationError("phase6 hexdump perf rerun routes mismatch")
 
     require_list_contains(
         manifest.get("current_repo_reality_gaps"),
@@ -233,6 +251,10 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": [EXPECTED_HEXDUMP_CHECKER],
                         "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
                         "current_review_posture": EXPECTED_HEXDUMP_REVIEW_POSTURE,
+                        "current_perf_evidence": {
+                            "cases": EXPECTED_HEXDUMP_PERF_CASES,
+                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES,
+                        },
                     },
                 ],
             },
@@ -261,9 +283,9 @@ def expect_failure(root: Path, path: Path, mutate) -> None:
         validate(root)
     except ValidationError:
         return
-    raise AssertionError("expected validation failure")
     finally:
         write(path, original)
+    raise AssertionError("expected validation failure")
 
 
 def run_self_test() -> None:
@@ -291,6 +313,10 @@ def run_self_test() -> None:
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-checksum-perf")))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["cases"][3].update({"max_slowdown_pct": 601})))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-hexdump-perf")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("Documentation/zigux/phase6-hexdump-perf-refresh.md")))
         cases_run += 1
