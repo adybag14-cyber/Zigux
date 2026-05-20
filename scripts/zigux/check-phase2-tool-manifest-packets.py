@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -99,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 80
+EXPECTED_SELF_TEST_CASE_COUNT = 82
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -392,6 +394,12 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def emit_note(note: str) -> int:
+    print("PHASE2_TOOL_MANIFEST_PACKETS=fail")
+    print(f"PHASE2_TOOL_MANIFEST_PACKETS_NOTE={note}")
+    return 1
+
+
 def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
@@ -466,6 +474,28 @@ def assert_system_exit_contains(callback, expected_fragment: str) -> None:
         assert expected_fragment in str(exc), str(exc)
         return
     raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
+def run_checker(root: Path) -> int:
+    try:
+        issues = collect_issues(root)
+    except SystemExit as exc:
+        return emit_note(str(exc))
+
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
+    print(f"PHASE2_TOOL_MANIFEST_PRESENT_COUNT={len(EXPECTED_PRESENT_FILES)}")
+    print(f"PHASE2_TOOL_MANIFEST_MISSING_COUNT={len(EXPECTED_MISSING_FILES)}")
+    return 0
+
+
+def capture_run_checker(root: Path) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = run_checker(root)
+    return result, stdout.getvalue()
 
 
 def run_self_test() -> int:
@@ -795,6 +825,25 @@ def run_self_test() -> int:
         assert_system_exit_contains(lambda: collect_issues(root), "manifest is not an object:")
         checks_run += 1
 
+        build_self_test_root(root)
+        unreadable = resolve_path(root, CLOSURE_DOC)
+        unreadable.unlink()
+        unreadable.mkdir(parents=True)
+        result, output = capture_run_checker(root)
+        assert result == 1
+        assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output
+        assert "PHASE2_TOOL_MANIFEST_PACKETS_NOTE=required file unreadable:" in output
+        unreadable.rmdir()
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "{\n")
+        result, output = capture_run_checker(root)
+        assert result == 1
+        assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output
+        assert "PHASE2_TOOL_MANIFEST_PACKETS_NOTE=manifest is not valid json:" in output
+        checks_run += 1
+
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT={checks_run}")
@@ -810,14 +859,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root)
-    if issues:
-        return emit_issues(issues)
-
-    print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print(f"PHASE2_TOOL_MANIFEST_PRESENT_COUNT={len(EXPECTED_PRESENT_FILES)}")
-    print(f"PHASE2_TOOL_MANIFEST_MISSING_COUNT={len(EXPECTED_MISSING_FILES)}")
-    return 0
+    return run_checker(args.root)
 
 
 if __name__ == "__main__":
