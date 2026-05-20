@@ -15,6 +15,7 @@ FIXTURE_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
+PARITY_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -27,6 +28,7 @@ REQUIRED_FILES = [
     SLICE_PATH,
     EVIDENCE_CATALOG_PATH,
     EVIDENCE_MANIFEST_PATH,
+    PARITY_CATALOG_PATH,
     PARITY_MANIFEST_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
@@ -42,17 +44,18 @@ REQUIRED_SNIPPETS = {
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 checksum carry helpers preserve one\'s-complement replacement behavior" {',
-        'test "phase 6 checksum pseudo-header helpers match direct accumulation" {',
-        'test "phase 6 checksum ip fast path stays aligned with full compute for aligned headers" {',
+        'test "phase 6 checksum pseudo-header helpers match direct reference accumulation" {',
+        'test "phase 6 checksum fast-path fixtures stay aligned with focused correctness replay" {',
         "checksum.tcpUdpMagic(",
         "checksum.tcpUdpV6Magic(",
-        "checksum.ipFastCsum(header)",
+        "checksum.ipFastCsum(case.header)",
     ],
     PERF_PATH: [
         '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150,',
         '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150,',
         '.{ .label = "IPV4_20B", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100,',
         '.{ .label = "IPV4_24B", .len = 24, .iterations = 500_000, .max_slowdown_pct = 100,',
+        '.{ .label = "IPV4_60B", .len = 60, .iterations = 250_000, .max_slowdown_pct = 100,',
         'std.debug.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
         'std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT={d}\\n", .{fixtures.fast_path_cases.len});',
     ],
@@ -61,11 +64,12 @@ REQUIRED_SNIPPETS = {
         '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
         '.{ .label = "IPV4_20B", .header = &ip_fast_csum_ipv4_20b, .iterations = 600_000, .max_slowdown_pct = 100 },',
         '.{ .label = "IPV4_24B", .header = &ip_fast_csum_ipv4_24b, .iterations = 500_000, .max_slowdown_pct = 100 },',
+        '.{ .label = "IPV4_60B", .header = &ip_fast_csum_ipv4_60b, .iterations = 250_000, .max_slowdown_pct = 100 },',
     ],
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
         "- scope: checksum helper parity and perf evidence already shipped on current `master`",
-        "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B` and `IPV4_24B` aligned-header cases that compare the fast path directly against `compute()`",
+        "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B`, `IPV4_24B`, and `IPV4_60B` aligned-header cases that compare the fast path directly against `compute()`",
         "- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, and `ipFastCsum`",
         "- a restored direct C-vs-Zig parity checker on current `master`",
     ],
@@ -78,10 +82,19 @@ REQUIRED_SNIPPETS = {
         "- committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
         "- current review posture: direct helper-local evidence is readable again through `lib/checksum.zig`",
-        "- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`.",
-        "- `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`",
-        "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
-        "- `make -C zigux phase6-checksum-perf`",
+        "- current perf packet now keeps both the payload slowdown matrix and the `checksum.ipFastCsum` IPv4 fast-path matrix explicit",
+        "`make -C zigux phase6-checksum-perf-matrix-test`",
+        "`make -C zigux phase6-checksum-perf`",
+        "`make -C zigux phase6-perf`",
+    ],
+    PARITY_CATALOG_PATH: [
+        "### checksum",
+        "- roadmap anchor: `lib/checksum.c`",
+        "- landed Zig helper: `lib/checksum.zig`",
+        "- focused helper replay: `zigux/tests/phase6_checksum.zig`",
+        "- helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+        "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+        "- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, checker, and slice note, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence",
     ],
     BUILD_PATH: [
         '.name = "phase6-checksum-perf",',
@@ -94,13 +107,17 @@ REQUIRED_SNIPPETS = {
         "phase6-checksum-test:",
         "phase6-checksum-perf-matrix-test:",
         "phase6-checksum-perf:",
+        "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
         "$(ZIG) build phase6-checksum-test --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
         "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
     ],
 }
 
-EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
+REQUIRED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -108,6 +125,24 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+]
+
+REQUIRED_PARITY_DIRECT_EVIDENCE = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+]
+
+EXPECTED_PUBLIC_TREE_COMPANIONS = [
+    "Documentation/zigux/phase6-perf-gate-survey.md",
 ]
 
 EXPECTED_CHECKSUM_MISSING_COMPANIONS = [
@@ -116,32 +151,35 @@ EXPECTED_CHECKSUM_MISSING_COMPANIONS = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-EXPECTED_SHARED_REALITY_GAPS = [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md",
+REQUIRED_SHARED_REALITY_GAPS = [
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-EXPECTED_SHARED_REPLAY_ROUTES = [
+REQUIRED_SHARED_REPLAY_ROUTES = [
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-perf",
 ]
 
-EXPECTED_PARITY_PUBLIC_TREE_COMPANIONS = [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md",
+EXPECTED_CHECKSUM_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
 ]
 
-EXPECTED_PARITY_CASES = [
+EXPECTED_PAYLOAD_CASE_LABELS = ["64B", "1501B"]
+EXPECTED_FAST_PATH_CASE_LABELS = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
+EXPECTED_PERF_CASES = [
     {"label": "64B", "iterations": 200000, "max_slowdown_pct": 150},
     {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150},
 ]
-
-EXPECTED_PARITY_ROUTE_TAIL = [
+EXPECTED_LINUX_STYLE_RERUN_ROUTES = [
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-perf",
@@ -175,14 +213,90 @@ def require_manifest_item(items: list[object], expected: str, field: str) -> Non
         raise ValidationError(f"{field} contains {expected}")
 
 
-def find_helper_row(manifest: dict[str, object], key: str) -> dict[str, object]:
+def require_manifest_items(items: object, expected_items: list[str], field: str) -> None:
+    if not isinstance(items, list):
+        raise ValidationError(f"{field} list")
+    for item in expected_items:
+        require_manifest_item(items, item, field)
+
+
+def find_helper_row(manifest: dict[str, object], key: str, manifest_path: Path) -> dict[str, object]:
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
-        raise ValidationError("helpers list missing")
+        raise ValidationError(f"{manifest_path.as_posix()}: helpers list")
     for helper in helpers:
         if isinstance(helper, dict) and helper.get("key") == key:
             return helper
-    raise ValidationError(f"helpers contains {key} row")
+    raise ValidationError(f"{manifest_path.as_posix()}: helpers contains {key} row")
+
+
+def require_exact(value: object, expected: object, field: str) -> None:
+    if value != expected:
+        raise ValidationError(f"{field} exact match")
+
+
+def validate_checksum_helper_row(
+    helper: dict[str, object],
+    field_prefix: str,
+    *,
+    require_checker_surfaces: bool,
+    require_perf_cases: bool,
+) -> None:
+    expected_fields = {
+        "roadmap_anchor": "lib/checksum.c",
+        "zig_helper": "lib/checksum.zig",
+        "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
+        "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
+        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+        "current_review_posture": "direct-helper-readback-restored",
+    }
+    for key, expected in expected_fields.items():
+        if helper.get(key) != expected:
+            raise ValidationError(f"{field_prefix}.{key}={expected}")
+
+    require_exact(
+        helper.get("fixture_surfaces"),
+        ["zigux/tests/fixtures/phase6_checksum_vectors.zig"],
+        f"{field_prefix}.fixture_surfaces",
+    )
+    require_exact(
+        helper.get("still_missing_direct_companions"),
+        EXPECTED_CHECKSUM_MISSING_COMPANIONS,
+        f"{field_prefix}.still_missing_direct_companions",
+    )
+
+    if require_checker_surfaces:
+        require_exact(
+            helper.get("checker_surfaces"),
+            EXPECTED_CHECKSUM_CHECKER_SURFACES,
+            f"{field_prefix}.checker_surfaces",
+        )
+
+    perf = helper.get("current_perf_evidence")
+    if not isinstance(perf, dict):
+        raise ValidationError(f"{field_prefix}.current_perf_evidence object")
+
+    require_exact(
+        perf.get("payload_case_labels"),
+        EXPECTED_PAYLOAD_CASE_LABELS,
+        f"{field_prefix}.current_perf_evidence.payload_case_labels",
+    )
+    require_exact(
+        perf.get("ipv4_fast_path_case_labels"),
+        EXPECTED_FAST_PATH_CASE_LABELS,
+        f"{field_prefix}.current_perf_evidence.ipv4_fast_path_case_labels",
+    )
+    require_manifest_items(
+        perf.get("linux_style_rerun_routes"),
+        EXPECTED_LINUX_STYLE_RERUN_ROUTES,
+        f"{field_prefix}.current_perf_evidence.linux_style_rerun_routes",
+    )
+    if require_perf_cases:
+        require_exact(
+            perf.get("cases"),
+            EXPECTED_PERF_CASES,
+            f"{field_prefix}.current_perf_evidence.cases",
+        )
 
 
 def validate_evidence_manifest(repo_root: Path) -> None:
@@ -195,44 +309,34 @@ def validate_evidence_manifest(repo_root: Path) -> None:
     if manifest.get("packet") != "phase6-helper-evidence":
         raise ValidationError(f"{EVIDENCE_MANIFEST_PATH.as_posix()}: packet=phase6-helper-evidence")
 
-    direct_companions = manifest.get("current_direct_readback_companions")
-    if direct_companions != EXPECTED_EVIDENCE_DIRECT_COMPANIONS:
-        raise ValidationError(
-            f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_direct_readback_companions exact match"
-        )
+    require_manifest_items(
+        manifest.get("current_direct_readback_companions"),
+        REQUIRED_EVIDENCE_DIRECT_COMPANIONS,
+        f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_direct_readback_companions",
+    )
+    require_manifest_items(
+        manifest.get("public_tree_backed_shared_companions"),
+        EXPECTED_PUBLIC_TREE_COMPANIONS,
+        f"{EVIDENCE_MANIFEST_PATH.as_posix()}: public_tree_backed_shared_companions",
+    )
+    require_manifest_items(
+        manifest.get("current_repo_reality_gaps"),
+        REQUIRED_SHARED_REALITY_GAPS,
+        f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_repo_reality_gaps",
+    )
+    require_manifest_items(
+        manifest.get("current_shared_replay_inventory"),
+        REQUIRED_SHARED_REPLAY_ROUTES,
+        f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_shared_replay_inventory",
+    )
 
-    gaps = manifest.get("current_repo_reality_gaps")
-    if not isinstance(gaps, list):
-        raise ValidationError(f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_repo_reality_gaps list")
-    for item in EXPECTED_SHARED_REALITY_GAPS:
-        require_manifest_item(gaps, item, f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_repo_reality_gaps")
-
-    inventory = manifest.get("current_shared_replay_inventory")
-    if not isinstance(inventory, list):
-        raise ValidationError(f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_shared_replay_inventory list")
-    for route in EXPECTED_SHARED_REPLAY_ROUTES:
-        require_manifest_item(inventory, route, f"{EVIDENCE_MANIFEST_PATH.as_posix()}: current_shared_replay_inventory")
-
-    checksum = find_helper_row(manifest, "checksum")
-    expected_fields = {
-        "roadmap_anchor": "lib/checksum.c",
-        "zig_helper": "lib/checksum.zig",
-        "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
-        "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
-        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
-        "current_review_posture": "direct-helper-readback-restored",
-    }
-    for key, expected in expected_fields.items():
-        if checksum.get(key) != expected:
-            raise ValidationError(f"{EVIDENCE_MANIFEST_PATH.as_posix()}: checksum.{key}={expected}")
-    if checksum.get("fixture_surfaces") != ["zigux/tests/fixtures/phase6_checksum_vectors.zig"]:
-        raise ValidationError(
-            f"{EVIDENCE_MANIFEST_PATH.as_posix()}: checksum.fixture_surfaces exact match"
-        )
-    if checksum.get("still_missing_direct_companions") != EXPECTED_CHECKSUM_MISSING_COMPANIONS:
-        raise ValidationError(
-            f"{EVIDENCE_MANIFEST_PATH.as_posix()}: checksum.still_missing_direct_companions exact match"
-        )
+    checksum = find_helper_row(manifest, "checksum", manifest_path)
+    validate_checksum_helper_row(
+        checksum,
+        f"{EVIDENCE_MANIFEST_PATH.as_posix()}: checksum",
+        require_checker_surfaces=True,
+        require_perf_cases=False,
+    )
 
 
 def validate_parity_manifest(repo_root: Path) -> None:
@@ -244,48 +348,30 @@ def validate_parity_manifest(repo_root: Path) -> None:
 
     if manifest.get("packet") != "phase6-helper-parity":
         raise ValidationError(f"{PARITY_MANIFEST_PATH.as_posix()}: packet=phase6-helper-parity")
-    if manifest.get("public_tree_backed_shared_companions") != EXPECTED_PARITY_PUBLIC_TREE_COMPANIONS:
-        raise ValidationError(
-            f"{PARITY_MANIFEST_PATH.as_posix()}: public_tree_backed_shared_companions exact match"
-        )
 
-    checksum = find_helper_row(manifest, "checksum")
-    expected_fields = {
-        "roadmap_anchor": "lib/checksum.c",
-        "zig_helper": "lib/checksum.zig",
-        "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
-        "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
-        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
-        "current_review_posture": "direct-helper-readback-restored",
-    }
-    for key, expected in expected_fields.items():
-        if checksum.get(key) != expected:
-            raise ValidationError(f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.{key}={expected}")
-    if checksum.get("fixture_surfaces") != ["zigux/tests/fixtures/phase6_checksum_vectors.zig"]:
-        raise ValidationError(
-            f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.fixture_surfaces exact match"
-        )
-    if checksum.get("still_missing_direct_companions") != EXPECTED_CHECKSUM_MISSING_COMPANIONS:
-        raise ValidationError(
-            f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.still_missing_direct_companions exact match"
-        )
+    require_manifest_items(
+        manifest.get("shared_direct_evidence"),
+        REQUIRED_PARITY_DIRECT_EVIDENCE,
+        f"{PARITY_MANIFEST_PATH.as_posix()}: shared_direct_evidence",
+    )
+    require_manifest_items(
+        manifest.get("public_tree_backed_shared_companions"),
+        EXPECTED_PUBLIC_TREE_COMPANIONS,
+        f"{PARITY_MANIFEST_PATH.as_posix()}: public_tree_backed_shared_companions",
+    )
+    require_exact(
+        manifest.get("shared_follow_through_gaps"),
+        [],
+        f"{PARITY_MANIFEST_PATH.as_posix()}: shared_follow_through_gaps",
+    )
 
-    perf = checksum.get("current_perf_evidence")
-    if not isinstance(perf, dict):
-        raise ValidationError(f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.current_perf_evidence object")
-    if perf.get("cases") != EXPECTED_PARITY_CASES:
-        raise ValidationError(f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.current_perf_evidence.cases exact match")
-    routes = perf.get("linux_style_rerun_routes")
-    if not isinstance(routes, list):
-        raise ValidationError(
-            f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.current_perf_evidence.linux_style_rerun_routes list"
-        )
-    for route in EXPECTED_PARITY_ROUTE_TAIL:
-        require_manifest_item(
-            routes,
-            route,
-            f"{PARITY_MANIFEST_PATH.as_posix()}: checksum.current_perf_evidence.linux_style_rerun_routes",
-        )
+    checksum = find_helper_row(manifest, "checksum", manifest_path)
+    validate_checksum_helper_row(
+        checksum,
+        f"{PARITY_MANIFEST_PATH.as_posix()}: checksum",
+        require_checker_surfaces=False,
+        require_perf_cases=True,
+    )
 
 
 def validate(repo_root: Path) -> None:
@@ -312,7 +398,8 @@ def scaffold_repo(root: Path) -> None:
         json.dumps(
             {
                 "packet": "phase6-helper-evidence",
-                "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
+                "current_direct_readback_companions": REQUIRED_EVIDENCE_DIRECT_COMPANIONS,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "helpers": [
                     {"key": "base64"},
                     {"key": "bsearch"},
@@ -323,14 +410,20 @@ def scaffold_repo(root: Path) -> None:
                         "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
                         "fixture_surfaces": ["zigux/tests/fixtures/phase6_checksum_vectors.zig"],
+                        "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
                         "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
                         "current_review_posture": "direct-helper-readback-restored",
                         "still_missing_direct_companions": EXPECTED_CHECKSUM_MISSING_COMPANIONS,
+                        "current_perf_evidence": {
+                            "payload_case_labels": EXPECTED_PAYLOAD_CASE_LABELS,
+                            "ipv4_fast_path_case_labels": EXPECTED_FAST_PATH_CASE_LABELS,
+                            "linux_style_rerun_routes": EXPECTED_LINUX_STYLE_RERUN_ROUTES,
+                        },
                     },
                     {"key": "hexdump"},
                 ],
-                "current_repo_reality_gaps": EXPECTED_SHARED_REALITY_GAPS,
-                "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_ROUTES,
+                "current_repo_reality_gaps": REQUIRED_SHARED_REALITY_GAPS,
+                "current_shared_replay_inventory": REQUIRED_SHARED_REPLAY_ROUTES,
             },
             indent=2,
         )
@@ -342,7 +435,8 @@ def scaffold_repo(root: Path) -> None:
         json.dumps(
             {
                 "packet": "phase6-helper-parity",
-                "public_tree_backed_shared_companions": EXPECTED_PARITY_PUBLIC_TREE_COMPANIONS,
+                "shared_direct_evidence": REQUIRED_PARITY_DIRECT_EVIDENCE,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "helpers": [
                     {"key": "base64"},
                     {"key": "bsearch"},
@@ -357,12 +451,15 @@ def scaffold_repo(root: Path) -> None:
                         "current_review_posture": "direct-helper-readback-restored",
                         "still_missing_direct_companions": EXPECTED_CHECKSUM_MISSING_COMPANIONS,
                         "current_perf_evidence": {
-                            "cases": EXPECTED_PARITY_CASES,
-                            "linux_style_rerun_routes": EXPECTED_PARITY_ROUTE_TAIL,
+                            "cases": EXPECTED_PERF_CASES,
+                            "payload_case_labels": EXPECTED_PAYLOAD_CASE_LABELS,
+                            "ipv4_fast_path_case_labels": EXPECTED_FAST_PATH_CASE_LABELS,
+                            "linux_style_rerun_routes": EXPECTED_LINUX_STYLE_RERUN_ROUTES,
                         },
                     },
                     {"key": "hexdump"},
                 ],
+                "shared_follow_through_gaps": [],
             },
             indent=2,
         )
@@ -392,15 +489,15 @@ def run_self_test() -> None:
 
         cases = [
             (
-                root / HELPER_PATH,
-                "pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {\n",
+                root / HELPER_TEST_PATH,
+                'test "phase 6 checksum pseudo-header helpers match direct reference accumulation" {\n',
                 "",
                 "missing expected checksum packet marker",
             ),
             (
-                root / MAKEFILE_PATH,
-                "phase6-checksum-perf:\n",
-                "phase6-checksum-fast:\n",
+                root / PERF_PATH,
+                '.{ .label = "IPV4_60B", .len = 60, .iterations = 250_000, .max_slowdown_pct = 100,\n',
+                "",
                 "missing expected checksum packet marker",
             ),
             (
@@ -411,15 +508,15 @@ def run_self_test() -> None:
             ),
             (
                 root / EVIDENCE_MANIFEST_PATH,
-                '"Documentation/zigux/phase6-perf-gate-survey.md"',
-                '"Documentation/zigux/not-the-perf-gate-survey.md"',
-                "current_repo_reality_gaps contains Documentation/zigux/phase6-perf-gate-survey.md",
+                '"make -C zigux phase6-checksum-perf-matrix-test"',
+                '"make -C zigux phase6-checksum-fast-matrix-test"',
+                "checksum.current_perf_evidence.linux_style_rerun_routes contains make -C zigux phase6-checksum-perf-matrix-test",
             ),
             (
                 root / PARITY_MANIFEST_PATH,
-                '"make -C zigux phase6-checksum-perf"',
-                '"make -C zigux phase6-checksum-fast"',
-                "linux_style_rerun_routes contains make -C zigux phase6-checksum-perf",
+                '"IPV4_60B"',
+                '"IPV4_61B"',
+                "checksum.current_perf_evidence.ipv4_fast_path_case_labels exact match",
             ),
         ]
         for path, old, new, expected in cases:
