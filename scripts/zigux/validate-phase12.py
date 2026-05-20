@@ -287,6 +287,16 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    RELEASE_CLOSURE_CHECKLIST_PATH: {
+        "The directly readable validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` here only as reminder-only wrapper vocabulary until `zigux/Makefile` rematerializes that route on current `master`.": 1,
+        "The shared build-and-make replay path stays visible through `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, while current `zigux/Makefile` now keeps `phase12-smoke`, `phase12-test`, and `phase12` explicit as shipped wrapper evidence and still omits `phase12-validate`.": 1,
+    },
+    RELEASE_COORDINATION_MATRIX_PATH: {
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
+    },
+}
+
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: [
         "phase12-validate:",
@@ -319,6 +329,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker not in text:
                 drift.append(f"missing_marker:{rel_path}:{marker}")
+    for rel_path, markers in EXACT_COUNT_MARKERS.items():
+        text = (root / rel_path).read_text(encoding="utf-8")
+        for marker, expected_count in markers.items():
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                drift.append(
+                    "wrong_count:"
+                    f"{rel_path}:{marker}:expected={expected_count}:actual={actual_count}"
+                )
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         for marker in markers:
@@ -487,6 +506,20 @@ def run_self_test() -> int:
             remove_marker(base / rel_path, marker)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
+        exact_count_cases = [
+            (rel_path, marker, expected_count)
+            for rel_path, markers in EXACT_COUNT_MARKERS.items()
+            for marker, expected_count in markers.items()
+        ]
+        for rel_path, marker, expected_count in exact_count_cases:
+            write_fixture_root(base)
+            add_forbidden_marker(base / rel_path, marker)
+            expect_failure(
+                base,
+                "wrong_count:"
+                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}",
+            )
+
         forbidden_cases = [
             (rel_path, marker)
             for rel_path, markers in FORBIDDEN_MARKERS.items()
@@ -497,7 +530,12 @@ def run_self_test() -> int:
             add_forbidden_marker(base / rel_path, marker)
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
-        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
+        case_count = (
+            len(missing_file_cases)
+            + len(marker_cases)
+            + len(exact_count_cases)
+            + len(forbidden_cases)
+        )
         print("PHASE12_VALIDATOR_SELF_TEST=pass")
         print(f"PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
         return 0
@@ -548,6 +586,10 @@ def main() -> int:
     print("PHASE12_VALIDATION=pass")
     print(f"PHASE12_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print("PHASE12_REQUIRED_MARKER_COUNT=" f"{sum(len(v) for v in REQUIRED_MARKERS.values())}")
+    print(
+        "PHASE12_EXACT_COUNT_MARKER_COUNT="
+        f"{sum(len(v) for v in EXACT_COUNT_MARKERS.values())}"
+    )
     print("PHASE12_FORBIDDEN_MARKER_COUNT=" f"{sum(len(v) for v in FORBIDDEN_MARKERS.values())}")
     return 0
 
