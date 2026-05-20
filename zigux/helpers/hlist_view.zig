@@ -419,6 +419,34 @@ test "hlist view fails closed for a self-looped first node" {
     try std.testing.expect(!view.hasConsistentPrevLinks());
 }
 
+test "hlist view reports an immediate malformed prev-link before a self-loop revisit" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = @intFromPtr(&node);
+    node.pprev = 0;
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
+    try std.testing.expect(!view.firstPprevMatchesHead());
+    try std.testing.expect(!view.tailNextIsNull());
+    try std.testing.expect(view.hasCycle());
+
+    const witness = view.firstCycleWitness().?;
+    try std.testing.expectEqual(@as(usize, 1), witness.slow_index);
+    try std.testing.expectEqual(@as(usize, 2), witness.fast_index);
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_pprev);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+}
+
 test "hlist view first prev-link witness fails closed on a consistent malformed cycle" {
     var head = HListHead{ .first = 0 };
     var first = HListNode{ .next = 0, .pprev = 0 };
