@@ -135,7 +135,7 @@ SAMPLES_README_REQUIRED_MARKERS = [
     "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
     "balanced function-thread registration reusable before and after selftest",
     "balanced registration re-entry companion across the initialized and selftest_complete stages",
-    "direct authenticated contents reads still return missing for `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json`, while the same trusted reread still materializes `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and `zigux/tests/phase9_build.zig`",
+    "direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` still remain absent on the same trusted path",
     "Keep that partial bitmap reminder packet framed as a separate Phase 9 runtime family reminder rather than as direct proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
     "does not currently expose the broader shared runtime-loader packet",
     PHASE2_CONF_BRIDGE_MARKER,
