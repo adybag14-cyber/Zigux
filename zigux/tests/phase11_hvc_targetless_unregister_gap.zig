@@ -31,4 +31,11 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
 
     try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");
     try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");
+
+    const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");
+    defer std.testing.allocator.free(companion);
+
+    try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
+    try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
+    try expectContains(companion, "standalone targetless-unregister witness");
 }
