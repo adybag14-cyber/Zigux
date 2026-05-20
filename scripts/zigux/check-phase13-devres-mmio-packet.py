@@ -13,6 +13,7 @@ SCATTERLIST_SLICE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-sl
 PLANNER_MANIFEST_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json")
 PLANNER_REPLAY_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
+HELPER_PATH = Path("lib/devres.zig")
 SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
 SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
 SCATTERLIST_BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
@@ -25,6 +26,7 @@ REQUIRED_FILES = [
     PLANNER_MANIFEST_PATH,
     PLANNER_REPLAY_PATH,
     DMA_REPLAY_PATH,
+    HELPER_PATH,
     SCATTERLIST_HELPER_PATH,
     SCATTERLIST_REPLAY_PATH,
     SCATTERLIST_BUILD_PATH,
@@ -88,7 +90,7 @@ SCATTERLIST_SLICE_MARKERS = [
     "keep one reviewable scatterlist bookkeeping foothold without widening into live DMA-backed execution or live `sg_*` traversal",
     "`DevresScatterlistHelper.descriptor()` names the same `lib/devres.c` anchor while keeping `touches_live_dma = false` and `touches_live_scatterlist = false`",
     "`planManagedScatterlistMap()` models a helper-first retained-record decision around original segment count, mapped segment count, and detach-time unmap readiness",
-    "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable",
+    "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped counts so the detach bookkeeping surface stays reviewable",
     "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
     "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
 ]
@@ -119,6 +121,23 @@ DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
     'test "phase13 devres dma coherent replay anchors the current slice reality" {',
     'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
+]
+
+HELPER_REQUIRED_MARKERS = [
+    "pub const ModuleDescriptor = struct {",
+    ".provides_dmam_alloc_coherent_planning = true",
+    ".touches_live_dma = false",
+    ".touches_live_scatterlist = false",
+    "pub fn planManagedDmamAllocCoherent",
+    "pub fn planManagedDmamFreeCoherent",
+]
+
+HELPER_FORBIDDEN_MARKERS = [
+    "devm_iounmap(",
+    "devm_ioremap_np(",
+    "devm_of_iomap(",
+    "devm_arch_phys_wc_add(",
+    "devm_arch_io_reserve_memtype_wc(",
 ]
 
 SCATTERLIST_HELPER_MARKERS = [
@@ -162,6 +181,10 @@ def collect_missing(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:missing_marker:{marker}" for marker in markers if marker not in text]
 
 
+def collect_unexpected(text: str, markers: list[str], prefix: str) -> list[str]:
+    return [f"{prefix}:unexpected_marker:{marker}" for marker in markers if marker in text]
+
+
 def validate(root: Path) -> list[str]:
     issues = [f"missing_file:{rel.as_posix()}" for rel in REQUIRED_FILES if not (root / rel).exists()]
     if issues:
@@ -175,6 +198,7 @@ def validate(root: Path) -> list[str]:
         (PLANNER_MANIFEST_PATH, PLANNER_MANIFEST_MARKERS, "planner_manifest"),
         (PLANNER_REPLAY_PATH, PLANNER_REPLAY_MARKERS, "planner_replay"),
         (DMA_REPLAY_PATH, DMA_REPLAY_MARKERS, "dma_replay"),
+        (HELPER_PATH, HELPER_REQUIRED_MARKERS, "helper"),
         (SCATTERLIST_HELPER_PATH, SCATTERLIST_HELPER_MARKERS, "scatterlist_helper"),
         (SCATTERLIST_REPLAY_PATH, SCATTERLIST_REPLAY_MARKERS, "scatterlist_replay"),
         (SCATTERLIST_BUILD_PATH, SCATTERLIST_BUILD_MARKERS, "scatterlist_build"),
@@ -182,6 +206,10 @@ def validate(root: Path) -> list[str]:
 
     for rel, markers, prefix in checks:
         issues.extend(collect_missing(read_text(root / rel), markers, prefix))
+
+    issues.extend(
+        collect_unexpected(read_text(root / HELPER_PATH), HELPER_FORBIDDEN_MARKERS, "helper_mmio_absence")
+    )
     return issues
 
 
@@ -194,6 +222,7 @@ def seed_fixture_tree(root: Path) -> None:
         PLANNER_MANIFEST_PATH: "\n".join(PLANNER_MANIFEST_MARKERS) + "\n",
         PLANNER_REPLAY_PATH: "\n".join(PLANNER_REPLAY_MARKERS) + "\n",
         DMA_REPLAY_PATH: "\n".join(DMA_REPLAY_MARKERS) + "\n",
+        HELPER_PATH: "\n".join(HELPER_REQUIRED_MARKERS) + "\n",
         SCATTERLIST_HELPER_PATH: "\n".join(SCATTERLIST_HELPER_MARKERS) + "\n",
         SCATTERLIST_REPLAY_PATH: "\n".join(SCATTERLIST_REPLAY_MARKERS) + "\n",
         SCATTERLIST_BUILD_PATH: "\n".join(SCATTERLIST_BUILD_MARKERS) + "\n",
@@ -253,14 +282,14 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SURVEY_MARKERS
-                if marker != "blocked `phase13-devres-live-sg-table-lifecycle`"
+                if marker != "blocked `phase13-devres-missing-devm-of-iomap-surface`"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["survey:missing_marker:blocked `phase13-devres-live-sg-table-lifecycle`"],
-            "survey_missing_sgtable_boundary_failed",
+            ["survey:missing_marker:blocked `phase13-devres-missing-devm-of-iomap-surface`"],
+            "survey_missing_iomap_gap_failed",
         )
         case_count += 1
 
@@ -336,6 +365,18 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / HELPER_PATH,
+            "\n".join(HELPER_REQUIRED_MARKERS + ["devm_of_iomap("]) + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper_mmio_absence:unexpected_marker:devm_of_iomap("],
+            "helper_unexpected_iomap_surface_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / SCATTERLIST_HELPER_PATH,
             "\n".join(
                 marker
@@ -397,7 +438,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current bounded Phase 13 devres MMIO, DMA, and scatterlist boundary packet."
+        description="Validate the current bounded Phase 13 devres MMIO and DMA boundary packet."
     )
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
@@ -425,6 +466,8 @@ def main() -> int:
             + len(PLANNER_MANIFEST_MARKERS)
             + len(PLANNER_REPLAY_MARKERS)
             + len(DMA_REPLAY_MARKERS)
+            + len(HELPER_REQUIRED_MARKERS)
+            + len(HELPER_FORBIDDEN_MARKERS)
             + len(SCATTERLIST_HELPER_MARKERS)
             + len(SCATTERLIST_REPLAY_MARKERS)
             + len(SCATTERLIST_BUILD_MARKERS)
