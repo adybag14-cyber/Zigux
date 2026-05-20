@@ -201,6 +201,18 @@ pub fn fetchXor(
     return @atomicRmw(T, ptr, .Xor, operand, order);
 }
 
+pub fn fetchMin(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .Min, operand, order);
+}
+
 test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
     try std.testing.expect(compareExchangeFailureOrderAllowed(.monotonic, .monotonic));
     try std.testing.expect(compareExchangeFailureOrderAllowed(.release, .monotonic));
@@ -411,4 +423,17 @@ test "phase3 atomic helper keeps fetch-xor bit toggles explicit" {
 
     try std.testing.expectError(error.InvalidRmwOrdering, fetchXor(u16, &value, 0x000F, .unordered));
     try std.testing.expectEqual(@as(u16, 0x00C3), value);
+}
+
+test "phase3 atomic helper keeps fetch-min floor updates explicit" {
+    var value: i16 = 14;
+
+    try std.testing.expectEqual(@as(i16, 14), try fetchMin(i16, &value, 9, .release));
+    try std.testing.expectEqual(@as(i16, 9), value);
+
+    try std.testing.expectEqual(@as(i16, 9), try fetchMin(i16, &value, 11, .acquire));
+    try std.testing.expectEqual(@as(i16, 9), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchMin(i16, &value, 3, .unordered));
+    try std.testing.expectEqual(@as(i16, 9), value);
 }
