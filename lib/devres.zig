@@ -30,6 +30,8 @@ pub const ManagedDmamFreeCoherentPlan = struct {
     frees_allocation: bool,
     releases_from_devres: bool,
     release_record_consumed: bool,
+    warns_on_release_miss: bool,
+    destroys_release_record_before_free: bool,
 };
 
 pub const ReleaseRecordLifetimePlan = struct {
@@ -44,6 +46,8 @@ const ReleaseCallPlan = struct {
     requested_size: u64,
     releases_from_devres: bool,
     release_record_consumed: bool,
+    warns_on_release_miss: bool,
+    destroys_release_record_before_free: bool,
 };
 
 pub const DevresHelperLab = struct {
@@ -53,12 +57,14 @@ pub const DevresHelperLab = struct {
         }
     }
 
-    fn planReleaseCall(requested_size: u64) ReleaseCallPlan {
+    fn planReleaseCall(requested_size: u64, release_record_matches: bool) ReleaseCallPlan {
         return .{
             .anchor = descriptor().anchor,
             .requested_size = requested_size,
-            .releases_from_devres = true,
-            .release_record_consumed = true,
+            .releases_from_devres = release_record_matches,
+            .release_record_consumed = release_record_matches,
+            .warns_on_release_miss = !release_record_matches,
+            .destroys_release_record_before_free = true,
         };
     }
 
@@ -109,8 +115,8 @@ pub const DevresHelperLab = struct {
         };
     }
 
-    pub fn planManagedDmamFreeCoherent(requested_size: u64) ManagedDmamFreeCoherentPlan {
-        const release_call = planReleaseCall(requested_size);
+    pub fn planManagedDmamFreeCoherent(requested_size: u64, release_record_matches: bool) ManagedDmamFreeCoherentPlan {
+        const release_call = planReleaseCall(requested_size, release_record_matches);
 
         return .{
             .anchor = release_call.anchor,
@@ -118,6 +124,8 @@ pub const DevresHelperLab = struct {
             .frees_allocation = true,
             .releases_from_devres = release_call.releases_from_devres,
             .release_record_consumed = release_call.release_record_consumed,
+            .warns_on_release_miss = release_call.warns_on_release_miss,
+            .destroys_release_record_before_free = release_call.destroys_release_record_before_free,
         };
     }
 };
@@ -187,11 +195,24 @@ test "managed allocation requires a release record" {
     }));
 }
 
-test "managed free planning consumes the devres release record" {
-    const plan = DevresHelperLab.planManagedDmamFreeCoherent(2048);
+test "managed free planning consumes the matching devres release record" {
+    const plan = DevresHelperLab.planManagedDmamFreeCoherent(2048, true);
 
     try std.testing.expectEqual(@as(u64, 2048), plan.requested_size);
     try std.testing.expect(plan.frees_allocation);
     try std.testing.expect(plan.releases_from_devres);
     try std.testing.expect(plan.release_record_consumed);
+    try std.testing.expect(!plan.warns_on_release_miss);
+    try std.testing.expect(plan.destroys_release_record_before_free);
+}
+
+test "managed free planning still frees allocations when the release record is missing" {
+    const plan = DevresHelperLab.planManagedDmamFreeCoherent(2048, false);
+
+    try std.testing.expectEqual(@as(u64, 2048), plan.requested_size);
+    try std.testing.expect(plan.frees_allocation);
+    try std.testing.expect(!plan.releases_from_devres);
+    try std.testing.expect(!plan.release_record_consumed);
+    try std.testing.expect(plan.warns_on_release_miss);
+    try std.testing.expect(plan.destroys_release_record_before_free);
 }
