@@ -47,6 +47,50 @@ pub const __sw_hweight32 = swHweight32;
 pub const __sw_hweight64 = swHweight64;
 pub const hweight_long = hweightLong;
 
+fn contiguousMask32(width: u8, start: u8, len: u8) u32 {
+    std.debug.assert(start + len <= width);
+    if (len == 0) {
+        return 0;
+    }
+
+    const right_shift: u5 = @intCast(width - len);
+    const left_shift: u5 = @intCast(start);
+    const all_bits: u32 = std.math.maxInt(u32);
+    const width_bits: u32 = if (width == 32) all_bits else all_bits >> @as(u5, @intCast(32 - width));
+    const right_trimmed: u32 = if (len == width) width_bits else width_bits >> right_shift;
+    return right_trimmed << left_shift;
+}
+
+fn contiguousMask64(width: u8, start: u8, len: u8) u64 {
+    std.debug.assert(start + len <= width);
+    if (len == 0) {
+        return 0;
+    }
+
+    const right_shift: u6 = @intCast(width - len);
+    const left_shift: u6 = @intCast(start);
+    const all_bits: u64 = std.math.maxInt(u64);
+    const width_bits: u64 = if (width == 64) all_bits else all_bits >> @as(u6, @intCast(64 - width));
+    const right_trimmed: u64 = if (len == width) width_bits else width_bits >> right_shift;
+    return right_trimmed << left_shift;
+}
+
+fn contiguousMaskLong(width: u8, start: u8, len: u8) usize {
+    std.debug.assert(start + len <= width);
+    if (len == 0) {
+        return 0;
+    }
+
+    const Shift = if (@sizeOf(usize) == 4) u5 else u6;
+    const right_shift: Shift = @intCast(width - len);
+    const left_shift: Shift = @intCast(start);
+    const all_bits: usize = std.math.maxInt(usize);
+    const total_width: u8 = @bitSizeOf(usize);
+    const width_bits: usize = if (width == total_width) all_bits else all_bits >> @as(Shift, @intCast(total_width - width));
+    const right_trimmed: usize = if (len == width) width_bits else width_bits >> right_shift;
+    return right_trimmed << left_shift;
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -91,4 +135,57 @@ test "hweight helpers stay additive for disjoint masks" {
     const high_long: usize = if (@sizeOf(usize) == 4) 0xa800_0000 else 0xa800_0000_0000_0000;
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
+}
+
+test "hweight helpers count contiguous bit runs by exact run length" {
+    var len8: u8 = 0;
+    while (len8 <= 8) : (len8 += 1) {
+        var start8: u8 = 0;
+        while (start8 + len8 <= 8) : (start8 += 1) {
+            const value = contiguousMask32(8, start8, len8);
+            try std.testing.expectEqual(@as(u32, len8), swHweight8(value));
+            try std.testing.expectEqual(@as(u32, len8), __sw_hweight8(value));
+        }
+    }
+
+    var len16: u8 = 0;
+    while (len16 <= 16) : (len16 += 1) {
+        var start16: u8 = 0;
+        while (start16 + len16 <= 16) : (start16 += 1) {
+            const value = contiguousMask32(16, start16, len16);
+            try std.testing.expectEqual(@as(u32, len16), swHweight16(value));
+            try std.testing.expectEqual(@as(u32, len16), __sw_hweight16(value));
+        }
+    }
+
+    var len32: u8 = 0;
+    while (len32 <= 32) : (len32 += 1) {
+        var start32: u8 = 0;
+        while (start32 + len32 <= 32) : (start32 += 1) {
+            const value = contiguousMask32(32, start32, len32);
+            try std.testing.expectEqual(@as(u32, len32), swHweight32(value));
+            try std.testing.expectEqual(@as(u32, len32), __sw_hweight32(value));
+        }
+    }
+
+    var len64: u8 = 0;
+    while (len64 <= 64) : (len64 += 1) {
+        var start64: u8 = 0;
+        while (start64 + len64 <= 64) : (start64 += 1) {
+            const value = contiguousMask64(64, start64, len64);
+            try std.testing.expectEqual(@as(u64, len64), swHweight64(value));
+            try std.testing.expectEqual(@as(u64, len64), __sw_hweight64(value));
+        }
+    }
+
+    const long_width: u8 = if (@sizeOf(usize) == 4) 32 else 64;
+    var long_len: u8 = 0;
+    while (long_len <= long_width) : (long_len += 1) {
+        var long_start: u8 = 0;
+        while (long_start + long_len <= long_width) : (long_start += 1) {
+            const value = contiguousMaskLong(long_width, long_start, long_len);
+            try std.testing.expectEqual(@as(usize, long_len), hweightLong(value));
+            try std.testing.expectEqual(@as(usize, long_len), hweight_long(value));
+        }
+    }
 }
