@@ -170,3 +170,31 @@ test "strErrorR grows generated renders back to exact-fit caller slices" {
     try std.testing.expectEqualStrings(large_expected, exact_fit);
     try std.testing.expectEqual(@as(u8, 0), storage[exact_fit.len]);
 }
+
+test "strErrorR respects offset caller slices and leaves neighboring bytes untouched" {
+    var storage = [_]u8{0xaa} ** 64;
+
+    const known_view = storage[3..11];
+    const known_rendered = strErrorR(0, known_view);
+    try std.testing.expectEqual(@intFromPtr(&storage[3]), @intFromPtr(known_rendered.ptr));
+    try std.testing.expectEqualStrings("Success", known_rendered);
+    try std.testing.expectEqual(@as(u8, 0xaa), storage[2]);
+    try std.testing.expectEqual(@as(u8, 0), storage[10]);
+    try std.testing.expectEqual(@as(u8, 0xaa), storage[11]);
+
+    @memset(storage[0..], 0xbb);
+
+    const generated_view = storage[7..19];
+    var expected_storage: [64]u8 = undefined;
+    const expected = try std.fmt.bufPrint(
+        &expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, generated_view.len },
+    );
+    const generated_rendered = strErrorR(4096, generated_view);
+    try std.testing.expectEqual(@intFromPtr(&storage[7]), @intFromPtr(generated_rendered.ptr));
+    try std.testing.expectEqualStrings(expected[0 .. generated_view.len - 1], generated_rendered);
+    try std.testing.expectEqual(@as(u8, 0xbb), storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), storage[18]);
+    try std.testing.expectEqual(@as(u8, 0xbb), storage[19]);
+}
