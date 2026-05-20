@@ -13,7 +13,6 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
-ARTIFACT_DIFF_REL = Path("Documentation/zigux/artifact-diff.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
@@ -21,7 +20,6 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 REQUIRED_FILES = (
     FIXDEP_REL,
     PHASE2_CLOSURE_REL,
-    ARTIFACT_DIFF_REL,
     TESTS_README_REL,
     MAKEFILE_REL,
     WORKFLOW_REL,
@@ -40,13 +38,7 @@ CLOSURE_REQUIRED_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`zigux/tests/README.md`",
-    "fixture-backed artifact-diff packet",
-)
-
-ARTIFACT_REQUIRED_MARKERS = (
-    "`zigux/tests/fixtures/fixdep/sample_expected.txt`",
-    "`zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`",
-    "`zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt`",
+    "fixture-backed artifact-support packet",
 )
 
 TESTS_README_REQUIRED_MARKERS = (
@@ -78,7 +70,6 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(CLOSURE_REQUIRED_MARKERS)
-    + len(ARTIFACT_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -137,7 +128,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     fixdep_text = read_text(resolve(root, FIXDEP_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
-    artifact_text = read_text(resolve(root, ARTIFACT_DIFF_REL))
     tests_readme_text = read_text(resolve(root, TESTS_README_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
     workflow_text = read_text(resolve(root, WORKFLOW_REL))
@@ -152,9 +142,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(closure_text, CLOSURE_REQUIRED_MARKERS, "MISSING_CLOSURE_MARKER")
-    )
-    issues.extend(
-        collect_missing_markers(artifact_text, ARTIFACT_REQUIRED_MARKERS, "MISSING_ARTIFACT_MARKER")
     )
     issues.extend(
         collect_missing_markers(
@@ -252,14 +239,10 @@ def build_self_test_root(root: Path) -> None:
                 "- `Documentation/zigux/phase2-closure.md`",
                 "- `zigux/Makefile`",
                 "- `zigux/tests/README.md`",
-                "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact-diff packet already present on current `master`.",
+                "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact-support packet already present on current `master`.",
             )
         )
         + "\n",
-    )
-    write_text(
-        resolve(root, ARTIFACT_DIFF_REL),
-        "\n".join(ARTIFACT_REQUIRED_MARKERS) + "\n",
     )
     write_text(
         resolve(root, TESTS_README_REL),
@@ -331,13 +314,6 @@ def run_self_test() -> int:
             path = resolve(root, PHASE2_CLOSURE_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in ARTIFACT_REQUIRED_MARKERS:
-            build_self_test_root(root)
-            path = resolve(root, ARTIFACT_DIFF_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_ARTIFACT_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in TESTS_README_REQUIRED_MARKERS:
