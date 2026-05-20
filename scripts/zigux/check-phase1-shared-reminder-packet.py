@@ -83,6 +83,7 @@ MARKERS = {
         "current direct-readback Phase 1 reminder packet:",
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+        "broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
     ),
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
@@ -147,6 +148,7 @@ FORBIDDEN_FRAGMENTS = (
     "python3 scripts/zigux/check-phase1-parity.py",
     "python3 scripts/zigux/validate-phase1.py --self-test",
     "python3 scripts/zigux/validate-phase1.py",
+    "repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
 )
 
 
