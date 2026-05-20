@@ -296,6 +296,13 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
                 "expected_stderr",
             )
 
+        expected_stdout_mode = expected_case.get("stdout_mode")
+        if expected_stdout_mode is not None:
+            stdout_mode = require_non_empty_string(validated_case.get("stdout_mode"), name, "stdout_mode")
+            if stdout_mode != "dev_full":
+                raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
+            validated_case["stdout_mode"] = stdout_mode
+
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name)
             if actual_value != expected_value:
@@ -311,10 +318,6 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             expected_stderr_name = validated_case["expected_stderr"]
             if not (FIXTURE_DIR / expected_stderr_name).exists():
                 raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
-
-        stdout_mode = validated_case.get("stdout_mode")
-        if stdout_mode not in (None, "dev_full"):
-            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
         validated.append(validated_case)
 
@@ -485,12 +488,20 @@ def run_self_test() -> int:
         finally:
             globals()["FIXTURE_DIR"] = original_fixture_dir
 
+    missing_stdout_mode_cases = copy_valid_cases(valid_cases)
+    find_case(missing_stdout_mode_cases, "sample_comment_only_stdout_full").pop("stdout_mode", None)
+    expect_failure(
+        "missing_stdout_mode",
+        lambda: validate_cases(missing_stdout_mode_cases),
+        f"{CASES_PATH}:sample_comment_only_stdout_full:missing_non_empty_stdout_mode",
+    )
+
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
     expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
+        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
     )
 
     missing_depfile_cases = copy_valid_cases(valid_cases)
@@ -637,7 +648,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 23}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 24}")
     return 0
 
 def windows_to_wsl(path: Path) -> str:
