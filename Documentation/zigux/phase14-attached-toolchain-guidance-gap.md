@@ -10,7 +10,15 @@
 The Phase 14 roadmap keeps the shared smoke packet in a study-only, reviewability-first posture. That means the shipped guidance needs to stay explicit about how reviewers reason about the attached Zig toolchain when it is the only available compiler, and this note needs to describe the current reminder split truthfully instead of replaying older route-gap wording that current `master` has already closed.
 
 ## Current repo readback
-Fresh rereads on 2026-05-20 show that the attached-toolchain reminder split is narrower than this note previously recorded:
+Fresh rereads on 2026-05-20 show that the attached-toolchain reminder split is narrower than this note previously recorded.
+
+Fresh builder-environment validation on 2026-05-20 also confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
+- unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz` into the scheduled runtime succeeded without extra environment overrides
+- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
+- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` returned a normal `x86_64-linux` environment payload with the expected library and cache paths
+
+That local replay does not change current repo evidence or promote a broader Phase 14 rerun claim. It does close the narrower same-lane environment drift: this note now records that the attached-toolchain fallback is still live in the scheduled builder runtime even while the readable current `zigux/Makefile` continues to expose only `phase14-validate` from the shared Phase 14 route family.
+
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md` keeps the attached-toolchain boundary explicit, but it no longer presents the older `phase14-*` wrapper examples as current usable fallback commands; instead it records those names only as historical packet-local rerun vocabulary while the readable `zigux/Makefile` body now exposes `phase14-validate` but still lacks `phase14-smoke`, `phase14-test`, and `phase14`
 - `Documentation/zigux/phase14-release-boundary-survey.md` matches that narrower posture too: it keeps the same older `phase14-*` wrapper names only as archival packet-local vocabulary and explicitly avoids restating the attached-toolchain triplet as current fallback guidance while the readable `zigux/Makefile` still omits those broader targets
 - `Documentation/zigux/README.md` no longer lags the returned Phase 14 route split: its Phase 14 docs-root reminder block now says the readable `zigux/Makefile` exposes `phase14-validate` while the broader `phase14-smoke`, `phase14-test`, and `phase14` routes remain absent
