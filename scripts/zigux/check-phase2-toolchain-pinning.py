@@ -67,11 +67,14 @@ SURFACE_PATHS = (
 WORKFLOW_SETUP_MARKERS = (
     "- name: Setup pinned Zig toolchain",
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
+    'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
-    'if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
+    'if try_local_archive; then',
+    'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
-    "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
+    "echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2",
 )
 
 WORKFLOW_LINES = (
