@@ -318,3 +318,33 @@ test "lane10 helper ports keep exact-fit and fresh-rezero contracts" {
     try std.testing.expect(payload.?.maybe_ptr == null);
     try std.testing.expect(payload.?.nested.maybe_count == null);
 }
+
+test "lane10 helper ports keep nested extern-union rezero contract" {
+    const allocator = std.testing.allocator;
+    const Inner = extern union {
+        bytes: [8]u8,
+        checksum: u64,
+        ptr: ?*const u8,
+    };
+    const Payload = extern struct {
+        prefix: u16,
+        inner: Inner,
+        suffix: u8,
+    };
+    const zero_bytes = [_]u8{0} ** @sizeOf(Payload);
+
+    var sentinel: u8 = 0xaa;
+    var payload: ?*Payload = try zalloc.zallocValue(allocator, Payload);
+    try std.testing.expect(payload != null);
+    payload.?.prefix = 0xbeef;
+    payload.?.inner.ptr = &sentinel;
+    payload.?.suffix = 0xcc;
+    @memset(std.mem.asBytes(payload.?), 0xaa);
+    zalloc.zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload == null);
+
+    payload = try zalloc.zallocValue(allocator, Payload);
+    defer zalloc.zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload != null);
+    try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(payload.?));
+}
