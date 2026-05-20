@@ -49,8 +49,26 @@ pub const IndexRange = struct {
     }
 };
 
-fn expectedComparatorReturnType(comptime fn_info: std.builtin.Type.Fn) type {
-    return if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) CComparatorResult else i32;
+fn validateComparatorReturnType(comptime fn_info: std.builtin.Type.Fn, comptime label: []const u8) void {
+    const return_type = fn_info.return_type orelse @compileError(label ++ " return type must be explicit");
+    if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) {
+        if (return_type != CComparatorResult) {
+            @compileError(label ++ " return type must be c_int for C ABI callconv");
+        }
+        return;
+    }
+
+    const return_info = @typeInfo(return_type);
+    const return_tag = std.meta.activeTag(return_info);
+    const native_ok = if (return_tag == .int)
+        return_info.int.signedness == .signed
+    else if (return_tag == .@"enum")
+        return_type == std.math.Order
+    else
+        false;
+    if (!native_ok) {
+        @compileError(label ++ " return type must be a signed integer or std.math.Order for native callconv");
+    }
 }
 
 fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
@@ -70,9 +88,7 @@ fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: ty
     if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
         @compileError("bsearch comparator second parameter must be *const T");
     }
-    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
-        @compileError("bsearch comparator return type must be i32 for native callconv or c_int for C ABI callconv");
-    }
+    validateComparatorReturnType(fn_info, "bsearch comparator");
 }
 
 fn validateRawComparator(comptime Compare: type) void {
@@ -92,13 +108,22 @@ fn validateRawComparator(comptime Compare: type) void {
     if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
         @compileError("bsearch raw comparator second parameter must be *const anyopaque");
     }
-    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
-        @compileError("bsearch raw comparator return type must be i32 for native callconv or c_int for C ABI callconv");
-    }
+    validateComparatorReturnType(fn_info, "bsearch raw comparator");
 }
 
 fn normalizeCompareResult(result: anytype) i32 {
-    return if (result < 0) -1 else if (result > 0) 1 else 0;
+    const Result = @TypeOf(result);
+    return switch (@typeInfo(Result)) {
+        .@"enum" => if (Result == std.math.Order)
+            switch (result) {
+                .lt => -1,
+                .eq => 0,
+                .gt => 1,
+            }
+        else
+            @compileError("bsearch comparator result enum must be std.math.Order"),
+        else => if (result < 0) -1 else if (result > 0) 1 else 0,
+    };
 }
 
 fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
@@ -314,6 +339,14 @@ fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
+fn compareOrderInt(key: *const i32, item: *const i32) std.math.Order {
+    return std.math.order(key.*, item.*);
+}
+
+fn compareDescendingOrderInt(key: *const i32, item: *const i32) std.math.Order {
+    return std.math.order(item.*, key.*);
+}
+
 fn compareCInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
     return @as(CComparatorResult, compareInt(key, item));
 }
@@ -338,6 +371,18 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
     return compareInt(typed_key, typed_item);
+}
+
+fn compareOpaqueOrderInt(key: *const anyopaque, item: *const anyopaque) std.math.Order {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareOrderInt(typed_key, typed_item);
+}
+
+fn compareOpaqueDescendingOrderInt(key: *const anyopaque, item: *const anyopaque) std.math.Order {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareDescendingOrderInt(typed_key, typed_item);
 }
 
 const CountedIntKey = struct {
@@ -417,6 +462,64 @@ test "typed and raw searches support duplicate spans and descending C ABI pointe
     const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_found: *const i32 = @ptrCast(@alignCast(found));
     try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+}
+
+test "native std.math.Order comparator pointers keep duplicate spans and insertion points aligned" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    const typed_cases = [_]struct {
+        items: []const i32,
+        key: i32,
+        expected: IndexRange,
+        compare: *const fn (*const i32, *const i32) std.math.Order,
+    }{
+        .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareOrderInt },
+        .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareOrderInt },
+        .{ .items = descending[0..], .key = 4, .expected = .{ .lower = 2, .upper = 5 }, .compare = compareDescendingOrderInt },
+        .{ .items = descending[0..], .key = 5, .expected = .{ .lower = 2, .upper = 2 }, .compare = compareDescendingOrderInt },
+    };
+
+    for (typed_cases) |case| {
+        const found = search(i32, i32, &case.key, case.items, case.compare);
+        if (case.expected.isEmpty()) {
+            try std.testing.expectEqual(@as(?*const i32, null), found);
+        } else {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(case.key, typed_found.*);
+        }
+
+        try std.testing.expectEqual(case.expected.lower, lowerBoundIndex(i32, i32, &case.key, case.items, case.compare));
+        try std.testing.expectEqual(case.expected.upper, upperBoundIndex(i32, i32, &case.key, case.items, case.compare));
+        try std.testing.expectEqual(case.expected, equalRangeIndex(i32, i32, &case.key, case.items, case.compare));
+    }
+
+    const raw_cases = [_]struct {
+        items: []const i32,
+        key: i32,
+        expected: IndexRange,
+        compare: *const fn (*const anyopaque, *const anyopaque) std.math.Order,
+    }{
+        .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareOpaqueOrderInt },
+        .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareOpaqueOrderInt },
+        .{ .items = descending[0..], .key = 4, .expected = .{ .lower = 2, .upper = 5 }, .compare = compareOpaqueDescendingOrderInt },
+        .{ .items = descending[0..], .key = 5, .expected = .{ .lower = 2, .upper = 2 }, .compare = compareOpaqueDescendingOrderInt },
+    };
+
+    for (raw_cases) |case| {
+        const found = bsearch(&case.key, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare);
+        if (case.expected.isEmpty()) {
+            try std.testing.expectEqual(@as(?*const anyopaque, null), found);
+        } else {
+            const opaque_found = found orelse return error.TestUnexpectedResult;
+            const typed_found: *const i32 = @ptrCast(@alignCast(opaque_found));
+            try std.testing.expectEqual(case.key, typed_found.*);
+        }
+
+        try std.testing.expectEqual(case.expected.lower, bsearchLowerBoundIndex(&case.key, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare));
+        try std.testing.expectEqual(case.expected.upper, bsearchUpperBoundIndex(&case.key, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare));
+        try std.testing.expectEqual(case.expected, bsearchEqualRangeIndex(&case.key, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare));
+    }
 }
 
 test "typed c abi comparator pointers keep duplicate spans and insertion points aligned" {
