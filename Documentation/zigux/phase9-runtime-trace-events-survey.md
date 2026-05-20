@@ -1,6 +1,6 @@
 # Phase 9 Runtime Trace-Events Survey
 
-PHASE9_SURVEYED_COMMIT=9ca34d1aa5c3031e1126cf951cf7e4bc515fe7b4
+PHASE9_SURVEYED_COMMIT=184cd984461917f4d56bf5d7b6d6ba246c94ba23
 
 This survey keeps the Phase 9 runtime trace-events packet aligned with the roadmap after current `master` narrowed down to one direct sample family plus an adjacent shared loader-handoff build shard instead of the older broader loader-backed packet.
 
@@ -30,6 +30,7 @@ The direct sample also keeps cold-stage fail-closed behavior explicit: `test "tr
 The direct sample also now keeps initialized-stage clean exit explicit: `test "trace-events sample preserves initialized summary across direct exit without selftest"` proves zero selftest runs stay explicit, the initialized summary stays unchanged until `exit()` succeeds, and later lifecycle calls remain rejected without drift.
 The fail-closed companion still keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay: `error.OutstandingRegistration` leaves the selftest_complete summary unchanged, one later main replay plus one later function-thread replay stay explicit before unregister, and the later post-exit invalid-lifecycle rejections still leave the exited summary unchanged.
+The same exit-rollback companion also keeps initialized-stage failed-exit rollback explicit before selftest replay: `error.OutstandingRegistration` leaves the initialized summary unchanged, the later unregister stays explicit, and the module can still reach the selftest_complete summary without drift.
 The registration-reentry companion still keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
