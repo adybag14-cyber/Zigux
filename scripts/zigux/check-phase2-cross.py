@@ -43,7 +43,7 @@ EXPECTED_CROSS_TARGET_FIELDS = {
     "route",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -91,6 +91,34 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def format_expected_actual(expected: list[str], actual: list[str]) -> str:
+    return f"expected={','.join(expected)};actual={','.join(actual)}"
+
+
+def load_archive_sha256_targets(root: Path) -> list[str]:
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = read_json(policy_path)
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
+    archive_sha256 = payload.get("archive_sha256")
+    if not isinstance(archive_sha256, dict) or not archive_sha256:
+        raise SystemExit(f"invalid archive_sha256 in required file: {policy_path}")
+
+    normalized: list[str] = []
+    seen_targets: set[str] = set()
+    for key, value in archive_sha256.items():
+        if not isinstance(key, str) or not key.strip():
+            raise SystemExit(f"invalid archive_sha256 key in required file: {policy_path}")
+        if not isinstance(value, str) or not value.strip():
+            raise SystemExit(f"invalid archive_sha256 value in required file: {policy_path}: {key}")
+        target = key.strip()
+        if target in seen_targets:
+            raise SystemExit(f"duplicate archive_sha256 key in required file: {policy_path}: {target}")
+        normalized.append(target)
+        seen_targets.add(target)
+    return normalized
+
+
 def load_archive_target_scope(root: Path) -> list[str]:
     payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
     if not isinstance(payload, dict):
@@ -131,6 +159,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     fixture = read_json(resolve_path(root, FIXTURE))
     archive_target_scope = load_archive_target_scope(root)
+    archive_sha256_targets = load_archive_sha256_targets(root)
 
     for marker in MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -138,6 +167,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    if set(archive_sha256_targets) != set(archive_target_scope):
+        issues.append(
+            (
+                "ARCHIVE_HASH_SCOPE_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_sha256_targets),
+            )
+        )
+    elif archive_sha256_targets != archive_target_scope:
+        issues.append(
+            (
+                "ARCHIVE_HASH_SCOPE_ORDER_MISMATCH",
+                format_expected_actual(archive_target_scope, archive_sha256_targets),
+            )
+        )
 
     if not isinstance(fixture, dict):
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
@@ -379,6 +423,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
         policy = json.loads(path.read_text(encoding="utf-8"))
+        del policy["archive_sha256"]["x86_64-linux"]
         policy["archive_sha256"]["aarch64-linux"] = "4" * 64
         policy["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
@@ -403,6 +448,29 @@ def run_self_test() -> int:
             assert "unsupported archive_target_scope targets" in str(exc)
         else:
             raise AssertionError("unsupported archive_target_scope targets did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["aarch64-linux"] = "4" * 64
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "ARCHIVE_HASH_SCOPE_MISMATCH",
+            "expected=x86_64-linux;actual=x86_64-linux,aarch64-linux",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        del policy["archive_sha256"]["x86_64-linux"]
+        policy["archive_sha256"]["aarch64-linux"] = "4" * 64
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "ARCHIVE_HASH_SCOPE_MISMATCH",
+            "expected=x86_64-linux;actual=aarch64-linux",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
