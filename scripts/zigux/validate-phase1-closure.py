@@ -241,6 +241,7 @@ EXPECTED_MARKERS = {
         "zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`"
     ),
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
+    "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "next_step": (
@@ -371,14 +372,14 @@ def collect_failures(root: Path) -> list[str]:
 
     failures.extend(
         require_expected_mapping(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig",
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig",
             review_anchors.get("tools/lib/find_bit.zig"),
             EXPECTED_FIND_BIT_REVIEW_ANCHORS,
         )
     )
     failures.extend(
         require_expected_mapping(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig",
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig",
             review_anchors.get("tools/lib/rbtree.zig"),
             EXPECTED_RBTREE_REVIEW_ANCHORS,
         )
@@ -424,6 +425,7 @@ def make_fixture_tree(root: Path) -> None:
                 EXPECTED_MARKERS["reminder_packet"],
                 EXPECTED_MARKERS["gap_packet"],
                 EXPECTED_MARKERS["closure_validator"],
+                EXPECTED_MARKERS["route_summary_guard"],
                 EXPECTED_MARKERS["shared_tests_route"],
                 EXPECTED_MARKERS["validator_state"],
                 EXPECTED_MARKERS["next_step"],
@@ -477,6 +479,13 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
                 replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["restore_state"], "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`"),
+            ),
+        ),
+        (
+            "missing_route_summary_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["route_summary_guard"] + "\n", ""),
             ),
         ),
         (
