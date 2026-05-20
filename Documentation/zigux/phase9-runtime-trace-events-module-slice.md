@@ -1,6 +1,6 @@
 # Phase 9 Runtime Trace-Events Module Slice
 
-PHASE9_SURVEYED_COMMIT=9ca34d1aa5c3031e1126cf951cf7e4bc515fe7b4
+PHASE9_SURVEYED_COMMIT=184cd984461917f4d56bf5d7b6d6ba246c94ba23
 
 This note keeps the owner-facing trace-events pilot-module slice aligned with the narrow current-master packet and its adjacent shared loader-handoff build shard.
 
@@ -29,8 +29,9 @@ The direct initialized-stage exit proof in `test "trace-events sample preserves 
 The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.
 The fail-closed companion keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay by proving `error.OutstandingRegistration` leaves the selftest_complete summary unchanged until the function thread unregisters and clean exit succeeds.
+The same companion also keeps initialized-stage failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves the initialized summary unchanged until unregister and the later `runSelftest()` replay succeeds without drift.
 The registration-reentry companion keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
-Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
+Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
 ## Exact module-slice boundary
 
