@@ -224,6 +224,33 @@ pub fn summarizeConsoleSetup(request: ConsoleSetupRequest) ConsoleSetupSummary {
     };
 }
 
+pub const ConsoleDeviceRequest = struct {
+    console_index: c_int,
+    adapter_present: bool,
+    tty_driver_registered: bool,
+};
+
+pub const ConsoleDeviceSummary = struct {
+    selected_console_index: ?c_int,
+    adapter_present: bool,
+    driver_registered: bool,
+    returns_null_driver: bool,
+};
+
+pub fn summarizeConsoleDeviceSelection(request: ConsoleDeviceRequest) ConsoleDeviceSummary {
+    const selected_console_index = if (request.adapter_present)
+        request.console_index
+    else
+        null;
+
+    return .{
+        .selected_console_index = selected_console_index,
+        .adapter_present = request.adapter_present,
+        .driver_registered = request.tty_driver_registered,
+        .returns_null_driver = !request.adapter_present or !request.tty_driver_registered,
+    };
+}
+
 pub const ResizeHandoffRequest = struct {
     tty_present: bool,
     winsize: Winsize,
@@ -810,6 +837,45 @@ test "phase11 hvc console keeps early console setup ENODEV gates reviewable" {
     try std.testing.expect(!missing_adapter.adapter_present);
     try std.testing.expect(missing_adapter.returns_enodev);
     try std.testing.expect(!missing_adapter.setup_allowed);
+}
+
+test "phase11 hvc console keeps console-device selection success reviewable" {
+    const summary = summarizeConsoleDeviceSelection(.{
+        .console_index = 2,
+        .adapter_present = true,
+        .tty_driver_registered = true,
+    });
+
+    try std.testing.expectEqual(@as(?c_int, 2), summary.selected_console_index);
+    try std.testing.expect(summary.adapter_present);
+    try std.testing.expect(summary.driver_registered);
+    try std.testing.expect(!summary.returns_null_driver);
+}
+
+test "phase11 hvc console keeps adapter-missing device lookup null reviewable" {
+    const summary = summarizeConsoleDeviceSelection(.{
+        .console_index = 4,
+        .adapter_present = false,
+        .tty_driver_registered = true,
+    });
+
+    try std.testing.expectEqual(@as(?c_int, null), summary.selected_console_index);
+    try std.testing.expect(!summary.adapter_present);
+    try std.testing.expect(summary.driver_registered);
+    try std.testing.expect(summary.returns_null_driver);
+}
+
+test "phase11 hvc console keeps driver-missing device lookup distinct from slot export" {
+    const summary = summarizeConsoleDeviceSelection(.{
+        .console_index = 5,
+        .adapter_present = true,
+        .tty_driver_registered = false,
+    });
+
+    try std.testing.expectEqual(@as(?c_int, 5), summary.selected_console_index);
+    try std.testing.expect(summary.adapter_present);
+    try std.testing.expect(!summary.driver_registered);
+    try std.testing.expect(summary.returns_null_driver);
 }
 
 test "phase11 hvc console keeps resize handoff summary reviewable" {
