@@ -163,6 +163,7 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectSliceContains(manifest.ownership_focus, "path truthfulness must keep the currently returned helper rooted at `tools/lib/rbtree.zig` explicit while the roadmap destination `lib/rbtree.zig` still remains a repo-reality gap on current master");
     try expectSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim");
     try expectSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the roadmap-path port and dedicated fixture pair still do not directly materialize on current master");
+    try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads");
     try expectContains(manifest.next_bounded_step, "slice-backed direct-helper packet");
     try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig`");
     try expectContains(manifest.next_bounded_step, "`zigux/tests/fixtures/phase7_rbtree.json`");
@@ -178,6 +179,7 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(direct_anchor_note, "`scripts/zigux/validate-phase7.py`");
     try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig`");
     try expectContains(direct_anchor_note, "`zigux/Makefile`");
+    try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.");
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion or roadmap-path surfaces:");
     try expectContains(direct_anchor_note, "`lib/rbtree.zig`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
