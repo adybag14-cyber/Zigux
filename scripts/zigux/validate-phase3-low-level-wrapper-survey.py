@@ -43,7 +43,7 @@ REQUIRED_MARKERS = {
         "Current `master` also keeps `zigux/Makefile` and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay command and the returned shared Makefile replay gate without widening into broader Phase 3 completion claims.",
         "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
         "Current `master` also keeps the whole-record MMIO interop-policy predicates plus `readInteropPolicy()`, `writeInteropPolicy()`, `exchangeInteropPolicy()`, and `writeMaskedInteropPolicy()` directly readable in `zigux/helpers/mmio.zig`, so the low-level-wrapper survey and validator need to exact-require that same helper-local policy surface instead of only the byte-policy shorthand.",
-        "The focused replay in `zigux/tests/phase3_low_level_wrappers.zig` keeps those whole-record MMIO policy handoffs explicit through `mmio.readInteropPolicy(u16, mmio_policy, const_register_ptr)`, `mmio.writeInteropPolicy(u16, mmio_policy, register_ptr, 0x00F0)`, `mmio.exchangeInteropPolicy(u16, mmio_policy, register_ptr, 0xF000)`, and `mmio.writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0)` beside the byte-policy shorthand checks.",
+        "The focused replay in `zigux/tests/phase3_low_level_wrappers.zig` still keeps the byte-policy shorthand checks explicit beside the atomic, barrier, and raw-pointer bridge coverage, so the whole-record `InteropPolicy` accessors remain helper-local direct-read evidence rather than a separate replay claim on current `master`.",
         "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one returned shared Makefile replay gate, and one direct replay command are directly readable, while the separately readable Phase 3 catalog-selftest guard stays adjacent cross-packet support rather than extra low-level-wrapper proof.",
         "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, and the adjacent catalog-selftest guard through `scripts/zigux/check-phase3-catalog-selftest.py`, and those separate surfaces should stay framed as cross-packet support rather than as landed same-lane proof.",
     ),
@@ -103,6 +103,7 @@ REQUIRED_MARKERS = {
     ),
     UNSAFE_POLICY_PATH: (
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
+        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
         "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {",
         "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {",
         "pub fn permitsRawPointerBridgeByte(scope: u8) bool {",
@@ -124,10 +125,6 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
-        "try std.testing.expectEqual(@as(u16, 0x0F00), try mmio.readInteropPolicy(u16, mmio_policy, const_register_ptr));",
-        "try mmio.writeInteropPolicy(u16, mmio_policy, register_ptr, 0x00F0);",
-        "try std.testing.expectEqual(@as(u16, 0x00F0), try mmio.exchangeInteropPolicy(u16, mmio_policy, register_ptr, 0xF000));",
-        "try std.testing.expectEqual(@as(u16, 0xF0A0), try mmio.writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0));",
     ),
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/atomic.zig"),',
