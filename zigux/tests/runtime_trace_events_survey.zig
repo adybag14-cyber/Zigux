@@ -274,7 +274,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`");
-    try expectContains(sequencing_note, "does not currently expose the broader shared runtime-loader packet");
+    try expectContains(sequencing_note, "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence");
 
     try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test");
     try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py");
