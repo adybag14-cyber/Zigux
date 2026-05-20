@@ -34,12 +34,22 @@ EXPECTED_FIXTURE_FIELDS = {
 }
 
 
-def require_files(root: Path) -> list[str]:
+def require_files(root: Path) -> list[tuple[str, str]]:
     required = [
         FIXTURE_REL,
         Path("scripts/zigux/fixdep.zig"),
     ]
-    return [str(rel) for rel in required if not (root / rel).is_file()]
+    issues: list[tuple[str, str]] = []
+    for rel in required:
+        candidate = root / rel
+        rel_str = str(rel)
+        if candidate.is_file():
+            continue
+        if candidate.exists():
+            issues.append(("required_path_not_file", rel_str))
+        else:
+            issues.append(("required_file_missing", rel_str))
+    return issues
 
 
 def load_fixture(path: Path) -> dict[str, object]:
@@ -182,6 +192,8 @@ def summarize_packet(root: Path) -> int:
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_dir():
+        path.rmdir()
     path.write_text(content, encoding="utf-8")
 
 
@@ -204,6 +216,25 @@ def build_self_test_root(root: Path) -> None:
         },
     )
     write_text(root / "scripts/zigux/fixdep.zig", 'test "stub" {}\n')
+
+
+def emit_required_file_issues(issues: list[tuple[str, str]]) -> int:
+    print("PHASE2_CROSS=fail")
+
+    missing = [value for code, value in issues if code == "required_file_missing"]
+    non_file = [value for code, value in issues if code == "required_path_not_file"]
+
+    if missing:
+        print("PHASE2_CROSS_MISSING_FILES_START")
+        for rel_path in missing:
+            print(rel_path)
+        print("PHASE2_CROSS_MISSING_FILES_END")
+    if non_file:
+        print("PHASE2_CROSS_NON_FILE_PATHS_START")
+        for rel_path in non_file:
+            print(rel_path)
+        print("PHASE2_CROSS_NON_FILE_PATHS_END")
+    return 1
 
 
 def capture_cross_compile(root: Path, target: str, zig: str) -> tuple[int, str]:
@@ -505,13 +536,27 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
         missing = require_files(root)
-        assert str(FIXTURE_REL) in missing
+        assert ("required_file_missing", str(FIXTURE_REL)) in missing
         case_count += 1
 
         build_self_test_root(root)
         (root / "scripts/zigux/fixdep.zig").unlink()
         missing = require_files(root)
-        assert "scripts/zigux/fixdep.zig" in missing
+        assert ("required_file_missing", "scripts/zigux/fixdep.zig") in missing
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / FIXTURE_REL).unlink()
+        (root / FIXTURE_REL).mkdir(parents=True)
+        issues = require_files(root)
+        assert ("required_path_not_file", str(FIXTURE_REL)) in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/fixdep.zig").unlink()
+        (root / "scripts/zigux/fixdep.zig").mkdir(parents=True)
+        issues = require_files(root)
+        assert ("required_path_not_file", "scripts/zigux/fixdep.zig") in issues
         case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
@@ -534,12 +579,7 @@ def main() -> int:
 
     missing = require_files(args.root)
     if missing:
-        print("PHASE2_CROSS=fail")
-        print("PHASE2_CROSS_MISSING_FILES_START")
-        for rel_path in missing:
-            print(rel_path)
-        print("PHASE2_CROSS_MISSING_FILES_END")
-        return 1
+        return emit_required_file_issues(missing)
 
     try:
         issues = validate_fixture(args.root)
