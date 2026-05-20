@@ -5,10 +5,11 @@ Fail-closed checker for the bounded Phase 14 shared smoke route.
 
 This guard exists for the lane-local executable path only. It validates that
  the current repo exposes a dedicated `phase14-validate` Makefile route, that
- the route reruns the shared smoke route checker plus the current validator and
- release-boundary checker packets, and that the bootstrap workflow reruns that
- same route, without claiming that the missing `phase14-smoke`, `phase14-test`,
- or full bundle wrappers have returned.
+ the route reruns the shared smoke route checker plus the current tests-root
+ smoke-summary checker, validator, and release-boundary checker packets, and
+ that the bootstrap workflow reruns that same route, without claiming that the
+ missing `phase14-smoke`, `phase14-test`, or full bundle wrappers have
+ returned.
 """
 
 from __future__ import annotations
@@ -29,6 +30,8 @@ MAKEFILE_MARKERS = [
     "phase14-validate:",
     "scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
     "scripts/zigux/check-phase14-shared-smoke-route.py",
+    "scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+    "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
     "scripts/zigux/validate-phase14.py --self-test",
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -104,6 +107,8 @@ phase12: phase12-smoke phase12-test
 phase14-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
@@ -152,6 +157,22 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         write_text(
             base,
+            MAKEFILE_PATH,
+            fixture_makefile().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py\n",
+                "",
+                1,
+            ),
+        )
+        if not any("check-phase14-tests-readme-smoke-summary.py --self-test" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected tests-readme checker marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
             WORKFLOW_PATH,
             fixture_workflow() + "      - name: Wrong smoke route\n        run: make -C zigux phase14-smoke\n",
         )
@@ -161,7 +182,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=2")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=3")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
