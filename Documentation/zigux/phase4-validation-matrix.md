@@ -13,13 +13,17 @@
     * `scripts/zigux/check-phase4-perf-baseline-packet.py`
     * `Documentation/zigux/artifact-diff.md`
     * `Documentation/zigux/phase4-gate-evidence.md`
+    * `Documentation/zigux/phase4-kprobe-example-gap-survey.md`
     * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+    * `Documentation/zigux/phase4-test-fsmount-gap-survey.md`
     * `Documentation/zigux/review-checklist.md`
     * `Documentation/zigux/README.md`
     * `scripts/zigux/README.md`
     * `zigux/tests/README.md`
     * `zigux/tests/atomic64_diff.zig`
     * `zigux/tests/runtime_atomic64_diff.zig`
+    * `zigux/tests/phase4_kprobe_example_manifest.json`
+    * `zigux/tests/phase4_kprobe_example_survey.zig`
     * `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
     * `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
     * `zigux/tests/bitmap_diff.zig`
@@ -28,6 +32,8 @@
     * `zigux/tests/phase4_bitmap_live_helper_replay.zig`
     * `zigux/tests/phase4_perf_baseline_manifest.json`
     * `zigux/tests/phase4_perf_baseline_survey.zig`
+    * `zigux/tests/phase4_test_fsmount_manifest.json`
+    * `zigux/tests/phase4_test_fsmount_survey.zig`
     * `zigux/tests/phase4_build.zig`
     * `zigux/Makefile`
     * `scripts/zigux/validate-phase4.py`
