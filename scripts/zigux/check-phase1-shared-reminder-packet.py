@@ -116,6 +116,7 @@ MARKERS = {
         "phase12-smoke:",
         "phase12-test:",
         "phase12: phase12-smoke phase12-test",
+        "phase14-validate:",
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
         'const argv_split = @import("argv_split");',
