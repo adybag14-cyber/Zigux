@@ -126,6 +126,8 @@ Keep the shared-helper packet explicit through the verified docs-root and contri
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `fs/libfs.zig`
