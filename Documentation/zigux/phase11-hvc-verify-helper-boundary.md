@@ -20,10 +20,10 @@ Current direct contents reads on `master` still do not rematerialize `drivers/tt
 
 ## Packet Relationship
 
-- `Documentation/zigux/phase11-hvc-console-survey.md` keeps the archived HVC packet and its direct verify companion explicit beside the starter, split replays, and sysrq helper.
+- `Documentation/zigux/phase11-hvc-console-survey.md` keeps the broader archived HVC packet vocabulary visible while the live current-head packet stays bounded to `drivers/tty/hvc/hvc_console.zig`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, and the proof-backed adjunct files instead of treating the deeper verify helper, split replays, or sysrq helper as returned direct-readback evidence.
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` keeps cleanup prerequisite failures, the targetless notifier no-unregister edge, and targetless sysrq dispatch reviewable at the shared packet level.
 - current HVC current-head reads keep those landed helper edges reviewable through this note and the coupled survey and validation packet, while `drivers/tty/hvc/hvc_console_verify.zig` itself remains survey-recorded archival vocabulary until a future reread proves the helper returned.
-- this note narrows one direct companion surface so the detached-binding remove-handoff branch, notifier prerequisite failure edge, and extra verify-helper failure-mode details stay reviewable without forcing the broader survey note or validation matrix to carry every helper-local detail.
+- this note narrows one current-head reminder surface so the detached-binding remove-handoff branch, notifier prerequisite failure edge, and extra verify-helper failure-mode details stay reviewable without forcing the broader survey note or validation matrix to carry every helper-local detail.
 
 ## Guardrails
 
