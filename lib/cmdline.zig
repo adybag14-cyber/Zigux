@@ -708,6 +708,30 @@ test "nextArg keeps quoted empty values explicit without swallowing the next tok
     try std.testing.expectEqualStrings("next", parsed.remaining);
 }
 
+test "nextArg keeps parameter and value slices borrowed from caller storage" {
+    var quoted_value = [_]u8{
+        'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', ' ', 'q', 'u', 'i', 'e', 't', 0,
+    };
+    const parsed_quoted_value = nextArg(&quoted_value);
+    try std.testing.expectEqualStrings("root", parsed_quoted_value.param);
+    try std.testing.expectEqualStrings("/dev/vda1", parsed_quoted_value.value.?);
+    try std.testing.expectEqualStrings("quiet", parsed_quoted_value.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[0])), @as(usize, @intFromPtr(parsed_quoted_value.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[6])), @as(usize, @intFromPtr(parsed_quoted_value.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[17])), @as(usize, @intFromPtr(parsed_quoted_value.rest.ptr)));
+
+    var nul_bounded = [_]u8{
+        'c', 'o', 'n', 's', 'o', 'l', 'e', '=', 't', 't', 'y', 'S', '0', 0, 'x',
+    };
+    const parsed_nul_bounded = nextArg(&nul_bounded);
+    try std.testing.expectEqualStrings("console", parsed_nul_bounded.param);
+    try std.testing.expectEqualStrings("ttyS0", parsed_nul_bounded.value.?);
+    try std.testing.expectEqualStrings("", parsed_nul_bounded.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&nul_bounded[0])), @as(usize, @intFromPtr(parsed_nul_bounded.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&nul_bounded[8])), @as(usize, @intFromPtr(parsed_nul_bounded.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&nul_bounded[13])), @as(usize, @intFromPtr(parsed_nul_bounded.rest.ptr)));
+}
+
 test "nextArg keeps rest and remaining as the same borrowed suffix view" {
     const leading = nextArg(" \tconsole=ttyS0");
     try std.testing.expectEqualStrings("console=ttyS0", leading.rest);
