@@ -24,6 +24,8 @@ VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
+EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
+EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -37,6 +39,8 @@ REQUIRED_FILES = (
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
+    EXEC_CMD_TEST,
+    EXEC_CMD_BUILD,
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"),
@@ -59,11 +63,13 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     Path(".github/workflows/zigux-bootstrap.yml"): (
         "Validate Phase 8 tooling routes",
         "make -C zigux phase8-validate",
+        "Run focused Phase 8 exec-cmd tests",
         "Run Phase 8 tooling tests",
     ),
     Path("Documentation/zigux/README.md"): (
         "Phase 8 notes",
         "scripts/zigux/validate-phase8.py",
+        "tools/lib/subcmd/exec-cmd.zig",
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
     ),
@@ -95,6 +101,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "current direct-readback Phase 8 anchors:",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
@@ -102,7 +110,20 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+    ),
+    EXEC_CMD_TEST: (
+        "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
+        "scripts/zigux/validate-phase8.py",
+        "tools/lib/subcmd/exec-cmd.zig",
+        "Run focused Phase 8 exec-cmd tests",
+        "expectMissingPath(\"tools/lib/subcmd/exec-cmd.zig\")",
+    ),
+    EXEC_CMD_BUILD: (
+        "phase8_exec_cmd.zig",
+        "phase8_exec_cmd",
+        "Run the phase 8 exec-cmd review witness tests.",
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
@@ -322,6 +343,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing Makefile Phase 8 marker to be reported")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        exec_cmd_test = root / EXEC_CMD_TEST
+        exec_cmd_test.unlink()
+        missing_exec_cmd = validate_root(root)
+        if EXEC_CMD_TEST.as_posix() not in missing_exec_cmd.missing_files:
+            raise AssertionError("expected missing exec-cmd witness file to be reported")
+        _write(exec_cmd_test, "\n".join(FILE_MARKERS[EXEC_CMD_TEST]) + "\n")
+
         bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
         original_bridge_test = _read(bridge_test)
         bridge_test.write_text(
@@ -393,7 +421,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
