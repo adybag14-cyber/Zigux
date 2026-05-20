@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -12,6 +13,7 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
+FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
@@ -19,6 +21,7 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
     FIXDEP_REL,
+    FIXDEP_CASES_REL,
     PHASE2_CLOSURE_REL,
     TESTS_README_REL,
     MAKEFILE_REL,
@@ -29,16 +32,31 @@ FIXDEP_REQUIRED_EXACT_LINES = (
     'test "dep parsing returns NoTargets for comment-only depfiles" {',
     'test "dep parsing keeps escaped spaces inside tokens" {',
     'test "dep parsing continues dependency lines across escaped newlines" {',
+    'test "dep parsing accepts CRLF lines and continuations" {',
     'test "escaped hash dependency survives concatenated target comment path" {',
     'test "escaped colon dependency survives concatenated target comment path" {',
+    'test "read failure wording matches C perror prefix" {',
     'test "output write failure uses C-style wording" {',
+    'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
+)
+
+REQUIRED_FIXDEP_CASE_NAMES = (
+    "sample",
+    "sample_multi_target",
+    "sample_escaped_space",
+    "sample_escaped_colon",
+    "sample_concatenated",
+    "sample_comment_continuation",
+    "sample_comment_only",
+    "sample_missing_dep",
+    "sample_output_write",
 )
 
 CLOSURE_REQUIRED_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`zigux/tests/README.md`",
-    "fixture-backed artifact-support packet",
+    "fixture-backed artifact",
 )
 
 TESTS_README_REQUIRED_MARKERS = (
@@ -69,6 +87,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_REQUIRED_EXACT_LINES)
+    + len(REQUIRED_FIXDEP_CASE_NAMES)
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -116,6 +135,29 @@ def collect_required_exact_lines(
     return issues
 
 
+def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
+    try:
+        raw_cases = json.loads(read_text(path))
+    except json.JSONDecodeError:
+        return [("INVALID_FIXDEP_CASES_JSON", path.as_posix())]
+
+    if not isinstance(raw_cases, list):
+        return [("INVALID_FIXDEP_CASES_JSON", path.as_posix())]
+
+    seen_names = {
+        name
+        for case in raw_cases
+        for name in [case.get("name") if isinstance(case, dict) else None]
+        if isinstance(name, str) and name
+    }
+
+    return [
+        ("MISSING_FIXDEP_CASE", name)
+        for name in REQUIRED_FIXDEP_CASE_NAMES
+        if name not in seen_names
+    ]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -140,6 +182,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "DUPLICATE_FIXDEP_TEST_LINE",
         )
     )
+    issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
     issues.extend(
         collect_missing_markers(closure_text, CLOSURE_REQUIRED_MARKERS, "MISSING_CLOSURE_MARKER")
     )
@@ -215,21 +258,31 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, FIXDEP_REL),
         "\n".join(
             (
-                "test \"dep parsing returns NoTargets for comment-only depfiles\" {",
+                'test "dep parsing returns NoTargets for comment-only depfiles" {',
                 "}",
-                "test \"dep parsing keeps escaped spaces inside tokens\" {",
+                'test "dep parsing keeps escaped spaces inside tokens" {',
                 "}",
-                "test \"dep parsing continues dependency lines across escaped newlines\" {",
+                'test "dep parsing continues dependency lines across escaped newlines" {',
                 "}",
-                "test \"escaped hash dependency survives concatenated target comment path\" {",
+                'test "dep parsing accepts CRLF lines and continuations" {',
                 "}",
-                "test \"escaped colon dependency survives concatenated target comment path\" {",
+                'test "escaped hash dependency survives concatenated target comment path" {',
                 "}",
-                "test \"output write failure uses C-style wording\" {",
+                'test "escaped colon dependency survives concatenated target comment path" {',
+                "}",
+                'test "read failure wording matches C perror prefix" {',
+                "}",
+                'test "output write failure uses C-style wording" {',
+                "}",
+                'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
                 "}",
             )
         )
         + "\n",
+    )
+    write_text(
+        resolve(root, FIXDEP_CASES_REL),
+        json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
     )
     write_text(
         resolve(root, PHASE2_CLOSURE_REL),
@@ -239,7 +292,7 @@ def build_self_test_root(root: Path) -> None:
                 "- `Documentation/zigux/phase2-closure.md`",
                 "- `zigux/Makefile`",
                 "- `zigux/tests/README.md`",
-                "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact-support packet already present on current `master`.",
+                "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact packet already present on current `master`.",
             )
         )
         + "\n",
@@ -307,6 +360,15 @@ def run_self_test() -> int:
             path = resolve(root, FIXDEP_REL)
             path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("DUPLICATE_FIXDEP_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for name in REQUIRED_FIXDEP_CASE_NAMES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_CASES_REL)
+            cases = json.loads(path.read_text(encoding="utf-8"))
+            cases = [case for case in cases if case.get("name") != name]
+            path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+            assert ("MISSING_FIXDEP_CASE", name) in collect_issues(root)
             checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
@@ -385,6 +447,7 @@ def main() -> int:
     print("PHASE2_FIXDEP_GATE=pass")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
