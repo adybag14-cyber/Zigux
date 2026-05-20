@@ -69,7 +69,7 @@ Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live fi
 The adjacent shared allocator/init-flow review packet has returned through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds, but that shared packet remains neighboring context rather than module-slice proof that the trace-events family itself carries returned loader parity.
 Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, while `samples/zigux/runtime_bitmap_loader.zig` and the other direct bitmap sample-family files remain trusted-contents gaps. So the absent-loader wording above is about the older trace-events loader-backed packet rather than proof that a direct bitmap loader companion returned.
 
-So this slice must keep saying plainly that the broader shared runtime-loader packet remains absent on current `master`.
+So this slice must keep saying plainly that the broader shared runtime-loader packet remains absent as family-local trace-events proof on current `master`.
 
 ## Ownership
 
@@ -78,9 +78,9 @@ So this slice must keep saying plainly that the broader shared runtime-loader pa
 3. Keep `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` paired with this slice as family-local review witnesses.
 4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `.github/workflows/zigux-bootstrap.yml`, and the adjacent bounded `zigux/tests/phase9_build.zig` build bundle as neighboring shared reminder or build surfaces rather than re-owned here.
 5. Keep `zigux/tests/phase9_build.zig` framed as a bounded shared Phase 9 build bundle rather than trace-events packet proof or a returned shared runtime-loader build route.
-6. Do not treat the broader shared runtime-loader packet as returned evidence.
+6. Do not treat the broader shared runtime-loader packet as returned family-local trace-events evidence.
 7. Do not invent `validate-phase9.py`, a trace-events-only validator, or a loader-backed runtime-substrate claim that current `master` does not expose.
 
 ## Next bounded step
 
-Keep the survey note, manifest, survey gate, and this module-slice note aligned with the surviving sample family. If the broader shared runtime-loader family returns later, reread the exact file family before widening this note back out.
+Keep the survey note, manifest, survey gate, and this module-slice note aligned with the surviving sample family. If the broader shared runtime-loader family widens again, reread the exact file family before widening this note back out.
