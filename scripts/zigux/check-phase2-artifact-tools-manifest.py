@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MANIFEST = Path("zigux/tests/fixtures/phase2_artifact_tools_manifest.json")
+PRIMARY_TOOL = Path("scripts/zigux/artifact_diff.py")
 
 REQUIRED_TOP_LEVEL = {
     "phase": "Phase 2",
@@ -16,13 +18,13 @@ REQUIRED_TOP_LEVEL = {
 }
 
 REQUIRED_TOOLING = {
-    "primary": ["scripts/zigux/artifact_diff.py"],
+    "primary": [PRIMARY_TOOL.as_posix()],
     "consumers": [
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-fixdep-diff.py",
     ],
     "checkers": ["scripts/zigux/check-phase2-artifact-tools-manifest.py"],
-    "supported_modes": ["json", "text", "bytes"],
+    "supported_modes": ["text", "json", "bytes"],
 }
 
 REQUIRED_NOTE_MARKERS = (
@@ -74,6 +76,38 @@ def collect_tooling_entry_issues(root: Path, category: str, actual: object, expe
     return issues
 
 
+def parse_string_sequence(node: ast.AST, path: Path, field_name: str) -> list[str]:
+    if not isinstance(node, (ast.Tuple, ast.List)):
+        raise ValueError(f"{path}:{field_name}:expected_string_sequence")
+
+    values: list[str] = []
+    for element in node.elts:
+        if not isinstance(element, ast.Constant) or not isinstance(element.value, str):
+            raise ValueError(f"{path}:{field_name}:expected_string_literals")
+        values.append(element.value)
+    return values
+
+
+def load_primary_tool_supported_modes(path: Path) -> list[str]:
+    try:
+        source = path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ValueError(f"{path}:missing_primary_tool") from exc
+
+    try:
+        module = ast.parse(source, filename=path.as_posix())
+    except SyntaxError as exc:
+        raise ValueError(f"{path}:invalid_python:{exc.lineno}:{exc.offset}") from exc
+
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == "MODE_CHOICES":
+                return parse_string_sequence(node.value, path, "MODE_CHOICES")
+    raise ValueError(f"{path}:missing_MODE_CHOICES")
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
@@ -93,6 +127,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                     issues.append(("TOOLING_MISMATCH", key))
                 continue
             issues.extend(collect_tooling_entry_issues(root, key, actual, expected))
+
+        primary_tool_path = resolve_manifest_path(root, PRIMARY_TOOL.as_posix())
+        if primary_tool_path.exists():
+            try:
+                actual_modes = load_primary_tool_supported_modes(primary_tool_path)
+            except ValueError as exc:
+                issues.append(("INVALID_PRIMARY_TOOL_SOURCE", str(exc)))
+            else:
+                if actual_modes != REQUIRED_TOOLING["supported_modes"]:
+                    issues.append(
+                        (
+                            "PRIMARY_TOOL_SUPPORTED_MODES_MISMATCH",
+                            f"actual={actual_modes!r}:expected={REQUIRED_TOOLING['supported_modes']!r}",
+                        )
+                    )
 
     notes = manifest.get("notes")
     if not isinstance(notes, list):
@@ -137,7 +186,10 @@ def write_text(path: Path, content: str) -> None:
 def build_self_test_manifest() -> dict:
     return {
         **REQUIRED_TOP_LEVEL,
-        "tooling": dict(REQUIRED_TOOLING),
+        "tooling": {
+            key: list(value) if isinstance(value, list) else value
+            for key, value in REQUIRED_TOOLING.items()
+        },
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
 
@@ -145,8 +197,11 @@ def build_self_test_manifest() -> dict:
 def build_self_test_root(root: Path) -> None:
     manifest_path = root / MANIFEST
     write_manifest(manifest_path, build_self_test_manifest())
+    write_text(
+        root / PRIMARY_TOOL,
+        'MODE_CHOICES = ("text", "json", "bytes")\n',
+    )
     for relative_path in (
-        *REQUIRED_TOOLING["primary"],
         *REQUIRED_TOOLING["consumers"],
         *REQUIRED_TOOLING["checkers"],
     ):
@@ -161,6 +216,8 @@ def run_self_test() -> int:
         + 3
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + 1
+        + 1
         + 1
         + 1
         + 1
@@ -250,6 +307,22 @@ def run_self_test() -> int:
         manifest["tooling"]["consumers"].append(123)
         write_manifest(manifest_path, manifest)
         assert ("INVALID_TOOLING_ENTRY", "consumers:123") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root / PRIMARY_TOOL, 'MODE_CHOICES = ("json", "text", "bytes")\n')
+        assert (
+            "PRIMARY_TOOL_SUPPORTED_MODES_MISMATCH",
+            "actual=['json', 'text', 'bytes']:expected=['text', 'json', 'bytes']",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root / PRIMARY_TOOL, 'MODE_CHOICES = "text"\n')
+        assert (
+            "INVALID_PRIMARY_TOOL_SOURCE",
+            f"{(root / PRIMARY_TOOL).as_posix()}:MODE_CHOICES:expected_string_sequence",
+        ) in collect_issues(root)
         checks_run += 1
 
         manifest_path.unlink()
