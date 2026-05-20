@@ -21,6 +21,7 @@ REQUIRED_MARKERS = {
         "Keep the Makefile-backed route family recorded as repo-reality gaps until current `master` rematerializes the shared build handle.",
         "The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`.",
         "- adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` truthful as support evidence without promoting them into a fifth helper lane",
+        "while recording that the remaining scripts-root drift is parked under the separate developer-enablement README follow-through rather than treating the wider shared packet as fully settled",
     ],
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces and their active shared companions:",
@@ -211,6 +212,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`Documentation/zigux/phase13-roadmap-traceability.md`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        release_matrix_path = tempdir / "Documentation/zigux/phase13-release-coordination-matrix.md"
+        release_matrix_path.write_text(
+            release_matrix_path.read_text(encoding="utf-8").replace(
+                "while recording that the remaining scripts-root drift is parked under the separate developer-enablement README follow-through rather than treating the wider shared packet as fully settled\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:while recording that the remaining scripts-root drift is parked under the separate developer-enablement README follow-through rather than treating the wider shared packet as fully settled",
         )
         checks_run += 1
 
