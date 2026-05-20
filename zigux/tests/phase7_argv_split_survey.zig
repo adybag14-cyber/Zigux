@@ -120,13 +120,14 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "pub fn argvFree");
     try expectContains(helper, "pub fn cArgv(self: *const ArgvSplitResult)");
     try expectContains(helper, "fn nextSplitArgSpan");
-    try expectContains(helper, "test \"argvSplit treats whitespace before the first NUL as blank input\" {");
-    try expectContains(helper, "test \"argvSplit treats a leading NUL as blank input\" {");
+    try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");
+    try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\" {");
 
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
     try expectContains(helper_companion, "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation");
     try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");
+    try expectContains(helper_companion, "phase 7 argv split companion replays non-blank cross-call ownership independence");
     try expectContains(helper_companion, "phase 7 argv split companion replays caller-owned teardown and failure boundaries");
 
     try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
@@ -134,6 +135,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectStringSliceContains(manifest.ownership_focus, "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet");
     try expectStringSliceContains(manifest.ownership_focus, "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL");
     try expectStringSliceContains(manifest.ownership_focus, "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins");
+    try expectStringSliceContains(manifest.ownership_focus, "non-blank sibling results keep owned storage, argv slices, and exported cArgv views isolated across calls");
     try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
     try expectStringSliceContains(manifest.ownership_focus, "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership");
     try expectStringSliceContains(manifest.ownership_focus, "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership");
