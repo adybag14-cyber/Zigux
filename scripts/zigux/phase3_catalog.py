@@ -100,6 +100,8 @@ COMMANDS = (
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/validate-phase3.py",
+    "python3 scripts/zigux/check-phase3-abi.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
@@ -114,6 +116,8 @@ COMMANDS = (
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
     "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
