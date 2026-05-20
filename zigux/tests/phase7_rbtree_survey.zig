@@ -68,6 +68,9 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(makefile);
 
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+
     const parsed = try std.json.parseFromSlice(RbtreeManifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -133,6 +136,9 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectNotContains(makefile, "phase7-rbtree-survey:");
     try expectNotContains(makefile, "phase7-test:");
 
+    try expectContains(workflow, "Check current Phase 7 shared-control gap packet");
+    try expectContains(workflow, "Check current Phase 7 make-wrapper selftest alignment packet");
+
     try expectSliceContains(manifest.readable_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");
     try expectSliceContains(manifest.readable_non_owner_paths, "scripts/zigux/validate-phase7.py");
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
@@ -158,6 +164,9 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectSliceContains(manifest.absent_workflow_markers, "Run Phase 7 runtime helper tests");
     try expectSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-test");
     try expectSliceNotContains(manifest.absent_workflow_markers, "make -C zigux phase7-validate");
+    try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectNotContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectNotContains(workflow, "make -C zigux phase7-test");
 
     try expectSliceContains(manifest.ownership_focus, "the currently readable same-lane rbtree packet now includes the direct helper at `tools/lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, and the returned survey and manifest, so same-lane truthfulness must keep those returned surfaces explicit while still not presenting the roadmap-path port or fixture pair as returned on current master");
     try expectSliceContains(manifest.ownership_focus, "path truthfulness must keep the currently returned helper rooted at `tools/lib/rbtree.zig` explicit while the roadmap destination `lib/rbtree.zig` still remains a repo-reality gap on current master");
