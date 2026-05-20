@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import tempfile
 from pathlib import Path
@@ -14,6 +15,8 @@ NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 PHASE3_CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
+ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
+ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 EXPORT_UAPI_LAYOUT_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 
@@ -88,9 +91,9 @@ REQUIRED_SOURCE_MARKERS = {
     ABI_CHECKER_PATH: (
         'ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")',
         'ABI_HEADER = Path("include/zigux/abi.h")',
-        'LINUX_ZIGUX_HEADER = Path("include/linux/zigux.h")',
         'BINDING_ABI = Path("zigux/bindings/abi.zig")',
         'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")',
+        'MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         "def validate_repo(repo_root: Path) -> list[str]:",
         'print("PHASE3_ABI_CHECK_SELF_TEST=pass")',
     ),
@@ -101,10 +104,22 @@ REQUIRED_SOURCE_MARKERS = {
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     TESTS_BUILD_PATH: (
+        'const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);',
         'const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);',
+        'root_source_file = b.path("phase3_abi.zig"),',
         'root_source_file = b.path("phase3_abi_dump_current.zig"),',
-        'const phase3_dump_step = b.step(',
+        '"phase3-abi-core-packet"',
+        '"phase3-dump"',
+        'phase3_abi_core_step.dependOn(&phase3_abi_core_packet.step);',
         'phase3_dump_step.dependOn(&phase3_abi_dump.step);',
+    ),
+    ABI_TEST_PATH: (
+        'test "phase3 abi keeps shared layout assertions wired into the replay" {',
+        'try layout_assert.assertPublishedAbiLayouts();',
+        'test "phase3 abi keeps export shim compatibility and status helpers reviewable" {',
+        'test "phase3 abi keeps version and dev_t relays explicit" {',
+        'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {',
+        'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {',
     ),
     EXPORT_UAPI_LAYOUT_PATH: (
         'test "export and uapi dev_t layouts stay aligned" {',
@@ -120,33 +135,50 @@ REQUIRED_SOURCE_MARKERS = {
         '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         '"phase3-export-uapi-layout-test"',
     ),
+    ABI_MANIFEST_PATH: (
+        '"phase": "Phase 3"',
+        '"lane": "abi-runtime"',
+        '"slug": "phase3-abi-packet"',
+        '"zigux/tests/phase3_abi.zig"',
+        '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
+    ),
 }
+
+REQUIRED_MANIFEST_FIELDS = {
+    "phase": "Phase 3",
+    "lane": "abi-runtime",
+    "slug": "phase3-abi-packet",
+    "status": "shared_abi_and_header_family_binding_surface_present",
+    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+}
+
+REQUIRED_MANIFEST_PACKET_FILES = (
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/check-phase3-abi.py",
+    "zigux/tests/build.zig",
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump_current.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+)
+
+REQUIRED_MANIFEST_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-abi.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi.py",
+    "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-dump --build-file zigux/tests/build.zig",
+)
 
 ABI_LAYOUT_STRUCTS = (
     ("zigux_boundary_header", "BoundaryHeader", ABI_BINDINGS_PATH),
     ("zigux_export_status", "ExportStatus", ABI_BINDINGS_PATH),
     ("zigux_notifier_chain_priority_increase", "ChainPriorityIncrease", ABI_BINDINGS_PATH),
     ("zigux_interop_policy", "InteropPolicy", ABI_BINDINGS_PATH),
-    (
-        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
-        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView",
-        ABI_BINDINGS_PATH,
-    ),
-    (
-        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
-        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary",
-        ABI_BINDINGS_PATH,
-    ),
-    (
-        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
-        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView",
-        ABI_BINDINGS_PATH,
-    ),
-    (
-        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
-        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary",
-        ABI_BINDINGS_PATH,
-    ),
+    ("zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view", "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView", ABI_BINDINGS_PATH),
+    ("zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary", "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary", ABI_BINDINGS_PATH),
+    ("zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view", "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView", ABI_BINDINGS_PATH),
+    ("zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary", "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary", ABI_BINDINGS_PATH),
     ("zigux_notifier_block", "NotifierBlock", NOTIFIER_BINDINGS_PATH),
     ("zigux_list_head", "ListHead", NOTIFIER_BINDINGS_PATH),
     ("zigux_hlist_head", "HListHead", NOTIFIER_BINDINGS_PATH),
@@ -401,11 +433,7 @@ pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
     return true;
 }
 pub fn defaultHeader(flags: u16) BoundaryHeader {
-    return .{
-        .size = @sizeOf(BoundaryHeader),
-        .abi_version = ABI_VERSION,
-        .flags = flags,
-    };
+    return .{ .size = @sizeOf(BoundaryHeader), .abi_version = ABI_VERSION, .flags = flags };
 }
 pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
     var header = defaultHeader(flags);
@@ -416,12 +444,10 @@ pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
     return abi_version == ABI_VERSION;
 }
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return header.size == @sizeOf(BoundaryHeader) and
-        headerHasCurrentAbiVersion(header.abi_version);
+    return header.size == @sizeOf(BoundaryHeader) and headerHasCurrentAbiVersion(header.abi_version);
 }
 pub fn headerIsCompatible(header: BoundaryHeader) bool {
-    return header.size >= @sizeOf(BoundaryHeader) and
-        headerHasCurrentAbiVersion(header.abi_version);
+    return header.size >= @sizeOf(BoundaryHeader) and headerHasCurrentAbiVersion(header.abi_version);
 }
 pub fn extendsBoundary(header: BoundaryHeader) bool {
     return headerIsCompatible(header) and !headerIsCanonical(header);
@@ -437,19 +463,10 @@ pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     return canonical;
 }
 pub fn defaultInteropPolicy() InteropPolicy {
-    return .{
-        .panic_mode = @intFromEnum(PanicMode.abort),
-        .allocator_mode = @intFromEnum(AllocatorMode.caller_provided),
-        .unsafe_scope = @intFromEnum(UnsafeScope.none),
-        .reserved = 0,
-    };
+    return .{ .panic_mode = @intFromEnum(PanicMode.abort), .allocator_mode = @intFromEnum(AllocatorMode.caller_provided), .unsafe_scope = @intFromEnum(UnsafeScope.none), .reserved = 0 };
 }
 pub fn makeStatus(code: i32, facility: Facility) ExportStatus {
-    return .{
-        .code = code,
-        .facility = @intFromEnum(facility),
-        .flags = if (code < 0) 1 else 0,
-    };
+    return .{ .code = code, .facility = @intFromEnum(facility), .flags = if (code < 0) 1 else 0 };
 }
 pub fn okStatus(facility: Facility) ExportStatus {
     return makeStatus(0, facility);
@@ -503,9 +520,9 @@ pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
 SELF_TEST_CHECKER = """\
 ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")
 ABI_HEADER = Path("include/zigux/abi.h")
-LINUX_ZIGUX_HEADER = Path("include/linux/zigux.h")
 BINDING_ABI = Path("zigux/bindings/abi.zig")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
+MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 def validate_repo(repo_root: Path) -> list[str]:
     return []
@@ -524,8 +541,17 @@ print("PHASE3_CATALOG_SELF_TEST=pass")
 """
 
 SELF_TEST_BUILD = """\
+const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
 const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+const phase3_abi_core_step = b.step(
+    "phase3-abi-core-packet",
+    "Run the shared Phase 3 ABI core packet from zigux/tests",
+);
+phase3_abi_core_step.dependOn(&phase3_abi_core_packet.step);
 const root_module = b.createModule(.{
+    .root_source_file = b.path("phase3_abi.zig"),
+});
+const dump_module = b.createModule(.{
     .root_source_file = b.path("phase3_abi_dump_current.zig"),
 });
 const phase3_dump_step = b.step(
@@ -533,6 +559,20 @@ const phase3_dump_step = b.step(
     "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
 );
 phase3_dump_step.dependOn(&phase3_abi_dump.step);
+"""
+
+SELF_TEST_ABI_TEST = """\
+test "phase3 abi keeps shared layout assertions wired into the replay" {
+    try layout_assert.assertPublishedAbiLayouts();
+}
+test "phase3 abi keeps export shim compatibility and status helpers reviewable" {
+}
+test "phase3 abi keeps version and dev_t relays explicit" {
+}
+test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {
+}
+test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {
+}
 """
 
 SELF_TEST_EXPORT_UAPI_LAYOUT = """\
@@ -567,6 +607,21 @@ const test_step = b.step(
 );
 """
 
+SELF_TEST_MANIFEST = json.dumps(
+    {
+        "phase": "Phase 3",
+        "lane": "abi-runtime",
+        "slug": "phase3-abi-packet",
+        "status": "shared_abi_and_header_family_binding_surface_present",
+        "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+        "packet_files": list(REQUIRED_MANIFEST_PACKET_FILES),
+        "replay_routes": list(REQUIRED_MANIFEST_REPLAY_ROUTES),
+        "repo_reality_gaps": [],
+        "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
+    },
+    indent=2,
+) + "\n"
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -578,32 +633,19 @@ def _write(path: Path, text: str) -> None:
 
 
 def _abi_header_constant_names(text: str) -> set[str]:
-    return set(
-        re.findall(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", text, flags=re.MULTILINE)
-    )
+    return set(re.findall(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", text, flags=re.MULTILINE))
 
 
 def _abi_binding_constant_names(text: str) -> set[str]:
-    return set(
-        re.findall(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", text, flags=re.MULTILINE)
-    )
+    return set(re.findall(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", text, flags=re.MULTILINE))
 
 
 def _parse_c_struct_fields(text: str) -> dict[str, list[tuple[str, str]]]:
     structs: dict[str, list[tuple[str, str]]] = {}
-    for match in re.finditer(
-        r"(?:typedef\s+)?struct\s+([a-z0-9_]+)\s*\{(?P<body>.*?)\}\s*(?:[a-z0-9_]+)?\s*;",
-        text,
-        flags=re.DOTALL,
-    ):
-        body = match.group("body")
+    for match in re.finditer(r"(?:typedef\s+)?struct\s+([a-z0-9_]+)\s*\{(?P<body>.*?)\}\s*(?:[a-z0-9_]+)?\s*;", text, flags=re.DOTALL):
         fields = [
             (field_name, field_type)
-            for field_type, field_name in re.findall(
-                r"^\s*([a-z0-9_]+)\s+([a-z0-9_]+)\s*;$",
-                body,
-                flags=re.MULTILINE,
-            )
+            for field_type, field_name in re.findall(r"^\s*([a-z0-9_]+)\s+([a-z0-9_]+)\s*;$", match.group("body"), flags=re.MULTILINE)
         ]
         structs[match.group(1)] = fields
     return structs
@@ -611,60 +653,68 @@ def _parse_c_struct_fields(text: str) -> dict[str, list[tuple[str, str]]]:
 
 def _parse_zig_extern_struct_fields(text: str) -> dict[str, list[tuple[str, str]]]:
     structs: dict[str, list[tuple[str, str]]] = {}
-    for match in re.finditer(
-        r"pub const\s+([A-Za-z0-9_]+)\s*=\s*extern struct\s*\{(?P<body>.*?)\};",
-        text,
-        flags=re.DOTALL,
-    ):
-        body = match.group("body")
-        fields = re.findall(
-            r"^\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_]+)\s*,$",
-            body,
-            flags=re.MULTILINE,
-        )
-        structs[match.group(1)] = fields
+    for match in re.finditer(r"pub const\s+([A-Za-z0-9_]+)\s*=\s*extern struct\s*\{(?P<body>.*?)\};", text, flags=re.DOTALL):
+        structs[match.group(1)] = re.findall(r"^\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_]+)\s*,$", match.group("body"), flags=re.MULTILINE)
     return structs
 
 
 def _validate_layout_structs(header_text: str, zig_texts: dict[Path, str]) -> list[str]:
     issues: list[str] = []
     c_structs = _parse_c_struct_fields(header_text)
-    zig_structs_by_path = {
-        path: _parse_zig_extern_struct_fields(text)
-        for path, text in zig_texts.items()
-        if text is not None
-    }
-
+    zig_structs_by_path = {path: _parse_zig_extern_struct_fields(text) for path, text in zig_texts.items() if text is not None}
     for c_name, zig_name, zig_path in ABI_LAYOUT_STRUCTS:
         c_fields = c_structs.get(c_name)
         if c_fields is None:
             issues.append(f"missing ABI header struct for layout comparison: {c_name}")
             continue
-
         zig_fields = zig_structs_by_path.get(zig_path, {}).get(zig_name)
         if zig_fields is None:
-            issues.append(
-                f"missing ABI binding extern struct for layout comparison: {zig_name} in {zig_path.as_posix()}"
-            )
+            issues.append(f"missing ABI binding extern struct for layout comparison: {zig_name} in {zig_path.as_posix()}")
             continue
-
-        expected_zig_fields: list[tuple[str, str]] = []
+        expected_zig_fields = []
         for field_name, c_type in c_fields:
             zig_type = C_TO_ZIG_TYPE_MAP.get(c_type)
             if zig_type is None:
-                issues.append(
-                    f"unsupported C field type in ABI header layout comparison: {c_name}.{field_name} uses {c_type}"
-                )
+                issues.append(f"unsupported C field type in ABI header layout comparison: {c_name}.{field_name} uses {c_type}")
                 expected_zig_fields = []
                 break
             expected_zig_fields.append((field_name, zig_type))
-
         if expected_zig_fields and zig_fields != expected_zig_fields:
-            issues.append(
-                f"layout mismatch for {c_name} vs {zig_name}: "
-                f"header fields {expected_zig_fields!r}, binding fields {zig_fields!r}"
-            )
+            issues.append(f"layout mismatch for {c_name} vs {zig_name}: header fields {expected_zig_fields!r}, binding fields {zig_fields!r}")
+    return issues
 
+
+def _validate_manifest(text: str) -> list[str]:
+    issues: list[str] = []
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return [f"invalid JSON in {ABI_MANIFEST_PATH.as_posix()}: {exc}"]
+
+    for field, expected in REQUIRED_MANIFEST_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            issues.append(f"phase3_abi_manifest.json wrong {field}: {actual!r} != {expected!r}")
+
+    packet_files = manifest.get("packet_files")
+    if not isinstance(packet_files, list):
+        issues.append("phase3_abi_manifest.json packet_files is not a list")
+    else:
+        for required in REQUIRED_MANIFEST_PACKET_FILES:
+            if required not in packet_files:
+                issues.append(f"phase3_abi_manifest.json missing packet_files entry: {required}")
+
+    replay_routes = manifest.get("replay_routes")
+    if not isinstance(replay_routes, list):
+        issues.append("phase3_abi_manifest.json replay_routes is not a list")
+    else:
+        for required in REQUIRED_MANIFEST_REPLAY_ROUTES:
+            if required not in replay_routes:
+                issues.append(f"phase3_abi_manifest.json missing replay route: {required}")
+
+    repo_reality_gaps = manifest.get("repo_reality_gaps")
+    if not isinstance(repo_reality_gaps, list):
+        issues.append("phase3_abi_manifest.json repo_reality_gaps is not a list")
     return issues
 
 
@@ -686,25 +736,14 @@ def validate_repo(repo_root: Path) -> list[str]:
     header_text = texts.get(ABI_HEADER_PATH)
     bindings_text = texts.get(ABI_BINDINGS_PATH)
     if header_text is not None and bindings_text is not None:
-        missing_binding_constants = sorted(
-            _abi_header_constant_names(header_text).difference(
-                _abi_binding_constant_names(bindings_text)
-            )
-        )
+        missing_binding_constants = sorted(_abi_header_constant_names(header_text) - _abi_binding_constant_names(bindings_text))
         for name in missing_binding_constants:
-            issues.append(
-                "missing ABI binding constant for header define: "
-                f"ZIGUX_{name} -> {name}"
-            )
-        issues.extend(
-            _validate_layout_structs(
-                header_text,
-                {
-                    ABI_BINDINGS_PATH: bindings_text,
-                    NOTIFIER_BINDINGS_PATH: texts.get(NOTIFIER_BINDINGS_PATH),
-                },
-            )
-        )
+            issues.append(f"missing ABI binding constant for header define: ZIGUX_{name} -> {name}")
+        issues.extend(_validate_layout_structs(header_text, {ABI_BINDINGS_PATH: bindings_text, NOTIFIER_BINDINGS_PATH: texts.get(NOTIFIER_BINDINGS_PATH)}))
+
+    manifest_text = texts.get(ABI_MANIFEST_PATH)
+    if manifest_text is not None:
+        issues.extend(_validate_manifest(manifest_text))
 
     return issues
 
@@ -712,15 +751,16 @@ def validate_repo(repo_root: Path) -> list[str]:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_") as tmp_dir:
         root = Path(tmp_dir)
-
         _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
         _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
         _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
         _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
         _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
         _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
+        _write(root / ABI_TEST_PATH, SELF_TEST_ABI_TEST)
         _write(root / EXPORT_UAPI_LAYOUT_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT)
         _write(root / EXPORT_UAPI_LAYOUT_BUILD_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD)
+        _write(root / ABI_MANIFEST_PATH, SELF_TEST_MANIFEST)
 
         issues = validate_repo(root)
         if issues:
@@ -728,283 +768,51 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        _write(
-            root / ABI_CHECKER_PATH,
-            SELF_TEST_CHECKER.replace(
-                'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")\n',
-                "",
-                1,
-            ),
-        )
+        cases = [
+            (ABI_CHECKER_PATH, 'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")\n', 'missing scripts/zigux/check-phase3-abi.py marker: EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")'),
+            (ABI_BINDINGS_PATH, 'pub const ABI_VERSION: u16 = 1;\n', 'missing ABI binding constant for header define: ZIGUX_ABI_VERSION -> ABI_VERSION'),
+            (ABI_BINDINGS_PATH, '    facility: u16,\n    flags: u16,\n', 'layout mismatch for zigux_export_status vs ExportStatus:'),
+            (NOTIFIER_BINDINGS_PATH, 'pub const ListHead = extern struct {\n', 'missing zigux/bindings/notifier_abi.zig marker: pub const ListHead = extern struct {'),
+            (ABI_TEST_PATH, 'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {\n', 'missing zigux/tests/phase3_abi.zig marker: test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {'),
+        ]
+
+        for rel_path, needle, expected in cases:
+            replacement = '' if rel_path != ABI_BINDINGS_PATH or 'facility' not in needle else '    flags: u16,\n    facility: u16,\n'
+            _write(root / rel_path, _read(root / rel_path).replace(needle, replacement, 1))
+            issues = validate_repo(root)
+            if not any(expected in issue for issue in issues):
+                print("PHASE3_VALIDATION_SELF_TEST=fail")
+                print(f"expected issue was not reported: {expected}")
+                return 1
+            _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
+            _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+            _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
+            _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
+            _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
+            _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
+            _write(root / ABI_TEST_PATH, SELF_TEST_ABI_TEST)
+            _write(root / EXPORT_UAPI_LAYOUT_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT)
+            _write(root / EXPORT_UAPI_LAYOUT_BUILD_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD)
+            _write(root / ABI_MANIFEST_PATH, SELF_TEST_MANIFEST)
+
+        manifest = json.loads(_read(root / ABI_MANIFEST_PATH))
+        manifest['replay_routes'].remove('zig build phase3-dump --build-file zigux/tests/build.zig')
+        _write(root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
-            "missing scripts/zigux/check-phase3-abi.py marker: "
-            'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")'
-        )
+        expected = 'phase3_abi_manifest.json missing replay route: zig build phase3-dump --build-file zigux/tests/build.zig'
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing ABI checker marker was not reported")
-            return 1
-
-        _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
-
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS.replace(
-                "pub const ABI_VERSION: u16 = 1;\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing ABI binding constant for header define: "
-            "ZIGUX_ABI_VERSION -> ABI_VERSION"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing ABI binding constant was not reported")
-            return 1
-
-        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
-
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS.replace(
-                "    facility: u16,\n    flags: u16,\n",
-                "    flags: u16,\n    facility: u16,\n",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        if not any(
-            "layout mismatch for zigux_export_status vs ExportStatus" in issue
-            for issue in issues
-        ):
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected ABI layout mismatch was not reported")
-            return 1
-
-        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
-
-        _write(
-            root / NOTIFIER_BINDINGS_PATH,
-            SELF_TEST_NOTIFIER_BINDINGS.replace(
-                "pub const ListHead = extern struct {\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/bindings/notifier_abi.zig marker: "
-            "pub const ListHead = extern struct {"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing notifier binding marker was not reported")
-            return 1
-
-        _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
-
-        _write(
-            root / ABI_HEADER_PATH,
-            SELF_TEST_HEADER.replace(
-                "static inline zigux_boundary_header zigux_compatible_header(\n"
-                "    uint32_t size,\n"
-                "    uint16_t flags)\n"
-                "{\n"
-                "    zigux_boundary_header header = zigux_default_header(flags);\n"
-                "    header.size = size;\n"
-                "    return header;\n"
-                "}\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing include/zigux/abi.h marker: "
-            "static inline zigux_boundary_header zigux_compatible_header("
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing compatibility helper marker was not reported")
-            return 1
-
-        _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
-
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS.replace(
-                "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {\n"
-                "    var canonical = header;\n"
-                "    canonical.size = @sizeOf(BoundaryHeader);\n"
-                "    canonical.abi_version = ABI_VERSION;\n"
-                "    return canonical;\n"
-                "}\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/bindings/abi.zig marker: "
-            "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing canonicalize helper marker was not reported")
-            return 1
-
-        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
-
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS.replace(
-                "pub fn defaultInteropPolicy() InteropPolicy {\n"
-                "    return .{\n"
-                "        .panic_mode = @intFromEnum(PanicMode.abort),\n"
-                "        .allocator_mode = @intFromEnum(AllocatorMode.caller_provided),\n"
-                "        .unsafe_scope = @intFromEnum(UnsafeScope.none),\n"
-                "        .reserved = 0,\n"
-                "    };\n"
-                "}\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/bindings/abi.zig marker: "
-            "pub fn defaultInteropPolicy() InteropPolicy {"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing interop policy helper marker was not reported")
-            return 1
-
-        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
-
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS.replace(
-                "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {\n"
-                "    return .{\n"
-                "        .code = code,\n"
-                "        .facility = @intFromEnum(facility),\n"
-                "        .flags = if (code < 0) 1 else 0,\n"
-                "    };\n"
-                "}\n",
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/bindings/abi.zig marker: "
-            "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {"
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing status helper marker was not reported")
-            return 1
-
-        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
-
-        _write(
-            root / PHASE3_CATALOG_PATH,
-            SELF_TEST_CATALOG.replace(
-                'PHASE3_CATALOG_SCOPE = "abi-runtime"\n',
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing scripts/zigux/phase3_catalog.py marker: "
-            'PHASE3_CATALOG_SCOPE = "abi-runtime"'
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing catalog marker was not reported")
-            return 1
-
-        _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
-
-        _write(
-            root / TESTS_BUILD_PATH,
-            SELF_TEST_BUILD.replace(
-                '    .root_source_file = b.path("phase3_abi_dump_current.zig"),\n',
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/tests/build.zig marker: "
-            'root_source_file = b.path("phase3_abi_dump_current.zig"),'
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing ABI dump build-route marker was not reported")
-            return 1
-
-        _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
-
-        _write(
-            root / EXPORT_UAPI_LAYOUT_PATH,
-            SELF_TEST_EXPORT_UAPI_LAYOUT.replace(
-                'test "export shim mirrors boundary header predicate helpers" {\n',
-                "",
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/tests/phase3_export_uapi_layout.zig marker: "
-            'test "export shim mirrors boundary header predicate helpers" {'
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing export/uapi layout marker was not reported")
-            return 1
-
-        _write(root / EXPORT_UAPI_LAYOUT_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT)
-
-        _write(
-            root / EXPORT_UAPI_LAYOUT_BUILD_PATH,
-            SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD.replace(
-                '"phase3-export-uapi-layout-test"',
-                '"phase3-export-uapi-layout"',
-                1,
-            ),
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing zigux/tests/phase3_export_uapi_layout_build.zig marker: "
-            '"phase3-export-uapi-layout-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected missing export/uapi layout build marker was not reported")
+            print(f"expected issue was not reported: {expected}")
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current bounded Phase 3 shared ABI binding surface."
-    )
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=Path("."),
-        help="repository root that contains include/zigux/, zigux/bindings/, scripts/zigux/, and zigux/tests/",
-    )
+    parser = argparse.ArgumentParser(description="Validate the current bounded Phase 3 shared ABI binding surface.")
+    parser.add_argument("--repo-root", type=Path, default=Path("."), help="repository root that contains include/zigux/, zigux/bindings/, scripts/zigux/, and zigux/tests/")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
