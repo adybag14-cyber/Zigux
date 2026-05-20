@@ -187,6 +187,7 @@
       "phase10-mmio-selected-queue-readiness-helper",
       "phase10-mmio-interrupt-ack-disposition-helper",
       "phase10-mmio-feature-negotiation-summary-helper",
+      "phase10-mmio-config-write-plan-freshness-helper",
       "phase10-mmio-config-write-disposition-helper"
     ]
   },
