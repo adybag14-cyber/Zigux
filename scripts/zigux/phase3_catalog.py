@@ -14,6 +14,7 @@ PHASE3_CATALOG_SCOPE = "abi-runtime"
 DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
+    Path("Documentation/zigux/phase3-roadmap-interop-gap-survey.md"),
     Path("Documentation/zigux/phase3-errptr-xarray-slice.md"),
     Path("Documentation/zigux/phase3-xarray-slot-slice.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
