@@ -90,6 +90,83 @@ test "phase12 nvme pci direct replay keeps stale recovery reservation debt expli
     try std.testing.expectEqual(@as(u16, 4), next.queue_id);
 }
 
+test "phase12 nvme pci direct replay keeps recovery debt blockers and caps reviewable before preflight succeeds" {
+    var frozen_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try frozen_lab.planAdminQueue(32, 64, false);
+    const frozen = try frozen_lab.reserveIoQueues(4, 4);
+    _ = frozen_lab.beginReset();
+
+    const frozen_debt = try frozen_lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = frozen.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = frozen.reserved_io_queues,
+    }, 4);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen_debt.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.reset_frozen, frozen_debt.replay_blocker);
+    try std.testing.expect(frozen_debt.queue_planning_blocked);
+    try std.testing.expect(frozen_debt.queues_frozen);
+    try std.testing.expect(frozen_debt.has_queue_reservation_to_replay);
+    try std.testing.expect(frozen_debt.cached_queue_reservation_stale);
+    try std.testing.expect(!frozen_debt.replay_preflight_ready);
+    try std.testing.expectEqual(@as(?u16, null), frozen_debt.first_queue_id);
+    try std.testing.expectEqual(@as(?u16, null), frozen_debt.next_io_queue_id_after_replay);
+
+    var current_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try current_lab.planAdminQueue(32, 64, false);
+    const current = try current_lab.reserveIoQueues(4, 4);
+    const current_debt = try current_lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = current.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = current.reserved_io_queues,
+    }, 4);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.queue_reservation_current, current_debt.replay_blocker);
+    try std.testing.expect(current_debt.has_queue_reservation_to_replay);
+    try std.testing.expect(current_debt.queue_reservation_already_current);
+    try std.testing.expect(!current_debt.cached_queue_reservation_stale);
+    try std.testing.expect(!current_debt.replay_preflight_ready);
+
+    var capped_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try capped_lab.planAdminQueue(32, 64, false);
+    const reservation = try capped_lab.reserveIoQueues(4, 4);
+    _ = capped_lab.beginReset();
+    _ = capped_lab.completeReset();
+    _ = try capped_lab.planAdminQueue(32, 64, false);
+
+    const no_controller = try capped_lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 0);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.no_controller_io_queues, no_controller.replay_blocker);
+    try std.testing.expect(no_controller.cached_queue_reservation_stale);
+    try std.testing.expect(!no_controller.replay_preflight_ready);
+    try std.testing.expectEqual(@as(usize, 64), no_controller.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 0), no_controller.replayable_reserved_io_queues);
+
+    const rebuilt = try capped_lab.reserveIoQueues(64, 64);
+    try std.testing.expectEqual(@as(usize, 64), rebuilt.reserved_io_queues);
+    const planner_full = try capped_lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 4);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.planner_queue_slots, planner_full.replay_blocker);
+    try std.testing.expect(!planner_full.replay_preflight_ready);
+    try std.testing.expectEqual(@as(usize, 0), planner_full.planner_remaining_io_slots);
+}
+
 test "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(48, 64, false);
