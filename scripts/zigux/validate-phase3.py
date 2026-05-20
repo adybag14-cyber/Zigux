@@ -130,6 +130,7 @@ REQUIRED_SOURCE_MARKERS = {
         'test "export and uapi dev_t layouts stay aligned" {',
         'test "export and uapi version layouts stay aligned" {',
         'test "header-family binding keeps the bounded relay surface explicit" {',
+        'test "header-family status wrappers stay aligned with export shim validation" {',
         'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim reuses the canonical boundary header contract" {',
         'test "export shim mirrors boundary header predicate helpers" {',
@@ -364,8 +365,8 @@ def run_self_test() -> int:
             ),
             (
                 EXPORT_UAPI_LAYOUT_PATH,
-                'const header_family = @import("header_family_binding");\n',
-                'missing zigux/tests/phase3_export_uapi_layout.zig marker: const header_family = @import("header_family_binding");',
+                'test "header-family status wrappers stay aligned with export shim validation" {\n',
+                'missing zigux/tests/phase3_export_uapi_layout.zig marker: test "header-family status wrappers stay aligned with export shim validation" {',
             ),
             (
                 ABI_TEST_PATH,
