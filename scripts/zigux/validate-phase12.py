@@ -127,6 +127,18 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    DOCS_README_PATH: [
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, and `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns on current `master`.",
+    ],
+    REVIEW_CHECKLIST_PATH: [
+        "still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
+    ],
+    SCRIPTS_README_PATH: [
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
+    ],
+    TESTS_README_PATH: [
+        "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
+    ],
     RELEASE_READINESS_SURVEY_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
@@ -326,8 +338,14 @@ def marker_fixture(title: str, markers: list[str]) -> str:
 
 
 FIXTURE_TEXT = {
-    DOCS_README_PATH: "# Zigux Documentation\n",
-    REVIEW_CHECKLIST_PATH: "# Zigux Review Checklist\n",
+    DOCS_README_PATH: marker_fixture(
+        "# Zigux Documentation",
+        REQUIRED_MARKERS[DOCS_README_PATH],
+    ),
+    REVIEW_CHECKLIST_PATH: marker_fixture(
+        "# Zigux Review Checklist",
+        REQUIRED_MARKERS[REVIEW_CHECKLIST_PATH],
+    ),
     FREEZE_MAP_PATH: "# Zigux Freeze Map\n",
     RELEASE_READINESS_SURVEY_PATH: marker_fixture(
         "# Phase 12 Release Readiness Survey",
@@ -377,7 +395,10 @@ FIXTURE_TEXT = {
     NVME_REOPEN_GOVERNANCE_PATH: "# Phase 12 NVMe PCI Reopen Governance\n",
     NVME_SLICE_PATH: "# Phase 12 NVMe PCI Slice\n",
     NVME_SURVEY_PATH: "# Phase 12 NVMe PCI Survey\n",
-    SCRIPTS_README_PATH: "# scripts/zigux\n",
+    SCRIPTS_README_PATH: marker_fixture(
+        "# scripts/zigux",
+        REQUIRED_MARKERS[SCRIPTS_README_PATH],
+    ),
     BUILD_ONLY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_NET_PACKET_CHECKER_PATH: "\n".join(
@@ -396,7 +417,10 @@ FIXTURE_TEXT = {
     + "\n",
     NVME_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VALIDATOR_PATH: "\n".join(REQUIRED_MARKERS[VALIDATOR_PATH]) + "\n",
-    TESTS_README_PATH: "# zigux/tests\n",
+    TESTS_README_PATH: marker_fixture(
+        "# zigux/tests",
+        REQUIRED_MARKERS[TESTS_README_PATH],
+    ),
     MAKEFILE_PATH: "\n".join(REQUIRED_MARKERS[MAKEFILE_PATH]) + "\n",
     PHASE12_BUILD_PATH: "// phase12 build fixture\n",
     VIRTIO_NET_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_NET_MANIFEST_PATH]) + "\n",
