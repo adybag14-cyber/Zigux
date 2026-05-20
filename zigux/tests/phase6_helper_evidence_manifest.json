@@ -13,7 +13,8 @@
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
-    "scripts/zigux/check-phase6-present-entrypoints.py"
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"
   ],
   "public_tree_backed_shared_companions": [
     "Documentation/zigux/phase6-perf-gate-survey.md"
