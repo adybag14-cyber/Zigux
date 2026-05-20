@@ -23,7 +23,7 @@ That roadmap boundary still matters, but repo reality matters more than stale re
 
 ## Live repo reality on current master
 
-Trusted current-tree rereads on 2026-05-19 confirm the narrow trace-events packet is still the direct shipped Phase 9 runtime sample family.
+Trusted current-tree rereads on 2026-05-20 confirm the narrow trace-events packet is still the direct shipped Phase 9 runtime sample family.
 
 - surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`
 - surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
