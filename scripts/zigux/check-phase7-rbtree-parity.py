@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) >= 4 else SELF_PATH.parent
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-rbtree-slice.md",
