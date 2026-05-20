@@ -213,6 +213,15 @@ def collect_fixture_issues(root: Path) -> list[str]:
     return issues
 
 
+def collect_replay_file_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    for rel_path in ZIG_TEST_FILES:
+        path = resolve_repo_path(root, rel_path)
+        if not path.is_file():
+            issues.append(f"replay:file_missing:{rel_path.as_posix()}")
+    return issues
+
+
 def load_targets(root: Path) -> list[str]:
     fixture_path = resolve_repo_path(root, FIXTURE)
     payload = load_json(fixture_path)
@@ -385,6 +394,7 @@ def run_checked(root: Path, zig: str | None, target: str | None, all_targets: bo
         timeout_seconds = normalize_timeout_seconds(timeout_seconds)
 
         issues = collect_fixture_issues(root)
+        issues.extend(collect_replay_file_issues(root))
         if issues:
             print("PHASE2_CROSS_TARGET_REPLAY=fail")
             for issue in issues:
@@ -425,6 +435,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         assert collect_fixture_issues(root) == []
+        assert collect_replay_file_issues(root) == []
         checks_run += 1
 
         payload = json.loads(fixture_path.read_text(encoding="utf-8"))
@@ -637,6 +648,21 @@ def run_self_test() -> int:
             "fixture:target_set_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['aarch64-linux', 'x86_64-linux']"
             not in issues
         )
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_repo_path(root, ZIG_TEST_FILES[1]).unlink()
+        assert collect_replay_file_issues(root) == [
+            "replay:file_missing:scripts/zigux/kconfig/confdata_bridge.zig"
+        ]
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_repo_path(root, ZIG_TEST_FILES[0]).unlink()
+        result, output = capture_stdout(run_checked, root, None, None, False, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "replay:file_missing:scripts/zigux/kconfig/conf_bridge.zig" in output
         checks_run += 1
 
         build_self_test_root(root)
