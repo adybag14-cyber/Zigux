@@ -198,6 +198,40 @@ test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape be
     try std.testing.expect(wrapped_full_occupancy.wrapped);
     try std.testing.expect(wrapped_full_occupancy.wrapped_window);
 
+    const partial_enqueue = try module.runPartialEnqueueBoundaryReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, partial_enqueue.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, partial_enqueue.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_len_before_extra);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.available_before_extra);
+    try std.testing.expectEqual(@as(usize, 4), partial_enqueue.requested_extra_len);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.copied_extra_len);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.dropped_extra_len);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.queue_len_after_extra);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.available_after_extra);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.snapshot_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.head_index);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.tail_index);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.visible_span_after_extra.total_visible);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.visible_span_after_extra.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.second_window_len);
+    try std.testing.expect(!partial_enqueue.visible_span_after_extra.wraps);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.writable_count);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.second_window_len);
+    try std.testing.expect(!partial_enqueue.writable_span_after_extra.wraps);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.occupancy_after_extra.queue_len);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), partial_enqueue.occupancy_after_extra.used);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.occupancy_after_extra.available);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.empty);
+    try std.testing.expect(partial_enqueue.occupancy_after_extra.full);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.wrapped);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.wrapped_window);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3, 4, 5, 6, 7 }, partial_enqueue.snapshot_after_extra[0..8]);
+    try std.testing.expectEqualSlices(u8, &.{ 24, 25, 26, 27, 28, 29, 30, 31 }, partial_enqueue.snapshot_after_extra[24..32]);
+    try std.testing.expectEqual(@as(?u8, 0), module.peekByte());
+    try std.testing.expect(!module.pushByte(255));
+
     module.reset();
     try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
     var short_drain: [3]u8 = undefined;
@@ -256,6 +290,7 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runWrappedPreviewReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runPartialEnqueueBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 
@@ -394,5 +429,6 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(!module.usesWrappedStorageWindow());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runWrappedPreviewReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runPartialEnqueueBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
