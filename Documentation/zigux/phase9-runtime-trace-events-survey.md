@@ -45,7 +45,7 @@ Current `master` still does not expose, inside this family-local trace-events pr
 - the older `samples/zigux/runtime_*_loader.zig` scaffolds
 - dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
 
-Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded Phase 9 build bundle rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, module, diff, loader, survey, and top-bit targets rather than a broader shared runtime-loader or trace-events build packet.
+Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded Phase 9 build bundle rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, survey, and top-bit targets rather than a broader shared runtime-loader or trace-events build packet.
 
 The returned shared allocator/init-flow packet now lives separately through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds, but those shared surfaces still stop short of proving broader runtime publication or loadable-runtime-complete substrate work.
 
