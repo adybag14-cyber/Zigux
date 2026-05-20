@@ -23,4 +23,3 @@ This note records the current survey-facing repo reality for the Phase 11 `dw_wd
 - leave historical survey-only patch context parked until the survey lane actually needs another reminder-surface repair.
 - if the survey lane reopens, reserve `P11-L09`, reread the live manifest, survey note, validation matrix, and current helper-backed packet together before preparing a new survey-only fix.
 - keep the next substantive non-doc DesignWare follow-through on `P11-L10`, the separately owned platform-registration scaffold lane, rather than reopening this survey note with stale assumptions.
-- until then, keep the next substantive non-doc DesignWare follow-through on the separately owned platform-registration scaffold lane rather than reopening this survey lane with stale assumptions.
