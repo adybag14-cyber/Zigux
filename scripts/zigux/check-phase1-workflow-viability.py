@@ -295,6 +295,70 @@ def run_self_test() -> int:
         case_count += 1
 
         build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 closure packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_required_adjacency_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Check current Phase 4 artifact-diff determinism packet,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_tail_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Self-test current Phase 1 workflow viability checker\n"
+            + "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_selftest_step_not_detected")
+            return 1
+        if "workflow_run:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_selftest_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Check current Phase 1 workflow viability\n"
+            + "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_check_step_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_check_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
