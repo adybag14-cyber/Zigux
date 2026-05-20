@@ -121,3 +121,35 @@ test "phase10 virtio core reset replay clears interrupt debt and drops driver re
     try std.testing.expectEqual(virtio_core.DriverModelStage.unattached, model.stage);
     try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .acknowledge_missing), model.blocker);
 }
+
+test "phase10 virtio core driver id replay keeps exact wildcard and unmatched rules reviewable" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1052, 2);
+
+    var summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = virtio_core.default_vendor_id },
+        .{ .device_id = 0x1052, .vendor_id = virtio_core.default_vendor_id },
+        .{ .device_id = virtio_core.any_id, .vendor_id = virtio_core.any_id },
+    });
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 1), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+
+    core.setVendorId(0x1AF5);
+    summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = virtio_core.any_id, .vendor_id = 0x1AF5 },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expect(summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+
+    summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = virtio_core.default_vendor_id },
+    });
+    try std.testing.expect(!summary.matched);
+    try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+}
