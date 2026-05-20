@@ -6,12 +6,12 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - `PHASE9_STATUS=active`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-partial-return`
-- scope: partial reminder packet, restored direct sample proof, restored top-bit companion proof, and blocked loader-substrate follow-through only
+- scope: partial reminder packet, direct sample proof, top-bit companion proof, and blocked loader-substrate follow-through only
 
 ## Current repo reality
 - trusted current-tree contents reads on 2026-05-20 do materialize `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - the same trusted read path still returns missing for `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json`
-- keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body now reruns the restored direct sample, survey, and top-bit proofs; do not treat that bundle alone as proof that the broader runtime bitmap packet returned or that the missing loader, module, diff, and manifest legs returned
+- keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body now reruns the direct sample, survey, and top-bit proofs; do not treat that bundle alone as proof that the broader runtime bitmap packet returned or that the missing loader, module, diff, and manifest legs returned
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
 
 ## Boundaries
@@ -36,4 +36,4 @@ Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as bounded re
 
 ## Next bounded step
 
-Restore the next smallest sample-adjacent bitmap proof surface, starting with `samples/zigux/runtime_bitmap_loader.zig`, only if the same trusted read path returns a coherent loader-side packet again.
+Advance to the next smallest sample-adjacent bitmap proof surface, starting with `samples/zigux/runtime_bitmap_loader.zig`, only if the same trusted read path returns a coherent loader-side packet again.
