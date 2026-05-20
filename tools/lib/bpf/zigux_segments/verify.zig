@@ -7,6 +7,7 @@ const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const perf_buffer_ready_window = @import("perf_buffer_ready_window.zig");
 const pin_path = @import("pin_path.zig");
+const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");
 const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");
 const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");
 const type_names = @import("type_names.zig");
@@ -50,6 +51,7 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(perf_buffer_ready_window);
     std.testing.refAllDecls(pin_path);
+    std.testing.refAllDecls(ready_buffer_attempt_verify);
     std.testing.refAllDecls(ready_buffer_fd_verify);
     std.testing.refAllDecls(ready_buffer_window_verify);
     std.testing.refAllDecls(type_names);
@@ -388,72 +390,6 @@ test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window 
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
         perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &overflow_windows, 0),
-    );
-}
-
-test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer attempt summaries explicit" {
-    const buffers = [_]perf_buffer_poll.BufferObservation{
-        .{},
-        .{ .ready = true },
-        .{},
-        .{ .ready = true },
-    };
-
-    const first = perf_buffer_poll.summarizeReadyBufferAttemptLookup(&buffers, 0);
-    try std.testing.expectEqual(
-        perf_buffer_poll.ReadyBufferAttemptLookupDisposition.found_ready_index,
-        first.disposition,
-    );
-    try std.testing.expectEqual(@as(usize, 2), first.ready_count);
-    try std.testing.expectEqual(@as(?usize, 1), first.ready_index);
-    try std.testing.expectEqual(
-        @as(usize, 1),
-        try perf_buffer_poll.resolveReadyBufferAttemptLookup(first),
-    );
-
-    const missing = perf_buffer_poll.summarizeReadyBufferAttemptLookup(&buffers, 2);
-    try std.testing.expectEqual(
-        perf_buffer_poll.ReadyBufferAttemptLookupDisposition.missing_ready_index,
-        missing.disposition,
-    );
-    try std.testing.expectEqual(@as(usize, 2), missing.ready_count);
-    try std.testing.expectEqual(@as(?usize, null), missing.ready_index);
-    try std.testing.expectError(
-        error.MissingReadyBuffer,
-        perf_buffer_poll.resolveReadyBufferAttemptLookup(missing),
-    );
-}
-
-test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer attempt returns explicit" {
-    const buffers = [_]perf_buffer_poll.BufferObservation{
-        .{},
-        .{ .ready = true },
-        .{},
-        .{ .ready = true },
-    };
-
-    try std.testing.expectEqual(
-        @as(usize, 1),
-        try perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 0),
-    );
-    try std.testing.expectEqual(
-        @as(i32, 3),
-        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 1),
-    );
-    try std.testing.expectEqual(
-        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
-        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 2),
-    );
-
-    const impossible = perf_buffer_poll.ReadyBufferAttemptLookupSummary{
-        .requested_attempt_index = 0,
-        .ready_index = @as(usize, std.math.maxInt(i32)) + 1,
-        .ready_count = 1,
-        .disposition = .found_ready_index,
-    };
-    try std.testing.expectEqual(
-        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
-        perf_buffer_poll.resolveReadyBufferAttemptLookupReturn(impossible),
     );
 }
 
