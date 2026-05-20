@@ -34,8 +34,16 @@ pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {
     return scopeFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
+pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) != null;
+}
+
 pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
     return scopeFromInteropPolicy(policy) != null;
+}
+
+pub fn recognizesByte(scope: u8) bool {
+    return scopeFromByte(scope) != null;
 }
 
 pub fn permitsNoUnsafe(scope: UnsafeScopeTag) bool {
@@ -130,6 +138,14 @@ pub fn allowsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return permitsVolatileMmioPolicyBytes(unsafe_scope, reserved);
 }
 
+pub fn allowsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
+    return permitsVolatileMmioInteropPolicy(policy);
+}
+
+pub fn allowsVolatileMmioByte(scope: u8) bool {
+    return permitsVolatileMmioByte(scope);
+}
+
 pub fn allowsRawPointerBridge(scope: UnsafeScopeTag) bool {
     return permitsRawPointerBridge(scope);
 }
@@ -138,8 +154,28 @@ pub fn allowsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return permitsRawPointerBridgePolicyBytes(unsafe_scope, reserved);
 }
 
+pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return permitsRawPointerBridgeInteropPolicy(policy);
+}
+
+pub fn allowsRawPointerBridgeByte(scope: u8) bool {
+    return permitsRawPointerBridgeByte(scope);
+}
+
 pub fn isUnsafe(scope: UnsafeScopeTag) bool {
     return scope != .none;
+}
+
+pub fn isUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return isUnsafe(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
+}
+
+pub fn isUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return isUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn isUnsafeByte(scope: u8) bool {
+    return isUnsafePolicyBytes(scope, 0);
 }
 
 pub fn surfaceFor(scope: UnsafeScopeTag) Surface {
@@ -150,8 +186,32 @@ pub fn surfaceFor(scope: UnsafeScopeTag) Surface {
     };
 }
 
+pub fn surfaceFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?Surface {
+    return surfaceFor(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return null);
+}
+
+pub fn surfaceFromInteropPolicy(policy: abi.InteropPolicy) ?Surface {
+    return surfaceFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn surfaceFromByte(scope: u8) ?Surface {
+    return surfaceFor(scopeFromByte(scope) orelse return null);
+}
+
 pub fn requiresDedicatedAudit(scope: UnsafeScopeTag) bool {
     return isUnsafe(scope);
+}
+
+pub fn requiresDedicatedAuditPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return requiresDedicatedAudit(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
+}
+
+pub fn requiresDedicatedAuditInteropPolicy(policy: abi.InteropPolicy) bool {
+    return requiresDedicatedAuditPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn requiresDedicatedAuditByte(scope: u8) bool {
+    return requiresDedicatedAuditPolicyBytes(scope, 0);
 }
 
 fn requireByteCoverage(comptime T: type, byte_len: usize) RawPointerBridgeError!void {
@@ -262,11 +322,47 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromByte(2));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromByte(9));
 
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
+
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromByte(0));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromByte(1));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromByte(2));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromByte(9));
+
+    try std.testing.expect(!isUnsafeByte(0));
+    try std.testing.expect(isUnsafeByte(1));
+    try std.testing.expect(isUnsafeByte(2));
+    try std.testing.expect(!isUnsafeByte(9));
+
+    try std.testing.expect(!requiresDedicatedAuditByte(0));
+    try std.testing.expect(requiresDedicatedAuditByte(1));
+    try std.testing.expect(requiresDedicatedAuditByte(2));
+    try std.testing.expect(!requiresDedicatedAuditByte(9));
+
+    try std.testing.expect(!allowsVolatileMmioByte(0));
+    try std.testing.expect(allowsVolatileMmioByte(1));
+    try std.testing.expect(!allowsVolatileMmioByte(2));
+    try std.testing.expect(!allowsVolatileMmioByte(9));
+
+    try std.testing.expect(!allowsRawPointerBridgeByte(0));
+    try std.testing.expect(!allowsRawPointerBridgeByte(1));
+    try std.testing.expect(allowsRawPointerBridgeByte(2));
+    try std.testing.expect(!allowsRawPointerBridgeByte(9));
 
     const none_policy = abi.InteropPolicy{
         .panic_mode = 0,
@@ -311,6 +407,12 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
     try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
 
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromInteropPolicy(none_policy));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromInteropPolicy(mmio_policy));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromInteropPolicy(raw_policy));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(reserved_policy));
+
     try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(mmio_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(raw_policy));
@@ -328,6 +430,30 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(permitsRawPointerBridgeInteropPolicy(raw_policy));
     try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(unknown_policy));
     try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));
+
+    try std.testing.expect(!isUnsafeInteropPolicy(none_policy));
+    try std.testing.expect(isUnsafeInteropPolicy(mmio_policy));
+    try std.testing.expect(isUnsafeInteropPolicy(raw_policy));
+    try std.testing.expect(!isUnsafeInteropPolicy(unknown_policy));
+    try std.testing.expect(!isUnsafeInteropPolicy(reserved_policy));
+
+    try std.testing.expect(!requiresDedicatedAuditInteropPolicy(none_policy));
+    try std.testing.expect(requiresDedicatedAuditInteropPolicy(mmio_policy));
+    try std.testing.expect(requiresDedicatedAuditInteropPolicy(raw_policy));
+    try std.testing.expect(!requiresDedicatedAuditInteropPolicy(unknown_policy));
+    try std.testing.expect(!requiresDedicatedAuditInteropPolicy(reserved_policy));
+
+    try std.testing.expect(!allowsVolatileMmioInteropPolicy(none_policy));
+    try std.testing.expect(allowsVolatileMmioInteropPolicy(mmio_policy));
+    try std.testing.expect(!allowsVolatileMmioInteropPolicy(raw_policy));
+    try std.testing.expect(!allowsVolatileMmioInteropPolicy(unknown_policy));
+    try std.testing.expect(!allowsVolatileMmioInteropPolicy(reserved_policy));
+
+    try std.testing.expect(!allowsRawPointerBridgeInteropPolicy(none_policy));
+    try std.testing.expect(!allowsRawPointerBridgeInteropPolicy(mmio_policy));
+    try std.testing.expect(allowsRawPointerBridgeInteropPolicy(raw_policy));
+    try std.testing.expect(!allowsRawPointerBridgeInteropPolicy(unknown_policy));
+    try std.testing.expect(!allowsRawPointerBridgeInteropPolicy(reserved_policy));
 
     try requireNoUnsafeInteropPolicy(none_policy);
     try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(mmio_policy));
