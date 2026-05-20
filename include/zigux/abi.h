@@ -225,7 +225,7 @@ static inline int zigux_list_first_broken_backlink(
 static inline int zigux_list_has_consistent_backlinks(
     const struct zigux_list_head *head)
 {
-    return zigux_list_first_broken_backlink(head, NULL) == 0;
+    return head != NULL && zigux_list_first_broken_backlink(head, NULL) == 0;
 }
 
 static inline int zigux_hlist_first_broken_prev_link(
@@ -261,7 +261,7 @@ static inline int zigux_hlist_first_broken_prev_link(
 static inline int zigux_hlist_has_consistent_prev_links(
     const struct zigux_hlist_head *head)
 {
-    return zigux_hlist_first_broken_prev_link(head, NULL) == 0;
+    return head != NULL && zigux_hlist_first_broken_prev_link(head, NULL) == 0;
 }
 
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
