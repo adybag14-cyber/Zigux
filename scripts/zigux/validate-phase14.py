@@ -108,6 +108,16 @@ REQUIRED_MARKERS = {
         "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
         "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
     ],
+    PRODUCTIZATION_GAP_PATH: [
+        "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py` now returns through the current contents path and keeps the tests-root reminder aligned with the same recovered study-only split without promoting the broader `phase14-smoke`, `phase14-test`, or `phase14` wrappers",
+        "the directly readable release-boundary exact-count guard",
+        "the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
+    ],
+    SHARED_SMOKE_GAP_PATH: [
+        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, but that same manifest still advertises `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, and workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow do not expose",
+        "the stale raw-manifest route claims",
+        "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
+    ],
     CORE_BOUNDARY_TRACEABILITY_PATH: [
         "`kernel/workqueue.c`: `Study / Boundary Only`",
         "`net/core/skbuff.c`: `Freeze In C Initially`",
@@ -334,6 +344,8 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
+            (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][0]),
+            (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][0]),
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
