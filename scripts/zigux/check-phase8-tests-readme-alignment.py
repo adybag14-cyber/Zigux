@@ -21,6 +21,7 @@ REQUIRED_MARKERS = {
         "current direct-readback Phase 8 anchors:",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts/zigux/validate-phase8.py`",
         "`zigux/tests/phase8_exec_cmd.zig`",
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
