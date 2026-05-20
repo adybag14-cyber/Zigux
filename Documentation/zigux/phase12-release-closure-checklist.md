@@ -85,6 +85,12 @@ Before changing this checklist from open to closed, reread these files together:
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `zigux/tests/README.md`
 
+## Next Bounded Step
+
+If the shared Phase 12 PMO packet drifts again, reread this checklist beside the shared release companions, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, current `zigux/Makefile`, the shared checker pair, and `.github/workflows/zigux-bootstrap.yml`, then refresh only the next smallest release-owned reminder surface that still overstates the returned `phase12-*` wrapper split or the repo-local `.zig-toolchain` then attached-Zig degraded rerun order.
+
+If that reread shows the release-owned PMO packet is already current and only `Documentation/zigux/phase12-raw-github-coverage-survey.md` needs exact readback evidence refresh, leave this checklist parked and let the neighboring `complex-drivers-infra` lane absorb that fallback-only follow-through first.
+
 ## Non-Goals
 
 - This checklist does not close the Phase 12 tranche by itself.
