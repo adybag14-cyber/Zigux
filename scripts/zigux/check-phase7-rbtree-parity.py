@@ -86,6 +86,11 @@ REQUIRED_MARKERS = {
         'try expectSliceNotContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");',
         'try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`");',
         'try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`");',
+        'try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");',
+        'try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");',
+        'try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");',
+        'try expectContains(manifest.next_bounded_step, "public-fallback provenance");',
+        'try expectContains(manifest.next_bounded_step, "shared non-owner build evidence");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"',
@@ -96,10 +101,12 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
         '"zigux/tests/phase7_build.zig"',
         '"scripts/zigux/validate-phase7.py"',
+        '"public_fallback_non_owner_paths": [',
+        '"public-fallback provenance"',
     ],
 }
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -283,6 +290,46 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        survey_marker = 'try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_public_fallback_build_file_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_public_fallback_owner_boundary_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_fallback_ownership_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectContains(manifest.next_bounded_step, "public-fallback provenance");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_next_step_fallback_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_manifest.json"
         manifest_marker = '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"'
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
@@ -298,6 +345,26 @@ def run_self_test() -> None:
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_manifest_slice_path",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_marker = '"public_fallback_non_owner_paths": ['
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_public_fallback_list_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_marker = '"public-fallback provenance"'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_public_fallback_next_step_marker",
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
