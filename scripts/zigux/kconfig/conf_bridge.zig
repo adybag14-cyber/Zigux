@@ -697,12 +697,9 @@ test "conf bridge escapes low control bytes in JSON strings" {
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
 
-test "mode argument validation rejects positional mode arg for non-argument modes" {
+test "mode argument validation rejects bridge option shaped defconfig payload" {
     try std.testing.expectError(error.UnexpectedModeArgument, validateModeArgument(.oldconfig, "unexpected"));
     try std.testing.expectError(error.UnexpectedModeArgument, validateModeArgument(.olddefconfig, "unexpected"));
-}
-
-test "mode argument validation rejects bridge option shaped defconfig payload" {
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "silent"));
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "allconfig=mini.config"));
     try std.testing.expectError(error.MissingArgument, validateModeArgument(.savedefconfig, "nosilentupdate=1"));
