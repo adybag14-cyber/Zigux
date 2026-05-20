@@ -22,6 +22,7 @@ Keep the current validator-first route explicit:
 - `python3 scripts/zigux/check-phase10-mmio-packet.py`
 - `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
 - `python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
 - `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
@@ -36,8 +37,19 @@ Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase10-virtio-core-survey.md`
 - `zigux/tests/phase10_virtio_core.zig`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
+- `zigux/tests/phase10_virtio_input_manifest.json`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/review-checklist.md`
@@ -59,11 +71,13 @@ Keep these evidence surfaces aligned in the same review:
 Keep the current repo-reality split explicit too:
 
 - `zigux/tests/phase10_virtio_core.zig` is back as the returned bounded core replay inside the shared closure packet.
+- `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_ring_survey.zig` are part of the returned ring packet and should move together with the queue-local wrapper survey instead of dropping back into neighboring reminder wording.
+- `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are part of the returned helper-local MMIO packet and should stay paired with the bounded config-write, interrupt-ack, and survey evidence rather than widening into lifecycle or IRQ claims.
 - `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
 
 Reviewer prompts:
 
-- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the returned ring freeze-boundary and dedicated survey gate, the returned MMIO companion, manifest, and survey gate, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
 - Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
 
 ## Phase 11: Simple-driver packet
