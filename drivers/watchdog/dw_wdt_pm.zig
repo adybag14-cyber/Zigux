@@ -170,6 +170,7 @@ pub const PmShutdownRequest = struct {
     reset_control_available: bool,
     stop_on_reboot_registered: bool,
     restart_priority_registered: bool,
+    pretimeout_irq_present: bool = false,
     keeps_live_pm_execution_out_of_scope: bool = true,
 };
 
@@ -180,6 +181,7 @@ pub const PmShutdownSummary = struct {
     reset_assert_ready: bool,
     unregister_stop_on_reboot_requested: bool,
     clear_restart_priority_requested: bool,
+    pretimeout_mask_requested: bool,
     keeps_live_pm_execution_out_of_scope: bool,
     blocked_on_live_mmio: bool,
 };
@@ -193,6 +195,7 @@ pub fn summarizePmShutdown(request: PmShutdownRequest) PmShutdownSummary {
             .reset_assert_ready = false,
             .unregister_stop_on_reboot_requested = false,
             .clear_restart_priority_requested = false,
+            .pretimeout_mask_requested = false,
             .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
             .blocked_on_live_mmio = false,
         };
@@ -209,6 +212,7 @@ pub fn summarizePmShutdown(request: PmShutdownRequest) PmShutdownSummary {
         .reset_assert_ready = stop_requested and request.reset_control_available,
         .unregister_stop_on_reboot_requested = request.stop_on_reboot_registered,
         .clear_restart_priority_requested = request.restart_priority_registered,
+        .pretimeout_mask_requested = stop_requested and request.pretimeout_irq_present,
         .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
         .blocked_on_live_mmio = stop_requested,
     };
@@ -392,6 +396,7 @@ test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {
     try std.testing.expect(!summary.reset_assert_ready);
     try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
@@ -410,17 +415,19 @@ test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal ex
     try std.testing.expect(summary.reset_assert_ready);
     try std.testing.expect(summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
 
-test "phase11 dw_wdt pm shutdown keeps running stop explicit when reset assert is unavailable" {
+test "phase11 dw_wdt pm shutdown keeps running pretimeout mask explicit" {
     const summary = summarizePmShutdown(.{
         .drvdata_published = true,
         .hardware_running = true,
         .reset_control_available = false,
         .stop_on_reboot_registered = true,
         .restart_priority_registered = false,
+        .pretimeout_irq_present = true,
     });
 
     try std.testing.expectEqual(PmShutdownState.running_shutdown_requires_stop, summary.state);
@@ -428,6 +435,7 @@ test "phase11 dw_wdt pm shutdown keeps running stop explicit when reset assert i
     try std.testing.expect(!summary.reset_assert_ready);
     try std.testing.expect(summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(summary.blocked_on_live_mmio);
 }
@@ -439,6 +447,7 @@ test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop"
         .reset_control_available = true,
         .stop_on_reboot_registered = true,
         .restart_priority_registered = true,
+        .pretimeout_irq_present = true,
     });
 
     try std.testing.expectEqual(PmShutdownState.idle_unregister_only, summary.state);
@@ -446,6 +455,7 @@ test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop"
     try std.testing.expect(!summary.reset_assert_ready);
     try std.testing.expect(summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
@@ -464,6 +474,7 @@ test "phase11 dw_wdt pm shutdown keeps idle no-hook teardown explicit" {
     try std.testing.expect(!summary.reset_assert_ready);
     try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
