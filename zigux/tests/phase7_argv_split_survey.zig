@@ -122,6 +122,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "fn nextSplitArgSpan");
     try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");
     try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\" {");
+    try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");
 
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
