@@ -80,9 +80,12 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
+        'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {',
+        'test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {',
+        'test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {',
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         '"scripts/zigux/check-phase7-string-helpers-packet.py"',
@@ -145,7 +148,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -322,9 +325,24 @@ def run_self_test() -> None:
         expect_missing_marker("missing_tests_case_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_case_boundary_marker}")
         write_fixture_root(tmp_root)
 
+        tests_quotable_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_quotable_alloc_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_quotable_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_quotable_alloc_marker}")
+        write_fixture_root(tmp_root)
+
         tests_replace_alloc_marker = 'test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {'
         tests_path.write_text(read_text(tests_path).replace(tests_replace_alloc_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_replace_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_replace_alloc_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_memcpy_pad_marker = 'test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_memcpy_pad_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_memcpy_pad_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_memcpy_pad_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_strreplace_marker = 'test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_strreplace_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_strreplace_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_strreplace_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
