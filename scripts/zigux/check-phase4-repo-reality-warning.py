@@ -397,7 +397,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected missing perf survey to fail")
 
-            build_baselineTree(root)
+            build_baseline_tree(root)
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
