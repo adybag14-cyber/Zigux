@@ -69,7 +69,7 @@ REQUIRED_VALIDATOR_SNIPPETS = [
     'run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")',
     'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -198,6 +198,12 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[3] + "\n", "", 1)))
         cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[4] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-parity"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"phase": "Phase 5"})))
+        cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
@@ -207,6 +213,8 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-evidence"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
         cases_run += 1
         expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
