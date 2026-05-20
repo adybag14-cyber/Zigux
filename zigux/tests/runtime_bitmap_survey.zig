@@ -118,6 +118,11 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
     try expectContains(top_bit_file, "runtime bitmap sample keeps the highest valid bit explicit");
     try expectContains(top_bit_file, "runtime bitmap sample keeps top-bit lifecycle mutation explicit");
+    try expectContains(top_bit_file, "const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;");
+    try expectContains(top_bit_file, "try std.testing.expectEqualStrings(\"127\", direct_formatted);");
+    try expectContains(top_bit_file, "try module.clearRange(top_bit, 1);");
+    try expectContains(top_bit_file, "try module.setRange(top_bit, 1);");
+    try expectContains(top_bit_file, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, module.stage());");
 
     inline for (present_bitmap_family_files) |path| {
         try expectPresent(path);
