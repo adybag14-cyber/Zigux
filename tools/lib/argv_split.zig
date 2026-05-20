@@ -220,6 +220,27 @@ test "argvSplit cleanup resets state and tolerates repeat deinit calls" {
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
 }
 
+test "argvSplit cleanup keeps empty and NUL-truncated empty results inert" {
+    var blank = try argvSplit(std.testing.allocator, "");
+    try std.testing.expectEqual(@as(usize, 0), blank.argc());
+    blank.deinit();
+    try std.testing.expectEqual(@as(usize, 0), blank.argc());
+    try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
+    argv_free(&blank);
+    try std.testing.expectEqual(@as(usize, 0), blank.argc());
+    try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
+
+    const source = [_]u8{ ' ', '\t', 0, 'a', 'l', 'p', 'h', 'a' };
+    var nul_terminated = try argv_split(std.testing.allocator, source[0..]);
+    try std.testing.expectEqual(@as(usize, 0), nul_terminated.argc());
+    nul_terminated.deinit();
+    try std.testing.expectEqual(@as(usize, 0), nul_terminated.argc());
+    try std.testing.expectEqual(@as(usize, 0), nul_terminated.argv.len);
+    argv_free(&nul_terminated);
+    try std.testing.expectEqual(@as(usize, 0), nul_terminated.argc());
+    try std.testing.expectEqual(@as(usize, 0), nul_terminated.argv.len);
+}
+
 const MutatingAllocator = struct {
     backing_allocator: std.mem.Allocator,
     source: []u8,
