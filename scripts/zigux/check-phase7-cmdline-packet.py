@@ -54,40 +54,42 @@ REQUIRED_MARKERS = {
         "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
         "test \"nextArg keeps leading equals tokens as bare parameters\" {",
         "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
+        "test \"getOption preserves incomplete hex-prefix and descending-range behavior\" {",
     ],
     "zigux/tests/phase7_cmdline.zig": [
-        'const cmdline = @import("cmdline");',
-        'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
-        'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
-        'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
-        'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
-        'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
-        'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
-        'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
-        'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
-        'test "nextArg keeps empty input borrowed from the caller slice" {',
-        'test "nextArg stays inside the first NUL for bare and key value tokens" {',
-        'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
-        'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
-        'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
-        'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
+        "const cmdline = @import(\"cmdline\");",
+        "test \"phase 7 cmdline companion replays exact bare-option matching boundaries\" {",
+        "test \"phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture\" {",
+        "test \"phase 7 cmdline companion replays incomplete-hex and descending-range boundaries\" {",
+        "test \"phase 7 cmdline companion replays negative range expansion and negative upper-bound posture\" {",
+        "test \"phase 7 cmdline companion replays validator-only getOption cursor movement\" {",
+        "test \"phase 7 cmdline companion replays quoted argument splitting and memparse boundaries\" {",
+        "test \"phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries\" {",
+        "test \"phase 7 cmdline companion replays bare leading-equals ownership\" {",
+        "test \"nextArg keeps empty input borrowed from the caller slice\" {",
+        "test \"nextArg stays inside the first NUL for bare and key value tokens\" {",
+        "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
+        "test \"phase 7 cmdline companion replays bare quoted-empty-token ownership\" {",
+        "test \"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\" {",
+        "test \"phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries\" {",
+        "test \"phase 7 cmdline companion replays quoted-value borrowed slice ownership\" {",
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
-        '"anchor": "lib/cmdline.c"',
-        '"current_master_state": "helper_slice_test_survey_manifest_anchor"',
-        '"scripts/zigux/check-phase7-cmdline-packet.py"',
+        "\"anchor\": \"lib/cmdline.c\"",
+        "\"current_master_state\": \"helper_slice_test_survey_manifest_anchor\"",
+        "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
         "helper-local survey-manifest-checker truthfulness packet",
         "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
         "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
-        'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
-        'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
-        'const checker = try readRepoFile(allocator, checker_path);',
-        'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
-        'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
-        'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
-        'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
+        "test \"phase 7 cmdline survey keeps the returned helper-local packet truthful\" {",
+        "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_anchor\", manifest.current_master_state);",
+        "const checker = try readRepoFile(allocator, checker_path);",
+        "try expectContains(helper, \"test \\\\\\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\\\\\" {\");",
+        "try expectContains(helper, \"test \\\\\\\"nextArg keeps leading equals tokens as bare parameters\\\\\\\" {\");",
+        "try expectContains(helper, \"test \\\\\\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\\\\\" {\");",
+        "try expectContains(helper_companion, \"phase 7 cmdline companion replays bare leading-equals ownership\");",
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -104,7 +106,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 35
+SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -319,6 +321,20 @@ def run_self_test() -> None:
             "missing_helper_borrowed_suffix_marker",
             tmp_root,
             f"lib/cmdline.zig: {helper_borrowed_suffix_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_incomplete_hex_marker = 'test "getOption preserves incomplete hex-prefix and descending-range behavior" {'
+        helper_path.write_text(
+            helper_text.replace(helper_incomplete_hex_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_incomplete_hex_descending_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_incomplete_hex_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -573,6 +589,20 @@ def run_self_test() -> None:
             "missing_companion_quoted_equals_and_unterminated_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {quoted_equals_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        quoted_value_borrow_marker = 'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {'
+        companion_path.write_text(
+            companion_text.replace(quoted_value_borrow_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_companion_quoted_value_borrow_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {quoted_value_borrow_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
