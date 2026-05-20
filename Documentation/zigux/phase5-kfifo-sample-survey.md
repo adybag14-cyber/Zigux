@@ -29,12 +29,12 @@ For this anchor, the repo still exposes the sample-root port itself in `samples/
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-19 confirmed these same-lane facts:
+Fresh repo-first inspection on 2026-05-20 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
 - that sample file still keeps the non-runtime ownership rule explicit through `BytestreamFifoSample.descriptor()`, `StorageBacking.embedded_fixed_buffer`, the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle, `reviewContract().focus`, and the explicit non-goal list.
-- the sample-root file currently carries three in-file self-checks: the anchor replay test keeps the exact final drain ordering, the `reviewContract().focus` order, and the fixed-buffer storage backing directly visible at the sample root; a second direct check keeps preview truncation, `runWrappedPreviewReplay()`, and the wrapped `{ 28, 4 }` visible-span split reviewable; and a third direct check keeps `runRemainingCapacityReplay()` plus `occupancySummary()`, `writableSpanSummary()`, `lifecycleSummary()`, the short-drain `"hel"` / `"lo"` helper boundary, and the post-exit replay rejection visible at the sample root.
+- the sample-root file currently carries four in-file self-checks: the anchor replay test keeps the exact final drain ordering, the `reviewContract().focus` order, and the fixed-buffer storage backing directly visible at the sample root; a second direct check keeps preview truncation, `runWrappedPreviewReplay()`, and the wrapped `{ 28, 4 }` visible-span split reviewable; a third direct check keeps reinit, second replay, and post-second-exit rejection visible at the sample root through `runReinitBoundaryReplay()` and its `init_runs` / `exit_runs` accounting; and a fourth direct check keeps `runRemainingCapacityReplay()` plus `occupancySummary()`, `writableSpanSummary()`, `lifecycleSummary()`, the short-drain `"hel"` / `"lo"` helper boundary, and the post-exit replay rejection visible at the sample root.
 - the broader exact behavior packet is now directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo.zig`, which currently carries four focused replay tests for lane scoping, transfer counts, helper boundaries, queue-shape boundaries, preview behavior, and lifecycle guards.
 - the manifest-backed packet remains directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`.
 - the survey packet is now directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_survey.zig`, which currently carries five survey-packet checks that keep this note, the manifest, and the direct sample-plus-tests wording aligned.
@@ -45,7 +45,7 @@ That means the honest same-lane posture today is:
 
 - the roadmap-backed kfifo sample idiom is still present at the sample root
 - the ownership rule remains non-runtime and fixed-buffer-backed
-- the sample-root file itself now exposes three direct self-checks
+- the sample-root file itself now exposes four direct self-checks
 - the directly readable focused replay packet, manifest companion, survey gate, shipped review-guide checker, scripts-root reminder, and tests-root guide now keep the broader bytestream review packet explicit while the shared build companion stays on the public-tree-backed side
 - current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so this bytestream packet must not be used to imply bitmap-side sample delivery or reopen the separate later-phase runtime bitmap family
 
@@ -65,11 +65,11 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 
 In practice, the approved idiom remains a bounded side-by-side sample, not a claim that Zigux already ships `proc_create()`, `kfifo_from_user()`, `kfifo_to_user()`, or runtime module parity.
 
-## Exact checks verified on 2026-05-19
+## Exact checks verified on 2026-05-20
 
-Fresh direct sample and tests readback on 2026-05-19 showed this exact packet on current `master`:
+Fresh direct sample and tests readback on 2026-05-20 showed this exact packet on current `master`:
 
-- `samples/zigux/bytestream_fifo.zig` currently carries three in-file self-checks, and those direct sample-root checks now prove the anchor replay sequence, the fixed-buffer storage backing, the ten-item `reviewContract().focus` order, `runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`, the wrapped `{ 28, 4 }` visible-span split, `runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`, the short-drain `"hel"` / `"lo"` helper boundary, and invalid post-exit replay rejection.
+- `samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks, and those direct sample-root checks now prove the anchor replay sequence, the fixed-buffer storage backing, the ten-item `reviewContract().focus` order, `runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`, the wrapped `{ 28, 4 }` visible-span split, the reinit path through `runReinitBoundaryReplay()` with `init_runs_after_reinit = 2` and `exit_runs_after_second_exit = 2`, `runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`, the short-drain `"hel"` / `"lo"` helper boundary, and invalid post-exit replay rejection.
 - `zigux/tests/phase5_bytestream_fifo.zig` currently carries four focused replay tests, which keep these exact checks explicit:
   - the lane contract stays non-runtime and keeps `requires_runtime_substrate = false`, `provides_selfcheck = true`, and the four non-goals explicit
   - `runAnchorReplay()` still keeps the Linux-style transfer counts explicit: `initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`
