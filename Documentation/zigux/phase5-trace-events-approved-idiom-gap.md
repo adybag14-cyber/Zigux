@@ -12,7 +12,7 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:
+Fresh mixed reread on 2026-05-20 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `samples/zigux/trace_events_sample.zig`
@@ -20,7 +20,7 @@ Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events samp
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-19.
+Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-20.
 
 The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.
 
@@ -40,19 +40,23 @@ That packet should keep the selected-string plus `iter=%d` formatting cue explic
 
 Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
-## Exact checks run on 2026-05-19
+Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.
+
+## Exact checks run on 2026-05-20
 
 This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.
 
 The exact checks that passed were:
 
 - `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`
+- `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`
 - `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`
 - `phase 5 trace-events formatting companion keeps bounded destination failures explicit`
 
 Those checks confirmed this current sample behavior:
 
 - `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, and renders `"iter=7"` with length `6` while keeping four focus cues visible.
+- `runStringFormattingCycleReplay()` now keeps the modulo-selected cycle directly reviewable too: it replays all five strings in order, renders `"iter=0"` through `"iter=4"`, stays in `.initialized`, and leaves `replay_runs` at `0`.
 - lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
 - bounded destination behavior is now directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage.
 
