@@ -74,6 +74,10 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent",
     "`zigux/tests/phase14_build.zig`",
     "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+    "`zigux/tests/phase14_end_to_end_smoke_survey.zig`",
+    "`zigux/tests/phase14_skbuff_bridge.zig`",
+    "`zigux/tests/phase14_ring_buffer_survey.zig`",
+    "`zigux/tests/phase14_rcu_tree_survey.zig`",
     "`net/core/skbuff_bridge.zig`",
 )
 
@@ -301,6 +305,19 @@ def run_self_test() -> int:
             tests_path.read_text(encoding="utf-8").replace(
                 REQUIRED_TESTS_ROOT_MARKERS[5],
                 "`scripts/zigux/check-phase14-release-boundary-drift.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase14 tests-root README missing required markers")
+        cases += 1
+
+        write_fixture_tree(base)
+        tests_path = base / TESTS_ROOT_README_PATH
+        tests_path.write_text(
+            tests_path.read_text(encoding="utf-8").replace(
+                REQUIRED_TESTS_ROOT_MARKERS[14],
+                "`zigux/tests/phase14_ring_buffer_summary.zig`",
                 1,
             ),
             encoding="utf-8",
