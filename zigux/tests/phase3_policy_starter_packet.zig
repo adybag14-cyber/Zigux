@@ -140,6 +140,75 @@ test "policy starter packet keeps unsafe alias symmetry explicit on shared recor
     }
 }
 
+test "policy starter packet keeps unsafe require gates explicit on shared records" {
+    const safe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 1,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const raw_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 2,
+        .reserved = 1,
+    };
+    const unknown_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 9,
+        .reserved = 0,
+    };
+
+    try unsafe_policy.requireNoUnsafeInteropPolicy(safe_policy);
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireNoUnsafeInteropPolicy(mmio_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireNoUnsafeInteropPolicy(raw_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireNoUnsafeInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireNoUnsafeInteropPolicy(unknown_policy));
+
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireVolatileMmioInteropPolicy(safe_policy));
+    try unsafe_policy.requireVolatileMmioInteropPolicy(mmio_policy);
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireVolatileMmioInteropPolicy(raw_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireVolatileMmioInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireVolatileMmioInteropPolicy(unknown_policy));
+
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireRawPointerBridgeInteropPolicy(safe_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireRawPointerBridgeInteropPolicy(mmio_policy));
+    try unsafe_policy.requireRawPointerBridgeInteropPolicy(raw_policy);
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireRawPointerBridgeInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireRawPointerBridgeInteropPolicy(unknown_policy));
+
+    try narrow_surface.requireNoUnsafeInteropPolicy(safe_policy);
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireNoUnsafeInteropPolicy(mmio_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireNoUnsafeInteropPolicy(raw_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireNoUnsafeInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireNoUnsafeInteropPolicy(unknown_policy));
+
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireVolatileMmioInteropPolicy(safe_policy));
+    try narrow_surface.requireVolatileMmioInteropPolicy(mmio_policy);
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireVolatileMmioInteropPolicy(raw_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireVolatileMmioInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireVolatileMmioInteropPolicy(unknown_policy));
+
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgeInteropPolicy(safe_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgeInteropPolicy(mmio_policy));
+    try narrow_surface.requireRawPointerBridgeInteropPolicy(raw_policy);
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgeInteropPolicy(reserved_policy));
+    try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgeInteropPolicy(unknown_policy));
+}
+
 test "policy starter packet keeps panic and allocator byte guards explicit" {
     const bug_heap = abi.InteropPolicy{
         .panic_mode = @intFromEnum(abi.PanicMode.bug),
