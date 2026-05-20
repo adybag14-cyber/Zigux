@@ -124,11 +124,14 @@ DRIVER_MARKERS = (
     "pub const CleanupHandoffRequest = struct {",
     "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
     "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+    "targetless_unregister_request_sanitized: bool,",
+    ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
     "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
     "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
     'test "phase11 hvc console keeps remove handoff summary reviewable" {',
     'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+    'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
     'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
     'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
     'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
@@ -436,6 +439,9 @@ def run_self_test() -> int:
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
+            (DRIVER_PATH, "targetless_unregister_request_sanitized: bool,"),
+            (DRIVER_PATH, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,"),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {'),
         ]
         for index, (rel, marker) in enumerate(cases, start=1):
             broken = tmpdir / f"broken_{index:02d}"
@@ -456,7 +462,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=13")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
