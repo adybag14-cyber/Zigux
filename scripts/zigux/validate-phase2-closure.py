@@ -143,7 +143,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 128
+EXPECTED_SELF_TEST_CASE_COUNT = 142
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -916,17 +916,28 @@ def run_self_test() -> int:
         ) in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        resolve_path(root, CLOSURE_DOC).unlink()
-        assert_run_validator_note_contains(root, "required file missing:")
-        checks_run += 1
+        for path in (
+            CLOSURE_DOC,
+            BOOTSTRAP_NOTES,
+            DOCS_ROOT_README,
+            REVIEW_CHECKLIST,
+            SCRIPTS_README,
+            TESTS_README,
+            MAKEFILE_PATH,
+            WORKFLOW_PATH,
+        ):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert_run_validator_note_contains(root, "required file missing:")
+            checks_run += 1
 
-        build_self_test_root(root)
-        resolve_path(root, CLOSURE_DOC).unlink()
-        resolve_path(root, CLOSURE_DOC).mkdir(parents=True)
-        assert_run_validator_note_contains(root, "required file unreadable:")
-        resolve_path(root, CLOSURE_DOC).rmdir()
-        checks_run += 1
+            build_self_test_root(root)
+            unreadable = resolve_path(root, path)
+            unreadable.unlink()
+            unreadable.mkdir(parents=True)
+            assert_run_validator_note_contains(root, "required file unreadable:")
+            unreadable.rmdir()
+            checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
