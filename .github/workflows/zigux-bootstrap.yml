@@ -480,6 +480,9 @@ jobs:
       - name: Run current Phase 12 shared test packet
         run: make -C zigux phase12-test
 
+      - name: Run current Phase 12 aggregate route
+        run: make -C zigux phase12
+
       - name: Self-test current Phase 14 shared smoke route checker
         run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
 
