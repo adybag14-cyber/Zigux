@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 bitmap review packet against manifest and helper drift."""
+"""Guard the Phase 1 bitmap review packet against helper, manifest, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -7,32 +7,35 @@ import argparse
 import json
 import tempfile
 from pathlib import Path
-from typing import Any
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
-MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
+
+EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
+    'test "bitmap set clear weight and empty full helpers"',
+    'test "bitmap range helpers preserve edges across whole-word spans"',
+    'test "bitmap copy alias preserves raw source words without tail clearing"',
+    'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    'test "bitmap copy and extend handles zero and aligned counts"',
+    'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    'test "bitmap and andnot equal intersects subset"',
+    'test "bitmap tail-masked helpers ignore out-of-range differences"',
+    'test "bitmap full empty and weight ignore out-of-range tail bits"',
+    'test "bitmap xor keeps caller-selected bit window"',
+    'test "bitmap xor across a multiword tail still lets callers clamp the last word"',
+    'test "bitmap scnprintf collapses contiguous ranges"',
+    'test "bitmap scnprintf truncates and keeps a terminator slot"',
+    'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+    'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    'test "bitmap allocation helpers size zero fill and reset optionals"',
+]
 
 EXPECTED_BITMAP_PACKET = {
-    "helper_test_anchors": [
-        'test "bitmap set clear weight and empty full helpers"',
-        'test "bitmap range helpers preserve edges across whole-word spans"',
-        'test "bitmap copy alias preserves raw source words without tail clearing"',
-        'test "bitmap copy aliases preserve tail clearing and extension semantics"',
-        'test "bitmap copy and extend handles zero and aligned counts"',
-        'test "bitmap copy helpers keep zero-sized destination views untouched"',
-        'test "bitmap and andnot equal intersects subset"',
-        'test "bitmap tail-masked helpers ignore out-of-range differences"',
-        'test "bitmap full empty and weight ignore out-of-range tail bits"',
-        'test "bitmap xor keeps caller-selected bit window"',
-        'test "bitmap xor across a multiword tail still lets callers clamp the last word"',
-        'test "bitmap scnprintf collapses contiguous ranges"',
-        'test "bitmap scnprintf truncates and keeps a terminator slot"',
-        'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
-        'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
-        'test "bitmap allocation helpers size zero fill and reset optionals"',
-    ],
+    "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
     "first_word_boundary_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
     "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
     "fill_tail_clamp_anchor": 'test "bitmap full empty and weight ignore out-of-range tail bits"',
@@ -76,44 +79,30 @@ EXPECTED_BITMAP_PACKET = {
     "zero_bit_binary_identity_anchor": "",
     "linux_alias_anchor": "",
     "next_safe_step_note": (
-        "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
-        "direct-anchor drift inside the current helper-local packet or committed shared replay "
-        "drift in the bitmap parity fields; current master still ships direct fill-tail clamp, "
-        "copy-alias, truncation, cross-word scnprintf, empty-buffer, and allocator-reset anchors "
-        "here, while zero-bit and Linux-style alias follow-through no longer live in the "
-        "helper-local packet, and if the separate bitmap closure-validator anchor-sync repair is "
-        "still outstanding, treat that as the only other bitmap follow-through."
+        "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor "
+        "drift inside the current helper-local packet or committed shared replay drift in the bitmap "
+        "parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, "
+        "cross-word scnprintf, empty-buffer, and allocator-reset anchors here, while zero-bit and "
+        "Linux-style alias follow-through no longer live in the helper-local packet, and if the "
+        "separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the "
+        "only other bitmap follow-through."
     ),
 }
 
-LIST_FIELDS = (
-    "helper_test_anchors",
-    "parity_fixture_keys",
-    "partial_xor_review_fields",
-    "copy_zero_and_aligned_anchors",
-)
-
-SCALAR_FIELDS = (
-    "first_word_boundary_anchor",
-    "final_partial_word_anchor",
-    "fill_tail_clamp_anchor",
-    "predicate_tail_mask_anchor",
-    "phase1_helper_replay_anchor",
-    "review_packet_summary",
-    "scnprintf_cross_word_anchor",
-    "scnprintf_truncation_anchor",
-    "empty_buffer_anchor",
-    "copy_alias_anchor",
-    "copy_raw_alias_anchor",
-    "zero_bit_noop_anchor",
-    "zero_bit_binary_identity_anchor",
-    "linux_alias_anchor",
-    "next_safe_step_note",
-)
-
-SOURCE_ANCHOR_FIELDS = (
-    "scnprintf_cross_word_anchor",
-)
+EXPECTED_BITMAP_LANE_MARKERS = [
+    (
+        "lane_direct_owner",
+        "`PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay "
+        "keys it already owns; the restored phase1-closure note and validate-phase1-closure guard are "
+        "live companions again, while the older validator-first and make-route names stay historical`",
+    ),
+    (
+        "lane_next_safe_step",
+        "`PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new "
+        "direct-anchor drift or committed shared replay drift; do not reopen older closure-side or "
+        "validator-route cue names by default`",
+    ),
+]
 
 
 def repo_root(root: str | None) -> Path:
@@ -124,7 +113,7 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, relative_path: Path) -> Any:
+def load_json(root: Path, relative_path: Path) -> object:
     return json.loads(load_text(root, relative_path))
 
 
@@ -137,61 +126,59 @@ def require_exact_value(label: str, actual: object, expected: object) -> list[st
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
 
 
+def nested_value(data: object, path: tuple[str, ...]) -> object:
+    current = data
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def iter_source_anchor_strings() -> list[str]:
+    anchors: list[str] = list(EXPECTED_BITMAP_HELPER_TEST_ANCHORS)
+    for key, value in EXPECTED_BITMAP_PACKET.items():
+        if key == "phase1_helper_replay_anchor":
+            continue
+        if isinstance(value, str) and value.startswith('test "'):
+            anchors.append(value)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, str) and item.startswith('test "'):
+                    anchors.append(item)
+    return sorted(set(anchors))
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-
-    for relative_path in (BITMAP_HELPER_REL, MANIFEST_REL):
-        if not (root / relative_path).is_file():
+    for relative_path in (BITMAP_HELPER_REL, BITMAP_MANIFEST_REL, BITMAP_LANE_NOTE_REL):
+        if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
         return failures
 
-    manifest = load_json(root, MANIFEST_REL)
-    if not isinstance(manifest, dict):
-        return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
-
-    review_anchors = manifest.get("review_anchors")
-    if not isinstance(review_anchors, dict):
-        return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
-
-    bitmap_packet = review_anchors.get("tools/lib/bitmap.zig")
-    if not isinstance(bitmap_packet, dict):
-        return [
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:expected=dict:actual={type(bitmap_packet).__name__}"
-        ]
-
-    for field in LIST_FIELDS:
-        failures.extend(
-            require_exact_value(
-                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:{field}",
-                bitmap_packet.get(field),
-                EXPECTED_BITMAP_PACKET[field],
-            )
-        )
-    for field in SCALAR_FIELDS:
-        failures.extend(
-            require_exact_value(
-                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:{field}",
-                bitmap_packet.get(field),
-                EXPECTED_BITMAP_PACKET[field],
-            )
-        )
-
     helper_text = load_text(root, BITMAP_HELPER_REL)
-    for anchor in EXPECTED_BITMAP_PACKET["helper_test_anchors"]:
+    lane_text = load_text(root, BITMAP_LANE_NOTE_REL)
+    manifest = load_json(root, BITMAP_MANIFEST_REL)
+    if not isinstance(manifest, dict):
+        return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+
+    for anchor in iter_source_anchor_strings():
         failures.extend(
-            require_exact_occurrence(
-                helper_text,
-                f"{BITMAP_HELPER_REL.as_posix()}:helper_test_anchor",
-                anchor,
-            )
+            require_exact_occurrence(helper_text, f"bitmap_helper:{anchor}", anchor)
         )
-    for field in SOURCE_ANCHOR_FIELDS:
+
+    for label, marker in EXPECTED_BITMAP_LANE_MARKERS:
         failures.extend(
-            require_exact_occurrence(
-                helper_text,
-                f"{BITMAP_HELPER_REL.as_posix()}:{field}",
-                EXPECTED_BITMAP_PACKET[field],
+            require_exact_occurrence(lane_text, f"bitmap_lane:{label}", marker)
+        )
+
+    for key, expected in EXPECTED_BITMAP_PACKET.items():
+        failures.extend(
+            require_exact_value(
+                f"bitmap_manifest:review_anchors.tools/lib/bitmap.zig.{key}",
+                nested_value(manifest, ("review_anchors", "tools/lib/bitmap.zig", key)),
+                expected,
             )
         )
 
@@ -204,28 +191,53 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_sample_repo(root: Path) -> None:
-    write_file(
-        root,
-        BITMAP_HELPER_REL,
-        "\n".join(
-            EXPECTED_BITMAP_PACKET["helper_test_anchors"]
-            + [EXPECTED_BITMAP_PACKET["scnprintf_cross_word_anchor"]]
-        )
-        + "\n",
-    )
-    write_file(
-        root,
-        MANIFEST_REL,
+def sample_manifest() -> str:
+    return (
         json.dumps(
-            {"review_anchors": {"tools/lib/bitmap.zig": EXPECTED_BITMAP_PACKET}},
+            {
+                "review_anchors": {
+                    "tools/lib/bitmap.zig": EXPECTED_BITMAP_PACKET,
+                }
+            },
             indent=2,
         )
-        + "\n",
+        + "\n"
     )
+
+
+def sample_lane_note() -> str:
+    return "\n".join(marker for _, marker in EXPECTED_BITMAP_LANE_MARKERS) + "\n"
+
+
+def build_sample_repo(root: Path) -> None:
+    helper_lines = iter_source_anchor_strings()
+    write_file(root, BITMAP_HELPER_REL, "\n".join(helper_lines) + "\n")
+    write_file(root, BITMAP_MANIFEST_REL, sample_manifest())
+    write_file(root, BITMAP_LANE_NOTE_REL, sample_lane_note())
+
+
+def mutate_manifest(root: Path, key: str) -> None:
+    manifest_path = root / BITMAP_MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    target = manifest["review_anchors"]["tools/lib/bitmap.zig"]
+    value = target[key]
+    if isinstance(value, list):
+        target[key] = value[1:]
+    else:
+        target[key] = f"{value} drift"
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def mutate_line(path: Path, marker: str, duplicate: bool) -> None:
+    text = path.read_text(encoding="utf-8")
+    if duplicate:
+        path.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
+    else:
+        path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase1-bitmap-review-ok-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -235,58 +247,41 @@ def run_self_test() -> int:
             for item in failures:
                 print(item)
             return 1
+        case_count += 1
 
-    mutation_specs = [
-        ("missing_helper_file", "helper_file", "remove"),
-        ("missing_manifest_file", "manifest_file", "remove"),
-        ("missing_helper_anchor", "helper_anchor", "remove"),
-        ("missing_cross_word_anchor", "cross_word_anchor", "remove"),
-        ("duplicate_helper_anchor", "helper_anchor", "duplicate"),
-        ("scalar_field_drift", "first_word_boundary_anchor", "manifest"),
-        ("list_field_drift", "parity_fixture_keys", "manifest"),
-        ("next_step_drift", "next_safe_step_note", "manifest"),
-    ]
+    cases: list[tuple[str, str, str | None, bool | None]] = []
+    for anchor in iter_source_anchor_strings():
+        cases.append(("helper", anchor, None, False))
+        cases.append(("helper", anchor, None, True))
+    for _, marker in EXPECTED_BITMAP_LANE_MARKERS:
+        cases.append(("lane", marker, None, False))
+        cases.append(("lane", marker, None, True))
+    for key in EXPECTED_BITMAP_PACKET:
+        cases.append(("manifest", key, None, None))
+    cases.append(("missing_file", BITMAP_HELPER_REL.as_posix(), None, None))
+    cases.append(("missing_file", BITMAP_MANIFEST_REL.as_posix(), None, None))
+    cases.append(("missing_file", BITMAP_LANE_NOTE_REL.as_posix(), None, None))
 
-    for name, target, kind in mutation_specs:
-        with tempfile.TemporaryDirectory(prefix=f"phase1-bitmap-review-{name}-") as tmpdir:
+    for kind, value, _, duplicate in cases:
+        with tempfile.TemporaryDirectory(prefix="phase1-bitmap-review-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-
-            if kind == "remove":
-                if target == "helper_file":
-                    (root / BITMAP_HELPER_REL).unlink()
-                elif target == "manifest_file":
-                    (root / MANIFEST_REL).unlink()
-                else:
-                    path = root / BITMAP_HELPER_REL
-                    marker = (
-                        EXPECTED_BITMAP_PACKET["helper_test_anchors"][0] + "\n"
-                        if target == "helper_anchor"
-                        else EXPECTED_BITMAP_PACKET["scnprintf_cross_word_anchor"] + "\n"
-                    )
-                    path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
-            elif kind == "duplicate":
-                path = root / BITMAP_HELPER_REL
-                marker = EXPECTED_BITMAP_PACKET["helper_test_anchors"][0] + "\n"
-                text = path.read_text(encoding="utf-8")
-                path.write_text(text.replace(marker, marker + marker, 1), encoding="utf-8")
+            if kind == "helper":
+                mutate_line(root / BITMAP_HELPER_REL, value, bool(duplicate))
+            elif kind == "lane":
+                mutate_line(root / BITMAP_LANE_NOTE_REL, value, bool(duplicate))
+            elif kind == "manifest":
+                mutate_manifest(root, value)
             else:
-                path = root / MANIFEST_REL
-                manifest = json.loads(path.read_text(encoding="utf-8"))
-                packet = manifest["review_anchors"]["tools/lib/bitmap.zig"]
-                value = packet[target]
-                if isinstance(value, list):
-                    packet[target] = value[1:]
-                else:
-                    packet[target] = f"{value} drift"
-                path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
+                (root / value).unlink()
             failures = collect_failures(root)
             if not failures:
-                print(f"self-test:{name}:expected_failure")
+                print(f"self-test:{kind}:{value}:expected_failure")
                 return 1
+            case_count += 1
 
-    print("self-test:ok")
+    print("PHASE1_BITMAP_REVIEW_PACKET_SELF_TEST=pass")
+    print(f"PHASE1_BITMAP_REVIEW_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
