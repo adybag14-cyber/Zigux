@@ -290,6 +290,33 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
 }
 
+test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {
+    const nbits = find_bit.bits_per_long + 5;
+    const tail_lhs = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
+    const tail_rhs = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 1 };
+
+    try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 3), find_bit.findFirstAndNotBit(&tail_lhs, &tail_rhs, nbits));
+    try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 3), find_bit.find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), find_bit._find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 4));
+
+    const clump_map = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 6) };
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.findFirstClump8(&clump, &clump_map, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.find_first_clump8(&clump, &clump_map, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.find_next_clump8(&clump, &clump_map, nbits, find_bit.bits_per_long));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0x5a;
+    try std.testing.expectEqual(@as(usize, nbits), find_bit._find_next_clump8(&clump, &clump_map, nbits, nbits));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+}
+
 test "phase1 host-tools smoke keeps bitmap alias zero-size and empty-format edges aligned" {
     var src = [_]find_bit.Word{~@as(find_bit.Word, 0)};
 
