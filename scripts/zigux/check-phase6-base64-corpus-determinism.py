@@ -64,9 +64,11 @@ EXPECTED_INVALID_FIXTURE_SNIPPETS = [
 ]
 
 EXPECTED_PERF_TEST_SNIPPETS = [
-    "try std.testing.expect(fixtures.perf_cases.len > 0);",
+    "fn validatePerfMatrix() !void {",
+    "const expected_payload_fingerprint: u64 = 0xcfb1_4153_5702_a392;",
+    "for (expected, 0..) |want, idx| {",
     "for (fixtures.perf_cases, 0..) |case, idx| {",
-    "for (fixtures.perf_cases) |case| {",
+    "try validatePerfMatrix();",
 ]
 
 SELF_TEST_CASES = 10
@@ -332,7 +334,7 @@ def run_self_test() -> None:
             root,
             PERF_TEST_PATH,
             EXPECTED_PERF_TEST_SNIPPETS[1],
-            "for (fixtures.perf_cases) |case| {",
+            "const expected_payload_fingerprint: u64 = 0xdead_beef_dead_beef;",
         )
         expect_failure(
             root,
