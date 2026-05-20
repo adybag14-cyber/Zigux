@@ -38,6 +38,30 @@ pub const IndexRange = struct {
         return items[self.lower..self.upper];
     }
 
+    pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {
+        const view = self.sliceConst(T, items);
+        if (view.len == 0) return null;
+        return &view[0];
+    }
+
+    pub fn firstMutable(self: @This(), comptime T: type, items: []T) ?*T {
+        const view = self.sliceMutable(T, items);
+        if (view.len == 0) return null;
+        return &view[0];
+    }
+
+    pub fn lastConst(self: @This(), comptime T: type, items: []const T) ?*const T {
+        const view = self.sliceConst(T, items);
+        if (view.len == 0) return null;
+        return &view[view.len - 1];
+    }
+
+    pub fn lastMutable(self: @This(), comptime T: type, items: []T) ?*T {
+        const view = self.sliceMutable(T, items);
+        if (view.len == 0) return null;
+        return &view[view.len - 1];
+    }
+
     pub fn bytes(self: @This(), base: [*]const u8, size: usize) []const u8 {
         std.debug.assert(self.lower <= self.upper);
         return base[(self.lower * size)..(self.upper * size)];
@@ -753,10 +777,20 @@ test "index range views keep typed and byte aliases aligned for hits and inserti
     const typed_byte_view: [*]const i32 = @ptrCast(@alignCast(byte_view.ptr));
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_byte_view[0 .. byte_view.len / @sizeOf(i32)]);
 
+    const first_const = duplicate_range.firstConst(i32, duplicates[0..]) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 4), first_const.*);
+    try std.testing.expectEqual(@intFromPtr(&duplicates[1]), @intFromPtr(first_const));
+
+    const last_const = duplicate_range.lastConst(i32, duplicates[0..]) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 4), last_const.*);
+    try std.testing.expectEqual(@intFromPtr(&duplicates[3]), @intFromPtr(last_const));
+
     const missing_range = IndexRange{ .lower = 4, .upper = 4 };
     const missing_typed_view = missing_range.sliceConst(i32, duplicates[0..]);
     try std.testing.expectEqual(@as(usize, 0), missing_typed_view.len);
     try std.testing.expectEqual(@intFromPtr(&duplicates[4]), @intFromPtr(missing_typed_view.ptr));
+    try std.testing.expectEqual(@as(?*const i32, null), missing_range.firstConst(i32, duplicates[0..]));
+    try std.testing.expectEqual(@as(?*const i32, null), missing_range.lastConst(i32, duplicates[0..]));
 
     const missing_byte_view = missing_range.bytes(@ptrCast(duplicates[0..].ptr), @sizeOf(i32));
     try std.testing.expectEqual(@as(usize, 0), missing_byte_view.len);
@@ -770,6 +804,12 @@ test "index range views keep typed and byte aliases aligned for hits and inserti
     mutable_typed_view[0] = 5;
     mutable_typed_view[mutable_typed_view.len - 1] = 6;
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 5, 4, 6, 9, 16 }, mutable_duplicates[0..]);
+
+    const first_mutable = duplicate_range.firstMutable(i32, mutable_duplicates[0..]) orelse return error.TestUnexpectedResult;
+    first_mutable.* = 7;
+    const last_mutable = duplicate_range.lastMutable(i32, mutable_duplicates[0..]) orelse return error.TestUnexpectedResult;
+    last_mutable.* = 8;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, mutable_duplicates[0..]);
 
     var mutable_raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const mutable_byte_view = duplicate_range.bytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(i32));
