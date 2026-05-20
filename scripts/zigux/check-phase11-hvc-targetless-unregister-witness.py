@@ -13,6 +13,7 @@ from pathlib import Path
 
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 REQUIRED_STEP_NAME = "Run current Phase 11 HVC targetless-unregister gap witness"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,7 @@ class FileExpectation:
 
 
 REQUIRED_PACKET_FILES = (
+    WORKFLOW_PATH,
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -34,6 +36,13 @@ REQUIRED_PACKET_FILES = (
 )
 
 FILE_EXPECTATIONS = (
+    FileExpectation(
+        WORKFLOW_PATH,
+        (
+            REQUIRED_STEP_NAME,
+            REQUIRED_COMMAND,
+        ),
+    ),
     FileExpectation(
         "Documentation/zigux/phase11-driver-lane-sequencing.md",
         (
@@ -155,6 +164,20 @@ def make_fixture(root: Path) -> None:
 
     write_text(
         root,
+        WORKFLOW_PATH,
+        "\n".join(
+            (
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                f"      - name: {REQUIRED_STEP_NAME}",
+                f"        run: {REQUIRED_COMMAND}",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         "Documentation/zigux/phase11-driver-lane-sequencing.md",
         "\n".join(
             (
@@ -267,6 +290,16 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected survey fragment check to fail")
+
+        make_fixture(temp_dir)
+        workflow = temp_dir / WORKFLOW_PATH
+        workflow.write_text("jobs:\n  bootstrap:\n    steps:\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected workflow fragment check to fail")
 
         make_fixture(temp_dir)
         inventory_path = temp_dir / "zigux/tests/fixtures/phase11_build_inventory.json"
