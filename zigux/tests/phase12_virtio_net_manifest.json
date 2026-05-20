@@ -45,9 +45,9 @@
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
-      "status": "throughput_parity_helper_present_runtime_completion_missing",
-      "current_surface": "The current packet now proves bounded queue-resume gating, transmit recycle disposition reviewability, post-reset replay checkpoints, and throughput-parity ratio checks without claiming live transport execution.",
-      "blocked_by": "Live queue execution, transport-backed throughput evidence, and interrupt-backed transmit completion handling remain outside the current split helper packet."
+      "status": "throughput_parity_helper_present_review_only_runtime_completion_missing",
+      "current_surface": "The current packet now proves bounded queue-resume gating, transmit recycle disposition reviewability, post-reset replay checkpoints, and review-only throughput-ratio checks without claiming live transport execution or measured throughput evidence.",
+      "blocked_by": "Measured transport throughput evidence, live queue execution, transport-backed throughput replay, and interrupt-backed transmit completion handling remain outside the current split helper packet."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
@@ -76,7 +76,7 @@
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The survey note records the same split helper packet, stale-scaffold cleanup, shared build-route quartet, and still-blocked runtime boundary."
+      "why_now": "The survey note records the same split helper packet, stale-scaffold cleanup, shared build-route quartet, review-only throughput boundary, and still-blocked runtime boundary."
     },
     {
       "id": "phase12-virtio-net-queue-resume-followup",
@@ -104,14 +104,14 @@
       "status": "landed_on_master",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net_throughput_parity.zig",
-      "why_now": "Current master now carries a bounded throughput-parity summary that keeps queue-pair restore, receive-refill preservation, transmit wake-threshold readiness, and post-reset replay checkpoints reviewable without claiming live transport throughput execution."
+      "why_now": "Current master now carries a bounded review-only throughput-ratio summary that keeps queue-pair restore, receive-refill preservation, transmit wake-threshold readiness, and post-reset replay checkpoints reviewable without claiming measured transport throughput evidence or live transport execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
       "status": "blocked_on_dma_transport_runtime",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "NAPI, page-pool DMA, XDP or XSK paths, control-virtqueue commands, RSS table programming, interrupt-backed transmit completion, and `net_device` lifecycle coverage remain outside the current bounded split helper packet."
+      "why_now": "NAPI, page-pool DMA, XDP or XSK paths, control-virtqueue commands, RSS table programming, interrupt-backed transmit completion, measured transport throughput evidence, and `net_device` lifecycle coverage remain outside the current bounded split helper packet."
     }
   ]
 }
