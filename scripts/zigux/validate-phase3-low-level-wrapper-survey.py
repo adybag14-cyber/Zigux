@@ -22,7 +22,6 @@ SHARED_TESTS_README_PATH = Path("zigux/tests/README.md")
 SHARED_TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
-WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
 
 REQUIRED_MARKERS = {
     NOTE_PATH: (
@@ -77,12 +76,27 @@ REQUIRED_MARKERS = {
         "pub fn fullFence() void {",
     ),
     MMIO_PATH: (
+        "pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+        "pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {",
+        "pub fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {",
+        "pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) PolicyError!void {",
+        "pub fn requireInteropPolicyByte(unsafe_scope: u8) PolicyError!void {",
         "pub fn read(comptime T: type, ptr: *const volatile T) T {",
         "pub fn write(comptime T: type, ptr: *volatile T, value: T) void {",
         "pub fn exchange(comptime T: type, ptr: *volatile T, value: T) T {",
         "pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: T) T {",
+        "pub fn readScoped(comptime T: type, scope: abi.UnsafeScope, ptr: *const volatile T) PolicyError!T {",
+        "pub fn writeScoped(comptime T: type, scope: abi.UnsafeScope, ptr: *volatile T, value: T) PolicyError!void {",
+        "pub fn exchangeScoped(comptime T: type, scope: abi.UnsafeScope, ptr: *volatile T, value: T) PolicyError!T {",
+        "pub fn writeMaskedScoped(",
+        "pub fn readInteropPolicyBytes(",
+        "pub fn readInteropPolicyByte(comptime T: type, unsafe_scope: u8, ptr: *const volatile T) PolicyError!T {",
+        "pub fn writeInteropPolicyBytes(",
+        "pub fn writeInteropPolicyByte(",
         "pub fn exchangeInteropPolicyBytes(",
+        "pub fn exchangeInteropPolicyByte(",
         "pub fn writeMaskedInteropPolicyBytes(",
+        "pub fn writeMaskedInteropPolicyByte(",
     ),
     UNSAFE_POLICY_PATH: (
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
@@ -145,114 +159,18 @@ REQUIRED_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     ),
     WORKFLOW_PATH: (
-        'name: Self-test current Phase 3 low-level wrapper survey validator',
-        'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test',
-        'name: Check current Phase 3 low-level wrapper survey packet',
-        'name: Run current Phase 3 low-level wrapper replay',
-        'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
+        "name: Self-test current Phase 3 low-level wrapper survey validator",
+        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+        "name: Check current Phase 3 low-level wrapper survey packet",
+        "name: Run current Phase 3 low-level wrapper replay",
+        "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     ),
 }
 
-SELF_TEST_CASES = (
-    (
-        NOTE_PATH,
-        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
-    ),
-    (
-        NOTE_PATH,
-        "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig; adjacent shared Phase 3 validator, shared ABI checker, shared ABI catalog helper, export/UAPI survey-validator, and catalog-selftest guard surfaces now read separately on current master, while the low-level-wrapper packet stays bounded to its own helper-local evidence",
-    ),
-    (
-        NOTE_PATH,
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
-    ),
-    (
-        NOTE_PATH,
-        "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
-    ),
-    (
-        NOTE_PATH,
-        "Current `master` also keeps `zigux/Makefile` and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay command and the returned shared Makefile replay gate without widening into broader Phase 3 completion claims.",
-    ),
-    (
-        NOTE_PATH,
-        "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
-    ),
-    (
-        NOTE_PATH,
-        "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, and the adjacent catalog-selftest guard through `scripts/zigux/check-phase3-catalog-selftest.py`, and those separate surfaces should stay framed as cross-packet support rather than as landed same-lane proof.",
-    ),
-    (
-        ABI_SLICE_PATH,
-        "That reminder surface keeps the landed header-family binding relay, one directly readable MMIO helper companion, the directly coupled helper-local `zigux/helpers/unsafe_policy.zig` companion, the manifest-backed shared ABI inventory companion, the shared validator entrypoint, the shared ABI checker, the Phase 3 catalog helper, the returned catalog-selftest guard, the export/UAPI survey validator, the dedicated header-family survey validator, the dedicated header-family survey note, the returned linux-header governance companion, the dedicated low-level-wrapper survey validator, the focused replay shard, and the dedicated shared build companion explicit without implying that the broader unfinished Phase 3 routes already ship.",
-    ),
-    (
-        CHECKER_PATH,
-        'print("PHASE3_ABI_CHECK=pass")',
-    ),
-    (ATOMIC_PATH, "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {"),
-    (ATOMIC_PATH, "pub fn fetchAdd("),
-    (ATOMIC_PATH, "pub fn fetchNand("),
-    (ATOMIC_PATH, "pub fn fetchOr("),
-    (ATOMIC_PATH, "pub fn fetchAnd("),
-    (BARRIER_PATH, "pub fn compiler() void {"),
-    (BARRIER_PATH, "pub fn acquire() void {"),
-    (BARRIER_PATH, "pub fn full() void {"),
-    (BARRIER_PATH, "pub fn fullFence() void {"),
-    (MMIO_PATH, "pub fn read(comptime T: type, ptr: *const volatile T) T {"),
-    (MMIO_PATH, "pub fn write(comptime T: type, ptr: *volatile T, value: T) void {"),
-    (MMIO_PATH, "pub fn exchange(comptime T: type, ptr: *volatile T, value: T) T {"),
-    (MMIO_PATH, "pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: T) T {"),
-    (MMIO_PATH, "pub fn exchangeInteropPolicyBytes("),
-    (MMIO_PATH, "pub fn writeMaskedInteropPolicyBytes("),
-    (UNSAFE_POLICY_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridgeByte(scope: u8) bool {"),
-    (NARROW_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
-    (NARROW_PATH, "pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {"),
-    (NARROW_PATH, "pub fn pointerAtByte(comptime T: type, address: usize, byte_len: usize, scope: u8) RawPointerBridgeError!*align(1) T {"),
-    (NARROW_PATH, "pub fn constSliceAtByte(comptime T: type, address: usize, len: usize, scope: u8) RawPointerBridgeError![]align(1) const T {"),
-    (NARROW_PATH, "pub fn writeValueAtByte(comptime T: type, address: usize, value: T, scope: u8) RawPointerBridgeError!void {"),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep additive and bitwise atomic updates explicit before MMIO publish" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {'),
-    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {'),
-    (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/atomic.zig"),'),
-    (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/barrier.zig"),'),
-    (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/mmio.zig"),'),
-    (WRAPPER_BUILD_PATH, 'root_module.addImport("atomic", atomic);'),
-    (WRAPPER_BUILD_PATH, 'root_module.addImport("barrier", barrier);'),
-    (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
-    (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
-    (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
-    (SHARED_TESTS_README_PATH, "## Phase 3 shared substrate packet"),
-    (SHARED_TESTS_README_PATH, "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`"),
-    (SHARED_TESTS_README_PATH, "`scripts/zigux/validate-phase3-export-uapi-survey.py`"),
-    (SHARED_TESTS_README_PATH, "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`"),
-    (SHARED_TESTS_README_PATH, "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`"),
-    (SHARED_TESTS_README_PATH, "`zigux/tests/phase3_low_level_wrappers.zig`"),
-    (SHARED_TESTS_README_PATH, "`zigux/tests/phase3_low_level_wrappers_build.zig`"),
-    (SHARED_TESTS_README_PATH, "`zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`"),
-    (SHARED_TESTS_README_PATH, "`zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`"),
-    (SHARED_TESTS_README_PATH, "`zig build phase3-test --build-file zigux/tests/build.zig`"),
-    (SHARED_TESTS_BUILD_PATH, "fn addPhase3LowLevelWrappers("),
-    (SHARED_TESTS_BUILD_PATH, '"phase3-low-level-wrappers"'),
-    (SHARED_TESTS_BUILD_PATH, '"phase3-test"'),
-    (SHARED_TESTS_BUILD_PATH, "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);"),
-    (SHARED_TESTS_BUILD_PATH, "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);"),
-    (MAKEFILE_PATH, "phase3-low-level-wrappers-test:"),
-    (MAKEFILE_PATH, "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
-    (WORKFLOW_PATH, 'name: Self-test current Phase 3 low-level wrapper survey validator'),
-    (WORKFLOW_PATH, 'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
-    (WORKFLOW_PATH, 'name: Check current Phase 3 low-level wrapper survey packet'),
-    (WORKFLOW_PATH, 'name: Run current Phase 3 low-level wrapper replay'),
-    (WORKFLOW_PATH, 'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig'),
+SELF_TEST_CASES = tuple(
+    (relative_path, marker)
+    for relative_path, markers in REQUIRED_MARKERS.items()
+    for marker in markers
 )
 
 
@@ -299,7 +217,7 @@ def run_self_test() -> int:
         for relative_path, marker in SELF_TEST_CASES:
             _populate_repo(root)
             path = root / relative_path
-            path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
+            path.write_text(_read(path).replace(marker, ""), encoding="utf-8")
             issues = validate_repo(root)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
