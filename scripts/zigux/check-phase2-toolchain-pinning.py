@@ -12,12 +12,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+THIRD_PARTY_README = ROOT / "third_party" / "README.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
+EXPECTED_ARCHIVE_SIZES = {
+    "x86_64-linux": 58_159_088,
+}
+ARCHIVE_README_REQUIRED_MARKER_COUNT = 10
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "install-zig.py",
@@ -44,7 +49,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
-    ROOT / "third_party" / "README.md",
+    THIRD_PARTY_README,
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
@@ -313,6 +318,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(BOOTSTRAP_PRESENT_MARKERS)
     + len(BOOTSTRAP_GAP_MARKERS)
     + len(PHASE2_CLOSURE_MARKERS)
+    + ARCHIVE_README_REQUIRED_MARKER_COUNT
     + len(SCRIPTS_MARKERS)
     + len(REVIEW_MARKERS)
     + len(TESTS_MARKERS)
@@ -323,6 +329,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 4
+    + 1
     + 1
     + 1
     + 1
@@ -376,6 +383,85 @@ def load_tool_manifest(root: Path) -> object:
     return json.loads(read_text(resolve_path(root, TOOL_MANIFEST_PATH)))
 
 
+def expected_archive_filename(target: str, channel: str) -> str:
+    return f"zig-{target}-{channel}.tar.xz"
+
+
+def duplicate_archive_name(expected_filename: str) -> str:
+    stem = expected_filename[: -len(".tar.xz")]
+    return f"{stem} (1).tar.xz"
+
+
+def archive_readme_markers(
+    target: str,
+    channel: str,
+    expected_sha: str,
+    expected_size: int,
+) -> tuple[str, ...]:
+    expected_filename = expected_archive_filename(target, channel)
+    expected_path = f"third_party/{expected_filename}"
+    validation_command = (
+        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
+        f"{expected_path} --archive-target {target}"
+    )
+    return (
+        "# Zigux third-party archives",
+        "Lane 05 bootstrap CI",
+        f"`{target}`",
+        f"`{channel}`",
+        f"`{expected_path}`",
+        f"`{expected_sha}`",
+        f"`{expected_size}` bytes",
+        f"`{validation_command}`",
+        f"`{duplicate_archive_name(expected_filename)}`",
+        f"`{POLICY_PATH.relative_to(ROOT).as_posix()}`",
+    )
+
+
+def render_archive_readme(
+    target: str,
+    channel: str,
+    expected_sha: str,
+    expected_size: int,
+) -> str:
+    expected_filename = expected_archive_filename(target, channel)
+    expected_path = f"third_party/{expected_filename}"
+    validation_command = (
+        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
+        f"{expected_path} --archive-target {target}"
+    )
+    duplicate_copy = duplicate_archive_name(expected_filename)
+    return "\n".join(
+        (
+            "# Zigux third-party archives",
+            "",
+            "This directory is reserved for trusted archive payloads that Lane 05 bootstrap CI",
+            "can validate locally before it falls back to network downloads.",
+            "",
+            "## Current pinned Zig archive contract",
+            "",
+            f"- target: `{target}`",
+            f"- channel: `{channel}`",
+            f"- file: `{expected_path}`",
+            f"- sha256: `{expected_sha}`",
+            f"- size: `{expected_size}` bytes",
+            "",
+            "## Validation",
+            "",
+            f"- `{validation_command}`",
+            "",
+            "## Rules",
+            "",
+            "- keep the filename exact so bootstrap can resolve the pinned archive without",
+            "  guessing",
+            f"- do not keep duplicate-suffix copies such as `{duplicate_copy}` in this directory",
+            f"- update this README and its checker whenever `{POLICY_PATH.relative_to(ROOT).as_posix()}`",
+            "  changes the pinned target, channel, digest, or expected payload size",
+            "",
+        )
+    )
+
+
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     try:
@@ -401,6 +487,56 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
 
     if upgrade_policy.get("required_make_routes") != EXPECTED_POLICY["required_make_routes"]:
         issues.append(("POLICY_REQUIRED_MAKE_ROUTES_MISMATCH", f"actual={upgrade_policy.get('required_make_routes')!r}:expected={EXPECTED_POLICY['required_make_routes']!r}"))
+
+    return issues
+
+
+def collect_archive_readme_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    payload = load_policy(root)
+    if not isinstance(payload, dict):
+        return [("INVALID_ARCHIVE_README_POLICY_PAYLOAD", type(payload).__name__)]
+
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel.strip():
+        return [("INVALID_ARCHIVE_README_CHANNEL", repr(channel))]
+    channel = channel.strip()
+
+    archives = payload.get("archive_sha256")
+    if not isinstance(archives, dict) or not archives:
+        return [("INVALID_ARCHIVE_README_SHA_MAP", repr(archives))]
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        return [("INVALID_ARCHIVE_README_UPGRADE_POLICY", type(upgrade_policy).__name__)]
+    targets = upgrade_policy.get("archive_target_scope")
+    if not isinstance(targets, list) or len(targets) != 1 or not isinstance(targets[0], str) or not targets[0].strip():
+        return [("INVALID_ARCHIVE_README_TARGET_SCOPE", repr(targets))]
+    target = targets[0].strip()
+
+    expected_sha = archives.get(target)
+    if not isinstance(expected_sha, str) or not expected_sha.strip():
+        return [("INVALID_ARCHIVE_README_SHA", f"target={target!r}:actual={expected_sha!r}")]
+    expected_sha = expected_sha.strip()
+
+    expected_size = EXPECTED_ARCHIVE_SIZES.get(target)
+    if expected_size is None:
+        return [("UNSUPPORTED_ARCHIVE_README_TARGET", target)]
+
+    readme_text = read_text(resolve_path(root, THIRD_PARTY_README))
+    issues.extend(
+        collect_missing_markers(
+            readme_text,
+            archive_readme_markers(target, channel, expected_sha, expected_size),
+            "MISSING_ARCHIVE_README_MARKERS",
+        )
+    )
+
+    duplicate_path = resolve_path(root, THIRD_PARTY_README).parent / duplicate_archive_name(
+        expected_archive_filename(target, channel)
+    )
+    if duplicate_path.exists():
+        issues.append(("DUPLICATE_ARCHIVE_COPY", duplicate_path.name))
 
     return issues
 
@@ -468,8 +604,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
 
-    if resolve_path(root, POLICY_PATH).exists():
-        issues.extend(collect_policy_issues(root))
+    archive_readme_path = resolve_path(root, THIRD_PARTY_README)
+    policy_issues: list[tuple[str, str]] = []
+    policy_path = resolve_path(root, POLICY_PATH)
+    if policy_path.exists():
+        policy_issues = collect_policy_issues(root)
+        issues.extend(policy_issues)
+    if archive_readme_path.exists() and policy_path.exists() and not policy_issues:
+        issues.extend(collect_archive_readme_issues(root))
     if resolve_path(root, TOOL_MANIFEST_PATH).exists():
         issues.extend(collect_tool_manifest_issues(root))
     return issues
@@ -495,6 +637,9 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
+    archive_target = "x86_64-linux"
+    archive_channel = "0.17.0-dev.87+9b177a7d2"
+    archive_sha = "3" * 64
     write_text(resolve_path(root, WORKFLOW), "\n".join((*WORKFLOW_SETUP_MARKERS, *WORKFLOW_LINES)) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(["# scripts", *SCRIPTS_MARKERS]) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(["# review", *REVIEW_MARKERS]) + "\n")
@@ -514,9 +659,19 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(bootstrap_lines) + "\n")
     for path in SURFACE_PATHS:
         if path == POLICY_PATH:
-            write_text(resolve_path(root, path), json.dumps({"phase": EXPECTED_POLICY["phase"], "channel": "0.17.0-dev.87+9b177a7d2", "minimum_version": "0.17.0-dev.87+9b177a7d2", "archive_sha256": {"x86_64-linux": "3" * 64}, "upgrade_policy": {"channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"], "archive_target_scope": EXPECTED_POLICY["archive_target_scope"], "required_make_routes": EXPECTED_POLICY["required_make_routes"]}}, indent=2) + "\n")
+            write_text(resolve_path(root, path), json.dumps({"phase": EXPECTED_POLICY["phase"], "channel": archive_channel, "minimum_version": archive_channel, "archive_sha256": {archive_target: archive_sha}, "upgrade_policy": {"channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"], "archive_target_scope": EXPECTED_POLICY["archive_target_scope"], "required_make_routes": EXPECTED_POLICY["required_make_routes"]}}, indent=2) + "\n")
         elif path == TOOL_MANIFEST_PATH:
             write_text(resolve_path(root, path), json.dumps(EXPECTED_TOOL_MANIFEST, indent=2) + "\n")
+        elif path == THIRD_PARTY_README:
+            write_text(
+                resolve_path(root, path),
+                render_archive_readme(
+                    archive_target,
+                    archive_channel,
+                    archive_sha,
+                    EXPECTED_ARCHIVE_SIZES[archive_target],
+                ),
+            )
         elif path in (BOOTSTRAP_NOTES, PHASE2_CLOSURE, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
             continue
         else:
@@ -557,6 +712,16 @@ def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir:
         root = Path(tmp_dir)
+        archive_target = "x86_64-linux"
+        archive_channel = "0.17.0-dev.87+9b177a7d2"
+        archive_sha = "3" * 64
+        archive_markers = archive_readme_markers(
+            archive_target,
+            archive_channel,
+            archive_sha,
+            EXPECTED_ARCHIVE_SIZES[archive_target],
+        )
+        duplicate_archive = duplicate_archive_name(expected_archive_filename(archive_target, archive_channel))
 
         build_self_test_root(root)
         assert collect_issues(root) == []
@@ -622,6 +787,20 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_PHASE2_CLOSURE_MARKERS", marker) in issues
             checks_run += 1
+
+        for marker in archive_markers:
+            build_self_test_root(root)
+            path = resolve_path(root, THIRD_PARTY_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_ARCHIVE_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        build_self_test_root(root)
+        write_text(resolve_path(root, THIRD_PARTY_README).parent / duplicate_archive, "duplicate\n")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_ARCHIVE_COPY", duplicate_archive) in issues
+        checks_run += 1
 
         for primary_path in (WORKFLOW, BOOTSTRAP_NOTES, PHASE2_CLOSURE, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
             build_self_test_root(root)
@@ -752,6 +931,7 @@ def main() -> int:
     print("PHASE2_TOOLCHAIN_PINNING=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_MARKER_COUNT={len(BOOTSTRAP_PRESENT_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PINNING_GAP_MARKER_COUNT={len(BOOTSTRAP_GAP_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_ARCHIVE_README_MARKER_COUNT={ARCHIVE_README_REQUIRED_MARKER_COUNT}")
     return 0
 
 
