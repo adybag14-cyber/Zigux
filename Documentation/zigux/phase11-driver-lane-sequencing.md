@@ -31,11 +31,15 @@ Keep the current lane split explicit:
   itself changes
 - DesignWare lane `P11-L10` stays separate from the shared sequencing lane, but
   raw `master` fallback rereads in this run do rematerialize
-  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so current
-  shared-note work can keep that returned DesignWare matrix explicit while the
-  wider helper-backed owner packet and the older
-  `scripts/zigux/check-phase11-dw-wdt-packet.py` handle stay framed as
-  separate-lane or historical vocabulary
+  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and direct
+  rereads also keep `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+  `drivers/watchdog/dw_wdt_pm.zig`, and
+  `drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as adjacent same-lane
+  continuity evidence, so current shared-note work can keep that returned
+  DesignWare matrix-plus-PM-helper packet explicit while the wider
+  helper-backed owner packet stays separate-lane and the older
+  `scripts/zigux/check-phase11-dw-wdt-packet.py` handle stays framed as
+  historical vocabulary
 - HVC continuity lane `P11-L16` currently keeps the directly readable
   `Documentation/zigux/phase11-hvc-console-survey.md`,
   `drivers/tty/hvc/hvc_console.zig`,
@@ -88,8 +92,11 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/validate-phase11.py`
+- `drivers/watchdog/dw_wdt_pm.zig`
+- `drivers/watchdog/dw_wdt_pm_scaffold.zig`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -119,6 +126,15 @@ explicit as the broader contributor-facing reminder family for the shared
 Phase 11 packet, while `make -C zigux phase11` and
 `make -C zigux phase11-contract` still remain missing on current `master`.
 
+Current rereads in this run also keep the directly readable DesignWare teardown
+checker plus the adjacent PM helper pair through
+`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+`drivers/watchdog/dw_wdt_pm.zig`, and
+`drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as same-lane continuity
+ evidence beside the returned DesignWare matrix note, without promoting live PM
+execution, live MMIO validation, or broader platform-backed registration into
+the shared packet.
+
 Keep the returned gpio, bcm2835, and DesignWare validation matrices explicit as
 shared matrix-boundary evidence while preserving bcm2835 and DesignWare deeper
 owner-packet follow-through as separate continuity lanes.
@@ -146,7 +162,11 @@ Use this note to keep the bounded work order honest:
    `scripts/zigux/check-phase11-matrix-gap-survey.py`,
    `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
    `scripts/zigux/check-phase11-build-inventory.py`, the returned shared
-   validator `scripts/zigux/validate-phase11.py`, and the HVC current-head
+   validator `scripts/zigux/validate-phase11.py`, the directly readable
+   DesignWare teardown checker plus adjacent PM helper pair through
+   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+   `drivers/watchdog/dw_wdt_pm.zig`, and
+   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, and the HVC current-head
    continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
    inventory anchor, and proof-backed adjunct stack; keep it explicit that the
@@ -178,9 +198,10 @@ Use this note to keep the bounded work order honest:
    execution, or hardware-backed closure beyond the helper, proof, note, and
    checker surfaces that were reread in this run.
 7. When contributor-facing summaries reopen, keep them aligned with the
-   returned four-matrix shared packet, the narrower HVC current-head continuity
-   packet plus its cleanup companion, current-head checker, shared build
-   inventory, proof-backed adjunct stack, the returned shared validator
+   returned four-matrix shared packet, the directly readable DesignWare teardown
+   checker plus adjacent PM helper pair, the narrower HVC current-head
+   continuity packet plus its cleanup companion, current-head checker, shared
+   build inventory, proof-backed adjunct stack, the returned shared validator
    `scripts/zigux/validate-phase11.py`, and the returned `zigux/Makefile`
    surface plus `make -C zigux phase11-validate` build gate instead of reviving
    broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
