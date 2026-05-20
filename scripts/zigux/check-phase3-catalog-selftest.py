@@ -10,6 +10,8 @@ from pathlib import Path
 CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 EXPORT_UAPI_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
+LOW_LEVEL_WRAPPER_SURVEY_PATH = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
+LOW_LEVEL_WRAPPER_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
 HEADER_FAMILY_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 HEADER_FAMILY_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
 
@@ -18,6 +20,7 @@ REQUIRED_MARKERS = {
         'PHASE3_CATALOG_PHASE = "Phase 3"',
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
         'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
@@ -28,6 +31,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-abi.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py"',
         '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test"',
@@ -44,6 +49,12 @@ REQUIRED_MARKERS = {
     EXPORT_UAPI_VALIDATOR_PATH: (
         'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+    ),
+    LOW_LEVEL_WRAPPER_SURVEY_PATH: (
+        "scripts/zigux/check-phase3-catalog-selftest.py",
+    ),
+    LOW_LEVEL_WRAPPER_VALIDATOR_PATH: (
+        'print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")',
     ),
     HEADER_FAMILY_SURVEY_PATH: (
         "PHASE3_ABI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
@@ -112,6 +123,21 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
+            "expected missing catalog low-level-wrapper survey note marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
+            "expected missing catalog low-level-wrapper survey self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
+            "expected missing catalog low-level-wrapper survey route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
             "expected missing catalog linux-zigux header-governance note marker was not reported",
         ),
@@ -154,6 +180,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-dump --build-file zigux/tests/build.zig"',
             "expected missing catalog abi dump build route marker was not reported",
+        ),
+        (
+            LOW_LEVEL_WRAPPER_SURVEY_PATH,
+            "scripts/zigux/check-phase3-catalog-selftest.py",
+            "expected missing low-level-wrapper survey catalog-selftest guard marker was not reported",
+        ),
+        (
+            LOW_LEVEL_WRAPPER_VALIDATOR_PATH,
+            'print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")',
+            "expected missing low-level-wrapper validator self-test marker was not reported",
         ),
         (
             HEADER_FAMILY_SURVEY_PATH,
