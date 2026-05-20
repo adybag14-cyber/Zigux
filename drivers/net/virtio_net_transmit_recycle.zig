@@ -8,6 +8,11 @@ pub const RecycleDisposition = enum {
     wake_queue,
 };
 
+pub const CompletedOwnershipDisposition = enum {
+    device_retained,
+    driver_free_list,
+};
+
 pub const TransmitRecycleRequest = struct {
     in_flight_descriptors: u16,
     free_descriptors_before: u16,
@@ -28,6 +33,8 @@ pub const TransmitRecycleSummary = struct {
     queue_was_stopped: bool,
     reaches_wake_threshold: bool,
     frees_completed_buffers: bool,
+    returns_completed_ownership_to_driver: bool,
+    completed_ownership_after_recycle: CompletedOwnershipDisposition,
     wakes_transmit_queue: bool,
     keeps_queue_stopped: bool,
     disposition: RecycleDisposition,
@@ -50,6 +57,8 @@ pub fn summarizeTransmitRecycle(request: TransmitRecycleRequest) !TransmitRecycl
     const wakes_transmit_queue =
         request.queue_stopped and frees_completed_buffers and reaches_wake_threshold;
     const keeps_queue_stopped = request.queue_stopped and !wakes_transmit_queue;
+    const completed_ownership_after_recycle: CompletedOwnershipDisposition =
+        if (frees_completed_buffers) .driver_free_list else .device_retained;
 
     return .{
         .anchor = "drivers/net/virtio_net.c",
@@ -63,6 +72,8 @@ pub fn summarizeTransmitRecycle(request: TransmitRecycleRequest) !TransmitRecycl
         .queue_was_stopped = request.queue_stopped,
         .reaches_wake_threshold = reaches_wake_threshold,
         .frees_completed_buffers = frees_completed_buffers,
+        .returns_completed_ownership_to_driver = frees_completed_buffers,
+        .completed_ownership_after_recycle = completed_ownership_after_recycle,
         .wakes_transmit_queue = wakes_transmit_queue,
         .keeps_queue_stopped = keeps_queue_stopped,
         .disposition = if (wakes_transmit_queue)
@@ -90,6 +101,11 @@ test "summarizeTransmitRecycle keeps a stopped queue stopped below the wake thre
     try std.testing.expectEqual(@as(u16, 6), summary.remaining_in_flight_descriptors);
     try std.testing.expectEqual(@as(u16, 1), summary.free_descriptors_after);
     try std.testing.expect(!summary.frees_completed_buffers);
+    try std.testing.expect(!summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        CompletedOwnershipDisposition.device_retained,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(!summary.reaches_wake_threshold);
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(summary.keeps_queue_stopped);
@@ -107,6 +123,11 @@ test "summarizeTransmitRecycle wakes a stopped queue once completions reach the 
     try std.testing.expectEqual(@as(u16, 3), summary.remaining_in_flight_descriptors);
     try std.testing.expectEqual(@as(u16, 3), summary.free_descriptors_after);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
@@ -124,6 +145,11 @@ test "summarizeTransmitRecycle keeps a running queue running even above threshol
     try std.testing.expectEqual(@as(u16, 4), summary.remaining_in_flight_descriptors);
     try std.testing.expectEqual(@as(u16, 4), summary.free_descriptors_after);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
