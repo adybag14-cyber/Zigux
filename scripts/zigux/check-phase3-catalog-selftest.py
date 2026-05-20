@@ -23,6 +23,8 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
         'Path("zigux/tests/phase3_abi.zig")',
+        '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-abi.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
@@ -30,6 +32,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-xarray-slot.py --self-test"',
         '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
+        '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
+        '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
@@ -97,6 +101,16 @@ def run_self_test() -> int:
     marker_cases = (
         (
             CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
+            "expected missing catalog abi self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-abi.py"',
+            "expected missing catalog abi checker route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
             "expected missing catalog export-uapi self-test route marker was not reported",
         ),
@@ -124,6 +138,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
             "expected missing catalog xarray-slot dump route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
+            "expected missing catalog abi core build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-dump --build-file zigux/tests/build.zig"',
+            "expected missing catalog abi dump build route marker was not reported",
         ),
         (
             HEADER_FAMILY_SURVEY_PATH,
