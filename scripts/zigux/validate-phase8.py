@@ -135,6 +135,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set",
     ),
     EXEC_CMD_TEST: (
         "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
