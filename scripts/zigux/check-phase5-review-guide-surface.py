@@ -176,6 +176,8 @@ KOBJECT_CONTRACT_MARKERS = (
     "the initialized-but-not-registered zero-active-attributes boundary stays explicit through `runPreRegistrationBoundaryReplay()` instead of dissolving into broader lifecycle prose",
     "`ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited snapshots plus the active-attribute-count progression visible from contributor-facing guidance",
     "the unnamed attribute-group shape, shared `baz`/`bar` dispatch, and the registered replay packet stay reviewable without reopening runtime-substrate claims",
+    "`samples/zigux/kobject_example_attr_group_contract.zig` keeps the bounded `foo`/`baz`/`bar` attribute-group contract, the shared `0664` mode cue, the unnamed-group marker, and the NULL-terminated attribute-list slot explicit without turning that companion into a fifth Phase 5 sample",
+    "`zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains shared public-tree-backed companion evidence",
     "keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet",
 )
 
@@ -394,7 +396,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 16
+    expected_case_count = 17
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -447,6 +449,18 @@ def run_self_test() -> int:
         expected = [f"guide:missing_kobject_contract:{KOBJECT_CONTRACT_MARKERS[1]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-kobject-contract failure: {failures}")
+        checks_run += 1
+
+        missing_kobject_companion_contract_root = root / "missing_kobject_companion_contract"
+        _seed(missing_kobject_companion_contract_root)
+        _write(
+            missing_kobject_companion_contract_root / GUIDE_PATH,
+            _sample_guide().replace(KOBJECT_CONTRACT_MARKERS[4], "", 1),
+        )
+        failures = collect_failures(missing_kobject_companion_contract_root)
+        expected = [f"guide:missing_kobject_contract:{KOBJECT_CONTRACT_MARKERS[4]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-kobject-companion-contract failure: {failures}")
         checks_run += 1
 
         missing_boundary_root = root / "missing_boundary"
