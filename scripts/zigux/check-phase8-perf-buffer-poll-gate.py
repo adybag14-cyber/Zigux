@@ -17,10 +17,29 @@ def infer_repo_root() -> Path:
 
 
 ROOT = infer_repo_root()
+NOTE_PATH = "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
 PERF_BUFFER_POLL_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+
+NOTE_REQUIRED_MARKERS = [
+    "# Phase 8 Perf-Buffer Poll Slice",
+    "`PHASE8_STATUS=parked_helper_slice`",
+    "`PHASE8_SLICE=libbpf-perf-buffer-poll`",
+    "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
+    "`zigux/tests/phase8_perf_buffer_poll.zig`",
+    "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+    "`zigux/tests/phase8_build.zig`",
+    "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+    "`make -C zigux phase8-validate`",
+    "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+    "`make -C zigux phase8-perf-buffer-poll-test`",
+    "`make -C zigux phase8-test`",
+    "no standalone timer helper behavior",
+    "no standalone clockevent helper behavior",
+    "broader perf-buffer-online-cpu-routing parity",
+]
 
 SCRIPTS_README_REQUIRED_MARKERS = [
     "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly",
@@ -179,6 +198,7 @@ def write_text(root: Path, rel_path: str, content: str) -> None:
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     required_files = (
+        NOTE_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         PERF_BUFFER_POLL_TEST_PATH,
@@ -191,6 +211,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     marker_groups = (
+        (NOTE_PATH, NOTE_REQUIRED_MARKERS),
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -206,6 +227,7 @@ def validate(root: Path) -> list[str]:
 
 def build_fixture_root(root: Path) -> None:
     marker_groups = (
+        (NOTE_PATH, NOTE_REQUIRED_MARKERS),
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -231,6 +253,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         marker_groups = (
+            (NOTE_PATH, NOTE_REQUIRED_MARKERS),
             (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
             (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -244,6 +267,7 @@ def run_self_test() -> int:
                 write_text(base, rel_path, baseline)
 
         for rel_path in (
+            NOTE_PATH,
             SCRIPTS_README_PATH,
             TESTS_README_PATH,
             PERF_BUFFER_POLL_TEST_PATH,
@@ -256,6 +280,7 @@ def run_self_test() -> int:
             write_text(base, rel_path, original)
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
+    print(f"PHASE8_PERF_BUFFER_POLL_GATE_NOTE_MARKER_COUNT={len(NOTE_REQUIRED_MARKERS)}")
     print(
         f"PHASE8_PERF_BUFFER_POLL_GATE_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}"
     )
@@ -277,8 +302,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
-            "across the scripts guide, the tests guide, the bounded poll helper test, "
-            "and the helper source markers."
+            "across the dedicated poll note, the scripts guide, the tests guide, "
+            "the bounded poll helper test, and the helper source markers."
         )
     )
     parser.add_argument(
@@ -303,6 +328,7 @@ def main() -> int:
             print(f"PHASE8_PERF_BUFFER_POLL_GATE_ERROR={failure}")
         return 1
 
+    print(f"PHASE8_PERF_BUFFER_POLL_GATE_NOTE_MARKER_COUNT={len(NOTE_REQUIRED_MARKERS)}")
     print(
         f"PHASE8_PERF_BUFFER_POLL_GATE_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}"
     )
