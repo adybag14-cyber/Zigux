@@ -69,6 +69,12 @@ depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 That inventory does not stand in for a whole-Phase-11 replay roster while the
 current reread expansion now covers all four driver-local matrix notes plus the
 existing HVC continuity packet.
+The same narrower inventory also records 3 adjunct build replays through
+`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
+`zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and
+`zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head
+HVC build routes explicit as adjacent continuity evidence rather than treating
+them as a cross-driver replay roster.
 
 Current `master` also materializes `scripts/zigux/validate-phase11.py` and
 `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`,
