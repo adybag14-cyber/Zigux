@@ -2,7 +2,7 @@
 
 This survey records the broader helper-parity companion for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `9ca34d1`
+- surveyed head: `current-master-readback-2026-05-20`
 - lane scope: public-tree-backed helper parity rows only
 - direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_parity_manifest.json`
@@ -25,7 +25,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - landed Zig helper: `lib/base64.zig`
 - focused helper replay: `zigux/tests/phase6_base64.zig`
 - helper-evidence row: `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
-- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, and slice note, while the direct C parity companions still need fresh direct reads before they return as shipped evidence
+- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, and slice note, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence
 
 ### bsearch
 
@@ -41,7 +42,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - landed Zig helper: `lib/checksum.zig`
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
 - helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
-- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, checker, and slice note, while the direct C parity companions still need fresh direct reads before they return as shipped evidence
+- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, checker, and slice note, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence
 
 ### hexdump
 
@@ -49,7 +51,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - landed Zig helper: `lib/hexdump.zig`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
 - helper-evidence row: `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
-- current posture: the helper, focused replay, perf replay, perf-matrix preflight, fixture surface, and packet checker are directly readable again, while `Documentation/zigux/phase6-hexdump-slice.md` and `Documentation/zigux/phase6-hexdump-perf-refresh.md` still need fresh direct reads before they return as shipped evidence
+- exact missing direct companions from authenticated 2026-05-20 readback: `Documentation/zigux/phase6-hexdump-slice.md` and `Documentation/zigux/phase6-hexdump-perf-refresh.md`
+- current posture: the helper, focused replay, perf replay, perf-matrix preflight, fixture surface, and packet checker are directly readable again, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence
 
 ## Shared parity boundary
 
