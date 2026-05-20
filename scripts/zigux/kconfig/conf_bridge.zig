@@ -103,6 +103,7 @@ const ParseBridgeOptionsError = error{
 
 const ModeArgumentError = error{
     MissingArgument,
+    UnexpectedModeArgument,
 };
 
 fn modeRequiresArgument(mode: Mode) bool {
@@ -154,7 +155,7 @@ fn looksLikeBridgeOption(text: []const u8) bool {
 }
 
 fn validateModeArgument(mode: Mode, value: []const u8) ModeArgumentError![]const u8 {
-    if (!modeRequiresArgument(mode)) return value;
+    if (!modeRequiresArgument(mode)) return error.UnexpectedModeArgument;
     if (value.len == 0 or looksLikeBridgeOption(value)) {
         return error.MissingArgument;
     }
@@ -313,7 +314,16 @@ pub fn main(init: std.process.Init) !void {
 
     var next_index: usize = 5;
     const mode_arg = blk: {
-        if (!modeRequiresArgument(mode)) break :blk null;
+        if (!modeRequiresArgument(mode)) {
+            if (args.len > next_index and !looksLikeBridgeOption(args[next_index])) {
+                var stderr_buffer: [160]u8 = undefined;
+                var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+                try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
+                try stderr_writer.interface.flush();
+                std.process.exit(1);
+            }
+            break :blk null;
+        }
         if (args.len == next_index) {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
@@ -321,10 +331,14 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
             std.process.exit(1);
         }
-        const value = validateModeArgument(mode, args[next_index]) catch {
+        const value = validateModeArgument(mode, args[next_index]) catch |err| {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
+            const message = switch (err) {
+                error.MissingArgument => missingModeArgumentMessage(mode),
+                error.UnexpectedModeArgument => "Error: unexpected mode argument\n",
+            };
+            try stderr_writer.interface.writeAll(message);
             try stderr_writer.interface.flush();
             std.process.exit(1);
         };
@@ -681,6 +695,11 @@ test "conf bridge escapes low control bytes in JSON strings" {
 
     try writeJsonEscaped(&capture, "\x01\x08\x0c");
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
+}
+
+test "mode argument validation rejects positional mode arg for non-argument modes" {
+    try std.testing.expectError(error.UnexpectedModeArgument, validateModeArgument(.oldconfig, "unexpected"));
+    try std.testing.expectError(error.UnexpectedModeArgument, validateModeArgument(.olddefconfig, "unexpected"));
 }
 
 test "mode argument validation rejects bridge option shaped defconfig payload" {
