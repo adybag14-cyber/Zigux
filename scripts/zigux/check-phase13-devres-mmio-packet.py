@@ -40,16 +40,26 @@ SLICE_MARKERS = [
 ]
 
 SURVEY_MARKERS = [
-    "# Phase 13 devres DMA and scatterlist Boundary Survey",
-    "This document records the bounded `P13-L07` survey lane around the current DMA and scatterlist boundary evidence for `lib/devres.c`.",
+    "# Phase 13 devres DMA, scatterlist, and MMIO Boundary Survey",
+    "This document records the bounded `P13-L01` survey lane around the current `lib/devres.c` helper packet on `master`: the shipped DMA and scatterlist boundary evidence, plus the still-missing MMIO and iomap safety gaps that remain open against the Phase 13 roadmap.",
     "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` marks the packet as `starter_landed`",
     "`lib/devres.zig` now ships a pure `dmam_alloc_coherent()` planning surface through `DevresHelperLab.descriptor()`, `planManagedReleaseRecordLifetime(...)`, and `planManagedDmamAllocCoherent(...)`",
     "`zigux/tests/phase13_devres_dma_coherent.zig` continues to fail-close on generic DMA and scatterlist ownership boundaries beside the new helper-first planner",
     "`lib/devres_scatterlist.zig` and `zigux/tests/phase13_devres_scatterlist.zig` keep the helper-first scatterlist lifetime slice reviewable",
+    "there are no `devm_iounmap(`, `devm_ioremap_np(`, `devm_of_iomap(`, `devm_arch_phys_wc_add(`, or `devm_arch_io_reserve_memtype_wc(` markers in the live helper file.",
+    "`zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain absent",
     "blocked `phase13-devres-live-dmam-alloc-side-effects`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
     "blocked `phase13-devres-live-sg-table-lifecycle`",
     "blocked `phase13-devres-generic-dma-map-family`",
+    "blocked `phase13-devres-missing-devm-iounmap-surface`",
+    "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
+    "blocked `phase13-devres-missing-devm-of-iomap-surface`",
+    "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
+    "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
+    "blocked `phase13-devres-live-mmio-mapping-state`",
+    "blocked `phase13-devres-live-device-tree-walks`",
+    "blocked `phase13-devres-live-arch-memtype-mutation`",
 ]
 
 PLANNER_NOTE_MARKERS = [
@@ -387,7 +397,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current bounded Phase 13 devres MMIO and DMA boundary packet."
+        description="Validate the current bounded Phase 13 devres MMIO, DMA, and scatterlist boundary packet."
     )
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
