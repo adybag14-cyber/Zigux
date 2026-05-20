@@ -66,6 +66,7 @@ DOCS_ROOT_MARKERS = (
     "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
     "keep the current `kobject` ownership-and-lifetime split explicit too:",
     "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
+    "keep the bounded `kobject` attr-group companion explicit here too: `samples/zigux/kobject_example_attr_group_contract.zig` is current direct sample-root evidence for the `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, and NULL-terminated attribute-list slot rather than a fifth Phase 5 sample family.",
 )
 
 APPROVED_IDIOM_MARKERS = (
@@ -217,7 +218,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 10
+    expected_case_count = 11
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -268,13 +269,34 @@ def run_self_test() -> int:
                     DOCS_ROOT_MARKERS[0],
                     DOCS_ROOT_MARKERS[1],
                     DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[4],
                 ),
             ),
         )
         failures = collect_failures(missing_docs_root_marker_root)
-        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}" ]
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected docs-root failure: {failures}")
+        checks_run += 1
+
+        missing_docs_root_attr_group_marker_root = root / "missing_docs_root_attr_group_marker"
+        _seed(missing_docs_root_attr_group_marker_root)
+        _write(
+            missing_docs_root_attr_group_marker_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[3],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_attr_group_marker_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[4]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root attr-group failure: {failures}")
         checks_run += 1
 
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
@@ -284,7 +306,7 @@ def run_self_test() -> int:
             _placeholder_text(SAMPLE_ROOT_PATH, SAMPLE_ROOT_MARKERS[1:]),
         )
         failures = collect_failures(missing_sample_root_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}" ]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
         checks_run += 1
@@ -303,7 +325,7 @@ def run_self_test() -> int:
             ),
         )
         failures = collect_failures(missing_sample_root_bitmap_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}" ]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
         checks_run += 1
@@ -312,7 +334,7 @@ def run_self_test() -> int:
         _seed(missing_direct_path_root)
         (missing_direct_path_root / DIRECT_PACKET_PATHS[8]).unlink()
         failures = collect_failures(missing_direct_path_root)
-        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}" ]
+        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"]
         if failures != expected:
             raise AssertionError(f"unexpected direct-path failure: {failures}")
         checks_run += 1
@@ -339,7 +361,7 @@ def run_self_test() -> int:
             _placeholder_text(GUIDE_PATH, GUIDE_MARKERS) + FORBIDDEN_GUIDE_TEXT[0] + "\n",
         )
         failures = collect_failures(forbidden_text_root)
-        expected = [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}" ]
+        expected = [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected forbidden-text failure: {failures}")
         checks_run += 1
