@@ -22,10 +22,10 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexAtIndex(");
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexReturn(summary: OnlineCpuRouteAttemptSummary) i32 {");
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(");
-    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndex keeps typed route-cpu wrappers aligned\" {");
-    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexReturn keeps errno-shaped route-cpu wrappers aligned\" {");
-    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexAtIndex keeps direct route-cpu wrappers aligned\" {");
-    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {");
+    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndex keeps typed route-cpu wrappers aligned\\\" {");
+    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexReturn keeps errno-shaped route-cpu wrappers aligned\\\" {");
+    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexAtIndex keeps direct route-cpu wrappers aligned\\\" {");
+    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\\\" {");
 
     const verify = try readRepoFile("tools/lib/bpf/zigux_segments/verify.zig");
     defer std.testing.allocator.free(verify);
@@ -35,8 +35,8 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexAtIndex");
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturn");
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex");
-    try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\" {");
-    try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
+    try expectContains(verify, "test \\\"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\\\" {");
+    try expectContains(verify, "test \\\"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\\\" {");
 }
 
 test "phase 8 verify routing witness records the current dedicated verifier shards" {
@@ -47,14 +47,26 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         online_cpu_verify,
-        "test \"phase8 online-cpu route helpers keep typed cpu-index wrappers stable\" {",
+        "test \\\"phase8 online-cpu route helpers keep typed cpu-index wrappers stable\\\" {",
     );
     try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndex(");
     try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(");
     try expectContains(
         online_cpu_verify,
-        "test \"phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32\" {",
+        "test \\\"phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32\\\" {",
     );
+
+    const ready_buffer_attempt_verify = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig",
+    );
+    defer std.testing.allocator.free(ready_buffer_attempt_verify);
+
+    try expectContains(
+        ready_buffer_attempt_verify,
+        "test \\\"phase8 ready-buffer attempt helper entrypoints stay explicit\\\" {",
+    );
+    try expectContains(ready_buffer_attempt_verify, "resolveReadyBufferAttemptIndex(");
+    try expectContains(ready_buffer_attempt_verify, "resolveReadyBufferAttemptLookupReturn(");
 
     const ready_buffer_fd_verify = try readRepoFile(
         "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig",
@@ -63,7 +75,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         ready_buffer_fd_verify,
-        "test \"phase8 ready-buffer fd helper entrypoints stay explicit\" {",
+        "test \\\"phase8 ready-buffer fd helper entrypoints stay explicit\\\" {",
     );
     try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdAtAttempt");
     try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdLookupReturnAtAttempt");
@@ -75,7 +87,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         ready_buffer_window_verify,
-        "test \"phase8 ready-buffer window helper entrypoints stay explicit\" {",
+        "test \\\"phase8 ready-buffer window helper entrypoints stay explicit\\\" {",
     );
     try expectContains(
         ready_buffer_window_verify,
@@ -89,6 +101,18 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
         ready_buffer_window_verify,
         "resolveReadyBufferWindowLookupReturnAtAttempt",
     );
+
+    const type_names_verify = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/type_names_verify.zig",
+    );
+    defer std.testing.allocator.free(type_names_verify);
+
+    try expectContains(
+        type_names_verify,
+        "test \\\"phase8 libbpf type-name helper entrypoints stay explicit\\\" {",
+    );
+    try expectContains(type_names_verify, "libbpfBpfMapTypeStr(27)");
+    try expectContains(type_names_verify, "formatLibbpfBpfProgType(prog_buffer[0..], 33)");
 }
 
 test "phase 8 verify routing witness records the current direct-readback libbpf survey packet" {
@@ -100,11 +124,17 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/logging.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/pin_path.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/type_names.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/type_names_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
     try expectContains(
         survey,
-        "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `perf_buffer_poll.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
+        "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `type_names_verify.zig`, `perf_buffer_poll.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
+    );
+    try expectContains(
+        survey,
+        "The directly readable verifier packet now also keeps the dedicated stable-output witnesses for online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
     );
     try expectContains(
         survey,
@@ -112,6 +142,6 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     );
     try expectContains(
         survey,
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
     );
 }
