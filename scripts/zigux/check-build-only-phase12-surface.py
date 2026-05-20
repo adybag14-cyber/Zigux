@@ -25,6 +25,7 @@ RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -60,6 +61,11 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
     "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
 ]
+SCRIPTS_README_MARKERS = [
+    "- `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
+    "- `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
+    "- keep the repo-local `.zig-toolchain` then attached-Zig degraded rerun order explicit here too: rely on the Makefile fallback first, then name `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` only as last-resort rerun vocabulary while `make -C zigux phase12-validate` remains reminder-only text",
+]
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
@@ -73,6 +79,7 @@ REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
+    SCRIPTS_README_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
     WORKFLOW_PATH,
@@ -95,6 +102,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "stale reminder vocabulary",
     ],
+    SCRIPTS_README_PATH: SCRIPTS_README_MARKERS,
     MAKEFILE_PATH: [
         "phase12-smoke:",
         "phase12-test:",
@@ -333,6 +341,7 @@ def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
         title = {
             VALIDATOR_PATH: "# Phase 12 Support Validator",
+            SCRIPTS_README_PATH: "# scripts/zigux",
             WORKFLOW_PATH: "name: zigux-bootstrap",
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
@@ -432,6 +441,19 @@ def run_self_test() -> int:
             )
 
         write_fixture_tree(base)
+        scripts_readme_path = base / SCRIPTS_README_PATH
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                SCRIPTS_README_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:" f"{SCRIPTS_README_PATH}:{SCRIPTS_README_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
         coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
         coordination_matrix_path.write_text(
             coordination_matrix_path.read_text(encoding="utf-8").replace(
@@ -478,7 +500,7 @@ def run_self_test() -> int:
             + len(marker_cases)
             + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
             + len(PHASE12_BUILD_EXACT_COUNTS)
-            + 3
+            + 4
         )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
@@ -491,7 +513,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
-            "returned smoke-and-test wrappers and the split-helper virtio_net packet."
+            "returned smoke-and-test wrappers, the scripts-root attached-Zig fallback "
+            "wording, and the split-helper virtio_net packet."
         )
     )
     parser.add_argument(
@@ -518,9 +541,6 @@ def main() -> int:
 
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE12_BUILD_ONLY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE12_BUILD_ONLY_REQUIRED_MARKER_COUNT={sum(len(m) for m in REQUIRED_MARKERS.values())}")
-    print(f"PHASE12_BUILD_ONLY_EXACT_COUNT_MARKER_COUNT={len(PHASE12_BUILD_EXACT_COUNTS)}")
-    print(f"PHASE12_BUILD_ONLY_FORBIDDEN_MARKER_COUNT={sum(len(m) for m in FORBIDDEN_MARKERS.values())}")
     return 0
 
 
