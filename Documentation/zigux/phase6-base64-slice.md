@@ -39,7 +39,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current base64 helper surface exercised by this slice covers:
 
-- generic `chars`, `bytes`, `encode`, and `decode`
+- generic `chars`, `paddedChars`, `unpaddedChars`, `bytes`, `encode`, and `decode`
 - generic `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
 - variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
 - variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
@@ -61,6 +61,7 @@ The current tests check:
 - one-byte and two-byte URL-safe and IMAP tail parity with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
+- helper-local same-file sweeps for `paddedChars` and `unpaddedChars`, every one-byte and two-byte tail across std, URL-safe, and IMAP variants with and without padding, non-canonical tail-bit rejection, and reverse-map classification across all byte values
 - helper-local convenience parity between the generic and variant-pinned size, direct, slice, and allocator encode/decode entrypoints
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
