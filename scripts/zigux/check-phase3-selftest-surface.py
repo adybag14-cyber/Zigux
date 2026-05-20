@@ -180,7 +180,7 @@ VALIDATOR_SUPPORT_MARKERS = (
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "one focused helper-local `xarray_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage",
-    "The following representative wider header-family routes still read as absent on the live tree and should be treated as repo-reality gaps rather than shipped validator support:",
+    "The following representative broader same-lane follow-through still reads as absent on the live tree and should be treated as a repo-reality gap rather than shipped validator support:",
     "Current `master` also directly serves the returned `Documentation/zigux/phase3-linux-zigux-header-governance.md` ownership note beside that adjacent export/UAPI layout replay pair, so the bounded Linux-facing relay is reviewable without widening this validator-support packet into the broader header-family survey.",
     "Current `master` also directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the bounded Linux-facing ownership note for `include/linux/zigux.h`, but that returned ownership surface should not be used here to imply that the broader export/UAPI header-family survey packet has returned.",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
@@ -529,7 +529,7 @@ def run_self_test() -> int:
         ),
         (
             VALIDATOR_SUPPORT_PATH,
-            "The following representative wider header-family routes still read as absent on the live tree and should be treated as repo-reality gaps rather than shipped validator support:",
+            "The following representative broader same-lane follow-through still reads as absent on the live tree and should be treated as a repo-reality gap rather than shipped validator support:",
             "validator-support note",
         ),
         (
