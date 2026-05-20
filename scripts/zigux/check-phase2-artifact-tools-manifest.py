@@ -27,6 +27,18 @@ REQUIRED_TOOLING = {
     "supported_modes": ["text", "json", "bytes"],
 }
 
+EXPECTED_CONSUMER_MARKERS = {
+    "scripts/zigux/check-kconfig-bridge.py": (
+        'ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"',
+        'run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(expected), str(actual)], cwd=str(ROOT))',
+        'run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))',
+    ),
+    "scripts/zigux/check-fixdep-diff.py": (
+        'ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"',
+        'run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))',
+    ),
+}
+
 REQUIRED_NOTE_MARKERS = (
     "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks in both the kconfig bridge and fixdep parity packets.",
     "Keep `scripts/zigux/check-phase2-artifact-tools-manifest.py` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
@@ -73,6 +85,28 @@ def collect_tooling_entry_issues(root: Path, category: str, actual: object, expe
     for entry in string_entries:
         if not resolve_manifest_path(root, entry).exists():
             issues.append(("MISSING_TOOL_PATH", f"{category}:{entry}"))
+    return issues
+
+
+def count_exact_occurrences(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
+def collect_consumer_marker_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
+        path = resolve_manifest_path(root, relative_path)
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            continue
+        for marker in markers:
+            count = count_exact_occurrences(text, marker)
+            key = f"{relative_path}:{marker}"
+            if count == 0:
+                issues.append(("MISSING_CONSUMER_MARKER", key))
+            elif count != 1:
+                issues.append(("DUPLICATE_CONSUMER_MARKER", f"{key}:count={count}"))
     return issues
 
 
@@ -142,6 +176,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                             f"actual={actual_modes!r}:expected={REQUIRED_TOOLING['supported_modes']!r}",
                         )
                     )
+        issues.extend(collect_consumer_marker_issues(root))
 
     notes = manifest.get("notes")
     if not isinstance(notes, list):
@@ -194,6 +229,13 @@ def build_self_test_manifest() -> dict:
     }
 
 
+def render_consumer_self_test_source(relative_path: str) -> str:
+    markers = EXPECTED_CONSUMER_MARKERS.get(relative_path)
+    if markers is None:
+        return "present\n"
+    return "\n".join(markers) + "\n"
+
+
 def build_self_test_root(root: Path) -> None:
     manifest_path = root / MANIFEST
     write_manifest(manifest_path, build_self_test_manifest())
@@ -205,7 +247,7 @@ def build_self_test_root(root: Path) -> None:
         *REQUIRED_TOOLING["consumers"],
         *REQUIRED_TOOLING["checkers"],
     ):
-        write_text(root / relative_path, "present\n")
+        write_text(root / relative_path, render_consumer_self_test_source(relative_path))
 
 
 def run_self_test() -> int:
@@ -223,6 +265,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + len(EXPECTED_CONSUMER_MARKERS)
     )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
@@ -324,6 +367,13 @@ def run_self_test() -> int:
             f"{(root / PRIMARY_TOOL).as_posix()}:MODE_CHOICES:expected_string_sequence",
         ) in collect_issues(root)
         checks_run += 1
+
+        for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
+            build_self_test_root(root)
+            path = root / relative_path
+            path.write_text(path.read_text(encoding="utf-8").replace(markers[0], "", 1), encoding="utf-8")
+            assert ("MISSING_CONSUMER_MARKER", f"{relative_path}:{markers[0]}") in collect_issues(root)
+            checks_run += 1
 
         manifest_path.unlink()
         try:
