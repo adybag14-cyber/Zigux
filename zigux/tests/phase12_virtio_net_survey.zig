@@ -84,7 +84,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase12 virtio net survey manifest tracks the shared-build quartet truthfully" {
+test "phase12 virtio net survey manifest tracks the shared-build quartet and throughput-review boundary truthfully" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -118,6 +118,14 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet truthfu
         "returned Phase 12 make entrypoints now keep the queue-resume, transmit-recycle, post-reset replay, and throughput-parity quartet",
     );
     try std.testing.expectEqualStrings(
+        "throughput_parity_helper_present_review_only_runtime_completion_missing",
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
+    );
+    try expectContains(
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
+        "review-only throughput-ratio checks without claiming live transport execution or measured throughput evidence",
+    );
+    try std.testing.expectEqualStrings(
         "split_helper_packet_direct_replays_present_shared_route_complete",
         manifest.roadmap_gap_check.segmented_rollout.status,
     );
@@ -138,9 +146,14 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet truthfu
             try expectContains(gap.why_now, "virtio_net_post_reset_replay");
             try expectContains(gap.why_now, "virtio_net_throughput_parity");
         }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-throughput-parity-followup")) {
+            try expectContains(gap.why_now, "review-only throughput-ratio summary");
+            try expectContains(gap.why_now, "measured transport throughput evidence");
+        }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_runtime_block = true;
             try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
+            try expectContains(gap.why_now, "measured transport throughput evidence");
         }
     }
     try std.testing.expect(saw_build_gate);
@@ -151,16 +164,18 @@ test "phase12 virtio net survey note reflects the quartet and preserved non-goal
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 20 * 1024);
     defer std.testing.allocator.free(survey_note);
 
-    try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet");
+    try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only");
     try expectContains(survey_note, "lane owner: `P12-L04`");
     try expectContains(survey_note, "6c941cb561420120b8e1d5a07e8a44e1c918a5f2");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
     try expectContains(survey_note, "summarizeThroughputParity()");
+    try expectContains(survey_note, "review-only throughput-ratio checks");
+    try expectContains(survey_note, "not measured transport throughput evidence");
     try expectContains(survey_note, "current `master` does not carry the older monolithic `drivers/net/virtio_net.zig` starter");
     try expectContains(survey_note, "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes");
     try expectContains(survey_note, "the shared Phase 12 build route reruns that quartet");
     try expectContains(survey_note, "still does not claim live DMA-safe receive ownership");
-    try expectContains(survey_note, "shared-route wording drift");
+    try expectContains(survey_note, "performance-risk wording refresh");
 }
 
 test "phase12 virtio net survey gate keeps the present files and shared routes explicit" {
