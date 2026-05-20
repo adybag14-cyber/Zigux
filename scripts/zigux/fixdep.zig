@@ -7,6 +7,7 @@ const max_file_bytes: usize = std.math.maxInt(usize);
 const FixdepError = error{
     NoTargets,
     OpenDependencyFile,
+    StatDependencyFile,
     ReadDependencyFile,
 };
 
@@ -47,7 +48,7 @@ fn lineContinuationLen(bytes: []const u8, index: usize) ?usize {
 fn describeFileReadError(err: anyerror) []const u8 {
     return switch (err) {
         error.FileNotFound => "No such file or directory",
-        error.AccessDenied => "Permission denied",
+        error.AccessDenied, error.PermissionDenied => "Permission denied",
         error.IsDir => "Is a directory",
         error.NotDir => "Not a directory",
         error.NameTooLong => "File name too long",
@@ -62,15 +63,19 @@ fn describeFileReadError(err: anyerror) []const u8 {
     };
 }
 
-fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
+fn writePathError(writer: anytype, prefix: []const u8, path: []const u8, err: anyerror) !void {
+    try writer.writeAll(prefix);
+    try writer.writeAll(path);
+    try writer.writeAll(": ");
+    try writer.writeAll(describeFileReadError(err));
+    try writer.writeAll("\n");
+}
+
+fn emitPathError(io: std.Io, prefix: []const u8, path: []const u8, err: anyerror) !noreturn {
     var stderr_buffer: [512]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
     const stderr = &stderr_writer.interface;
-    try stderr.writeAll("fixdep: error opening file: ");
-    try stderr.writeAll(path);
-    try stderr.writeAll(": ");
-    try stderr.writeAll(describeFileReadError(err));
-    try stderr.writeAll("\n");
+    try writePathError(stderr, prefix, path, err);
     try stderr.flush();
     std.process.exit(2);
 }
@@ -216,6 +221,12 @@ const Processor = struct {
         };
         defer file.close(self.io);
 
+        _ = file.stat(self.io) catch |err| {
+            self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+            self.last_file_error = err;
+            return error.StatDependencyFile;
+        };
+
         var file_reader = file.reader(self.io, &.{});
         return file_reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
             error.ReadFailed => {
@@ -348,7 +359,11 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
         error.OpenDependencyFile => {
             flushOutputIgnoringError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+            try emitPathError(io, "fixdep: error opening file: ", processor.last_file_error_path, processor.last_file_error.?);
+        },
+        error.StatDependencyFile => {
+            flushOutputIgnoringError(writer);
+            try emitPathError(io, "fixdep: error fstat'ing file: ", processor.last_file_error_path, processor.last_file_error.?);
         },
         error.ReadDependencyFile => {
             flushOutputIgnoringError(writer);
@@ -359,7 +374,11 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
         error.OpenDependencyFile => {
             flushOutputIgnoringError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+            try emitPathError(io, "fixdep: error opening file: ", processor.last_file_error_path, processor.last_file_error.?);
+        },
+        error.StatDependencyFile => {
+            flushOutputIgnoringError(writer);
+            try emitPathError(io, "fixdep: error fstat'ing file: ", processor.last_file_error_path, processor.last_file_error.?);
         },
         error.ReadDependencyFile => {
             flushOutputIgnoringError(writer);
@@ -790,6 +809,39 @@ test "ignored and no-parse file classification matches fixdep rules" {
 test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
+    try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.PermissionDenied));
+}
+
+test "path error wording keeps the dedicated fstat prefix" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 96),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writePathError(&capture, "fixdep: error fstat'ing file: ", "broken.d", error.PermissionDenied);
+
+    try std.testing.expectEqualStrings(
+        "fixdep: error fstat'ing file: broken.d: Permission denied\n",
+        capture.list.items,
+    );
 }
 
 test "open dependency file classification keeps input-output failures on the C-style path" {
