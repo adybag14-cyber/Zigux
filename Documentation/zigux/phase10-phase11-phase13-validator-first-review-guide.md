@@ -45,6 +45,20 @@ Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase10-virtio-input-slice.md`
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `zigux/tests/phase10_virtio_input_manifest.json`
+- `drivers/virtio/virtio_input.zig`
+- `drivers/virtio/virtio_input_probe_preflight.zig`
+- `drivers/virtio/virtio_input_queue_callback_preflight.zig`
+- `drivers/virtio/virtio_input_registration_preflight.zig`
+- `drivers/virtio/virtio_input_status_drain.zig`
+- `drivers/virtio/virtio_input_teardown_observation.zig`
+- `drivers/virtio/virtio_input_verify.zig`
+- `zigux/tests/phase10_virtio_input.zig`
+- `zigux/tests/phase10_virtio_input_probe_preflight.zig`
+- `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+- `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+- `zigux/tests/phase10_virtio_input_status_drain.zig`
+- `zigux/tests/phase10_virtio_input_teardown_observation.zig`
+- `zigux/tests/phase10_virtio_input_survey.zig`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
@@ -73,6 +87,7 @@ Keep the current repo-reality split explicit too:
 - `zigux/tests/phase10_virtio_core.zig` is back as the returned bounded core replay inside the shared closure packet.
 - `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_ring_survey.zig` are part of the returned ring packet and should move together with the queue-local wrapper survey instead of dropping back into neighboring reminder wording.
 - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are part of the returned helper-local MMIO packet and should stay paired with the bounded config-write, interrupt-ack, and survey evidence rather than widening into lifecycle or IRQ claims.
+- `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` are part of the returned bounded input packet and should stay paired with the survey, slice, module-slice, manifest, checker, and shared build route instead of dropping back into stale compile-path or queue-only reminder wording.
 - `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` now rematerialize through public current-`master` readback and should stay explicit as returned core-side companions beside the bounded core replay.
 - `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain repo-reality gaps, while `zigux/tests/phase10_virtio_ring.zig` stays a public current-`master` readback companion or last-known packet member rather than exact direct-path shipped current-`master` evidence.
 
