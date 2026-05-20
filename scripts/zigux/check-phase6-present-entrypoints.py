@@ -38,6 +38,22 @@ EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS = [
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
 EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+EXPECTED_HEXDUMP_CHECKER = "scripts/zigux/check-phase6-hexdump-packet.py"
+EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-readback-limited"
+EXPECTED_HEXDUMP_MISSING_COMPANIONS = [
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+]
+EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "python3 scripts/zigux/check-phase6-hexdump-route.py",
+    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf",
+]
 EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
 EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
 EXPECTED_CHECKSUM_RERUN_ROUTES = [
@@ -52,9 +68,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
     "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
     "the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`)",
+    "- exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`",
+    "while the slice note and perf refresh note still need fresh direct reads before they are presented as current shipped evidence",
     "## Current shared replay inventory",
     "- `make -C zigux phase6-bsearch-perf`",
     "- `make -C zigux phase6-checksum-perf`",
+    "- `make -C zigux phase6-hexdump-review`",
+    "- `make -C zigux phase6-hexdump-perf-matrix-test`",
 ]
 REQUIRED_BUILD_SNIPPETS = [
     'const bsearch_perf_root_module = b.createModule(.{',
@@ -72,7 +92,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
 SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -102,6 +122,14 @@ def extract_surveyed_head(content: str) -> str:
     if match is None:
         raise ValidationError("missing expected Phase 6 marker in catalog: surveyed head")
     return match.group(1)
+
+
+def require_list_contains(values: object, expected_items: list[str], label: str) -> None:
+    if not isinstance(values, list):
+        raise ValidationError(f"{label} missing")
+    missing = [item for item in expected_items if item not in values]
+    if missing:
+        raise ValidationError(f"{label} missing expected items: {', '.join(missing)}")
 
 
 def validate(repo_root: Path) -> None:
@@ -152,6 +180,27 @@ def validate(repo_root: Path) -> None:
     if checksum_perf.get("linux_style_rerun_routes") != EXPECTED_CHECKSUM_RERUN_ROUTES:
         raise ValidationError("phase6 checksum perf rerun routes mismatch")
 
+    hexdump = next(helper for helper in helpers if helper.get("key") == "hexdump")
+    if hexdump.get("checker_surfaces") != [EXPECTED_HEXDUMP_CHECKER]:
+        raise ValidationError("phase6 hexdump checker surface mismatch")
+    if hexdump.get("perf_matrix_preflight") != "zigux/tests/phase6_hexdump_perf_matrix.zig":
+        raise ValidationError("phase6 hexdump perf-matrix preflight mismatch")
+    if hexdump.get("current_review_posture") != EXPECTED_HEXDUMP_REVIEW_POSTURE:
+        raise ValidationError("phase6 hexdump review posture mismatch")
+    if hexdump.get("still_missing_direct_companions") != EXPECTED_HEXDUMP_MISSING_COMPANIONS:
+        raise ValidationError("phase6 hexdump missing-direct-companions mismatch")
+
+    require_list_contains(
+        manifest.get("current_repo_reality_gaps"),
+        EXPECTED_HEXDUMP_MISSING_COMPANIONS,
+        "phase6 current repo reality gaps",
+    )
+    require_list_contains(
+        manifest.get("current_shared_replay_inventory"),
+        EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
+        "phase6 shared replay inventory",
+    )
+
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -182,6 +231,12 @@ def scaffold_repo(root: Path) -> None:
                 "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS,
                 "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
+                "current_repo_reality_gaps": [
+                    *EXPECTED_HEXDUMP_MISSING_COMPANIONS,
+                ],
+                "current_shared_replay_inventory": [
+                    *EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
+                ],
                 "helpers": [
                     {"key": "base64"},
                     {
@@ -198,7 +253,13 @@ def scaffold_repo(root: Path) -> None:
                             "linux_style_rerun_routes": EXPECTED_CHECKSUM_RERUN_ROUTES,
                         },
                     },
-                    {"key": "hexdump"},
+                    {
+                        "key": "hexdump",
+                        "checker_surfaces": [EXPECTED_HEXDUMP_CHECKER],
+                        "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
+                        "current_review_posture": EXPECTED_HEXDUMP_REVIEW_POSTURE,
+                        "still_missing_direct_companions": EXPECTED_HEXDUMP_MISSING_COMPANIONS,
+                    },
                 ],
             },
             indent=2,
@@ -209,9 +270,27 @@ def scaffold_repo(root: Path) -> None:
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
     original = read_text(path)
-    if path == root / MANIFEST_PATH and snippet == '"public_tree_backed_shared_companions"':
+    if path == root / MANIFEST_PATH:
         data = json.loads(original)
-        data.pop("public_tree_backed_shared_companions", None)
+        if snippet == '"public_tree_backed_shared_companions"':
+            data.pop("public_tree_backed_shared_companions", None)
+        elif snippet == '"Documentation/zigux/README.md",':
+            data["current_direct_readback_companions"].remove("Documentation/zigux/README.md")
+        elif snippet == '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"':
+            data["helpers"][2]["checker_surfaces"] = []
+        elif snippet == '"make -C zigux phase6-checksum-perf"':
+            data["helpers"][2]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-checksum-perf")
+        elif snippet == '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"':
+            data["helpers"][1]["checker_surfaces"] = []
+        elif snippet == '"scripts/zigux/check-phase6-hexdump-packet.py"':
+            data["helpers"][3]["checker_surfaces"] = []
+        elif snippet == '"Documentation/zigux/phase6-hexdump-perf-refresh.md"':
+            data["helpers"][3]["still_missing_direct_companions"].remove("Documentation/zigux/phase6-hexdump-perf-refresh.md")
+            data["current_repo_reality_gaps"].remove("Documentation/zigux/phase6-hexdump-perf-refresh.md")
+        elif snippet == '"make -C zigux phase6-hexdump-review"':
+            data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")
+        else:
+            raise AssertionError(f"unhandled manifest self-test mutation: {snippet}")
         write(path, json.dumps(data, indent=2) + "\n")
     else:
         write(path, original.replace(snippet + "\n", "", 1))
@@ -231,7 +310,8 @@ def run_self_test() -> None:
         for path, snippet in [
             (root / CATALOG_PATH, "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime."),
             (root / CATALOG_PATH, "the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`)"),
-            (root / CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
+            (root / CATALOG_PATH, "- exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`"),
+            (root / CATALOG_PATH, "- `make -C zigux phase6-hexdump-review`"),
             (root / BUILD_PATH, 'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");'),
             (root / MAKEFILE_PATH, "phase6-checksum-perf:"),
             (root / MANIFEST_PATH, '"public_tree_backed_shared_companions"'),
@@ -239,6 +319,9 @@ def run_self_test() -> None:
             (root / MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"'),
             (root / MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"'),
             (root / MANIFEST_PATH, '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"'),
+            (root / MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-packet.py"'),
+            (root / MANIFEST_PATH, '"Documentation/zigux/phase6-hexdump-perf-refresh.md"'),
+            (root / MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
