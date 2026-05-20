@@ -264,6 +264,7 @@ REQUIRED_MARKERS = {
         'test "phase3 abi keeps export shim compatibility and status helpers reviewable" {',
         'test "phase3 abi keeps version and dev_t relays explicit" {',
         'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {',
+        'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {',
         'test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {',
     ),
     TESTS_BUILD: (
@@ -286,7 +287,7 @@ REQUIRED_MARKERS = {
         "abi.NOTIFIER_DONE,",
         '@offsetOf(abi.NotifierBlock, "priority"),',
         '"  \\\"abi_version\\\": {},\\n"',
-        '"  \\\"notifier\\\": {{\\n"',
+        '"  \\\"notifier\\\": {\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
@@ -326,6 +327,7 @@ SELF_TEST_CASES = (
     (BINDING_NOTIFIER, "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {"),
     (EXPORT_SHIM, "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {"),
     (ABI_TEST, 'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {'),
+    (ABI_TEST, 'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {'),
     (ABI_TEST, 'test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {'),
     (ABI_DUMP, "abi.NOTIFIER_DONE,"),
     (PHASE3_CATALOG, 'Path("zigux/bindings/header_family.zig")'),
