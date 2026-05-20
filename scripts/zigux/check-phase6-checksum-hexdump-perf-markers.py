@@ -44,6 +44,12 @@ REQUIRED_EVIDENCE_REPLAYS = [
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
+REQUIRED_CHECKSUM_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
+]
+REQUIRED_HEXDUMP_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+]
 EXPECTED_CHECKSUM_CASES = {
     "64B": {"iterations": 200000, "max_slowdown_pct": 150},
     "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
@@ -56,7 +62,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -99,6 +105,19 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     raise ValidationError(f"missing helper row in manifest: {key}")
 
 
+def require_checker_surfaces(
+    helper: dict[str, object],
+    key: str,
+    expected_surfaces: list[str],
+) -> None:
+    checker_surfaces = helper.get("checker_surfaces")
+    if not isinstance(checker_surfaces, list):
+        raise ValidationError(f"{key} checker_surfaces missing")
+    for surface in expected_surfaces:
+        if surface not in checker_surfaces:
+            raise ValidationError(f"{key} checker surface drifted: {surface}")
+
+
 def validate_evidence_manifest(path: Path) -> None:
     manifest = load_manifest(path)
     if manifest.get("packet") != "phase6-helper-evidence":
@@ -121,6 +140,16 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError("checksum dedicated_slowdown_replay drifted")
     if hexdump.get("dedicated_slowdown_replay") != "zigux/tests/phase6_hexdump_perf.zig":
         raise ValidationError("hexdump dedicated_slowdown_replay drifted")
+    require_checker_surfaces(
+        checksum,
+        "checksum",
+        REQUIRED_CHECKSUM_CHECKER_SURFACES,
+    )
+    require_checker_surfaces(
+        hexdump,
+        "hexdump",
+        REQUIRED_HEXDUMP_CHECKER_SURFACES,
+    )
 
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
@@ -232,10 +261,12 @@ def scaffold_repo(root: Path) -> None:
                     {
                         "key": "checksum",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
+                        "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES,
                     },
                     {
                         "key": "hexdump",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",
+                        "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES,
                     },
                 ],
                 "current_shared_replay_inventory": REQUIRED_EVIDENCE_REPLAYS,
@@ -395,6 +426,30 @@ def run_self_test() -> None:
                 '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"',
             ),
             "checksum dedicated_slowdown_replay drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"',
+                '"scripts/zigux/check-phase6-present-entrypoints.py"',
+            ),
+            "checksum checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-hexdump-packet.py"',
+                '"scripts/zigux/check-phase6-hexdump-route.py"',
+            ),
+            "hexdump checker surface drifted",
         )
         cases_run += 1
         scaffold_repo(root)
