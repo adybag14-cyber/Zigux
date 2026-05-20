@@ -9,6 +9,13 @@ GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 CURRENT_READBACK_MARKER = "current-master-readback-2026-05-20"
 
+STATUS_MARKERS = (
+    "PHASE15_STATUS=shared_summary_gap_recorded",
+    "PHASE15_LANE_KEY=P15-L02",
+    "PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+)
+
 MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
@@ -80,6 +87,10 @@ def collect_failures(root: Path) -> list[str]:
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     failures: list[str] = []
 
+    for marker in STATUS_MARKERS:
+        if marker not in gap_note:
+            failures.append(f"gap note missing status marker: {marker}")
+
     for rel in MATERIALIZED_GOVERNANCE_PATHS:
         if not (root / rel).exists():
             failures.append(f"expected materialized Phase 15 path missing: {rel}")
@@ -122,8 +133,10 @@ def _sample_gap_note() -> str:
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
     missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS[1:])
+    status = "\n".join(f"- `{marker}`" for marker in STATUS_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
 
+{status}
 - surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
 
 ## Materialized Phase 15 governance assets
@@ -185,6 +198,28 @@ def run_self_test() -> int:
         expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[-1]}"]
         if failures != expected:
             raise AssertionError(f"unexpected focused-checker failure: {failures}")
+
+        missing_status_root = root / "missing_status"
+        _seed_repo(missing_status_root)
+        _write(
+            missing_status_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace("- `PHASE15_STATUS=shared_summary_gap_recorded`\n", "", 1),
+        )
+        failures = collect_failures(missing_status_root)
+        expected = ["gap note missing status marker: PHASE15_STATUS=shared_summary_gap_recorded"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-status failure: {failures}")
+
+        missing_provenance_mode_root = root / "missing_provenance_mode"
+        _seed_repo(missing_provenance_mode_root)
+        _write(
+            missing_provenance_mode_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace("- `PHASE15_PROVENANCE_MODE=dated_master_readback`\n", "", 1),
+        )
+        failures = collect_failures(missing_provenance_mode_root)
+        expected = ["gap note missing status marker: PHASE15_PROVENANCE_MODE=dated_master_readback"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-provenance-mode failure: {failures}")
 
         rematerialized_root = root / "rematerialized"
         _seed_repo(rematerialized_root)
