@@ -35,6 +35,8 @@ REQUIRED_MARKERS = [
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
     "does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet",
     "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "The same narrower continuity packet also stays `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
+    "That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
@@ -85,6 +87,8 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 - the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet.
 - The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head HVC build routes explicit as adjacent continuity evidence rather than treating them as a cross-driver replay roster.
+- The same narrower continuity packet also stays `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those surviving ABI proof shards explicit as adjacent HVC continuity evidence instead of treating the three build routes as prose-only review support.
+- That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so keep that targetless-unregister failure-mode evidence explicit beside the narrower three-proof inventory instead of silently collapsing it into the shared proof-backed roster.
@@ -161,9 +165,9 @@ def run_self_test() -> None:
             REQUIRED_MARKERS[9],
             REQUIRED_MARKERS[14],
             REQUIRED_MARKERS[20],
+            REQUIRED_MARKERS[22],
             REQUIRED_MARKERS[23],
-            REQUIRED_MARKERS[24],
-            REQUIRED_MARKERS[27],
+            REQUIRED_MARKERS[26],
         )
         for index, marker in enumerate(required_self_test_markers, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
