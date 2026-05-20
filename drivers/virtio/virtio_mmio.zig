@@ -194,7 +194,6 @@ pub const VirtioMmioLab = struct {
 
     pub fn bumpConfigGeneration(self: *Self) void {
         self.config_generation +%= 1;
-        self.pending_config_write = null;
     }
 
     pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {
@@ -508,12 +507,24 @@ test "phase10 virtio mmio negotiation summary exposes out-of-range selector drif
     try std.testing.expect(!summary.negotiation_possible);
 }
 
-test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {
+test "phase10 virtio mmio config-generation bumps keep stale planned config writes reviewable but unavailable" {
     var device = try VirtioMmioLab.init(72, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0, 1, 2, 3, 4, 5, 6, 7 });
-    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0xaabb_ccdd);
+    const plan = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0xaabb_ccdd);
     try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);
+
     device.bumpConfigGeneration();
+
+    const stale = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqual(ConfigWritePlanAvailability.stale_generation, stale.availability);
+    try std.testing.expect(stale.plan_present);
+    try std.testing.expect(!stale.plan_matches_generation);
+    try std.testing.expectEqual(plan.relative_offset, stale.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, stale.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, stale.planned_value);
+    try std.testing.expectEqual(plan.config_generation, stale.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), stale.current_generation);
+    try std.testing.expect(!stale.available_for_disposition);
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
 
@@ -560,27 +571,16 @@ test "phase10 virtio mmio config-write plan freshness keeps staged availability 
     try std.testing.expect(fresh.available_for_disposition);
 
     device.bumpConfigGeneration();
-    const cleared = device.configWritePlanFreshnessSummary();
-    try std.testing.expectEqual(ConfigWritePlanAvailability.unavailable, cleared.availability);
-    try std.testing.expect(!cleared.plan_present);
-    try std.testing.expect(!cleared.plan_matches_generation);
-    try std.testing.expectEqual(@as(u32, 1), cleared.current_generation);
-    try std.testing.expect(!cleared.available_for_disposition);
-
-    device.pending_config_write = .{
-        .anchor = anchor_path,
-        .relative_offset = 4,
-        .absolute_offset = mmio_window_bytes + 4,
-        .planned_value = 0x0203_0409,
-        .config_generation = 0,
-        .within_config_window = true,
-    };
     const stale = device.configWritePlanFreshnessSummary();
     try std.testing.expectEqual(ConfigWritePlanAvailability.stale_generation, stale.availability);
     try std.testing.expect(stale.plan_present);
     try std.testing.expect(!stale.plan_matches_generation);
-    try std.testing.expectEqual(@as(u32, 0), stale.planned_generation);
+    try std.testing.expectEqual(plan.relative_offset, stale.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, stale.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, stale.planned_value);
+    try std.testing.expectEqual(plan.config_generation, stale.planned_generation);
     try std.testing.expectEqual(@as(u32, 1), stale.current_generation);
+    try std.testing.expect(stale.within_config_window);
     try std.testing.expect(!stale.available_for_disposition);
 }
 
