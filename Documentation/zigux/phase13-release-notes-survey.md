@@ -48,7 +48,7 @@ Current `master` also keeps the helper-local packet split visible from the relea
 - `libfs` stays roadmap-owned, and current `master` does materialize the shipped helper-first packet through `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `zigux/tests/phase13_libfs_addressability.zig` remains a separate repo-reality gap
 - `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while older `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps
 - `landlock/ruleset` stays helper-local through its ownership, slice, survey, source, and manifest-backed replay surfaces, while `landlock/syscalls` stays helper-local through its governance note, slice, and source starter without collapsing into docs-only governance metadata
-- adjacent notifier evidence remains support material rather than a fifth roadmap anchor
+- adjacent notifier evidence remains support material rather than a fifth roadmap anchor, while the still-missing `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, and `scripts/zigux/check-phase13-notifier-priority-signal.py` remain separate repo-reality gaps rather than release-facing proof
 
 ## Current Shared Release Handle
 
@@ -66,7 +66,7 @@ The release-planning handle that is directly supportable from this run stays anc
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 
-Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.
+Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companions, and missing shared build route surfaces remain explicit repo-reality gaps.
 
 ## Repo-Reality Gaps
 
@@ -84,10 +84,12 @@ Direct current-`master` readback in this run still returned missing for:
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `zigux/helpers/notifier_chain_view.zig`
+- `include/zigux/notifier_abi.h`
 
-Keep those missing validator-first helper and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle. `zigux/Makefile` itself is present on current `master`, but it still does not expose the Phase 13 route family, so keep the returned file distinct from the still-missing `phase13` handles.
+Keep those missing validator-first helper, adjacent notifier companion, and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle. `zigux/Makefile` itself is present on current `master`, but it still does not expose the Phase 13 route family, so keep the returned file distinct from the still-missing `phase13` handles.
 
-Current `master` now keeps `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned around the narrower current `devres` packet while still keeping the shipped helper-first `libfs` survey-plus-slice packet explicit, so the remaining follow-through stays limited to whichever future broad reminder surface drifts next rather than the old docs-root repair.
+Current `master` now keeps `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned around the narrower current `devres` packet while still keeping the shipped helper-first `libfs` survey-plus-slice packet explicit, and `Documentation/zigux/phase13-notifier-summary-gap.md` keeps the missing notifier-chain helper and notifier header recorded beside the shipped adjacent notifier evidence, so the remaining follow-through stays limited to whichever future broad reminder surface drifts next rather than the old docs-root repair.
 
 Keep older or still-missing direct companions explicit too instead of promoting them into shipped current-`master` evidence when they are not freshly reread in the same run.
 
@@ -99,7 +101,7 @@ Keep Phase 13 release wording inside these boundaries:
 - the shared packet is helper-local and reminder-surface backed rather than validator-first in the current direct-readback posture
 - the release-note packet should keep the already-landed docs-root repair intact while the missing direct Landlock syscall companions stay recorded as repo-reality gaps
 - the shared release handle is the materialized docs-root, scripts-root, and tests-root reminder packet listed above together with the shipped shared-summary guard
-- the missing validator-first helpers and shared build route surfaces stay explicit as repo-reality gaps
+- the missing validator-first helpers, adjacent notifier-chain helper, adjacent notifier header, and shared build route surfaces stay explicit as repo-reality gaps
 - adjacent notifier evidence may still matter for release truthfulness, but it does not become a fifth roadmap anchor
 - contributor-facing reminder edits in this lane should stay narrow and should not reopen helper implementation, checker code, or tranche-closure claims
 
