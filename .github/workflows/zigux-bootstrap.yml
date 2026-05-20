@@ -248,6 +248,9 @@ jobs:
       - name: Run current Phase 2 tools make route
         run: make -C zigux phase2-tools
 
+      - name: Run current Phase 2 kconfig make route
+        run: make -C zigux phase2-kconfig
+
       - name: Run current Phase 2 fixdep make route
         run: make -C zigux phase2-fixdep
 
