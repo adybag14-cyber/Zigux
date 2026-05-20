@@ -89,10 +89,11 @@ EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
     "direct-anchor drift inside the current helper-local packet or committed shared "
     "replay drift in the bitmap parity fields; current master still ships direct "
-    "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, empty-buffer, "
-    "allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror "
-    "anchors here, and if the separate bitmap closure-validator anchor-sync repair is "
-    "still outstanding, treat that as the only other bitmap follow-through."
+    "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, caller-window xor "
+    "and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit "
+    "logical short-circuit, and Linux-style alias mirror anchors here, and if the "
+    "separate bitmap closure-validator anchor-sync repair is still outstanding, treat "
+    "that as the only other bitmap follow-through."
 )
 EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
@@ -165,7 +166,7 @@ REQUIRED_EXACT_LINES = {
     },
     DOCS_ROOT_REL: {
         "phase1_bench_checker_listed": "- `scripts/zigux/check-phase1-bench.py`",
-        "phase1_historical_warning": "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, older validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence, while `zigux/Makefile` is current repo evidence again because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12.",
+        "phase1_historical_warning": "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, older validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence, while `zigux/Makefile` is current repo evidence again because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12.",
         "phase1_direct_checks": "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
         "phase1_helper_family_split": "  * keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.",
         "phase1_self_test_split": "  * `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
@@ -347,52 +348,56 @@ def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [("success", None, None, "none")]
-    for relative_path, labels in REQUIRED_EXACT_LINES.items():
-        for label, line in labels.items():
-            cases.append((f"missing_{relative_path.name}_{label}", relative_path, line, "remove"))
-            cases.append((f"duplicate_{relative_path.name}_{label}", relative_path, line, "duplicate"))
-    for path in MANIFEST_EXPECTATIONS:
-        cases.append((f"manifest_{'_'.join(path)}", MANIFEST_REL, path, "manifest"))
-    cases.extend(
-        [
-            ("missing_phase1_closure_file", PHASE1_CLOSURE_REL, None, "missing_file"),
-            ("missing_phase1_closure_validator_file", PHASE1_CLOSURE_VALIDATOR_REL, None, "missing_file"),
-            ("missing_shared_reminder_checker_file", SHARED_REMINDER_CHECKER_REL, None, "missing_file"),
-            ("missing_bitmap_helper_file", BITMAP_HELPER_REL, None, "missing_file"),
-        ]
-    )
-    for name, relative_path, needle, operation in cases:
-        safe_name = name.replace("/", "_")
-        with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{safe_name}-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-direct-owner-success-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        failures = collect_direct_owner_failures(root)
+        if failures:
+            print("self-test:success:unexpected_failures")
+            for failure in failures:
+                print(failure)
+            return 1
+
+    def make_missing_file_case(relative_path: str):
+        return (
+            f"missing_file_{relative_path.replace('/', '_').replace('.', '_')}",
+            lambda root, relative_path=relative_path: (root / relative_path).unlink(),
+        )
+
+    def make_marker_case(relative_path: str, marker: str, mutation: str):
+        mutator = mutate_remove_marker if mutation == "remove" else mutate_duplicate_marker
+        return (
+            f"{mutation}_{relative_path.replace('/', '_').replace('.', '_')}_{abs(hash(marker))}",
+            lambda root, relative_path=relative_path, marker=marker, mutator=mutator: mutator(
+                root, relative_path, marker
+            ),
+        )
+
+    cases: list[tuple[str, object]] = [("success", None)]
+    for relative_path in REQUIRED_FILES:
+        cases.append(make_missing_file_case(relative_path))
+    for relative_path, markers in MARKERS.items():
+        for marker in markers:
+            cases.append(make_marker_case(relative_path, marker, "remove"))
+            cases.append(make_marker_case(relative_path, marker, "duplicate"))
+
+    for name, mutate in cases:
+        with tempfile.TemporaryDirectory(prefix="phase1-direct-owner-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            if relative_path:
-                target = root / relative_path
-                if operation == "missing_file":
-                    target.unlink()
-                elif needle:
-                    if operation in {"remove", "duplicate"}:
-                        assert isinstance(needle, str)
-                        text = target.read_text(encoding="utf-8")
-                        if operation == "remove":
-                            target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
-                        else:
-                            target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
-                    elif operation == "manifest":
-                        assert isinstance(needle, tuple)
-                        mutate_manifest(root, needle)
+            if mutate is not None:
+                mutate(root)
             failures = collect_direct_owner_failures(root)
             if name == "success":
                 if failures:
-                    print(f"self-test:{name}:unexpected_failures")
-                    for failure in failures:
-                        print(failure)
+                    print("self-test:success:unexpected_failures")
+                    for item in failures:
+                        print(item)
                     return 1
-                continue
-            if not failures:
+            elif not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
+
     print("self-test:ok")
     return 0
 
