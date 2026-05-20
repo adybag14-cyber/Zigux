@@ -86,6 +86,25 @@ test "cutoff sequence keeps xa_value, gap, and first two err_ptr raws in distinc
     try testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(second_err_raw));
 }
 
+test "last rejected tagged xa_values alias the top tagged err_ptr raws" {
+    const penultimate_top_raw = err_ptr.fromErrorCode(-3);
+    const top_raw = err_ptr.fromErrorCode(-1);
+    const penultimate_rejected = penultimate_top_raw >> 1;
+    const last_rejected = top_raw >> 1;
+
+    try testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(penultimate_rejected));
+    try testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(last_rejected));
+    try testing.expectEqual(penultimate_top_raw, (penultimate_rejected << 1) | xa_value.value_tag_mask);
+    try testing.expectEqual(top_raw, (last_rejected << 1) | xa_value.value_tag_mask);
+    try testing.expectEqual(penultimate_top_raw + 2, top_raw);
+    try testing.expect(err_ptr.isErrValue(penultimate_top_raw));
+    try testing.expect(err_ptr.isErrValue(top_raw));
+    try testing.expect(!xa_value.isValue(penultimate_top_raw));
+    try testing.expect(!xa_value.isValue(top_raw));
+    try testing.expectEqual(@as(isize, -3), err_ptr.toErrorCode(penultimate_top_raw));
+    try testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(top_raw));
+}
+
 test "top of err_ptr band stays contiguous and never reenters xa_value lane" {
     const next_to_top_raw = err_ptr.fromErrorCode(-2);
     const top_raw = err_ptr.fromErrorCode(-1);
