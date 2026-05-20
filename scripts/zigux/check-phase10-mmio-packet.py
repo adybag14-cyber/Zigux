@@ -195,7 +195,7 @@ def validate(root: Path):
     check_markers(missing_markers, "manifest", read_text(root, "zigux/tests/phase10_virtio_mmio_manifest.json"), MANIFEST_MARKERS)
     check_markers(missing_markers, "helper", read_text(root, "drivers/virtio/virtio_mmio.zig"), HELPER_MARKERS)
     check_markers(missing_markers, "verify_helper", read_text(root, "drivers/virtio/virtio_mmio_verify.zig"), VERIFY_MARKERS)
-    check_markers(missing_markers, "helper_tests", read_text(root, "zigux/tests/phase10_virtio_mmio.zig"), HELPER_TEST_MARKERS)
+    check_markers(missing_markers, "helper_tests", readText(root, "zigux/tests/phase10_virtio_mmio.zig"), HELPER_TEST_MARKERS)
     check_markers(missing_markers, "survey_gate", read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig"), SURVEY_GATE_MARKERS)
     check_markers(missing_markers, "build_file", read_text(root, "zigux/tests/phase10_build.zig"), BUILD_MARKERS)
     return [], missing_markers
@@ -223,7 +223,6 @@ def write_fixture_files(root: Path) -> None:
 def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expected: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
-    path.writeText = None
     path.write_text(original.replace(old, new, 1), encoding="utf-8")
     missing_files, missing_markers = validate(root)
     if missing_files:
