@@ -14,6 +14,10 @@ ENTRY_REVIEW_MARKERS = (
     "exact Architecture Council field inventory",
     "stay-in-C closeout record",
     "reopen-evidence details",
+    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "retained blocker posture",
+    "trigger-specific evidence refresh",
+    "return-to-blocked wording",
 )
 STUDY_ONLY_PROMPT = "if a shared reminder surface summarizes the study-only freeze-map anchors"
 STUDY_ONLY_MARKERS = (
@@ -81,7 +85,7 @@ def _sample_review_checklist() -> str:
 Use this checklist before opening or merging Zigux product work.
 
 ## Safety
-  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
+  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording?
   * if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
 """
 
@@ -121,6 +125,50 @@ def run_self_test() -> int:
         expected = ["entry_review_field:missing:stay-in-C closeout record"]
         if failures != expected:
             raise AssertionError(f"unexpected stay-in-C-closeout failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(
+                "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+                "phase15-indefinite-c-policy.md",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        expected = ["entry_review_field:missing:`Documentation/zigux/phase15-indefinite-c-policy.md`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected indefinite-c-policy failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("retained blocker posture, ", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["entry_review_field:missing:retained blocker posture"]
+        if failures != expected:
+            raise AssertionError(f"unexpected retained-blocker failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("trigger-specific evidence refresh, and ", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["entry_review_field:missing:trigger-specific evidence refresh"]
+        if failures != expected:
+            raise AssertionError(f"unexpected evidence-refresh failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("return-to-blocked wording", "return wording", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["entry_review_field:missing:return-to-blocked wording"]
+        if failures != expected:
+            raise AssertionError(f"unexpected return-to-blocked failure: {failures}")
         case_count += 1
 
         _write(
