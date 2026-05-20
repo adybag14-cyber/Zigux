@@ -27,6 +27,7 @@ CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER = Path(
 )
 HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")
+PERF_THRESHOLD_CHECKER = Path("scripts/zigux/check-phase6-perf-threshold-markers.py")
 
 REQUIRED_FILES = [
     HELPER_EVIDENCE_CATALOG,
@@ -42,6 +43,7 @@ REQUIRED_FILES = [
     CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
     HEXDUMP_PACKET_CHECKER,
     HEXDUMP_ROUTE_CHECKER,
+    PERF_THRESHOLD_CHECKER,
 ]
 
 EXPECTED_HELPER_EVIDENCE_PACKET = "phase6-helper-evidence"
@@ -108,7 +110,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -192,6 +194,7 @@ def validate(root: Path) -> None:
     run_checker(root, CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")
+    run_checker(root, PERF_THRESHOLD_CHECKER, "--repo-root")
 
 
 def write(path: Path, content: str) -> None:
@@ -248,6 +251,7 @@ def scaffold_repo(root: Path) -> None:
         CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
         HEXDUMP_PACKET_CHECKER,
         HEXDUMP_ROUTE_CHECKER,
+        PERF_THRESHOLD_CHECKER,
     ]:
         write(root / checker, "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 
@@ -333,6 +337,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         (root / HEXDUMP_ROUTE_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / PERF_THRESHOLD_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
