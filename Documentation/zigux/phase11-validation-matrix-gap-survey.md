@@ -37,6 +37,8 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 Authenticated GitHub contents rereads in this run rematerialize the gpio
 watchdog and HVC console driver-local Phase 11 matrix notes named by the
@@ -75,6 +77,12 @@ The same narrower inventory also records 3 adjunct build replays through
 `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head
 HVC build routes explicit as adjacent continuity evidence rather than treating
 them as a cross-driver replay roster.
+The directly readable HVC current-head packet also now includes the standalone
+`zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and
+`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so
+keep that targetless-unregister failure-mode evidence explicit beside the
+narrower three-proof inventory instead of silently collapsing it into the shared
+proof-backed roster.
 
 Current `master` also materializes `scripts/zigux/validate-phase11.py` and
 `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`,
@@ -109,6 +117,9 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
   `phase11-hvc-hv-ops-layout-proof-tests`,
   `phase11-hvc-export-surface-layout-proof-tests`, and
   `phase11-hvc-cleanup-packet-proof`.
+  The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+  witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+  build shard also stay directly readable beside that smaller proof inventory.
 - `dw_wdt`: raw `master` fallback rereads rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` on current
   `master`, even though authenticated contents reads in this runtime still clip
@@ -120,13 +131,15 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - Treat this survey as current-head driver-local matrix truthfulness only, not
   as proof of full platform-backed closure for any Phase 11 driver lane.
 - Do not use the returned driver-local Phase 11 matrices, the adjacent
-  header-parity matrix, the narrower HVC continuity packet, or the returned
-  shared validation-and-build gate to overclaim broader GPIO descriptor
-  execution, watchdog-core registration side effects, notifier execution, khvcd
-  execution, sysrq execution, MMIO behavior, or host-backed teardown.
+  header-parity matrix, the narrower HVC continuity packet, the standalone
+  targetless-unregister witness, or the returned shared validation-and-build
+  gate to overclaim broader GPIO descriptor execution, watchdog-core
+  registration side effects, notifier execution, khvcd execution, sysrq
+  execution, MMIO behavior, or host-backed teardown.
 - Keep the driver-local matrix packet explicit through gpio and HVC
   authenticated-contents rereads plus bcm2835 and DesignWare raw `master`
-  fallback rereads, while preserving the narrower HVC build inventory as
+  fallback rereads, while preserving the narrower HVC build inventory, its
+  adjunct build routes, and the standalone targetless-unregister witness as
   adjacent continuity evidence rather than a cross-driver replay roster.
 - If a reread driver-local matrix returns or disappears, update this survey, the
   shared validation-and-build gate wording, and both matrix-gap checkers in the
