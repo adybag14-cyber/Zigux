@@ -419,6 +419,24 @@ test "readHeader reports the exact truncated byte count" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
 }
 
+test "fd-backed empty input exits with stderr at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "empty_exact.bin", .{ .read = true });
+    defer file.close(io);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
 test "fd-backed exact 32-bit ELF header exits with stdout at EOF" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
