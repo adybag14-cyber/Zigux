@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
+
 README_REL = "scripts/zigux/README.md"
 TESTS_README_REL = "zigux/tests/README.md"
 DOCS_README_REL = "Documentation/zigux/README.md"
@@ -24,11 +25,14 @@ SCRIPTS_CHECKER_REL = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
 TESTS_CHECKER_REL = "scripts/zigux/check-phase15-tests-readme-alignment.py"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 HANDOFF_NOTE_CHECKER_REL = "scripts/zigux/check-phase15-handoff-note-alignment.py"
+STUDY_ONLY_CHECKER_REL = "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
 GAP_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
 READINESS_CHECKER_REL = "scripts/zigux/check-phase15-readiness-gate-packet.py"
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
+REVIEW_PROCESS_BUILD_REL = "zigux/tests/phase15_architecture_council_review_process_build.zig"
 HANDOFF_MANIFEST_REL = "zigux/tests/phase15_handoff_next_steps_manifest.json"
+HANDOFF_TEST_REL = "zigux/tests/phase15_handoff_next_steps.zig"
 MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 FREEZE_GOVERNANCE_TEST_REL = "zigux/tests/phase15_freeze_map_governance.zig"
@@ -56,11 +60,14 @@ REQUIRED_FILES = (
     TESTS_CHECKER_REL,
     HANDOFF_CHECKER_REL,
     HANDOFF_NOTE_CHECKER_REL,
+    STUDY_ONLY_CHECKER_REL,
     GAP_CHECKER_REL,
     READINESS_CHECKER_REL,
     READINESS_MANIFEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
+    REVIEW_PROCESS_BUILD_REL,
     HANDOFF_MANIFEST_REL,
+    HANDOFF_TEST_REL,
     MAKEFILE_REL,
     WORKFLOW_REL,
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -72,26 +79,31 @@ REQUIRED_FILES = (
 )
 
 README_PHASE15_MARKERS = (
+    "## Phase 15",
     "Phase 15 flow - the current scripts-root governance reminder packet stays in maintenance-mode truthfulness work, keeping the landed freeze-map, readiness, handoff, parity, stay-in-C, study-only, and shared-summary surfaces aligned without implying Architecture Council approval or a deep-core port-readiness decision",
     f"`{DOCS_CHECKER_REL}`",
     f"`{SCRIPTS_CHECKER_REL}`",
     f"`{TESTS_CHECKER_REL}`",
     f"`{HANDOFF_CHECKER_REL}`",
     f"`{HANDOFF_NOTE_CHECKER_REL}`",
+    f"`{STUDY_ONLY_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
     f"`{READINESS_CHECKER_REL}`",
     f"`{FREEZE_GOVERNANCE_REL}`",
     f"`{INDEFINITE_C_POLICY_REL}`",
+    f"`{PARITY_SCORECARD_REL}`",
     f"`{PARITY_SCORECARD_SURVEY_REL}`",
     f"`{LANE_SEQ_REL}`",
     f"`{READINESS_REL}`",
     f"`{HANDOFF_REL}`",
     f"`{STUDY_ONLY_REL}`",
     f"`{SHARED_GAP_REL}`",
-    f"`{REVIEW_CHECKLIST_REL}`",
     f"`{TESTS_README_REL}`",
+    f"`{REVIEW_CHECKLIST_REL}`",
     f"`{REVIEW_PROCESS_MANIFEST_REL}`",
+    f"`{REVIEW_PROCESS_BUILD_REL}`",
     f"`{HANDOFF_MANIFEST_REL}`",
+    f"`{HANDOFF_TEST_REL}`",
     f"`{FREEZE_GOVERNANCE_TEST_REL}`",
     f"`{PARITY_SCORECARD_TEST_REL}`",
     f"`{INDEFINITE_C_POLICY_JSON_REL}`",
@@ -101,7 +113,7 @@ README_PHASE15_MARKERS = (
     f"`{WORKFLOW_REL}`",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_build.zig`",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence while `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence",
     "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
     "`.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -117,9 +129,12 @@ LANE_SEQ_MARKERS = (
 READINESS_MARKERS = (
     f"`{DOCS_CHECKER_REL}`",
     f"`{SCRIPTS_CHECKER_REL}`",
+    f"`{TESTS_CHECKER_REL}`",
     f"`{HANDOFF_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
-    f"`{MAKEFILE_REL}`",
+    f"`{READINESS_MANIFEST_REL}`",
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_build.zig`",
     "blocked route vocabulary",
 )
 
@@ -127,9 +142,14 @@ SHARED_GAP_MARKERS = (
     f"`{README_REL}`",
     f"`{DOCS_CHECKER_REL}`",
     f"`{HANDOFF_CHECKER_REL}`",
+    f"`{HANDOFF_NOTE_CHECKER_REL}`",
+    f"`{STUDY_ONLY_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
     f"`{READINESS_MANIFEST_REL}`",
+    f"`{REVIEW_PROCESS_MANIFEST_REL}`",
+    f"`{REVIEW_PROCESS_BUILD_REL}`",
     f"`{HANDOFF_MANIFEST_REL}`",
+    f"`{HANDOFF_TEST_REL}`",
     f"`{LANE_OWNER_ALIGNMENT_REL}`",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_build.zig`",
@@ -140,15 +160,19 @@ HANDOFF_MARKERS = (
     f"`{README_REL}`",
     f"`{TESTS_README_REL}`",
     f"`{HANDOFF_CHECKER_REL}`",
+    f"`{HANDOFF_NOTE_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
 )
 
 FOCUSED_COMPANION_RELS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
     REVIEW_PROCESS_MANIFEST_REL,
+    REVIEW_PROCESS_BUILD_REL,
     HANDOFF_MANIFEST_REL,
+    HANDOFF_TEST_REL,
     HANDOFF_CHECKER_REL,
     HANDOFF_NOTE_CHECKER_REL,
+    STUDY_ONLY_CHECKER_REL,
     LANE_OWNER_ALIGNMENT_REL,
 )
 
@@ -158,9 +182,14 @@ MISSING_BROADER_PATHS = (
 )
 
 STALE_PRESENT_ROUTE_MARKERS = (
-    "directly readable replay paths",
-    "shipped replay paths",
-    "direct tests-root evidence",
+    "keep those route names as directly readable replay paths",
+    "keep that workflow surface framed as shipped Phase 15 replay evidence",
+)
+
+WORKFLOW_STALE_MARKERS = (
+    "Phase 15 validate",
+    "Phase 15 test",
+    "Run current Phase 15",
 )
 
 
@@ -188,11 +217,15 @@ def validate(root: Path) -> list[str]:
         return failures
 
     readme = _read(root / README_REL)
+    if "## Phase 15" not in readme:
+        return ["readme_phase15:missing_section:## Phase 15"]
+
     lane_seq = _read(root / LANE_SEQ_REL)
     readiness = _read(root / READINESS_REL)
     shared_gap = _read(root / SHARED_GAP_REL)
     handoff = _read(root / HANDOFF_REL)
     makefile = _read(root / MAKEFILE_REL)
+    workflow = _read(root / WORKFLOW_REL)
 
     _require_markers(readme, README_PHASE15_MARKERS, "readme_phase15", failures)
     _require_markers(lane_seq, LANE_SEQ_MARKERS, "lane_seq", failures)
@@ -207,9 +240,6 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             failures.append(f"missing_materialized_file:{rel}")
 
-    if f"`{HANDOFF_MANIFEST_REL}`" not in readiness:
-        failures.append(f"readiness:missing_present_path:`{HANDOFF_MANIFEST_REL}`")
-
     for rel in MISSING_BROADER_PATHS:
         marker = f"`{rel}`"
         if marker not in readiness:
@@ -220,18 +250,16 @@ def validate(root: Path) -> list[str]:
             failures.append(f"missing_gap_path_returned:{rel}")
 
     for marker in STALE_PRESENT_ROUTE_MARKERS:
-        stale_phrase = f"keep those route names as {marker}"
-        if stale_phrase in readme:
-            failures.append(f"readme:stale_phase15_route_claim:{stale_phrase}")
+        if marker in readme:
+            failures.append(f"readme:stale_phase15_route_claim:{marker}")
 
-    for marker in (
-        "phase15-validate:",
-        "phase15-test:",
-        "phase15:",
-        ".PHONY: phase15",
-    ):
+    for marker in ("phase15-validate:", "phase15-test:", "phase15:", ".PHONY: phase15"):
         if marker in makefile:
             failures.append(f"makefile:unexpected_phase15_route:{marker}")
+
+    for marker in WORKFLOW_STALE_MARKERS:
+        if marker in workflow:
+            failures.append(f"workflow:unexpected_phase15_route:{marker}")
 
     return failures
 
@@ -248,12 +276,12 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 ## Phase 15
 
 - Phase 15 flow - the current scripts-root governance reminder packet stays in maintenance-mode truthfulness work, keeping the landed freeze-map, readiness, handoff, parity, stay-in-C, study-only, and shared-summary surfaces aligned without implying Architecture Council approval or a deep-core port-readiness decision
-- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{GAP_CHECKER_REL}`, and `{READINESS_CHECKER_REL}` keep the shipped docs-root, scripts-root, tests-root, review-process handoff, handoff-note, shared-summary, and readiness packet guards explicit from the scripts root
-- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{REVIEW_CHECKLIST_REL}`, `{TESTS_README_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` keep the current directly readable governance packet explicit from the scripts root
-- repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence while `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet
+- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{STUDY_ONLY_CHECKER_REL}`, `{GAP_CHECKER_REL}`, and `{READINESS_CHECKER_REL}` keep the shipped docs-root, scripts-root, tests-root, review-process handoff, handoff-note, study-only, shared-summary, and readiness packet guards explicit from the scripts root
+- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{TESTS_README_REL}`, `{REVIEW_CHECKLIST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` keep the current directly readable governance packet explicit from the scripts root
+- repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence
 - although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths
-- `{WORKFLOW_REL}` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence
-- no Architecture Council approval is currently recorded for a freeze-map status change, and any future follow-through should tighten the smallest truthful reminder surface first instead of widening into a status-change claim
+- `.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence
+- no Architecture Council approval is currently recorded for a freeze-map status change
 """
 
 
@@ -272,13 +300,13 @@ def _seed(root: Path) -> None:
         "# Phase 15 Readiness Gate Survey\n\n"
         "- `scripts/zigux/check-phase15-docs-readme-alignment.py`\n"
         "- `scripts/zigux/check-phase15-scripts-readme-alignment.py`\n"
+        "- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n"
         "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
         "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n"
+        "- `scripts/zigux/check-phase15-readiness-gate-packet.py`\n"
         "- `scripts/zigux/validate-phase15.py`\n"
-        "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n"
         "- `zigux/tests/phase15_build.zig`\n"
-        "- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n"
-        "- `zigux/Makefile`\n"
+        "- `zigux/tests/phase15_readiness_gate_manifest.json`\n"
         "- broader replay remains blocked route vocabulary\n",
     )
     _write(
@@ -288,13 +316,14 @@ def _seed(root: Path) -> None:
         "- `scripts/zigux/check-phase15-docs-readme-alignment.py`\n"
         "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
         "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n"
+        "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n"
         "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n"
         "- `zigux/tests/phase15_readiness_gate_manifest.json`\n"
         "- `zigux/tests/phase15_architecture_council_review_process.zig`\n"
         "- `zigux/tests/phase15_architecture_council_review_process_manifest.json`\n"
+        "- `zigux/tests/phase15_architecture_council_review_process_build.zig`\n"
         "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n"
-        "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
-        "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n"
+        "- `zigux/tests/phase15_handoff_next_steps.zig`\n"
         "- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n"
         "- `scripts/zigux/validate-phase15.py`\n"
         "- `zigux/tests/phase15_build.zig`\n"
@@ -306,6 +335,7 @@ def _seed(root: Path) -> None:
         "- `scripts/zigux/README.md`\n"
         "- `zigux/tests/README.md`\n"
         "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
+        "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n"
         "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
     )
     _write(
@@ -332,27 +362,24 @@ def run_self_test() -> int:
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
 
-        missing_phase15_marker = root / "missing_phase15_marker"
-        _seed(missing_phase15_marker)
-        _write(
-            missing_phase15_marker / README_REL,
-            _sample_readme().replace(f"`{TESTS_CHECKER_REL}`, ", "", 1),
-        )
-        failures = validate(missing_phase15_marker)
-        expected = [f"readme_phase15:missing:`{TESTS_CHECKER_REL}`"]
+        missing_section = root / "missing_section"
+        _seed(missing_section)
+        _write(missing_section / README_REL, "# scripts/zigux\n")
+        failures = validate(missing_section)
+        expected = ["readme_phase15:missing_section:## Phase 15"]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-phase15-marker failure: {failures}")
+            raise AssertionError(f"unexpected missing-section failure: {failures}")
 
-        missing_handoff_note_marker = root / "missing_handoff_note_marker"
-        _seed(missing_handoff_note_marker)
+        missing_marker = root / "missing_marker"
+        _seed(missing_marker)
         _write(
-            missing_handoff_note_marker / README_REL,
-            _sample_readme().replace(f"`{HANDOFF_NOTE_CHECKER_REL}`, ", "", 1),
+            missing_marker / README_REL,
+            _sample_readme().replace(f"`{STUDY_ONLY_CHECKER_REL}`, ", "", 1),
         )
-        failures = validate(missing_handoff_note_marker)
-        expected = [f"readme_phase15:missing:`{HANDOFF_NOTE_CHECKER_REL}`"]
+        failures = validate(missing_marker)
+        expected = [f"readme_phase15:missing:`{STUDY_ONLY_CHECKER_REL}`"]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-handoff-note-marker failure: {failures}")
+            raise AssertionError(f"unexpected missing-marker failure: {failures}")
 
         stale_claim = root / "stale_claim"
         _seed(stale_claim)
@@ -380,31 +407,19 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
 
-        missing_handoff_manifest = root / "missing_handoff_manifest"
-        _seed(missing_handoff_manifest)
-        (missing_handoff_manifest / HANDOFF_MANIFEST_REL).unlink()
-        failures = validate(missing_handoff_manifest)
+        workflow_route = root / "workflow_route"
+        _seed(workflow_route)
+        _write(
+            workflow_route / WORKFLOW_REL,
+            _read(workflow_route / WORKFLOW_REL) + "      - name: Run current Phase 15 validate route\n",
+        )
+        failures = validate(workflow_route)
         expected = [
-            f"missing_file:{HANDOFF_MANIFEST_REL}",
+            "workflow:unexpected_phase15_route:Phase 15 validate",
+            "workflow:unexpected_phase15_route:Run current Phase 15",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-handoff-manifest failure: {failures}")
-
-        route_returned = root / "route_returned"
-        _seed(route_returned)
-        _write(route_returned / MAKEFILE_REL, _read(route_returned / MAKEFILE_REL) + "\nphase15-validate:\n\t@true\n")
-        failures = validate(route_returned)
-        expected = ["makefile:unexpected_phase15_route:phase15-validate:"]
-        if failures != expected:
-            raise AssertionError(f"unexpected makefile-route failure: {failures}")
-
-        missing_marker = root / "missing_marker"
-        _seed(missing_marker)
-        _write(missing_marker / HANDOFF_REL, "# Phase 15 Handoff Next Steps Survey\n")
-        failures = validate(missing_marker)
-        expected = [f"handoff:missing:{marker}" for marker in HANDOFF_MARKERS]
-        if failures != expected:
-            raise AssertionError(f"unexpected handoff-marker failure: {failures}")
+            raise AssertionError(f"unexpected workflow-route failure: {failures}")
 
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     return 0
