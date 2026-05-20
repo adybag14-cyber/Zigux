@@ -74,6 +74,7 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
 )
 
 TEST_PATHS = (
@@ -113,6 +114,8 @@ COMMANDS = (
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
+    "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .",
     "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
@@ -212,7 +215,7 @@ def run_self_test() -> int:
         expected = f"missing repo file: {VALIDATOR_PATHS[-1].as_posix()}"
         if expected not in issues:
             print("PHASE3_CATALOG_SELF_TEST=fail")
-            print("expected missing ABI header-family survey validator route was not reported")
+            print("expected missing Linux-facing header governance validator route was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
