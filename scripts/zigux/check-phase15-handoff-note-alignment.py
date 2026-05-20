@@ -8,6 +8,9 @@ from pathlib import Path
 
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
+CHECKER_PATH = Path("scripts/zigux/check-phase15-handoff-note-alignment.py")
+EXPECTED_LANE_KEY = "P15-L10"
+EXPECTED_PHASE = "Phase 15"
 RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
 REQUIRED_BOUNDARY_MARKERS = (
     "keep the four freeze-in-C anchors parked",
@@ -38,6 +41,26 @@ def collect_failures(root: Path) -> list[str]:
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     manifest = _read_manifest(root / MANIFEST_PATH)
     failures: list[str] = []
+
+    if manifest["lane_key"] != EXPECTED_LANE_KEY:
+        failures.append(
+            f"handoff manifest lane key drifted from {EXPECTED_LANE_KEY}: {manifest['lane_key']}"
+        )
+
+    if manifest["phase"] != EXPECTED_PHASE:
+        failures.append(
+            f"handoff manifest phase drifted from {EXPECTED_PHASE}: {manifest['phase']}"
+        )
+
+    if manifest["handoff_note"] != HANDOFF_NOTE_PATH.as_posix():
+        failures.append(
+            f"handoff manifest note path drifted from {HANDOFF_NOTE_PATH.as_posix()}: {manifest['handoff_note']}"
+        )
+
+    if manifest["checker"] != CHECKER_PATH.as_posix():
+        failures.append(
+            f"handoff manifest checker path drifted from {CHECKER_PATH.as_posix()}: {manifest['checker']}"
+        )
 
     if manifest["surveyed_commit"] not in handoff_note:
         failures.append("handoff note is missing the manifest surveyed_commit marker")
@@ -258,6 +281,40 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+
+        manifest_identity_drift_root = root / "manifest_identity_drift"
+        _write(manifest_identity_drift_root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            manifest_identity_drift_root / MANIFEST_PATH,
+            _sample_manifest()
+            .replace('"lane_key": "P15-L10"', '"lane_key": "P15-L99"', 1)
+            .replace('"phase": "Phase 15"', '"phase": "Phase 15 drift"', 1)
+            .replace(
+                '"handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md"',
+                '"handoff_note": "Documentation/zigux/phase15-handoff-next-step-survey.md"',
+                1,
+            )
+            .replace(
+                '"checker": "scripts/zigux/check-phase15-handoff-note-alignment.py"',
+                '"checker": "scripts/zigux/check-phase15-handoff-alignment.py"',
+                1,
+            ),
+        )
+        manifest = _read_manifest(manifest_identity_drift_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(manifest_identity_drift_root / repo_path, "# fixture\n")
+        failures = collect_failures(manifest_identity_drift_root)
+        expected = [
+            "handoff manifest lane key drifted from P15-L10: P15-L99",
+            "handoff manifest phase drifted from Phase 15: Phase 15 drift",
+            "handoff manifest note path drifted from Documentation/zigux/phase15-handoff-next-steps-survey.md: Documentation/zigux/phase15-handoff-next-step-survey.md",
+            "handoff manifest checker path drifted from scripts/zigux/check-phase15-handoff-note-alignment.py: scripts/zigux/check-phase15-handoff-alignment.py",
+            "handoff note is missing the focused handoff-note checker path",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected manifest-identity-drift failure: {failures}")
 
         missing_surveyed_commit_root = root / "missing_surveyed_commit"
         _write(
