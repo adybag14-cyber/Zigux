@@ -145,6 +145,7 @@ VERIFY_MARKERS = [
 HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps probe gating anchored below transport-backed claims" {',
     'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
+    "_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);",
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
     'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
     'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {',
@@ -160,7 +161,7 @@ SURVEY_GATE_MARKERS = [
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(build_file, "phase10_virtio_mmio_survey_module");',
-    'try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");',
+    'try expectContains(build_file, "\\"phase10-virtio-mmio-survey-tests\\"");',
     'try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");',
     'test "phase10 virtio mmio survey note keeps risky transport work blocked" {',
     'try expectContains(survey_note, "transport-backed queue setup or queue reset execution");',
@@ -285,6 +286,7 @@ def run_self_test() -> int:
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeInterruptAckDisposition(", "pub fn summarizeInterruptAckMissing(", "verify_helper:pub fn summarizeInterruptAckDisposition(")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", 'test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {', 'test "phase10 virtio mmio verify keeps feature negotiation drift" {', 'verify_helper:test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", '_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);', '_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(summary.queue_size_matches_advertised);\n    try std.testing.expect(summary.queue_ready_for_handoff);', 'helper_tests:_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {', 'test "phase10 virtio mmio keeps config-generation drift" {', 'helper_tests:test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write plan drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());', 'try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);', 'helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());')
@@ -295,7 +297,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
