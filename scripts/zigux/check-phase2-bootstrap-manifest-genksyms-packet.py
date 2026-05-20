@@ -232,7 +232,7 @@ def run_self_test() -> int:
         "workflow step Self-test current Phase 2 genksyms bridge checker is out of order",
     )
     expect_fail(
-        lambda root: (root / WORKFLOW).writeText(
+        lambda root: (root / WORKFLOW).write_text(
             read_text(root / WORKFLOW).replace(
                 "      - name: Run current Phase 2 genksyms unit replay\n"
                 "        run: zig test scripts/zigux/genksyms.zig\n"
