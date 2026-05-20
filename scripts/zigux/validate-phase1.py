@@ -218,13 +218,24 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
         issues.append(f"{prefix}:stderr={stderr}")
 
 
+def classify_required_path(path: Path, relative_path: str) -> str | None:
+    if not path.exists():
+        return f"missing_required_path:{relative_path}"
+    if not path.is_file():
+        return f"required_path_not_file:{relative_path}"
+    return None
+
+
 def should_run_optional(spec: CheckSpec, root: Path) -> tuple[bool, str | None]:
     script_path = root / spec.script_rel
     if not script_path.exists():
         return (False, "missing_script")
+    if not script_path.is_file():
+        return (False, "script_not_file")
     for relative_path in spec.requires:
-        if not (root / relative_path).exists():
-            return (False, f"missing_required_path:{relative_path}")
+        failure = classify_required_path(root / relative_path, relative_path)
+        if failure is not None:
+            return (False, failure)
     return (True, None)
 
 
@@ -238,8 +249,9 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
     mandatory_self_test_failures: set[str] = set()
 
     for rel in REQUIRED_PATHS:
-        if not (root / rel).exists():
-            issues.append(f"missing_required_path:{rel}")
+        failure = classify_required_path(root / rel, rel)
+        if failure is not None:
+            issues.append(failure)
 
     if issues:
         return (
@@ -269,7 +281,7 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             append_output(issues, f"mandatory_live_failed:{spec.name}", live_result)
 
     bench_expectations = root / BENCH_EXPECTATIONS_REL
-    if bench_expectations.exists():
+    if bench_expectations.is_file():
         bench_spec = next(spec for spec in MANDATORY_CHECKS if spec.name == "phase1-bench-self-test")
         if bench_spec.name in mandatory_self_test_failures:
             notes.append("skipped_bench_live:self_test_failed")
@@ -278,6 +290,8 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             if bench_result.returncode != 0:
                 issues.append(f"bench_live_failed:exit={bench_result.returncode}")
                 append_output(issues, "bench_live_failed", bench_result)
+    elif bench_expectations.exists():
+        notes.append(f"skipped_bench_live:required_path_not_file:{BENCH_EXPECTATIONS_REL}")
     else:
         notes.append(f"skipped_bench_live:missing_required_path:{BENCH_EXPECTATIONS_REL}")
 
@@ -422,6 +436,16 @@ def run_self_test() -> int:
         (missing_required_root / "Documentation/zigux/phase1-closure.md").unlink()
         issues, _, summary = collect_issues(missing_required_root)
         assert "missing_required_path:Documentation/zigux/phase1-closure.md" in issues, issues
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
+        required_not_file_root = base / "required_not_file"
+        build_sample_repo(required_not_file_root)
+        (required_not_file_root / "Documentation/zigux/phase1-closure.md").unlink()
+        (required_not_file_root / "Documentation/zigux/phase1-closure.md").mkdir()
+        issues, _, summary = collect_issues(required_not_file_root)
+        assert "required_path_not_file:Documentation/zigux/phase1-closure.md" in issues, issues
         assert summary.optional_run_count == 0, summary
         assert summary.optional_skip_count == 0, summary
         case_count += 1
@@ -610,6 +634,22 @@ def run_self_test() -> int:
         ), summary
         case_count += 1
 
+        optional_script_not_file_root = base / "optional_script_not_file"
+        build_sample_repo(optional_script_not_file_root)
+        (optional_script_not_file_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py").unlink()
+        (optional_script_not_file_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py").mkdir()
+        issues, notes, summary = collect_issues(optional_script_not_file_root)
+        assert issues == [], issues
+        assert "skipped_optional:phase1-direct-anchor-manifest-gate:script_not_file" in notes, notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
+        assert summary.optional_skip_count == 1, summary
+        assert "phase1-direct-anchor-manifest-gate" not in summary.optional_run_names, summary
+        assert (
+            summary.optional_skip_notes
+            == ("skipped_optional:phase1-direct-anchor-manifest-gate:script_not_file",)
+        ), summary
+        case_count += 1
+
         artifact_diff_helper_skip_root = base / "artifact_diff_helper_skip"
         build_sample_repo(artifact_diff_helper_skip_root)
         (artifact_diff_helper_skip_root / ARTIFACT_DIFF_HELPER_REL).unlink()
@@ -630,6 +670,30 @@ def run_self_test() -> int:
         assert summary.optional_skip_notes == (
             f"skipped_optional:artifact-diff-contract:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}",
             f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}",
+        ), summary
+        case_count += 1
+
+        artifact_diff_helper_not_file_root = base / "artifact_diff_helper_not_file"
+        build_sample_repo(artifact_diff_helper_not_file_root)
+        (artifact_diff_helper_not_file_root / ARTIFACT_DIFF_HELPER_REL).unlink()
+        (artifact_diff_helper_not_file_root / ARTIFACT_DIFF_HELPER_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(artifact_diff_helper_not_file_root)
+        assert issues == [], issues
+        assert (
+            f"skipped_optional:artifact-diff-contract:required_path_not_file:{ARTIFACT_DIFF_HELPER_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:required_path_not_file:{ARTIFACT_DIFF_HELPER_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 2, summary
+        assert summary.optional_skip_count == 2, summary
+        assert "artifact-diff-contract" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        assert summary.optional_skip_notes == (
+            f"skipped_optional:artifact-diff-contract:required_path_not_file:{ARTIFACT_DIFF_HELPER_REL}",
+            f"skipped_optional:phase1-parity-artifact-packet:required_path_not_file:{ARTIFACT_DIFF_HELPER_REL}",
         ), summary
         case_count += 1
 
@@ -704,6 +768,17 @@ def run_self_test() -> int:
         assert "phase1-c-harness-blockers" not in summary.optional_run_names, summary
         assert "phase1-readme-replay-blockers" not in summary.optional_run_names, summary
         assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        case_count += 1
+
+        bench_required_not_file_root = base / "bench_required_not_file"
+        build_sampleRepo(bench_required_not_file_root)
+        (bench_required_not_file_root / BENCH_EXPECTATIONS_REL).unlink()
+        (bench_required_not_file_root / BENCH_EXPECTATIONS_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(bench_required_not_file_root)
+        assert issues == [], issues
+        assert f"skipped_bench_live:required_path_not_file:{BENCH_EXPECTATIONS_REL}" in notes, notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
     print("PHASE1_VALIDATE_SELF_TEST=pass")
