@@ -58,6 +58,8 @@ SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "current authenticated contents readback keeps the bounded HVC current-head",
     "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
+    "current authenticated contents readback still does not rematerialize",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -285,6 +287,8 @@ def build_fixture(root: Path) -> None:
                 "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
                 "current authenticated contents readback keeps the bounded HVC current-head packet reviewable through:",
                 "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
+                "current authenticated contents readback still does not rematerialize",
+                "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
                 "`scripts/zigux/check-phase11-build-inventory.py`",
                 "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
                 "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -421,6 +425,8 @@ def run_self_test() -> int:
         run_check(fixture)
 
         cases = [
+            (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`,"),
+            (SURVEY_PATH, "current authenticated contents readback still does not rematerialize"),
             (COMPANION_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (COMPANION_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`"),
@@ -450,7 +456,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=11")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
