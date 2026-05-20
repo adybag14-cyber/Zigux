@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio ring survey note keeps the missing broader replay explicit beside the queue-local helper packet" {
+test "phase10 virtio ring survey note keeps the broader public-readback replay explicit beside the queue-local helper packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -31,7 +31,7 @@ test "phase10 virtio ring survey note keeps the missing broader replay explicit 
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
     try expectContains(
         survey_note,
-        "broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize",
+        "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
     );
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_ring_survey.zig");
@@ -69,7 +69,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and blocked transp
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_ring_survey.zig\"");
 }
 
-test "phase10 virtio ring slice companions keep the broader replay gap and landed survey replay explicit" {
+test "phase10 virtio ring slice companions keep the public-readback replay and landed survey gate explicit" {
     const allocator = std.testing.allocator;
 
     const slice_note = try readRepoRelative(
@@ -80,7 +80,7 @@ test "phase10 virtio ring slice companions keep the broader replay gap and lande
 
     try expectContains(
         slice_note,
-        "the broader ring replay still remains outside direct current-head evidence in this slice",
+        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
     );
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(slice_note, "the dedicated survey gate is now a landed review surface inside this slice");
@@ -102,7 +102,7 @@ test "phase10 virtio ring freeze-boundary note keeps risky transport work blocke
     try expectContains(freeze_note, "probe or remove lifecycle closure");
     try expectContains(
         freeze_note,
-        "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap",
+        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
     );
     try expectContains(freeze_note, "zigux/tests/phase10_virtio_ring_survey.zig");
 }
