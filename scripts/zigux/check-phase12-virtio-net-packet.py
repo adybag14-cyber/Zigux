@@ -10,10 +10,12 @@ from pathlib import Path
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "drivers/net/virtio_net_queue_resume.zig",
+    "drivers/net/virtio_net_receive_refill_replay.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
     "drivers/net/virtio_net_post_reset_replay.zig",
     "drivers/net/virtio_net_throughput_parity.zig",
     "zigux/tests/phase12_virtio_net_queue_resume.zig",
+    "zigux/tests/phase12_virtio_net_receive_refill_replay.zig",
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
     "zigux/tests/phase12_virtio_net_post_reset_replay.zig",
     "zigux/tests/phase12_virtio_net_throughput_parity.zig",
@@ -33,11 +35,13 @@ MANIFEST_MARKERS = [
     '"lane_key": "P12-L04"',
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
-    '"status": "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
+    '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
     '"status": "throughput_parity_helper_present_review_only_runtime_completion_missing"',
-    '"status": "split_helper_packet_direct_replays_present_shared_route_complete"',
+    '"status": "split_helper_packet_direct_replays_present_shared_route_quintet_complete"',
     '"id": "phase12-build-gate"',
-    '"status": "shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays"',
+    '"status": "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays"',
+    '"id": "phase12-virtio-net-receive-refill-replay-followup"',
+    '"zigux_destination": "drivers/net/virtio_net_receive_refill_replay.zig"',
     '"id": "phase12-virtio-net-throughput-parity-followup"',
     '"zigux_destination": "drivers/net/virtio_net_throughput_parity.zig"',
     '"id": "phase12-virtio-net-runtime-data-path"',
@@ -45,34 +49,34 @@ MANIFEST_MARKERS = [
 ]
 
 SURVEY_NOTE_MARKERS = [
-    "`PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only`",
+    "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
     "lane owner: `P12-L04`",
-    "drivers/net/virtio_net_queue_resume.zig",
-    "drivers/net/virtio_net_transmit_recycle.zig",
-    "drivers/net/virtio_net_post_reset_replay.zig",
+    "drivers/net/virtio_net_receive_refill_replay.zig",
     "drivers/net/virtio_net_throughput_parity.zig",
-    "summarizePostResetReplay()",
+    "summarizeReceiveRefillReplay()",
     "summarizeThroughputParity()",
     "review-only throughput-ratio checks",
     "not measured transport throughput evidence",
     "current `master` does not carry the older monolithic `drivers/net/virtio_net.zig` starter",
-    "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes",
-    "the shared Phase 12 build route reruns that quartet",
+    "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes",
+    "the shared Phase 12 build route reruns that quintet",
     "still does not claim live DMA-safe receive ownership",
     "performance-risk wording refresh",
 ]
 
 SURVEY_GATE_MARKERS = [
-    "phase12 virtio net survey manifest tracks the shared-build quartet and throughput-review boundary truthfully",
-    "phase12 virtio net survey note reflects the quartet and preserved non-goals",
+    "phase12 virtio net survey manifest tracks the shared-build quintet and throughput-review boundary truthfully",
+    "phase12 virtio net survey note reflects the quintet and preserved non-goals",
     "phase12 virtio net survey gate keeps the present files and shared routes explicit",
-    "phase12 virtio net survey gate keeps throughput and transmit helper markers explicit",
+    "phase12 virtio net survey gate keeps split helper markers explicit",
     'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
-    '"split_helper_packet_direct_replays_present_shared_route_complete"',
-    '"shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays"',
-    'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only");',
+    '"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
+    '"split_helper_packet_direct_replays_present_shared_route_quintet_complete"',
+    '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays"',
+    'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");',
     'try expectContains(survey_note, "lane owner: `P12-L04`");',
-    'try expectContains(build_zig, "phase12_virtio_net_post_reset_replay.zig");',
+    'try expectContains(build_zig, "phase12_virtio_net_receive_refill_replay.zig");',
+    'try expectContains(build_zig, "phase12-virtio-net-receive-refill-replay-tests");',
     'try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");',
     'try expectContains(build_zig, "phase12-virtio-net-throughput-parity-tests");',
     'try std.testing.expect(!try pathExists("drivers/net/virtio_net.zig"));',
@@ -84,6 +88,9 @@ BUILD_MARKERS = [
     "../../drivers/net/virtio_net_queue_resume.zig",
     '"phase12_virtio_net_queue_resume.zig"',
     "phase12-virtio-net-queue-resume-tests",
+    "../../drivers/net/virtio_net_receive_refill_replay.zig",
+    '"phase12_virtio_net_receive_refill_replay.zig"',
+    "phase12-virtio-net-receive-refill-replay-tests",
     "../../drivers/net/virtio_net_transmit_recycle.zig",
     '"phase12_virtio_net_transmit_recycle.zig"',
     "phase12-virtio-net-transmit-recycle-tests",
@@ -94,10 +101,12 @@ BUILD_MARKERS = [
     '"phase12_virtio_net_throughput_parity.zig"',
     "phase12-virtio-net-throughput-parity-tests",
     "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+    "smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
     "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
     "smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
     "smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
     "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+    "test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
     "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
     "test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
     "test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
@@ -107,6 +116,14 @@ MAKEFILE_MARKERS = [
     "phase12-smoke:",
     "phase12-test:",
     "phase12: phase12-smoke phase12-test",
+]
+
+STALE_BUILD_MARKERS = [
+    "../../drivers/net/virtio_net.zig",
+    '"phase12_virtio_net.zig"',
+    "phase12-virtio-net-tests",
+    '"phase12_virtio_net_syntax_lab.zig"',
+    "phase12-virtio-net-syntax-lab-tests",
 ]
 
 
@@ -157,13 +174,7 @@ def run_check(root: Path) -> None:
 
     build_text = read_text(root, "zigux/tests/phase12_build.zig")
     require_markers(build_text, "zigux/tests/phase12_build.zig", BUILD_MARKERS)
-    for stale_marker in (
-        "../../drivers/net/virtio_net.zig",
-        '"phase12_virtio_net.zig"',
-        "phase12-virtio-net-tests",
-        '"phase12_virtio_net_syntax_lab.zig"',
-        "phase12-virtio-net-syntax-lab-tests",
-    ):
+    for stale_marker in STALE_BUILD_MARKERS:
         if stale_marker in build_text:
             raise CheckError(
                 f"zigux/tests/phase12_build.zig: stale monolithic or syntax-lab marker still present {stale_marker!r}"
@@ -177,10 +188,12 @@ def make_fixture_tree(root: Path) -> None:
     file_payloads = {
         "Documentation/zigux/phase12-virtio-net-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "drivers/net/virtio_net_queue_resume.zig": "// fixture\n",
+        "drivers/net/virtio_net_receive_refill_replay.zig": "// fixture\n",
         "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
         "drivers/net/virtio_net_post_reset_replay.zig": "// fixture\n",
         "drivers/net/virtio_net_throughput_parity.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_queue_resume.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_receive_refill_replay.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_post_reset_replay.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_throughput_parity.zig": "// fixture\n",
@@ -194,19 +207,24 @@ def make_fixture_tree(root: Path) -> None:
                 "anchor": "drivers/net/virtio_net.c",
                 "roadmap_gap_check": {
                     "queueing_correctness": {
-                        "status": "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"
+                        "status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"
                     },
                     "throughput_and_recovery_parity": {
                         "status": "throughput_parity_helper_present_review_only_runtime_completion_missing"
                     },
                     "segmented_rollout": {
-                        "status": "split_helper_packet_direct_replays_present_shared_route_complete"
+                        "status": "split_helper_packet_direct_replays_present_shared_route_quintet_complete"
                     },
                 },
                 "gaps": [
                     {
                         "id": "phase12-build-gate",
-                        "status": "shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays",
+                        "status": "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays",
+                    },
+                    {
+                        "id": "phase12-virtio-net-receive-refill-replay-followup",
+                        "zigux_destination": "drivers/net/virtio_net_receive_refill_replay.zig",
+                        "status": "landed_on_master",
                     },
                     {
                         "id": "phase12-virtio-net-throughput-parity-followup",
@@ -247,8 +265,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        broken_note = root / "Documentation/zigux/phase12-virtio-net-survey.md"
-        broken_note.write_text("broken\n", encoding="utf-8")
+        (root / "Documentation/zigux/phase12-virtio-net-survey.md").write_text("broken\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
@@ -262,7 +279,7 @@ def run_self_test() -> None:
         broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
         broken_manifest.write_text(
             broken_manifest.read_text(encoding="utf-8").replace(
-                "shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays",
+                "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays",
                 "stale_old_status",
             ),
             encoding="utf-8",
@@ -280,7 +297,7 @@ def run_self_test() -> None:
         broken_build = root / "zigux/tests/phase12_build.zig"
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
-                "phase12-virtio-net-throughput-parity-tests\n",
+                "phase12-virtio-net-receive-refill-replay-tests\n",
                 "",
             ),
             encoding="utf-8",
@@ -308,8 +325,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        broken_gate = root / "zigux/tests/phase12_virtio_net_survey.zig"
-        broken_gate.write_text("broken\n", encoding="utf-8")
+        (root / "zigux/tests/phase12_virtio_net_survey.zig").write_text("broken\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
@@ -320,8 +336,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        broken_makefile = root / "zigux/Makefile"
-        broken_makefile.write_text("phase12-smoke:\nphase12-test:\n", encoding="utf-8")
+        (root / "zigux/Makefile").write_text("phase12-smoke:\nphase12-test:\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
