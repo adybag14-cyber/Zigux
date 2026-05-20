@@ -67,6 +67,39 @@ CORE_EXPECTED_GAPS = {
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
 
+CORE_SURVEY_REQUIRED_MARKERS = (
+    "lane: `P10-L01`",
+    "phase10-core-lab-validation-evidence",
+    "phase10-core-probe-remove-lifecycle",
+    "scripts/zigux/validate-phase10.py",
+)
+
+CORE_SURVEY_DRIVER_ID_MARKERS = (
+    "the narrower driver-id packet is the remaining same-lane visibility mismatch",
+    "`drivers/virtio/virtio_driver_id.zig`",
+    "`zigux/tests/phase10_virtio_driver_id.zig`",
+    "can no longer treat that helper-and-replay pair as landed evidence on the live branch",
+)
+
+CORE_SURVEY_STALE_GUARDRAIL_MARKERS = (
+    "stale guardrail reference drift",
+    "`scripts/zigux/check-phase10-core-packet.py`",
+    "does not materialize on `master`",
+)
+
+CORE_SLICE_REQUIRED_MARKERS = (
+    "phase10_virtio_core_manifest.json",
+    "phase10_virtio_core_survey.zig",
+    "scripts/zigux/validate-phase10.py",
+    "zigux/tests/phase10_build.zig",
+)
+
+CORE_SLICE_DRIVER_ID_BOUNDARY_MARKERS = (
+    "It does not claim:",
+    "landed `virtio_driver_id` helper or replay coverage on current `master`",
+    "those exact paths stay unreadable as shipped evidence in this runtime",
+)
+
 
 @dataclass(frozen=True)
 class CheckSpec:
@@ -165,26 +198,22 @@ def collect_core_packet_issues(root: Path) -> list[str]:
             issues.append(f"phase10_core_packet:gap_status:{gap_id}={gap.get('status')}")
 
     survey_note = read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md")
-    for marker in (
-        "lane: `P10-L01`",
-        "phase10-core-lab-validation-evidence",
-        "phase10-core-probe-remove-lifecycle",
-        "scripts/zigux/validate-phase10.py",
-    ):
+    for marker in CORE_SURVEY_REQUIRED_MARKERS:
         if marker not in survey_note:
             issues.append(f"phase10_core_packet:survey_note:{marker}")
     if isinstance(surveyed_commit, str) and COMMIT_RE.fullmatch(surveyed_commit) is not None and surveyed_commit not in survey_note:
         issues.append("phase10_core_packet:survey_note:surveyed_commit_alignment")
+    if not all(marker in survey_note for marker in CORE_SURVEY_DRIVER_ID_MARKERS):
+        issues.append("phase10_core_packet:survey_note:driver_id_visibility_gap")
+    if not all(marker in survey_note for marker in CORE_SURVEY_STALE_GUARDRAIL_MARKERS):
+        issues.append("phase10_core_packet:survey_note:stale_guardrail_drift")
 
     slice_note = read_text(root, "Documentation/zigux/phase10-virtio-core-slice.md")
-    for marker in (
-        "phase10_virtio_core_manifest.json",
-        "phase10_virtio_core_survey.zig",
-        "scripts/zigux/validate-phase10.py",
-        "zigux/tests/phase10_build.zig",
-    ):
+    for marker in CORE_SLICE_REQUIRED_MARKERS:
         if marker not in slice_note:
             issues.append(f"phase10_core_packet:slice_note:{marker}")
+    if not all(marker in slice_note for marker in CORE_SLICE_DRIVER_ID_BOUNDARY_MARKERS):
+        issues.append("phase10_core_packet:slice_note:driver_id_boundary")
 
     build_text = read_text(root, "zigux/tests/phase10_build.zig")
     for marker in (
@@ -298,6 +327,8 @@ def build_sample_repo(root: Path) -> None:
             "- scripts/zigux/validate-phase10.py\n"
             "- phase10-core-lab-validation-evidence\n"
             "- phase10-core-probe-remove-lifecycle\n"
+            "- stale guardrail reference drift: `scripts/zigux/check-phase10-core-packet.py` does not materialize on `master`\n"
+            "- the narrower driver-id packet is the remaining same-lane visibility mismatch because `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` still fail exact rereads, so the note can no longer treat that helper-and-replay pair as landed evidence on the live branch\n"
         ),
         "Documentation/zigux/phase10-virtio-core-slice.md": (
             "# Phase 10 Virtio Core Slice\n"
@@ -305,6 +336,7 @@ def build_sample_repo(root: Path) -> None:
             "- phase10_virtio_core_survey.zig\n"
             "- scripts/zigux/validate-phase10.py\n"
             "- zigux/tests/phase10_build.zig\n"
+            "- It does not claim: landed `virtio_driver_id` helper or replay coverage on current `master` while those exact paths stay unreadable as shipped evidence in this runtime\n"
         ),
         "drivers/virtio/virtio.zig": "pub const anchor_path = \"drivers/virtio/virtio.c\";\n",
         "zigux/Makefile": "phase10-validate:\n\t@true\n\nphase10-test:\n\t@true\n\nphase10:\n\t@true\n",
@@ -401,8 +433,38 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
+        survey_text = survey_path.read_text(encoding="utf-8").replace(
+            "can no longer treat that helper-and-replay pair as landed evidence on the live branch",
+            "still treats that helper-and-replay pair as landed evidence on the live branch",
+            1,
+        )
+        survey_path.write_text(survey_text, encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:survey_note:driver_id_visibility_gap" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:driver_id_visibility_gap_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        slice_path = root / "Documentation/zigux/phase10-virtio-core-slice.md"
+        slice_text = slice_path.read_text(encoding="utf-8").replace(
+            "landed `virtio_driver_id` helper or replay coverage on current `master` while those exact paths stay unreadable as shipped evidence in this runtime",
+            "landed driver-id coverage",
+            1,
+        )
+        slice_path.write_text(slice_text, encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:slice_note:driver_id_boundary" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:driver_id_boundary_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
