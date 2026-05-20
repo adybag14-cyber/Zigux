@@ -200,19 +200,29 @@ def collect_manifest_drift(root: Path) -> list[str]:
             )
 
     ready_followups = closure.get("ready_transport_followups", {})
+    blocked_transport_gaps = closure.get("blocked_transport_gaps", {})
     for path, expected_gap in READY_TRANSPORT_FOLLOWUPS.items():
         actual_gap = ready_followups.get(path)
         if not isinstance(actual_gap, str) or not actual_gap:
             drift.append(f"ready_transport_followups:{path}:missing")
-            continue
+        elif actual_gap != expected_gap:
+            drift.append(f"ready_transport_followups:{path}:{actual_gap!r}!={expected_gap!r}")
+
+        blocked_gap = blocked_transport_gaps.get(path)
+        if not isinstance(blocked_gap, str) or not blocked_gap:
+            drift.append(f"blocked_transport_gaps:{path}:missing")
+        elif blocked_gap != expected_gap:
+            drift.append(f"blocked_transport_gaps:{path}:{blocked_gap!r}!={expected_gap!r}")
+
+        if isinstance(actual_gap, str) and actual_gap and isinstance(blocked_gap, str) and blocked_gap and actual_gap != blocked_gap:
+            drift.append(f"ready_transport_followups:{path}:{actual_gap!r}!=blocked_transport_gaps:{blocked_gap!r}")
+
         manifest = read_json(root, path)
         blocked = {
             gap.get("id")
             for gap in manifest.get("gaps", [])
             if gap.get("status") == "blocked_on_risky_transport" and isinstance(gap.get("id"), str)
         }
-        if actual_gap != expected_gap:
-            drift.append(f"ready_transport_followups:{path}:{actual_gap!r}!={expected_gap!r}")
         if expected_gap not in blocked:
             drift.append(f"ready_transport_followups:{path}:{expected_gap!r}:not_blocked_on_risky_transport")
 
@@ -237,7 +247,7 @@ def collect_manifest_drift(root: Path) -> list[str]:
     if not test_set:
         drift.append("tests:missing")
 
-    focused = closure.get("focused_harness_replays")
+    focused = closure.get("focused_harness_replays", {})
     if not isinstance(focused, dict) or not focused:
         drift.append("focused_harness_replays:missing")
     else:
@@ -351,6 +361,11 @@ def write_fixture(root: Path) -> None:
             },
         },
         "ready_transport_followups": READY_TRANSPORT_FOLLOWUPS,
+        "blocked_transport_gaps": {
+            "zigux/tests/phase10_virtio_core_manifest.json": "phase10-core-probe-remove-lifecycle",
+            "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+        },
         "landed_core_helper_evidence": {
             "zigux/tests/phase10_virtio_core_manifest.json": [
                 "phase10-queue-shape-bookkeeping-helper",
@@ -509,6 +524,36 @@ def run_self_test() -> int:
         expect_contains(
             collect_manifest_drift(root),
             "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-closure-self-test",
+        )
+        expect_contains(
+            collect_manifest_drift(root),
+            "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!=blocked_transport_gaps:'phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        del broken["blocked_transport_gaps"]["zigux/tests/phase10_virtio_input_manifest.json"]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "blocked_transport_gaps:zigux/tests/phase10_virtio_input_manifest.json:missing",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["blocked_transport_gaps"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "blocked_transport_gaps:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-closure-self-test",
+        )
+        expect_contains(
+            collect_manifest_drift(root),
+            "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-lifecycle-and-irq-paths'!=blocked_transport_gaps:'phase10-mmio-config-write-helper'",
             "phase10-closure-self-test",
         )
         cases += 1
