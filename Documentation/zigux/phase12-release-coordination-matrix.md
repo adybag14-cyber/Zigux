@@ -43,15 +43,16 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - keep the shared build anchor plus checker visible during degraded contents reads too, and do not promote any of those shared-tree surfaces into extra commit-pinned fallback artifacts unless new dedicated files actually land.
 
 ## Smoke Set
-Current repo-reality override: `zigux/Makefile` now exposes `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, while `phase12-validate` remains reminder-only vocabulary until same-lane work rematerializes that wrapper. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+Current repo-reality override: `zigux/Makefile` now exposes `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, while `phase12-validate` remains reminder-only vocabulary until same-lane work rematerializes that wrapper. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`. Keep the compact PMO order aligned with the rest of the shared Phase 12 packet: `make -C zigux phase12-validate` is still reminder-only vocabulary, but it remains the validator-first entry in the sequencing contract before the shipped smoke-and-test wrapper reruns.
 
 `.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.
 
-1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-2. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`
-3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-4. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
-5. shipped wrapper evidence on current `master`: `make -C zigux phase12`
+1. reminder-only wrapper name until the route returns: `make -C zigux phase12-validate`
+2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+3. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`
+4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+5. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
+6. shipped wrapper evidence on current `master`: `make -C zigux phase12`
 
 Keep the degraded-workflow support bundle plus reminder-only wrapper vocabulary explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
@@ -68,7 +69,7 @@ The active shared build packet is the returned four-file `virtio_net` quartet on
 
 That quartet is the current shared `smoke` and `test` route. Keep the directly readable `virtio_scsi` rollback-lab packet and the bounded NVMe foothold explicit as adjacent driver-local evidence rather than shared build outputs.
 
-If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same smoke-first order explicit, first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`, and only if that local fallback is also absent keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit beside the attached-Zig rerun trio `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` without treating the `phase12-validate` wrapper name as current-`master` proof until it returns, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.
+If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same validator-first then smoke-first order explicit, first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`, and only if that local fallback is also absent keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit beside the attached-Zig rerun trio `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` without treating the `phase12-validate` wrapper name as current-`master` proof until it returns, instead of inventing a focused libbpf-only replay, a cross-build replay, or another unshipped PMO surface.
 
 ## Boundaries
 - This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
