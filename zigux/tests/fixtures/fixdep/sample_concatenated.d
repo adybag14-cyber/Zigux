@@ -26,4 +26,5 @@ sample_concatenated.o: zigux/tests/fixtures/fixdep/sample_concatenated_temp.c \
  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
  zigux/tests/fixtures/fixdep/sample2.so \
  zigux/tests/fixtures/fixdep/shared\:config.h \
- zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h
+ zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h \
+ include/generated/autoconf.h
