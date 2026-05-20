@@ -53,10 +53,11 @@ CHECKLIST_REQUIRED_MARKERS = [
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
     "Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.",
-    "The shared runtime-loader allocator/init-flow packet has returned",
-    "the review-first allocator/init-flow packet has returned, but deeper loadable-runtime publication and module-install-root completion still remain blocked.",
+    "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence",
+    "direct build-bundle proof is broader than the older reminder wording",
+    "`zigux/tests/phase9_build.zig` currently exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+    "the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded `phase9-runtime-loader-shared-tests` build shard, and the public-tree fallback loader surfaces",
     "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces",
-    "the shared runtime-loader allocator/init-flow packet has returned through a mixed direct-read plus public-tree-fallback packet and should be treated as current shared-owner evidence again",
     "keep the partial runtime bitmap reminder packet explicit without overstating what has actually returned",
     "Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
 ]
@@ -262,7 +263,6 @@ def main() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_FORBIDDEN_ROUTE_FIXTURES)}")
-    print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES=pass")
     return 0
 
 
