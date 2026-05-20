@@ -59,6 +59,26 @@ MARKERS = {
 EXPECTED_ASSERT_BLOCKS = {
     BENCH_CHECKER_REL: (
         (
+            'kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))',
+            'assert kind == "expectations_duplicate_keys"',
+            'assert payload == ["status"]',
+        ),
+        (
+            'kind, payload = validate_expectations(load_expectations_text(duplicate_iteration_text))',
+            'assert kind == "expectations_duplicate_iteration_keys"',
+            'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
+        ),
+        (
+            'kind, payload = validate_expectations(load_expectations_text(duplicate_exact_checksum_text))',
+            'assert kind == "expectations_duplicate_exact_checksum_keys"',
+            'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
+        ),
+        (
+            'kind, payload = validate_expectations(duplicate_checksum_list)',
+            'assert kind == "expectations_duplicate_checksums"',
+            'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
+        ),
+        (
             'status_mismatch_output = ok_output.replace(',
             'kind, payload = validate_output(expectations, status_mismatch_output)',
             'assert kind == "status"',
