@@ -54,6 +54,12 @@ test "phase 9 runtime bitmap survey gate matches the partial bitmap reminder pac
     );
     defer std.testing.allocator.free(module_slice_note);
 
+    const sample_root_readme = try readRepoFileAlloc(
+        "samples/zigux/README.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     const phase9_build = try readRepoFileAlloc(
         "zigux/tests/phase9_build.zig",
         32 * 1024,
@@ -70,6 +76,7 @@ test "phase 9 runtime bitmap survey gate matches the partial bitmap reminder pac
     try expectContains(survey_note, "`partial_packet_without_loadable_runtime_substrate`");
     try expectContains(survey_note, "`zigux/tests/runtime_atomic64_diff.zig`");
     try expectContains(survey_note, "bounded reminder-bundle handles only");
+    try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
     try expectContains(module_slice_note, "## Current visible slice");
@@ -79,6 +86,11 @@ test "phase 9 runtime bitmap survey gate matches the partial bitmap reminder pac
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(module_slice_note, "false proof that the broader shared runtime-loader substrate returned too");
     try expectContains(module_slice_note, "`partial_packet_without_loadable_runtime_substrate`");
+
+    try expectContains(sample_root_readme, "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
+    try expectContains(sample_root_readme, "* `*bitmap*`");
+    try expectContains(sample_root_readme, "`samples/zigux/runtime_bitmap.zig`");
+    try expectContains(sample_root_readme, "or as evidence that a fifth approved Phase 5 sample family landed here");
 
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
