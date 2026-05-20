@@ -13,9 +13,14 @@ class ValidationError(RuntimeError):
 
 
 SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
+CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
+LIB_PATH = Path("lib/checksum.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_checksum.zig")
 PERF_TEST_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
+BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_SNIPPETS = {
     SLICE_PATH: [
@@ -24,29 +29,64 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable",
         "- `zigux/tests/phase6_checksum_perf.zig` keeps the helper-vs-reference slowdown gate explicit through the committed `64B` and `1501B` payload matrix in `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B`, `IPV4_24B`, and `IPV4_60B` aligned-header cases that compare the fast path directly against `compute()`",
-        "- perf-matrix stability for the committed `64B` and `1501B` fixture payloads with explicit slowdown thresholds",
-        "- aligned-header fast-path perf stability for the committed `IPV4_20B`, `IPV4_24B`, and `IPV4_60B` fixture headers with explicit slowdown thresholds against `compute()`",
+    ],
+    CATALOG_PATH: [
+        "- roadmap anchor: `lib/checksum.c`",
+        "- Zig helper: `lib/checksum.zig`",
+        "- focused helper replay: `zigux/tests/phase6_checksum.zig`",
+        "- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`",
+        "- committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed payload threshold matrix (`64B`, `1501B`) and the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`) still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
+        "- `make -C zigux phase6-checksum-perf`",
+    ],
+    HELPER_EVIDENCE_MANIFEST_PATH: [
+        '"key": "checksum"',
+        '"roadmap_anchor": "lib/checksum.c"',
+        '"zig_helper": "lib/checksum.zig"',
+        '"focused_helper_replay": "zigux/tests/phase6_checksum.zig"',
+        '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"',
+        '"zigux/tests/fixtures/phase6_checksum_vectors.zig"',
+        '"payload_case_labels": [',
+        '"64B"',
+        '"1501B"',
+        '"ipv4_fast_path_case_labels": [',
+        '"IPV4_20B"',
+        '"IPV4_24B"',
+        '"IPV4_60B"',
+        '"zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig"',
+        '"make -C zigux phase6-checksum-perf"',
+        '"make -C zigux phase6-perf"',
+    ],
+    LIB_PATH: [
+        "pub fn replaceByDiff(sum: u16, diff: u32) u16 {",
+        "pub fn replace4(sum: u16, from: u32, to: u32) u16 {",
+        "pub fn tcpUdpV6Magic(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u16 {",
+        "pub fn ipFastCsum(header: []const u8) u16 {",
+        'test "incremental helper exports keep large odd offsets and 16-bit carries aligned" {',
+        'test "partial and compute match reference accumulation across seeded odd payloads" {',
     ],
     HELPER_TEST_PATH: [
-        'test "phase 6 checksum compute parity matches local reference vectors" {',
-        'test "phase 6 checksum split composition stays aligned with seeded partial accumulation" {',
         'test "phase 6 checksum fragment recomposition stays aligned across split boundaries" {',
         'test "phase 6 checksum carry helpers preserve one\'s-complement replacement behavior" {',
         'test "phase 6 checksum pseudo-header helpers match direct reference accumulation" {',
         'test "phase 6 checksum pseudo-header helpers keep high-length IPv6 carries visible" {',
         'test "phase 6 checksum negate stays involutive across representative carry edges" {',
-        'test "phase 6 checksum incremental helpers preserve odd-offset carry discipline" {',
-        "for (fixtures.carry16_cases) |case| {",
     ],
     PERF_TEST_PATH: [
-        'test "phase 6 checksum perf matrix preflight stays aligned with the documented packet" {',
-        "try validatePerfMatrix();",
-        "try validateFastPathMatrix();",
+        "fn validatePerfMatrix() !void {",
+        "fn validateFastPathMatrix() !void {",
         'std.debug.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
         'std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT={d}\\n", .{fixtures.fast_path_cases.len});',
-        'std.debug.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        "const fast_path_expected = checksum.ipFastCsum(case.header);",
+        "const compute_expected = checksum.compute(case.header);",
+        "const slowdown_pct = slowdownPct(fast_path_median_ns, compute_median_ns);",
+        'std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}=pass\\n", .{case.label});',
+        "return error.ChecksumPerfRegression;",
     ],
     FIXTURES_PATH: [
+        'pub const perf_payload_64b = makePerfPayload(64, 0x36);',
+        'pub const perf_payload_1501b = makePerfPayload(1501, 0x6c);',
         '.{ .label = "64B", .bytes = &perf_payload_64b, .iterations = 200_000, .max_slowdown_pct = 150 },',
         '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
         '.{ .label = "IPV4_20B", .header = &ip_fast_csum_ipv4_20b, .iterations = 600_000, .max_slowdown_pct = 100 },',
@@ -55,28 +95,50 @@ REQUIRED_SNIPPETS = {
         '.{ .label = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },',
         'test "phase 6 checksum perf fixture packet stays bounded to the documented matrices" {',
     ],
+    BUILD_PATH: [
+        'const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");',
+        "checksum_test_step.dependOn(&run_checksum_perf_matrix_tests.step);",
+        'const checksum_perf_matrix_test_step = b.step(',
+        '"phase6-checksum-perf-matrix-test",',
+        'const checksum_perf = b.addExecutable(.{',
+        '.name = "phase6-checksum-perf",',
+    ],
+    MAKEFILE_PATH: [
+        "phase6-checksum-test:",
+        "$(ZIG) build phase6-checksum-test --build-file zigux/tests/phase6_build.zig --summary all",
+        "phase6-checksum-perf-matrix-test:",
+        "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+        "phase6-checksum-perf:",
+        "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
+        "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
+    ],
 }
 
 SELF_TEST_CASES = [
     (
         SLICE_PATH,
-        "- `PHASE6_SLICE=checksum-leaf-helper`",
-        "- `PHASE6_SLICE=checksum-runtime-helper`",
+        "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B`, `IPV4_24B`, and `IPV4_60B` aligned-header cases that compare the fast path directly against `compute()`",
+        "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B` and `IPV4_24B` aligned-header cases",
     ),
     (
-        SLICE_PATH,
-        "- perf-matrix stability for the committed `64B` and `1501B` fixture payloads with explicit slowdown thresholds",
-        "- perf-matrix stability for the committed `64B` fixture payload only",
+        CATALOG_PATH,
+        "- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`",
+        "- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf_matrix.zig`",
+    ),
+    (
+        HELPER_EVIDENCE_MANIFEST_PATH,
+        '"IPV4_60B"',
+        '"IPV4_48B"',
+    ),
+    (
+        LIB_PATH,
+        "pub fn ipFastCsum(header: []const u8) u16 {",
+        "pub fn ipChecksumFast(header: []const u8) u16 {",
     ),
     (
         HELPER_TEST_PATH,
         'test "phase 6 checksum pseudo-header helpers keep high-length IPv6 carries visible" {',
-        'test "phase 6 checksum pseudo-header helpers keep IPv6 carries visible" {',
-    ),
-    (
-        HELPER_TEST_PATH,
-        "for (fixtures.carry16_cases) |case| {",
-        "for (fixtures.carry_cases) |case| {",
+        'test "phase 6 checksum IPv6 pseudo-header helpers keep high-length carries visible" {',
     ),
     (
         PERF_TEST_PATH,
@@ -84,24 +146,19 @@ SELF_TEST_CASES = [
         'std.debug.print("PHASE6_CHECKSUM_FAST_PATH_CASE_COUNT={d}\\n", .{fixtures.fast_path_cases.len});',
     ),
     (
-        PERF_TEST_PATH,
-        'std.debug.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
-        'std.debug.print("PHASE6_CHECKSUM_PERF_STATUS={s}\\n", .{if (failed) "fail" else "pass"});',
-    ),
-    (
         FIXTURES_PATH,
         '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
-        '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 10_000, .max_slowdown_pct = 150 },',
+        '.{ .label = "1500B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
     ),
     (
-        FIXTURES_PATH,
-        '.{ .label = "IPV4_60B", .header = &ip_fast_csum_ipv4_60b, .iterations = 250_000, .max_slowdown_pct = 100 },',
-        '.{ .label = "IPV4_60B", .header = &ip_fast_csum_ipv4_60b, .iterations = 250_000, .max_slowdown_pct = 125 },',
+        BUILD_PATH,
+        '"phase6-checksum-perf-matrix-test",',
+        '"phase6-checksum-matrix-test",',
     ),
     (
-        FIXTURES_PATH,
-        '.{ .label = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },',
-        '.{ .label = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0001, .expected_sub = 0xfffb },',
+        MAKEFILE_PATH,
+        "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG) build phase6-checksum-profile --build-file zigux/tests/phase6_build.zig --summary all",
     ),
 ]
 
@@ -153,7 +210,7 @@ def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
 
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase6_checksum_corpus_") as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         scaffold_repo(root)
         validate(root)
