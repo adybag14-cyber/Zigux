@@ -66,6 +66,22 @@ test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8
     try expectContains(shared_build_file, "phase8-file-path-handle-bridge-tests");
 }
 
+test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {
+    const makefile = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/Makefile",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(makefile);
+
+    try expectContains(makefile, "phase8-file-path-handle-bridge-test:");
+    try expectContains(makefile, "zigux/tests/phase8_file_path_handle_bridge_only_build.zig");
+    try expectContains(makefile, "phase8-test:");
+    try expectContains(makefile, "zigux/tests/phase8_build.zig");
+    try expectContains(makefile, "phase8:");
+    try expectContains(makefile, "phase8-file-path-handle-bridge-test");
+}
+
 test "phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing" {
     const boundary_note = try readWorkspaceFile(
         std.testing.allocator,
