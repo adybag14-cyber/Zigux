@@ -14,11 +14,7 @@ fn expectContains(contents: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, contents, needle) != null);
 }
 
-fn expectMissing(contents: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, contents, needle) == null);
-}
-
-test "phase 8 verify routing witness records the current CPU-index verifier gap" {
+test "phase 8 verify routing witness records the current CPU-index verifier closure" {
     const helper = try readRepoFile("tools/lib/bpf/zigux_segments/online_cpu_routing.zig");
     defer std.testing.allocator.free(helper);
 
@@ -35,7 +31,10 @@ test "phase 8 verify routing witness records the current CPU-index verifier gap"
     defer std.testing.allocator.free(verify);
 
     try expectContains(verify, "resolveNextOnlineCpuRouteBufferFdReturnAtIndex");
+    try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndex");
+    try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexAtIndex");
+    try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturn");
+    try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex");
     try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\" {");
-    try expectMissing(verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex");
-    try expectMissing(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
+    try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
 }
