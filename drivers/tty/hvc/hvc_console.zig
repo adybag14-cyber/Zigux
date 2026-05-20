@@ -461,6 +461,7 @@ pub const TargetlessNotifierEdgeSummary = struct {
     target_present: bool,
     notifier_registered: bool,
     targetless_no_unregister_edge: bool,
+    targetless_unregister_request_sanitized: bool,
     unregister_requested: bool,
     keeps_live_notifier_execution_out_of_scope: bool,
 };
@@ -470,6 +471,7 @@ pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) T
         .target_present = request.target_present,
         .notifier_registered = request.notifier_registered,
         .targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,
+        .targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,
         .unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,
         .keeps_live_notifier_execution_out_of_scope = request.keeps_live_notifier_execution_out_of_scope,
     };
@@ -712,7 +714,7 @@ test "phase11 hvc console keeps failed hvc_install cleanup ownership reviewable"
 
     try std.testing.expect(summary.index_lookup_found);
     try std.testing.expect(summary.kref_acquired_from_lookup);
-    try std.testing.expect(summary.driver_data_bound);
+    try std.testing.expect(summary.driver_dataBound);
     try std.testing.expect(!summary.tty_port_install_succeeded);
     try std.testing.expect(summary.tty_port_put_on_failure);
     try std.testing.expect(!summary.install_reference_retained);
@@ -1024,6 +1026,11 @@ test "phase11 hvc console keeps targetless notifier no-unregister edge reviewabl
         .notifier_registered = true,
         .unregister_requested = false,
     });
+    const targetless_sanitized = summarizeTargetlessNotifierEdge(.{
+        .target_present = false,
+        .notifier_registered = true,
+        .unregister_requested = true,
+    });
     const targeted = summarizeTargetlessNotifierEdge(.{
         .target_present = true,
         .notifier_registered = true,
@@ -1033,12 +1040,21 @@ test "phase11 hvc console keeps targetless notifier no-unregister edge reviewabl
     try std.testing.expect(!targetless.target_present);
     try std.testing.expect(targetless.notifier_registered);
     try std.testing.expect(targetless.targetless_no_unregister_edge);
+    try std.testing.expect(!targetless.targetless_unregister_request_sanitized);
     try std.testing.expect(!targetless.unregister_requested);
     try std.testing.expect(targetless.keeps_live_notifier_execution_out_of_scope);
+
+    try std.testing.expect(!targetless_sanitized.target_present);
+    try std.testing.expect(targetless_sanitized.notifier_registered);
+    try std.testing.expect(!targetless_sanitized.targetless_no_unregister_edge);
+    try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);
+    try std.testing.expect(!targetless_sanitized.unregister_requested);
+    try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);
 
     try std.testing.expect(targeted.target_present);
     try std.testing.expect(targeted.notifier_registered);
     try std.testing.expect(!targeted.targetless_no_unregister_edge);
+    try std.testing.expect(!targeted.targetless_unregister_request_sanitized);
     try std.testing.expect(targeted.unregister_requested);
     try std.testing.expect(targeted.keeps_live_notifier_execution_out_of_scope);
 }
@@ -1053,6 +1069,7 @@ test "phase11 hvc console keeps unregistered targeted notifier-unregister reques
     try std.testing.expect(summary.target_present);
     try std.testing.expect(!summary.notifier_registered);
     try std.testing.expect(!summary.targetless_no_unregister_edge);
+    try std.testing.expect(!summary.targetless_unregister_request_sanitized);
     try std.testing.expect(!summary.unregister_requested);
     try std.testing.expect(summary.keeps_live_notifier_execution_out_of_scope);
 }
