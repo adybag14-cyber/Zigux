@@ -78,7 +78,11 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`
 - `zigux/tests/fixtures/fixdep/cases.json`
 
 Keep the current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
