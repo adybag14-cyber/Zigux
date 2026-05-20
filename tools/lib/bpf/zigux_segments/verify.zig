@@ -12,6 +12,7 @@ const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");
 const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");
 const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");
 const type_names = @import("type_names.zig");
+const type_names_verify = @import("type_names_verify.zig");
 
 fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
     try std.testing.expect(@hasDecl(Module, decl_name));
@@ -57,6 +58,7 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
     std.testing.refAllDecls(ready_buffer_fd_verify);
     std.testing.refAllDecls(ready_buffer_window_verify);
     std.testing.refAllDecls(type_names);
+    std.testing.refAllDecls(type_names_verify);
 }
 
 test "materialized tools/lib/bpf Zigux segments keep their current bounded entrypoints explicit" {
