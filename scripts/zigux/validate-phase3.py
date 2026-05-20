@@ -214,10 +214,14 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 REQUIRED_MANIFEST_REPO_REALITY_GAPS: tuple[str, ...] = ()
@@ -411,6 +415,26 @@ def run_self_test() -> int:
             json.dumps(SELF_TEST_MANIFEST, indent=2) + "\n",
         )
         manifest = dict(SELF_TEST_MANIFEST)
+        manifest["replay_routes"] = list(manifest["replay_routes"])
+        manifest["replay_routes"].remove(
+            "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"
+        )
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected_wrapper_route = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"
+        )
+        if expected_wrapper_route not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print(f"expected issue was not reported: {expected_wrapper_route}")
+            return 1
+
+        _write(
+            repo_root / ABI_MANIFEST_PATH,
+            json.dumps(SELF_TEST_MANIFEST, indent=2) + "\n",
+        )
+        manifest = dict(SELF_TEST_MANIFEST)
         manifest["repo_reality_gaps"] = [
             "shared tests-root export/UAPI layout route still lags the dedicated replay"
         ]
@@ -425,7 +449,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -455,7 +479,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-layout-catalog-dump-and-export-uapi-layout-route-surface")
+    print("PHASE3_SCOPE=shared-abi-binding-layout-catalog-dump-export-uapi-and-low-level-wrapper-route-surface")
     return 0
 
 
