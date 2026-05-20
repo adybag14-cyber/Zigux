@@ -16,19 +16,18 @@ ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \((?P<copy>\d+)\)(?P<su
 EXPECTED_ARCHIVE_SIZES = {
     "x86_64-linux": 58_159_088,
 }
+POLICY_KEYS = {"phase", "channel", "minimum_version", "archive_sha256", "upgrade_policy"}
+UPGRADE_POLICY_KEYS = {"channel_minimum_lockstep", "archive_target_scope", "required_make_routes"}
 
 
-def load_policy(root: Path) -> dict[str, object]:
-    policy_path = root / TOOLCHAIN_POLICY
-    try:
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise ValueError(f"missing toolchain policy: {policy_path}") from exc
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
-    if not isinstance(payload, dict):
-        raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
-    return payload
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
 
 
 def require_string(payload: dict[str, object], key: str) -> str:
@@ -42,13 +41,21 @@ def require_string_map(payload: dict[str, object], key: str) -> dict[str, str]:
     value = payload.get(key)
     if not isinstance(value, dict) or not value:
         raise ValueError(f"invalid {key} in {TOOLCHAIN_POLICY}")
+    if isinstance(value, DuplicateTrackingDict) and value.duplicate_keys:
+        raise ValueError(
+            f"duplicate {key} targets in {TOOLCHAIN_POLICY}: " + ", ".join(value.duplicate_keys)
+        )
+
     normalized: dict[str, str] = {}
     for map_key, map_value in value.items():
         if not isinstance(map_key, str) or not map_key.strip():
             raise ValueError(f"invalid {key} target in {TOOLCHAIN_POLICY}")
         if not isinstance(map_value, str) or not map_value.strip():
             raise ValueError(f"invalid {key}[{map_key}] in {TOOLCHAIN_POLICY}")
-        normalized[map_key.strip()] = map_value.strip()
+        normalized_key = map_key.strip()
+        if normalized_key in normalized:
+            raise ValueError(f"duplicate {key} targets in {TOOLCHAIN_POLICY}: {normalized_key}")
+        normalized[normalized_key] = map_value.strip()
     return normalized
 
 
@@ -57,31 +64,138 @@ def require_string_list(payload: dict[str, object], key: str) -> list[str]:
     if not isinstance(value, list) or not value:
         raise ValueError(f"invalid {key} in {TOOLCHAIN_POLICY}")
     normalized: list[str] = []
+    seen: set[str] = set()
     for entry in value:
         if not isinstance(entry, str) or not entry.strip():
             raise ValueError(f"invalid {key} entry in {TOOLCHAIN_POLICY}")
-        normalized.append(entry.strip())
+        normalized_entry = entry.strip()
+        if normalized_entry in seen:
+            raise ValueError(f"duplicate {key} entry in {TOOLCHAIN_POLICY}: {normalized_entry}")
+        normalized.append(normalized_entry)
+        seen.add(normalized_entry)
     return normalized
+
+
+def validate_policy_payload(payload: dict[str, object]) -> dict[str, object]:
+    unexpected_policy_keys = sorted(set(payload) - POLICY_KEYS)
+    if unexpected_policy_keys:
+        raise ValueError(
+            f"unexpected toolchain policy keys in {TOOLCHAIN_POLICY}: "
+            + ", ".join(unexpected_policy_keys)
+        )
+
+    phase = require_string(payload, "phase")
+    channel = require_string(payload, "channel")
+    minimum_version = require_string(payload, "minimum_version")
+
+    archives = require_string_map(payload, "archive_sha256")
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise ValueError(f"invalid upgrade_policy in {TOOLCHAIN_POLICY}")
+    if isinstance(upgrade_policy, DuplicateTrackingDict) and upgrade_policy.duplicate_keys:
+        raise ValueError(
+            f"duplicate upgrade_policy keys in {TOOLCHAIN_POLICY}: "
+            + ", ".join(upgrade_policy.duplicate_keys)
+        )
+
+    unexpected_upgrade_keys = sorted(set(upgrade_policy) - UPGRADE_POLICY_KEYS)
+    if unexpected_upgrade_keys:
+        raise ValueError(
+            f"unexpected upgrade_policy keys in {TOOLCHAIN_POLICY}: "
+            + ", ".join(unexpected_upgrade_keys)
+        )
+
+    lockstep = upgrade_policy.get("channel_minimum_lockstep")
+    if not isinstance(lockstep, bool):
+        raise ValueError(f"invalid channel_minimum_lockstep in {TOOLCHAIN_POLICY}")
+
+    targets = require_string_list(upgrade_policy, "archive_target_scope")
+    required_make_routes = require_string_list(upgrade_policy, "required_make_routes")
+
+    missing_archive_targets = [target for target in targets if target not in archives]
+    if missing_archive_targets:
+        raise ValueError(
+            "archive_target_scope references missing archive_sha256 entries in "
+            f"{TOOLCHAIN_POLICY}: " + ", ".join(missing_archive_targets)
+        )
+
+    extra_archive_targets = [target for target in archives if target not in targets]
+    if extra_archive_targets:
+        raise ValueError(
+            f"archive_sha256 contains targets outside archive_target_scope in {TOOLCHAIN_POLICY}: "
+            + ", ".join(extra_archive_targets)
+        )
+
+    if lockstep and minimum_version != channel:
+        raise ValueError(
+            f"minimum_version must match channel when channel_minimum_lockstep is true in {TOOLCHAIN_POLICY}"
+        )
+
+    return {
+        "phase": phase,
+        "channel": channel,
+        "minimum_version": minimum_version,
+        "archive_sha256": archives,
+        "upgrade_policy": {
+            "channel_minimum_lockstep": lockstep,
+            "archive_target_scope": targets,
+            "required_make_routes": required_make_routes,
+        },
+    }
+
+
+def load_policy(root: Path) -> dict[str, object]:
+    policy_path = root / TOOLCHAIN_POLICY
+    try:
+        payload = json.loads(
+            policy_path.read_text(encoding="utf-8"),
+            object_pairs_hook=DuplicateTrackingDict,
+        )
+    except FileNotFoundError as exc:
+        raise ValueError(f"missing toolchain policy: {policy_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
+    if isinstance(payload, DuplicateTrackingDict) and payload.duplicate_keys:
+        raise ValueError(
+            f"duplicate toolchain policy keys in {TOOLCHAIN_POLICY}: "
+            + ", ".join(payload.duplicate_keys)
+        )
+    return validate_policy_payload(payload)
 
 
 def load_archive_metadata(root: Path) -> tuple[str, str, str, int, Path]:
     payload = load_policy(root)
-    channel = require_string(payload, "channel")
-    archives = require_string_map(payload, "archive_sha256")
-    upgrade_policy = payload.get("upgrade_policy")
+    channel = str(payload["channel"])
+    archives = payload["archive_sha256"]
+    if not isinstance(archives, dict):
+        raise ValueError(f"invalid archive_sha256 in {TOOLCHAIN_POLICY}")
+    upgrade_policy = payload["upgrade_policy"]
     if not isinstance(upgrade_policy, dict):
         raise ValueError(f"invalid upgrade_policy in {TOOLCHAIN_POLICY}")
-    targets = require_string_list(upgrade_policy, "archive_target_scope")
+    targets = upgrade_policy["archive_target_scope"]
+    if not isinstance(targets, list):
+        raise ValueError(f"invalid archive_target_scope in {TOOLCHAIN_POLICY}")
     if len(targets) != 1:
         raise ValueError(f"expected exactly one archive target in {TOOLCHAIN_POLICY}, got {len(targets)}")
+
     target = targets[0]
+    if not isinstance(target, str):
+        raise ValueError(f"invalid archive_target_scope entry in {TOOLCHAIN_POLICY}")
     if target not in archives:
         raise ValueError(f"archive_target_scope target {target} is missing from archive_sha256 in {TOOLCHAIN_POLICY}")
     if target not in EXPECTED_ARCHIVE_SIZES:
         raise ValueError(f"missing expected archive size for {target}")
+
+    archive_sha = archives[target]
+    if not isinstance(archive_sha, str):
+        raise ValueError(f"invalid archive_sha256[{target}] in {TOOLCHAIN_POLICY}")
+
     filename = f"zig-{target}-{channel}.tar.xz"
     destination = root / THIRD_PARTY_DIR / filename
-    return target, filename, archives[target], EXPECTED_ARCHIVE_SIZES[target], destination
+    return target, filename, archive_sha, EXPECTED_ARCHIVE_SIZES[target], destination
 
 
 def compute_sha256(path: Path) -> str:
@@ -344,8 +458,48 @@ def run_self_test() -> int:
     )
     expect_failure(
         expected_substring="to have sha256",
-        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").write_bytes(
+        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").writeBytes(
             b"y" * EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
+        ),
+        check_only=True,
+    )
+    expect_failure(
+        expected_substring="duplicate toolchain policy keys",
+        mutator=lambda root, source: (root / TOOLCHAIN_POLICY).write_text(
+            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + expected_sha
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        ),
+        check_only=True,
+    )
+    expect_failure(
+        expected_substring="duplicate upgrade_policy keys",
+        mutator=lambda root, source: (root / TOOLCHAIN_POLICY).write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + expected_sha
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        ),
+        check_only=True,
+    )
+    expect_failure(
+        expected_substring="archive_target_scope references missing archive_sha256 entries",
+        mutator=lambda root, source: (root / TOOLCHAIN_POLICY).write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"other-target":"'
+            + expected_sha
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        ),
+        check_only=True,
+    )
+    expect_failure(
+        expected_substring="duplicate required_make_routes entry",
+        mutator=lambda root, source: (root / TOOLCHAIN_POLICY).write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + expected_sha
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-toolchain"]}}\n',
+            encoding="utf-8",
         ),
         check_only=True,
     )
