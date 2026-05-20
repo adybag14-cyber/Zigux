@@ -29,8 +29,21 @@ EXPECTED_REVIEW_STATUS_BY_TARGET = {
     "aarch64-linux": "route contract only",
 }
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
+EXPECTED_FIXTURE_FIELDS = {
+    "phase",
+    "status",
+    "route",
+    "archive_target_scope",
+    "cross_targets",
+}
+EXPECTED_CROSS_TARGET_FIELDS = {
+    "target",
+    "review_status",
+    "validation_mode",
+    "route",
+}
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -115,6 +128,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
         return issues
 
+    for key in fixture:
+        if key not in EXPECTED_FIXTURE_FIELDS:
+            issues.append(("UNEXPECTED_FIXTURE_FIELD", key))
+
     if fixture.get("phase") != EXPECTED_FIXTURE_PHASE:
         issues.append(("INVALID_FIXTURE_FIELD", "phase"))
     if fixture.get("status") != EXPECTED_FIXTURE_STATUS:
@@ -138,6 +155,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}"))
             continue
+        for key in entry:
+            if key not in EXPECTED_CROSS_TARGET_FIELDS:
+                issues.append(("UNEXPECTED_CROSS_TARGET_FIELD", f"{index}:{key}"))
+
         target = entry.get("target")
         review_status = entry.get("review_status")
         validation_mode = entry.get("validation_mode")
@@ -250,15 +271,6 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_route_") as tmp_dir:
@@ -323,6 +335,22 @@ def run_self_test() -> int:
         fixture["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["unexpected"] = True
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_FIXTURE_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][0]["unexpected"] = True
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_CROSS_TARGET_FIELD", "0:unexpected") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
