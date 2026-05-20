@@ -13,6 +13,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+CHECKER_PATH = Path("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")
 
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
@@ -42,10 +43,11 @@ REQUIRED_EVIDENCE_REPLAYS = [
     "make -C zigux phase6-hexdump-perf",
 ]
 
+REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
 CHECKSUM_CASES = {"64B", "1501B"}
 HEXDUMP_CASES = {"16B-plain-g1", "32B-ascii-g2", "16B-ascii-g4", "16B-ascii-g8"}
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -94,6 +96,14 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected packet id in {path.as_posix()}")
     if manifest.get("phase") != "Phase 6":
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
+
+    companions = manifest.get("current_direct_readback_companions")
+    if not isinstance(companions, list):
+        raise ValidationError("current_direct_readback_companions is missing")
+    if REQUIRED_DIRECT_READBACK_COMPANION not in companions:
+        raise ValidationError(
+            f"missing direct readback companion in {path.as_posix()}: {REQUIRED_DIRECT_READBACK_COMPANION}"
+        )
 
     checksum = get_helper(manifest, "checksum")
     hexdump = get_helper(manifest, "hexdump")
@@ -187,6 +197,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": "phase6-helper-evidence",
                 "phase": "Phase 6",
+                "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
                 "helpers": [
                     {
                         "key": "checksum",
@@ -304,6 +315,18 @@ def run_self_test() -> None:
                 "phase6-hexdump-test:",
             ),
             "phase6-hexdump-perf:",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"',
+                '"scripts/zigux/check-phase6-present-entrypoints.py"',
+            ),
+            "check-phase6-checksum-hexdump-perf-markers.py",
         )
         cases_run += 1
         scaffold_repo(root)
