@@ -82,7 +82,7 @@ MODULE_SLICE_COLD_STAGE_GUARD_MARKER = (
     'The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.'
 )
 MODULE_SLICE_INITIALIZED_EXIT_MARKER = (
-    'The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.'
+    'The direct initialized-stage exit proof in `test "phase9 trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.'
 )
 MANIFEST_ALIGNMENT_FOCUS_MARKER = '"alignment_focus": "sample-local pilot-module reviewability rather than returned shared runtime-loader parity"'
 MANIFEST_SURVEY_NOTE_MARKER = '"survey_note_path": "Documentation/zigux/phase9-runtime-trace-events-survey.md"'
@@ -278,8 +278,13 @@ REENTRY_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(before_exit.main_thread_events, after_exit.main_thread_events);",
     "try std.testing.expectEqual(before_exit.fn_thread_events, after_exit.fn_thread_events);",
     "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);",
+    "try std.testing.expectEqual(before_exit.saw_vararg_payload, after_exit.saw_vararg_payload);",
+    "try std.testing.expectEqual(before_exit.saw_rel_loc_payload, after_exit.saw_rel_loc_payload);",
+    "try std.testing.expectEqual(before_exit.saw_conditional_path, after_exit.saw_conditional_path);",
     "try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);",
     "try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);",
+    "try std.testing.expectEqual(before_exit.last_main_conditional_message, after_exit.last_main_conditional_message);",
+    "try std.testing.expectEqual(before_exit.last_main_template_cond_message, after_exit.last_main_template_cond_message);",
     "try std.testing.expectEqualStrings(before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);",
     "try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);",
     "try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);",
