@@ -1,6 +1,16 @@
 const std = @import("std");
 const devres_scatterlist = @import("devres_scatterlist");
 
+fn requireContains(text: []const u8, needle: []const u8) !void {
+    if (std.mem.indexOf(u8, text, needle) == null) {
+        return error.MissingMarker;
+    }
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1 << 20));
+}
+
 test "phase13 devres descriptor records helper-first scatterlist planning" {
     const descriptor = devres_scatterlist.DevresScatterlistHelper.descriptor();
 
@@ -77,4 +87,61 @@ test "phase13 devres scatterlist release matching stays exact across original an
     const miss = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistUnmap(6, 4, 6, 3);
     try std.testing.expect(!miss.release_matches);
     try std.testing.expect(miss.warns_on_release_miss);
+}
+
+test "phase13 devres scatterlist planner manifest records the dedicated helper-first packet" {
+    const manifest = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_devres_scatterlist_planner_manifest.json");
+    defer std.testing.allocator.free(manifest);
+
+    try requireContains(manifest, "\"lane_key\": \"P13-L08\"");
+    try requireContains(manifest, "\"phase\": \"Phase 13\"");
+    try requireContains(manifest, "\"packet\": \"phase13-devres-scatterlist-planner\"");
+    try requireContains(manifest, "\"status\": \"starter_landed\"");
+    try requireContains(manifest, "\"owned_surfaces\": [");
+    try requireContains(manifest, "lib/devres_scatterlist.zig");
+    try requireContains(manifest, "Documentation/zigux/phase13-devres-scatterlist-planner.md");
+    try requireContains(manifest, "zigux/tests/phase13_devres_scatterlist.zig");
+    try requireContains(manifest, "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
+    try requireContains(manifest, "\"release_match_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
+    try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_scatterlist_planner_manifest.json\"");
+    try requireContains(manifest, "planManagedScatterlistMap");
+    try requireContains(manifest, "scatterlistReleaseMatches");
+    try requireContains(manifest, "planManagedScatterlistUnmap");
+    try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
+    try requireContains(manifest, "\"status\": \"blocked_on_scatterlist_state\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-live-sg-table-lifecycle\"");
+    try requireContains(manifest, "\"status\": \"blocked_on_sg_table_lifecycle\"");
+    try requireContains(manifest, "\"id\": \"phase13-devres-generic-dma-map-family\"");
+    try requireContains(manifest, "\"status\": \"blocked_on_dma_mapping_state\"");
+}
+
+test "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded" {
+    const note = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-scatterlist-planner.md");
+    defer std.testing.allocator.free(note);
+
+    try requireContains(note, "lands one pure scatterlist lifetime planning surface in `lib/devres_scatterlist.zig`");
+    try requireContains(note, "routes `planManagedScatterlistMap(...)` through one helper-local release-record outcome");
+    try requireContains(note, "retains detach-time unmap ownership on success");
+    try requireContains(note, "failed mapping frees the release record");
+    try requireContains(note, "routes `planManagedScatterlistUnmap(...)` through exact original-entry and mapped-entry matching");
+    try requireContains(note, "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check");
+    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, missing-release-record, and exact-release-match fixture coverage");
+    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map");
+    try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
+    try requireContains(note, "sg_alloc_table()");
+    try requireContains(note, "sg_free_table()");
+    try requireContains(note, "sg_dma_address()");
+    try requireContains(note, "sg_dma_len()");
+    try requireContains(note, "dma_map_sg()");
+    try requireContains(note, "dma_unmap_sg()");
+    try requireContains(note, "dma_map_sgtable()");
+    try requireContains(note, "sg_table");
+}
+
+test "phase13 devres scatterlist planner note preserves standalone replay handles" {
+    const note = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-scatterlist-planner.md");
+    defer std.testing.allocator.free(note);
+
+    try requireContains(note, "zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig");
+    try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
 }
