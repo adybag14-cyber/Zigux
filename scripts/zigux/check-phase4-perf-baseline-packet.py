@@ -28,7 +28,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 34
+EXPECTED_SELF_TEST_CASES = 33
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
