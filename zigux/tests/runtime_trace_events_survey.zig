@@ -336,8 +336,21 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(reentry_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
     try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
     try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);");
+    try expectContains(reentry_file, "try std.testing.expect(before_exit.saw_vararg_payload);");
+    try expectContains(reentry_file, "try std.testing.expect(before_exit.saw_rel_loc_payload);");
+    try expectContains(reentry_file, "try std.testing.expect(!before_exit.saw_conditional_path);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"event-sample\", before_exit.main_thread_label orelse return error.ExpectedMainThreadLabel);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"hello\", before_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"Mother Goose\", before_exit.last_main_random_choice_message orelse return error.ExpectedMainPayload);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"HELLO\", before_exit.last_main_template_message orelse return error.ExpectedMainPayload);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"Hello __rel_loc\", before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);");
     try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
     try expectContains(reentry_file, "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(before_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload, after_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);");
+    try expectContains(reentry_file, "try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);");
     try expectContains(reentry_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());");
     try expectContains(reentry_file, "try std.testing.expect(std.meta.eql(after_exit, after_rejected_lifecycle));");
 }
