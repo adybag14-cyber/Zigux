@@ -21,20 +21,36 @@ SELF_TEST_STEP = "- name: Self-test current Lane 05 local-first archive checker"
 SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test"
 CHECK_STEP = "- name: Check current Lane 05 local-first archive packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"
-NEXT_PHASE_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
+NEXT_PHASE_STEP = "- name: Self-test current Zig installer helper"
+PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP = "- name: Self-test current Phase 1 route summary checker"
+PHASE1_ROUTE_SUMMARY_CHECK_STEP = "- name: Check current Phase 1 route summary packet"
+PHASE2_TOOL_MANIFEST_SELF_TEST_STEP = "- name: Self-test current Phase 2 tool manifest checker"
+PHASE2_TOOL_MANIFEST_CHECK_STEP = "- name: Check current Phase 2 tool manifest packet"
+PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP = "- name: Self-test current Phase 2 artifact tools manifest checker"
+PHASE2_ARTIFACT_TOOLS_CHECK_STEP = "- name: Check current Phase 2 artifact tools manifest packet"
+PHASE7_MAKE_WRAPPER_SELF_TEST_STEP = "- name: Self-test current Phase 7 make-wrapper selftest alignment checker"
+PHASE7_MAKE_WRAPPER_CHECK_STEP = "- name: Check current Phase 7 make-wrapper selftest alignment packet"
+PHASE9_FREEZE_MAP_SELF_TEST_STEP = "- name: Self-test current Phase 9 freeze-map study-boundaries checker"
+PHASE9_FREEZE_MAP_CHECK_STEP = "- name: Check current Phase 9 freeze-map study-boundaries packet"
+PHASE11_BUILD_INVENTORY_SELF_TEST_STEP = "- name: Self-test current Phase 11 build inventory checker"
+PHASE11_BUILD_INVENTORY_CHECK_STEP = "- name: Check current Phase 11 build inventory packet"
 THIRD_PARTY_PATH = "- 'third_party/**'"
-DIRECT_DOWNLOAD_GUARD = 'if [ "$download_success" -ne 1 ]; then'
-DIRECT_DOWNLOAD_CMD = 'if try_download "$ZIGUX_ZIG_URL"; then'
+SCRIPTS_PATH = "- 'scripts/zigux/**'"
+TOOLS_PATH = "- 'tools/lib/*.zig'"
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
     'targets = policy["upgrade_policy"]["archive_target_scope"]',
     'channel = policy["channel"]',
+    'expected_sizes = {"x86_64-linux": 58159088}',
+    'if target not in expected_sizes:',
+    'size_bytes = expected_sizes[target]',
     'filename = f"zig-{target}-{channel}.tar.xz"',
     'url = f"https://ziglang.org/builds/{filename}"',
     'print(f"ZIGUX_ZIG_TARGET=\'{target}\'")',
     'print(f"ZIGUX_ZIG_CHANNEL=\'{channel}\'")',
     'print(f"ZIGUX_ZIG_FILENAME=\'{filename}\'")',
+    'print(f"ZIGUX_ZIG_SIZE_BYTES=\'{size_bytes}\'")',
     'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
 )
 
@@ -42,15 +58,33 @@ LOCAL_ARCHIVE_MARKERS = (
     'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"',
     'extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"',
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+    "archive_size_bytes() {",
+    "require_expected_archive_size() {",
+    'echo "expected $archive to be $ZIGUX_ZIG_SIZE_BYTES bytes" >&2',
     "try_local_archive() {",
     'if [ ! -f "$repo_archive_path" ]; then',
+    'if ! require_expected_archive_size "$repo_archive_path"; then',
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
+    'if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
     "if try_local_archive; then",
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-    DIRECT_DOWNLOAD_GUARD,
-    DIRECT_DOWNLOAD_CMD,
+    'if try_download "$ZIGUX_ZIG_URL"; then',
     "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
+)
+
+README_SELF_TEST_STEP = "- name: Self-test current Lane 05 local archive README checker"
+README_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test"
+README_CHECK_STEP = "- name: Check current Lane 05 local archive README packet"
+README_CHECK_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py"
+
+RETAINED_STEP_PAIRS = (
+    (PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP, PHASE1_ROUTE_SUMMARY_CHECK_STEP),
+    (PHASE2_TOOL_MANIFEST_SELF_TEST_STEP, PHASE2_TOOL_MANIFEST_CHECK_STEP),
+    (PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP, PHASE2_ARTIFACT_TOOLS_CHECK_STEP),
+    (PHASE7_MAKE_WRAPPER_SELF_TEST_STEP, PHASE7_MAKE_WRAPPER_CHECK_STEP),
+    (PHASE9_FREEZE_MAP_SELF_TEST_STEP, PHASE9_FREEZE_MAP_CHECK_STEP),
+    (PHASE11_BUILD_INVENTORY_SELF_TEST_STEP, PHASE11_BUILD_INVENTORY_CHECK_STEP),
 )
 
 
@@ -108,8 +142,16 @@ def check_workflow(text: str) -> None:
     require_marker(text, SELF_TEST_CMD, "workflow checker self-test command")
     require_marker(text, CHECK_STEP, "workflow checker step name")
     require_marker(text, CHECK_CMD, "workflow checker command")
+    require_marker(text, README_SELF_TEST_STEP, "workflow readme-checker self-test step name")
+    require_marker(text, README_SELF_TEST_CMD, "workflow readme-checker self-test command")
+    require_marker(text, README_CHECK_STEP, "workflow readme-checker step name")
+    require_marker(text, README_CHECK_CMD, "workflow readme-checker command")
     require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
     require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
+
+    for self_test_step, check_step in RETAINED_STEP_PAIRS:
+        require_marker(text, self_test_step, "retained bootstrap step")
+        require_marker(text, check_step, "retained bootstrap step")
 
     require_exact_count(text, SETUP_STEP, 1, "workflow step name")
     require_exact_count(text, TOOLCHAIN_SELF_TEST_STEP, 1, "workflow step name")
@@ -121,12 +163,29 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(text, f"run: {SELF_TEST_CMD}", 1, "workflow run line")
     require_exact_count(text, CHECK_STEP, 1, "workflow step name")
     require_exact_line_count(text, f"run: {CHECK_CMD}", 1, "workflow run line")
-    require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
+    require_exact_count(text, README_SELF_TEST_STEP, 1, "workflow step name")
+    require_exact_line_count(text, f"run: {README_SELF_TEST_CMD}", 1, "workflow run line")
+    require_exact_count(text, README_CHECK_STEP, 1, "workflow step name")
+    require_exact_line_count(text, f"run: {README_CHECK_CMD}", 1, "workflow run line")
     require_exact_count(text, 'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"', 1, "archive path marker")
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
+    require_exact_count(text, 'print(f"ZIGUX_ZIG_SIZE_BYTES=\'{size_bytes}\'")', 1, "policy size marker")
+    require_exact_count(text, "archive_size_bytes() {", 1, "archive size helper definition")
+    require_exact_count(text, "require_expected_archive_size() {", 1, "archive size guard helper definition")
+    require_exact_count(text, 'if ! require_expected_archive_size "$repo_archive_path"; then', 1, "local archive size guard")
+    require_exact_count(
+        text,
+        'if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
+        1,
+        "downloaded archive size guard",
+    )
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
-    require_exact_count(text, DIRECT_DOWNLOAD_CMD, 1, "direct-download fallback")
+    require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
+
+    for self_test_step, check_step in RETAINED_STEP_PAIRS:
+        require_exact_count(text, self_test_step, 1, "retained bootstrap step")
+        require_exact_count(text, check_step, 1, "retained bootstrap step")
 
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
@@ -134,9 +193,14 @@ def check_workflow(text: str) -> None:
     require_order(text, POLICY_STEP, ARCHIVE_CHECK_STEP, "workflow step order")
     require_order(text, ARCHIVE_CHECK_STEP, SELF_TEST_STEP, "workflow step order")
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
-    require_order(text, CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
-    require_order(text, "- 'scripts/zigux/**'", THIRD_PARTY_PATH, "workflow pull_request path order")
-    require_order(text, THIRD_PARTY_PATH, "- 'tools/lib/*.zig'", "workflow pull_request path order")
+    require_order(text, CHECK_STEP, README_SELF_TEST_STEP, "workflow step order")
+    require_order(text, README_SELF_TEST_STEP, README_CHECK_STEP, "workflow step order")
+    require_order(text, README_CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
+    require_order(text, SCRIPTS_PATH, THIRD_PARTY_PATH, "workflow pull_request path order")
+    require_order(text, THIRD_PARTY_PATH, TOOLS_PATH, "workflow pull_request path order")
+
+    for self_test_step, check_step in RETAINED_STEP_PAIRS:
+        require_order(text, self_test_step, check_step, "retained bootstrap step order")
 
     require_order(
         text,
@@ -153,6 +217,24 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'channel = policy["channel"]',
+        'expected_sizes = {"x86_64-linux": 58159088}',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'expected_sizes = {"x86_64-linux": 58159088}',
+        'if target not in expected_sizes:',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'if target not in expected_sizes:',
+        'size_bytes = expected_sizes[target]',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'size_bytes = expected_sizes[target]',
         'filename = f"zig-{target}-{channel}.tar.xz"',
         "workflow inline policy order",
     )
@@ -165,6 +247,12 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'url = f"https://ziglang.org/builds/{filename}"',
+        'print(f"ZIGUX_ZIG_SIZE_BYTES=\'{size_bytes}\'")',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'print(f"ZIGUX_ZIG_SIZE_BYTES=\'{size_bytes}\'")',
         'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
         "workflow inline policy order",
     )
@@ -178,8 +266,20 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+        "archive_size_bytes() {",
+        "workflow archive size helper order",
+    )
+    require_order(
+        text,
+        "archive_size_bytes() {",
+        "require_expected_archive_size() {",
+        "workflow archive size helper order",
+    )
+    require_order(
+        text,
+        "require_expected_archive_size() {",
         "try_local_archive() {",
-        "workflow local-first helper order",
+        "workflow helper definition order",
     )
     require_order(
         text,
@@ -201,6 +301,12 @@ def check_workflow(text: str) -> None:
     )
     require_order(
         text,
+        'if ! require_expected_archive_size "$repo_archive_path"; then',
+        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        "workflow local archive size guard order",
+    )
+    require_order(
+        text,
         "if try_local_archive; then",
         'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
         "workflow local-first before mirrors order",
@@ -208,14 +314,8 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-        DIRECT_DOWNLOAD_GUARD,
-        "workflow mirrors before direct-download guard order",
-    )
-    require_order(
-        text,
-        DIRECT_DOWNLOAD_GUARD,
-        DIRECT_DOWNLOAD_CMD,
-        "workflow direct-download guard order",
+        'if try_download "$ZIGUX_ZIG_URL"; then',
+        "workflow mirrors before direct download order",
     )
 
 
@@ -235,17 +335,35 @@ jobs:
           policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
           targets = policy["upgrade_policy"]["archive_target_scope"]
           channel = policy["channel"]
+          expected_sizes = {"x86_64-linux": 58159088}
+          if target not in expected_sizes:
+              raise SystemExit(f"missing expected archive size for {target}")
+          size_bytes = expected_sizes[target]
           filename = f"zig-{target}-{channel}.tar.xz"
           url = f"https://ziglang.org/builds/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
+          print(f"ZIGUX_ZIG_SIZE_BYTES='{size_bytes}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
           repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
+          archive_size_bytes() {
+            stat -c %s "$1"
+          }
+          require_expected_archive_size() {
+            local archive="$1"
+            if [ "$(archive_size_bytes "$archive")" -ne "$ZIGUX_ZIG_SIZE_BYTES" ]; then
+              echo "expected $archive to be $ZIGUX_ZIG_SIZE_BYTES bytes" >&2
+              return 1
+            fi
+          }
           try_local_archive() {
             if [ ! -f "$repo_archive_path" ]; then
+              return 1
+            fi
+            if ! require_expected_archive_size "$repo_archive_path"; then
               return 1
             fi
             if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
@@ -261,10 +379,11 @@ jobs:
           elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             download_success=0
           fi
-          if [ "$download_success" -ne 1 ]; then
-            if try_download "$ZIGUX_ZIG_URL"; then
-              download_success=1
-            fi
+          if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+            download_success=1
+          fi
+          if try_download "$ZIGUX_ZIG_URL"; then
+            download_success=1
           fi
           echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
       - name: Self-test current Zig toolchain checker
@@ -277,8 +396,36 @@ jobs:
         run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test
       - name: Check current Lane 05 local-first archive packet
         run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py
-      - name: Self-test current Phase 2 fixdep gate checker
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+      - name: Self-test current Lane 05 local archive README checker
+        run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test
+      - name: Check current Lane 05 local archive README packet
+        run: python3 scripts/zigux/check-lane05-local-archive-readme.py
+      - name: Self-test current Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
+      - name: Self-test current Phase 1 route summary checker
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
+      - name: Check current Phase 1 route summary packet
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
+      - name: Self-test current Phase 2 tool manifest checker
+        run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test
+      - name: Check current Phase 2 tool manifest packet
+        run: python3 scripts/zigux/check-phase2-tool-manifest.py
+      - name: Self-test current Phase 2 artifact tools manifest checker
+        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test
+      - name: Check current Phase 2 artifact tools manifest packet
+        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py
+      - name: Self-test current Phase 9 freeze-map study-boundaries checker
+        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
+      - name: Check current Phase 9 freeze-map study-boundaries packet
+        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+      - name: Self-test current Phase 7 make-wrapper selftest alignment checker
+        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
+      - name: Check current Phase 7 make-wrapper selftest alignment packet
+        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
 """
     check_workflow(good_workflow)
     case_count = 1
@@ -296,6 +443,19 @@ jobs:
     else:
         raise AssertionError("expected missing policy load failure")
 
+    missing_size_marker = good_workflow.replace(
+        '          print(f"ZIGUX_ZIG_SIZE_BYTES=\'{size_bytes}\'")\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_size_marker)
+    except SystemExit as exc:
+        assert "ZIGUX_ZIG_SIZE_BYTES" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing size marker failure")
+
     missing_policy_step = good_workflow.replace(
         "      - name: Check current Zig toolchain policy packet\n"
         "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n",
@@ -310,25 +470,6 @@ jobs:
     else:
         raise AssertionError("expected missing policy step failure")
 
-    reordered_policy_and_archive = good_workflow.replace(
-        "      - name: Check current Zig toolchain policy packet\n"
-        "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n"
-        "      - name: Check current pinned Zig archive packet\n"
-        "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\n",
-        "      - name: Check current pinned Zig archive packet\n"
-        "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\n"
-        "      - name: Check current Zig toolchain policy packet\n"
-        "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n",
-        1,
-    )
-    try:
-        check_workflow(reordered_policy_and_archive)
-    except SystemExit as exc:
-        assert "workflow step order" in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected reordered policy/archive failure")
-
     missing_repo_archive = good_workflow.replace(
         '          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"\n',
         "",
@@ -341,6 +482,21 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing repo archive path failure")
+
+    missing_local_size_guard = good_workflow.replace(
+        '            if ! require_expected_archive_size "$repo_archive_path"; then\n'
+        "              return 1\n"
+        "            fi\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_local_size_guard)
+    except SystemExit as exc:
+        assert "require_expected_archive_size" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing local size guard failure")
 
     missing_local_validation = good_workflow.replace(
         'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
@@ -355,9 +511,21 @@ jobs:
     else:
         raise AssertionError("expected missing local validation command failure")
 
+    missing_download_size_guard = good_workflow.replace(
+        '          if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n',
+        '          if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n',
+        1,
+    )
+    try:
+        check_workflow(missing_download_size_guard)
+    except SystemExit as exc:
+        assert 'require_expected_archive_size "$archive_path"' in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing download size guard failure")
+
     missing_self_test_step = good_workflow.replace(
-        "      - name: Self-test current Lane 05 local-first archive checker\n"
-        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test\n",
+        f"      {SELF_TEST_STEP}\n        run: {SELF_TEST_CMD}\n",
         "",
         1,
     )
@@ -369,67 +537,74 @@ jobs:
     else:
         raise AssertionError("expected missing checker self-test step failure")
 
-    missing_check_step = good_workflow.replace(
-        "      - name: Check current Lane 05 local-first archive packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
+    missing_readme_step = good_workflow.replace(
+        f"      {README_SELF_TEST_STEP}\n        run: {README_SELF_TEST_CMD}\n",
         "",
         1,
     )
     try:
-        check_workflow(missing_check_step)
+        check_workflow(missing_readme_step)
     except SystemExit as exc:
-        assert CHECK_STEP in str(exc) or CHECK_CMD in str(exc)
+        assert README_SELF_TEST_STEP in str(exc) or README_SELF_TEST_CMD in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected missing checker step failure")
+        raise AssertionError("expected missing README checker self-test step failure")
 
-    reordered_fallback = good_workflow.replace(
-        "          if try_local_archive; then\n"
-        "            download_success=1\n"
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
-        "            download_success=0\n"
-        "          fi\n"
-        '          if [ "$download_success" -ne 1 ]; then\n'
-        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "              download_success=1\n"
-        "            fi\n"
-        "          fi\n",
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
-        "            download_success=0\n"
-        "          fi\n"
-        "          if try_local_archive; then\n"
-        "            download_success=1\n"
-        '          if [ "$download_success" -ne 1 ]; then\n'
-        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "              download_success=1\n"
-        "            fi\n"
-        "          fi\n",
+    missing_tool_manifest_step = good_workflow.replace(
+        f"      {PHASE2_TOOL_MANIFEST_SELF_TEST_STEP}\n"
+        "        run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test\n",
+        "",
         1,
     )
     try:
-        check_workflow(reordered_fallback)
+        check_workflow(missing_tool_manifest_step)
     except SystemExit as exc:
-        assert "workflow local-first before mirrors order" in str(exc)
+        assert PHASE2_TOOL_MANIFEST_SELF_TEST_STEP in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected reordered fallback failure")
+        raise AssertionError("expected missing Phase 2 tool manifest self-test failure")
 
-    duplicate_check_step = good_workflow.replace(
-        "      - name: Check current Lane 05 local-first archive packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
-        "      - name: Check current Lane 05 local-first archive packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n"
-        "      - name: Check current Lane 05 local-first archive packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
+    missing_artifact_manifest_step = good_workflow.replace(
+        f"      {PHASE2_ARTIFACT_TOOLS_CHECK_STEP}\n"
+        "        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py\n",
+        "",
         1,
     )
     try:
-        check_workflow(duplicate_check_step)
+        check_workflow(missing_artifact_manifest_step)
     except SystemExit as exc:
-        assert CHECK_STEP in str(exc)
+        assert PHASE2_ARTIFACT_TOOLS_CHECK_STEP in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected duplicate checker step failure")
+        raise AssertionError("expected missing Phase 2 artifact tools manifest check failure")
+
+    missing_retained_step = good_workflow.replace(
+        f"      {PHASE9_FREEZE_MAP_SELF_TEST_STEP}\n"
+        "        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_retained_step)
+    except SystemExit as exc:
+        assert PHASE9_FREEZE_MAP_SELF_TEST_STEP in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing retained step failure")
+
+    missing_build_inventory_step = good_workflow.replace(
+        f"      {PHASE11_BUILD_INVENTORY_SELF_TEST_STEP}\n"
+        "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_build_inventory_step)
+    except SystemExit as exc:
+        assert PHASE11_BUILD_INVENTORY_SELF_TEST_STEP in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing Phase 11 build inventory self-test failure")
 
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
@@ -458,42 +633,38 @@ jobs:
     else:
         raise AssertionError("expected duplicate third-party path failure")
 
-    missing_direct_download_guard = good_workflow.replace(
-        '          if [ "$download_success" -ne 1 ]; then\n',
-        "",
-        1,
-    ).replace(
-        '            if try_download "$ZIGUX_ZIG_URL"; then\n',
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n',
-        1,
-    ).replace(
+    reordered_fallback = good_workflow.replace(
+        "          if try_local_archive; then\n"
+        "            download_success=1\n"
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        "            download_success=0\n"
         "          fi\n"
-        "          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2\n",
-        "          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2\n",
+        '          if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n'
+        "            download_success=1\n"
+        "          fi\n"
+        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
+        "            download_success=1\n"
+        "          fi\n",
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        "            download_success=0\n"
+        "          fi\n"
+        "          if try_local_archive; then\n"
+        "            download_success=1\n"
+        '          if require_expected_archive_size "$archive_path" && python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n'
+        "            download_success=1\n"
+        "          fi\n"
+        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
+        "            download_success=1\n"
+        "          fi\n",
         1,
     )
     try:
-        check_workflow(missing_direct_download_guard)
+        check_workflow(reordered_fallback)
     except SystemExit as exc:
-        assert "download_success" in str(exc) or "direct-download guard" in str(exc)
+        assert "workflow local-first before mirrors order" in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected missing direct-download guard failure")
-
-    reordered_direct_download_guard = good_workflow.replace(
-        '          if [ "$download_success" -ne 1 ]; then\n'
-        '            if try_download "$ZIGUX_ZIG_URL"; then\n',
-        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
-        '          if [ "$download_success" -ne 1 ]; then\n',
-        1,
-    )
-    try:
-        check_workflow(reordered_direct_download_guard)
-    except SystemExit as exc:
-        assert "direct-download guard order" in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected reordered direct-download guard failure")
+        raise AssertionError("expected reordered fallback failure")
 
     print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST=pass")
     print(f"LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST_CASE_COUNT={case_count}")
