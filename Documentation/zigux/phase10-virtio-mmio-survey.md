@@ -6,7 +6,7 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-survey`
 - lane family: `Phase 10 virtio MMIO`
-- surveyed against current `master` readback on `2026-05-19`
+- surveyed against current `master` readback on `2026-05-20`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: keep the current `drivers/virtio/virtio_mmio.zig` helper surface reviewable without claiming transport-backed queue setup, IRQ delivery, DMA, or probe/remove lifecycle parity
 - product boundary:
@@ -65,4 +65,4 @@ Current `master` keeps this MMIO lane reviewable through these bounded surfaces:
 These gates should be read as helper-local review evidence, direct lab-driver validation, and shared packet reminders only, not as proof of a transport-backed MMIO driver or a dedicated MMIO lifecycle replay.
 
 ## Next bounded step
-Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is to align one additional direct MMIO survey surface around the dedicated MMIO lab replay and restored MMIO survey replay while keeping lifecycle-and-IRQ transport work blocked.
+Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is one additional checker-backed packet-local or shared reminder surface repair around the already-landed MMIO helper packet while lifecycle-and-IRQ transport work stays blocked.
