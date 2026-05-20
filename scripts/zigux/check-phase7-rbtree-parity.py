@@ -37,11 +37,14 @@ REQUIRED_MARKERS = {
         "Fresh authenticated GitHub reread in this slot directly returned:",
         "- `Documentation/zigux/phase7-rbtree-slice.md`",
         "- `scripts/zigux/check-phase7-rbtree-parity.py`",
+        "- `tools/lib/rbtree.zig`",
+        "- `zigux/tests/phase7_rbtree.zig`",
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "`zigux/tests/phase7_build.zig`",
         "`scripts/zigux/validate-phase7.py`",
+        "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
@@ -145,6 +148,7 @@ def run_self_test() -> None:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
+        cases_run = 0
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-rbtree-slice.md"
         slice_marker = "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`"
@@ -154,11 +158,13 @@ def run_self_test() -> None:
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
         checker_path.unlink()
         expect_missing_file("missing_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         note_path = tmp_root / "Documentation" / "zigux" / "phase7-rbtree-direct-anchor-note.md"
@@ -169,12 +175,44 @@ def run_self_test() -> None:
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
         )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "- `tools/lib/rbtree.zig`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_returned_helper_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "- `zigux/tests/phase7_rbtree.zig`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_returned_replay_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_current_packet_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "tools" / "lib" / "rbtree.zig"
         helper_marker = "pub fn rb_find_add_cached"
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_cached_alias", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_path = tmp_root / "zigux" / "tests" / "phase7_rbtree.zig"
@@ -185,6 +223,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
@@ -195,6 +234,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_marker = 'try expectSliceNotContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");'
@@ -204,6 +244,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_manifest.json"
@@ -214,6 +255,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_marker = '"Documentation/zigux/phase7-rbtree-slice.md"'
@@ -223,6 +265,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         checker_marker = "PHASE7_RBTREE_PARITY_SELF_TEST=pass"
@@ -232,10 +275,13 @@ def run_self_test() -> None:
             tmp_root,
             f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
+        assert cases_run == SELF_TEST_CASE_COUNT, cases_run
+
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
-    print(f"PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    print(f"PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT={cases_run}")
 
 
 def parse_args() -> argparse.Namespace:
