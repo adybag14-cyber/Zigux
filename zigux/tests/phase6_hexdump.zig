@@ -133,3 +133,51 @@ test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble pa
     try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
     try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
 }
+
+test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buffers stay aligned" {
+    var upper: [8]u8 = [_]u8{0xaa} ** 8;
+    var alias_upper: [8]u8 = [_]u8{0xbb} ** 8;
+
+    const direct_upper = try hexdump.bin2hexUpper(upper[0..], fixtures.data_b[0..4]);
+    const alias_upper_text = try hexdump.bin2HexUpper(alias_upper[0..], fixtures.data_b[0..4]);
+    try std.testing.expectEqualStrings("BE32DB7B", direct_upper);
+    try std.testing.expectEqualStrings(direct_upper, alias_upper_text);
+    try std.testing.expectEqual(@as(u8, 0xaa), upper[direct_upper.len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), alias_upper[alias_upper_text.len]);
+
+    const grouped_ascii_case = fixtures.parity_cases[5];
+    try std.testing.expectEqualStrings("ascii rowsize-32 group-2", grouped_ascii_case.name);
+
+    var exact: [114]u8 = undefined;
+    var truncated: [113]u8 = [_]u8{fixtures.fill_char} ** 113;
+
+    const exact_required = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..grouped_ascii_case.len],
+        grouped_ascii_case.rowsize,
+        grouped_ascii_case.groupsize,
+        exact[0..],
+        grouped_ascii_case.ascii,
+    );
+    try std.testing.expectEqual(grouped_ascii_case.expected_length, exact_required);
+    try std.testing.expectEqualSlices(
+        u8,
+        grouped_ascii_case.expected_text.current(),
+        std.mem.sliceTo(exact[0..], 0),
+    );
+    try std.testing.expectEqual(@as(u8, 0), exact[exact_required]);
+
+    const truncated_required = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..grouped_ascii_case.len],
+        grouped_ascii_case.rowsize,
+        grouped_ascii_case.groupsize,
+        truncated[0..],
+        grouped_ascii_case.ascii,
+    );
+    try std.testing.expectEqual(grouped_ascii_case.expected_length, truncated_required);
+    try std.testing.expectEqualSlices(
+        u8,
+        grouped_ascii_case.expected_text.current()[0 .. grouped_ascii_case.expected_text.current().len - 1],
+        std.mem.sliceTo(truncated[0..], 0),
+    );
+    try std.testing.expectEqual(@as(u8, 0), truncated[truncated.len - 1]);
+}
