@@ -37,7 +37,7 @@ EXPECTED_SOURCE_SYMBOLS = [
 ]
 
 EXPECTED_HELPER_TEST_ANCHORS = [
-    'test "find first and next set bits across words"',
+    'test "find first and next set bits across words, with andnot gaps explicit"',
     'test "find zero bits respects the declared bit count"',
     'test "find and bit returns the first shared set bit"',
     'test "underscore entry points reuse the public helper behavior"',
@@ -65,8 +65,8 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "find last bit clamps tail words to nbits"',
     'test "find last bit returns nbits when no set bits remain"',
     'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
-    'test "low-level underscore aliases mirror the primary find helpers"',
-    'test "Linux-style aliases mirror the primary find helpers"',
+    'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+    'test "Linux-style aliases mirror the primary find helpers, including andnot"',
 ]
 
 EXPECTED_LANE_LINES = [
@@ -91,8 +91,17 @@ EXPECTED_MANIFEST_PACKET = {
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
     "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
-    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
-    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers"',
+    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers, including andnot"',
+    "andnot_scan_entrypoints": [
+        "findFirstAndNotBit",
+        "find_first_andnot_bit",
+        "_find_first_andnot_bit",
+        "findNextAndNotBit",
+        "find_next_andnot_bit",
+        "_find_next_andnot_bit",
+    ],
+    "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
     "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
     "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
     "tail_clamp_fixture_keys": [
