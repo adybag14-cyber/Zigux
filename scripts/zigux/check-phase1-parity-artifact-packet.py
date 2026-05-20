@@ -139,19 +139,40 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, relative_path: str) -> object:
-    return json.loads(read_text(root, relative_path))
-
-
 def issue(label: str, expected: object, actual: object) -> str:
     return f"{label}:expected={expected!r}:actual={actual!r}"
 
 
-def collect_failures(root: Path) -> list[str]:
+def collect_required_file_failures(root: Path) -> list[str]:
     failures: list[str] = []
     for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).exists():
+        path = root / relative_path
+        if not path.exists():
             failures.append(f"missing_file:{relative_path}")
+        elif not path.is_file():
+            failures.append(f"required_file_not_regular:{relative_path}")
+    return failures
+
+
+def load_json_file(root: Path, relative_path: str, *, label: str, failures: list[str]) -> object | None:
+    try:
+        text = read_text(root, relative_path)
+    except UnicodeDecodeError as exc:
+        failures.append(
+            f"{label}_invalid_utf8:{relative_path}:{exc.start + 1}:{exc.reason}"
+        )
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        failures.append(
+            f"{label}_invalid_json:{relative_path}:{exc.lineno}:{exc.colno}:{exc.msg}"
+        )
+        return None
+
+
+def collect_failures(root: Path) -> list[str]:
+    failures = collect_required_file_failures(root)
     if failures:
         return failures
 
@@ -161,7 +182,14 @@ def collect_failures(root: Path) -> list[str]:
         if count != 1:
             failures.append(issue(f"artifact_diff_marker:{marker}", 1, count))
 
-    fixture = load_json(root, "zigux/tests/fixtures/phase1_helpers.json")
+    fixture = load_json_file(
+        root,
+        "zigux/tests/fixtures/phase1_helpers.json",
+        label="fixture",
+        failures=failures,
+    )
+    if fixture is None:
+        return failures
     if not isinstance(fixture, dict):
         failures.append(issue("fixture_type", "dict", type(fixture).__name__))
         return failures
@@ -169,11 +197,23 @@ def collect_failures(root: Path) -> list[str]:
     if fixture_order != EXPECTED_FIXTURE_ORDER:
         failures.append(issue("fixture_order", EXPECTED_FIXTURE_ORDER, fixture_order))
 
-    mapped_helpers = tuple(FIXTURE_SECTION_TO_HELPER[name] for name in fixture_order if name in FIXTURE_SECTION_TO_HELPER)
+    mapped_helpers = tuple(
+        FIXTURE_SECTION_TO_HELPER[name]
+        for name in fixture_order
+        if name in FIXTURE_SECTION_TO_HELPER
+    )
     if len(mapped_helpers) != len(EXPECTED_FIXTURE_ORDER):
-        failures.append(issue("fixture_mapped_helper_count", len(EXPECTED_FIXTURE_ORDER), len(mapped_helpers)))
+        failures.append(
+            issue("fixture_mapped_helper_count", len(EXPECTED_FIXTURE_ORDER), len(mapped_helpers))
+        )
     elif tuple(sorted(mapped_helpers)) != tuple(sorted(EXPECTED_MANIFEST_HELPERS)):
-        failures.append(issue("fixture_mapped_helpers", tuple(sorted(EXPECTED_MANIFEST_HELPERS)), tuple(sorted(mapped_helpers))))
+        failures.append(
+            issue(
+                "fixture_mapped_helpers",
+                tuple(sorted(EXPECTED_MANIFEST_HELPERS)),
+                tuple(sorted(mapped_helpers)),
+            )
+        )
 
     for (section, field), expected in EXPECTED_FIXTURE_SENTINELS.items():
         section_value = fixture.get(section)
@@ -181,7 +221,14 @@ def collect_failures(root: Path) -> list[str]:
         if actual != expected:
             failures.append(issue(f"fixture_sentinel:{section}.{field}", expected, actual))
 
-    manifest = load_json(root, "zigux/tests/fixtures/phase1_helper_manifest.json")
+    manifest = load_json_file(
+        root,
+        "zigux/tests/fixtures/phase1_helper_manifest.json",
+        label="manifest",
+        failures=failures,
+    )
+    if manifest is None:
+        return failures
     if not isinstance(manifest, dict):
         failures.append(issue("manifest_type", "dict", type(manifest).__name__))
         return failures
@@ -206,7 +253,9 @@ def collect_failures(root: Path) -> list[str]:
         if direct_helpers != EXPECTED_DIRECT_HELPERS:
             failures.append(issue("manifest_direct_helpers", EXPECTED_DIRECT_HELPERS, direct_helpers))
         if lane_sequencing.get("rule_summary") != EXPECTED_RULE_SUMMARY:
-            failures.append(issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, lane_sequencing.get("rule_summary")))
+            failures.append(
+                issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, lane_sequencing.get("rule_summary"))
+            )
         if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
             failures.append(
                 issue(
@@ -216,7 +265,14 @@ def collect_failures(root: Path) -> list[str]:
                 )
             )
 
-    blockers = load_json(root, "zigux/tests/fixtures/phase1_replay_blockers.json")
+    blockers = load_json_file(
+        root,
+        "zigux/tests/fixtures/phase1_replay_blockers.json",
+        label="blockers",
+        failures=failures,
+    )
+    if blockers is None:
+        return failures
     if not isinstance(blockers, dict):
         failures.append(issue("blockers_type", "dict", type(blockers).__name__))
         return failures
@@ -394,6 +450,12 @@ def mutate_remove_artifact_marker(root: Path) -> None:
     path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
 
 
+def mutate_required_file_not_regular(root: Path) -> None:
+    path = root / "scripts/zigux/artifact_diff.py"
+    path.unlink()
+    path.mkdir()
+
+
 def mutate_fixture_order(root: Path) -> None:
     path = root / "zigux/tests/fixtures/phase1_helpers.json"
     fixture = json.loads(path.read_text(encoding="utf-8"))
@@ -410,6 +472,14 @@ def mutate_fixture_sentinel(root: Path) -> None:
     path.write_text(json.dumps(fixture, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
+def mutate_fixture_invalid_json(root: Path) -> None:
+    write_text(root, "zigux/tests/fixtures/phase1_helpers.json", '{"find_bit":\n')
+
+
+def mutate_fixture_not_object(root: Path) -> None:
+    write_text(root, "zigux/tests/fixtures/phase1_helpers.json", "[]\n")
+
+
 def mutate_manifest_count(root: Path) -> None:
     path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -422,6 +492,10 @@ def mutate_manifest_summary(root: Path) -> None:
     manifest = json.loads(path.read_text(encoding="utf-8"))
     manifest["lane_sequencing"]["rule_summary"] = "drifted summary"
     path.write_text(json.dumps(manifest, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+
+
+def mutate_manifest_invalid_json(root: Path) -> None:
+    write_text(root, "zigux/tests/fixtures/phase1_helper_manifest.json", '{"phase":\n')
 
 
 def mutate_blocker_manifest(root: Path) -> None:
@@ -452,19 +526,28 @@ def mutate_c_harness_blocker_id(root: Path) -> None:
     path.write_text(json.dumps(blockers, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
+def mutate_blockers_invalid_json(root: Path) -> None:
+    write_text(root, "zigux/tests/fixtures/phase1_replay_blockers.json", '{"status":\n')
+
+
 def run_self_test() -> int:
     cases = (
         ("success", None),
         ("missing_artifact_diff", lambda root: (root / "scripts/zigux/artifact_diff.py").unlink()),
+        ("required_file_not_regular", mutate_required_file_not_regular),
         ("missing_artifact_marker", mutate_remove_artifact_marker),
         ("fixture_order", mutate_fixture_order),
         ("fixture_sentinel", mutate_fixture_sentinel),
+        ("fixture_invalid_json", mutate_fixture_invalid_json),
+        ("fixture_not_object", mutate_fixture_not_object),
         ("manifest_count", mutate_manifest_count),
         ("manifest_summary", mutate_manifest_summary),
+        ("manifest_invalid_json", mutate_manifest_invalid_json),
         ("blocker_manifest", mutate_blocker_manifest),
         ("blocker_shared_count", mutate_blocker_shared_count),
         ("replay_blocker_id", mutate_replay_blocker_id),
         ("c_harness_blocker_id", mutate_c_harness_blocker_id),
+        ("blockers_invalid_json", mutate_blockers_invalid_json),
     )
 
     for name, mutation in cases:
