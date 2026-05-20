@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 78
+EXPECTED_SELF_TEST_CASE_COUNT = 80
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -255,6 +255,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     present_files = manifest.get("present_files")
     missing_files = manifest.get("missing_files")
     master_present_branch_missing_files = manifest.get("master_present_branch_missing_files")
+    workflow_surface = manifest.get("workflow_surface")
 
     if not isinstance(present_files, list):
         issues.append(("MANIFEST_FIELD_NOT_LIST", "present_files"))
@@ -307,6 +308,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             non_file_code="MASTER_PRESENT_BRANCH_PATH_NOT_FILE_ON_BRANCH",
         )
     )
+    if workflow_surface == EXPECTED_WORKFLOW_SURFACE:
+        issues.extend(
+            collect_branch_manifest_path_issues(
+                root,
+                [workflow_surface],
+                missing_code="WORKFLOW_SURFACE_MISSING_ON_BRANCH",
+                unexpected_code="",
+                non_file_code="WORKFLOW_SURFACE_NOT_FILE_ON_BRANCH",
+            )
+        )
     if isinstance(present_files, list) and isinstance(missing_files, list):
         present_set = {value for value in present_files if isinstance(value, str)}
         missing_set = {value for value in missing_files if isinstance(value, str)}
@@ -351,7 +362,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "missing_files"))
     if manifest.get("master_present_branch_missing_files") != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files"))
-    if manifest.get("workflow_surface") != EXPECTED_WORKFLOW_SURFACE:
+    if workflow_surface != EXPECTED_WORKFLOW_SURFACE:
         issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
 
     if string_list_contains(missing_files, CHECKER_PATH):
@@ -396,6 +407,7 @@ def manifest_json(
     present_files: object | None = None,
     missing_files: object | None = None,
     master_present_branch_missing_files: object | None = None,
+    workflow_surface: object = EXPECTED_WORKFLOW_SURFACE,
 ) -> str:
     payload = {
         "packet": packet,
@@ -414,7 +426,7 @@ def manifest_json(
             if master_present_branch_missing_files is None
             else master_present_branch_missing_files
         ),
-        "workflow_surface": EXPECTED_WORKFLOW_SURFACE,
+        "workflow_surface": workflow_surface,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -424,6 +436,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, BOOTSTRAP_NOTES, "\n".join(BOOTSTRAP_NOTES_MARKERS) + "\n")
     write_text(root, PHASE2_VALIDATOR, "\n".join(PHASE2_VALIDATOR_MARKERS) + "\n")
     write_text(root, PHASE2_CLOSURE_VALIDATOR, "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS) + "\n")
+    write_text(root, Path(EXPECTED_WORKFLOW_SURFACE), "name: zigux-bootstrap\n")
     for rel_path in EXPECTED_PRESENT_FILES:
         target = Path(rel_path)
         resolved = resolve_path(root, target)
@@ -655,6 +668,21 @@ def run_self_test() -> int:
             "MASTER_PRESENT_BRANCH_PATH_NOT_FILE_ON_BRANCH",
             EXPECTED_MISSING_FILES[0],
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, Path(EXPECTED_WORKFLOW_SURFACE))
+        workflow_path.unlink()
+        assert ("WORKFLOW_SURFACE_MISSING_ON_BRANCH", EXPECTED_WORKFLOW_SURFACE) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, Path(EXPECTED_WORKFLOW_SURFACE))
+        workflow_path.unlink()
+        workflow_path.parent.mkdir(parents=True, exist_ok=True)
+        workflow_path.mkdir()
+        assert ("WORKFLOW_SURFACE_NOT_FILE_ON_BRANCH", EXPECTED_WORKFLOW_SURFACE) in collect_issues(root)
+        workflow_path.rmdir()
         checks_run += 1
 
         build_self_test_root(root)
