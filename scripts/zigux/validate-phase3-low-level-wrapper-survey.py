@@ -133,6 +133,8 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
         'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {',
+        'test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers explicit" {',
+        'test "phase3 low-level wrappers keep direct MMIO scope gates explicit" {',
         'test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {',
         'test "phase3 low-level wrappers keep additive and bitwise atomic updates explicit before MMIO publish" {',
         'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
