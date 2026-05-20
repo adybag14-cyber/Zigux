@@ -3,8 +3,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 ## Status
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
-- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=6a64770f7b801c063ebf72348ca140b44f8e1080`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-field-and-chrdev-window-layout-asserts-consumed-by-shared-abi-replays`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=142cecfcfe3b01b07ef8c9f1010fc90bd4a56746`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
@@ -27,7 +27,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-helper-local-policy-slice-and-the-directly-coupled-low-level-wrapper-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-helper-local-policy-slice-or-the-directly-coupled-low-level-wrapper-survey-drifts-again`
+- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-drift-again`
 ## Roadmap Contract
 Phase 3 is where Zigux starts defining permanent C and Zig boundary rules rather than only helper scaffolding.
 For this lane, the roadmap-backed contract is still narrow:
@@ -60,7 +60,7 @@ Current same-family progress already includes helper-local explicit-byte decodin
 - the layout helper now keeps the canonical starter layouts, the chrdev budget-window delivery-window layouts, and the interop byte values explicit again, while the helper-local policy starter packet, focused policy dump route, and directly coupled low-level-wrapper packet own the live replay and survey evidence
 - there is no remaining packet-local substrate regression in this narrow helper lane; the same-lane follow-through is only to keep this survey aligned if the helper-local policy starter packet, focused policy dump route, or directly coupled low-level-wrapper packet drifts again
 ## Next Bounded Step
-- leave this lane parked unless `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, or `zigux/unsafe/narrow.zig` drifts again from this survey
+- leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, or `zigux/unsafe/narrow.zig` drifts again from this survey
 - keep the next same-lane change to one packet-local note refresh or one validator-wording refresh tied only to this unsafe substrate slice
 - treat `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `scripts/zigux/validate-phase3.py` as adjacent or absent shared surfaces rather than parking triggers for this unsafe survey
 - if the helper-local policy starter packet, focused policy dump route, directly coupled low-level-wrapper replay, or either dedicated survey check changes later, resurvey this note against the exact live files before claiming that surface here
