@@ -68,7 +68,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_KALLSYMS_BUILD: (
         "phase8_help.zig",
         "phase8_kallsyms.zig",
-        "Run the phase 8 help and kallsyms tests.",
+        "Run the focused Phase 8 help and kallsyms shared tests.",
     ),
     HELP_TEST: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
@@ -213,6 +213,23 @@ def run_self_test() -> int:
             raise AssertionError("expected missing shared build marker to be reported")
         build_path.write_text(original_build, encoding="utf-8")
 
+        build_path.write_text(
+            original_build.replace(
+                "Run the focused Phase 8 help and kallsyms shared tests.",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_build_description = validate_root(root)
+        expected_build_description = (
+            "zigux/tests/phase8_help_kallsyms_only_build.zig:"
+            "Run the focused Phase 8 help and kallsyms shared tests."
+        )
+        if expected_build_description not in missing_build_description.missing_markers:
+            raise AssertionError("expected missing shared build description to be reported")
+        build_path.write_text(original_build, encoding="utf-8")
+
         makefile = root / MAKEFILE
         original_makefile = _read(makefile)
         makefile.write_text(
@@ -247,7 +264,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
