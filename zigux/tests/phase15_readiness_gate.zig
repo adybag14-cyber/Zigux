@@ -49,7 +49,7 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-20", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
@@ -124,7 +124,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=arch-council");
     try expectContains(readiness_note, "PHASE15_SLICE=governance_packet_readiness_truthfulness");
-    try expectContains(readiness_note, "current-master-readback-2026-05-19");
+    try expectContains(readiness_note, "current-master-readback-2026-05-20");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(
         readiness_note,
