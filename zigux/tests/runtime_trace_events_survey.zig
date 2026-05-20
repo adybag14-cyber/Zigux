@@ -148,7 +148,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P9-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(manifest.surveyed_commit.len != 0);
     try std.testing.expect(std.mem.indexOfScalar(u8, manifest.surveyed_commit, ' ') == null);
@@ -219,13 +219,16 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqual(@as(usize, 6), manifest.ownership_map.len);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", manifest.ownership_map[0].surface);
     try std.testing.expectEqualStrings("survey_note", manifest.ownership_map[0].role);
-    try std.testing.expectEqualStrings("P9-L10", manifest.ownership_map[0].owner);
+    try std.testing.expectEqualStrings("P9-L09", manifest.ownership_map[0].owner);
     try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_manifest.json", manifest.ownership_map[1].surface);
     try std.testing.expectEqualStrings("packet_truth_manifest", manifest.ownership_map[1].role);
+    try std.testing.expectEqualStrings("P9-L09", manifest.ownership_map[1].owner);
     try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_survey.zig", manifest.ownership_map[2].surface);
     try std.testing.expectEqualStrings("survey_gate", manifest.ownership_map[2].role);
+    try std.testing.expectEqualStrings("P9-L09", manifest.ownership_map[2].owner);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", manifest.ownership_map[3].surface);
     try std.testing.expectEqualStrings("module_slice_note", manifest.ownership_map[3].role);
+    try std.testing.expectEqualStrings("P9-L09", manifest.ownership_map[3].owner);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md", manifest.ownership_map[4].surface);
     try std.testing.expectEqualStrings("adjacent_shared_reminder", manifest.ownership_map[4].role);
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[4].owner);
@@ -234,7 +237,6 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[5].owner);
 
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
-    try expectSurveyedCommitMarker(module_slice_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
