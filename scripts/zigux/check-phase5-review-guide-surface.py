@@ -89,7 +89,7 @@ APPROVED_IDIOM_REQUIRED_TEXT = (
     "while `formatIterationMessageInto(12, [7]u8)` still returns",
     "and keeps the sample in `.initialized`.",
     "Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
-    "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
+    "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet, keep standalone string-helper, `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
 )
 
 APPROVED_IDIOM_BOUNDARY_MARKERS = (
@@ -399,7 +399,6 @@ def run_self_test() -> int:
     expected_case_count = 17
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
-        _seed(root)
 
         failures = collect_failures(root)
         if failures:
