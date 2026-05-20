@@ -217,7 +217,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 9
+    expected_case_count = 10
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -272,7 +272,7 @@ def run_self_test() -> int:
             ),
         )
         failures = collect_failures(missing_docs_root_marker_root)
-        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}"]
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected docs-root failure: {failures}")
         checks_run += 1
@@ -284,7 +284,7 @@ def run_self_test() -> int:
             _placeholder_text(SAMPLE_ROOT_PATH, SAMPLE_ROOT_MARKERS[1:]),
         )
         failures = collect_failures(missing_sample_root_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
         checks_run += 1
@@ -303,7 +303,7 @@ def run_self_test() -> int:
             ),
         )
         failures = collect_failures(missing_sample_root_bitmap_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
         checks_run += 1
@@ -312,9 +312,24 @@ def run_self_test() -> int:
         _seed(missing_direct_path_root)
         (missing_direct_path_root / DIRECT_PACKET_PATHS[8]).unlink()
         failures = collect_failures(missing_direct_path_root)
-        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"]
+        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected direct-path failure: {failures}")
+        checks_run += 1
+
+        missing_attr_group_guide_path_root = root / "missing_attr_group_guide_path"
+        _seed(missing_attr_group_guide_path_root)
+        _write(
+            missing_attr_group_guide_path_root / GUIDE_PATH,
+            _placeholder_text(GUIDE_PATH, GUIDE_MARKERS).replace(
+                "`samples/zigux/kobject_example_attr_group_contract.zig`\n\n",
+                "",
+            ),
+        )
+        failures = collect_failures(missing_attr_group_guide_path_root)
+        expected = ["guide:missing_path:samples/zigux/kobject_example_attr_group_contract.zig"]
+        if failures != expected:
+            raise AssertionError(f"unexpected attr-group guide-path failure: {failures}")
         checks_run += 1
 
         forbidden_text_root = root / "forbidden_text"
@@ -324,7 +339,7 @@ def run_self_test() -> int:
             _placeholder_text(GUIDE_PATH, GUIDE_MARKERS) + FORBIDDEN_GUIDE_TEXT[0] + "\n",
         )
         failures = collect_failures(forbidden_text_root)
-        expected = [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}"]
+        expected = [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected forbidden-text failure: {failures}")
         checks_run += 1
