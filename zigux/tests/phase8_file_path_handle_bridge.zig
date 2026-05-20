@@ -150,6 +150,21 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
 }
 
+test "phase 8 file-path handle bridge helper source keeps planning-only bridge boundaries explicit" {
+    const helper_source = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(helper_source);
+
+    try expectContains(helper_source, "pub fn resolveReusePinnedMapAttempt(");
+    try expectContains(helper_source, "pub fn planTokenPreparation(");
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "F_DUPFD_CLOEXEC") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "/sys/fs/bpf") == null);
+}
+
 test "phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit" {
     const libbpf_survey = try readWorkspaceFile(
         std.testing.allocator,
