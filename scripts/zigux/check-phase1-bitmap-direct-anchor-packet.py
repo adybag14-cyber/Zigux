@@ -17,6 +17,12 @@ BITMAP_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 
 EXPECTED_BITMAP_HELPER_ANCHORS = [
     'test "bitmap range helpers preserve edges across whole-word spans"',
+    'test "bitmap copy alias preserves raw source words without tail clearing"',
+    'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    'test "bitmap copy and extend handles zero and aligned counts"',
+    'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    'test "bitmap tail-masked helpers ignore out-of-range differences"',
+    'test "bitmap full empty and weight ignore out-of-range tail bits"',
     'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     'test "bitmap scnprintf truncates and keeps a terminator slot"',
     'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
