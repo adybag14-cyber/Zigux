@@ -145,3 +145,55 @@ test "runtime bitmap sample rejects cold top-bit source copies without disturbin
     try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(1));
     try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(0, 1));
 }
+
+test "runtime bitmap sample rejects copy reentry after target exit without disturbing either sample leg" {
+    const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;
+
+    var source = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{top_bit});
+    const source_before = source.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, source.stage());
+    try std.testing.expectEqual(@as(u32, top_bit), source_before.first_set);
+    try std.testing.expectEqual(@as(u32, 1), source_before.weight);
+
+    var target = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try target.initWithSetBits(&.{0});
+    try target.exit();
+
+    const target_before = target.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, target.stage());
+    try std.testing.expectEqual(@as(u32, 0), target_before.first_set);
+    try std.testing.expectEqual(@as(u32, 1), target_before.weight);
+    try std.testing.expectEqual(@as(usize, 1), target_before.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, target.copyFrom(&source));
+
+    const source_after = source.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, source.stage());
+    try std.testing.expectEqual(source_before.first_set, source_after.first_set);
+    try std.testing.expectEqual(source_before.first_zero, source_after.first_zero);
+    try std.testing.expectEqual(source_before.weight, source_after.weight);
+    try std.testing.expectEqual(source_before.nbits, source_after.nbits);
+    try std.testing.expectEqual(source_before.init_runs, source_after.init_runs);
+    try std.testing.expectEqual(source_before.selftest_runs, source_after.selftest_runs);
+    try std.testing.expectEqual(source_before.exit_runs, source_after.exit_runs);
+    try std.testing.expect(!source.isSet(0));
+    try std.testing.expect(source.isSet(top_bit));
+    try std.testing.expectEqual(@as(?u32, top_bit), source.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), source.nthSetBit(1));
+
+    const target_after = target.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, target.stage());
+    try std.testing.expectEqual(target_before.first_set, target_after.first_set);
+    try std.testing.expectEqual(target_before.first_zero, target_after.first_zero);
+    try std.testing.expectEqual(target_before.weight, target_after.weight);
+    try std.testing.expectEqual(target_before.nbits, target_after.nbits);
+    try std.testing.expectEqual(target_before.init_runs, target_after.init_runs);
+    try std.testing.expectEqual(target_before.selftest_runs, target_after.selftest_runs);
+    try std.testing.expectEqual(target_before.exit_runs, target_after.exit_runs);
+    try std.testing.expect(target.isSet(0));
+    try std.testing.expect(!target.isSet(top_bit));
+    try std.testing.expectEqual(@as(?u32, 0), target.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(1));
+    try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(0, 1));
+}
