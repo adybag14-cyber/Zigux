@@ -68,6 +68,27 @@ fn expectClearLowestSetBitIdentityLong(value: usize) !void {
     try std.testing.expectEqual(hweight_long(value) - 1, hweight_long(cleared));
 }
 
+fn expectLowestSetBitSingleton32(value: u32) !void {
+    if (value == 0) return;
+    const isolated = value & (~value +% 1);
+    try std.testing.expectEqual(@as(u32, 1), swHweight32(isolated));
+    try std.testing.expectEqual(@as(u32, 1), __sw_hweight32(isolated));
+}
+
+fn expectLowestSetBitSingleton64(value: u64) !void {
+    if (value == 0) return;
+    const isolated = value & (~value +% 1);
+    try std.testing.expectEqual(@as(u64, 1), swHweight64(isolated));
+    try std.testing.expectEqual(@as(u64, 1), __sw_hweight64(isolated));
+}
+
+fn expectLowestSetBitSingletonLong(value: usize) !void {
+    if (value == 0) return;
+    const isolated = value & (~value +% 1);
+    try std.testing.expectEqual(@as(usize, 1), hweightLong(isolated));
+    try std.testing.expectEqual(@as(usize, 1), hweight_long(isolated));
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -153,4 +174,45 @@ test "software hweight helpers drop exactly one bit when clearing the lowest set
     }
     try expectClearLowestSetBitIdentityLong(std.math.maxInt(usize));
     try expectClearLowestSetBitIdentityLong(if (@sizeOf(usize) == 4) 0xdead_beef else 0xdead_beef_cafe_babe);
+}
+
+test "software hweight helpers count the isolated lowest set bit as exactly one" {
+    var value8: u32 = 1;
+    while (value8 <= 0xff) : (value8 += 1) {
+        const isolated = value8 & (~value8 +% 1);
+        try std.testing.expectEqual(@as(u32, 1), swHweight8(isolated));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight8(isolated));
+    }
+
+    var value16: u32 = 1;
+    while (value16 <= 0xffff) : (value16 += 1) {
+        const isolated = value16 & (~value16 +% 1);
+        try std.testing.expectEqual(@as(u32, 1), swHweight16(isolated));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight16(isolated));
+    }
+
+    var lcg32: u32 = 0x9e37_79b9;
+    var iter32: usize = 0;
+    while (iter32 < 256) : (iter32 += 1) {
+        lcg32 = lcg32 *% 1_103_515_245 +% 12_345;
+        try expectLowestSetBitSingleton32(lcg32);
+    }
+    try expectLowestSetBitSingleton32(0xffff_ffff);
+    try expectLowestSetBitSingleton32(0x8000_0001);
+
+    var lcg64: u64 = 0x9e37_79b9_7f4a_7c15;
+    var iter64: usize = 0;
+    while (iter64 < 256) : (iter64 += 1) {
+        lcg64 = lcg64 *% 2_862_933_555_777_941_757 +% 3_037_000_493;
+        try expectLowestSetBitSingleton64(lcg64);
+    }
+    try expectLowestSetBitSingleton64(0xffff_ffff_ffff_ffff);
+    try expectLowestSetBitSingleton64(0x8000_0000_0000_0001);
+
+    var bit: usize = 0;
+    while (bit < @bitSizeOf(usize)) : (bit += 1) {
+        try expectLowestSetBitSingletonLong((@as(usize, 3) << @intCast(bit)) ^ (@as(usize, 1) << @intCast(bit)));
+    }
+    try expectLowestSetBitSingletonLong(std.math.maxInt(usize));
+    try expectLowestSetBitSingletonLong(if (@sizeOf(usize) == 4) 0xdead_beef else 0xdead_beef_cafe_babe);
 }
