@@ -55,6 +55,15 @@ test "phase4 perf baseline survey keeps rollback, decision, and wrapper ownershi
     try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
 }
 
+test "phase4 perf baseline survey keeps gate owners explicit for both landed rollback thresholds" {
+    try requireMarker("\"atomic64\": {");
+    try requireMarker("\"gate_owner\": \"ABI and Runtime Team\"");
+    try requireMarker("\"gate_rollback_owner\": \"ABI and Runtime Team\"");
+    try requireMarker("\"bitmap\": {");
+    try requireMarker("\"gate_owner\": \"Shared Subsystems Pod\"");
+    try requireMarker("\"gate_rollback_owner\": \"Shared Subsystems Pod\"");
+}
+
 test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {
     try requireMarker("\"id\": \"phase4-perf-baseline-shared-promotion-decision\"");
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
