@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the bounded Phase 1 bitmap direct-anchor reminder packet."""
+"""Guard the Phase 1 bitmap direct-anchor packet against helper, manifest, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -10,289 +10,253 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve()
-DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
-
-PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
-MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+DEFAULT_ROOT = HERE.parent.resolve()
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
+BITMAP_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
-REQUIRED_FILES = (
-    PHASE1_CLOSURE_REL,
-    MANIFEST_REL,
-    BITMAP_HELPER_REL,
-)
-
-EXPECTED_PHASE = "Phase 1"
-EXPECTED_STATUS = "closed"
-
-EXPECTED_DIRECT_ANCHOR_HELPERS = [
-    "tools/lib/bitmap.zig",
-    "tools/lib/find_bit.zig",
-    "tools/lib/rbtree.zig",
-    "tools/lib/string.zig",
-]
-
-EXPECTED_CLOSURE_MARKERS = [
-    "The current smallest helper-family tie-breaker inside that packet is the bitmap direct-anchor route:",
-    "drift in the live caller-window or multiword-tail `orBits()` clamp proofs",
-]
-
-EXPECTED_BITMAP_SOURCE_SYMBOLS = [
-    "pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {",
-    "pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {",
-]
-
-EXPECTED_BITMAP_DIRECT_TEST_ANCHORS = [
+EXPECTED_BITMAP_HELPER_ANCHORS = [
     'test "bitmap range helpers preserve edges across whole-word spans"',
-    'test "bitmap copy alias preserves raw source words without tail clearing"',
-    'test "bitmap copy aliases preserve tail clearing and extension semantics"',
-    'test "bitmap copy and extend handles zero and aligned counts"',
-    'test "bitmap copy helpers keep zero-sized destination views untouched"',
-    'test "bitmap zero-bit logical helpers stay explicit"',
-    'test "bitmap full empty and weight ignore out-of-range tail bits"',
-    'test "bitmap or keeps caller-selected bit window"',
-    'test "bitmap or across a multiword tail still lets callers clamp the last word"',
     'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     'test "bitmap scnprintf truncates and keeps a terminator slot"',
-    'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
     'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    'test "bitmap zero-bit logical helpers stay explicit"',
+    'test "bitmap or keeps caller-selected bit window"',
+    'test "bitmap or across a multiword tail still lets callers clamp the last word"',
+    'test "bitmap weighted or and xor clamp counts to the declared tail window"',
     'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
-    'test "bitmap Linux-style aliases mirror size state and allocation helpers"',
+]
+
+EXPECTED_BITMAP_PACKET = {
+    "first_word_boundary_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
+    "scnprintf_truncation_anchor": 'test "bitmap scnprintf truncates and keeps a terminator slot"',
+    "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
+    "or_window_anchor": 'test "bitmap or keeps caller-selected bit window"',
+    "or_multiword_tail_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word"',
+    "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
+    "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
+    "partial_xor_review_fields": [
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+    ],
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
+        "direct-anchor drift inside the current helper-local packet or committed shared "
+        "replay drift in the bitmap parity fields; current master still ships direct "
+        "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, caller-window xor "
+        "and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit "
+        "logical short-circuit, and Linux-style alias mirror anchors here, and if the "
+        "separate bitmap closure-validator anchor-sync repair is still outstanding, treat "
+        "that as the only other bitmap follow-through."
+    ),
+}
+
+EXPECTED_BITMAP_LANE_MARKERS = [
+    (
+        "lane_direct_owner",
+        "`PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; the restored phase1-closure note and validate-phase1-closure guard are live companions again, while the older validator-first and make-route names stay historical`",
+    ),
+    (
+        "lane_next_safe_step",
+        "`PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
+    ),
 ]
 
 
-def repo_root(override: str | None) -> Path:
-    return Path(override).resolve() if override else DEFAULT_ROOT
+def repo_root(root: str | None) -> Path:
+    return Path(root).resolve() if root else DEFAULT_ROOT
 
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
-    count = text.count(needle)
-    return [] if count == 1 else [f"{label}:expected_once:actual_count={count}:{needle}"]
+def load_json(root: Path, relative_path: Path) -> object:
+    return json.loads(load_text(root, relative_path))
+
+
+def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
+    count = text.count(marker)
+    return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
 
 
-def write_text(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def replace_once(text: str, old: str, new: str) -> str:
-    if old not in text:
-        raise ValueError(f"missing expected marker: {old}")
-    return text.replace(old, new, 1)
+def nested_value(data: object, path: tuple[str, ...]) -> object:
+    current = data
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
 
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).is_file():
+
+    for relative_path in (BITMAP_HELPER_REL, BITMAP_MANIFEST_REL, BITMAP_LANE_NOTE_REL):
+        if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
         return failures
 
-    closure_text = load_text(root, PHASE1_CLOSURE_REL)
-    for marker in EXPECTED_CLOSURE_MARKERS:
-        failures.extend(
-            require_exact_occurrence(
-                closure_text,
-                f"{PHASE1_CLOSURE_REL.as_posix()}:closure_marker",
-                marker,
-            )
-        )
-
-    manifest = json.loads(load_text(root, MANIFEST_REL))
-    if not isinstance(manifest, dict):
-        return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
-
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:phase",
-            manifest.get("phase"),
-            EXPECTED_PHASE,
-        )
-    )
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:status",
-            manifest.get("status"),
-            EXPECTED_STATUS,
-        )
-    )
-
-    lane_sequencing = manifest.get("lane_sequencing")
-    if not isinstance(lane_sequencing, dict):
-        return [
-            f"{MANIFEST_REL.as_posix()}:lane_sequencing:expected=dict:actual={type(lane_sequencing).__name__}"
-        ]
-
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:lane_sequencing.direct_anchor_followup_helpers",
-            lane_sequencing.get("direct_anchor_followup_helpers"),
-            EXPECTED_DIRECT_ANCHOR_HELPERS,
-        )
-    )
-
     helper_text = load_text(root, BITMAP_HELPER_REL)
-    seen: set[str] = set()
-    for symbol in EXPECTED_BITMAP_SOURCE_SYMBOLS:
-        failures.extend(
-            require_exact_occurrence(
-                helper_text,
-                f"{BITMAP_HELPER_REL.as_posix()}:source_symbol",
-                symbol,
-            )
-        )
-        seen.add(symbol)
+    lane_text = load_text(root, BITMAP_LANE_NOTE_REL)
+    manifest = load_json(root, BITMAP_MANIFEST_REL)
+    if not isinstance(manifest, dict):
+        return [f"bitmap_manifest:expected=dict:actual={type(manifest).__name__}"]
 
-    for anchor in EXPECTED_BITMAP_DIRECT_TEST_ANCHORS:
-        if anchor in seen:
-            continue
+    for anchor in EXPECTED_BITMAP_HELPER_ANCHORS:
         failures.extend(
-            require_exact_occurrence(
-                helper_text,
-                f"{BITMAP_HELPER_REL.as_posix()}:direct_test_anchor",
-                anchor,
+            require_exact_occurrence(helper_text, f"bitmap_helper:{anchor}", anchor)
+        )
+
+    for label, marker in EXPECTED_BITMAP_LANE_MARKERS:
+        failures.extend(
+            require_exact_occurrence(lane_text, f"bitmap_lane:{label}", marker)
+        )
+
+    for key, expected in EXPECTED_BITMAP_PACKET.items():
+        failures.extend(
+            require_exact_value(
+                f"bitmap_manifest:review_anchors.tools/lib/bitmap.zig.{key}",
+                nested_value(manifest, ("review_anchors", "tools/lib/bitmap.zig", key)),
+                expected,
             )
         )
-        seen.add(anchor)
 
     return failures
 
 
-def make_fixture_tree(root: Path) -> None:
-    for relative_path in REQUIRED_FILES:
-        write_text(root / relative_path, f"fixture for {relative_path.as_posix()}\n")
+def write_file(root: Path, relative_path: Path, text: str) -> None:
+    path = root / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
-    write_text(
-        root / PHASE1_CLOSURE_REL,
-        "\n".join(
-            [
-                "# Phase 1 Closure",
-                "",
-                EXPECTED_CLOSURE_MARKERS[0],
-                "Keep bitmap parked unless a fresh reread finds "
-                + EXPECTED_CLOSURE_MARKERS[1]
-                + ", drift in empty-buffer formatting coverage, or committed replay drift.",
-                "",
-            ]
-        ),
-    )
 
-    write_text(
-        root / MANIFEST_REL,
+def sample_manifest() -> str:
+    return (
         json.dumps(
             {
-                "phase": EXPECTED_PHASE,
-                "status": EXPECTED_STATUS,
-                "lane_sequencing": {
-                    "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_HELPERS,
-                },
+                "review_anchors": {
+                    "tools/lib/bitmap.zig": EXPECTED_BITMAP_PACKET,
+                }
             },
             indent=2,
         )
-        + "\n",
+        + "\n"
     )
 
-    helper_lines = []
-    helper_lines.extend(EXPECTED_BITMAP_SOURCE_SYMBOLS)
-    helper_lines.extend(EXPECTED_BITMAP_DIRECT_TEST_ANCHORS)
-    write_text(root / BITMAP_HELPER_REL, "\n".join(helper_lines) + "\n")
+
+def sample_lane_note() -> str:
+    return "\n".join(marker for _, marker in EXPECTED_BITMAP_LANE_MARKERS) + "\n"
+
+
+def build_sample_repo(root: Path) -> None:
+    write_file(root, BITMAP_HELPER_REL, "\n".join(EXPECTED_BITMAP_HELPER_ANCHORS) + "\n")
+    write_file(root, BITMAP_MANIFEST_REL, sample_manifest())
+    write_file(root, BITMAP_LANE_NOTE_REL, sample_lane_note())
+
+
+def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
+    manifest_path = root / BITMAP_MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    current = manifest
+    for key in path[:-1]:
+        current = current[key]
+    final_key = path[-1]
+    value = current[final_key]
+    if isinstance(value, list):
+        current[final_key] = value[1:]
+    else:
+        current[final_key] = f"{value} drift"
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
-    cases = [
-        ("baseline", None),
-        (
-            "missing_closure_marker",
-            lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_CLOSURE_MARKERS[0] + "\n",
-                    "",
-                ),
-            ),
-        ),
-        (
-            "missing_direct_anchor_helper",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": EXPECTED_PHASE,
-                        "status": EXPECTED_STATUS,
-                        "lane_sequencing": {
-                            "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_HELPERS[1:],
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-        ),
-        (
-            "missing_bitmap_source_symbol",
-            lambda root: write_text(
-                root / BITMAP_HELPER_REL,
-                replace_once(
-                    load_text(root, BITMAP_HELPER_REL),
-                    EXPECTED_BITMAP_SOURCE_SYMBOLS[0] + "\n",
-                    "",
-                ),
-            ),
-        ),
-        (
-            "missing_bitmap_direct_test_anchor",
-            lambda root: write_text(
-                root / BITMAP_HELPER_REL,
-                replace_once(
-                    load_text(root, BITMAP_HELPER_REL),
-                    EXPECTED_BITMAP_DIRECT_TEST_ANCHORS[7] + "\n",
-                    "",
-                ),
-            ),
-        ),
-        (
-            "duplicate_bitmap_direct_test_anchor",
-            lambda root: write_text(
-                root / BITMAP_HELPER_REL,
-                load_text(root, BITMAP_HELPER_REL) + EXPECTED_BITMAP_DIRECT_TEST_ANCHORS[7] + "\n",
-            ),
-        ),
-    ]
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="phase1-bitmap-direct-anchor-ok-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        failures = collect_failures(root)
+        if failures:
+            print("self-test:success:unexpected_failures")
+            for item in failures:
+                print(item)
+            return 1
+        case_count += 1
 
-    for name, mutate in cases:
-        with tempfile.TemporaryDirectory(prefix="phase1-bitmap-direct-anchor-") as tmp:
-            root = Path(tmp)
-            make_fixture_tree(root)
-            if mutate is not None:
-                mutate(root)
+    mutation_specs = []
+    mutation_specs.extend(
+        (f"helper_anchor_{idx}_{kind}", ("helper_anchor", anchor), kind)
+        for idx, anchor in enumerate(EXPECTED_BITMAP_HELPER_ANCHORS)
+        for kind in ("remove", "duplicate")
+    )
+    mutation_specs.extend(
+        (f"lane_marker_{idx}_{kind}", ("lane_marker", marker), kind)
+        for idx, (_, marker) in enumerate(EXPECTED_BITMAP_LANE_MARKERS)
+        for kind in ("remove", "duplicate")
+    )
+    mutation_specs.extend(
+        (
+            f"manifest_{key}",
+            ("manifest", ("review_anchors", "tools/lib/bitmap.zig", key)),
+            "manifest",
+        )
+        for key in EXPECTED_BITMAP_PACKET
+    )
+    mutation_specs.append(("manifest_missing_file", ("missing_file", BITMAP_MANIFEST_REL), "missing_file"))
+    mutation_specs.append(("lane_note_missing_file", ("missing_file", BITMAP_LANE_NOTE_REL), "missing_file"))
+
+    for name, target, kind in mutation_specs:
+        safe_name = name.replace("/", "_")
+        with tempfile.TemporaryDirectory(prefix=f"phase1-bitmap-direct-anchor-{safe_name}-") as tmpdir:
+            root = Path(tmpdir)
+            build_sample_repo(root)
+
+            if isinstance(target, tuple) and target[0] == "helper_anchor":
+                path = root / BITMAP_HELPER_REL
+                marker = target[1]
+                text = path.read_text(encoding="utf-8")
+                if kind == "remove":
+                    text = text.replace(marker + "\n", "", 1)
+                else:
+                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
+                path.write_text(text, encoding="utf-8")
+            elif isinstance(target, tuple) and target[0] == "lane_marker":
+                path = root / BITMAP_LANE_NOTE_REL
+                marker = target[1]
+                text = path.read_text(encoding="utf-8")
+                if kind == "remove":
+                    text = text.replace(marker + "\n", "", 1)
+                else:
+                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
+                path.write_text(text, encoding="utf-8")
+            elif isinstance(target, tuple) and target[0] == "manifest":
+                mutate_manifest(root, target[1])
+            else:
+                (root / target[1]).unlink()
+
             failures = collect_failures(root)
-            if name == "baseline":
-                if failures:
-                    print(f"phase1-bitmap-direct-anchor-self-test:{name}:unexpected={failures}")
-                    return 1
-            elif not failures:
-                print(f"phase1-bitmap-direct-anchor-self-test:{name}:expected_failure")
+            if not failures:
+                print(f"self-test:{name}:expected_failure")
                 return 1
+            case_count += 1
 
-    print("PHASE1_BITMAP_DIRECT_ANCHOR_SELF_TEST=pass")
-    print(f"PHASE1_BITMAP_DIRECT_ANCHOR_SELF_TEST_CASE_COUNT={len(cases)}")
+    print("PHASE1_BITMAP_DIRECT_ANCHOR_PACKET_SELF_TEST=pass")
+    print(f"PHASE1_BITMAP_DIRECT_ANCHOR_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run checker self-tests")
+    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
     args = parser.parse_args()
 
     if args.self_test:
@@ -300,12 +264,11 @@ def main() -> int:
 
     failures = collect_failures(repo_root(args.root))
     if failures:
-        for failure in failures:
-            print(failure)
+        for item in failures:
+            print(item)
         return 1
 
-    print("PHASE1_BITMAP_DIRECT_ANCHOR_CHECK=pass")
-    print("PHASE1_BITMAP_DIRECT_ANCHOR_MODE=current-master-safe")
+    print("phase1-bitmap-direct-anchor-packet:ok")
     return 0
 
 
