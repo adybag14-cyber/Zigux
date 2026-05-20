@@ -180,6 +180,34 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
     }
 
 
+def normalize_fixture_archive_scope(scope: object) -> tuple[list[str] | None, list[tuple[str, str]]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(scope, list) or not scope:
+        return None, [("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope")]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for index, value in enumerate(scope):
+        if not isinstance(value, str):
+            issues.append(("INVALID_CROSS_TARGET_SCOPE_ENTRY", f"index={index}:type"))
+            continue
+        if not value.strip():
+            issues.append(("INVALID_CROSS_TARGET_SCOPE_ENTRY", f"index={index}:blank"))
+            continue
+        if value != value.strip():
+            issues.append(("INVALID_CROSS_TARGET_SCOPE_ENTRY", f"index={index}:whitespace"))
+            continue
+        if value in seen:
+            issues.append(("DUPLICATE_CROSS_TARGET_SCOPE_ENTRY", value))
+            continue
+        normalized.append(value)
+        seen.add(value)
+
+    if issues:
+        return None, issues
+    return normalized, issues
+
+
 def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]:
     expected_fixture = load_expected_fixture(root)
     issues: list[tuple[str, str]] = []
@@ -191,7 +219,10 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "status"))
     if payload.get("route") != expected_fixture["route"]:
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "route"))
-    if payload.get("archive_target_scope") != expected_fixture["archive_target_scope"]:
+
+    fixture_scope, fixture_scope_issues = normalize_fixture_archive_scope(payload.get("archive_target_scope"))
+    issues.extend(fixture_scope_issues)
+    if fixture_scope is not None and fixture_scope != expected_fixture["archive_target_scope"]:
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope"))
 
     cross_targets = payload.get("cross_targets")
@@ -394,7 +425,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 17
+        + 19
         + 10
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -497,6 +528,24 @@ def run_self_test() -> int:
         payload["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_CROSS_TARGET_SCOPE_ENTRY", "x86_64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_target_scope"] = [" x86_64-linux "]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_SCOPE_ENTRY", "index=0:whitespace") in issues
         checks_run += 1
 
         build_self_test_root(root)
