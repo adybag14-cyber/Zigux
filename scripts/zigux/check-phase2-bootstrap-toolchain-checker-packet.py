@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Fail-closed guard for the live bootstrap toolchain-checker packet."""
+
 from __future__ import annotations
 
 import argparse
@@ -6,27 +8,33 @@ import json
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 
-REQUIRED_PATHS = (
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) >= 3 else Path.cwd()
+
+WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+INSTALL_ZIG = ROOT / "scripts" / "zigux" / "install-zig.py"
+LOCAL_FIRST_ARCHIVE_CHECKER = ROOT / "scripts" / "zigux" / "check-lane05-local-first-archive-workflow.py"
+LOCAL_ARCHIVE_README_CHECKER = ROOT / "scripts" / "zigux" / "check-lane05-local-archive-readme.py"
+LOCAL_ARCHIVE_README = ROOT / "third_party" / "README.md"
+FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"
+
+REQUIRED_FILES = (
     WORKFLOW,
-    "scripts/zigux/check-zig-toolchain.py",
-    "scripts/zigux/zig-toolchain-policy.json",
-    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
-    "scripts/zigux/check-lane05-local-archive-readme.py",
-    "scripts/zigux/install-zig.py",
+    TOOLCHAIN_CHECKER,
+    TOOLCHAIN_POLICY,
+    INSTALL_ZIG,
+    LOCAL_FIRST_ARCHIVE_CHECKER,
+    LOCAL_ARCHIVE_README_CHECKER,
+    LOCAL_ARCHIVE_README,
+    FIXDEP_GATE_CHECKER,
 )
 
-REQUIRED_WORKFLOW_SETUP_MARKERS = (
-    'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
-    'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
-    'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
-    'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
-    'echo "$extract_root" >> "$GITHUB_PATH"',
-)
-
-REQUIRED_WORKFLOW_LINES = (
+WORKFLOW_EXACT_LINES = (
+    "- name: Setup pinned Zig toolchain",
+    "- name: Compile current scripts",
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
@@ -35,41 +43,134 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "- name: Self-test current Phase 2 fixdep gate checker",
 )
 
-REQUIRED_TOOLCHAIN_SCRIPT_MARKERS = (
-    'add_search_root(root / "third_party")',
-    'add_search_root(root / "agent_files")',
-    'parser.add_argument("--policy-only", action="store_true", help="Validate and summarize the pinned Zig policy without probing a zig executable.")',
-    'parser.add_argument("--archive-only", action="store_true", help="Validate the pinned Zig archive artifact without probing a zig executable.")',
-    'parser.add_argument("--archive-target", help="Archive target key from scripts/zigux/zig-toolchain-policy.json.")',
-    'print("ZIG_TOOLCHAIN_POLICY_STATUS=present")',
-    'print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=present")',
+WORKFLOW_REQUIRED_MARKERS = (
+    "mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)",
+    "echo 'no Python scripts found under scripts/zigux' >&2",
+    'python3 -m py_compile "${scripts[@]}"',
+    'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
+    'targets = policy["upgrade_policy"]["archive_target_scope"]',
+    'channel = policy["channel"]',
+    'filename = f"zig-{target}-{channel}.tar.xz"',
+    'url = f"https://ziglang.org/builds/{filename}"',
+    'mirror_file=".zig-toolchain/community-mirrors.txt"',
+    "try_local_archive() {",
+    'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+    'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'if try_download "$ZIGUX_ZIG_URL"; then',
+    "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
 )
 
-REQUIRED_POLICY_VALUES = (
-    ("phase", "Phase 2"),
-    ("channel", "0.17.0-dev.87+9b177a7d2"),
-    ("minimum_version", "0.17.0-dev.87+9b177a7d2"),
+WORKFLOW_ORDER = (
+    ("- name: Setup pinned Zig toolchain", "- name: Compile current scripts"),
+    ("- name: Compile current scripts", "run: python3 scripts/zigux/check-zig-toolchain.py --self-test"),
+    ("run: python3 scripts/zigux/check-zig-toolchain.py --self-test", "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only"),
+    ("run: python3 scripts/zigux/check-zig-toolchain.py --policy-only", "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing"),
+    ("run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing", "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test"),
+    ("run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test", "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"),
+    ("run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py", "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test"),
+    ("run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test", "run: python3 scripts/zigux/check-lane05-local-archive-readme.py"),
+    ("run: python3 scripts/zigux/check-lane05-local-archive-readme.py", "run: python3 scripts/zigux/install-zig.py --self-test"),
+    ("run: python3 scripts/zigux/install-zig.py --self-test", "- name: Self-test current Phase 2 fixdep gate checker"),
+    ('policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))', 'targets = policy["upgrade_policy"]["archive_target_scope"]'),
+    ('targets = policy["upgrade_policy"]["archive_target_scope"]', 'channel = policy["channel"]'),
+    ('channel = policy["channel"]', 'filename = f"zig-{target}-{channel}.tar.xz"'),
+    ('filename = f"zig-{target}-{channel}.tar.xz"', 'url = f"https://ziglang.org/builds/{filename}"'),
+    ('mirror_file=".zig-toolchain/community-mirrors.txt"', "try_local_archive() {"),
 )
 
-REQUIRED_POLICY_TARGETS = ("x86_64-linux",)
-REQUIRED_MAKE_ROUTES = (
-    "phase2-toolchain",
-    "phase2-validate",
+TOOLCHAIN_CHECKER_MARKERS = (
+    'TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"',
+    "def resolve_zig_executable(",
+    "def resolve_policy_archive(",
+    "def validate_policy_archive(",
+    'parser.add_argument("--policy-only"',
+    'parser.add_argument("--archive-only"',
+    'parser.add_argument("--archive"',
+    'parser.add_argument("--archive-target"',
+    'print("ZIG_TOOLCHAIN_SELF_TEST=pass")',
+)
+
+INSTALL_ZIG_MARKERS = (
+    "INDEX_URL = 'https://ziglang.org/download/index.json'",
+    "TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'",
+    "def load_policy_channel(",
+    "def load_policy_archive_sha256(",
+    "def verify_archive_sha256(",
+    "def copy_url_to_file(",
+    "def resolve_target(",
+    "def run_self_test() -> int:",
+    "print('ZIG_INSTALL_SELF_TEST=pass')",
+)
+
+LOCAL_FIRST_ARCHIVE_CHECKER_MARKERS = (
+    "POLICY_STEP = \"- name: Check current Zig toolchain policy packet\"",
+    "ARCHIVE_CHECK_STEP = \"- name: Check current pinned Zig archive packet\"",
+    "README_SELF_TEST_STEP = \"- name: Self-test current Lane 05 local archive README checker\"",
+    "print(\"LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST=pass\")",
+)
+
+LOCAL_ARCHIVE_README_CHECKER_MARKERS = (
+    'README_PATH = Path("third_party/README.md")',
+    "EXPECTED_ARCHIVE_SIZES = {",
+    "def validate_readme(",
+    'print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")',
+)
+
+LOCAL_ARCHIVE_README_MARKERS = (
+    "# Zigux third-party archives",
+    "Lane 05 bootstrap CI",
+    "`third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+)
+
+FIXDEP_GATE_CHECKER_MARKERS = (
+    '"""Check the current fixdep governance packet against live Phase 2 surfaces."""',
+    'print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")',
+)
+
+EXPECTED_POLICY = {
+    "phase": "Phase 2",
+    "channel": "0.17.0-dev.87+9b177a7d2",
+    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+    "archive_sha256": {
+        "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+    },
+    "upgrade_policy": {
+        "channel_minimum_lockstep": True,
+        "archive_target_scope": ["x86_64-linux"],
+        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+    },
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(WORKFLOW_EXACT_LINES)
+    + len(WORKFLOW_EXACT_LINES)
+    + len(WORKFLOW_REQUIRED_MARKERS)
+    + len(WORKFLOW_ORDER)
+    + len(TOOLCHAIN_CHECKER_MARKERS)
+    + len(INSTALL_ZIG_MARKERS)
+    + len(LOCAL_FIRST_ARCHIVE_CHECKER_MARKERS)
+    + len(LOCAL_ARCHIVE_README_CHECKER_MARKERS)
+    + len(LOCAL_ARCHIVE_README_MARKERS)
+    + 4
+    + len(REQUIRED_FILES)
 )
 
 
-def read_text(root: Path, rel: str) -> str:
-    path = root / rel
+def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
-def write_text(root: Path, rel: str, content: str) -> None:
-    path = root / rel
+def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
@@ -78,20 +179,10 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def exact_line_index(text: str, marker: str) -> int:
-    for index, line in enumerate(text.splitlines()):
-        if line.strip() == marker:
-            return index
-    return -1
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -103,101 +194,174 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def remove_substring(text: str, marker: str) -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, "", 1)
-
-
-def swap_exact_lines(text: str, first: str, second: str) -> str:
+def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
-    first_index = None
-    second_index = None
     for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def collect_exact_line_issues(
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
+def collect_missing_marker_issues(
+    text: str,
+    markers: tuple[str, ...],
+    code: str,
+) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_order_issues(
+    text: str,
+    marker_pairs: tuple[tuple[str, str], ...],
+    code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    line_positions: dict[str, int] = {}
+    for index, line in enumerate(text.splitlines()):
         stripped = line.strip()
-        if stripped == first and first_index is None:
-            first_index = index
-        if stripped == second and second_index is None:
-            second_index = index
-    if first_index is None or second_index is None:
-        raise AssertionError("swap markers not found")
-    lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
-    return "\n".join(lines) + "\n"
+        if stripped not in line_positions:
+            line_positions[stripped] = index
+    for earlier, later in marker_pairs:
+        earlier_index = line_positions.get(earlier)
+        later_index = line_positions.get(later)
+        if earlier_index is None or later_index is None:
+            continue
+        if earlier_index >= later_index:
+            issues.append((code, f"{earlier} -> {later}"))
+    return issues
+
+
+def validate_policy(payload: object) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(payload, dict):
+        return [("INVALID_POLICY", "expected JSON object")]
+
+    if payload.get("phase") != EXPECTED_POLICY["phase"]:
+        issues.append(("INVALID_POLICY", f"phase={payload.get('phase')!r}"))
+    if payload.get("channel") != EXPECTED_POLICY["channel"]:
+        issues.append(("INVALID_POLICY", f"channel={payload.get('channel')!r}"))
+    if payload.get("minimum_version") != EXPECTED_POLICY["minimum_version"]:
+        issues.append(
+            ("INVALID_POLICY", f"minimum_version={payload.get('minimum_version')!r}")
+        )
+    if payload.get("archive_sha256") != EXPECTED_POLICY["archive_sha256"]:
+        issues.append(("INVALID_POLICY", "archive_sha256"))
+    if payload.get("upgrade_policy") != EXPECTED_POLICY["upgrade_policy"]:
+        issues.append(("INVALID_POLICY", "upgrade_policy"))
+    return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for rel in REQUIRED_PATHS:
-        if not (root / rel).exists():
-            issues.append(("MISSING_REQUIRED_PATH", rel))
+    for path in REQUIRED_FILES:
+        resolved = root / path.relative_to(ROOT)
+        if not resolved.exists():
+            issues.append(("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()))
+    if issues:
+        return issues
 
-    workflow = read_text(root, WORKFLOW)
-    toolchain_script = read_text(root, "scripts/zigux/check-zig-toolchain.py")
-    policy_text = read_text(root, "scripts/zigux/zig-toolchain-policy.json")
+    workflow_text = read_text(root / WORKFLOW.relative_to(ROOT))
+    toolchain_checker_text = read_text(root / TOOLCHAIN_CHECKER.relative_to(ROOT))
+    install_zig_text = read_text(root / INSTALL_ZIG.relative_to(ROOT))
+    local_first_archive_checker_text = read_text(
+        root / LOCAL_FIRST_ARCHIVE_CHECKER.relative_to(ROOT)
+    )
+    local_archive_readme_checker_text = read_text(
+        root / LOCAL_ARCHIVE_README_CHECKER.relative_to(ROOT)
+    )
+    local_archive_readme_text = read_text(root / LOCAL_ARCHIVE_README.relative_to(ROOT))
+    fixdep_gate_checker_text = read_text(root / FIXDEP_GATE_CHECKER.relative_to(ROOT))
+    policy_text = read_text(root / TOOLCHAIN_POLICY.relative_to(ROOT))
 
-    for marker in REQUIRED_WORKFLOW_SETUP_MARKERS:
-        if marker not in workflow:
-            issues.append(("MISSING_WORKFLOW_SETUP_MARKER", marker))
-
-    previous_index = -1
-    for marker in REQUIRED_WORKFLOW_LINES:
-        count = count_exact_lines(workflow, marker)
-        if count == 0:
-            issues.append(("MISSING_WORKFLOW_LINE", marker))
-            continue
-        if count != 1:
-            issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
-            continue
-        marker_index = exact_line_index(workflow, marker)
-        if marker_index <= previous_index:
-            issues.append(("MISORDERED_WORKFLOW_LINE", marker))
-        previous_index = marker_index
-
-    for marker in REQUIRED_TOOLCHAIN_SCRIPT_MARKERS:
-        if marker not in toolchain_script:
-            issues.append(("MISSING_TOOLCHAIN_SCRIPT_MARKER", marker))
+    issues.extend(
+        collect_exact_line_issues(
+            workflow_text,
+            WORKFLOW_EXACT_LINES,
+            "MISSING_WORKFLOW_LINE",
+            "DUPLICATE_WORKFLOW_LINE",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            workflow_text,
+            WORKFLOW_REQUIRED_MARKERS,
+            "MISSING_WORKFLOW_MARKER",
+        )
+    )
+    issues.extend(
+        collect_order_issues(
+            workflow_text,
+            WORKFLOW_ORDER,
+            "MISORDERED_WORKFLOW_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            toolchain_checker_text,
+            TOOLCHAIN_CHECKER_MARKERS,
+            "MISSING_TOOLCHAIN_CHECKER_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            install_zig_text,
+            INSTALL_ZIG_MARKERS,
+            "MISSING_INSTALL_ZIG_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            local_first_archive_checker_text,
+            LOCAL_FIRST_ARCHIVE_CHECKER_MARKERS,
+            "MISSING_LOCAL_FIRST_ARCHIVE_CHECKER_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            local_archive_readme_checker_text,
+            LOCAL_ARCHIVE_README_CHECKER_MARKERS,
+            "MISSING_LOCAL_ARCHIVE_README_CHECKER_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            local_archive_readme_text,
+            LOCAL_ARCHIVE_README_MARKERS,
+            "MISSING_LOCAL_ARCHIVE_README_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_marker_issues(
+            fixdep_gate_checker_text,
+            FIXDEP_GATE_CHECKER_MARKERS,
+            "MISSING_FIXDEP_GATE_MARKER",
+        )
+    )
 
     try:
         payload = json.loads(policy_text)
     except json.JSONDecodeError as exc:
         issues.append(("INVALID_POLICY_JSON", exc.msg))
-        return issues
-
-    if not isinstance(payload, dict):
-        issues.append(("INVALID_POLICY_PAYLOAD", "expected object"))
-        return issues
-
-    for key, expected in REQUIRED_POLICY_VALUES:
-        if payload.get(key) != expected:
-            issues.append(("POLICY_VALUE_MISMATCH", f"{key}={payload.get(key)!r}"))
-
-    upgrade_policy = payload.get("upgrade_policy")
-    if not isinstance(upgrade_policy, dict):
-        issues.append(("INVALID_UPGRADE_POLICY", str(type(upgrade_policy).__name__)))
-        return issues
-
-    archive_sha256 = payload.get("archive_sha256")
-    if not isinstance(archive_sha256, dict):
-        issues.append(("INVALID_ARCHIVE_SHA256", str(type(archive_sha256).__name__)))
-        return issues
-
-    archive_targets = upgrade_policy.get("archive_target_scope")
-    if archive_targets != list(REQUIRED_POLICY_TARGETS):
-        issues.append(("ARCHIVE_TARGET_SCOPE_MISMATCH", repr(archive_targets)))
-
-    missing_archive_targets = [target for target in REQUIRED_POLICY_TARGETS if target not in archive_sha256]
-    for target in missing_archive_targets:
-        issues.append(("MISSING_ARCHIVE_TARGET", target))
-
-    if upgrade_policy.get("channel_minimum_lockstep") is not True:
-        issues.append(
-            ("LOCKSTEP_POLICY_MISMATCH", repr(upgrade_policy.get("channel_minimum_lockstep")))
-        )
-
-    required_make_routes = upgrade_policy.get("required_make_routes")
-    if required_make_routes != list(REQUIRED_MAKE_ROUTES):
-        issues.append(("REQUIRED_MAKE_ROUTES_MISMATCH", repr(required_make_routes)))
+    else:
+        issues.extend(validate_policy(payload))
 
     return issues
 
@@ -208,204 +372,270 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         grouped.setdefault(code, []).append(value)
 
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET=fail")
+    print("INVALID_PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_START")
     for code, values in grouped.items():
-        print(f"{code}_START")
         for value in values:
-            print(value)
-        print(f"{code}_END")
+            print(f"{code}:{value}")
+    print("INVALID_PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_END")
     return 1
 
 
-def build_sample_root(root: Path) -> None:
+def build_self_test_root(root: Path) -> None:
+    workflow_lines = [
+        "name: zigux-bootstrap",
+        "jobs:",
+        "  bootstrap:",
+        "    steps:",
+        "      - name: Setup pinned Zig toolchain",
+        "        run: |",
+        "          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)",
+        "          echo 'no Python scripts found under scripts/zigux' >&2",
+        '          python3 -m py_compile "${scripts[@]}"',
+        '          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
+        '          targets = policy["upgrade_policy"]["archive_target_scope"]',
+        '          channel = policy["channel"]',
+        '          filename = f"zig-{target}-{channel}.tar.xz"',
+        '          url = f"https://ziglang.org/builds/{filename}"',
+        '          mirror_file=".zig-toolchain/community-mirrors.txt"',
+        "          try_local_archive() {",
+        '            python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        "          }",
+        "          try_download() {",
+        "            return 0",
+        "          }",
+        '          if [ "${#scripts[@]}" -eq 0 ]; then',
+        "            return 1",
+        "          fi",
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+        "            true",
+        "          fi",
+        '          if try_download "$ZIGUX_ZIG_URL"; then',
+        "            true",
+        "          fi",
+        "          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2",
+        "      - name: Compile current scripts",
+        "        run: python3 -m py_compile scripts/zigux/*.py",
+        "      - name: Self-test current Zig toolchain checker",
+        "        run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+        "      - name: Check current Zig toolchain policy packet",
+        "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+        "      - name: Check current pinned Zig archive packet",
+        "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+        "      - name: Self-test current Lane 05 local-first archive checker",
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+        "      - name: Check current Lane 05 local-first archive packet",
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+        "      - name: Self-test current Lane 05 local archive README checker",
+        "        run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+        "      - name: Check current Lane 05 local archive README packet",
+        "        run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+        "      - name: Self-test current Zig installer helper",
+        "        run: python3 scripts/zigux/install-zig.py --self-test",
+        "      - name: Self-test current Phase 2 fixdep gate checker",
+        "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    ]
+    write_text(root / WORKFLOW.relative_to(ROOT), "\n".join(workflow_lines) + "\n")
     write_text(
-        root,
-        WORKFLOW,
-        "\n".join(
-            (
-                "name: zigux-bootstrap",
-                "jobs:",
-                "  bootstrap:",
-                "    steps:",
-                "      - name: Setup pinned Zig toolchain",
-                "        run: |",
-                '          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
-                '          if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
-                '            if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
-                "              true",
-                "            fi",
-                "          fi",
-                '          if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
-                "            true",
-                "          fi",
-                '          echo "$extract_root" >> "$GITHUB_PATH"',
-                "      - name: Self-test current Zig toolchain checker",
-                f"        {REQUIRED_WORKFLOW_LINES[0]}",
-                "      - name: Check current Zig toolchain policy packet",
-                f"        {REQUIRED_WORKFLOW_LINES[1]}",
-                "      - name: Check current pinned Zig archive packet",
-                f"        {REQUIRED_WORKFLOW_LINES[2]}",
-                "      - name: Self-test current Lane 05 local-first archive checker",
-                f"        {REQUIRED_WORKFLOW_LINES[3]}",
-                "      - name: Check current Lane 05 local-first archive packet",
-                f"        {REQUIRED_WORKFLOW_LINES[4]}",
-                "      - name: Self-test current Lane 05 local archive README checker",
-                f"        {REQUIRED_WORKFLOW_LINES[5]}",
-                "      - name: Check current Lane 05 local archive README packet",
-                f"        {REQUIRED_WORKFLOW_LINES[6]}",
-                "      - name: Self-test current Zig installer helper",
-                f"        {REQUIRED_WORKFLOW_LINES[7]}",
-            )
-        )
+        root / TOOLCHAIN_CHECKER.relative_to(ROOT),
+        "\n".join(("#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS)) + "\n",
+    )
+    write_text(
+        root / INSTALL_ZIG.relative_to(ROOT),
+        "\n".join(("#!/usr/bin/env python3", *INSTALL_ZIG_MARKERS)) + "\n",
+    )
+    write_text(
+        root / LOCAL_FIRST_ARCHIVE_CHECKER.relative_to(ROOT),
+        "\n".join(("#!/usr/bin/env python3", *LOCAL_FIRST_ARCHIVE_CHECKER_MARKERS))
         + "\n",
     )
     write_text(
-        root,
-        "scripts/zigux/check-zig-toolchain.py",
-        "\n".join(
-            (
-                '#!/usr/bin/env python3',
-                'add_search_root(root / "third_party")',
-                'add_search_root(root / "agent_files")',
-                'parser.add_argument("--policy-only", action="store_true", help="Validate and summarize the pinned Zig policy without probing a zig executable.")',
-                'parser.add_argument("--archive-only", action="store_true", help="Validate the pinned Zig archive artifact without probing a zig executable.")',
-                'parser.add_argument("--archive-target", help="Archive target key from scripts/zigux/zig-toolchain-policy.json.")',
-                'print("ZIG_TOOLCHAIN_POLICY_STATUS=present")',
-                'print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=present")',
-            )
-        )
+        root / LOCAL_ARCHIVE_README_CHECKER.relative_to(ROOT),
+        "\n".join(("#!/usr/bin/env python3", *LOCAL_ARCHIVE_README_CHECKER_MARKERS))
         + "\n",
     )
     write_text(
-        root,
-        "scripts/zigux/zig-toolchain-policy.json",
-        json.dumps(
-            {
-                "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
-                "archive_sha256": {
-                    "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"
-                },
-                "upgrade_policy": {
-                    "channel_minimum_lockstep": True,
-                    "archive_target_scope": ["x86_64-linux"],
-                    "required_make_routes": [
-                        "phase2-toolchain",
-                        "phase2-validate",
-                    ],
-                },
-            },
-            indent=2,
-        )
-        + "\n",
+        root / LOCAL_ARCHIVE_README.relative_to(ROOT),
+        "\n".join(LOCAL_ARCHIVE_README_MARKERS) + "\n",
     )
-    write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
-    write_text(root, "scripts/zigux/install-zig.py", "present\n")
+    write_text(
+        root / FIXDEP_GATE_CHECKER.relative_to(ROOT),
+        "\n".join(("#!/usr/bin/env python3", *FIXDEP_GATE_CHECKER_MARKERS)) + "\n",
+    )
+    write_text(
+        root / TOOLCHAIN_POLICY.relative_to(ROOT),
+        json.dumps(EXPECTED_POLICY, indent=2) + "\n",
+    )
 
 
 def run_self_test() -> int:
-    checks = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_bootstrap_toolchain_checker_packet_") as tmp_dir:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_bootstrap_toolchain_packet_") as tmp_dir:
         root = Path(tmp_dir)
-        build_sample_root(root)
+
+        build_self_test_root(root)
         assert collect_issues(root) == []
-        checks += 1
+        checks_run += 1
 
-        build_sample_root(root)
-        write_text(root, WORKFLOW, remove_substring(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_SETUP_MARKERS[0]))
-        assert ("MISSING_WORKFLOW_SETUP_MARKER", REQUIRED_WORKFLOW_SETUP_MARKERS[0]) in collect_issues(root)
-        checks += 1
-
-        build_sample_root(root)
-        write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[2], "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only"))
-        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[2]) in collect_issues(root)
-        checks += 1
-
-        build_sample_root(root)
-        write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[0]))
-        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[0]}:count=2") in collect_issues(root)
-        checks += 1
-
-        build_sample_root(root)
-        write_text(root, WORKFLOW, swap_exact_lines(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[1], REQUIRED_WORKFLOW_LINES[2]))
-        assert ("MISORDERED_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[2]) in collect_issues(root)
-        checks += 1
-
-        build_sample_root(root)
-        write_text(root, "scripts/zigux/check-zig-toolchain.py", remove_substring(read_text(root, "scripts/zigux/check-zig-toolchain.py"), REQUIRED_TOOLCHAIN_SCRIPT_MARKERS[0]))
-        assert ("MISSING_TOOLCHAIN_SCRIPT_MARKER", REQUIRED_TOOLCHAIN_SCRIPT_MARKERS[0]) in collect_issues(root)
-        checks += 1
-
-        build_sample_root(root)
-        write_text(
-            root,
-            "scripts/zigux/zig-toolchain-policy.json",
-            json.dumps(
-                {
-                    "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
-                    "archive_sha256": {},
-                    "upgrade_policy": {
-                        "channel_minimum_lockstep": True,
-                        "archive_target_scope": [],
-                        "required_make_routes": list(REQUIRED_MAKE_ROUTES),
-                    },
-                }
+        for marker in WORKFLOW_EXACT_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW.relative_to(ROOT)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 broken.py"),
+                encoding="utf-8",
             )
-            + "\n",
-        )
+            assert ("MISSING_WORKFLOW_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in WORKFLOW_EXACT_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW.relative_to(ROOT)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in WORKFLOW_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = root / WORKFLOW.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_WORKFLOW_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for earlier, later in WORKFLOW_ORDER:
+            build_self_test_root(root)
+            path = root / WORKFLOW.relative_to(ROOT)
+            text = path.read_text(encoding="utf-8")
+            earlier_with_newline = earlier + "\n"
+            later_with_newline = later + "\n"
+            if earlier_with_newline in text and later_with_newline in text:
+                text = text.replace(earlier_with_newline, "__EARLIER__\n", 1)
+                text = text.replace(later_with_newline, earlier_with_newline, 1)
+                text = text.replace("__EARLIER__\n", later_with_newline, 1)
+            else:
+                text = replace_once(text, earlier, f"{earlier}\n{later}")
+            path.write_text(text, encoding="utf-8")
+            assert (
+                "MISORDERED_WORKFLOW_MARKERS",
+                f"{earlier} -> {later}",
+            ) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TOOLCHAIN_CHECKER_MARKERS:
+            build_self_test_root(root)
+            path = root / TOOLCHAIN_CHECKER.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_TOOLCHAIN_CHECKER_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in INSTALL_ZIG_MARKERS:
+            build_self_test_root(root)
+            path = root / INSTALL_ZIG.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_INSTALL_ZIG_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in LOCAL_FIRST_ARCHIVE_CHECKER_MARKERS:
+            build_self_test_root(root)
+            path = root / LOCAL_FIRST_ARCHIVE_CHECKER.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert (
+                "MISSING_LOCAL_FIRST_ARCHIVE_CHECKER_MARKER",
+                marker,
+            ) in collect_issues(root)
+            checks_run += 1
+
+        for marker in LOCAL_ARCHIVE_README_CHECKER_MARKERS:
+            build_self_test_root(root)
+            path = root / LOCAL_ARCHIVE_README_CHECKER.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert (
+                "MISSING_LOCAL_ARCHIVE_README_CHECKER_MARKER",
+                marker,
+            ) in collect_issues(root)
+            checks_run += 1
+
+        for marker in LOCAL_ARCHIVE_README_MARKERS:
+            build_self_test_root(root)
+            path = root / LOCAL_ARCHIVE_README.relative_to(ROOT)
+            path.write_text(
+                replace_once(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_LOCAL_ARCHIVE_README_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = root / TOOLCHAIN_POLICY.relative_to(ROOT)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["channel"] = "0.17.0"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "channel='0.17.0'") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = root / TOOLCHAIN_POLICY.relative_to(ROOT)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_sha256"] = {"x86_64-linux": "deadbeef"}
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "archive_sha256") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = root / TOOLCHAIN_POLICY.relative_to(ROOT)
+        path.write_text("{not-json}\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("ARCHIVE_TARGET_SCOPE_MISMATCH", "[]") in issues
-        assert ("MISSING_ARCHIVE_TARGET", "x86_64-linux") in issues
-        checks += 1
+        assert any(code == "INVALID_POLICY_JSON" for code, _ in issues)
+        checks_run += 1
 
-        build_sample_root(root)
-        write_text(
-            root,
-            "scripts/zigux/zig-toolchain-policy.json",
-            json.dumps(
-                {
-                    "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
-                    "archive_sha256": {
-                        "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"
-                    },
-                    "upgrade_policy": {
-                        "channel_minimum_lockstep": False,
-                        "archive_target_scope": ["x86_64-linux"],
-                        "required_make_routes": list(REQUIRED_MAKE_ROUTES),
-                    },
-                }
-            )
-            + "\n",
+        build_self_test_root(root)
+        path = root / FIXDEP_GATE_CHECKER.relative_to(ROOT)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), FIXDEP_GATE_CHECKER_MARKERS[1]),
+            encoding="utf-8",
         )
-        assert ("LOCKSTEP_POLICY_MISMATCH", "False") in collect_issues(root)
-        checks += 1
+        assert ("MISSING_FIXDEP_GATE_MARKER", FIXDEP_GATE_CHECKER_MARKERS[1]) in collect_issues(root)
+        checks_run += 1
 
-        build_sample_root(root)
-        write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{not-json}\n")
-        assert collect_issues(root)[0][0] == "INVALID_POLICY_JSON"
-        checks += 1
+        for required_file in REQUIRED_FILES:
+            build_self_test_root(root)
+            (root / required_file.relative_to(ROOT)).unlink()
+            assert (
+                "MISSING_REQUIRED_FILE",
+                required_file.relative_to(ROOT).as_posix(),
+            ) in collect_issues(root)
+            checks_run += 1
 
-        build_sample_root(root)
-        (root / "scripts/zigux/install-zig.py").unlink()
-        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
-        checks += 1
-
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_SELF_TEST=pass")
-    print(f"PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_SELF_TEST_CASE_COUNT={checks}")
+    print(
+        f"PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_SELF_TEST_CASE_COUNT={checks_run}"
+    )
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fail closed when the live bootstrap toolchain packet drifts across the workflow, checker, and policy surfaces."
+        description="Check that the current bootstrap toolchain-checker packet stays aligned."
     )
-    parser.add_argument("--root", type=Path, default=ROOT, help="repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="run built-in contract checks")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
 
     if args.self_test:
@@ -416,9 +646,18 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET=pass")
-    print(f"PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
-    print(f"PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_SETUP_MARKER_COUNT={len(REQUIRED_WORKFLOW_SETUP_MARKERS)}")
-    print(f"PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(
+        "PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_REQUIRED_FILE_COUNT="
+        f"{len(REQUIRED_FILES)}"
+    )
+    print(
+        "PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_WORKFLOW_LINE_COUNT="
+        f"{len(WORKFLOW_EXACT_LINES)}"
+    )
+    print(
+        "PHASE2_BOOTSTRAP_TOOLCHAIN_CHECKER_PACKET_WORKFLOW_MARKER_COUNT="
+        f"{len(WORKFLOW_REQUIRED_MARKERS)}"
+    )
     return 0
 
 
