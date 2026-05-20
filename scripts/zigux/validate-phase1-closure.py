@@ -23,6 +23,7 @@ STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packe
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
+ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -43,6 +44,7 @@ REQUIRED_FILES = (
     DIRECT_OWNER_CHECKER_REL,
     BENCH_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
+    ROUTE_SUMMARY_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -259,6 +261,7 @@ DELEGATED_CHECKERS = (
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
     (BENCH_CHECKER_REL, "phase1-bench"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
+    (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
 )
 
 
@@ -457,6 +460,7 @@ def make_fixture_tree(root: Path) -> None:
     make_checker_stub(root / DIRECT_OWNER_CHECKER_REL)
     make_checker_stub(root / BENCH_CHECKER_REL)
     make_checker_stub(root / SHARED_REMINDER_CHECKER_REL)
+    make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL)
 
 
 def replace_once(text: str, old: str, new: str) -> str:
@@ -598,6 +602,14 @@ def run_self_test() -> int:
         (
             "failing_shared_reminder_checker",
             lambda root: make_checker_stub(root / SHARED_REMINDER_CHECKER_REL, ok=False),
+        ),
+        (
+            "missing_route_summary_checker",
+            lambda root: (root / ROUTE_SUMMARY_CHECKER_REL).unlink(),
+        ),
+        (
+            "failing_route_summary_checker",
+            lambda root: make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL, ok=False),
         ),
         (
             "forbidden_old_marker",
