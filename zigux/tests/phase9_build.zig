@@ -46,6 +46,34 @@ pub fn build(b: *std.Build) void {
     });
     runtime_atomic64_sample_module.addImport("atomic", atomic_module);
 
+    const runtime_loader_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/runtime_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const runtime_loader_contract_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/runtime_loader_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const runtime_trace_events_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_trace_events.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const runtime_trace_events_loader_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_loader_module.addImport("runtime_loader", runtime_loader_module);
+    runtime_trace_events_loader_module.addImport(
+        "runtime_trace_events_sample",
+        runtime_trace_events_sample_module,
+    );
+
     const runtime_atomic64_sample_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-sample-tests",
         .root_module = runtime_atomic64_sample_module,
@@ -82,6 +110,45 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_top_bit_module,
     });
 
+    const runtime_loader_allocator_init_flow_module = b.createModule(.{
+        .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_module);
+    runtime_loader_allocator_init_flow_module.addImport(
+        "runtime_loader_contract",
+        runtime_loader_contract_module,
+    );
+
+    const runtime_loader_allocator_init_flow_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-allocator-init-flow-tests",
+        .root_module = runtime_loader_allocator_init_flow_module,
+    });
+
+    const runtime_trace_events_loader_substrate_drift_module = b.createModule(.{
+        .root_source_file = b.path("runtime_trace_events_loader_substrate_drift.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_loader_substrate_drift_module.addImport(
+        "runtime_loader",
+        runtime_loader_module,
+    );
+    runtime_trace_events_loader_substrate_drift_module.addImport(
+        "runtime_trace_events_loader",
+        runtime_trace_events_loader_module,
+    );
+    runtime_trace_events_loader_substrate_drift_module.addImport(
+        "runtime_trace_events_sample",
+        runtime_trace_events_sample_module,
+    );
+
+    const runtime_trace_events_loader_substrate_drift_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",
+        .root_module = runtime_trace_events_loader_substrate_drift_module,
+    });
+
     const runtime_first_loadable_parity_survey_tests = b.addTest(.{
         .name = "phase9-first-loadable-runtime-module-parity-survey-tests",
         .root_module = b.createModule(.{
@@ -97,7 +164,15 @@ pub fn build(b: *std.Build) void {
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
     const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
     const run_runtime_bitmap_top_bit_tests = b.addRunArtifact(runtime_bitmap_top_bit_tests);
-    const run_runtime_first_loadable_parity_survey_tests = b.addRunArtifact(runtime_first_loadable_parity_survey_tests);
+    const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
+        runtime_loader_allocator_init_flow_tests,
+    );
+    const run_runtime_trace_events_loader_substrate_drift_tests = b.addRunArtifact(
+        runtime_trace_events_loader_substrate_drift_tests,
+    );
+    const run_runtime_first_loadable_parity_survey_tests = b.addRunArtifact(
+        runtime_first_loadable_parity_survey_tests,
+    );
 
     const phase9_runtime_atomic64_diff = b.step(
         "phase9-runtime-atomic64-diff",
@@ -132,9 +207,21 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_survey_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
+    const phase9_runtime_loader_shared = b.step(
+        "phase9-runtime-loader-shared-tests",
+        "Run the shared Phase 9 runtime loader handoff parity tests.",
+    );
+    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    phase9_runtime_loader_shared.dependOn(
+        &run_runtime_trace_events_loader_substrate_drift_tests.step,
+    );
+    phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
+
     const phase9_first_loadable_runtime_module_parity = b.step(
         "phase9-first-loadable-runtime-module-parity-survey-tests",
         "Run the Phase 9 first-loadable runtime-module parity survey tests.",
     );
-    phase9_first_loadable_runtime_module_parity.dependOn(&run_runtime_first_loadable_parity_survey_tests.step);
+    phase9_first_loadable_runtime_module_parity.dependOn(
+        &run_runtime_first_loadable_parity_survey_tests.step,
+    );
 }
