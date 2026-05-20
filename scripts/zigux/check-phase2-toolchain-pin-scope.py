@@ -60,6 +60,7 @@ BOOTSTRAP_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`third_party/README.md`",
     "pinned-archive integrity paths",
 )
 
