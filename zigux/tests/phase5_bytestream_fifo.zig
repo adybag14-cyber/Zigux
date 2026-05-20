@@ -226,6 +226,31 @@ test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape be
     try std.testing.expect(!exited_occupancy.wrapped_window);
 }
 
+test "phase 5 bytestream fifo sample keeps reinit-after-exit reuse explicit" {
+    var module = sample.BytestreamFifoSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runReinitBoundaryReplay());
+
+    try module.init();
+    const reinit = try module.runReinitBoundaryReplay();
+    try std.testing.expectEqual(sample.SampleStage.exited, reinit.stage_after_first_exit);
+    try std.testing.expectEqual(sample.SampleStage.initialized, reinit.stage_after_reinit);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, reinit.stage_after_second_replay);
+    try std.testing.expectEqual(sample.SampleStage.exited, reinit.stage_after_second_exit);
+    try std.testing.expectEqual(@as(usize, 2), reinit.init_runs_after_reinit);
+    try std.testing.expectEqual(@as(usize, 1), reinit.exit_runs_after_first_exit);
+    try std.testing.expectEqual(@as(usize, 2), reinit.exit_runs_after_second_exit);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), reinit.available_after_reinit);
+    try std.testing.expectEqual(@as(usize, 0), reinit.queue_len_after_reinit);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), reinit.second_replay_final_len);
+    try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], reinit.second_replay_final_sequence[0..]);
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 2), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 2), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+}
+
 test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries explicit" {
     var module = sample.BytestreamFifoSample{};
 
