@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {
+test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -34,11 +34,51 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, manifest compan
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");
+    try expectContains(
+        survey_note,
+        "checker-backed packet-local or shared reminder surface repair",
+    );
     try expectContains(build_file, "\"phase10-virtio-mmio-tests\"");
     try expectContains(build_file, "phase10_virtio_mmio_survey_module");
     try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");
     try expectContains(build_file, "run_phase10_virtio_mmio_tests.step");
     try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");
+}
+
+test "phase10 virtio mmio survey packet keeps the config-write companion and slice note explicit" {
+    const allocator = std.testing.allocator;
+
+    const companion_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+    );
+    defer allocator.free(companion_note);
+
+    const slice_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    );
+    defer allocator.free(slice_note);
+
+    try expectContains(
+        companion_note,
+        "# Phase 10 virtio MMIO Config-Write Disposition Companion",
+    );
+    try expectContains(
+        companion_note,
+        "`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion",
+    );
+    try expectContains(
+        companion_note,
+        "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion",
+    );
+    try expectContains(slice_note, "# Phase 10 Virtio MMIO Slice");
+    try expectContains(slice_note, "scripts/zigux/check-phase10-mmio-packet.py");
+    try expectContains(slice_note, "planning-only config-write observation");
+    try expectContains(
+        slice_note,
+        "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice",
+    );
 }
 
 test "phase10 virtio mmio survey gate keeps manifest lane identity and risky transport posture explicit" {
@@ -68,5 +108,8 @@ test "phase10 virtio mmio survey note keeps risky transport work blocked" {
     try expectContains(survey_note, "transport-backed queue setup or queue reset execution");
     try expectContains(survey_note, "shared IRQ delivery parity");
     try expectContains(survey_note, "DMA-facing behavior");
-    try expectContains(survey_note, "probe, remove, freeze, restore, or device-lifecycle closure");
+    try expectContains(
+        survey_note,
+        "probe, remove, freeze, restore, or device-lifecycle closure",
+    );
 }
