@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -9,6 +10,36 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
+
+MANIFEST_PATH = "zigux/tests/phase10_virtio_ring_manifest.json"
+EXPECTED_FREEZE_BOUNDARY_OWNER = "P10-L11"
+EXPECTED_GAP_METADATA = {
+    "phase10-virtio-ring-survey-gate": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
+    },
+    "phase10-queue-publish-readiness-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
+    },
+    "phase10-ring-publish-readiness-replay": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
+    },
+    "phase10-ring-verify-replay": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
+    },
+    "phase10-ring-lab-driver-bridge": {
+        "kind": "roadmap_gap",
+        "status": "blocked_on_risky_transport",
+        "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+    },
+}
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
@@ -79,7 +110,7 @@ REQUIRED_MARKERS = {
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
     ],
-    "zigux/tests/phase10_virtio_ring_manifest.json": [
+    MANIFEST_PATH: [
         '"lane_key": "P10-L10"',
         '"preexisting_phase10_test_files": 3,',
         '"freeze_status_change_claimed": false,',
@@ -159,6 +190,44 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
+def validate_manifest_fields(root: Path) -> list[str]:
+    manifest_path = root / MANIFEST_PATH
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    problems: list[str] = []
+
+    freeze_boundary_owner = manifest.get("freeze_boundary_owner_lane")
+    if freeze_boundary_owner != EXPECTED_FREEZE_BOUNDARY_OWNER:
+        problems.append(
+            f"{MANIFEST_PATH}:freeze_boundary_owner_lane:{freeze_boundary_owner}"
+        )
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        problems.append(f"{MANIFEST_PATH}:gaps:not_a_list")
+        return problems
+
+    gap_by_id = {}
+    for gap in gaps:
+        if isinstance(gap, dict):
+            gap_id = gap.get("id")
+            if isinstance(gap_id, str):
+                gap_by_id[gap_id] = gap
+
+    for gap_id, expected_fields in EXPECTED_GAP_METADATA.items():
+        gap = gap_by_id.get(gap_id)
+        if gap is None:
+            problems.append(f"{MANIFEST_PATH}:gap_missing:{gap_id}")
+            continue
+        for field_name, expected_value in expected_fields.items():
+            actual_value = gap.get(field_name)
+            if actual_value != expected_value:
+                problems.append(
+                    f"{MANIFEST_PATH}:gap:{gap_id}:{field_name}:{actual_value}"
+                )
+
+    return problems
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_MARKERS if not (root / path).exists()]
     if missing_files:
@@ -177,14 +246,185 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if marker in text:
                 problems.append(f"{rel_path}:forbidden:{marker}")
 
+    problems.extend(validate_manifest_fields(root))
     return [], problems
+
+
+def fixture_manifest() -> dict[str, object]:
+    return {
+        "lane_key": "P10-L10",
+        "phase": "Phase 10",
+        "surveyed_commit": "fixture",
+        "anchor": "drivers/virtio/virtio_ring.c",
+        "roadmap_destinations": [
+            "drivers/virtio/*.zig",
+            "zigux/kernel/",
+            "zigux/helpers/",
+        ],
+        "freeze_map": "Documentation/zigux/freeze-map.md",
+        "freeze_boundary_status": "aligned",
+        "freeze_status_change_claimed": False,
+        "risky_transport_posture": "blocked_on_risky_transport",
+        "allowed_evidence_kinds": [
+            "driver_local_lab_slices",
+            "survey_manifests",
+            "shared_validation_gates",
+        ],
+        "forbidden_transport_claims": [
+            "queue_setup_reset_paths",
+            "irq_parity",
+            "dma_paths",
+            "input_registration_lifecycle",
+            "probe_remove_lifecycle",
+        ],
+        "architecture_council_reopen_required": True,
+        "architecture_council_reopen_attached": False,
+        "freeze_boundary_owner_lane": EXPECTED_FREEZE_BOUNDARY_OWNER,
+        "study_only_anchors": [
+            "kernel/workqueue.c",
+            "kernel/trace/ring_buffer.c",
+        ],
+        "freeze_in_c_anchors": [
+            "kernel/sched/core.c",
+            "mm/page_alloc.c",
+            "kernel/rcu/tree.c",
+            "net/core/skbuff.c",
+        ],
+        "survey_summary": {
+            "virtio_ring_c_lines": 3940,
+            "preexisting_phase10_test_files": 3,
+            "preexisting_virtio_core_zig_present": True,
+            "preexisting_phase10_build_present": True,
+            "preexisting_phase10_core_doc_present": False,
+            "preexisting_virtio_ring_zig_present": True,
+            "preexisting_virtio_ring_doc_present": True,
+            "preexisting_ring_verify_present": True,
+            "preexisting_ring_publish_readiness_present": True,
+        },
+        "gaps": [
+            {
+                "id": "phase10-build-gate",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "zigux/tests/phase10_build.zig",
+            },
+            {
+                "id": "phase10-virtio-core-lab-starter",
+                "status": "starter_landed",
+                "kind": "lab_driver_starter",
+                "zigux_destination": "drivers/virtio/virtio.zig",
+            },
+            {
+                "id": "phase10-virtio-ring-survey-gate",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
+            },
+            {
+                "id": "phase10-virtio-ring-survey-note",
+                "status": "starter_landed",
+                "kind": "documentation",
+                "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
+            },
+            {
+                "id": "phase10-virtqueue-shape-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-used-buffer-polling-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-callback-enable-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-callback-delay-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-notify-prepare-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-notification-data-summary-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-broken-queue-poll-guard",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-queue-publish-readiness-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
+            },
+            {
+                "id": "phase10-queue-reset-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-queue-reset-readiness-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+                "zigux_destination": "drivers/virtio/virtio_ring.zig",
+            },
+            {
+                "id": "phase10-ring-publish-readiness-replay",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
+            },
+            {
+                "id": "phase10-ring-verify-replay",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
+            },
+            {
+                "id": "phase10-virtio-ring-slice-note",
+                "status": "starter_landed",
+                "kind": "documentation",
+                "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
+            },
+            {
+                "id": "phase10-ring-lab-driver-bridge",
+                "status": "blocked_on_risky_transport",
+                "kind": "roadmap_gap",
+                "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+            },
+        ],
+    }
 
 
 def write_fixture(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
         target = root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text("\n".join(markers) + "\n", encoding="utf-8")
+        if rel_path == MANIFEST_PATH:
+            target.write_text(
+                json.dumps(fixture_manifest(), indent=2) + "\n",
+                encoding="utf-8",
+            )
+        else:
+            target.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
 
 def expect_missing_marker(root: Path, rel_path: str, marker: str) -> None:
@@ -223,6 +463,17 @@ def expect_missing_file(root: Path, rel_path: str) -> None:
         actual = ",".join(missing_files) if missing_files else "none"
         raise SystemExit(f"phase10-ring-self-test:expected={rel_path}:actual={actual}")
     path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(original, encoding="utf-8")
+
+
+def expect_manifest_field_drift(root: Path, old: str, new: str, expected: str) -> None:
+    path = root / MANIFEST_PATH
+    original = path.read_text(encoding="utf-8")
+    path.write_text(original.replace(old, new, 1), encoding="utf-8")
+    _, problems = validate(root)
+    if expected not in problems:
+        actual = ",".join(problems) if problems else "none"
+        raise SystemExit(f"phase10-ring-self-test:expected={expected}:actual={actual}")
     path.write_text(original, encoding="utf-8")
 
 
@@ -305,58 +556,6 @@ def run_self_test() -> int:
                 "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
             ),
             (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"freeze_status_change_claimed": false,',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"risky_transport_posture": "blocked_on_risky_transport",',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"allowed_evidence_kinds": [',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"driver_local_lab_slices",',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"shared_validation_gates"',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"forbidden_transport_claims": [',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"queue_setup_reset_paths",',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"probe_remove_lifecycle"',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"architecture_council_reopen_required": true,',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"architecture_council_reopen_attached": false,',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"id": "phase10-virtio-ring-survey-gate"',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"id": "phase10-queue-publish-readiness-helper"',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                '"id": "phase10-ring-publish-readiness-replay"',
-            ),
-            (
                 "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
                 "const packed_summary = try ring.notificationDataSummary(2);",
             ),
@@ -389,13 +588,38 @@ def run_self_test() -> int:
         for rel_path, marker in forbidden_cases:
             expect_forbidden_marker(root, rel_path, marker)
 
+        manifest_field_cases = [
+            (
+                f'"freeze_boundary_owner_lane": "{EXPECTED_FREEZE_BOUNDARY_OWNER}"',
+                '"freeze_boundary_owner_lane": "P10-L12"',
+                f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12",
+            ),
+            (
+                '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper"',
+                '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "validation"',
+                f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:kind:validation",
+            ),
+            (
+                '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "roadmap_gap"',
+                '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "queue_wrapper"',
+                f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:kind:queue_wrapper",
+            ),
+            (
+                '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_verify.zig"',
+                '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_wrong_verify.zig"',
+                f"{MANIFEST_PATH}:gap:phase10-ring-verify-replay:zigux_destination:drivers/virtio/virtio_ring_wrong_verify.zig",
+            ),
+        ]
+        for old, new, expected in manifest_field_cases:
+            expect_manifest_field_drift(root, old, new, expected)
+
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
         expect_missing_file(root, "drivers/virtio/virtio_ring_publish_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(
         "PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT="
-        f"{len(cases) + len(forbidden_cases) + 2}"
+        f"{len(cases) + len(forbidden_cases) + len(manifest_field_cases) + 2}"
     )
     return 0
 
@@ -434,6 +658,7 @@ def main() -> int:
     print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(REQUIRED_MARKERS)}")
     print(f"PHASE10_RING_REQUIRED_MARKER_COUNT={required_marker_count}")
     print(f"PHASE10_RING_FORBIDDEN_MARKER_COUNT={forbidden_marker_count}")
+    print(f"PHASE10_RING_EXPECTED_GAP_METADATA_COUNT={len(EXPECTED_GAP_METADATA)}")
     return 0
 
 
