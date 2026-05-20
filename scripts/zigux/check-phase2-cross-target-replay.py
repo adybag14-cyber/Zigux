@@ -19,6 +19,7 @@ POLICY = Path("scripts") / "zigux" / "zig-toolchain-policy.json"
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_STATUS = "active"
 EXPECTED_ROUTE = "make -C zigux phase2-cross"
+EXPECTED_TARGET_ORDER = ("x86_64-linux", "aarch64-linux")
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 ZIG_TEST_FILES = (
     Path("scripts") / "zigux" / "kconfig" / "conf_bridge.zig",
@@ -136,6 +137,7 @@ def collect_fixture_issues(root: Path) -> list[str]:
         return issues
 
     seen_targets: set[str] = set()
+    target_order: list[str] = []
     archive_required_targets: set[str] = set()
     for index, entry in enumerate(cross_targets):
         if not isinstance(entry, dict):
@@ -154,6 +156,10 @@ def collect_fixture_issues(root: Path) -> list[str]:
         if target in seen_targets:
             issues.append(f"fixture:duplicate_target:{target}")
         seen_targets.add(target)
+        target_order.append(target)
+
+        if target not in EXPECTED_TARGET_ORDER:
+            issues.append(f"fixture:unexpected_target:{target}")
 
         if route != EXPECTED_ROUTE:
             issues.append(f"fixture:cross_target_route:{target}:{route!r}")
@@ -167,6 +173,17 @@ def collect_fixture_issues(root: Path) -> list[str]:
             archive_required_targets.add(target)
             if target not in archive_target_scope:
                 issues.append(f"fixture:archive_required_target_outside_scope:{target}")
+
+    if seen_targets != set(EXPECTED_TARGET_ORDER):
+        issues.append(
+            "fixture:target_set_mismatch:"
+            f"expected={list(EXPECTED_TARGET_ORDER)!r}:actual={target_order!r}"
+        )
+    if target_order != list(EXPECTED_TARGET_ORDER):
+        issues.append(
+            "fixture:target_order_mismatch:"
+            f"expected={list(EXPECTED_TARGET_ORDER)!r}:actual={target_order!r}"
+        )
 
     if archive_required_targets != set(archive_target_scope):
         issues.append(
@@ -540,6 +557,11 @@ def run_self_test() -> int:
         payload["cross_targets"][0]["target"] = "riscv64-linux"
         fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_fixture_issues(root)
+        assert "fixture:unexpected_target:riscv64-linux" in issues
+        assert (
+            "fixture:target_set_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['riscv64-linux', 'aarch64-linux']"
+            in issues
+        )
         assert "fixture:archive_required_target_outside_scope:riscv64-linux" in issues
         assert any(issue.startswith("fixture:archive_required_target_set_mismatch:") for issue in issues)
         checks_run += 1
@@ -565,6 +587,21 @@ def run_self_test() -> int:
         payload["cross_targets"][0] = "broken"
         fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert "fixture:cross_target_entry:0:str" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"] = [payload["cross_targets"][1], payload["cross_targets"][0]]
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_fixture_issues(root)
+        assert (
+            "fixture:target_order_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['aarch64-linux', 'x86_64-linux']"
+            in issues
+        )
+        assert (
+            "fixture:target_set_mismatch:expected=['x86_64-linux', 'aarch64-linux']:actual=['aarch64-linux', 'x86_64-linux']"
+            not in issues
+        )
         checks_run += 1
 
         build_self_test_root(root)
