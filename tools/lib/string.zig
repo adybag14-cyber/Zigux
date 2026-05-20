@@ -7,7 +7,7 @@ pub const MemparseResult = cmdline.MemparseResult;
 
 const strscpy_e2big: isize = -7;
 
-pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
+pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]const u8 {
     return allocator.dupe(u8, src);
 }
 
@@ -370,6 +370,24 @@ pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {
     return null;
 }
 
+pub fn strspn(buf: []const u8, accept: []const u8) usize {
+    const limit = cStringLen(buf);
+    const accept_len = cStringLen(accept);
+    for (buf[0..limit], 0..) |ch, idx| {
+        var matched = false;
+        for (accept[0..accept_len]) |allowed| {
+            if (ch == allowed) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            return idx;
+        }
+    }
+    return limit;
+}
+
 pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     const limit = strnlen(buf, count);
     for (buf[0..limit], 0..) |ch, idx| {
@@ -687,6 +705,18 @@ test "strpbrk finds the first accepted byte with C-string semantics" {
     try std.testing.expectEqual(@as(?usize, null), strpbrk(&[_]u8{ 'a', 0, 'b' }, "b"));
 }
 
+test "strspn counts the accepted prefix with C-string semantics" {
+    try std.testing.expectEqual(@as(usize, 4), strspn("abba!", "ab"));
+    try std.testing.expectEqual(@as(usize, 0), strspn("abba!", "xyz"));
+    try std.testing.expectEqual(@as(usize, 0), strspn("abba!", ""));
+
+    const cstr = [_]u8{ 'a', 'b', 'a', 0, 'b' };
+    try std.testing.expectEqual(@as(usize, 3), strspn(&cstr, "ab"));
+
+    const accept_cstr = [_]u8{ 'a', 0, 'z' };
+    try std.testing.expectEqual(@as(usize, 1), strspn("abca", &accept_cstr));
+}
+
 test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abc", 2, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abc", 1, 'b'));
@@ -707,7 +737,7 @@ test "strnchrNul returns the first match, NUL, or count boundary" {
 }
 
 test "phase 1 string replaceChar stops at embedded NUL" {
-    var buf = [_]u8{ 'a', 'b', 0, 'a' };
-    try std.testing.expectEqual(@as(usize, 2), replaceChar(buf[0..], 'a', 'z'));
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'b', 0, 'a' }, buf[0..]);
+    var buf = [_]u8{ 'a', 0, 'b', 'a' };
+    try std.testing.expectEqual(@as(usize, 1), replaceChar(buf[0..], 'a', 'z'));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 0, 'b', 'a' }, buf[0..]);
 }
