@@ -124,6 +124,7 @@ pub const AddRuleSyscallRequest = struct {
     initialized: bool = true,
     attr_present: bool = true,
     ruleset_fd_present: bool = true,
+    flags: u32 = 0,
     input: AddRuleInput = .{},
 };
 
@@ -131,6 +132,7 @@ pub const AddRuleSyscallPlan = struct {
     anchor: []const u8,
     checks_initialization_gate: bool,
     checks_attr_presence_before_copy_from_user: bool,
+    validates_flags: bool,
     reuses_add_rule_validation: bool,
     add_rule_plan: AddRulePlan,
 };
@@ -360,11 +362,15 @@ pub const SyscallsHelperLab = struct {
         if (!request.attr_present) {
             return error.BadUserPointer;
         }
+        if (request.flags != 0) {
+            return error.UnsupportedAddRuleFlags;
+        }
 
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
+            .validates_flags = true,
             .reuses_add_rule_validation = true,
             .add_rule_plan = try planAddRule(request.input, request.ruleset_fd_present),
         };
@@ -705,11 +711,12 @@ test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.validates_flags);
     try std.testing.expect(wrapper.reuses_add_rule_validation);
     try std.testing.expect(wrapper.add_rule_plan.performs_copy_from_user);
 }
 
-test "landlock syscalls add-rule top-level wrapper rejects disabled boot and missing attr" {
+test "landlock syscalls add-rule top-level wrapper rejects disabled boot missing attr and non-zero flags" {
     try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockAddRule(.{
         .initialized = false,
         .input = .{
@@ -718,6 +725,12 @@ test "landlock syscalls add-rule top-level wrapper rejects disabled boot and mis
     }));
     try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockAddRule(.{
         .attr_present = false,
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    }));
+    try std.testing.expectError(error.UnsupportedAddRuleFlags, SyscallsHelperLab.planLandlockAddRule(.{
+        .flags = 1,
         .input = .{
             .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
         },
