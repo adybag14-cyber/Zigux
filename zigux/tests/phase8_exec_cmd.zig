@@ -70,6 +70,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     defer std.testing.allocator.free(makefile);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-validate:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-exec-cmd-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-help-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-test:") != null);
 
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
