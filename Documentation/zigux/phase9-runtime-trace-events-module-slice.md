@@ -66,7 +66,7 @@ Current `master` still does not expose the broader shared runtime-loader packet:
 - dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
 
 Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a narrow `phase9-runtime-atomic64-diff` build shard rooted in `runtime_atomic64_diff.zig` rather than a broader shared runtime-loader or trace-events build packet.
-Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family.
+Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, while `samples/zigux/runtime_bitmap_loader.zig` and the other direct bitmap sample-family files remain trusted-contents gaps. So the absent-loader wording above is about the older trace-events loader-backed packet rather than proof that a direct bitmap loader companion returned.
 
 So this slice must keep saying plainly that the broader shared runtime-loader packet remains absent on current `master`.
 
