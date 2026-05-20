@@ -61,7 +61,7 @@ REQUIRED_REPO_REALITY_GAPS = ()
 REQUIRED_MARKERS = {
     POLICY_NOTE_PATH: (
         "PHASE3_POLICY_SLICE_FILE_COUNT=",
-        "PHASE3_POLICY_SLICE_SCOPE=",
+        "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims",
         "PHASE3_POLICY_NEXT_SAFE_STEP=",
         "zigux/helpers/layout_assert.zig",
         "zigux/helpers/unsafe_policy.zig",
@@ -138,11 +138,27 @@ REQUIRED_MARKERS = {
     NARROW_PATH: (
         "pub const Surface = enum {",
         "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
+        "pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+        "pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+        "pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+        "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn requireNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {",
+        "pub fn requireVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {",
+        "pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {",
+        "pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
+        "pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
+        "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
         "pub fn writeValueAtInteropPolicyBytes(comptime T: type, address: usize, value: T, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!void {",
     ),
     TEST_PATH: (
         'test "policy starter packet decodes shared interop policy records" {',
+        'test "policy starter packet keeps narrow-surface decoding aligned" {',
+        'test "policy starter packet keeps narrow byte and denial symmetry explicit" {',
         'test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {',
+        'test "policy starter packet keeps unsafe require gates explicit on shared records" {',
         'test "panic policy starter packet keeps escalation semantics explicit" {',
         'test "allocator policy starter packet keeps init ownership semantics explicit" {',
         'test "unsafe policy starter packet keeps access semantics explicit" {',
@@ -164,6 +180,7 @@ REQUIRED_MARKERS = {
 
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
+    (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims"),
     (POLICY_NOTE_PATH, "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`"),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
     (SHARED_REMINDER_GAP_PATH, "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared tests-root plus scripts-root Phase 3 summaries now reflect those returns while the docs-root Phase 3 reminder still stays narrower"),
@@ -171,8 +188,10 @@ SELF_TEST_CASES = (
     (LAYOUT_ASSERT_PATH, "pub fn assertInteropPolicyLayout() LayoutError!void {"),
     (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {"),
     (LAYOUT_ASSERT_PATH, "pub fn assertInteropPolicyModeValues() void {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {"),
-    (TEST_PATH, 'test "unsafe policy starter packet keeps access semantics explicit" {'),
+    (NARROW_PATH, "pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {"),
+    (NARROW_PATH, "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {"),
+    (TEST_PATH, 'test "policy starter packet keeps narrow byte and denial symmetry explicit" {'),
+    (TEST_PATH, 'test "policy starter packet keeps unsafe require gates explicit on shared records" {'),
     (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
 )
 
