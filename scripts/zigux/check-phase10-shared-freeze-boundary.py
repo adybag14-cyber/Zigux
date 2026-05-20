@@ -57,7 +57,7 @@ PHASE14_FUTURE_DESTINATION_POLICY = (
     "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it"
 )
 
-EXPECTED_COMMON_DRIVER_FIELDS = {
+COMMON_DRIVER_FIELD_VALUES = {
     "freeze_map": "Documentation/zigux/freeze-map.md",
     "freeze_boundary_status": "aligned",
     "freeze_status_change_claimed": False,
@@ -69,6 +69,40 @@ EXPECTED_COMMON_DRIVER_FIELDS = {
     ],
     "architecture_council_reopen_required": True,
     "architecture_council_reopen_attached": False,
+}
+
+EXPECTED_DRIVER_MANIFEST_FIELDS = {
+    "zigux/tests/phase10_virtio_ring_manifest.json": {
+        **COMMON_DRIVER_FIELD_VALUES,
+        "forbidden_transport_claims": [
+            "queue_setup_reset_paths",
+            "irq_parity",
+            "dma_paths",
+            "input_registration_lifecycle",
+            "probe_remove_lifecycle",
+        ],
+    },
+    "zigux/tests/phase10_virtio_input_manifest.json": {
+        **COMMON_DRIVER_FIELD_VALUES,
+        "forbidden_transport_claims": [
+            "queue_setup_reset_paths",
+            "irq_parity",
+            "dma_paths",
+            "input_registration_lifecycle",
+            "probe_remove_lifecycle",
+        ],
+    },
+    "zigux/tests/phase10_virtio_mmio_manifest.json": {
+        **COMMON_DRIVER_FIELD_VALUES,
+        "forbidden_transport_claims": [
+            "queue_setup_reset_paths",
+            "queue_reset_execution",
+            "irq_parity",
+            "dma_paths",
+            "probe_remove_lifecycle",
+            "freeze_restore_lifecycle",
+        ],
+    },
 }
 
 TEXT_MARKERS = {
@@ -170,10 +204,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 + repr(phase14_boundary.get("future_destination_policy"))
             )
 
-    for rel_path in COMMON_DRIVER_MANIFEST_FILES:
+    for rel_path, expected_fields in EXPECTED_DRIVER_MANIFEST_FIELDS.items():
         manifest = json.loads(read_text(root, rel_path))
         label = Path(rel_path).name
-        for field, expected in EXPECTED_COMMON_DRIVER_FIELDS.items():
+        for field, expected in expected_fields.items():
             actual = manifest.get(field)
             if actual != expected:
                 missing_markers.append(f"{label}:{field}={actual!r}")
@@ -202,10 +236,10 @@ def build_fixture_manifest() -> str:
     ) + "\n"
 
 
-def build_driver_manifest(lane_key: str) -> str:
+def build_driver_manifest(rel_path: str, lane_key: str) -> str:
     manifest = {
         "lane_key": lane_key,
-        **EXPECTED_COMMON_DRIVER_FIELDS,
+        **EXPECTED_DRIVER_MANIFEST_FIELDS[rel_path],
         "gaps": [],
     }
     return json.dumps(manifest, indent=2) + "\n"
@@ -232,9 +266,15 @@ def build_fixture_files() -> dict[str, str]:
         )
         + "\n",
         "zigux/tests/phase10_closure_manifest.json": build_fixture_manifest(),
-        "zigux/tests/phase10_virtio_ring_manifest.json": build_driver_manifest("P10-L10"),
-        "zigux/tests/phase10_virtio_input_manifest.json": build_driver_manifest("P10-L13"),
-        "zigux/tests/phase10_virtio_mmio_manifest.json": build_driver_manifest("P10-L11"),
+        "zigux/tests/phase10_virtio_ring_manifest.json": build_driver_manifest(
+            "zigux/tests/phase10_virtio_ring_manifest.json", "P10-L10"
+        ),
+        "zigux/tests/phase10_virtio_input_manifest.json": build_driver_manifest(
+            "zigux/tests/phase10_virtio_input_manifest.json", "P10-L22"
+        ),
+        "zigux/tests/phase10_virtio_mmio_manifest.json": build_driver_manifest(
+            "zigux/tests/phase10_virtio_mmio_manifest.json", "P10-L11"
+        ),
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(
             TEXT_MARKERS["zigux-alpha/PHASE10_CLOSURE_LEDGER.md"]
         )
@@ -423,6 +463,15 @@ def run_self_test() -> int:
         run_driver_manifest_case(
             root,
             "zigux/tests/phase10_virtio_mmio_manifest.json",
+            "forbidden_transport_claims",
+            ["queue_setup_reset_paths", "irq_parity"],
+            "phase10_virtio_mmio_manifest.json:forbidden_transport_claims=['queue_setup_reset_paths', 'irq_parity']",
+        )
+        reset_fixture(root)
+
+        run_driver_manifest_case(
+            root,
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
             "architecture_council_reopen_attached",
             True,
             "phase10_virtio_mmio_manifest.json:architecture_council_reopen_attached=True",
@@ -430,7 +479,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
@@ -453,7 +502,9 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
-total_manifest_checks = 10 + len(COMMON_DRIVER_MANIFEST_FILES) * len(EXPECTED_COMMON_DRIVER_FIELDS)
+total_manifest_checks = 10 + sum(
+    len(fields) for fields in EXPECTED_DRIVER_MANIFEST_FIELDS.values()
+)
 
 print("PHASE10_SHARED_FREEZE_BOUNDARY=pass")
 print(f"PHASE10_SHARED_FREEZE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
