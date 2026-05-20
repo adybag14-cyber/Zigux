@@ -20,7 +20,8 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_SURVEYED_HEAD = "9ca34d1"
+EXPECTED_EVIDENCE_SURVEYED_HEAD = "9ca34d1"
+EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-20"
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -84,7 +85,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 class ValidationError(RuntimeError):
@@ -133,8 +134,10 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 phase drift")
     if manifest.get("lane_scope") != EXPECTED_LANE_SCOPE:
         raise ValidationError("phase6 helper-evidence lane-scope drift")
-    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD or parity.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
-        raise ValidationError("phase6 surveyed-head drift")
+    if manifest.get("surveyed_head") != EXPECTED_EVIDENCE_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper-evidence surveyed-head drift")
+    if parity.get("surveyed_head") != EXPECTED_PARITY_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper-parity surveyed-head drift")
     if manifest.get("current_direct_readback_companions") != EXPECTED_DIRECT_COMPANIONS:
         raise ValidationError("phase6 direct-readback companions mismatch")
     if manifest.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
@@ -202,7 +205,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_PACKET,
                 "phase": EXPECTED_PHASE,
-                "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "surveyed_head": EXPECTED_EVIDENCE_SURVEYED_HEAD,
                 "lane_scope": EXPECTED_LANE_SCOPE,
                 "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
@@ -243,7 +246,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_PARITY_PACKET,
                 "phase": EXPECTED_PHASE,
-                "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "surveyed_head": EXPECTED_PARITY_SURVEYED_HEAD,
             },
             indent=2,
         )
@@ -280,6 +283,8 @@ def run_self_test() -> None:
         expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
         cases_run += 1
