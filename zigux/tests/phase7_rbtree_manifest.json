@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-20T06:23:00Z",
+  "verified_on_utc": "2026-05-20T09:14:00Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -43,7 +43,8 @@
     "the currently readable same-lane rbtree packet now includes the direct helper at `tools/lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, and the returned survey and manifest, so same-lane truthfulness must keep those returned surfaces explicit while still not presenting the roadmap-path port or fixture pair as returned on current master",
     "path truthfulness must keep the currently returned helper rooted at `tools/lib/rbtree.zig` explicit while the roadmap destination `lib/rbtree.zig` still remains a repo-reality gap on current master",
     "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the roadmap-path port and dedicated fixture pair still do not directly materialize on current master"
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the roadmap-path port and dedicated fixture pair still do not directly materialize on current master",
+    "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads"
   ],
   "next_bounded_step": "Keep same-lane follow-through inside this slice-backed direct-helper packet until one more dedicated rbtree surface such as `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes on current `master`, and do not widen into dedicated make-wrapper or workflow-recovery lanes before that happens."
 }
