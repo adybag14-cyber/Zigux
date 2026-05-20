@@ -27,6 +27,7 @@ Fresh current-master reread in this slot also confirmed these shared non-owner s
 - `scripts/zigux/validate-phase7.py`
 - `zigux/tests/phase7_build.zig`
 - `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
 
 `zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.
 
@@ -41,7 +42,7 @@ Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper rout
 - `zigux/Makefile` now returns shared `phase7-validate`, but it still lacks dedicated `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and aggregate `phase7:` wrapper markers
 - `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps
 
-Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, and the directly readable shared build and validator evidence, while still not claiming the roadmap-path port or dedicated fixture pair as returned helper-local ownership.
+Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, and the directly readable shared build, validator, and workflow evidence, while still not claiming the roadmap-path port or dedicated fixture pair as returned helper-local ownership.
 
 - `string_helpers` remains the Phase 7 fully landed sibling packet and should stay explicit rather than being folded into a generic missing-helper story.
 - `cmdline` and `argv_split` keep their own helper-local packet ownership and should stay separate from this rbtree reminder.
