@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -476,6 +478,22 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def run_validator(root: Path) -> int:
+    try:
+        issues = collect_issues(root)
+    except SystemExit as exc:
+        print("PHASE2_CLOSURE_VALIDATION=fail")
+        print(f"PHASE2_CLOSURE_VALIDATION_NOTE={exc}")
+        return 1
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_CLOSURE_VALIDATION=pass")
+    print(f"PHASE2_CLOSURE_PRESENT_COUNT={len(EXPECTED_PRESENT_FILES)}")
+    print(f"PHASE2_CLOSURE_MISSING_COUNT={len(EXPECTED_MISSING_FILES)}")
+    return 0
+
+
 def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
@@ -574,6 +592,16 @@ def assert_system_exit_contains(callback, expected_fragment: str) -> None:
         assert expected_fragment in str(exc), str(exc)
         return
     raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
+def assert_run_validator_note_contains(root: Path, expected_fragment: str) -> None:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        exit_code = run_validator(root)
+    output = stdout.getvalue()
+    assert exit_code == 1, output
+    assert "PHASE2_CLOSURE_VALIDATION=fail" in output, output
+    assert f"PHASE2_CLOSURE_VALIDATION_NOTE={expected_fragment}" in output, output
 
 
 def run_self_test() -> int:
@@ -890,36 +918,36 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         resolve_path(root, CLOSURE_DOC).unlink()
-        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        assert_run_validator_note_contains(root, "required file missing:")
         checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, CLOSURE_DOC).unlink()
         resolve_path(root, CLOSURE_DOC).mkdir(parents=True)
-        assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
+        assert_run_validator_note_contains(root, "required file unreadable:")
         resolve_path(root, CLOSURE_DOC).rmdir()
         checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
-        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        assert_run_validator_note_contains(root, "required file missing:")
         checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
         resolve_path(root, MANIFEST).mkdir(parents=True)
-        assert_system_exit_contains(lambda: collect_issues(root), "manifest is unreadable:")
+        assert_run_validator_note_contains(root, "manifest is unreadable:")
         resolve_path(root, MANIFEST).rmdir()
         checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, "{\n")
-        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not valid json:")
+        assert_run_validator_note_contains(root, "manifest is not valid json:")
         checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, "[]\n")
-        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not an object:")
+        assert_run_validator_note_contains(root, "manifest is not an object:")
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
@@ -937,14 +965,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root)
-    if issues:
-        return emit_issues(issues)
-
-    print("PHASE2_CLOSURE_VALIDATION=pass")
-    print(f"PHASE2_CLOSURE_PRESENT_COUNT={len(EXPECTED_PRESENT_FILES)}")
-    print(f"PHASE2_CLOSURE_MISSING_COUNT={len(EXPECTED_MISSING_FILES)}")
-    return 0
+    return run_validator(args.root)
 
 
 if __name__ == "__main__":
