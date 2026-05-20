@@ -152,6 +152,20 @@ pub const LifecycleSummary = struct {
     storage_backing: StorageBacking,
 };
 
+pub const ReinitBoundaryReplay = struct {
+    stage_after_first_exit: SampleStage,
+    stage_after_reinit: SampleStage,
+    stage_after_second_replay: SampleStage,
+    stage_after_second_exit: SampleStage,
+    init_runs_after_reinit: usize,
+    exit_runs_after_first_exit: usize,
+    exit_runs_after_second_exit: usize,
+    available_after_reinit: usize,
+    queue_len_after_reinit: usize,
+    second_replay_final_len: usize,
+    second_replay_final_sequence: [fifo_capacity]u8,
+};
+
 pub const sample_review_focus = [_]SampleFocus{
     .bounded_fifo_order,
     .wraparound_requeue,
@@ -404,6 +418,40 @@ pub const BytestreamFifoSample = struct {
             .exit_run_count = self.exit_runs,
             .queue_len = self.len,
             .storage_backing = .embedded_fixed_buffer,
+        };
+    }
+
+    pub fn runReinitBoundaryReplay(self: *BytestreamFifoSample) !ReinitBoundaryReplay {
+        if (self.sample_stage != .initialized) return error.InvalidLifecycleTransition;
+
+        _ = try self.runAnchorReplay();
+        try self.exit();
+        const stage_after_first_exit = self.sample_stage;
+        const exit_runs_after_first_exit = self.exit_runs;
+
+        try self.init();
+        const stage_after_reinit = self.sample_stage;
+        const init_runs_after_reinit = self.init_runs;
+        const available_after_reinit = self.available();
+        const queue_len_after_reinit = self.len;
+
+        const second_replay = try self.runAnchorReplay();
+        const stage_after_second_replay = self.sample_stage;
+
+        try self.exit();
+
+        return .{
+            .stage_after_first_exit = stage_after_first_exit,
+            .stage_after_reinit = stage_after_reinit,
+            .stage_after_second_replay = stage_after_second_replay,
+            .stage_after_second_exit = self.sample_stage,
+            .init_runs_after_reinit = init_runs_after_reinit,
+            .exit_runs_after_first_exit = exit_runs_after_first_exit,
+            .exit_runs_after_second_exit = self.exit_runs,
+            .available_after_reinit = available_after_reinit,
+            .queue_len_after_reinit = queue_len_after_reinit,
+            .second_replay_final_len = second_replay.final_len,
+            .second_replay_final_sequence = second_replay.final_sequence,
         };
     }
 
@@ -667,6 +715,31 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expect(wrapped_occupancy.wrapped);
     try std.testing.expect(wrapped_occupancy.wrapped_window);
     try std.testing.expect(sample.usesWrappedStorageWindow());
+}
+
+test "bytestream fifo sample keeps reinit-and-replay boundaries reviewable at sample root" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runReinitBoundaryReplay());
+
+    try sample.init();
+    const reinit = try sample.runReinitBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.exited, reinit.stage_after_first_exit);
+    try std.testing.expectEqual(SampleStage.initialized, reinit.stage_after_reinit);
+    try std.testing.expectEqual(SampleStage.replay_complete, reinit.stage_after_second_replay);
+    try std.testing.expectEqual(SampleStage.exited, reinit.stage_after_second_exit);
+    try std.testing.expectEqual(@as(usize, 2), reinit.init_runs_after_reinit);
+    try std.testing.expectEqual(@as(usize, 1), reinit.exit_runs_after_first_exit);
+    try std.testing.expectEqual(@as(usize, 2), reinit.exit_runs_after_second_exit);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), reinit.available_after_reinit);
+    try std.testing.expectEqual(@as(usize, 0), reinit.queue_len_after_reinit);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), reinit.second_replay_final_len);
+    try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], reinit.second_replay_final_sequence[0..]);
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 2), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 2), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
 }
 
 test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries reviewable at sample root" {
