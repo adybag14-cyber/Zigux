@@ -44,6 +44,8 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
 - indefinite-C policy link or explicit non-applicability note
+- governance lane sequencing link or explicit scope note
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation
 - explicit non-goals
 - written rationale
 
