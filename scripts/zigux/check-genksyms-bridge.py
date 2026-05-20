@@ -834,7 +834,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
-        (root / GENKSYMS_TOOL_REL).writeText(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
+        (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
         assert any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in collect_issues(root))
         checks_run += 1
 
