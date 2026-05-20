@@ -23,8 +23,9 @@ VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-gpio-wdt-validation-m
 DRIVER_PATH = Path("drivers/watchdog/gpio_wdt.zig")
 
 SURVEY_MARKERS = (
-    "`PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_plus_docs_packet_truthful`",
+    "`PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_docs_and_proof_packet_truthful`",
     "current authenticated contents readback keeps the bounded gpio watchdog packet",
+    "`zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`",
     "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
     "current authenticated contents readback still does not rematerialize",
     "`zigux/tests/phase11_gpio_wdt.zig`,",
@@ -32,7 +33,7 @@ SURVEY_MARKERS = (
     "`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,",
     "`watchdogDrvdataCheckpointSummary()`,",
     "`rebootGlueCheckpointSummary()`",
-    "remove-hook checkpoint or another equally small truthfulness repair",
+    "focused replay recovery or another equally small truthfulness repair",
 )
 
 MODULE_SLICE_MARKERS = (
@@ -43,13 +44,14 @@ MODULE_SLICE_MARKERS = (
     "`watchdogDrvdataCheckpointSummary()` keeps the bounded `watchdog_set_drvdata()` ownership handoff explicit",
     "`rebootGlueCheckpointSummary()` keeps the bounded `watchdog_stop_on_reboot()` handoff explicit",
     "`registerDeviceCallSummary()` keeps the first bounded `devm_watchdog_register_device()` request surface visible",
-    "remove-hook, reboot-backed teardown execution, and hardware-backed validation work blocked",
+    "one equally small gpio watchdog replay, manifest, checker, or validation-truthfulness repair",
 )
 
 TEARDOWN_MARKERS = (
-    "`PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_and_docs_packet`",
+    "`PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`",
     "The current teardown-facing GPIO packet on `master` is:",
     "`drivers/watchdog/gpio_wdt.zig`",
+    "`zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`",
     "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
     "`summarizeTeardown()` and the bounded stop-request outcomes it records",
     "`requestStop()` and the split between watchdog-core stop policy and hardware",
@@ -59,17 +61,18 @@ TEARDOWN_MARKERS = (
 )
 
 VALIDATION_MATRIX_MARKERS = (
-    "`PHASE11_GPIO_WDT_STATUS=driver_and_docs_packet_truthful`",
+    "`PHASE11_GPIO_WDT_STATUS=driver_docs_and_proof_packet_truthful`",
     "The directly readable gpio watchdog matrix packet on current `master` is:",
+    "`zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`",
     "`Documentation/zigux/phase11-gpio-wdt-survey.md`",
     "`Documentation/zigux/phase11-gpio-wdt-module-slice.md`",
     "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md`",
     "`zigux/tests/phase11_gpio_wdt.zig`,",
-    "Treat the current gpio watchdog matrix packet as the driver-plus-docs packet",
+    "Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof packet",
     "`descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,",
     "`registerDeviceFailureSummary()`, `requestStop()`,",
-    "The next honest gpio-only follow-up is still one equally small same-lane",
-    "remove-hook checkpoint or validation-truthfulness repair",
+    "The next honest gpio-only follow-up is still one equally small replay,",
+    "manifest, checker, or validation-truthfulness repair, rather than new runtime behavior.",
 )
 
 DRIVER_MARKERS = (
@@ -81,15 +84,15 @@ DRIVER_MARKERS = (
     "pub const RegisterDeviceCallSummary = struct {",
     "pub const RegisterDeviceFailureSummary = struct {",
     "pub const TeardownSummary = struct {",
-    "pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary {",
-    "pub fn watchdogMetadataSummary() WatchdogMetadataSummary {",
-    "pub fn descriptorRequestSummary() DescriptorRequestSummary {",
-    "pub fn platformDrvdataCheckpointSummary() PlatformDrvdataCheckpointSummary {",
-    "pub fn watchdogDrvdataCheckpointSummary() WatchdogDrvdataCheckpointSummary {",
-    "pub fn rebootGlueCheckpointSummary() RebootGlueCheckpointSummary {",
-    "pub fn registrationPlanSummary() RegistrationPlanSummary {",
-    "pub fn registerDeviceCallSummary() RegisterDeviceCallSummary {",
-    "pub fn registerDeviceFailureSummary() RegisterDeviceFailureSummary {",
+    "pub fn platformDriverIdentitySummary(self: *const Self) PlatformDriverIdentitySummary {",
+    "pub fn watchdogMetadataSummary(self: *const Self) WatchdogMetadataSummary {",
+    "pub fn descriptorRequestSummary(self: *const Self) DescriptorRequestSummary {",
+    "pub fn platformDrvdataCheckpointSummary(self: *const Self) PlatformDrvdataCheckpointSummary {",
+    "pub fn watchdogDrvdataCheckpointSummary(self: *const Self) WatchdogDrvdataCheckpointSummary {",
+    "pub fn rebootGlueCheckpointSummary(self: *const Self) RebootGlueCheckpointSummary {",
+    "pub fn registrationPlanSummary(self: *const Self, nowayout: bool) RegistrationPlanSummary {",
+    "pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {",
+    "pub fn registerDeviceFailureSummary(self: *const Self, nowayout: bool) RegisterDeviceFailureSummary {",
     "pub fn requestStop(self: *Self, nowayout: bool) StopSummary {",
     "pub fn summarizeTeardown(self: Self, nowayout: bool) TeardownSummary {",
 )
@@ -157,13 +160,14 @@ def build_fixture(root: Path) -> None:
         root / SURVEY_PATH,
         """# Phase 11 GPIO Watchdog Survey
 
-- `PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_plus_docs_packet_truthful`
+- `PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_docs_and_proof_packet_truthful`
 - current authenticated contents readback keeps the bounded gpio watchdog packet reviewable through:
+  - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
   - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - current authenticated contents readback still does not rematerialize `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `Documentation/zigux/phase11-shared-replay-contract.md`, or `zigux/tests/phase11_build.zig`
 - `zigux/Makefile` still exposes no dedicated `make -C zigux phase11-gpio-wdt` route
 - `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`, `descriptorRequestSummary()`, `platformDrvdataCheckpointSummary()`, `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`, `registrationHandoffSummary()`, `registrationPlanSummary()`, `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()` stay reviewable
-- If the current smaller packet needs one more driver-local follow-up first, keep it to a remove-hook checkpoint or another equally small truthfulness repair.
+- If the current smaller packet needs one more driver-local follow-up first, keep it to focused replay recovery or another equally small truthfulness repair.
 """,
     )
     write(
@@ -177,16 +181,17 @@ def build_fixture(root: Path) -> None:
 - `watchdogDrvdataCheckpointSummary()` keeps the bounded `watchdog_set_drvdata()` ownership handoff explicit before later reboot glue or registration execution.
 - `rebootGlueCheckpointSummary()` keeps the bounded `watchdog_stop_on_reboot()` handoff explicit between watchdog drvdata ownership and the first register-device request without claiming live shutdown execution.
 - `registerDeviceCallSummary()` keeps the first bounded `devm_watchdog_register_device()` request surface visible without claiming live watchdog-core registration.
-- The same review packet also keeps teardown and failure-mode parity explicit in bounded form while leaving live GPIO, remove-hook, reboot-backed teardown execution, and hardware-backed validation work blocked for later same-family follow-through.
+- The next honest bounded step remains one equally small gpio watchdog replay, manifest, checker, or validation-truthfulness repair inside this returned driver-plus-docs-plus-proof packet, rather than new runtime behavior.
 """,
     )
     write(
         root / TEARDOWN_NOTE_PATH,
         """# Phase 11 GPIO Watchdog Teardown Note
 
-- `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_and_docs_packet`
+- `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`
 - The current teardown-facing GPIO packet on `master` is:
   - `drivers/watchdog/gpio_wdt.zig`
+  - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
   - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `summarizeTeardown()` and the bounded stop-request outcomes it records
 - `requestStop()` and the split between watchdog-core stop policy and hardware `always-running` behavior
@@ -199,15 +204,16 @@ def build_fixture(root: Path) -> None:
         root / VALIDATION_MATRIX_PATH,
         """# Phase 11 GPIO Watchdog Validation Matrix
 
-- `PHASE11_GPIO_WDT_STATUS=driver_and_docs_packet_truthful`
+- `PHASE11_GPIO_WDT_STATUS=driver_docs_and_proof_packet_truthful`
 - The directly readable gpio watchdog matrix packet on current `master` is:
+  - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
   - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - Current direct contents reads in this run do not rematerialize `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `Documentation/zigux/phase11-shared-replay-contract.md`, or `zigux/tests/phase11_build.zig`
-- Treat the current gpio watchdog matrix packet as the driver-plus-docs packet below.
+- Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof packet below.
 - The returned driver plus the paired module slice and teardown note keep the bounded `descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`, `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`, `registrationHandoffSummary()`, `registrationPlanSummary()`, `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()` checkpoint names reviewable.
-- The next honest gpio-only follow-up is still one equally small same-lane remove-hook checkpoint or validation-truthfulness repair, rather than new runtime behavior.
+- The next honest gpio-only follow-up is still one equally small replay, manifest, checker, or validation-truthfulness repair, rather than new runtime behavior.
 """,
     )
     write(
@@ -221,15 +227,15 @@ pub const RegisterDeviceCallSummary = struct {};
 pub const RegisterDeviceFailureSummary = struct {};
 pub const TeardownSummary = struct {};
 
-pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary {}
-pub fn watchdogMetadataSummary() WatchdogMetadataSummary {}
-pub fn descriptorRequestSummary() DescriptorRequestSummary {}
-pub fn platformDrvdataCheckpointSummary() PlatformDrvdataCheckpointSummary {}
-pub fn watchdogDrvdataCheckpointSummary() WatchdogDrvdataCheckpointSummary {}
-pub fn rebootGlueCheckpointSummary() RebootGlueCheckpointSummary {}
-pub fn registrationPlanSummary() RegistrationPlanSummary {}
-pub fn registerDeviceCallSummary() RegisterDeviceCallSummary {}
-pub fn registerDeviceFailureSummary() RegisterDeviceFailureSummary {}
+pub fn platformDriverIdentitySummary(self: *const Self) PlatformDriverIdentitySummary {}
+pub fn watchdogMetadataSummary(self: *const Self) WatchdogMetadataSummary {}
+pub fn descriptorRequestSummary(self: *const Self) DescriptorRequestSummary {}
+pub fn platformDrvdataCheckpointSummary(self: *const Self) PlatformDrvdataCheckpointSummary {}
+pub fn watchdogDrvdataCheckpointSummary(self: *const Self) WatchdogDrvdataCheckpointSummary {}
+pub fn rebootGlueCheckpointSummary(self: *const Self) RebootGlueCheckpointSummary {}
+pub fn registrationPlanSummary(self: *const Self, nowayout: bool) RegistrationPlanSummary {}
+pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {}
+pub fn registerDeviceFailureSummary(self: *const Self, nowayout: bool) RegisterDeviceFailureSummary {}
 pub fn requestStop(self: *Self, nowayout: bool) StopSummary {}
 pub fn summarizeTeardown(self: Self, nowayout: bool) TeardownSummary {}
 """,
@@ -268,7 +274,7 @@ def run_self_test() -> None:
             fixture_root / SURVEY_PATH,
             replace_once(
                 survey_text,
-                "`PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_plus_docs_packet_truthful`",
+                "`PHASE11_GPIO_WDT_SURVEY_STATUS=current_head_driver_docs_and_proof_packet_truthful`",
                 "`PHASE11_GPIO_WDT_SURVEY_STATUS=broken`",
             ),
         )
@@ -280,7 +286,7 @@ def run_self_test() -> None:
             fixture_root / VALIDATION_MATRIX_PATH,
             replace_once(
                 matrix_text,
-                "remove-hook checkpoint or validation-truthfulness repair",
+                "manifest, checker, or validation-truthfulness repair, rather than new runtime behavior.",
                 "new runtime behavior",
             ),
         )
@@ -300,7 +306,7 @@ def run_self_test() -> None:
             fixture_root / DRIVER_PATH,
             replace_once(
                 driver_text,
-                "pub fn rebootGlueCheckpointSummary() RebootGlueCheckpointSummary {}",
+                "pub fn rebootGlueCheckpointSummary(self: *const Self) RebootGlueCheckpointSummary {}",
                 "",
             ),
         )
