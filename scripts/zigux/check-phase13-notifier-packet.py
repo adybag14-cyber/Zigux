@@ -17,8 +17,11 @@ REQUIRED_MARKERS = {
         "`zigux/helpers/list_view.zig`",
         "`zigux/helpers/hlist_view.zig`",
         "`zigux/helpers/notifier_chain_view.zig`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/tests/phase13_build.zig`",
         "`make -C zigux phase13-validate`",
         "focused checker",
+        "repo-reality gaps",
     ),
     "Documentation/zigux/phase13-notifier-summary-gap.md": (
         "`scripts/zigux/check-phase13-notifier-packet.py`",
@@ -27,7 +30,11 @@ REQUIRED_MARKERS = {
         "`zigux/helpers/list_view.zig`",
         "`zigux/helpers/hlist_view.zig`",
         "`zigux/helpers/notifier_chain_view.zig`",
+        "`scripts/zigux/validate-phase13-release.py`",
+        "`zigux/tests/phase13_build.zig`",
         "`make -C zigux phase13-validate`",
+        "repo-reality gaps",
+        "The remaining notifier-family gaps are therefore the still-missing direct companions themselves rather than stale summary wording inside the already-shipped reminder set.",
     ),
     "zigux/tests/phase13_notifier_list_manifest.json": (
         "\"lane_key\": \"P13-L18\"",
@@ -37,9 +44,12 @@ REQUIRED_MARKERS = {
         "\"current_phase13_notifier_list_reviewability_present\": true",
         "\"current_list_view_present\": true",
         "\"current_hlist_view_present\": true",
+        "\"current_phase13_build_present\": false",
         "\"id\": \"phase13-notifier-list-view-helper\"",
         "\"id\": \"phase13-notifier-hlist-view-helper\"",
         "\"id\": \"phase13-notifier-focused-packet-checker\"",
+        "\"id\": \"phase13-notifier-reviewability-gate\"",
+        "\"id\": \"phase13-notifier-priority-signal-gap\"",
         "\"id\": \"phase13-notifier-chain-helper-gap\"",
         "\"id\": \"phase13-build-route-gap\"",
     ),
@@ -175,6 +185,20 @@ def run_self_test() -> int:
         populate_repo(tempdir)
         checks_run += 1
 
+        survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8")
+            + "`zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-notifier-list-survey.md:`zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
@@ -192,6 +216,23 @@ def run_self_test() -> int:
         populate_repo(tempdir)
         checks_run += 1
 
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                '"current_phase13_build_present": false\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"current_phase13_build_present": false'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
         checker_input = tempdir / "zigux/helpers/list_view.zig"
         checker_input.write_text(
             checker_input.read_text(encoding="utf-8").replace(
@@ -204,6 +245,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:zigux/helpers/list_view.zig:pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        summary_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
+        summary_path.write_text(
+            summary_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/validate-phase13-release.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:`scripts/zigux/validate-phase13-release.py`"
             in issues
         )
         populate_repo(tempdir)
