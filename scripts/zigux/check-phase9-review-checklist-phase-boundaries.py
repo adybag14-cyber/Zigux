@@ -9,30 +9,19 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 
-
-def infer_repo_root() -> Path:
-    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
-        if (candidate / "Documentation/zigux/review-checklist.md").exists():
-            return candidate
-    return SELF_PATH.parent
-
-
-ROOT = infer_repo_root()
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
-SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 
-TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
-PHASE9_BOUNDARY_CHECKER_MARKER = "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
 PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
 PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
 PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
 PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
+TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 
 CHECKLIST_REQUIRED_MARKERS = [
     "if the change touches the shared Phase 9 runtime-pilot packet",
@@ -40,13 +29,12 @@ CHECKLIST_REQUIRED_MARKERS = [
     "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
     "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
     "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    ".provides_selftest_hook = true",
+    "`.provides_selftest_hook = true`",
     "initialized, selftest_complete, and exited lifecycle tracking",
     "failed-exit rollback explicit after reusable selftest replay",
     "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest",
-    "does not currently expose the broader shared runtime-loader packet",
-    "`zigux/tests/phase9_build.zig` now stays explicit only as the returned narrow `phase9-runtime-atomic64-diff` build shard rooted in `zigux/tests/runtime_atomic64_diff.zig`",
-    "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and `zigux/tests/phase9_build.zig` while `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the trusted contents path",
+    "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` while `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the trusted contents path",
+    "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -57,98 +45,25 @@ CHECKLIST_REQUIRED_MARKERS = [
 ]
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
-    "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`",
-    "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking",
-    "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`",
-    "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages remains part of the still-shipped narrow packet",
+    "Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.",
     "The shared runtime-loader allocator/init-flow packet has returned",
     "the review-first allocator/init-flow packet has returned, but deeper loadable-runtime publication and module-install-root completion still remain blocked.",
     "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces",
     "the shared runtime-loader allocator/init-flow packet has returned through a mixed direct-read plus public-tree-fallback packet and should be treated as current shared-owner evidence again",
-    "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness",
+    "keep the partial runtime bitmap reminder packet explicit without overstating what has actually returned",
     "Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
 ]
 
 MODULE_SLICE_REQUIRED_MARKERS = [
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
-    "`samples/zigux/runtime_trace_events.zig`",
-    "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
-    "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    ".provides_selftest_hook = true",
-    "initialized, selftest_complete, and exited lifecycle tracking",
-    "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`",
-    "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
-    "sample-local pilot-module reviewability",
     "Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded shared Phase 9 build bundle: it keeps `phase9-runtime-atomic64-diff` rooted in `runtime_atomic64_diff.zig` and also names the separate bitmap-family rerun handles.",
+    "The adjacent shared allocator/init-flow review packet has returned through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds",
     "Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, while `samples/zigux/runtime_bitmap_loader.zig` and the other direct bitmap sample-family files remain trusted-contents gaps.",
-    "Do not invent `validate-phase9.py`",
-    PHASE2_CONF_BRIDGE_MARKER,
-    PHASE2_CONFDATA_BRIDGE_MARKER,
-    PHASE3_EXPORTS_MARKER,
-    PHASE3_EXPORT_SHIM_MARKER,
-]
-
-SCRIPTS_README_REQUIRED_MARKERS = [
-    "Phase 9 flow - the current shared runtime-pilot packet is narrow and review-first",
-    PHASE9_BOUNDARY_CHECKER_MARKER,
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
-    "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test`",
-    "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test`",
-    "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`",
-    "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py`",
-    "`samples/zigux/runtime_trace_events.zig`",
-    "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
-    "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
-    "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    ".provides_selftest_hook = true",
-    "initialized, selftest_complete, and exited lifecycle tracking",
-    "failed-exit rollback explicit after reusable selftest replay together with later post-exit invalid-lifecycle rejections",
-    "keeps balanced function-thread registration reusable before and after selftest",
-    "`Documentation/zigux/phase9-runtime-bitmap-survey.md`",
-    "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`",
-    "`zigux/tests/runtime_bitmap_survey.zig`",
-    "`zigux/tests/phase9_build.zig`",
-    "`samples/zigux/runtime_bitmap.zig`",
-    "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
-    "`samples/zigux/runtime_bitmap_loader.zig`",
-    "`zigux/tests/runtime_bitmap_module.zig`",
-    "`zigux/tests/runtime_bitmap_diff.zig`",
-    "`zigux/tests/runtime_bitmap_manifest.json`",
-    "keep that bitmap-side packet framed as partial reminder evidence rather than proof that the broader shared runtime-loader packet returned or as a fifth Phase 5 sample",
-    "keep the returned `zigux/tests/phase9_build.zig` bundle explicit only as bounded bitmap-family evidence rather than proof that the broader shared runtime-loader packet returned",
-    "current `master` still does not materialize the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness, `zigux/kernel/runtime_loader.zig`, or `zigux/kernel/runtime_loader_contract.zig`",
-    "keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes",
-    "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
-    PHASE2_CONF_BRIDGE_MARKER,
-    PHASE2_CONFDATA_BRIDGE_MARKER,
-    PHASE3_EXPORTS_MARKER,
-    PHASE3_EXPORT_SHIM_MARKER,
-    PHASE2_BOUNDARY_MARKER,
-    PHASE3_BOUNDARY_MARKER,
 ]
 
 SAMPLES_README_REQUIRED_MARKERS = [
-    PHASE9_BOUNDARY_CHECKER_MARKER,
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
-    "`samples/zigux/runtime_trace_events.zig`",
-    ".provides_selftest_hook = true",
-    "initialized, selftest_complete, and exited lifecycle tracking",
-    "`Documentation/zigux/phase9-runtime-trace-events-survey.md`",
-    "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`",
-    "`zigux/tests/runtime_trace_events_manifest.json`",
-    "`zigux/tests/runtime_trace_events_survey.zig`",
-    "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
-    "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay",
-    "post-exit invalid-lifecycle rejections",
-    "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks",
-    "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    "balanced function-thread registration reusable before and after selftest",
-    "balanced registration re-entry companion across the initialized and selftest_complete stages",
     "direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` still remain absent on the same trusted path",
-    "Keep that partial bitmap reminder packet framed as a separate Phase 9 runtime family reminder rather than as direct proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
-    "does not currently expose the broader shared runtime-loader packet",
+    "Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
+    "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -156,16 +71,27 @@ SAMPLES_README_REQUIRED_MARKERS = [
     PHASE2_BOUNDARY_MARKER,
     PHASE3_BOUNDARY_MARKER,
 ]
+
+SCRIPTS_README_REQUIRED_MARKERS: list[str] = []
 
 REQUIRED_MARKERS = {
     REVIEW_CHECKLIST_PATH: CHECKLIST_REQUIRED_MARKERS,
     LANE_SEQUENCING_PATH: LANE_SEQUENCING_REQUIRED_MARKERS,
     MODULE_SLICE_PATH: MODULE_SLICE_REQUIRED_MARKERS,
-    SCRIPTS_README_PATH: SCRIPTS_README_REQUIRED_MARKERS,
     SAMPLES_README_PATH: SAMPLES_README_REQUIRED_MARKERS,
 }
 
 MAKEFILE_FORBIDDEN_ROUTE_FIXTURES = ["phase9-test", "phase9-runtime-trace-events-sample-tests", "phase9"]
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / REVIEW_CHECKLIST_PATH).exists():
+            return candidate
+    return SELF_PATH.parent
+
+
+ROOT = infer_repo_root()
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -190,7 +116,8 @@ def find_makefile_phase9_routes(text: str) -> list[str]:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel_path in [*REQUIRED_MARKERS, MAKEFILE_PATH]:
+    required_paths = [*REQUIRED_MARKERS, MAKEFILE_PATH]
+    for rel_path in required_paths:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
@@ -280,7 +207,12 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, lane-sequencing note, trace-events module-slice note, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, the current allocator/init-flow shared-loader reminder, the partial bitmap reminder packet, the earlier Phase 2 and Phase 3 boundary references, and the no-Phase-9-make-route policy explicit."
+        description=(
+            "Check that the current Phase 9 reviewer-facing packet keeps the trace-events runtime family, "
+            "the returned shared allocator/init-flow packet, the partial runtime bitmap reminder, "
+            "and the no-Phase-9-make-route boundary explicit across the checklist, sequencing note, "
+            "trace-events module slice, samples README, and live Makefile posture."
+        )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
