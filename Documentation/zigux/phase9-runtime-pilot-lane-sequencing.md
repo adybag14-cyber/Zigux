@@ -40,12 +40,12 @@ Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 
 
 Fresh mixed reread still shows the allocator/init-flow packet survives on current `master`, even though the exact authenticated contents-read path still flakes on some of the deeper loader files in this runtime.
 
-- direct build-bundle proof is now narrower: `zigux/tests/phase9_build.zig` currently exposes only `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, and `phase9-runtime-bitmap-top-bit-tests`, so it is direct proof for the bounded atomic64-plus-bitmap rerun handles rather than for the shared allocator/init-flow packet itself
+- direct build-bundle proof is now narrower: `zigux/tests/phase9_build.zig` currently exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-bitmap-top-bit-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`, so it is direct proof for the bounded atomic64 diff, bitmap rerun handles, and cross-family parity survey route rather than for the shared allocator/init-flow packet itself
 - direct shared-reminder proof is no longer split: `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep the allocator/init-flow packet explicit again instead of leaving the scripts-root reminder behind
 - public-tree fallback rereads still return the four loader scaffolds `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`
 - public-tree fallback also returns the deeper shared loader surfaces `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, and `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 
-That means the truthful shared-owner posture is narrower and more useful: the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders plus the public-tree fallback loader surfaces, while `zigux/tests/phase9_build.zig` stays only the bounded atomic64-plus-bitmap build shard and deeper loadable-runtime publication and module-install-root completion still remain blocked.
+That means the truthful shared-owner posture is narrower and more useful: the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders plus the public-tree fallback loader surfaces, while `zigux/tests/phase9_build.zig` stays only the bounded atomic64, bitmap, and cross-family parity-survey rerun shard and deeper loadable-runtime publication and module-install-root completion still remain blocked.
 
 ### 3. The runtime bitmap side is still only partial
 
@@ -64,7 +64,7 @@ The shared Phase 9 reminder family should now be read as three distinct truths:
 This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned allocator/init-flow packet explicit, keep the partial runtime bitmap reminder packet explicit, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
 
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds are the current allocator/init-flow packet evidence surfaces
-- `zigux/tests/phase9_build.zig` now only records the bounded atomic64-plus-bitmap rerun shard rather than the allocator/init-flow packet itself
+- `zigux/tests/phase9_build.zig` now records only the bounded atomic64, bitmap, and cross-family parity-survey rerun shard rather than the allocator/init-flow packet itself
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current trusted bitmap-side evidence surfaces
 - the missing bitmap loader, module gate, diff gate, and manifest stay repo-reality gaps on the same trusted path until a later reread restores them
 - no shared reminder surface should present the partial bitmap packet as equal to the shipped trace-events packet or as proof that all runtime publication boundaries are now complete
