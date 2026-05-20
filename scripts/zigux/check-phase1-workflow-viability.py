@@ -516,6 +516,24 @@ def run_self_test() -> int:
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             workflow_text
+            + "      - name: Self-test current Phase 3 interop packet\n"
+            + "        run: python3 scripts/zigux/validate_phase3_selftest.py\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Self-test current Phase 3 interop packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase3_interop_selftest_step_not_detected")
+            return 1
+        if "workflow_run:Self-test current Phase 3 interop packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase3_interop_selftest_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
             + "      - name: Run current Phase 1 shared tests-root smoke\n"
             + "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig\n",
             encoding="utf-8",
@@ -526,6 +544,24 @@ def run_self_test() -> int:
             return 1
         if "workflow_run:Run current Phase 1 shared tests-root smoke:expected=1:actual=2" not in failures:
             print("self-test:duplicate_phase1_smoke_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Self-test current Phase 4 artifact-diff helper\n"
+            + "        run: python3 scripts/zigux/artifact_diff.py --self-test\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Self-test current Phase 4 artifact-diff helper:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_artifact_diff_helper_step_not_detected")
+            return 1
+        if "workflow_run:Self-test current Phase 4 artifact-diff helper:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_artifact_diff_helper_run_not_detected")
             return 1
         case_count += 1
 
