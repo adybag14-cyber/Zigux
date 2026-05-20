@@ -126,6 +126,12 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectNotContains(phase9_build, "\"runtime_loader_allocator_init_flow.zig\"");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
+    try expectContains(sample_file, "pub const sample_review_non_goals = [_][]const u8{");
+    try expectContains(sample_file, "\"loadable runtime bitmap module parity\",");
+    try expectContains(sample_file, "\"shared runtime-loader command-name or argv-policy controls\",");
+    try expectContains(sample_file, "\"real runtime execution through a live substrate\",");
+    try expectContains(sample_file, ".requires_runtime_substrate = true,");
+    try expectContains(sample_file, ".provides_selftest_hook = true,");
     try expectContains(sample_file, ".top_bit_contract,");
     try expectContains(sample_file, "pub fn reviewContract() ReviewContract");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
