@@ -47,3 +47,17 @@ test "phase14 workqueue bridge maintenance handoff stays bridge-local and explic
     try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
 }
+
+test "phase14 workqueue bridge cancel-path handoff stays explicit and in C" {
+    const cancel_handoff = workqueue_bridge.WorkqueueBridgeLab.cancelPathHandoff();
+
+    try std.testing.expectEqualStrings("__cancel_work_sync", cancel_handoff.anchor_symbol);
+    try std.testing.expect(cancel_handoff.ownership == .stay_in_c);
+    try std.testing.expectEqual(@as(usize, 4), cancel_handoff.observed_fields.len);
+    try std.testing.expectEqualStrings("WORK_OFFQ_DISABLE_BITS", cancel_handoff.observed_fields[0]);
+    try std.testing.expectEqualStrings("work->data", cancel_handoff.observed_fields[1]);
+    try std.testing.expectEqualStrings("__flush_work()", cancel_handoff.observed_fields[2]);
+    try std.testing.expectEqualStrings("disable_work()", cancel_handoff.observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "disable depth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "pending-bit and completion rules") != null);
+}
