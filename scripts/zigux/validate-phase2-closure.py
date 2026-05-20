@@ -143,7 +143,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 142
+EXPECTED_SELF_TEST_CASE_COUNT = 143
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -178,6 +178,11 @@ def read_manifest(root: Path) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise SystemExit(f"manifest is not an object: {resolved}")
     return payload
+
+
+def probe_required_file(path: Path) -> None:
+    with path.open("rb") as handle:
+        handle.read(0)
 
 
 def collect_marker_count_issues(
@@ -225,6 +230,7 @@ def collect_branch_manifest_path_issues(
     missing_code: str,
     unexpected_code: str,
     non_file_code: str = "",
+    unreadable_code: str = "",
 ) -> list[tuple[str, str]]:
     if not isinstance(values, list):
         return []
@@ -235,6 +241,14 @@ def collect_branch_manifest_path_issues(
             continue
         resolved = resolve_path(root, Path(value))
         if resolved.is_file():
+            try:
+                probe_required_file(resolved)
+            except OSError:
+                if unreadable_code:
+                    issues.append((unreadable_code, value))
+                elif unexpected_code:
+                    issues.append((unexpected_code, value))
+                continue
             if unexpected_code:
                 issues.append((unexpected_code, value))
             continue
@@ -384,6 +398,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             missing_code="PRESENT_FILE_MISSING_ON_BRANCH",
             unexpected_code="",
             non_file_code="PRESENT_FILE_NOT_FILE_ON_BRANCH",
+            unreadable_code="PRESENT_FILE_UNREADABLE_ON_BRANCH",
         )
     )
     issues.extend(
@@ -915,6 +930,25 @@ def run_self_test() -> int:
             EXPECTED_MISSING_FILES[0],
         ) in collect_issues(root)
         checks_run += 1
+
+        original_probe_required_file = globals()["probe_required_file"]
+        try:
+            build_self_test_root(root)
+
+            def fail_present_probe(path: Path) -> None:
+                if path == resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1])):
+                    raise OSError("simulated unreadable present file")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_present_probe
+            assert (
+                "PRESENT_FILE_UNREADABLE_ON_BRANCH",
+                EXPECTED_PRESENT_FILES[-1],
+            ) in collect_issues(root)
+            checks_run += 1
+
+        finally:
+            globals()["probe_required_file"] = original_probe_required_file
 
         for path in (
             CLOSURE_DOC,
