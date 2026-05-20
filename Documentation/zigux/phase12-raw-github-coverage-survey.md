@@ -29,7 +29,6 @@ It is a compact fallback overview, not a new replay surface and not a commit-pin
     * `.github/workflows/zigux-bootstrap.yml`
     * `scripts/zigux/README.md`
     * `zigux/Makefile`
-    * `zigux/tests/phase12_build.zig`
   * rule: keep this one-catalog plus one current-master NVMe gap-note companion plus two shared-tree-only anchors split explicit, keep both the directly readable build-only anchor pair and the broader shared support bundle visible during degraded contents reads too, and do not promote the direct NVMe gap-note companion, the shared-tree anchors, the build-only anchor pair, or the broader shared support bundle into extra commit-pinned fallback artifacts unless dedicated files actually land
 ## Exact Coverage Evidence
 - exact coverage evidence checked on `2026-05-20`: the commit-pinned direct replay catalog is still publicly raw-readable on current `master` as `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
