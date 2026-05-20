@@ -34,6 +34,8 @@ Treat the directly reviewable current-head matrix packet as:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 Current authenticated contents reads do not rematerialize
 `drivers/tty/hvc/hvc_console_verify.zig`,
