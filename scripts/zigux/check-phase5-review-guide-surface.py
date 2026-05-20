@@ -83,7 +83,9 @@ APPROVED_IDIOM_REQUIRED_TEXT = (
     "The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.",
     "Keep the approved formatting idiom bounded to the current landed reminder packet:",
     "That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.",
-    "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\\\"iter=12\\\"` and keeps the sample in `.initialized`.",
+    "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`,",
+    "while `formatIterationMessageInto(12, [7]u8)` still returns",
+    "and keeps the sample in `.initialized`.",
     "Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
     "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
 )
@@ -451,7 +453,7 @@ def run_self_test() -> int:
             _sample_approved_idiom_gap().replace(APPROVED_IDIOM_REQUIRED_TEXT[6], "", 1),
         )
         failures = collect_failures(missing_approved_idiom_marker_root)
-        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[6]}" ]
+        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[6]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-approved-idiom-marker failure: {failures}")
         checks_run += 1
@@ -463,7 +465,7 @@ def run_self_test() -> int:
             _sample_approved_idiom_gap().replace(APPROVED_IDIOM_BOUNDARY_MARKERS[0], "", 1),
         )
         failures = collect_failures(missing_approved_idiom_boundary_root)
-        expected = [f"approved_idiom:missing_boundary:{APPROVED_IDIOM_BOUNDARY_MARKERS[0]}" ]
+        expected = [f"approved_idiom:missing_boundary:{APPROVED_IDIOM_BOUNDARY_MARKERS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-approved-idiom-boundary failure: {failures}")
         checks_run += 1
@@ -475,7 +477,7 @@ def run_self_test() -> int:
             _sample_review_checklist().replace(REVIEW_CHECKLIST_REQUIRED_TEXT[3], "", 1),
         )
         failures = collect_failures(missing_review_checklist_marker_root)
-        expected = [f"review_checklist:missing_text:{REVIEW_CHECKLIST_REQUIRED_TEXT[3]}" ]
+        expected = [f"review_checklist:missing_text:{REVIEW_CHECKLIST_REQUIRED_TEXT[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-review-checklist-marker failure: {failures}")
         checks_run += 1
@@ -487,7 +489,7 @@ def run_self_test() -> int:
             _sample_scripts_root().replace(SCRIPTS_ROOT_REQUIRED_TEXT[4], "", 1),
         )
         failures = collect_failures(missing_scripts_root_marker_root)
-        expected = [f"scripts_root:missing_text:{SCRIPTS_ROOT_REQUIRED_TEXT[4]}" ]
+        expected = [f"scripts_root:missing_text:{SCRIPTS_ROOT_REQUIRED_TEXT[4]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-scripts-root-marker failure: {failures}")
         checks_run += 1
@@ -499,7 +501,7 @@ def run_self_test() -> int:
             _sample_tests_root().replace(TESTS_ROOT_REQUIRED_TEXT[2], "", 1),
         )
         failures = collect_failures(missing_tests_root_marker_root)
-        expected = [f"tests_root:missing_text:{TESTS_ROOT_REQUIRED_TEXT[2]}" ]
+        expected = [f"tests_root:missing_text:{TESTS_ROOT_REQUIRED_TEXT[2]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-tests-root-marker failure: {failures}")
         checks_run += 1
