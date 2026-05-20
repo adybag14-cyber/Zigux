@@ -117,6 +117,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "pub const next_arg = nextArg;");
     try expectContains(helper, "pub fn memparse");
     try expectContains(helper, "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {");
+    try expectContains(helper, "test \"nextArg keeps leading equals tokens as bare parameters\" {");
 
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
@@ -124,6 +125,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");
     try expectContains(helper_companion, "nextArg keeps empty input borrowed from the caller slice");
     try expectContains(helper_companion, "nextArg stays inside the first NUL for bare and key value tokens");
     try expectContains(helper_companion, "nextArg keeps rest and remaining as the same borrowed suffix view");
