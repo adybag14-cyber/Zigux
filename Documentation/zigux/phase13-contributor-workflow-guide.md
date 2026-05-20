@@ -137,6 +137,7 @@ Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notif
 Before landing a broad Phase 13 reminder change, check that:
 
 - the contributor-facing handle still runs through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+- `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` stay aligned as the supporting shared reminder surfaces for that stable handle
 - the release-coordination matrix and shared-helper sequencing note still describe the same active helper packet
 - the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - the shipped tests-root alignment companion remains `python3 scripts/zigux/check-phase13-tests-readme-alignment.py` so the broader contributor wording and the tests-root reminder stay on the same Phase 13 packet
