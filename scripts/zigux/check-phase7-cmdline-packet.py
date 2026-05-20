@@ -59,6 +59,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_cmdline.zig": [
         "const cmdline = @import(\"cmdline\");",
         "test \"phase 7 cmdline companion replays exact bare-option matching boundaries\" {",
+        'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
         "test \"phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture\" {",
         "test \"phase 7 cmdline companion replays incomplete-hex and descending-range boundaries\" {",
         "test \"phase 7 cmdline companion replays negative range expansion and negative upper-bound posture\" {",
@@ -86,10 +87,11 @@ REQUIRED_MARKERS = {
         "test \"phase 7 cmdline survey keeps the returned helper-local packet truthful\" {",
         "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_anchor\", manifest.current_master_state);",
         "const checker = try readRepoFile(allocator, checker_path);",
-        "try expectContains(helper, \"test \\\\\\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\\\\\" {\");",
-        "try expectContains(helper, \"test \\\\\\\"nextArg keeps leading equals tokens as bare parameters\\\\\\\" {\");",
-        "try expectContains(helper, \"test \\\\\\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\\\\\" {\");",
+        "try expectContains(helper, \"test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {\");",
+        "try expectContains(helper, \"test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {\");",
+        "try expectContains(helper, \"test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 cmdline companion replays bare leading-equals ownership\");",
+        "try expectContains(helper_companion, \"try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));\");",
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -106,7 +108,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 37
+SELF_TEST_CASE_COUNT = 39
 
 
 def read_text(path: Path) -> str:
@@ -439,11 +441,33 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_companion_first_nul_bare_option_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         companion_text = read_text(companion_path)
         companion_marker = 'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {'
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_exact_bare_option_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));'
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_first_nul_bare_option_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
