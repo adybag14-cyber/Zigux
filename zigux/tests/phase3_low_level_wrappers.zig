@@ -23,10 +23,7 @@ test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoff
 
 test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {
     var state: u16 = 0x00F0;
-    try std.testing.expectEqual(
-        @as(?u16, null),
-        try atomic.compareExchangeWeak(u16, &state, 0x00F0, 0x0FF0, .seq_cst, .acquire),
-    );
+    try std.testing.expectEqual(@as(?u16, null), try atomic.compareExchangeWeak(u16, &state, 0x00F0, 0x0FF0, .seq_cst, .acquire));
 
     var register: u16 = state;
     const register_ptr: *volatile u16 = @ptrCast(&register);
@@ -40,10 +37,7 @@ test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-
 
 test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {
     var state: u32 = 0x0040_0004;
-    try std.testing.expectEqual(
-        @as(?u32, null),
-        try atomic.compareExchangeStrong(u32, &state, 0x0040_0004, 0x00AA_5501, .acq_rel, .acquire),
-    );
+    try std.testing.expectEqual(@as(?u32, null), try atomic.compareExchangeStrong(u32, &state, 0x0040_0004, 0x00AA_5501, .acq_rel, .acquire));
 
     barrier.release();
 
@@ -51,31 +45,15 @@ test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across sha
     const register_ptr: *volatile u32 = @ptrCast(&register);
     const const_register_ptr: *const volatile u32 = @ptrCast(&register);
 
-    try std.testing.expectError(
-        error.UnsafeScopeDenied,
-        mmio.writeInteropPolicyBytes(u32, 0, 0, register_ptr, state),
-    );
-    try std.testing.expectError(
-        error.InvalidInteropPolicy,
-        mmio.readInteropPolicyBytes(u32, 1, 1, const_register_ptr),
-    );
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeInteropPolicyBytes(u32, 0, 0, register_ptr, state));
+    try std.testing.expectError(error.InvalidInteropPolicy, mmio.readInteropPolicyBytes(u32, 1, 1, const_register_ptr));
     try std.testing.expectEqual(@as(u32, 0), register);
 
     try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);
     barrier.acquire();
-    try std.testing.expectEqual(
-        @as(u32, 0x00AA_5501),
-        try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),
-    );
+    try std.testing.expectEqual(@as(u32, 0x00AA_5501), try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr));
 
-    const updated = try mmio.writeMaskedInteropPolicyBytes(
-        u32,
-        1,
-        0,
-        register_ptr,
-        0x0000_FF00,
-        0x0000_3300,
-    );
+    const updated = try mmio.writeMaskedInteropPolicyBytes(u32, 1, 0, register_ptr, 0x0000_FF00, 0x0000_3300);
     barrier.fullFence();
     try std.testing.expectEqual(@as(u32, 0x00AA_3301), updated);
     try std.testing.expectEqual(updated, register);
@@ -99,6 +77,45 @@ test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with res
 
     try std.testing.expect(!mmio.allowsInteropPolicyBytes(1, 1));
     try std.testing.expectError(error.InvalidInteropPolicy, mmio.requireInteropPolicyBytes(1, 1));
+}
+
+test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers explicit" {
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const mmio_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio),
+        .reserved = 0,
+    };
+    const denied_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.none),
+        .reserved = 0,
+    };
+
+    try std.testing.expect(mmio.allowsInteropPolicy(mmio_policy));
+    try std.testing.expect(!mmio.allowsInteropPolicy(denied_policy));
+
+    var register: u32 = 0xABCD_0001;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readInteropPolicy(u32, denied_policy, const_register_ptr));
+    try std.testing.expectEqual(@as(u32, 0xABCD_0001), try mmio.readInteropPolicy(u32, mmio_policy, const_register_ptr));
+
+    try mmio.writeInteropPolicy(u32, mmio_policy, register_ptr, 0x1234_5678);
+    barrier.release();
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
+
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), try mmio.exchangeInteropPolicy(u32, mmio_policy, register_ptr, 0xFFFF_00FF));
+    barrier.acquireRelease();
+    try std.testing.expectEqual(@as(u32, 0xFFFF_00FF), register);
+
+    const updated = try mmio.writeMaskedInteropPolicy(u32, mmio_policy, register_ptr, 0x00FF_00FF, 0x0055_0033);
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0xFF55_0033), updated);
+    try std.testing.expectEqual(updated, register);
 }
 
 test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {
@@ -155,14 +172,8 @@ test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explici
     var register: u16 = 0x55AA;
     const register_ptr: *volatile u16 = @ptrCast(&register);
 
-    try std.testing.expectError(
-        error.UnsafeScopeDenied,
-        mmio.exchangeInteropPolicyBytes(u16, 0, 0, register_ptr, 0x0F0F),
-    );
-    try std.testing.expectEqual(
-        @as(u16, 0x55AA),
-        try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F),
-    );
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.exchangeInteropPolicyBytes(u16, 0, 0, register_ptr, 0x0F0F));
+    try std.testing.expectEqual(@as(u16, 0x55AA), try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F));
     barrier.acquireRelease();
     try std.testing.expectEqual(@as(u16, 0x0F0F), register);
 }
@@ -179,10 +190,7 @@ test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit bes
     var bridge_words = [_]u32{ 0x1122_3344, 0x5566_7788 };
     const bridge_addr = @intFromPtr(&bridge_words[0]);
 
-    try std.testing.expectError(
-        error.UnsafeScopeDenied,
-        narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u32), mmio_scope),
-    );
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u32), mmio_scope));
 
     const bridge_ptr = try narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u32), raw_scope);
     barrier.release();
@@ -201,14 +209,8 @@ test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" 
     var bridge_word: u32 = 0xDEAD_BEEF;
     const bridge_addr = @intFromPtr(&bridge_word);
 
-    try std.testing.expectError(
-        error.ByteLengthTooSmall,
-        narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u16), raw_scope),
-    );
-    try std.testing.expectError(
-        error.UnsafeScopeDenied,
-        narrow.writeValueAtByte(u32, bridge_addr, 0xCAFE_BABE, safe_scope),
-    );
+    try std.testing.expectError(error.ByteLengthTooSmall, narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u16), raw_scope));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.writeValueAtByte(u32, bridge_addr, 0xCAFE_BABE, safe_scope));
 
     try narrow.writeValueAtByte(u32, bridge_addr, 0xCAFE_BABE, raw_scope);
     barrier.fullFence();
