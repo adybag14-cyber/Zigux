@@ -155,6 +155,45 @@ test "phase3 abi keeps policy helper decoding aligned with interop policy bytes"
     try std.testing.expect(!unsafe_policy.recognizesInteropPolicy(unknown_policy));
 }
 
+test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {
+    const safe_policy = abi.defaultInteropPolicy();
+
+    try std.testing.expectEqual(@as(u8, abi.PANIC_ABORT), safe_policy.panic_mode);
+    try std.testing.expectEqual(@as(u8, abi.ALLOC_CALLER_PROVIDED), safe_policy.allocator_mode);
+    try std.testing.expectEqual(@as(u8, abi.UNSAFE_NONE), safe_policy.unsafe_scope);
+    try std.testing.expectEqual(@as(u8, 0), safe_policy.reserved);
+
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), panic_policy.modeFromByte(abi.PANIC_ABORT));
+    try std.testing.expectEqual(@as(?panic_policy.Escalation, .kernel_bug), panic_policy.escalationFromByte(abi.PANIC_BUG));
+    try std.testing.expect(panic_policy.causesImmediateHaltByte(abi.PANIC_BUG));
+    try std.testing.expect(panic_policy.permitsWarningOnlyContinuationByte(abi.PANIC_WARN));
+    try std.testing.expect(!panic_policy.recognizesInteropPolicyBytes(abi.PANIC_WARN, 1));
+
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), allocator_policy.modeFromByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(allocator_policy.requiresExplicitCallerByte(abi.ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackByte(abi.ALLOC_KERNEL_HEAP));
+    try std.testing.expect(allocator_policy.initializesOwnedStateByte(abi.ALLOC_ARENA));
+    try std.testing.expect(allocator_policy.requiresResetOnInitByte(abi.ALLOC_ARENA));
+    try std.testing.expect(!allocator_policy.recognizesInteropPolicyBytes(abi.ALLOC_ARENA, 1));
+
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), unsafe_policy.scopeFromByte(abi.UNSAFE_NONE));
+    try std.testing.expectEqual(
+        @as(?unsafe_policy.AccessBoundary, .typed_safe),
+        unsafe_policy.accessBoundaryFromByte(abi.UNSAFE_NONE),
+    );
+    try std.testing.expectEqual(
+        @as(?unsafe_policy.AccessBoundary, .volatile_mmio_window),
+        unsafe_policy.accessBoundaryFromByte(abi.UNSAFE_VOLATILE_MMIO),
+    );
+    try std.testing.expectEqual(
+        @as(?unsafe_policy.AccessBoundary, .raw_pointer_bridge),
+        unsafe_policy.accessBoundaryFromByte(abi.UNSAFE_RAW_POINTER_BRIDGE),
+    );
+    try std.testing.expect(unsafe_policy.permitsVolatileMmioByte(abi.UNSAFE_VOLATILE_MMIO));
+    try std.testing.expect(unsafe_policy.permitsRawPointerBridgeByte(abi.UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expect(!unsafe_policy.recognizesInteropPolicyBytes(abi.UNSAFE_RAW_POINTER_BRIDGE, 1));
+}
+
 test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {
     const rising_tail = abi.NotifierBlock{
         .notifier_call = 0,
