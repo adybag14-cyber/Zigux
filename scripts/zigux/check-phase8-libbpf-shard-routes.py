@@ -9,6 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
+BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -16,6 +17,7 @@ MAKEFILE_PATH = "zigux/Makefile"
 REQUIRED_FILES = (
     SCRIPT_PATH,
     SURVEY_PATH,
+    BRIDGE_BOUNDARY_SURVEY_PATH,
     DOCS_README_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -32,6 +34,15 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`zigux/tests/phase8_build.zig`",
         "mixed authenticated-plus-public reread surface",
+    ),
+    BRIDGE_BOUNDARY_SURVEY_PATH: (
+        "deferred `perf-buffer-online-cpu-routing` packet",
+        "`/sys/devices/system/cpu/online`",
+        "`libbpf_num_possible_cpus()`",
+        "online CPU filtering",
+        "`perf_event_open()` setup",
+        "`PERF_EVENT_IOC_ENABLE` enablement",
+        "epoll-backed perf FD registration",
     ),
     DOCS_README_PATH: (
         "Phase 8 notes",
