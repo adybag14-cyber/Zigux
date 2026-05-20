@@ -27,7 +27,10 @@ PHASE2_TAIL_NOTE_LINE = (
     "- `PHASE1_WORKFLOW_PHASE2_TAIL=Self-test current Phase 2 toolchain pin-scope checker,Check current Phase 2 toolchain pin-scope packet,Run current Phase 2 toolchain make route,Self-test current Phase 2 required-make-routes checker,Check current Phase 2 required-make-routes packet,Self-test current Phase 2 shared reminder checker,Check current Phase 2 shared reminder packet,Validate current Phase 2 tool packet`"
 )
 PHASE1_PRE_BUFFER_NOTE_LINE = (
-    "- `PHASE1_WORKFLOW_PHASE1_PRE_BUFFER=Self-test current Phase 1 direct-owner checker,Check current Phase 1 direct-owner markers,Self-test current Phase 1 string review checker,Check current Phase 1 string review packet,Self-test current Phase 1 bench checker,Self-test current Phase 1 shared reminder checker,Check current Phase 1 shared reminder packet`"
+    "- `PHASE1_WORKFLOW_PHASE1_PRE_BUFFER=Self-test current Phase 1 direct-owner checker,Check current Phase 1 direct-owner markers,Self-test current Phase 1 string review checker,Check current Phase 1 string review packet,Self-test current Phase 1 route summary checker,Check current Phase 1 route summary packet,Self-test current Phase 1 bench checker,Self-test current Phase 1 shared reminder checker,Check current Phase 1 shared reminder packet,Self-test current Phase 1 closure validator,Check current Phase 1 closure packet`"
+)
+PHASE3_BUFFER_NOTE_LINE = (
+    "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Run current Phase 3 policy starter-packet replay,Run current Phase 3 policy dump replay,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 3 ABI dump replay,Run current Phase 1 shared tests-root smoke`"
 )
 PHASE8_BUFFER_NOTE_LINE = (
     "- `PHASE1_WORKFLOW_PHASE8_BUFFER=Validate Phase 8 tooling routes,Run focused Phase 8 exec-cmd tests,Run Phase 8 tooling tests`"
@@ -58,9 +61,13 @@ PHASE1_PRE_STEPS = (
     ("Check current Phase 1 direct-owner markers", "python3 scripts/zigux/check-phase1-direct-owner-markers.py"),
     ("Self-test current Phase 1 string review checker", "python3 scripts/zigux/check-phase1-string-review-packet.py --self-test"),
     ("Check current Phase 1 string review packet", "python3 scripts/zigux/check-phase1-string-review-packet.py"),
+    ("Self-test current Phase 1 route summary checker", "python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test"),
+    ("Check current Phase 1 route summary packet", "python3 scripts/zigux/check-phase1-route-summary-counts.py"),
     ("Self-test current Phase 1 bench checker", "python3 scripts/zigux/check-phase1-bench.py --self-test"),
     ("Self-test current Phase 1 shared reminder checker", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test"),
     ("Check current Phase 1 shared reminder packet", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py"),
+    ("Self-test current Phase 1 closure validator", "python3 scripts/zigux/validate-phase1-closure.py --self-test"),
+    ("Check current Phase 1 closure packet", "python3 scripts/zigux/validate-phase1-closure.py"),
 )
 
 PHASE1_PREBUFFER_CHAIN = tuple(step for step, _ in PHASE1_PRE_STEPS)
@@ -71,7 +78,7 @@ LANE_STEPS = (
 )
 
 LANE_ADJACENT_CHAIN = (
-    "Check current Phase 1 shared reminder packet",
+    "Check current Phase 1 closure packet",
     "Self-test current Phase 1 workflow viability checker",
     "Check current Phase 1 workflow viability",
     "Self-test current Phase 3 interop packet",
@@ -80,10 +87,13 @@ LANE_ADJACENT_CHAIN = (
 PHASE3_BUFFER_STEPS = (
     ("Self-test current Phase 3 interop packet", "python3 scripts/zigux/validate_phase3_selftest.py"),
     ("Check current Phase 3 interop packet", "python3 scripts/zigux/run-phase3-checks.py"),
+    ("Run current Phase 3 policy starter-packet replay", "make -C zigux phase3-policy-starter-packet-test"),
+    ("Run current Phase 3 policy dump replay", "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"),
     ("Self-test current Phase 3 low-level wrapper survey validator", "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"),
     ("Check current Phase 3 low-level wrapper survey packet", "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     ("Run current Phase 3 low-level wrapper replay", "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
     ("Run current Phase 3 shared tests-root packet", "zig build phase3-test --build-file zigux/tests/build.zig"),
+    ("Run current Phase 3 ABI dump replay", "zig build phase3-dump --build-file zigux/tests/build.zig"),
 )
 SMOKE_STEP = ("Run current Phase 1 shared tests-root smoke", "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig")
 
@@ -171,13 +181,16 @@ REQUIRED_FILE_RELS = (
     Path("scripts/zigux/validate-phase2.py"),
     Path("scripts/zigux/check-phase1-direct-owner-markers.py"),
     Path("scripts/zigux/check-phase1-string-review-packet.py"),
+    Path("scripts/zigux/check-phase1-route-summary-counts.py"),
     Path("scripts/zigux/check-phase1-bench.py"),
     Path("scripts/zigux/check-phase1-shared-reminder-packet.py"),
+    Path("scripts/zigux/validate-phase1-closure.py"),
     Path("scripts/zigux/check-phase1-workflow-viability.py"),
     Path("scripts/zigux/check-phase1-workflow-phase12-tail.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    Path("zigux/tests/phase3_policy_dump_build.zig"),
     Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
     Path("zigux/tests/build.zig"),
     Path("scripts/zigux/check-phase4-repo-reality-warning.py"),
@@ -205,9 +218,9 @@ REQUIRED_NOTE_LINES = (
     PREFLIGHT_NOTE_LINE,
     PHASE2_TAIL_NOTE_LINE,
     PHASE1_PRE_BUFFER_NOTE_LINE,
-    "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 shared reminder packet and before current Phase 3 interop packet`",
-    "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 shared reminder packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
-    "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 1 shared tests-root smoke`",
+    "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 closure packet and before current Phase 3 interop packet`",
+    "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 closure packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
+    PHASE3_BUFFER_NOTE_LINE,
     "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`",
     PHASE8_BUFFER_NOTE_LINE,
     "- `PHASE1_WORKFLOW_PHASE9_BUFFER=Self-test current Phase 9 review-checklist boundaries checker,Check current Phase 9 review-checklist boundaries packet,Self-test current Phase 9 trace-events runtime packet checker,Check current Phase 9 trace-events runtime packet,Run current Phase 9 trace-events runtime sample tests,Run current Phase 9 unregistered gate companion tests,Run current Phase 9 exit rollback guard companion tests,Run current Phase 9 registration reentry companion tests`",
@@ -215,12 +228,11 @@ REQUIRED_NOTE_LINES = (
     PHASE12_TAIL_NOTE_LINE,
     PHASE12_TAIL_GUARD_NOTE_LINE,
     PHASE12_TAIL_ADJACENCY_NOTE_LINE,
-    "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`",
+    "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`",
 )
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
     "python3 scripts/zigux/validate-phase1.py",
-    "python3 scripts/zigux/validate-phase1-closure.py",
     "make -C zigux phase1-validate",
     "make -C zigux phase1-test",
     "make -C zigux phase1-bench",
@@ -319,15 +331,18 @@ def collect_failures(root: Path) -> list[str]:
         "Self-test current Phase 2 shared reminder checker",
         "Check current Phase 2 shared reminder packet",
         "Validate current Phase 2 tool packet",
-        "Check current Phase 1 shared reminder packet",
+        "Check current Phase 1 closure packet",
         "Self-test current Phase 1 workflow viability checker",
         "Check current Phase 1 workflow viability",
         "Self-test current Phase 3 interop packet",
         "Check current Phase 3 interop packet",
+        "Run current Phase 3 policy starter-packet replay",
+        "Run current Phase 3 policy dump replay",
         "Self-test current Phase 3 low-level wrapper survey validator",
         "Check current Phase 3 low-level wrapper survey packet",
         "Run current Phase 3 low-level wrapper replay",
         "Run current Phase 3 shared tests-root packet",
+        "Run current Phase 3 ABI dump replay",
         "Run current Phase 1 shared tests-root smoke",
         "Self-test current Phase 4 artifact-diff helper",
         "Self-test current Phase 4 artifact-diff determinism checker",
@@ -373,10 +388,10 @@ def build_note_text() -> str:
             "# Phase 1 Workflow Viability",
             "",
             *REQUIRED_NOTE_LINES,
-            "- keep the lane scoped to the current Phase 1 workflow-viability pair instead of reviving the older closure-side Phase 1 validator routes.",
+            "- keep the lane scoped to the current Phase 1 workflow-viability pair without reviving the older full Phase 1 make-route packet.",
             "- run the lightweight Lane 17 preflight after Setup Python so this branch still emits lane-local signal even when the external pinned-Zig archive step fails first.",
-            "- keep the current direct-owner, string-review, bench-selftest, and shared-reminder ladder intact before the lane-local viability pair.",
-            "- keep the workflow-viability pair immediately after the current Phase 1 shared reminder packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.",
+            "- keep the current direct-owner, string-review, route-summary, bench-selftest, shared-reminder, and closure-validator ladder intact before the lane-local viability pair.",
+            "- keep the workflow-viability pair immediately after the current Phase 1 closure packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.",
             "- keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist, trace-events packet, and companion sample tests before the Phase 7 shared-control pair.",
             "- keep the dedicated Phase 12 tail guard running immediately after the current Phase 11 packet and before the throughput-parity anchor so the inherited bootstrap tail stays enforced in CI.",
             "- if the workflow moves again, refresh this same lane-local packet first instead of widening into unrelated reminder or closure lanes.",
@@ -471,6 +486,24 @@ def run_self_test() -> int:
         case_count += 1
         build_sample_repo(root)
 
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE3_BUFFER_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase3_buffer_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE3_BUFFER_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase3_buffer_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Preflight current Phase 1 workflow viability checker\n"))
         failures = collect_failures(root)
@@ -521,74 +554,29 @@ def run_self_test() -> int:
         case_count += 1
         build_sample_repo(root)
 
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE8_BUFFER_NOTE_LINE + "\n"))
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Self-test current Phase 1 route summary checker\n"))
         failures = collect_failures(root)
-        if "note:expected=1:actual=0" not in failures:
-            print("self-test:missing_phase8_note_marker")
+        if "workflow_step:Self-test current Phase 1 route summary checker:expected=1:actual=0" not in failures:
+            print("self-test:missing_route_summary_selftest_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
 
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, note_text + PHASE8_BUFFER_NOTE_LINE + "\n")
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Check current Phase 1 closure packet\n"))
         failures = collect_failures(root)
-        if "note:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase8_note_marker_not_detected")
+        if "workflow_step:Check current Phase 1 closure packet:expected=1:actual=0" not in failures:
+            print("self-test:missing_closure_check_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
 
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_NOTE_LINE + "\n"))
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Run current Phase 3 policy starter-packet replay\n"))
         failures = collect_failures(root)
-        if "note:expected=1:actual=0" not in failures:
-            print("self-test:missing_phase12_tail_note_marker")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_NOTE_LINE + "\n")
-        failures = collect_failures(root)
-        if "note:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_tail_note_marker_not_detected")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_GUARD_NOTE_LINE + "\n"))
-        failures = collect_failures(root)
-        if "note:expected=1:actual=0" not in failures:
-            print("self-test:missing_phase12_guard_note_marker")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_GUARD_NOTE_LINE + "\n")
-        failures = collect_failures(root)
-        if "note:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_guard_note_marker_not_detected")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_ADJACENCY_NOTE_LINE + "\n"))
-        failures = collect_failures(root)
-        if "note:expected=1:actual=0" not in failures:
-            print("self-test:missing_phase12_adjacency_note_marker")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, note_text + PHASE12_TAIL_ADJACENCY_NOTE_LINE + "\n")
-        failures = collect_failures(root)
-        if "note:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_adjacency_note_marker_not_detected")
+        if "workflow_step:Run current Phase 3 policy starter-packet replay:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase3_policy_starter_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
@@ -644,18 +632,26 @@ def run_self_test() -> int:
             "        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test\n\n"
             "      - name: Check current Phase 1 string review packet\n"
             "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n\n"
+            "      - name: Self-test current Phase 1 route summary checker\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n\n"
+            "      - name: Check current Phase 1 route summary packet\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py\n\n"
             "      - name: Self-test current Phase 1 bench checker\n"
             "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n\n"
             "      - name: Self-test current Phase 1 shared reminder checker\n"
             "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n\n"
             "      - name: Check current Phase 1 shared reminder packet\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n\n"
+            "      - name: Self-test current Phase 1 closure validator\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n\n"
+            "      - name: Check current Phase 1 closure packet\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py\n"
         )
         new = (
-            "      - name: Self-test current Phase 1 shared reminder checker\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n\n"
-            "      - name: Check current Phase 1 shared reminder packet\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n\n"
+            "      - name: Self-test current Phase 1 closure validator\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n\n"
+            "      - name: Check current Phase 1 closure packet\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py\n\n"
             "      - name: Self-test current Phase 1 direct-owner checker\n"
             "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test\n\n"
             "      - name: Check current Phase 1 direct-owner markers\n"
@@ -664,8 +660,16 @@ def run_self_test() -> int:
             "        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test\n\n"
             "      - name: Check current Phase 1 string review packet\n"
             "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n\n"
+            "      - name: Self-test current Phase 1 route summary checker\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n\n"
+            "      - name: Check current Phase 1 route summary packet\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py\n\n"
             "      - name: Self-test current Phase 1 bench checker\n"
-            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n\n"
+            "      - name: Self-test current Phase 1 shared reminder checker\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n\n"
+            "      - name: Check current Phase 1 shared reminder packet\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n"
         )
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
         failures = collect_failures(root)
@@ -678,6 +682,8 @@ def run_self_test() -> int:
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
+            "      - name: Check current Phase 1 closure packet\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py\n\n"
             "      - name: Self-test current Phase 1 workflow viability checker\n"
             "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
             "      - name: Check current Phase 1 workflow viability\n"
@@ -688,6 +694,8 @@ def run_self_test() -> int:
         new = (
             "      - name: Self-test current Phase 3 interop packet\n"
             "        run: python3 scripts/zigux/validate_phase3_selftest.py\n\n"
+            "      - name: Check current Phase 1 closure packet\n"
+            "        run: python3 scripts/zigux/validate-phase1-closure.py\n\n"
             "      - name: Self-test current Phase 1 workflow viability checker\n"
             "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
             "      - name: Check current Phase 1 workflow viability\n"
