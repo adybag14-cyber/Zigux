@@ -28,7 +28,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 28
+EXPECTED_SELF_TEST_CASES = 34
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -58,6 +58,12 @@ SURVEY_MARKERS = (
     'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
     'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");',
     'try requireMarker("\\\"coordination_owners\\\": [");',
+    'try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");',
+    'try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");',
+    'try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
+    'try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");',
 )
 
 MATRIX_MARKERS = (
@@ -358,6 +364,14 @@ test \"phase4 perf baseline survey keeps atomic64 and bitmap command evidence ex
     try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");
     try requireMarker("\\\"coordination_owners\\\": [");
 }
+test \"phase4 perf baseline survey keeps rollback, decision, and wrapper ownership explicit\" {
+    try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");
+    try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");
+    try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");
+    try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");
+    try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");
+    try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");
+}
 """,
     )
     write_text(
@@ -441,6 +455,12 @@ def run_self_test() -> int:
             (MANIFEST, '"id": "phase4-perf-baseline-bitmap-command-evidence"', '"id": "phase4-perf-baseline-bitmap-run-evidence"', "manifest_json:bitmap.evidence.1.id:"),
             (MANIFEST, '"id": "phase4-perf-baseline-shared-promotion-decision"', '"id": "phase4-perf-baseline-shared-promotion-record"', "manifest_json:promotion_decision.id:"),
             (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"rollback_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"decision_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");', 'try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-local-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");', 'survey_marker:try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-local-baseline-survey\\\"");', 'survey_marker:try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");', 'try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");', 'survey_marker:try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");', 'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"approved_for_shared_phase4_test_and_bootstrap_workflow\\\"");', 'survey_marker:try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
             (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here"),
