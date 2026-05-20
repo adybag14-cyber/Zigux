@@ -11,6 +11,8 @@ from pathlib import Path
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
+BINDING_VERSION_PATH = Path("zigux/bindings/version.zig")
+BINDING_DEV_T_PATH = Path("zigux/bindings/dev_t.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
@@ -33,6 +35,8 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
         "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
+        "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
+        "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
         "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
         "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
@@ -47,16 +51,19 @@ REQUIRED_MARKERS = {
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
         "- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.",
         "- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.",
+        "- `zigux/bindings/version.zig` and `zigux/bindings/dev_t.zig` keep the curated Zig-facing binding side of the same starter boundary explicit through current-version compatibility checks, layout parity, `dev_t` packing helpers, and range validation that mirror the shipped UAPI packet without widening it.",
         "- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet, including both the `zigux_uapi_boundary_header_*()` relays and the Linux-facing `zigux_boundary_header_*()` compatibility aliases as thin wrappers instead of a second ownership root.",
         "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
         "Current `master` now directly serves `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet, and `scripts/zigux/check-phase3-catalog-selftest.py` as the dedicated guard that keeps the catalog helper's export/UAPI self-test markers fail-closed.",
         "Current `master` no longer shows a separate packet-local repo-reality gap for this starter export/UAPI packet.",
         "Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion inside the packet itself.",
-        "This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, and the returned catalog-selftest guard explicit as shipped same-family companions while continuing to avoid broader UAPI claims.",
+        "This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, and the live curated binding companions explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'BINDING_VERSION_PATH = Path("zigux/bindings/version.zig")',
+        'BINDING_DEV_T_PATH = Path("zigux/bindings/dev_t.zig")',
         'LINUX_HEADER_GOVERNANCE_NOTE_PATH = Path(',
         'MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
@@ -74,6 +81,20 @@ REQUIRED_MARKERS = {
         "pub fn decodeDeviceNumber(device_number: u32) DevTFields {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
+    ),
+    BINDING_VERSION_PATH: (
+        "pub const abi_major = uapi.abi_major;",
+        "pub const header_family_revision = uapi.header_family_revision;",
+        "pub fn current() Version {",
+        "pub fn matchesCurrent(version: Version) bool {",
+        'test "version binding keeps current compatibility explicit" {',
+    ),
+    BINDING_DEV_T_PATH: (
+        "pub const abi_version = uapi.abi_version;",
+        "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
+        "pub fn fieldsFromDeviceNumber(device_number: u32) Fields {",
+        "pub fn validateRange(start: Fields, end: Fields) bool {",
+        'test "dev_t binding keeps validation and range edges aligned with the UAPI packet" {',
     ),
     UAPI_VERSION_PATH: (
         "pub const abi_major: u32 = 0;",
@@ -228,6 +249,16 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
+            "expected missing survey binding version path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "- `zigux/bindings/version.zig` and `zigux/bindings/dev_t.zig` keep the curated Zig-facing binding side of the same starter boundary explicit through current-version compatibility checks, layout parity, `dev_t` packing helpers, and range validation that mirror the shipped UAPI packet without widening it.",
+            "expected missing survey curated binding companion marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet, including both the `zigux_uapi_boundary_header_*()` relays and the Linux-facing `zigux_boundary_header_*()` compatibility aliases as thin wrappers instead of a second ownership root.",
             "expected missing survey linux-header alias marker was not reported",
         ),
@@ -255,6 +286,16 @@ def run_self_test() -> int:
             VALIDATOR_PATH,
             'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
             "expected missing validator pass marker was not reported",
+        ),
+        (
+            BINDING_VERSION_PATH,
+            "pub fn matchesCurrent(version: Version) bool {",
+            "expected missing binding version compatibility marker was not reported",
+        ),
+        (
+            BINDING_DEV_T_PATH,
+            "pub fn validateRange(start: Fields, end: Fields) bool {",
+            "expected missing binding dev_t range marker was not reported",
         ),
         (
             EXPORT_SHIM_PATH,
