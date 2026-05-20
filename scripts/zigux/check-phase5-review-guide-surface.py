@@ -153,7 +153,7 @@ APPROVED_IDIOM_REQUIRED_PATHS = (
     "samples/zigux/trace_events_sample.zig",
     "zigux/tests/phase5_trace_events_sample.zig",
     "zigux/tests/phase5_trace_events_sample_manifest.json",
-    "zigux/tests/phase5_trace_EVENTS_sample_survey.zig",
+    "zigux/tests/phase5_trace_events_sample_survey.zig",
     "zigux/tests/phase5_build.zig",
     "scripts/zigux/check-phase5-review-guide-surface.py",
 )
