@@ -79,7 +79,7 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
-Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the still-missing broader trace-events companion paths, and the shared-build gap instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
+Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the shared-build gap instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
 Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
 
 ## Bytestream posture
@@ -124,7 +124,7 @@ For `trace_events`, follow the current bounded packet through `Documentation/zig
 Use the shared docs to preserve these bounded cues:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
-* `samples/zigux/trace_events_string_formatting_sample.zig` keeps the sibling formatting companion explicit through `selectedStringForIteration(...)`, the exact `iter=%d` buffer print, and the non-allocating lifecycle boundary around the bounded replay instead of standing in for the whole trace-events packet
+* `samples/zigux/trace_events_string_formatting_sample.zig` keeps the sibling formatting companion explicit through `selectedStringForIteration(...)`, `runStringFormattingCycleReplay()`, the exact `iter=%d` buffer print, the modulo-selected five-string review cycle, and the non-allocating lifecycle boundary around the bounded replay instead of standing in for the whole trace-events packet
 * `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` stay in repo-reality-gap or historical-support wording until authenticated contents reread stops returning 404 for those paths
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about that narrower trace-events posture without widening into runtime claims
 * `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
@@ -218,22 +218,3 @@ Avoid:
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
 
 ## Boundary reminders
-
-Phase 5 stays non-runtime.
-
-Keep later runtime-facing sample work under the separate Phase 9 lane.
-
-Keep these no-extra-sample reminders explicit too:
-
-* `samples/zigux/trace_events_string_formatting_sample.zig` is a bounded trace-events formatting companion, not a fifth Phase 5 anchor and not a standalone helper packet
-* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master` outside the bounded trace-events formatting companion and the shared reminder packet
-* there is no standalone `samples/zigux/*kasprintf*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*strarray*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`
-
-Respect the freeze map too.
-Do not widen Phase 5 work toward `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
