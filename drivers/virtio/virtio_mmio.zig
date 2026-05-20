@@ -308,14 +308,16 @@ pub const VirtioMmioLab = struct {
 
     pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {
         const queue = self.queueForSelection(self.selected_queue) orelse return error.QueueSelectionOutOfRange;
+        const queue_size_programmed = queue.programmed_size != 0;
+        const queue_size_matches_advertised = queue_size_programmed and queue.programmed_size == queue.advertised_size;
         return .{
             .anchor = anchor_path,
             .selected_queue = self.selected_queue,
             .advertised_queue_size = queue.advertised_size,
             .programmed_queue_size = queue.programmed_size,
-            .queue_size_programmed = queue.programmed_size != 0,
-            .queue_size_matches_advertised = queue.programmed_size != 0 and queue.programmed_size == queue.advertised_size,
-            .queue_ready_for_handoff = queue.programmed_size != 0 and queue.ready,
+            .queue_size_programmed = queue_size_programmed,
+            .queue_size_matches_advertised = queue_size_matches_advertised,
+            .queue_ready_for_handoff = queue.ready and queue_size_matches_advertised,
         };
     }
 
@@ -579,6 +581,12 @@ test "phase10 virtio mmio selected queue readiness exposes advertised and progra
     summary = try device.selectedQueueReadinessSummary();
     try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
     try std.testing.expectEqual(@as(u16, 8), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_ready, 1);
+    summary = try device.selectedQueueReadinessSummary();
     try std.testing.expect(summary.queue_size_programmed);
     try std.testing.expect(!summary.queue_size_matches_advertised);
     try std.testing.expect(!summary.queue_ready_for_handoff);
