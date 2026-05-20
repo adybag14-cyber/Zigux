@@ -87,9 +87,11 @@ EXPECTED_ZIG_MARKERS = {
     "split_exact_elf32": 'test "split-read exact 32-bit ELF header exits with stdout at EOF" {',
     "split_exact_elf64": 'test "split-read exact 64-bit ELF header exits with stdout at EOF" {',
     "split_exact_elf32_failure": 'test "split-read exact 32-bit ELF header ignores later read failure and exits with stdout" {',
+    "split_exact_elf64_failure": 'test "split-read exact 64-bit ELF header ignores later read failure and exits with stdout" {',
     "split_exact_invalid_class": 'test "split-read exact invalid-class header exits silently at EOF" {',
     "split_exact_invalid_class_failure": 'test "split-read exact invalid-class header ignores later read failure and exits silently" {',
     "split_exact_not_elf": 'test "split-read exact non-ELF header exits with stderr at EOF" {',
+    "split_truncated_failure": 'test "split-read truncated input keeps stderr when a later read fails" {',
 }
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
