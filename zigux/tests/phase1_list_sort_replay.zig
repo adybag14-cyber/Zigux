@@ -86,6 +86,16 @@ test "phase1 list_sort replay matches committed parity fixture" {
     try std.testing.expectEqual(fixture.list_sort.tri_sorted_keys.len, tri_count);
     try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, tri_keys[0..tri_count]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, tri_ordinals[0..tri_count]);
+    try std.testing.expect(tri_head.next == &tri_entries[1].node);
+    try std.testing.expect(tri_head.prev == &tri_entries[4].node);
+    try std.testing.expect(tri_entries[1].node.prev == &tri_head);
+    try std.testing.expect(tri_entries[4].node.next == &tri_head);
+
+    var current = tri_head.next;
+    while (current != &tri_head) : (current = current.?.next) {
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+    }
 
     var bool_head: list_sort.ListHead = .{};
     bool_head.init();
@@ -107,6 +117,16 @@ test "phase1 list_sort replay matches committed parity fixture" {
     try std.testing.expectEqual(fixture.list_sort.bool_sorted_keys.len, bool_count);
     try std.testing.expectEqualSlices(i32, fixture.list_sort.bool_sorted_keys, bool_keys[0..bool_count]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_ordinals[0..bool_count]);
+    try std.testing.expect(bool_head.next == &bool_entries[1].node);
+    try std.testing.expect(bool_head.prev == &bool_entries[4].node);
+    try std.testing.expect(bool_entries[1].node.prev == &bool_head);
+    try std.testing.expect(bool_entries[4].node.next == &bool_head);
+
+    current = bool_head.next;
+    while (current != &bool_head) : (current = current.?.next) {
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+    }
 }
 
 test "phase1 list_sort replay honors plain comparator context" {
