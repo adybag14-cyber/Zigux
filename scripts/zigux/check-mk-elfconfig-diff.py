@@ -76,6 +76,10 @@ EXPECTED_ZIG_MARKERS = {
     "render_truncated": 'test "renders truncated error" {',
     "render_not_elf": 'test "renders non-ELF error" {',
     "render_invalid_class": 'test "renders invalid class silently" {',
+    "split_exact_elf32_first_chunk": 'test "split-read exact 32-bit ELF header in first chunk exits after one read" {',
+    "split_exact_elf64_first_chunk": 'test "split-read exact 64-bit ELF header in first chunk exits after one read" {',
+    "split_exact_invalid_class_first_chunk": 'test "split-read exact invalid-class header in first chunk exits after one read" {',
+    "split_exact_not_elf_first_chunk": 'test "split-read exact non-ELF header in first chunk exits after one read" {',
     "split_exact_elf32": 'test "split-read exact 32-bit ELF header exits with stdout at EOF" {',
     "split_exact_elf64": 'test "split-read exact 64-bit ELF header exits with stdout at EOF" {',
     "split_exact_invalid_class": 'test "split-read exact invalid-class header exits silently at EOF" {',
@@ -93,19 +97,19 @@ int main(int argc, char **argv)
 \tunsigned char ei[EI_NIDENT];
 
 \tif (fread(ei, 1, EI_NIDENT, stdin) != EI_NIDENT) {
-\t\tfprintf(stderr, \"Error: input truncated\\n\");
+\t\tfprintf(stderr, "Error: input truncated\\n");
 \t\treturn 1;
 \t}
 \tif (memcmp(ei, ELFMAG, SELFMAG) != 0) {
-\t\tfprintf(stderr, \"Error: not ELF\\n\");
+\t\tfprintf(stderr, "Error: not ELF\\n");
 \t\treturn 1;
 \t}
 \tswitch (ei[EI_CLASS]) {
 \tcase ELFCLASS32:
-\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS32\\n\");
+\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS32\\n");
 \t\tbreak;
 \tcase ELFCLASS64:
-\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
+\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
 \t\tbreak;
 \tdefault:
 \t\texit(1);
