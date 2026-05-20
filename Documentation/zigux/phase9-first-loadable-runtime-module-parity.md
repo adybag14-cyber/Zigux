@@ -1,73 +1,63 @@
 # Phase 9 First Loadable Runtime Module Parity
 
 ## Status
-- `PHASE9_STATUS=parked`
+- `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
 - `PHASE9_LANE_KEY=P9-L01`
-- scope: historical cross-family parity review for the bounded atomic64 and bitmap runtime pilot packets only
+- scope: cross-family repo-reality survey for the bounded atomic64 and bitmap runtime pilot packets only
 
 ## Current Repo Reality
-Current `master` no longer keeps the older first-loadable atomic64 and bitmap family-local packets on tree.
+Trusted current-tree reads on 2026-05-20 show a mixed partial Phase 9 pilot picture rather than either of the older extremes.
 
-Fresh repo-first rereads did not find these formerly paired atomic64 packet surfaces:
-- `samples/zigux/runtime_atomic64.zig`
-- `samples/zigux/runtime_atomic64_loader.zig`
-- `zigux/tests/runtime_atomic64_module.zig`
-- `zigux/tests/runtime_atomic64_diff.zig`
-- `zigux/tests/runtime_atomic64_survey.zig`
-- `zigux/tests/runtime_atomic64_manifest.json`
+These atomic64-facing surfaces are directly readable on current `master`:
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
 - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
+- `zigux/tests/runtime_atomic64_module.zig`
+- `zigux/tests/runtime_atomic64_diff.zig`
 
-Fresh repo-first rereads also did not find these formerly paired bitmap packet surfaces:
-- `samples/zigux/runtime_bitmap.zig`
-- `samples/zigux/runtime_bitmap_loader.zig`
-- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-- `zigux/tests/runtime_bitmap_module.zig`
-- `zigux/tests/runtime_bitmap_diff.zig`
-- `zigux/tests/runtime_bitmap_survey.zig`
-- `zigux/tests/runtime_bitmap_manifest.json`
+These atomic64-facing surfaces are not directly readable on the same trusted path:
+- `samples/zigux/runtime_atomic64.zig`
+- `samples/zigux/runtime_atomic64_loader.zig`
+- `zigux/tests/runtime_atomic64_survey.zig`
+- `zigux/tests/runtime_atomic64_manifest.json`
+
+These bitmap-facing surfaces are directly readable on current `master`:
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
 - `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`
+- `samples/zigux/runtime_bitmap.zig`
+- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- `zigux/tests/runtime_bitmap_survey.zig`
+- `zigux/tests/phase9_build.zig`
 
-Current `master` instead keeps a narrower shared Phase 9 reminder packet around the surviving trace-events runtime sample through these still-shipped surfaces:
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
-- `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-- `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
-- `zigux/tests/README.md`
-- `samples/zigux/runtime_trace_events.zig`
-- `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+These bitmap-facing surfaces are not directly readable on the same trusted path:
+- `samples/zigux/runtime_bitmap_loader.zig`
+- `zigux/tests/runtime_bitmap_module.zig`
+- `zigux/tests/runtime_bitmap_diff.zig`
+- `zigux/tests/runtime_bitmap_manifest.json`
 
-Current `master` also does not currently expose the broader shared runtime-loader packet that older reminder surfaces paired with the atomic64 and bitmap families. Fresh rereads did not find:
-- `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
-- `zigux/tests/runtime_loader_gap_manifest.json`
-- `zigux/tests/runtime_loader_gap_survey.zig`
-- `zigux/tests/runtime_loader_allocator_init_flow.zig`
-- `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`
+The broader shared runtime-loader substrate is also still absent on the trusted read path:
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
-- `zigux/tests/phase9_build.zig`
-- `scripts/zigux/check-phase9-build-only-surface.py`
-
-Current `master` does materialize `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` again, but those live bodies stay shared repo-level surfaces rather than dedicated Phase 9 owner evidence: `zigux/Makefile` still lacks any `phase9-*` runtime-pilot routes, and `.github/workflows/zigux-bootstrap.yml` remains a broad bootstrap workflow instead of proof that the removed shared runtime-loader packet returned.
 
 ## Cross-Family Parity
-The older first-loadable atomic64-versus-bitmap parity comparison is not currently live on shipped `master`.
+The Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`.
 
-- the atomic64 and bitmap family-local packets are both backlog-only absent surfaces until a fresh repo reread proves they have returned
-- the broader shared runtime-loader packet is also backlog-only absent on current `master`
-- this note must not claim shipped sample-side loader scaffolds, shipped `provides_selftest_hook=true` parity, shipped `toSharedLoadPlan()` handoffs, or shipped prepared-request evidence unless the exact atomic64, bitmap, and shared-loader file families return together
-- the surviving trace-events runtime sample pair belongs to the narrow shared Phase 9 reminder packet, not to this parked first-loadable parity note
+Current `master` does not yet materialize that target as a coherent cross-family packet:
+- the atomic64 side still exposes only a partial trusted-path packet around module and diff evidence plus family-local notes
+- the bitmap side still exposes only a partial trusted-path packet around the direct sample, top-bit companion, survey gate, and bounded build bundle
+- the shared runtime-loader substrate remains absent on the trusted path
+- the shared `zigux/tests/phase9_build.zig` bundle currently proves only `phase9-runtime-atomic64-diff` plus the bounded bitmap sample, survey, and top-bit routes; it does not prove a matched pair of first-loadable runtime modules
+
+That means this note must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.
 
 ## Boundaries
-Keep this note parked and repo-reality-first:
-- do not reopen atomic64 family-local survey, module-slice, manifest, or gate upkeep here while those packet files remain absent; if they return and drift, hand that work to the owning atomic64 family lane
-- do not reopen bitmap family-local survey, module-slice, manifest, or gate upkeep here while those packet files remain absent; if they return and drift, hand that work to `P9-L08`
-- do not treat shared reminder, checklist, or scripts-root truthfulness repairs as owned here while the atomic64 and bitmap parity packet remains absent
-- do not claim module metadata, depmod publication, live registration control, or runtime execution parity on current `master`
+Keep this note lane-local and repo-reality-first:
+- do not repair atomic64 family-local survey, module-slice, manifest, or direct-sample wording here; hand that work back to the owning atomic64 family lane
+- do not repair bitmap family-local survey, module-slice, manifest, or direct-sample wording here; hand that work back to the owning bitmap family lane
+- do not treat broader shared reminder, checklist, or scripts-root truthfulness work as owned here
+- do not infer real runtime execution, depmod publication, or live registration control from the currently readable partial pilot packet
 
 ## Next Bounded Step
-Leave this note parked unless a fresh live reread proves that direct atomic64 family-local packet files and direct bitmap family-local packet files have both returned on current `master`.
-If only one family returns, hand it back to the owning family lane instead of reviving cross-family parity here.
-If the surviving shared reminder packet drifts while both family-local packets remain absent, hand that follow-through back to the shared Phase 9 reminder lane.
+Leave `P9-L01` parked after this shared note refresh unless a fresh live reread proves that both families return to a directly readable first-loadable packet shape at the same time.
+If only one family gains or loses trusted-path coverage, hand the repair back to that owning family lane.
+If the shared runtime-loader substrate returns, hand the loader-side proof back to the shared loader lane before reviving cross-family parity claims here.
