@@ -27,6 +27,19 @@ ZIG_TEST_FILES = (
 DEFAULT_TIMEOUT_SECONDS = 300
 
 
+class DuplicateJsonKeyError(ValueError):
+    pass
+
+
+def reject_duplicate_object_pairs(pairs: list[tuple[object, object]]) -> dict[object, object]:
+    payload: dict[object, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateJsonKeyError(str(key))
+        payload[key] = value
+    return payload
+
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -36,9 +49,11 @@ def read_text(path: Path) -> str:
 
 def load_json(path: Path) -> object:
     try:
-        return json.loads(read_text(path))
+        return json.loads(read_text(path), object_pairs_hook=reject_duplicate_object_pairs)
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    except DuplicateJsonKeyError as exc:
+        raise SystemExit(f"duplicate json key in required file: {path}: {exc}") from exc
 
 
 def write_text(path: Path, content: str) -> None:
@@ -437,6 +452,74 @@ def run_self_test() -> int:
             assert "duplicate archive_target_scope entry" in str(exc)
         else:
             raise AssertionError("expected duplicate archive_target_scope entry to fail closed")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path.write_text(
+            """{
+  \"phase\": \"Phase 2\",
+  \"phase\": \"Phase 2\",
+  \"channel\": \"0.17.0-dev.87+9b177a7d2\",
+  \"minimum_version\": \"0.17.0-dev.87+9b177a7d2\",
+  \"archive_sha256\": {
+    \"x86_64-linux\": \"3333333333333333333333333333333333333333333333333333333333333333\"
+  },
+  \"upgrade_policy\": {
+    \"channel_minimum_lockstep\": true,
+    \"archive_target_scope\": [
+      \"x86_64-linux\"
+    ],
+    \"required_make_routes\": [
+      \"phase2-toolchain\",
+      \"phase2-validate\"
+    ]
+  }
+}
+""",
+            encoding="utf-8",
+        )
+        try:
+            collect_fixture_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key" in str(exc)
+        else:
+            raise AssertionError("expected duplicate policy json key to fail closed")
+        checks_run += 1
+
+        build_self_test_root(root)
+        fixture_path.write_text(
+            """{
+  \"phase\": \"Phase 2\",
+  \"status\": \"active\",
+  \"route\": \"make -C zigux phase2-cross\",
+  \"archive_target_scope\": [
+    \"x86_64-linux\"
+  ],
+  \"cross_targets\": [
+    {
+      \"target\": \"x86_64-linux\",
+      \"review_status\": \"pinned bootstrap archive\",
+      \"validation_mode\": \"archive_required\",
+      \"validation_mode\": \"archive_required\",
+      \"route\": \"make -C zigux phase2-cross\"
+    },
+    {
+      \"target\": \"aarch64-linux\",
+      \"review_status\": \"route contract only\",
+      \"validation_mode\": \"route_contract_only\",
+      \"route\": \"make -C zigux phase2-cross\"
+    }
+  ]
+}
+""",
+            encoding="utf-8",
+        )
+        try:
+            collect_fixture_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key" in str(exc)
+        else:
+            raise AssertionError("expected duplicate fixture json key to fail closed")
         checks_run += 1
 
         build_self_test_root(root)
