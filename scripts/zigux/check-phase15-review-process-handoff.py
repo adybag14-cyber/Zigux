@@ -299,6 +299,7 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-readiness-gate-survey.md`",
                 "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
                 "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`zigux/tests/phase15_freeze_map_governance.zig`",
                 "`zigux/tests/phase15_parity_scorecard.zig`",
@@ -493,6 +494,7 @@ def _sample_gap_note() -> str:
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -550,6 +552,7 @@ def run_self_test() -> int:
         _write(root / MANIFEST_PATH, _sample_manifest())
         _write(root / Path("scripts/zigux/check-phase15-review-process-handoff.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-handoff-note-alignment.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-scripts-readme-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
@@ -867,6 +870,21 @@ def run_self_test() -> int:
             "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-handoff-note-alignment.py`"
         ]:
             raise AssertionError(f"unexpected handoff-note shared-gap failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`"
+        ]:
+            raise AssertionError(f"unexpected checklist-study-only shared-gap failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         (root / TEST_PATH).unlink()
