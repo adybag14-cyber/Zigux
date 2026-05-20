@@ -195,7 +195,7 @@ def _expected_blockers_payload() -> dict[str, object]:
             "blocker_id": EXPECTED_REPLAY_BLOCKER_IDS[1],
         },
     }
-}
+
 
 def _load_artifact_diff_module(root: Path) -> object:
     module_path = root / ARTIFACT_DIFF_REL
