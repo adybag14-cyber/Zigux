@@ -19,6 +19,7 @@ def _default_root() -> Path:
 ROOT = _default_root()
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
+HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
@@ -26,6 +27,9 @@ VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
+HELP_KALLSYMS_BUILD = Path("zigux/tests/phase8_help_kallsyms_only_build.zig")
+HELP_SOURCE = Path("tools/lib/subcmd/help.zig")
+KALLSYMS_SOURCE = Path("tools/lib/symbol/kallsyms.zig")
 
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -36,16 +40,20 @@ REQUIRED_FILES = (
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
+    HELP_KALLSYMS_PACKET_CHECKER,
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
     EXEC_CMD_TEST,
     EXEC_CMD_BUILD,
+    HELP_KALLSYMS_BUILD,
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"),
     VERIFY_ROUTING_GAP_TEST,
     VERIFY_ROUTING_GAP_BUILD,
+    HELP_SOURCE,
+    KALLSYMS_SOURCE,
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     VERIFY_SEGMENT,
@@ -56,6 +64,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     Path("zigux/Makefile"): (
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
+        "phase8-help-kallsyms-test:",
         "phase8-file-path-handle-bridge-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8-test:",
@@ -124,6 +133,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd.zig",
         "phase8_exec_cmd",
         "Run the phase 8 exec-cmd review witness tests.",
+    ),
+    HELP_KALLSYMS_BUILD: (
+        "phase8_help.zig",
+        "phase8_kallsyms.zig",
+        "Run the phase 8 help and kallsyms tests.",
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
@@ -235,7 +249,11 @@ def validate_root(root: Path) -> ValidationResult:
 
     checker_failures: dict[str, list[str]] = {}
     if not missing_files and not missing_markers:
-        for checker in (TESTS_ALIGNMENT_CHECKER, PERF_BUFFER_POLL_GATE_CHECKER):
+        for checker in (
+            TESTS_ALIGNMENT_CHECKER,
+            PERF_BUFFER_POLL_GATE_CHECKER,
+            HELP_KALLSYMS_PACKET_CHECKER,
+        ):
             output = _run_checker(root, checker)
             if output:
                 checker_failures[checker.as_posix()] = output
@@ -271,7 +289,7 @@ def emit_result(result: ValidationResult) -> int:
     print("PHASE8_VALIDATION=pass")
     print(f"PHASE8_SHARED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE8_MARKER_COUNT={sum(len(markers) for markers in FILE_MARKERS.values())}")
-    print("PHASE8_CHECKER_COUNT=2")
+    print("PHASE8_CHECKER_COUNT=3")
     return 0
 
 
@@ -306,6 +324,9 @@ def _passing_fixture(root: Path) -> None:
         _write(root / relative_path, "\n".join(markers) + "\n")
     _write(root / TESTS_ALIGNMENT_CHECKER, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
+    _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+    _write(root / HELP_SOURCE, "pub fn placeholder() void {}\n")
+    _write(root / KALLSYMS_SOURCE, "pub fn placeholder() void {}\n")
 
 
 def run_self_test() -> int:
@@ -331,8 +352,34 @@ def run_self_test() -> int:
             raise AssertionError("expected checker failure output to be reported")
         _write(broken_checker, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
 
+        help_kallsyms_checker = root / HELP_KALLSYMS_PACKET_CHECKER
+        _write(
+            help_kallsyms_checker,
+            _failing_checker(
+                "PHASE8_HELP_KALLSYMS_PACKET",
+                "missing_marker:zigux/Makefile:phase8-help-kallsyms-test:",
+            ),
+        )
+        failing_help_kallsyms_checker = validate_root(root)
+        help_kallsyms_output = failing_help_kallsyms_checker.checker_failures.get(
+            HELP_KALLSYMS_PACKET_CHECKER.as_posix()
+        )
+        if not help_kallsyms_output or "phase8-help-kallsyms-test" not in "\n".join(help_kallsyms_output):
+            raise AssertionError("expected help+kallsyms checker failure output to be reported")
+        _write(help_kallsyms_checker, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+
         makefile = root / "zigux/Makefile"
         original_makefile = _read(makefile)
+        makefile.write_text(
+            original_makefile.replace("phase8-help-kallsyms-test:\n", "", 1),
+            encoding="utf-8",
+        )
+        missing_shared_route_marker = validate_root(root)
+        expected_shared_route_marker = "zigux/Makefile:phase8-help-kallsyms-test:"
+        if expected_shared_route_marker not in missing_shared_route_marker.missing_markers:
+            raise AssertionError("expected missing shared help+kallsyms make marker to be reported")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
         makefile.write_text(
             original_makefile.replace("phase8-perf-buffer-poll-test:\n", "", 1),
             encoding="utf-8",
@@ -349,6 +396,13 @@ def run_self_test() -> int:
         if EXEC_CMD_TEST.as_posix() not in missing_exec_cmd.missing_files:
             raise AssertionError("expected missing exec-cmd witness file to be reported")
         _write(exec_cmd_test, "\n".join(FILE_MARKERS[EXEC_CMD_TEST]) + "\n")
+
+        help_source = root / HELP_SOURCE
+        help_source.unlink()
+        missing_help_source = validate_root(root)
+        if HELP_SOURCE.as_posix() not in missing_help_source.missing_files:
+            raise AssertionError("expected missing help helper file to be reported")
+        _write(help_source, "pub fn placeholder() void {}\n")
 
         bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
         original_bridge_test = _read(bridge_test)
@@ -421,7 +475,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
