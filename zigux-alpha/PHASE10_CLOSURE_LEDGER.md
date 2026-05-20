@@ -7,7 +7,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_SCOPE=virtio-core,virtio-ring,virtio-input,virtio-mmio-lab-bundle`
 - `PHASE10_LEDGER_ROADMAP_ANCHORS=drivers/virtio/virtio.c,drivers/virtio/virtio_ring.c,drivers/virtio/virtio_input.c,drivers/virtio/virtio_mmio.c`
 - `PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md`
-- `PHASE10_LEDGER_CORE_PACKET_VALIDATE=scripts/zigux/check-phase10-core-packet.py`
+- `PHASE10_LEDGER_CORE_PACKET_VALIDATE=repo_reality_gap:scripts/zigux/check-phase10-core-packet.py`
 - `PHASE10_LEDGER_TESTS_README_CORE_VALIDATE=scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
 - `PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py`
@@ -18,7 +18,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_RING_SURVEY=Documentation/zigux/phase10-virtio-ring-survey.md`
 - `PHASE10_LEDGER_INPUT_SURVEY=Documentation/zigux/phase10-virtio-input-survey.md`
 - `PHASE10_LEDGER_MMIO_SURVEY=Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `PHASE10_LEDGER_REPO_REALITY_GAPS=none`
+- `PHASE10_LEDGER_REPO_REALITY_GAPS=scripts/zigux/check-phase10-core-packet.py`
 - `PHASE10_LEDGER_CONTENTS_BRIDGE_GAPS=none`
 - `PHASE10_LEDGER_PUBLIC_FALLBACK_CONFIRMED_RING_SURFACES=drivers/virtio/virtio_ring.zig,drivers/virtio/virtio_ring_verify.zig,zigux/tests/phase10_virtio_ring.zig,zigux/tests/phase10_virtio_ring_reset_reuse.zig,zigux/tests/phase10_virtio_ring_survey.zig,scripts/zigux/check-phase10-ring-packet.py`
 - `PHASE10_LEDGER_MMIO_CONTENTS_BRIDGE_GAPS=none`
@@ -82,14 +82,14 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-queue-shape-bookkeeping-helper,phase10-config-generation-bookkeeping-helper,phase10-interrupt-ack-bookkeeping-helper,phase10-lifecycle-guard-bookkeeping-helper,phase10-driver-validation-narrowing-helper,phase10-reset-replay-bookkeeping-helper`
 - `PHASE10_LEDGER_LANDED_RING_HELPERS=phase10-virtqueue-shape-helper,phase10-used-buffer-polling-helper,phase10-callback-enable-helper,phase10-callback-delay-helper,phase10-notify-prepare-helper,phase10-notification-data-summary-helper,phase10-broken-queue-poll-guard,phase10-queue-reset-helper,phase10-queue-reset-readiness-helper,phase10-ring-verify-replay,phase10-virtio-ring-slice-note`
-- `PHASE10_LEDGER_LANDED_INPUT_HELPERS=phase10-virtio-input-capability-setup-helper,phase10-virtio-input-multitouch-slot-helper,phase10-virtio-input-probe-preflight-helper,phase10-virtio-input-teardown-observation-helper,phase10-virtio-input-registration-preflight-helper,phase10-virtio-input-queue-callback-preflight-helper,phase10-virtio-input-status-drain-helper`
+- `PHASE10_LEDGER_LANDED_INPUT_HELPERS=phase10-virtio-input-capability-setup-helper,phase10-virtio-input-multitouch-slot-helper,phase10-virtio-input-probe-preflight-helper,phase10-virtio-input-teardown-observation-helper,phase10-virtio-input-registration-preflight-helper,phase10-virtio-input-queue-callback-preflight-helper,phase10-input-status-drain-helper`
 - `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-virtio-mmio-lab-helper,phase10-mmio-transport-identity-helper,phase10-mmio-probe-preflight-helper,phase10-mmio-selected-queue-readiness-helper,phase10-mmio-interrupt-ack-disposition-helper,phase10-mmio-feature-negotiation-summary-helper,phase10-mmio-config-write-disposition-helper`
 
 This ledger stays intentionally narrow.
 
 It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity. The roadmap-facing scoreboard is mirrored here from the shared closure manifest so the closure packet can be compared directly against the Phase 10 roadmap requirements without hopping between survey notes.
 
-That shared scoreboard still reads `starter_landed` for virtqueue wrappers, MMIO wrappers, and lab-only validation, while risky dual implementations remain `blocked_on_risky_transport` until a smaller transport-facing helper lane is ready.
+That shared scoreboard still reads `starter_landed` for virtqueue wrappers, MMIO wrappers, and lab-only validation, while risky dual implementations remain `blocked_on_risky_transport` until a smaller transport-facing helper lane is ready. The narrower current-head repo-reality gap inside this ledger is the still-missing `scripts/zigux/check-phase10-core-packet.py` marker, so keep the core packet governed through the returned closure manifest, the returned `zigux/tests/phase10_virtio_core.zig` replay, the direct core survey note, and the shared tests-root core-surface guard rather than promoting a missing dedicated core checker back into current-head evidence.
 
 The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes: ring ownership is now `P10-L10`, input surveyed commit is the current manifest-backed `ee789f026f11a0c5c70ded9a868979cdf4f55393`, and MMIO ownership remains `P10-L11` with the current manifest-backed `b53ec2bd507d0b3283486e76acc273b184ad5bf8`.
 
