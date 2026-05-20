@@ -41,6 +41,8 @@ BLOCKED_ROUTE_MARKERS = {
     "phase15": "`make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path",
 }
 
+WORKFLOW_BLOCKED_MARKER = "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route"
+
 WORKFLOW_PHASE15_MARKERS = (
     "validate-phase15.py",
     "make -C zigux phase15-validate",
@@ -126,6 +128,13 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(
                 f"readiness note still treats materialized Phase 15 make route as blocked: `make -C zigux {target}`"
             )
+
+    if WORKFLOW_BLOCKED_MARKER not in note:
+        failures.append(f"readiness note is missing blocked workflow marker: {WORKFLOW_BLOCKED_MARKER}")
+    elif shared_ci_phase15_present:
+        failures.append(
+            "readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`"
+        )
 
     repo_evidence = manifest["repo_evidence"]
     observed = {
@@ -222,6 +231,8 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path
+
+`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route, so shared CI coverage for the broader Phase 15 replay packet remains absent rather than directly readable current-master evidence.
 
 This packet is ready for maintenance-mode truthfulness refreshes only, and no Architecture Council approval is currently recorded for a freeze-map status change.
 """
@@ -367,6 +378,28 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected handoff-manifest failure: {failures}")
+
+        make_route_root = root / "make_route"
+        _seed_repo(make_route_root)
+        _write(make_route_root / MAKEFILE_PATH, "phase15-validate:\n\t@true\n")
+        failures = collect_failures(make_route_root)
+        expected = [
+            "readiness note still treats materialized Phase 15 make route as blocked: `make -C zigux phase15-validate`",
+            "readiness manifest phase15_validate_target_present disagrees with repo reality",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected make-route failure: {failures}")
+
+        workflow_root = root / "workflow"
+        _seed_repo(workflow_root)
+        _write(workflow_root / WORKFLOW_PATH, "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n")
+        failures = collect_failures(workflow_root)
+        expected = [
+            "readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`",
+            "readiness manifest shared_ci_phase15_present disagrees with repo reality",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected workflow-route failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
