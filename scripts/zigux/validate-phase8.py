@@ -20,6 +20,7 @@ ROOT = _default_root()
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
@@ -37,6 +38,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase8-file-path-handle-bridge-slice.md"),
     Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"),
     LIBBPF_SEGMENT_SURVEY,
+    REVIEW_CHECKLIST,
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
@@ -81,6 +83,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "tools/lib/subcmd/exec-cmd.zig",
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+    ),
+    REVIEW_CHECKLIST: (
+        "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
+        "`make -C zigux phase8-validate`",
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context",
+        "runtime-substrate or bridge-readiness evidence",
     ),
     Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"): (
         "phase8-userspace-kernel-bridge-boundary",
@@ -394,6 +402,31 @@ def run_self_test() -> int:
             raise AssertionError("expected missing Makefile Phase 8 marker to be reported")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        checklist = root / REVIEW_CHECKLIST
+        original_checklist = _read(checklist)
+        shared_phase8_marker = "if the change touches the shared Phase 8 userspace-adjacent tooling packet"
+        checklist.write_text(
+            original_checklist.replace(shared_phase8_marker, "", 1),
+            encoding="utf-8",
+        )
+        missing_checklist_marker = validate_root(root)
+        expected_checklist_marker = f"{REVIEW_CHECKLIST}:{shared_phase8_marker}"
+        if expected_checklist_marker not in missing_checklist_marker.missing_markers:
+            raise AssertionError("expected missing checklist Phase 8 marker to be reported")
+        checklist.write_text(original_checklist, encoding="utf-8")
+
+        workqueue_boundary_marker = "runtime-substrate or bridge-readiness evidence"
+        checklist.writeText = None
+        checklist.write_text(
+            original_checklist.replace(workqueue_boundary_marker, "", 1),
+            encoding="utf-8",
+        )
+        missing_workqueue_boundary_marker = validate_root(root)
+        expected_workqueue_boundary_marker = f"{REVIEW_CHECKLIST}:{workqueue_boundary_marker}"
+        if expected_workqueue_boundary_marker not in missing_workqueue_boundary_marker.missing_markers:
+            raise AssertionError("expected missing workqueue study-boundary marker to be reported")
+        checklist.write_text(original_checklist, encoding="utf-8")
+
         exec_cmd_test = root / EXEC_CMD_TEST
         exec_cmd_test.unlink()
         missing_exec_cmd = validate_root(root)
@@ -513,7 +546,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
