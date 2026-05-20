@@ -92,10 +92,14 @@ REQUIRED_DRIVER_MARKERS = (
 REQUIRED_MAKEFILE_MARKERS = (
     "phase3-export-uapi-layout-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "phase3-low-level-wrappers-test:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-dump",
 )
 
 REQUIRED_WORKFLOW_MARKERS = (
+    "- name: Run current Phase 3 low-level wrapper replay",
+    "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "- name: Run current Phase 3 shared tests-root packet",
     "- name: Run current Phase 3 ABI dump replay",
 )
@@ -148,6 +152,22 @@ SELF_TEST_CASES = (
     (
         MAKEFILE_PATH,
         "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
+        "phase3-low-level-wrappers-test:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 low-level wrapper replay",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     ),
     (
         WORKFLOW_PATH,
