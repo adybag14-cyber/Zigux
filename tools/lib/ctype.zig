@@ -124,6 +124,23 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype case transforms leave non-letter bytes unchanged and keep lowercase stable" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        if (!isupper(byte)) {
+            try std.testing.expectEqual(byte, tolower(byte));
+        }
+        if (!islower(byte)) {
+            try std.testing.expectEqual(byte, toupper(byte));
+        }
+
+        try std.testing.expectEqual(tolower(byte), tolower(tolower(byte)));
+        try std.testing.expectEqual(tolower(byte), tolower(fastTolower(byte)));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
