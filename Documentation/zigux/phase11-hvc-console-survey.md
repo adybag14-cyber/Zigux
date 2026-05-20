@@ -33,6 +33,8 @@ coupled continuity remains parked under `P11-L16`.
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+  - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+  - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - current authenticated contents readback still does not rematerialize
   `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`,
@@ -70,11 +72,16 @@ current-head packet below:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 The shared build-inventory checker plus shared build inventory still record
 three proof-backed build tests and no dedicated survey replay entries, which
 matches that narrower current-head packet rather than the older starter-depth
-packet.
+packet. The standalone targetless-unregister witness pair likewise stays
+explicit as a separate failure-mode replay that rereads the current starter
+against the verify-helper boundary note without promoting itself into the shared
+three-entry build inventory.
 
 ## Still-Bounded Gaps
 
@@ -92,10 +99,11 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 ## What Landed
 
 The archival lane recorded a broader HVC starter-depth packet.
-Current authenticated contents reads now keep only the direct starter plus the
-smaller companion, boundary-note, matrix, build-inventory checker,
-cleanup-current-head checker, inventory, and proof-backed adjunct stack
-explicitly reviewable on `master`.
+Current authenticated contents reads now keep the direct starter, the
+companion, the boundary note, the matrix, the build-inventory checker,
+cleanup-current-head checker, the shared inventory, the proof-backed adjunct
+stack, and the standalone targetless-unregister witness pair explicitly
+reviewable on `master`.
 
 This survey therefore keeps the current-head packet honest without reviving the
 older manifest, teardown-note, survey-checker, helper, or replay anchors as if
@@ -105,8 +113,8 @@ they had all returned.
 
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the companion reminder
-stack, the build-inventory checker, and the proof-backed adjunct replays listed
-above.
+stack, the build-inventory checker, the proof-backed adjunct replays, and the
+standalone targetless-unregister witness pair listed above.
 
 It does not claim live tty-driver registration, notifier callback execution,
 khvcd polling execution, live sysrq dispatch, host-backed cleanup, or
