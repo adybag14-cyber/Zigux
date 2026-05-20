@@ -316,3 +316,32 @@ test "zallocValue zeroes extern struct padding bytes after earlier dirty frees" 
     try std.testing.expect(value != null);
     try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
 }
+
+test "zallocValue zeroes nested extern padding bytes after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Inner = extern struct {
+        active: bool,
+        checksum: u32,
+        tail: u8,
+    };
+    const Payload = extern struct {
+        prefix: u16,
+        inner: Inner,
+        suffix: u8,
+    };
+    const zero_bytes = [_]u8{0} ** @sizeOf(Payload);
+
+    comptime std.debug.assert(@sizeOf(Inner) > @sizeOf(bool) + @sizeOf(u32) + @sizeOf(u8));
+    comptime std.debug.assert(@sizeOf(Payload) > @sizeOf(u16) + @sizeOf(Inner) + @sizeOf(u8));
+
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    @memset(std.mem.asBytes(value.?), 0xaa);
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
+}
