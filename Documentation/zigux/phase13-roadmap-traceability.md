@@ -48,12 +48,12 @@ Use this compact reread before editing the broader Phase 13 packet.
 - shared summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`
-- current shared build shard: `zigux/tests/phase13_build.zig` is materialized on current `master` and now keeps the direct shared replay packet explicit through `phase13-libfs`, `phase13-devres`, `phase13-devres-reviewability`, `phase13-devres-dma-coherent`, `phase13-devres-boundary-evidence`, `phase13-landlock-ruleset`, `phase13-landlock-syscalls`, and `phase13-libfs-reviewability`
+- current shared build handle: surrounding reminder surfaces still reference `zigux/tests/phase13_build.zig`, but the current live devres evidence remains narrower and should not be described as if the older direct `phase13-devres`, `phase13-devres-reviewability`, or `phase13-devres-boundary-evidence` companions have returned on current `master`
 
 Current `master` maps the four roadmap anchors to these bounded packet states:
 
 - `fs/libfs.c`: mapped through `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, and the shared `zigux/tests/phase13_build.zig` replay shard while the helper stays bounded below live VFS mutation and deeper filesystem ownership.
-- `lib/devres.c`: mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, the shared `zigux/tests/phase13_build.zig` replay shard, and the narrower `dmam_alloc_coherent()` plus scatterlist planner companions that now sit beside the direct helper packet instead of replacing it.
+- `lib/devres.c`: mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, and the historically named `scripts/zigux/check-phase13-devres-mmio-packet.py`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, and the older direct-helper packet wording remain repo-reality gaps on current `master`.
 - `security/landlock/ruleset.c`: mapped through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, and the shared `zigux/tests/phase13_build.zig` replay shard while live tree and hierarchy ownership remain explicitly blocked.
 - `security/landlock/syscalls.c`: mapped through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the shared `zigux/tests/phase13_build.zig` replay shard while live file-descriptor installation, credential replacement, ruleset-state ownership, and full syscall enforcement remain explicitly out of scope.
 
@@ -62,7 +62,7 @@ Current `master` maps the four roadmap anchors to these bounded packet states:
 Keep the roadmap-owned helper packet explicit through these bounded owner surfaces:
 
 - `libfs` stays helper-first and reviewable through its slice note, survey note, helper source, direct replay, reviewability replay, manifest, and shared build shard.
-- `devres` now has both the direct helper packet and the narrower helper-first planner companions materialized on current `master`, so this anchor should stay mapped through the direct `devres` reminder and replay surfaces together with the `dmam_alloc_coherent()` and scatterlist follow-through rather than being documented as a missing broader packet.
+- `devres` stays mapped through the current survey-side reminder packet plus the helper-first DMA and scatterlist planner companions, not through a rematerialized direct helper packet. Keep `Documentation/zigux/phase13-devres-survey.md` anchored to `P13-L01`, keep `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` and `zigux/tests/phase13_devres_scatterlist_planner_manifest.json` anchored to `P13-L08`, and keep older `P13-L05`, `P13-L06`, `P13-L07`, and `P13-L10` continuity out of the live owner story unless current `master` actually rematerializes the direct `phase13_devres` companions.
 - `landlock/ruleset` stays mapped through the ownership note, survey note, helper source, direct replay, manifest, dedicated checker, and shared build shard while keeping live tree and hierarchy state out of scope.
 - `landlock/syscalls` stays mapped through the governance note, slice note, survey note, helper source, direct replay, reviewability replay, manifest, and shared build shard while keeping the helper-owned wording tightly scoped to planning and wrapper discipline instead of live syscall enforcement.
 
@@ -95,12 +95,16 @@ The active shared reminder gaps are now narrower:
 
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `zigux/tests/phase13_devres_manifest.json`
 - live `libfs` filesystem mutation and deeper VFS ownership
 - live `devres` DMA, MMIO, scatterlist, and device-tree ownership
 - live `landlock/ruleset` tree and hierarchy state
 - live `landlock/syscalls` file-descriptor installation, credential replacement, ruleset-state ownership, and full syscall enforcement
 
-Treat those as the bounded current gaps. Do not keep `phase13_build`, the direct `devres` packet, the Landlock syscall companions, or the notifier-chain helper family in the missing bucket when current `master` materializes them again.
+Treat those as the bounded current gaps. Do not keep the helper-first DMA and scatterlist planner packet, the Landlock syscall companions, or the notifier-chain helper family in the missing bucket when current `master` materializes them again.
 
 ## Boundaries
 
