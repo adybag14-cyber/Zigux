@@ -81,7 +81,7 @@ NOTE_MARKERS = (
     "Current direct-readback dedicated local-only perf companion members:",
     "`zigux/tests/phase4_perf_baseline_manifest.json`",
     "`zigux/tests/phase4_perf_baseline_survey.zig`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here",
 )
 
 TESTS_README_MARKERS = (
@@ -260,91 +260,91 @@ def build_fixture_tree(root: Path) -> None:
     write_text(
         root / MANIFEST,
         """{
-  "lane_key": "P4-L20",
-  "phase": "Phase 4",
-  "owner": "Validation and Perf Team",
-  "rollback_owner": "Validation and Perf Team",
-  "decision_owner": "Validation and Perf Team",
-  "coordination_owners": [
-    "ABI and Runtime Team",
-    "Shared Subsystems Pod"
+  \"lane_key\": \"P4-L20\",
+  \"phase\": \"Phase 4\",
+  \"owner\": \"Validation and Perf Team\",
+  \"rollback_owner\": \"Validation and Perf Team\",
+  \"decision_owner\": \"Validation and Perf Team\",
+  \"coordination_owners\": [
+    \"ABI and Runtime Team\",
+    \"Shared Subsystems Pod\"
   ],
-  "shared_ci_perf_promotion_status": "pending",
-  "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
-  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
-  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
-  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
-  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
-  "atomic64": {
-    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
-    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
-    "acceptable_limit_status": "approved_local_only",
-    "acceptable_limit_metric": "median_elapsed_ns",
-    "acceptable_limit_iterations": 4,
-    "acceptable_limit_sample_count": 7,
-    "acceptable_limit_max_elapsed_ns": 8192,
-    "evidence": [
+  \"shared_ci_perf_promotion_status\": \"pending\",
+  \"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\",
+  \"dedicated_local_survey_wrapper\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\",
+  \"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
+  \"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\",
+  \"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\",
+  \"atomic64\": {
+    \"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\",
+    \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
+    \"acceptable_limit_status\": \"approved_local_only\",
+    \"acceptable_limit_metric\": \"median_elapsed_ns\",
+    \"acceptable_limit_iterations\": 4,
+    \"acceptable_limit_sample_count\": 7,
+    \"acceptable_limit_max_elapsed_ns\": 8192,
+    \"evidence\": [
       {
-        "id": "phase4-perf-baseline-atomic64-acceptable-limit",
-        "kind": "acceptable_limit",
-        "metric": "median_elapsed_ns",
-        "status": "approved_local_only",
-        "sample_count_note": "seven monotonic samples",
-        "max_elapsed_ns": 8192
+        \"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\",
+        \"kind\": \"acceptable_limit\",
+        \"metric\": \"median_elapsed_ns\",
+        \"status\": \"approved_local_only\",
+        \"sample_count_note\": \"seven monotonic samples\",
+        \"max_elapsed_ns\": 8192
       },
       {
-        "id": "phase4-perf-baseline-atomic64-command-evidence",
-        "kind": "threshold_replay",
-        "runs": [
-          { "iterations": 1, "checksum": 3626254113632800175, "final_counter": 130322557735600377 },
-          { "iterations": 4, "checksum": 9210681150676220922, "final_counter": 130322557735600376 }
+        \"id\": \"phase4-perf-baseline-atomic64-command-evidence\",
+        \"kind\": \"threshold_replay\",
+        \"runs\": [
+          { \"iterations\": 1, \"checksum\": 3626254113632800175, \"final_counter\": 130322557735600377 },
+          { \"iterations\": 4, \"checksum\": 9210681150676220922, \"final_counter\": 130322557735600376 }
         ]
       }
     ]
   },
-  "bitmap": {
-    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
-    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
-    "acceptable_limit_status": "approved_local_only",
-    "acceptable_limit_metric": "median_elapsed_ns",
-    "acceptable_limit_iterations": 4,
-    "acceptable_limit_sample_count": 7,
-    "acceptable_limit_max_elapsed_ns": 12288,
-    "evidence": [
+  \"bitmap\": {
+    \"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\",
+    \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
+    \"acceptable_limit_status\": \"approved_local_only\",
+    \"acceptable_limit_metric\": \"median_elapsed_ns\",
+    \"acceptable_limit_iterations\": 4,
+    \"acceptable_limit_sample_count\": 7,
+    \"acceptable_limit_max_elapsed_ns\": 12288,
+    \"evidence\": [
       {
-        "id": "phase4-perf-baseline-bitmap-acceptable-limit",
-        "kind": "acceptable_limit",
-        "metric": "median_elapsed_ns",
-        "status": "approved_local_only",
-        "sample_count_note": "seven monotonic samples",
-        "max_elapsed_ns": 12288
+        \"id\": \"phase4-perf-baseline-bitmap-acceptable-limit\",
+        \"kind\": \"acceptable_limit\",
+        \"metric\": \"median_elapsed_ns\",
+        \"status\": \"approved_local_only\",
+        \"sample_count_note\": \"seven monotonic samples\",
+        \"max_elapsed_ns\": 12288
       },
       {
-        "id": "phase4-perf-baseline-bitmap-command-evidence",
-        "kind": "threshold_replay",
-        "runs": [
-          { "iterations": 1, "checksum": 5216946504564592253, "final_first_zero": 109 },
-          { "iterations": 4, "checksum": 7942141539243507472, "final_first_zero": 109 }
+        \"id\": \"phase4-perf-baseline-bitmap-command-evidence\",
+        \"kind\": \"threshold_replay\",
+        \"runs\": [
+          { \"iterations\": 1, \"checksum\": 5216946504564592253, \"final_first_zero\": 109 },
+          { \"iterations\": 4, \"checksum\": 7942141539243507472, \"final_first_zero\": 109 }
         ]
       }
     ]
   },
-  "promotion_decision": {
-    "id": "phase4-perf-baseline-shared-promotion-decision",
-    "status": "shared CI perf promotion pending",
-    "owner": "Validation and Perf Team",
-    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]
+  \"promotion_decision\": {
+    \"id\": \"phase4-perf-baseline-shared-promotion-decision\",
+    \"status\": \"shared CI perf promotion pending\",
+    \"owner\": \"Validation and Perf Team\",
+    \"coordination_owners\": [\"ABI and Runtime Team\", \"Shared Subsystems Pod\"]
   }
 }
 """,
     )
     write_text(
         root / SURVEY,
-        """test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
+        """test \"phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit\" {
     try requireMarkerCount("\\\\\\\"acceptable_limit_iterations\\\\\\\": 4", 2);
     try requireMarkerCount("\\\\\\\"acceptable_limit_sample_count\\\\\\\": 7", 2);
 }
-test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {
+test \"phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit\" {
     try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");
     try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");
     try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");
@@ -376,7 +376,7 @@ Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-
 Current direct-readback dedicated local-only perf companion members:
 `zigux/tests/phase4_perf_baseline_manifest.json`
 `zigux/tests/phase4_perf_baseline_survey.zig`
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here
 """,
     )
     write_text(
@@ -431,7 +431,7 @@ def run_self_test() -> int:
             (SURVEY, 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");', 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"approved\\\\\\\\\\\\\\\"");', 'survey_marker:try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
-            (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here"),
+            (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here"),
             (TESTS_README, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`", "tests_readme_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`"),
             (TESTS_README, "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`", "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey_drift.zig`", "tests_readme_marker:Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`"),
             (TESTS_README, "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone", "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-validation-matrix.md` instead of reconstructing the broader packet from older route names alone", "tests_readme_marker:current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone"),
