@@ -27,6 +27,7 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
         'Path("zigux/tests/phase3_abi.zig")',
+        'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
@@ -128,6 +129,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
             "expected missing catalog low-level-wrapper survey note marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
+            "expected missing catalog phase3 abi manifest marker was not reported",
         ),
         (
             CATALOG_PATH,
