@@ -91,6 +91,8 @@ SELF_TEST_NOTE_MARKERS = (
 SELF_TEST_GAP_MARKERS = (
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root, tests-root, and scripts-root Phase 3 summaries now all reflect those returns without widening into broader replay claims",
     "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread reopens a smaller one-file Phase 3 reminder or checker drift; the earlier docs-root refresh is now closed",
+    "`Documentation/zigux/README.md` now stays aligned with the same bounded Phase 3 reminder family already carried by the validator-support note, the shared reminder gap note, the tests-root reminder, and the scripts-root reminder; it should not be treated as a narrower holdout unless a fresh reread finds new same-lane drift.",
+    "`zigux/tests/README.md` now also keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.",
     "`Documentation/zigux/phase3-abi-header-family-survey.md` together with `scripts/zigux/validate-phase3-abi-header-family-survey.py` now stays explicit as returned same-family follow-through rather than as a sampled missing wider member.",
     "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
     "The earlier shared-reminder drift is currently closed across the docs-root, tests-root, and scripts-root summaries.",
