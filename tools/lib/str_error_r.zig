@@ -144,3 +144,29 @@ test "strErrorR reuses larger caller slices after an earlier truncation" {
     try std.testing.expectEqualStrings("Permission denied", exact_fit);
     try std.testing.expectEqual(@as(u8, 0), storage[exact_fit.len]);
 }
+
+test "strErrorR grows generated renders back to exact-fit caller slices" {
+    var storage = [_]u8{0xaa} ** 64;
+
+    var small_expected_storage: [64]u8 = undefined;
+    const small_expected = try std.fmt.bufPrint(
+        &small_expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, 12 },
+    );
+
+    const truncated = strErrorR(4096, storage[0..12]);
+    try std.testing.expectEqualStrings(small_expected[0 .. 12 - 1], truncated);
+    try std.testing.expectEqual(@as(u8, 0), storage[11]);
+
+    var large_expected_storage: [64]u8 = undefined;
+    const large_expected = try std.fmt.bufPrint(
+        &large_expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, 48 },
+    );
+
+    const exact_fit = strErrorR(4096, storage[0..48]);
+    try std.testing.expectEqualStrings(large_expected, exact_fit);
+    try std.testing.expectEqual(@as(u8, 0), storage[exact_fit.len]);
+}
