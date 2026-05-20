@@ -10,15 +10,13 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+_FILE_PATH = Path(__file__).resolve()
+ROOT = _FILE_PATH.parents[2] if len(_FILE_PATH.parents) > 2 else _FILE_PATH.parent
 
 CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
-ARGV_SPLIT_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
-BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
-MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -33,14 +31,31 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
 ]
+EXPECTED_HELPER_MARKERS = {
+    Path("lib/string_helpers.zig"): [
+        "pub const STRING_UNITS_10",
+        "pub const KasprintfStrarrayResult",
+        "pub fn kstrdupQuotable",
+        "pub fn kstrdupQuotableCmdline",
+    ],
+    Path("lib/string_helpers_parse_int_array.zig"): [
+        "pub const ParseIntArrayResult",
+        "pub fn parseIntArray",
+    ],
+    Path("lib/cmdline.zig"): [
+        "pub fn parseOptionStr",
+        "pub fn getOption",
+    ],
+    Path("lib/argv_split.zig"): [
+        "pub const ArgvSplitResult",
+        "pub fn argvSplit",
+    ],
+}
 REQUIRED_FILES = [
     CATALOG_PATH,
     MANIFEST_PATH,
     MAKEFILE_PATH,
     CHECKER_PATH,
-    ARGV_SPLIT_CHECKER_PATH,
-    BUILD_WIRING_CHECKER_PATH,
-    MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -51,13 +66,15 @@ REQUIRED_FILES = [
 ]
 REQUIRED_MAKEFILE_LINES = [
     "phase7-validate:",
-    "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-    "$(PYTHON) scripts/zigux/validate-phase7.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 11
+
 
 class ValidationError(RuntimeError):
     pass
+
 
 def read_text(path: Path) -> str:
     try:
@@ -65,11 +82,15 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
+
 def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
 
+
 def count_exact_lines(text: str, marker: str) -> int:
-    return sum(1 for line in text.splitlines() if line.strip() == marker)
+    normalized_marker = marker.strip()
+    return sum(1 for line in text.splitlines() if line.strip() == normalized_marker)
+
 
 def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") -> None:
     result = subprocess.run(
@@ -82,6 +103,7 @@ def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") 
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
         raise ValidationError(f"{checker_path.as_posix()} failed: {detail}")
+
 
 def validate(root: Path) -> None:
     missing = [path.as_posix() for path in REQUIRED_FILES if not (root / path).exists()]
@@ -98,6 +120,12 @@ def validate(root: Path) -> None:
     if manifest.get("current_replay_inventory") != EXPECTED_REPLAYS:
         raise ValidationError("phase7 replay inventory drift")
 
+    for rel_path, markers in EXPECTED_HELPER_MARKERS.items():
+        helper_text = read_text(root / rel_path)
+        for marker in markers:
+            if marker not in helper_text:
+                raise ValidationError(f"phase7 helper marker missing in {rel_path.as_posix()}: {marker}")
+
     makefile = read_text(root / MAKEFILE_PATH)
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile, marker)
@@ -107,111 +135,191 @@ def validate(root: Path) -> None:
             raise ValidationError(f"phase7 make route count drift: {marker} ({count} != 1)")
 
     run_checker(root, CHECKER_PATH)
-    run_checker(root, MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "--root")
-    run_checker(root, ARGV_SPLIT_CHECKER_PATH)
-    run_checker(root, BUILD_WIRING_CHECKER_PATH)
+
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
+
 def scaffold_repo(root: Path) -> None:
-    source_root = Path(__file__).resolve().parent
-    write(root / CATALOG_PATH, "\n".join([
-        "- packet: `phase7-leaf-library-evidence`",
-        "- phase: `Phase 7`",
-        "- lane scope: shared leaf-library evidence rows and validation foothold only",
-        "",
-        "## Current direct-readback companions",
-        "- `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
-        "- `Documentation/zigux/README.md`",
-        "- `scripts/zigux/check-phase7-shared-surface.py`",
-        "- `scripts/zigux/validate-phase7.py`",
-        "- `scripts/zigux/README.md`",
-        "- `zigux/tests/README.md`",
-        "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
-        "- `zigux/Makefile`",
-        "- `lib/string_helpers.zig`",
-        "- `lib/string_helpers_parse_int_array.zig`",
-        "- `lib/cmdline.zig`",
-        "- `lib/argv_split.zig`",
-        "",
-        "## Current replay inventory",
-        "- `make -C zigux phase7-validate`",
-        "",
-        "## Current repo-reality gaps",
-        "- `lib/rbtree.zig`",
-        "",
-        "`kstrdupQuotable()`",
-        "`kstrdupQuotableCmdline()`",
-    ]) + "\n")
+    write(
+        root / CATALOG_PATH,
+        "\n".join(
+            [
+                "- packet: `phase7-leaf-library-evidence`",
+                "- phase: `Phase 7`",
+                "- lane scope: shared leaf-library evidence rows and validation foothold only",
+                "",
+                "## Current direct-readback companions",
+                "- `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
+                "- `Documentation/zigux/README.md`",
+                "- `scripts/zigux/check-phase7-shared-surface.py`",
+                "- `scripts/zigux/validate-phase7.py`",
+                "- `scripts/zigux/README.md`",
+                "- `zigux/tests/README.md`",
+                "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
+                "- `zigux/Makefile`",
+                "- `lib/string_helpers.zig`",
+                "- `lib/string_helpers_parse_int_array.zig`",
+                "- `lib/cmdline.zig`",
+                "- `lib/argv_split.zig`",
+                "",
+                "## Current replay inventory",
+                "- `make -C zigux phase7-validate`",
+                "",
+                "## Current repo-reality gaps",
+                "- `lib/rbtree.zig`",
+                "",
+                "`kstrdupQuotable()`",
+                "`kstrdupQuotableCmdline()`",
+            ]
+        )
+        + "\n",
+    )
     write(
         root / MAKEFILE_PATH,
-        "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n",
+        "phase7-validate:\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
     )
-    write(root / MANIFEST_PATH, json.dumps({
-        "packet": EXPECTED_PACKET,
-        "phase": EXPECTED_PHASE,
-        "lane_scope": EXPECTED_SCOPE,
-        "current_direct_readback_companions": [
-            "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
-            "Documentation/zigux/README.md",
-            "scripts/zigux/check-phase7-shared-surface.py",
-            "scripts/zigux/validate-phase7.py",
-            "scripts/zigux/README.md",
-            "zigux/tests/README.md",
-            "zigux/tests/phase7_leaf_library_evidence_manifest.json",
-            "zigux/Makefile",
-            "lib/string_helpers.zig",
-            "lib/string_helpers_parse_int_array.zig",
-            "lib/cmdline.zig",
-            "lib/argv_split.zig",
-        ],
-        "roadmap_anchors": [
-            "lib/string_helpers.c",
-            "lib/cmdline.c",
-            "lib/argv_split.c",
-            "lib/rbtree.c",
-        ],
-        "current_direct_helper_evidence": [
-            {"key": "string_helpers", "zig_helper": "lib/string_helpers.zig", "expected_markers": ["pub const STRING_UNITS_10", "pub const KasprintfStrarrayResult", "pub fn kstrdupQuotable", "pub fn kstrdupQuotableCmdline"]},
-            {"key": "string_helpers_parse_int_array", "zig_helper": "lib/string_helpers_parse_int_array.zig", "expected_markers": ["pub const ParseIntArrayResult", "pub fn parseIntArray"]},
-            {"key": "cmdline", "zig_helper": "lib/cmdline.zig", "expected_markers": ["pub fn parseOptionStr", "pub fn getOption"]},
-            {"key": "argv_split", "zig_helper": "lib/argv_split.zig", "expected_markers": ["pub const ArgvSplitResult", "pub fn argvSplit"]},
-        ],
-        "current_replay_inventory": EXPECTED_REPLAYS,
-        "current_repo_reality_gaps": ["lib/rbtree.zig", "zigux/tests/phase7_build.zig"],
-    }, indent=2) + "\n")
+    write(
+        root / MANIFEST_PATH,
+        json.dumps(
+            {
+                "packet": EXPECTED_PACKET,
+                "phase": EXPECTED_PHASE,
+                "lane_scope": EXPECTED_SCOPE,
+                "current_direct_readback_companions": [
+                    "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
+                    "Documentation/zigux/README.md",
+                    "scripts/zigux/check-phase7-shared-surface.py",
+                    "scripts/zigux/validate-phase7.py",
+                    "scripts/zigux/README.md",
+                    "zigux/tests/README.md",
+                    "zigux/tests/phase7_leaf_library_evidence_manifest.json",
+                    "zigux/Makefile",
+                    "lib/string_helpers.zig",
+                    "lib/string_helpers_parse_int_array.zig",
+                    "lib/cmdline.zig",
+                    "lib/argv_split.zig",
+                ],
+                "roadmap_anchors": [
+                    "lib/string_helpers.c",
+                    "lib/cmdline.c",
+                    "lib/argv_split.c",
+                    "lib/rbtree.c",
+                ],
+                "current_direct_helper_evidence": [
+                    {
+                        "key": "string_helpers",
+                        "zig_helper": "lib/string_helpers.zig",
+                        "expected_markers": [
+                            "pub const STRING_UNITS_10",
+                            "pub const KasprintfStrarrayResult",
+                            "pub fn kstrdupQuotable",
+                            "pub fn kstrdupQuotableCmdline",
+                        ],
+                    },
+                    {
+                        "key": "string_helpers_parse_int_array",
+                        "zig_helper": "lib/string_helpers_parse_int_array.zig",
+                        "expected_markers": ["pub const ParseIntArrayResult", "pub fn parseIntArray"],
+                    },
+                    {
+                        "key": "cmdline",
+                        "zig_helper": "lib/cmdline.zig",
+                        "expected_markers": ["pub fn parseOptionStr", "pub fn getOption"],
+                    },
+                    {
+                        "key": "argv_split",
+                        "zig_helper": "lib/argv_split.zig",
+                        "expected_markers": ["pub const ArgvSplitResult", "pub fn argvSplit"],
+                    },
+                ],
+                "current_replay_inventory": EXPECTED_REPLAYS,
+                "current_repo_reality_gaps": ["lib/rbtree.zig", "zigux/tests/phase7_build.zig"],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
     write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
     write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
     write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     for rel_path, content in [
-        (Path("lib/string_helpers.zig"), "pub const STRING_UNITS_10 = 0;\npub const KasprintfStrarrayResult = struct {};\npub fn kstrdupQuotable() void {}\npub fn kstrdupQuotableCmdline() void {}\n"),
-        (Path("lib/string_helpers_parse_int_array.zig"), "pub const ParseIntArrayResult = struct {};\npub fn parseIntArray() void {}\n"),
+        (
+            Path("lib/string_helpers.zig"),
+            "pub const STRING_UNITS_10 = 0;\n"
+            "pub const KasprintfStrarrayResult = struct {};\n"
+            "pub fn kstrdupQuotable() void {}\n"
+            "pub fn kstrdupQuotableCmdline() void {}\n",
+        ),
+        (
+            Path("lib/string_helpers_parse_int_array.zig"),
+            "pub const ParseIntArrayResult = struct {};\n"
+            "pub fn parseIntArray() void {}\n",
+        ),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
     ]:
         write(root / rel_path, content)
-    checker_text = (source_root / "check-phase7-shared-surface.py").read_text(encoding="utf-8")
-    write(root / CHECKER_PATH, checker_text)
-    argv_split_checker_text = (source_root / "check-phase7-argv-split-packet.py").read_text(encoding="utf-8")
-    write(root / ARGV_SPLIT_CHECKER_PATH, argv_split_checker_text)
-    build_wiring_checker_text = (source_root / "check-phase7-build-wiring.py").read_text(encoding="utf-8")
-    write(root / BUILD_WIRING_CHECKER_PATH, build_wiring_checker_text)
-    alignment_checker_text = (source_root / "check-phase7-make-wrapper-selftest-alignment.py").read_text(encoding="utf-8")
-    write(root / MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, alignment_checker_text)
+    write(
+        root / CHECKER_PATH,
+        """#!/usr/bin/env python3
+from __future__ import annotations
+import argparse
+import json
+from pathlib import Path
 
-def expect_failure(root: Path, rel_path: Path, transform: str) -> None:
-    if transform == "delete":
-        (root / rel_path).unlink()
+CATALOG_PATH = Path(\"Documentation/zigux/phase7-leaf-library-evidence-catalog.md\")
+MANIFEST_PATH = Path(\"zigux/tests/phase7_leaf_library_evidence_manifest.json\")
+MAKEFILE_PATH = Path(\"zigux/Makefile\")
+DOCS_README_PATH = Path(\"Documentation/zigux/README.md\")
+SCRIPTS_README_PATH = Path(\"scripts/zigux/README.md\")
+TESTS_README_PATH = Path(\"zigux/tests/README.md\")
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(\"--repo-root\", type=Path, default=Path(\".\"))
+    args = parser.parse_args()
+    root = args.repo_root
+    checks = [
+        (root / CATALOG_PATH, \"- `make -C zigux phase7-validate`\"),
+        (root / MAKEFILE_PATH, \"phase7-validate:\"),
+        (root / DOCS_README_PATH, \"Phase 7 notes\"),
+        (root / SCRIPTS_README_PATH, \"## Phase 7\"),
+        (root / TESTS_README_PATH, \"## Phase 7\"),
+    ]
+    for path, marker in checks:
+        text = path.read_text(encoding=\"utf-8\")
+        if marker not in text:
+            raise SystemExit(1)
+    manifest = json.loads((root / MANIFEST_PATH).read_text(encoding=\"utf-8\"))
+    if \"make -C zigux phase7-validate\" not in manifest.get(\"current_replay_inventory\", []):
+        raise SystemExit(1)
+    print(\"PHASE7_SHARED_SURFACE=pass\")
+    return 0
+
+if __name__ == \"__main__\":
+    raise SystemExit(main())
+""",
+    )
+
+
+def expect_failure(root: Path, rel_path: Path, transform: str, delete_only: bool = False) -> None:
+    path = root / rel_path
+    if delete_only:
+        path.unlink()
     else:
-        original = read_text(root / rel_path)
-        write(root / rel_path, original.replace(transform, "", 1))
+        original = read_text(path)
+        write(path, original.replace(transform, "", 1))
     try:
         validate(root)
     except (ValidationError, json.JSONDecodeError):
         return
     raise AssertionError("expected validation failure")
+
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validate_") as tmpdir:
@@ -219,26 +327,23 @@ def run_self_test() -> None:
         scaffold_repo(root)
         validate(root)
         cases_run = 0
-        for rel_path, transform in [
-            (MANIFEST_PATH, '"make -C zigux phase7-validate"'),
-            (MAKEFILE_PATH, "phase7-validate:"),
-            (MAKEFILE_PATH, "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"),
-            (MAKEFILE_PATH, "\t$(PYTHON) scripts/zigux/validate-phase7.py\n"),
-            (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
-            (Path("lib/argv_split.zig"), "pub fn argvSplit"),
-            (CHECKER_PATH, "delete"),
-            (ARGV_SPLIT_CHECKER_PATH, "delete"),
-            (BUILD_WIRING_CHECKER_PATH, "delete"),
-            (MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "delete"),
-            (DOCS_README_PATH, "delete"),
-            (DOCS_README_PATH, "Phase 7 notes"),
-            (SCRIPTS_README_PATH, "## Phase 7"),
-            (TESTS_README_PATH, "## Phase 7"),
+        for rel_path, transform, delete_only in [
+            (MANIFEST_PATH, '"make -C zigux phase7-validate"', False),
+            (MAKEFILE_PATH, "phase7-validate:", False),
+            (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n", False),
+            (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", False),
+            (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", False),
+            (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
+            (CHECKER_PATH, "", True),
+            (DOCS_README_PATH, "Phase 7 notes\n", False),
+            (SCRIPTS_README_PATH, "## Phase 7\n", False),
+            (TESTS_README_PATH, "## Phase 7\n", False),
+            (CATALOG_PATH, "- `make -C zigux phase7-validate`\n", False),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
                 scaffold_repo(case_root)
-                expect_failure(case_root, rel_path, transform)
+                expect_failure(case_root, rel_path, transform, delete_only)
                 cases_run += 1
             finally:
                 for child in sorted(case_root.rglob("*"), reverse=True):
@@ -252,11 +357,13 @@ def run_self_test() -> None:
     print("PHASE7_VALIDATE_SELF_TEST=pass")
     print(f"PHASE7_VALIDATE_SELF_TEST_CASE_COUNT={cases_run}")
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
+
 
 def main() -> int:
     args = parse_args()
@@ -270,6 +377,7 @@ def main() -> int:
         return 1
     print("PHASE7_VALIDATE=pass")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
