@@ -97,7 +97,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\"next_bounded_step\\\\": \\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(manifest, "\\\\"next_bounded_step\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
@@ -145,7 +145,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
@@ -300,6 +300,31 @@ def run_self_test() -> None:
         tests_cmdline_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {'
         tests_path.write_text(read_text(tests_path).replace(tests_cmdline_alloc_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_cmdline_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_alloc_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_special_quoted_marker = 'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_special_quoted_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_special_quoted_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_special_quoted_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_cmdline_replay_marker = 'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_cmdline_replay_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_cmdline_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_replay_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_parse_alloc_marker = 'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_parse_alloc_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_parse_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_parse_alloc_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_case_boundary_marker = 'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_case_boundary_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_case_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_case_boundary_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_replace_alloc_marker = 'test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_replace_alloc_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_replace_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_replace_alloc_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
