@@ -28,7 +28,7 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Current `master` still keeps the roadmap-backed `kobject` packet visible through public current-`master` readback for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_build.zig`, even though authenticated contents reread for those same paths still flakes in this runtime.
+Current `master` still keeps the roadmap-backed `kobject` packet visible through public current-`master` readback for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig`, even though authenticated contents reread for those same paths still flakes in this runtime.
 
 Keep that kobject packet framed as the approved in-memory ownership-and-lifetime idiom for the Phase 5 anchor:
 
