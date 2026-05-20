@@ -26,6 +26,7 @@ Current `master` also now keeps one direct family-local `zigux/tests/runtime_*` 
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
 
 The direct sample still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking.
+The direct sample also keeps cold-stage fail-closed behavior explicit: `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` proves pre-init `runSelftest()` and `exit()` stay rejected before `init()` moves the module into `.initialized`.
 The direct sample also now keeps initialized-stage clean exit explicit: `test "trace-events sample preserves initialized summary across direct exit without selftest"` proves zero selftest runs stay explicit, the initialized summary stays unchanged until `exit()` succeeds, and later lifecycle calls remain rejected without drift.
 The fail-closed companion still keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay: `error.OutstandingRegistration` leaves the selftest_complete summary unchanged, one later main replay plus one later function-thread replay stay explicit before unregister, and the later post-exit invalid-lifecycle rejections still leave the exited summary unchanged.
