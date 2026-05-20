@@ -18,6 +18,7 @@ const ReviewProcessManifest = struct {
     required_review_fields: []const []const u8,
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
+    supporting_context_fields: []const []const u8,
     indefinite_c_policy_required_markers: []const []const u8,
     decision_record_template_required_markers: []const []const u8,
     study_only_anchor_review_markers: []const []const u8,
@@ -78,6 +79,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.supporting_context_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
@@ -85,6 +87,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 18), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_gap_expected_missing_paths.len);
 
+    try expectSliceContains(manifest.supporting_context_fields, "governance lane sequencing link or explicit scope note");
+    try expectSliceContains(manifest.supporting_context_fields, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "required approver set");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "automatic return-to-blocked trigger");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "trigger-specific evidence refresh");
@@ -161,6 +165,10 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     for (manifest.reopen_evidence_fields) |field| {
         try expectContains(review_process, field);
     }
+    for (manifest.supporting_context_fields) |field| {
+        try expectContains(review_process, field);
+        try expectContains(decision_record_template, field);
+    }
     for (manifest.indefinite_c_policy_required_markers) |marker| {
         try expectContains(indefinite_c_policy, marker);
     }
@@ -207,6 +215,8 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "review checklist entry prompt is missing required stay-in-C policy boundary marker");
     try expectContains(checker, "decision-record template is missing the study-only anchor boundary rule");
     try expectContains(checker, "review-process note is missing study-only boundary marker");
+    try expectContains(checker, "review-process note is missing supporting context field");
+    try expectContains(checker, "decision-record template is missing supporting context field");
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
