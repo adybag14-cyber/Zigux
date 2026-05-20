@@ -1,11 +1,13 @@
 {
   "packet": "phase6-helper-evidence",
   "phase": "Phase 6",
-  "surveyed_head": "9ca34d1",
+  "surveyed_head": "current-master-readback-2026-05-20",
   "lane_scope": "shared helper-evidence rows and machine-readable manifest only",
   "current_direct_readback_companions": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -15,7 +17,9 @@
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
-    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py"
   ],
   "public_tree_backed_shared_companions": [
     "Documentation/zigux/phase6-perf-gate-survey.md"
@@ -133,16 +137,15 @@
         "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts/zigux/check-phase6-hexdump-packet.py"
+        "scripts/zigux/check-phase6-hexdump-packet.py",
+        "scripts/zigux/check-phase6-hexdump-route.py"
       ],
       "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
       "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
-      "current_review_posture": "direct-readback-limited"
+      "current_review_posture": "direct-helper-readback-restored"
     }
   ],
   "current_repo_reality_gaps": [
-    "Documentation/zigux/phase6-hexdump-slice.md",
-    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
