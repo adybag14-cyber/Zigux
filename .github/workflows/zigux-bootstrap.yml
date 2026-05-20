@@ -219,6 +219,12 @@ jobs:
       - name: Check current Phase 1 string review packet
         run: python3 scripts/zigux/check-phase1-string-review-packet.py
 
+      - name: Self-test current Phase 1 route summary checker
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
+
+      - name: Check current Phase 1 route summary packet
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
+
       - name: Self-test current Phase 1 bench checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
@@ -227,6 +233,12 @@ jobs:
 
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
+
+      - name: Self-test current Phase 1 closure validator
+        run: python3 scripts/zigux/validate-phase1-closure.py --self-test
+
+      - name: Check current Phase 1 closure packet
+        run: python3 scripts/zigux/validate-phase1-closure.py
 
       - name: Self-test current Phase 1 workflow viability checker
         run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
@@ -240,6 +252,12 @@ jobs:
       - name: Check current Phase 3 interop packet
         run: python3 scripts/zigux/run-phase3-checks.py
 
+      - name: Run current Phase 3 policy starter-packet replay
+        run: make -C zigux phase3-policy-starter-packet-test
+
+      - name: Run current Phase 3 policy dump replay
+        run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig
+
       - name: Self-test current Phase 3 low-level wrapper survey validator
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
 
@@ -251,6 +269,9 @@ jobs:
 
       - name: Run current Phase 3 shared tests-root packet
         run: zig build phase3-test --build-file zigux/tests/build.zig
+
+      - name: Run current Phase 3 ABI dump replay
+        run: zig build phase3-dump --build-file zigux/tests/build.zig
 
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
