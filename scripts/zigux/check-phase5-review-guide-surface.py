@@ -103,7 +103,8 @@ LANE_SEQUENCING_MARKERS = (
 )
 
 SAMPLE_ROOT_MARKERS = (
-    "The same mixed reread also kept the roadmap-backed `kobject` packet split explicit in this runtime: authenticated contents readback again directly returned `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while fresh public-tree readback still carried `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` as the current companion-evidence pair.",
+    "Current `master` still keeps the roadmap-backed `kobject` packet visible through public current-`master` readback for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig`, even though authenticated contents reread for those same paths still flakes in this runtime.",
+    "Current `master` still ships no standalone Phase 5 sample-root files here for:\n\n* `*string*`\n* `*kasprintf*`\n* `*strarray*`\n* `*cmdline*`\n* `*argv*`\n* `*rbtree*`\n* `*bitmap*`\n* `*printf*`\n* `*vsprintf*`",
     "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet or a fifth Phase 5 sample.",
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
     "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
@@ -218,7 +219,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 11
+    expected_case_count = 12
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -311,6 +312,26 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
         checks_run += 1
 
+        missing_sample_root_boundary_root = root / "missing_sample_root_boundary"
+        _seed(missing_sample_root_boundary_root)
+        _write(
+            missing_sample_root_boundary_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_boundary_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root boundary failure: {failures}")
+        checks_run += 1
+
         missing_sample_root_bitmap_marker_root = root / "missing_sample_root_bitmap_marker"
         _seed(missing_sample_root_bitmap_marker_root)
         _write(
@@ -321,11 +342,12 @@ def run_self_test() -> int:
                     SAMPLE_ROOT_MARKERS[0],
                     SAMPLE_ROOT_MARKERS[1],
                     SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
                 ),
             ),
         )
         failures = collect_failures(missing_sample_root_bitmap_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[4]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
         checks_run += 1
