@@ -111,6 +111,7 @@ EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-mmio-packet.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
     "make -C zigux phase10-validate",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
