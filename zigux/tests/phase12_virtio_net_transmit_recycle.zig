@@ -21,6 +21,11 @@ test "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c
     try std.testing.expect(summary.queue_was_stopped);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        virtio_net_transmit_recycle.CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
     try std.testing.expectEqual(
@@ -42,6 +47,11 @@ test "phase12 virtio net transmit recycle keeps a stopped queue parked below the
     try std.testing.expectEqual(@as(u16, 4), summary.remaining_in_flight_descriptors);
     try std.testing.expect(!summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        virtio_net_transmit_recycle.CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(summary.keeps_queue_stopped);
     try std.testing.expectEqual(
@@ -63,6 +73,11 @@ test "phase12 virtio net transmit recycle does not wake a stopped queue without 
     try std.testing.expectEqual(@as(u16, 3), summary.remaining_in_flight_descriptors);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(!summary.frees_completed_buffers);
+    try std.testing.expect(!summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        virtio_net_transmit_recycle.CompletedOwnershipDisposition.device_retained,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(summary.keeps_queue_stopped);
     try std.testing.expectEqual(
@@ -84,6 +99,11 @@ test "phase12 virtio net transmit recycle keeps running queues running even when
     try std.testing.expectEqual(@as(u16, 1), summary.remaining_in_flight_descriptors);
     try std.testing.expect(summary.reaches_wake_threshold);
     try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        virtio_net_transmit_recycle.CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
     try std.testing.expect(!summary.wakes_transmit_queue);
     try std.testing.expect(!summary.keeps_queue_stopped);
     try std.testing.expectEqual(
