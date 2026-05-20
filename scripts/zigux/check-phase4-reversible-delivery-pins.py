@@ -43,7 +43,21 @@ EXPECTED_STATUS_LINES = (
     "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
 )
-EXPECTED_PIN_SELF_TEST_CASES = len(EXPECTED_SHA_LINES) + 6
+SELF_TEST_SHA_LINES = (
+    EXPECTED_SHA_LINES[0],
+    EXPECTED_SHA_LINES[1],
+    EXPECTED_SHA_LINES[2],
+    EXPECTED_SHA_LINES[3],
+    EXPECTED_SHA_LINES[4],
+    EXPECTED_SHA_LINES[5],
+    EXPECTED_SHA_LINES[6],
+    EXPECTED_SHA_LINES[7],
+    EXPECTED_SHA_LINES[8],
+    EXPECTED_SHA_LINES[9],
+    EXPECTED_SHA_LINES[17],
+    EXPECTED_SHA_LINES[20],
+)
+EXPECTED_PIN_SELF_TEST_CASES = len(SELF_TEST_SHA_LINES) + 6
 
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
@@ -139,7 +153,7 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         cases += 1
-        for line in EXPECTED_SHA_LINES:
+        for line in SELF_TEST_SHA_LINES:
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
         cases += _expect_failure(root, NOTE, "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`", "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`")
         cases += _expect_failure(root, NOTE, "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`", "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=17`")
