@@ -94,8 +94,8 @@ NOTE_MARKERS = (
     "`PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
     "`PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
     "`PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
-    "`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=6e486e059c0d1caa9599c5ac54936f7c52ac8e9a`",
-    "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=65c2ceed2512dcec8f86cbe3c47831c30f5547d3`",
+    "`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
+    "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
     "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`",
     "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
@@ -325,8 +325,8 @@ def build_fixture_tree(root: Path) -> None:
                 "  * `PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
                 "  * `PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
                 "  * `PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
-                "  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=6e486e059c0d1caa9599c5ac54936f7c52ac8e9a`",
-                "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=65c2ceed2512dcec8f86cbe3c47831c30f5547d3`",
+                "  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
+                "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
                 "  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
                 "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`",
                 "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
@@ -427,8 +427,8 @@ def run_self_test() -> None:
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "## Exact Readback Evidence", "## Evidence")))
         expect_failure(lambda r: write_text(r / NOTE, read_text(r / NOTE) + "\n  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=95471df68eea2537ea547394d0311c2939ae0d33`\n"))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "dea77e6385618147aba44d3714f73b6c5249e942", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "6e486e059c0d1caa9599c5ac54936f7c52ac8e9a", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "65c2ceed2512dcec8f86cbe3c47831c30f5547d3", "cccccccccccccccccccccccccccccccccccccccc")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "a28a7393df1b270de8c80c57c30287d548bd0c4e", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "fa4ab6b736a3eba358630a9913b447f77569ab29", "cccccccccccccccccccccccccccccccccccccccc")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "ac515e3ed47c771b0947fde4200a90b9a1952c99", "dddddddddddddddddddddddddddddddddddddddd")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "4b22006c7278280203a23e6ec568cf8f47b62c7e", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "107d5d300f43fb5c9b0c7f9439601af3507a59ff", "ffffffffffffffffffffffffffffffffffffffff")))
