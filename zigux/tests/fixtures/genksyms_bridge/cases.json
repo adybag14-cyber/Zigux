@@ -28,6 +28,19 @@
     "expected_file": "long_options_expected.json"
   },
   {
+    "name": "abbreviated_long_options",
+    "args": [
+      "--deb",
+      "--warn",
+      "--qui",
+      "--ref=foo.symref",
+      "--dump-t",
+      "types.symtypes",
+      "--pres"
+    ],
+    "expected_file": "abbreviated_long_options_expected.json"
+  },
+  {
     "name": "quiet_overrides_warning",
     "args": [
       "--warnings",
@@ -36,6 +49,17 @@
       "bar.symref"
     ],
     "expected_file": "quiet_overrides_warning_expected.json"
+  },
+  {
+    "name": "explicit_option_terminator",
+    "args": [
+      "-d",
+      "leftover.c",
+      "--",
+      "--leftover",
+      "positional"
+    ],
+    "expected_file": "explicit_option_terminator_expected.json"
   },
   {
     "name": "positional_passthrough",
@@ -47,5 +71,13 @@
       "foo.symref"
     ],
     "expected_file": "positional_passthrough_expected.json"
+  },
+  {
+    "name": "lone_dash_passthrough",
+    "args": [
+      "-",
+      "-d"
+    ],
+    "expected_file": "lone_dash_passthrough_expected.json"
   }
 ]
