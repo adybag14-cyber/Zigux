@@ -27,6 +27,7 @@ DIRECT_PACKET_PATHS = (
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
     "zigux/tests/phase15_freeze_map_governance.zig",
@@ -50,7 +51,7 @@ BROADER_GAP_PATHS = (
 REQUIRED_MARKERS = (
     "Phase 15 governance packet",
     "Keep the current bounded Phase 15 governance reminder explicit through",
-    "Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
+    "Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-handoff-note-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
     "Keep the directly readable tests-root Phase 15 governance packet explicit through",
     "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.",
     "Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
@@ -105,7 +106,7 @@ def _sample_readme() -> str:
 ## Phase 15 governance packet
 
 Keep the current bounded Phase 15 governance reminder explicit through {", ".join(f"`{rel}`" for rel in DIRECT_PACKET_PATHS[:14])}, and `zigux/tests/README.md`.
-Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.
+Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-handoff-note-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.
 
 Keep the directly readable tests-root Phase 15 governance packet explicit through:
 {direct}
@@ -151,11 +152,23 @@ def run_self_test() -> int:
         )
         failures = collect_failures(missing_checker_root)
         expected = [
-            "tests_readme:missing:Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
-            "tests_readme:missing_direct_path:`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+            "tests_readme:missing:Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-handoff-note-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-checker failure: {failures}")
+
+        missing_handoff_note_checker_root = root / "missing_handoff_note_checker"
+        _seed(missing_handoff_note_checker_root)
+        _write(
+            missing_handoff_note_checker_root / TESTS_README_PATH,
+            _sample_readme().replace("`scripts/zigux/check-phase15-handoff-note-alignment.py`, ", "", 1),
+        )
+        failures = collect_failures(missing_handoff_note_checker_root)
+        expected = [
+            "tests_readme:missing:Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-handoff-note-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-handoff-note-checker failure: {failures}")
 
         missing_direct_root = root / "missing_direct"
         _seed(missing_direct_root)
@@ -169,11 +182,15 @@ def run_self_test() -> int:
         _seed(missing_build_replay_root)
         _write(
             missing_build_replay_root / TESTS_README_PATH,
-            _sample_readme().replace("- `zigux/tests/phase15_architecture_council_review_process_build.zig`\n", "", 1),
+            _sample_readme().replace(
+                "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.\n\n",
+                "",
+                1,
+            ),
         )
         failures = collect_failures(missing_build_replay_root)
         expected = [
-            "tests_readme:missing_direct_path:`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+            "tests_readme:missing:Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-build-replay failure: {failures}")
@@ -199,11 +216,15 @@ def run_self_test() -> int:
         _seed(missing_handoff_replay_root)
         _write(
             missing_handoff_replay_root / TESTS_README_PATH,
-            _sample_readme().replace("- `zigux/tests/phase15_handoff_next_steps.zig`\n", "", 1),
+            _sample_readme().replace(
+                "Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.\n\n",
+                "",
+                1,
+            ),
         )
         failures = collect_failures(missing_handoff_replay_root)
         expected = [
-            "tests_readme:missing_direct_path:`zigux/tests/phase15_handoff_next_steps.zig`",
+            "tests_readme:missing:Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-handoff-replay failure: {failures}")
