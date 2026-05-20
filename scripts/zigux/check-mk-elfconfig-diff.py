@@ -76,6 +76,10 @@ EXPECTED_ZIG_MARKERS = {
     "render_truncated": 'test "renders truncated error" {',
     "render_not_elf": 'test "renders non-ELF error" {',
     "render_invalid_class": 'test "renders invalid class silently" {',
+    "split_exact_elf32": 'test "split-read exact 32-bit ELF header exits with stdout at EOF" {',
+    "split_exact_elf64": 'test "split-read exact 64-bit ELF header exits with stdout at EOF" {',
+    "split_exact_invalid_class": 'test "split-read exact invalid-class header exits silently at EOF" {',
+    "split_exact_not_elf": 'test "split-read exact non-ELF header exits with stderr at EOF" {',
 }
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
@@ -104,7 +108,7 @@ int main(int argc, char **argv)
 \t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
 \t\tbreak;
 \tdefault:
-\t	exit(1);
+\t\texit(1);
 \t}
 
 \treturn 0;
