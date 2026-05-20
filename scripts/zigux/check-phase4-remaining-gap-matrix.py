@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -122,7 +122,7 @@ def validate_kprobe_manifest(payload: dict[str, object], missing: list[str]) -> 
         (("survey_summary", "phase4_validation_matrix_present"), True),
         (("survey_summary", "phase4_gate_evidence_present"), True),
         (("gaps", 3, "id"), "phase4-kprobe-example-shared-validator-promotion"),
-        (("gaps", 3, "status"), "ready_next"),
+        (("gaps", 3, "status"), "starter_landed"),
         (("gaps", 4, "id"), "phase4-kprobe-example-zig-sample"),
         (("gaps", 4, "status"), "ready_next"),
     )
@@ -302,7 +302,7 @@ Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
     {},
     {},
     {},
-    { "id": "phase4-kprobe-example-shared-validator-promotion", "status": "ready_next" },
+    { "id": "phase4-kprobe-example-shared-validator-promotion", "status": "starter_landed" },
     { "id": "phase4-kprobe-example-zig-sample", "status": "ready_next" }
   ]
 }
@@ -386,6 +386,7 @@ def run_self_test() -> int:
             (KPROBE_NOTE, "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "kprobe_note_marker:PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"),
             (KPROBE_MANIFEST, "\"phase4_build_present\": true", "\"phase4_build_present\": false", "kprobe_manifest:survey_summary.phase4_build_present:expected=True"),
             (KPROBE_MANIFEST, "\"threshold_posture\": \"c_anchor_only_until_kprobe_example_starter_lands\"", "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"", "kprobe_manifest:threshold_posture:expected='c_anchor_only_until_kprobe_example_starter_lands'"),
+            (KPROBE_MANIFEST, '{ "id": "phase4-kprobe-example-shared-validator-promotion", "status": "starter_landed" }', '{ "id": "phase4-kprobe-example-shared-validator-promotion", "status": "ready_next" }', "kprobe_manifest:gaps.3.status:expected='starter_landed'"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold", "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=approved_local_only", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix", "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-gate-evidence.md", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
