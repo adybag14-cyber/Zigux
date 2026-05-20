@@ -6,8 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
@@ -68,7 +67,12 @@ BOOTSTRAP_NOTE_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "make-wrapper-backed toolchain, tools, and kconfig route replays",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, or returned fixdep packet on current `master`.",
+)
+
+BOOTSTRAP_NOTE_FORBIDDEN_MARKERS = (
+    "make-wrapper-backed toolchain plus direct-cross route replays",
 )
 
 WORKFLOW_MARKERS = (
@@ -95,6 +99,7 @@ WORKFLOW_MARKERS = (
     "run: zig test scripts/zigux/fixdep.zig",
     "run: make -C zigux phase2-toolchain",
     "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-validate",
 )
@@ -157,6 +162,10 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_missing_exact_lines(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     lines = {line.strip() for line in text.splitlines()}
     return [(code, marker) for marker in markers if marker not in lines]
@@ -195,7 +204,6 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for entry in EXPECTED_MANIFEST["required_notes"]:
         if entry not in notes:
             issues.append(("MISSING_MANIFEST_NOTE", entry))
-
     return issues
 
 
@@ -211,12 +219,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     review_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
 
     issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_NOTE_MARKERS, "MISSING_BOOTSTRAP_NOTE_MARKER"))
+    issues.extend(collect_forbidden_markers(bootstrap_notes_text, BOOTSTRAP_NOTE_FORBIDDEN_MARKERS, "FORBIDDEN_BOOTSTRAP_NOTE_MARKER"))
     issues.extend(collect_missing_exact_lines(workflow_text, WORKFLOW_MARKERS, "MISSING_WORKFLOW_MARKER"))
     issues.extend(collect_missing_markers(scripts_text, COMPANION_MARKERS, "MISSING_SCRIPTS_MARKER"))
     issues.extend(collect_missing_markers(tests_text, COMPANION_MARKERS, "MISSING_TESTS_MARKER"))
     issues.extend(collect_missing_markers(review_text, COMPANION_MARKERS, "MISSING_REVIEW_MARKER"))
     issues.extend(collect_manifest_issues(root))
-
     return issues
 
 
@@ -278,12 +286,13 @@ def run_self_test() -> int:
     expected_case_count = (
         1
         + len(BOOTSTRAP_NOTE_MARKERS)
+        + len(BOOTSTRAP_NOTE_FORBIDDEN_MARKERS)
         + len(WORKFLOW_MARKERS)
         + 3 * len(COMPANION_MARKERS)
         + len(EXPECTED_MANIFEST["required_checkers"])
         + len(EXPECTED_MANIFEST["required_make_wrappers"])
         + len(EXPECTED_MANIFEST["required_notes"])
-        + 6
+        + len(REQUIRED_FILES)
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_bootstrap_note_packet_") as tmp_dir:
         root = Path(tmp_dir)
@@ -297,6 +306,14 @@ def run_self_test() -> int:
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_NOTE_MARKER", marker) in issues
+            checks_run += 1
+
+        for marker in BOOTSTRAP_NOTE_FORBIDDEN_MARKERS:
+            build_sample_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_BOOTSTRAP_NOTE_MARKER", marker) in issues
             checks_run += 1
 
         for marker in WORKFLOW_MARKERS:
@@ -358,7 +375,7 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", str(path.relative_to(ROOT))) in issues
             checks_run += 1
 
-    assert checks_run == expected_case_count
+    assert checks_run == expected_case_count, (checks_run, expected_case_count)
     print("PHASE2_BOOTSTRAP_NOTES_PACKET_SELF_TEST=pass")
     print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -390,6 +407,7 @@ def main() -> int:
 
     print("PHASE2_BOOTSTRAP_NOTES_PACKET=pass")
     print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_NOTE_MARKER_COUNT={len(BOOTSTRAP_NOTE_MARKERS)}")
+    print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_FORBIDDEN_MARKER_COUNT={len(BOOTSTRAP_NOTE_FORBIDDEN_MARKERS)}")
     print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
     print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_COMPANION_MARKER_COUNT={len(COMPANION_MARKERS)}")
     print(f"PHASE2_BOOTSTRAP_NOTES_PACKET_MANIFEST_CHECKER_COUNT={len(EXPECTED_MANIFEST['required_checkers'])}")
