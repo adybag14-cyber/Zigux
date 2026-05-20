@@ -2,6 +2,7 @@ const std = @import("std");
 
 const cpu_mask = @import("cpu_mask.zig");
 const logging = @import("logging.zig");
+const logging_verify = @import("logging_verify.zig");
 const online_cpu_routing = @import("online_cpu_routing.zig");
 const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
@@ -46,6 +47,7 @@ fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize 
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
     std.testing.refAllDecls(cpu_mask);
     std.testing.refAllDecls(logging);
+    std.testing.refAllDecls(logging_verify);
     std.testing.refAllDecls(online_cpu_routing);
     std.testing.refAllDecls(online_cpu_routing_verify);
     std.testing.refAllDecls(perf_buffer_poll);
