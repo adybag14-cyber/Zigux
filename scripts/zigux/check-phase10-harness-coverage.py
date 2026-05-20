@@ -205,6 +205,15 @@ REQUIRED_MARKERS = {
         "Run Phase 10 helper tests",
         "make -C zigux phase10-test",
     ],
+    "zigux/tests/phase10_closure_manifest.json": [
+        "\"lab_only_driver_validation\"",
+        "\"scripts/zigux/check-phase10-harness-coverage.py\"",
+        "\"scripts/zigux/check-phase10-tests-readme-core-surfaces.py\"",
+        "\"scripts/zigux/validate-phase10.py\"",
+        "\"scripts/zigux/validate-phase10-closure.py\"",
+        "\"python3 scripts/zigux/validate-phase10.py\"",
+        "\"python3 scripts/zigux/validate-phase10-closure.py\"",
+    ],
 }
 
 FORBIDDEN_MARKERS = {
@@ -266,6 +275,12 @@ SELF_TEST_MUTATIONS = [
         "public current-`master` readback now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig`, so keep those returned core-side companions explicit beside the returned core survey while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower core-side repo-reality gaps in this scripts-root reminder",
         "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, so keep the broader core-side slice framed as a repo-reality gap while the returned core survey, ring, input, and MMIO packet anchors continue to carry the bounded shared reminder",
         "scripts/zigux/README.md:forbidden:current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`",
+    ),
+    (
+        "zigux/tests/phase10_closure_manifest.json",
+        "\"scripts/zigux/validate-phase10.py\"",
+        "\"scripts/zigux/validate-phase10-missing.py\"",
+        "zigux/tests/phase10_closure_manifest.json:\"scripts/zigux/validate-phase10.py\"",
     ),
 ]
 
