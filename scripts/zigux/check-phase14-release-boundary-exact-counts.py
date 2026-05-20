@@ -6,7 +6,7 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 This guard keeps the release-boundary packet honest around the exact unknown
 compile-shard counts and the currently unreadable executable-layer gap while
 cross-reading the shared smoke survey markers that define the returned
-Phase 14 route split and recovered build-side smoke trio.
+Phase 14 route split and exact-readback gap list.
 """
 
 from __future__ import annotations
@@ -44,10 +44,11 @@ RELEASE_BOUNDARY_TEXT_MARKERS = [
 ]
 
 SURVEY_EXACT_LINE_SNIPPETS = [
-    "  * current public-tree readback now also recovers the shared build-side smoke trio:",
+    "  * exact-readback gaps that still belong to this shared note:",
     "    * `zigux/tests/phase14_build.zig`",
     "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "    * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
+    "    * broad reminder text should therefore frame that build-side and executable layer as exact-readback gaps rather than as directly recovered shared-smoke proof",
     "    * the current readable route layer still stops at `make -C zigux phase14-validate`; no current attached-toolchain `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux phase14` fallback is usable from this note because the readable `zigux/Makefile` body still omits those targets",
 ]
 
