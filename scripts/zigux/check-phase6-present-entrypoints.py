@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+DOCS_README_PATH = Path("Documentation/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
@@ -38,6 +39,10 @@ EXPECTED_DIRECT_COMPANIONS = [
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
+]
+EXPECTED_DOCS_README_SNIPPETS = [
+    "authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, while `Documentation/zigux/phase6-perf-gate-survey.md` still needs public-tree fallback in this runtime, so keep the helper-parity catalog inside the current docs-root evidence packet and keep the broader perf-note surface framed as public-tree-backed companion evidence rather than direct docs-root proof until a fresh authenticated reread recovers that note too.",
+    "current `master` directly serves the four roadmap-backed helper anchors through `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`, their focused `zigux/tests/phase6_*` helper and perf replays, the restored `zigux/tests/phase6_build.zig` foothold, and the current `zigux/Makefile` wrapper family, so keep the docs-root reminder reviewable through that returned helper-evidence packet instead of restating helper-local semantics here.",
 ]
 EXPECTED_CATALOG_SNIPPETS = [
     "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`",
@@ -98,7 +103,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -135,6 +140,7 @@ def validate(repo_root: Path) -> None:
     manifest = read_json(repo_root / MANIFEST_PATH)
     parity = read_json(repo_root / PARITY_MANIFEST_PATH)
 
+    require_snippets(repo_root / DOCS_README_PATH, EXPECTED_DOCS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, EXPECTED_CATALOG_SNIPPETS)
     require_snippets(repo_root / BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
@@ -216,6 +222,7 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
+    write(root / DOCS_README_PATH, "\n".join(EXPECTED_DOCS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(EXPECTED_CATALOG_SNIPPETS) + "\n")
     write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
@@ -305,6 +312,10 @@ def run_self_test() -> None:
         expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[1] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[0] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
         cases_run += 1
