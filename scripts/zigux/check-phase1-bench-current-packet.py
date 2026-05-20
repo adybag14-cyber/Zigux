@@ -113,6 +113,56 @@ EXPECTED_ASSERT_BLOCKS = {
             'assert kind == "expectations_checksum_order"',
             'assert payload == reordered_checksums["checksums"]',
         ),
+        (
+            'kind, payload = validate_expectations(downgraded_bitmap_weight_exact)',
+            'assert kind == "expectations_checksums_bitmap_exact_required"',
+            'assert payload == "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(downgraded_bitmap_window_exact)',
+            'assert kind == "expectations_checksums_bitmap_exact_required"',
+            'assert payload == "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(downgraded_rbtree_exact)',
+            'assert kind == "expectations_checksums_rbtree_exact_required"',
+            'assert payload == "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_duplicate_exact)',
+            'assert kind == "expectations_checksums_rbtree_exact_required"',
+            'assert payload == "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_string_exact)',
+            'assert kind == "expectations_checksums_string_exact_required"',
+            'assert payload == "PHASE1_BENCH_STRING_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_hweight_exact)',
+            'assert kind == "expectations_checksums_hweight_exact_required"',
+            'assert payload == "PHASE1_BENCH_HWEIGHT_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_list_sort_exact)',
+            'assert kind == "expectations_checksums_list_sort_exact_required"',
+            'assert payload == "PHASE1_BENCH_LIST_SORT_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_find_next_exact)',
+            'assert kind == "expectations_checksums_find_bit_exact_required"',
+            'assert payload == "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_find_bit_edge_exact)',
+            'assert kind == "expectations_checksums_find_bit_exact_required"',
+            'assert payload == "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"',
+        ),
+        (
+            'kind, payload = validate_expectations(missing_rbtree_iterations)',
+            'assert kind == "expectations_missing_rbtree_iterations"',
+            'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
+        ),
     ),
 }
 
