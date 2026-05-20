@@ -28,6 +28,7 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "run: make -C zigux phase2-kconfig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
 )
