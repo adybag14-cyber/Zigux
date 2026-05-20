@@ -321,6 +321,29 @@ test "runGenksymsCrc skips repeated blank continuations after an exact-buffer sp
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
 }
 
+test "runGenksymsCrc skips a NUL-prefixed visible continuation after an exact-buffer split" {
+    var exact_then_nul_chunk = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 6);
+    defer exact_then_nul_chunk.deinit(std.testing.allocator);
+    try exact_then_nul_chunk.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_then_nul_chunk.append(std.testing.allocator, 0);
+    try exact_then_nul_chunk.appendSlice(std.testing.allocator, "bc\nx\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_then_nul_chunk.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_nul_chunk.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const skipped_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("bc")});
+    defer std.testing.allocator.free(skipped_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, skipped_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"bc\"") == null);
+}
+
 test "runGenksymsCrc preserves leading low control bytes in a visible split continuation" {
     var split_then_visible_controls = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 8);
     defer split_then_visible_controls.deinit(std.testing.allocator);
