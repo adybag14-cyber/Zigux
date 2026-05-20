@@ -392,6 +392,11 @@ def run_self_test() -> int:
                 "duplicate_phase3_interop_selftest",
             ),
             (
+                "Check current Phase 3 interop packet",
+                "python3 scripts/zigux/run-phase3-checks.py",
+                "duplicate_phase3_interop_check",
+            ),
+            (
                 "Run current Phase 3 policy starter-packet replay",
                 "make -C zigux phase3-policy-starter-packet-test",
                 "duplicate_phase3_policy_starter",
@@ -400,6 +405,21 @@ def run_self_test() -> int:
                 "Run current Phase 3 policy dump replay",
                 "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
                 "duplicate_phase3_policy_dump",
+            ),
+            (
+                "Self-test current Phase 3 low-level wrapper survey validator",
+                "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+                "duplicate_phase3_low_level_selftest",
+            ),
+            (
+                "Check current Phase 3 low-level wrapper survey packet",
+                "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+                "duplicate_phase3_low_level_check",
+            ),
+            (
+                "Run current Phase 3 low-level wrapper replay",
+                "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+                "duplicate_phase3_low_level_replay",
             ),
             (
                 "Run current Phase 3 shared tests-root packet",
@@ -417,9 +437,44 @@ def run_self_test() -> int:
                 "duplicate_phase1_smoke",
             ),
             (
+                "Self-test current Phase 4 repo-reality warning checker",
+                "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
+                "duplicate_phase4_repo_reality_selftest",
+            ),
+            (
+                "Check current Phase 4 repo-reality warning packet",
+                "python3 scripts/zigux/check-phase4-repo-reality-warning.py",
+                "duplicate_phase4_repo_reality_check",
+            ),
+            (
+                "Self-test current Phase 4 reversible-delivery pin checker",
+                "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
+                "duplicate_phase4_reversible_selftest",
+            ),
+            (
+                "Check current Phase 4 reversible-delivery pin packet",
+                "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py",
+                "duplicate_phase4_reversible_check",
+            ),
+            (
+                "Self-test current Phase 4 tests README checker",
+                "python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test",
+                "duplicate_phase4_tests_readme_selftest",
+            ),
+            (
+                "Check current Phase 4 tests README packet",
+                "python3 scripts/zigux/check-phase4-tests-readme-packet.py",
+                "duplicate_phase4_tests_readme_check",
+            ),
+            (
                 "Validate Phase 4 rollback routes",
                 "make -C zigux phase4-validate",
                 "duplicate_phase4_validate",
+            ),
+            (
+                "Run Phase 4 rollback tests",
+                "make -C zigux phase4-test",
+                "duplicate_phase4_rollback_tests",
             ),
             (
                 "Self-test current Phase 4 artifact-diff helper",
