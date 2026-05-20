@@ -4,6 +4,8 @@ const dev_t_binding = @import("dev_t_binding");
 const version_binding = @import("version_binding");
 const uapi_version = @import("uapi_version");
 
+const invalid_argument: i32 = -22;
+
 pub const abi_major: u32 = uapi_version.abi_major;
 pub const abi_minor: u32 = uapi_version.abi_minor;
 pub const header_family_revision: u32 = uapi_version.header_family_revision;
@@ -12,6 +14,7 @@ pub const uapi_dev_t_packet_present: u32 = 1;
 
 pub const Version = version_binding.Version;
 pub const BoundaryHeader = abi.BoundaryHeader;
+pub const ExportStatus = abi.ExportStatus;
 pub const DevTFields = dev_t_binding.Fields;
 
 pub const version_size: usize = version_binding.version_size;
@@ -51,6 +54,11 @@ pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {
 
 pub fn versionMatchesCurrent(version: Version) bool {
     return version_binding.matchesCurrent(version);
+}
+
+pub fn validateVersionStatus(version: Version) ExportStatus {
+    if (versionMatchesCurrent(version)) return abi.okStatus(.kernel);
+    return abi.makeStatus(invalid_argument, .kernel);
 }
 
 pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {
@@ -118,8 +126,22 @@ pub fn validateDevTFields(fields: DevTFields) bool {
     return dev_t_binding.validate(fields);
 }
 
+pub fn validateDevTFieldsStatus(fields: DevTFields) ExportStatus {
+    if (validateDevTFields(fields)) return abi.okStatus(.kernel);
+    return abi.makeStatus(invalid_argument, .kernel);
+}
+
+pub fn validateDevTComponentsStatus(major: u32, minor: u32) ExportStatus {
+    return validateDevTFieldsStatus(initDevTFields(major, minor));
+}
+
 pub fn validateDevTRange(start: DevTFields, end: DevTFields) bool {
     return dev_t_binding.validateRange(start, end);
+}
+
+pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {
+    if (validateDevTRange(start, end)) return abi.okStatus(.kernel);
+    return abi.makeStatus(invalid_argument, .kernel);
 }
 
 test "header family binding mirrors current version compatibility surface" {
@@ -159,6 +181,31 @@ test "header family binding mirrors current version compatibility surface" {
     try std.testing.expect(!versionMatchesCurrent(stale_minor));
     try std.testing.expect(!hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
     try std.testing.expect(!versionMatchesCurrent(stale_revision));
+}
+
+test "header family binding relays Linux-facing validator statuses" {
+    const live = currentVersion();
+    const stale_version = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor,
+        .header_family_revision = header_family_revision + 1,
+    };
+    const valid_fields = initDevTFields(11, 29);
+    const invalid_fields = initDevTFields(max_major + 1, 0);
+    const earlier = initDevTFields(11, 28);
+    const ok = abi.okStatus(.kernel);
+    const invalid = abi.makeStatus(invalid_argument, .kernel);
+
+    try std.testing.expect(std.meta.eql(ok, validateVersionStatus(live)));
+    try std.testing.expect(std.meta.eql(invalid, validateVersionStatus(stale_version)));
+
+    try std.testing.expect(std.meta.eql(ok, validateDevTFieldsStatus(valid_fields)));
+    try std.testing.expect(std.meta.eql(invalid, validateDevTFieldsStatus(invalid_fields)));
+    try std.testing.expect(std.meta.eql(ok, validateDevTComponentsStatus(11, 29)));
+    try std.testing.expect(std.meta.eql(invalid, validateDevTComponentsStatus(max_major + 1, 0)));
+
+    try std.testing.expect(std.meta.eql(ok, validateDevTRangeStatus(earlier, valid_fields)));
+    try std.testing.expect(std.meta.eql(invalid, validateDevTRangeStatus(valid_fields, earlier)));
 }
 
 test "header family binding keeps boundary header compatibility helpers direct" {
