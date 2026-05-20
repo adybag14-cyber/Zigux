@@ -241,7 +241,7 @@ def run_self_test() -> int:
             for marker in markers:
                 seed_fixture_tree(base)
                 current = read_text(base, rel_path)
-                write_text(base / rel_path, current.replace(marker + "\n", "", 1))
+                write_text(base / rel_path, current.replace(marker, ""))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for route in MAKEFILE_FORBIDDEN_ROUTE_FIXTURES:
