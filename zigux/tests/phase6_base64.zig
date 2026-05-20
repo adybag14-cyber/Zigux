@@ -341,3 +341,50 @@ test "phase 6 base64 convenience wrappers stay aligned across fixture-backed sli
         try expectConvenienceParityCase(case.input, case.expected, case.padding, fixtureVariant(case.variant_name));
     }
 }
+
+fn encodeVariantPinned(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) !usize {
+    return switch (variant) {
+        .std => base64.encodeStd(dst, input, padding),
+        .urlsafe => base64.encodeUrlsafe(dst, input, padding),
+        .imap => base64.encodeImap(dst, input, padding),
+    };
+}
+
+fn expectConvenienceExactBufferBoundaries(input: []const u8, expected: []const u8, padding: bool, variant: base64.Variant) !void {
+    var encode_buf: [128]u8 = undefined;
+    const encoded_len = try encodeVariantPinned(encode_buf[0..expected.len], input, padding, variant);
+    try std.testing.expectEqual(expected.len, encoded_len);
+    try std.testing.expectEqualStrings(expected, encode_buf[0..encoded_len]);
+
+    if (expected.len > 0) {
+        try std.testing.expectError(
+            base64.EncodeError.DestinationTooSmall,
+            encodeVariantPinned(encode_buf[0 .. expected.len - 1], input, padding, variant),
+        );
+    }
+
+    const exact_len = try bytesVariantPinned(expected, padding, variant);
+    try std.testing.expectEqual(input.len, exact_len);
+
+    var decode_buf: [128]u8 = undefined;
+    const decoded_len = try decodeVariantPinned(decode_buf[0..exact_len], expected, padding, variant);
+    try std.testing.expectEqual(input.len, decoded_len);
+    try std.testing.expectEqualSlices(u8, input, decode_buf[0..decoded_len]);
+
+    if (exact_len > 0) {
+        try std.testing.expectError(
+            base64.DecodeError.DestinationTooSmall,
+            decodeVariantPinned(decode_buf[0 .. exact_len - 1], expected, padding, variant),
+        );
+    }
+}
+
+test "phase 6 base64 convenience wrappers preserve exact-fit and short-buffer boundaries" {
+    for (fixtures.standard_cases) |case| {
+        try expectConvenienceExactBufferBoundaries(case.input, case.expected, case.padding, .std);
+    }
+
+    for (fixtures.variant_cases) |case| {
+        try expectConvenienceExactBufferBoundaries(case.input, case.expected, case.padding, fixtureVariant(case.variant_name));
+    }
+}
