@@ -130,3 +130,33 @@ test "phase12 nvme pci direct replay keeps rollback-gate parity explicit through
     try std.testing.expect(ready.host_dma_parity_recovered);
     try std.testing.expect(ready.can_clear_rollback_gate);
 }
+
+test "phase12 nvme pci direct replay keeps admin replay blocker explicit even after IO counts recover" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+
+    const blocked = lab.recoveryRollbackGateSummary();
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", blocked.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, blocked.state);
+    try std.testing.expectEqual(@as(u32, 1), blocked.reset_generation);
+    try std.testing.expect(!blocked.admin_queue_replayed_after_reset);
+    try std.testing.expect(blocked.queue_numbering_restarted);
+    try std.testing.expectEqual(@as(usize, 2), blocked.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), blocked.remaining_io_queue_count);
+    try std.testing.expectEqual(@as(u32, 2), blocked.dropped_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2), blocked.rebuilt_io_host_dma_pages);
+    try std.testing.expectEqual(@as(u32, 0), blocked.remaining_io_host_dma_pages);
+    try std.testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, blocked.rollback_blocker);
+    try std.testing.expect(!blocked.queue_count_parity_recovered);
+    try std.testing.expect(!blocked.host_dma_parity_recovered);
+    try std.testing.expect(!blocked.can_clear_rollback_gate);
+}
