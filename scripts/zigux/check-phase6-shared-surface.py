@@ -47,6 +47,18 @@ EXPECTED_PARITY_DIRECT_EVIDENCE = [
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
 ]
+EXPECTED_EVIDENCE_CURRENT_GAPS = [
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/phase6_checksum_c_parity.zig",
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
+]
 REQUIRED_DOCS_README_SNIPPETS = [
     "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/review-checklist.md` - `scripts/zigux/README.md` - `zigux/tests/README.md` - `zigux/tests/phase6_build.zig` - `zigux/tests/phase6_helper_evidence_manifest.json` - `zigux/tests/phase6_helper_parity_manifest.json` - `scripts/zigux/check-phase6-shared-surface.py` - `scripts/zigux/check-phase6-present-entrypoints.py` - `zigux/Makefile` keep the bounded Phase 6 docs-root packet explicit through the shared helper-evidence and helper-parity catalogs, the current scripts-root and tests-root reminders, the shared build foothold, the shared machine-readable manifests, the present-entrypoint guard, and the returned Makefile wrapper surface instead of leaving the active leaf-helper tranche implicit from neighboring reminder surfaces alone.",
     "authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, while `Documentation/zigux/phase6-perf-gate-survey.md` still needs public-tree fallback in this runtime, so keep the helper-parity catalog inside the current docs-root evidence packet and keep the broader perf-note surface framed as public-tree-backed companion evidence rather than direct docs-root proof until a fresh authenticated reread recovers that note too.",
@@ -69,7 +81,14 @@ REQUIRED_VALIDATOR_SNIPPETS = [
     'run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")',
     'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
-SELF_TEST_CASE_COUNT = 18
+REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
+    "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_build.zig.",
+    "The remaining direct-readback gaps still returning 404 were Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, scripts/zigux/check-phase6-base64-c-parity.py, zigux/tests/phase6_checksum_c_parity.zig, zigux/tests/fixtures/phase6_checksum_c_harness.c, and scripts/zigux/check-phase6-checksum-c-parity.py.",
+]
+REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
+    "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, zigux/tests/phase6_build.zig, and zigux/Makefile.",
+]
+SELF_TEST_CASE_COUNT = 22
 
 
 class ValidationError(RuntimeError):
@@ -96,6 +115,14 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             )
 
 
+def require_text_snippets(name: str, content: object, snippets: list[str]) -> None:
+    if not isinstance(content, str):
+        raise ValidationError(f"{name} missing")
+    for snippet in snippets:
+        if snippet not in content:
+            raise ValidationError(f"{name} drifted: {snippet}")
+
+
 def validate(repo_root: Path) -> None:
     evidence = read_json(repo_root / HELPER_EVIDENCE_MANIFEST_PATH)
     parity = read_json(repo_root / HELPER_PARITY_MANIFEST_PATH)
@@ -110,15 +137,29 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-evidence direct companion mismatch")
     if evidence.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 helper-evidence public companion mismatch")
+    if evidence.get("current_repo_reality_gaps") != EXPECTED_EVIDENCE_CURRENT_GAPS:
+        raise ValidationError("phase6 helper-evidence repo-reality gaps mismatch")
     if parity.get("shared_direct_evidence") != EXPECTED_PARITY_DIRECT_EVIDENCE:
         raise ValidationError("phase6 helper-parity direct evidence mismatch")
     if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 helper-parity public companion mismatch")
+    if parity.get("shared_follow_through_gaps") != []:
+        raise ValidationError("phase6 helper-parity follow-through gaps drift")
 
     require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_README_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_EVIDENCE_CATALOG_SNIPPETS)
     require_snippets(repo_root / HELPER_PARITY_CATALOG_PATH, REQUIRED_PARITY_CATALOG_SNIPPETS)
     require_snippets(repo_root / VALIDATOR_PATH, REQUIRED_VALIDATOR_SNIPPETS)
+    require_text_snippets(
+        "phase6 helper-parity coverage_verification_note",
+        parity.get("coverage_verification_note"),
+        REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS,
+    )
+    require_text_snippets(
+        "phase6 helper-parity perf_evidence_readback_note",
+        parity.get("perf_evidence_readback_note"),
+        REQUIRED_PARITY_PERF_NOTE_SNIPPETS,
+    )
 
 
 def write(path: Path, content: str) -> None:
@@ -138,6 +179,7 @@ def scaffold_repo(root: Path) -> None:
                 "phase": EXPECTED_PHASE,
                 "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+                "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
             },
             indent=2,
         )
@@ -151,6 +193,9 @@ def scaffold_repo(root: Path) -> None:
                 "phase": EXPECTED_PHASE,
                 "shared_direct_evidence": EXPECTED_PARITY_DIRECT_EVIDENCE,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+                "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
+                "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
+                "shared_follow_through_gaps": [],
             },
             indent=2,
         )
@@ -210,11 +255,19 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
         cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("Documentation/zigux/phase6-hexdump-slice.md")))
+        cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-evidence"})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"]})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"coverage_verification_note": "coverage drift"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"perf_evidence_readback_note": "perf drift"})))
         cases_run += 1
         expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
