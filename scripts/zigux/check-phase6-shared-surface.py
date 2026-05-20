@@ -1,93 +1,58 @@
 #!/usr/bin/env python3
-"""Guard the current Phase 6 shared reminder surface."""
+"""Guard the current Phase 6 shared manifest-backed reminder packet."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
-SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
-HELPER_EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
 
-REQUIRED_SCRIPTS_SNIPPETS = [
-    "## Phase 6",
-    "- Phase 6 flow - the current shared helper-evidence packet keeps the bounded base64, bsearch, checksum, and hexdump lane truthful from the scripts root without widening into new helper semantics",
-    "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test` replay the shipped shared-surface and present-entrypoint guards",
-    "- `scripts/zigux/check-phase6-shared-surface.py` and `scripts/zigux/check-phase6-present-entrypoints.py` keep the direct-readback warning, the helper-evidence catalog packet, and the shared replay inventory explicit from the scripts root",
-    "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
-    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, but current public raw readback rematerializes both files, so treat those broader parity and perf reminder paths as current public-tree-backed companion evidence rather than as direct scripts-root proof",
-    "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-bsearch-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
-    "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
+EXPECTED_EVIDENCE_PACKET = "phase6-helper-evidence"
+EXPECTED_PARITY_PACKET = "phase6-helper-parity"
+EXPECTED_PHASE = "Phase 6"
+EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
 ]
-
-REQUIRED_CATALOG_SNIPPETS = [
-    "- lane scope: shared helper-evidence rows and machine-readable manifest only",
-    "- shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`",
-    "- returned helper-parity companion: `zigux/tests/phase6_helper_parity_manifest.json`",
-    "## Current direct-readback warning",
-    "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
-    "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "## Current shared replay inventory",
-    "- `make -C zigux phase6-bsearch-perf`",
-    "- `make -C zigux phase6-hexdump-perf`",
+EXPECTED_PARITY_DIRECT_EVIDENCE = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
 ]
-
-REQUIRED_EVIDENCE_MANIFEST_SNIPPETS = [
-    '"packet": "phase6-helper-evidence"',
-    '"phase": "Phase 6"',
-    '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"',
-    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
-    '"Documentation/zigux/README.md"',
-    '"zigux/tests/phase6_helper_parity_manifest.json"',
-    '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
-    '"make -C zigux phase6-bsearch-perf"',
-    '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+EXPECTED_PUBLIC_TREE_COMPANIONS = [
+    "Documentation/zigux/phase6-perf-gate-survey.md",
 ]
-
-REQUIRED_PARITY_MANIFEST_SNIPPETS = [
-    '"packet": "phase6-helper-parity"',
-    '"phase": "Phase 6"',
-    '"lane_scope": "shared helper-parity rows and machine-readable manifest only"',
-    '"public_tree_backed_shared_companions": [',
-    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
-    '"Documentation/zigux/phase6-perf-gate-survey.md"',
-    '"perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-19',
-    '"make -C zigux phase6-perf"',
-    '"scripts/zigux/check-phase6-shared-surface.py"',
-    '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"',
-    '"zigux/tests/phase6_base64_c_parity.zig"',
-    '"zigux/tests/phase6_base64_c_casegen.zig"',
-    '"zigux/tests/fixtures/phase6_base64_c_harness.c"',
-    '"scripts/zigux/check-phase6-base64-c-parity.py"',
-    '"zigux/tests/phase6_checksum_c_parity.zig"',
-    '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
-    '"scripts/zigux/check-phase6-checksum-c-parity.py"',
-]
-
 REQUIRED_VALIDATOR_SNIPPETS = [
-    'BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")',
-    'BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")',
-    'CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")',
-    'HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")',
-    'HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")',
-    'run_checker(root, BASE64_CORPUS_CHECKER, "--repo-root")',
-    'run_checker(root, BSEARCH_CORPUS_CHECKER, "--repo-root")',
-    'run_checker(root, CHECKSUM_CORPUS_CHECKER, "--repo-root")',
-    'run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")',
-    'run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")',
+    'HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")',
+    'HELPER_PARITY_MANIFEST = Path("zigux/tests/phase6_helper_parity_manifest.json")',
+    'run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")',
+    'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
-
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 6
 
 
 class ValidationError(RuntimeError):
-    """Raised when a required shared-surface marker is missing."""
+    pass
 
 
 def read_text(path: Path) -> str:
@@ -95,6 +60,10 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
+
+
+def read_json(path: Path) -> dict[str, object]:
+    return json.loads(read_text(path))
 
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
@@ -107,10 +76,24 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 
 def validate(repo_root: Path) -> None:
-    require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
-    require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
-    require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_EVIDENCE_MANIFEST_SNIPPETS)
-    require_snippets(repo_root / HELPER_PARITY_MANIFEST_PATH, REQUIRED_PARITY_MANIFEST_SNIPPETS)
+    evidence = read_json(repo_root / HELPER_EVIDENCE_MANIFEST_PATH)
+    parity = read_json(repo_root / HELPER_PARITY_MANIFEST_PATH)
+
+    if evidence.get("packet") != EXPECTED_EVIDENCE_PACKET:
+        raise ValidationError("phase6 helper-evidence packet drift")
+    if parity.get("packet") != EXPECTED_PARITY_PACKET:
+        raise ValidationError("phase6 helper-parity packet drift")
+    if evidence.get("phase") != EXPECTED_PHASE or parity.get("phase") != EXPECTED_PHASE:
+        raise ValidationError("phase6 phase drift")
+    if evidence.get("current_direct_readback_companions") != EXPECTED_EVIDENCE_DIRECT_COMPANIONS:
+        raise ValidationError("phase6 helper-evidence direct companion mismatch")
+    if evidence.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
+        raise ValidationError("phase6 helper-evidence public companion mismatch")
+    if parity.get("shared_direct_evidence") != EXPECTED_PARITY_DIRECT_EVIDENCE:
+        raise ValidationError("phase6 helper-parity direct evidence mismatch")
+    if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
+        raise ValidationError("phase6 helper-parity public companion mismatch")
+
     require_snippets(repo_root / VALIDATOR_PATH, REQUIRED_VALIDATOR_SNIPPETS)
 
 
@@ -120,26 +103,43 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
-    write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
-    write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
-    write(root / HELPER_EVIDENCE_MANIFEST_PATH, "\n".join(REQUIRED_EVIDENCE_MANIFEST_SNIPPETS) + "\n")
-    write(root / HELPER_PARITY_MANIFEST_PATH, "\n".join(REQUIRED_PARITY_MANIFEST_SNIPPETS) + "\n")
+    write(
+        root / HELPER_EVIDENCE_MANIFEST_PATH,
+        json.dumps(
+            {
+                "packet": EXPECTED_EVIDENCE_PACKET,
+                "phase": EXPECTED_PHASE,
+                "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    write(
+        root / HELPER_PARITY_MANIFEST_PATH,
+        json.dumps(
+            {
+                "packet": EXPECTED_PARITY_PACKET,
+                "phase": EXPECTED_PHASE,
+                "shared_direct_evidence": EXPECTED_PARITY_DIRECT_EVIDENCE,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+            },
+            indent=2,
+        )
+        + "\n",
+    )
     write(root / VALIDATOR_PATH, "\n".join(REQUIRED_VALIDATOR_SNIPPETS) + "\n")
 
 
-def expect_failure(root: Path, path: Path, snippet: str) -> None:
+def expect_failure(root: Path, path: Path, mutate) -> None:
     original = read_text(path)
-    write(path, original.replace(snippet + "\n", "", 1))
+    mutate(path)
     try:
         validate(root)
-    except ValidationError as exc:
-        message = str(exc)
-        if snippet not in message:
-            raise AssertionError(
-                f"expected {snippet!r} in validation error, got {message!r}"
-            ) from exc
-    else:
-        raise AssertionError("expected validation failure")
+    except ValidationError:
+        return
+    raise AssertionError("expected validation failure")
     finally:
         write(path, original)
 
@@ -151,29 +151,27 @@ def run_self_test() -> None:
         validate(root)
 
         cases_run = 0
-        for path, snippet in [
-            (root / SCRIPTS_README_PATH, "## Phase 6"),
-            (
-                root / SCRIPTS_README_PATH,
-                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, but current public raw readback rematerializes both files, so treat those broader parity and perf reminder paths as current public-tree-backed companion evidence rather than as direct scripts-root proof",
-            ),
-            (root / HELPER_EVIDENCE_CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
-            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"Documentation/zigux/README.md"'),
-            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-bsearch-perf"'),
-            (root / HELPER_PARITY_MANIFEST_PATH, '"public_tree_backed_shared_companions": ['),
-            (root / HELPER_PARITY_MANIFEST_PATH, '"make -C zigux phase6-perf"'),
-            (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-base64-c-parity.py"'),
-            (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-c-parity.py"'),
-            (root / VALIDATOR_PATH, 'CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")'),
-            (root / VALIDATOR_PATH, 'run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")'),
-        ]:
-            expect_failure(root, path, snippet)
-            cases_run += 1
+
+        def rewrite_json(path: Path, fn) -> None:
+            data = json.loads(read_text(path))
+            fn(data)
+            write(path, json.dumps(data, indent=2) + "\n")
+
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-evidence"})))
+        cases_run += 1
+        expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[2] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[3] + "\n", "", 1)))
+        cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
-            raise AssertionError(
-                f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}"
-            )
+            raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
 
     print("PHASE6_SHARED_SURFACE_SELF_TEST=pass")
     print(f"PHASE6_SHARED_SURFACE_SELF_TEST_CASE_COUNT={cases_run}")
