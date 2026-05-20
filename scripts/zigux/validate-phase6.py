@@ -103,7 +103,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -300,6 +300,14 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         (root / CHECKSUM_CORPUS_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / HEXDUMP_PACKET_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / HEXDUMP_ROUTE_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
