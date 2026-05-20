@@ -11,5 +11,20 @@
       "path": "tools/lib/bpf/zigux_segments/pin_path.zig",
       "blob_sha": "46e4f7fcf8d1f591ca8035631191a9d702a0edc0"
     }
-  ]
+  ],
+  "verification_evidence": {
+    "checked_at_utc": "2026-05-20T18:50:00Z",
+    "readback_mode": "github-contents-readback",
+    "checker": {
+      "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
+      "blob_sha": "167af95adbdaa4f7d696755e7a7ee7713a46014f",
+      "modified_at_utc": "2026-05-18T19:54:50Z",
+      "self_test_case_count": 18
+    },
+    "current_helper_blob": {
+      "path": "tools/lib/bpf/zigux_segments/pin_path.zig",
+      "blob_sha": "46e4f7fcf8d1f591ca8035631191a9d702a0edc0",
+      "modified_at_utc": "2026-05-18T18:59:06Z"
+    }
+  }
 }
