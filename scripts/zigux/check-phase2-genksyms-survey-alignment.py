@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SURVEY = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
+WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
+MAKEFILE = "zigux/Makefile"
+
+REQUIRED_PATHS = (
+    SURVEY,
+    WORKFLOW,
+    MAKEFILE,
+    "Documentation/zigux/phase2-closure.md",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-genksyms-survey-alignment.py",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
+)
+
+REQUIRED_SURVEY_SNIPPETS = (
+    "The Phase 2 roadmap still keeps `scripts/genksyms/genksyms.c` inside the bounded toolchain and Kbuild enablement tranche",
+    "Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.",
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`zigux/tests/fixtures/genksyms_bridge/help_expected.json`",
+    "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note",
+    "there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
+    "either add a dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
+)
+
+def read_text(root: Path, rel: str) -> str:
+    path = root / rel
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+
+
+def write_text(root: Path, rel: str, content: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+def replace_once(text: str, old: str, new: str) -> str:
+    if old not in text:
+        raise AssertionError(f"marker not found: {old}")
+    return text.replace(old, new, 1)
+
+
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+
+    for rel in REQUIRED_PATHS:
+        if not (root / rel).exists():
+            issues.append(("MISSING_REQUIRED_PATH", rel))
+
+    if issues:
+        return issues
+
+    survey_text = read_text(root, SURVEY)
+    read_text(root, WORKFLOW)
+    read_text(root, MAKEFILE)
+
+    for snippet in REQUIRED_SURVEY_SNIPPETS:
+        if snippet not in survey_text:
+            issues.append(("MISSING_SURVEY_SNIPPET", snippet))
+
+    return issues
+
+
+def emit_issues(issues: list[tuple[str, str]]) -> int:
+    grouped: dict[str, list[str]] = {}
+    for code, value in issues:
+        grouped.setdefault(code, []).append(value)
+
+    print("PHASE2_GENKSYMS_SURVEY_ALIGNMENT=fail")
+    for code, values in grouped.items():
+        print(f"{code}_START")
+        for value in values:
+            print(value)
+        print(f"{code}_END")
+    return 1
+
+
+def build_self_test_root(root: Path) -> None:
+    survey_text = """# Phase 2 genksyms dual-implementation survey
+
+Lane: `P2-L07`
+
+## Roadmap and ledger anchor
+
+- The Phase 2 roadmap still keeps `scripts/genksyms/genksyms.c` inside the bounded toolchain and Kbuild enablement tranche, with `scripts/zigux/genksyms.zig` as the Zigux destination.
+
+## Current repo evidence
+
+- Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.
+- Current `master` directly serves the bounded checker and fixture packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json` are all readable on head.
+- Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` still name the checker, fixture roster, or `phase2-genksyms` replay route.
+- `scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, fixture, workflow, make-wrapper, and validator packet.
+- The narrower repo-reality gap is now just that there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`; the current packet is tracked through `cases.json`, the expected-output fixtures, and the broader Phase 2 tool manifest instead.
+
+## Next bounded same-family step
+
+1. Leave this survey parked unless a future reread finds another genksyms-local wording or inventory drift.
+2. If the genksyms family reopens for survey-side truthfulness rather than implementation, either add a dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json` or update this survey-alignment checker only after rereading the live helper, checker, fixture roster, workflow, make-wrapper, validator, and closure packet together.
+"""
+    write_text(root, SURVEY, survey_text)
+    write_text(
+        root,
+        WORKFLOW,
+        "\n".join(
+            (
+                "name: zigux-bootstrap",
+                "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+                "run: python3 scripts/zigux/check-genksyms-bridge.py",
+                "run: zig test scripts/zigux/genksyms.zig",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        MAKEFILE,
+        "\n".join(
+            (
+                ".PHONY: phase2-genksyms",
+                "phase2-genksyms:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        "scripts/zigux/validate-phase2.py",
+        "\n".join(
+            (
+                "REQUIRED_PATHS = (",
+                '    "scripts/zigux/check-genksyms-bridge.py",',
+                '    "scripts/zigux/genksyms.zig",',
+                '    "zigux/tests/fixtures/genksyms_bridge/cases.json",',
+                ")",
+            )
+        )
+        + "\n",
+    )
+    for rel in REQUIRED_PATHS:
+        if rel in {SURVEY, WORKFLOW, MAKEFILE, "scripts/zigux/validate-phase2.py"}:
+            continue
+        write_text(root, rel, "present\n")
+
+
+def run_self_test() -> int:
+    checks = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_genksyms_survey_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks += 1
+
+        for rel in REQUIRED_PATHS:
+            build_self_test_root(root)
+            (root / rel).unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_REQUIRED_PATH", rel) in issues
+            checks += 1
+
+        for snippet in REQUIRED_SURVEY_SNIPPETS:
+            build_self_test_root(root)
+            survey_text = read_text(root, SURVEY)
+            write_text(root, SURVEY, replace_once(survey_text, snippet, "snippet removed"))
+            issues = collect_issues(root)
+            assert ("MISSING_SURVEY_SNIPPET", snippet) in issues
+            checks += 1
+
+    print("PHASE2_GENKSYMS_SURVEY_ALIGNMENT_SELF_TEST=pass")
+    print(f"PHASE2_GENKSYMS_SURVEY_ALIGNMENT_SELF_TEST_CASE_COUNT={checks}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Fail closed when the Phase 2 genksyms survey drifts from the live dual-implementation packet.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_GENKSYMS_SURVEY_ALIGNMENT=pass")
+    print(f"PHASE2_GENKSYMS_SURVEY_ALIGNMENT_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(f"PHASE2_GENKSYMS_SURVEY_ALIGNMENT_SURVEY_SNIPPET_COUNT={len(REQUIRED_SURVEY_SNIPPETS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
