@@ -27,9 +27,7 @@ DIRECT_PACKET_PATHS = (
 
 BLOCKED_BROADER_PATHS = (
     "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 BLOCKED_MAKEFILE_MARKERS = (
@@ -44,8 +42,10 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_LANE_KEY=P15-L04",
     "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "current-master-readback-2026-05-18",
-    "shared reminder surfaces still carry as repo-reality gaps on current `master`",
+    "current-master-readback-2026-05-20",
+    "the current GitHub contents path in this runtime still returns not-found for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`",
+    "direct contents readback now resolves `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "the current `zigux/Makefile` readback still carries no `phase15-validate`, `phase15-test`, or `phase15` targets",
     "exact branch-head parity is not recorded",
     "blocked_no_bounded_scheduler_seam",
     "blocked_no_bounded_allocator_seam",
@@ -53,34 +53,37 @@ REQUIRED_NOTE_MARKERS = (
     "blocked_packet_lifetime_boundary_still_too_wide",
     "## Maintenance-Mode Handoff",
     "current lane posture: `maintenance_mode`",
+    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/validate-phase15.py",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
-    "current-master contents reads now resolve `zigux/Makefile`",
-    "those wrapper route names remain gap vocabulary rather than direct landed evidence",
+    "validator-first and dedicated-build companions remain adjacent gap vocabulary while the lane-owner replay stays direct landed evidence",
     "phase15-freeze-map-manifest",
     "phase15-freeze-map-governance-gate",
     "phase15-shared-validator-route-readback",
     "phase15-shared-build-route-readback",
     "phase15-shared-wrapper-route-readback",
+    "phase15-shared-lane-owner-readback",
 )
 
 REQUIRED_RCU_MARKERS = (
-    "PHASE14_LANE_KEY=P14-L14",
+    "PHASE14_LANE_KEY=P14-L16",
     "blocked by `phase14-rcu-tree-bridge-blocker`",
     "That is still a freeze-in-C posture, not a review-ready bridge seam.",
 )
 
 REQUIRED_SKBUFF_MARKERS = (
     "PHASE14_LANE_KEY=P14-L11",
-    "PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing",
-    "current `master` no longer exposes the earlier `P14-L11` skbuff anchor packet files",
-    "review-first and `boundary_map_only`",
+    "PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker",
+    "PHASE14_POSTURE=boundary_map_only",
+    "review-only skbuff bridge packet again",
 )
 
 REQUIRED_TRACEABILITY_MARKERS = (
     "`net/core/skbuff.c`: `Freeze In C Initially`",
     "retained-in-C posture",
-    "must not imply a live `net/core/skbuff_bridge.zig` helper or any skbuff-local compile route",
+    "must not overstate that returned packet as shared-lane parity, ownership transfer, or fully recovered compile evidence",
 )
 
 
@@ -128,7 +131,7 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("manifest:lane_key_drift")
     if manifest.get("phase") != "Phase 15":
         failures.append("manifest:phase_drift")
-    if manifest.get("surveyed_commit") != "current-master-readback-2026-05-18":
+    if manifest.get("surveyed_commit") != "current-master-readback-2026-05-20":
         failures.append("manifest:surveyed_commit_drift")
     if manifest.get("anchor") != str(FREEZE_MAP_PATH):
         failures.append("manifest:anchor_drift")
@@ -227,7 +230,7 @@ def _sample_manifest() -> str:
         {
             "lane_key": "P15-L04",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-18",
+            "surveyed_commit": "current-master-readback-2026-05-20",
             "anchor": "Documentation/zigux/freeze-map.md",
             "freeze_in_c_targets": [
                 "kernel/sched/core.c",
@@ -319,6 +322,10 @@ def _sample_manifest() -> str:
                     "id": "phase15-shared-wrapper-route-readback",
                     "zigux_destination": "zigux/Makefile",
                 },
+                {
+                    "id": "phase15-shared-lane-owner-readback",
+                    "zigux_destination": "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+                },
             ],
         },
         indent=2,
@@ -333,8 +340,10 @@ def _sample_governance_note() -> str:
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- shared reminder surfaces still carry as repo-reality gaps on current `master`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
+- the current GitHub contents path in this runtime still returns not-found for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`
+- direct contents readback now resolves `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+- the current `zigux/Makefile` readback still carries no `phase15-validate`, `phase15-test`, or `phase15` targets
 - exact branch-head parity is not recorded
 
 ## Current blocker posture
@@ -351,11 +360,9 @@ def _sample_governance_note() -> str:
 - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - `scripts/zigux/validate-phase15.py`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json`
-- `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- current-master contents reads now resolve `zigux/Makefile`
-- those wrapper route names remain gap vocabulary rather than direct landed evidence
+- `zigux/tests/phase15_build.zig`
+- validator-first and dedicated-build companions remain adjacent gap vocabulary while the lane-owner replay stays direct landed evidence
 
 ## Recorded gaps
 - `phase15-freeze-map-manifest`
@@ -363,6 +370,7 @@ def _sample_governance_note() -> str:
 - `phase15-shared-validator-route-readback`
 - `phase15-shared-build-route-readback`
 - `phase15-shared-wrapper-route-readback`
+- `phase15-shared-lane-owner-readback`
 
 ## Ownership
 - `kernel/sched/core.c`
@@ -402,7 +410,7 @@ def _sample_makefile() -> str:
 
 def _sample_rcu_note() -> str:
     return """# Phase 14 RCU Tree Survey
-- `PHASE14_LANE_KEY=P14-L14`
+- `PHASE14_LANE_KEY=P14-L16`
 This lane is blocked by `phase14-rcu-tree-bridge-blocker`.
 That is still a freeze-in-C posture, not a review-ready bridge seam.
 """
@@ -411,9 +419,9 @@ That is still a freeze-in-C posture, not a review-ready bridge seam.
 def _sample_skbuff_note() -> str:
     return """# Phase 14 Skbuff Bridge Survey
 - `PHASE14_LANE_KEY=P14-L11`
-- `PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing`
-current `master` no longer exposes the earlier `P14-L11` skbuff anchor packet files.
-The surviving skbuff packet stays review-first and `boundary_map_only`.
+- `PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker`
+- `PHASE14_POSTURE=boundary_map_only`
+current `master` ships the bounded review-only skbuff bridge packet again.
 """
 
 
@@ -421,7 +429,7 @@ def _sample_traceability_note() -> str:
     return """# Phase 14 Core Boundary Traceability
 - `net/core/skbuff.c`: `Freeze In C Initially`
 This note keeps the retained-in-C posture explicit.
-It must not imply a live `net/core/skbuff_bridge.zig` helper or any skbuff-local compile route.
+This shared note must not overstate that returned packet as shared-lane parity, ownership transfer, or fully recovered compile evidence.
 """
 
 
@@ -496,8 +504,19 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected rcu failure: {failures}")
 
+        dated_root = root / "dated_marker_drift"
+        _seed_repo(dated_root)
+        _write(
+            dated_root / GOVERNANCE_NOTE_PATH,
+            _sample_governance_note().replace("current-master-readback-2026-05-20", "current-master-readback-2026-05-19", 1),
+        )
+        failures = collect_failures(dated_root)
+        expected = ["governance_note:missing:current-master-readback-2026-05-20"]
+        if failures != expected:
+            raise AssertionError(f"unexpected dated-marker failure: {failures}")
+
     print("PHASE15_FREEZE_MAP_GOVERNANCE_SELF_TEST=pass")
-    print("PHASE15_FREEZE_MAP_GOVERNANCE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE15_FREEZE_MAP_GOVERNANCE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
