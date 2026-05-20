@@ -53,6 +53,7 @@ REQUIRED_MARKERS = {
         "pub fn memparse",
         "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
         "test \"nextArg keeps leading equals tokens as bare parameters\" {",
+        "test \"nextArg keeps quoted leading equals tokens as bare parameters\" {",
         "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
         "test \"getOption preserves incomplete hex-prefix and descending-range behavior\" {",
         "test \"getOptions expands negative ranges and negative upper bounds\" {",
@@ -109,7 +110,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 41
 
 
 def read_text(path: Path) -> str:
@@ -310,6 +311,20 @@ def run_self_test() -> None:
             "missing_helper_bare_leading_equals_marker",
             tmp_root,
             f"lib/cmdline.zig: {helper_leading_equals_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_quoted_leading_equals_marker = 'test "nextArg keeps quoted leading equals tokens as bare parameters" {'
+        helper_path.write_text(
+            helper_text.replace(helper_quoted_leading_equals_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_quoted_leading_equals_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_quoted_leading_equals_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
