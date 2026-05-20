@@ -72,6 +72,38 @@ test "header-family binding keeps the bounded relay surface explicit" {
     ));
 }
 
+test "header-family status wrappers stay aligned with export shim validation" {
+    const live = header_family.currentVersion();
+    const stale_version = header_family.Version{
+        .abi_major = header_family.abi_major,
+        .abi_minor = header_family.abi_minor,
+        .header_family_revision = header_family.header_family_revision + 1,
+    };
+    const valid_fields = header_family.initDevTFields(uapi_dev_t.max_major, uapi_dev_t.max_minor);
+    const invalid_fields = header_family.initDevTFields(uapi_dev_t.max_major + 1, 0);
+    const earlier = header_family.initDevTFields(1, 2);
+    const later = header_family.initDevTFields(1, 3);
+    const ok = export_shim.okStatus(.kernel);
+    const invalid = export_shim.errorStatus(-22, .kernel);
+
+    try testing.expect(header_family.statusIsOk(header_family.validateVersionStatus(live)));
+    try testing.expect(!header_family.statusIsOk(header_family.validateVersionStatus(stale_version)));
+    try testing.expectEqual(ok, header_family.validateVersionStatus(live));
+    try testing.expectEqual(invalid, header_family.validateVersionStatus(stale_version));
+
+    try testing.expect(header_family.statusIsOk(header_family.validateDevTFieldsStatus(valid_fields)));
+    try testing.expect(!header_family.statusIsOk(header_family.validateDevTFieldsStatus(invalid_fields)));
+    try testing.expectEqual(ok, header_family.validateDevTFieldsStatus(valid_fields));
+    try testing.expectEqual(invalid, header_family.validateDevTFieldsStatus(invalid_fields));
+    try testing.expectEqual(ok, header_family.validateDevTComponentsStatus(uapi_dev_t.max_major, uapi_dev_t.max_minor));
+    try testing.expectEqual(invalid, header_family.validateDevTComponentsStatus(uapi_dev_t.max_major + 1, 0));
+
+    try testing.expect(header_family.statusIsOk(header_family.validateDevTRangeStatus(earlier, later)));
+    try testing.expect(!header_family.statusIsOk(header_family.validateDevTRangeStatus(later, earlier)));
+    try testing.expectEqual(ok, header_family.validateDevTRangeStatus(earlier, later));
+    try testing.expectEqual(invalid, header_family.validateDevTRangeStatus(later, earlier));
+}
+
 test "export shim relays version compatibility without widening the boundary" {
     const current = version.current();
     const stale_major = version.Version{
