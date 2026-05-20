@@ -28,6 +28,7 @@ test "phase10 virtio ring survey note keeps the missing broader replay explicit 
     try expectContains(survey_note, "lane: `P10-L10`");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
     try expectContains(
         survey_note,
         "broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize",
@@ -42,8 +43,11 @@ test "phase10 virtio ring survey note keeps the missing broader replay explicit 
         verify_file,
         "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
     );
+    try expectContains(build_file, "virtio_ring_publish_readiness_module");
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
+    try expectContains(build_file, "\"phase10-virtio-ring-publish-readiness-tests\"");
     try expectContains(build_file, "\"phase10-virtio-ring-survey-tests\"");
+    try expectContains(build_file, "run_phase10_virtio_ring_publish_readiness_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
 }
 
