@@ -61,7 +61,11 @@ SURFACE_PATHS = (
     ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "minimal_expected.json",
     ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "debug_reference_types_expected.json",
     ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "long_options_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "abbreviated_long_options_expected.json",
     ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "quiet_overrides_warning_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "explicit_option_terminator_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "positional_passthrough_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "lone_dash_passthrough_expected.json",
 )
 
 WORKFLOW_SETUP_MARKERS = (
@@ -263,7 +267,11 @@ EXPECTED_TOOL_MANIFEST = {
             "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
             "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
             "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
             "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
         ],
     },
     "repo_reality_gaps": [],
