@@ -43,6 +43,10 @@ SURVEY_NOTE_MARKERS = [
 
 COMPANION_MARKERS = [
     "# Phase 10 virtio MMIO Config-Write Disposition Companion",
+    "PHASE10_STATUS=current_head_companion_landed",
+    "PHASE10_FAMILY=virtio-mmio",
+    "PHASE10_SURFACE=config-write-disposition-observation",
+    "PHASE10_PROVENANCE_MODE=dated_master_readback",
     "surveyed against current `master` readback on `2026-05-19`",
     "Current `master` readback keeps this narrower MMIO packet explicit through:",
     "`drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper",
@@ -262,6 +266,10 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "interrupt-ack disposition review", "interrupt-ack drift", "survey_note:interrupt-ack disposition review")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "staged config-write planning", "staged config-write drift", "survey_note:staged config-write planning")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.", "this survey now reopens `kernel/workqueue.c`.", "survey_note:this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_STATUS=current_head_companion_landed", "PHASE10_STATUS=missing", "companion_note:PHASE10_STATUS=current_head_companion_landed")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_FAMILY=virtio-mmio", "PHASE10_FAMILY=missing", "companion_note:PHASE10_FAMILY=virtio-mmio")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_SURFACE=config-write-disposition-observation", "PHASE10_SURFACE=missing", "companion_note:PHASE10_SURFACE=config-write-disposition-observation")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_PROVENANCE_MODE=dated_master_readback", "PHASE10_PROVENANCE_MODE=missing", "companion_note:PHASE10_PROVENANCE_MODE=dated_master_readback")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet", "`zigux/tests/phase10_virtio_mmio_manifest_missing.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet", "companion_note:`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface", "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md` now materializes as the packet-local slice companion", "companion_note:`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-slice.md", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket moved inside this slice", "slice_note:the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice")
@@ -287,7 +295,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
