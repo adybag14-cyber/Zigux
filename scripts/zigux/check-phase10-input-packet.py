@@ -188,7 +188,7 @@ TEARDOWN_HELPER_MARKERS = [
 VERIFY_HELPER_MARKERS = [
     'test "phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit" {',
     'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
-    'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
+    'test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
 ]
 
 BUILD_MARKERS = [
@@ -624,6 +624,12 @@ def run_self_test() -> int:
                 "pub fn readyForRegistrationDrift(summary: RegistrationPreflightSummary) bool {",
                 "registration_helper:pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
             ),
+            (
+                "drivers/virtio/virtio_input_verify.zig",
+                'test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
+                'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
+                'verify_helper:test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
+            ),
         ]
         for rel_path, old, new, expected in text_cases:
             expect_missing_marker(root, rel_path, old, new, expected)
@@ -682,7 +688,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "scripts/zigux/check-phase10-harness-coverage.py")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
