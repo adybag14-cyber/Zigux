@@ -141,6 +141,18 @@ pub fn fetchAdd(
     return @atomicRmw(T, ptr, .Add, operand, order);
 }
 
+pub fn fetchSub(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .Sub, operand, order);
+}
+
 pub fn fetchNand(
     comptime T: type,
     ptr: *T,
@@ -323,6 +335,19 @@ test "phase3 atomic helper keeps fetch-add updates explicit" {
 
     try std.testing.expectError(error.InvalidRmwOrdering, fetchAdd(u16, &value, 3, .unordered));
     try std.testing.expectEqual(@as(u16, 25), value);
+}
+
+test "phase3 atomic helper keeps fetch-sub updates explicit" {
+    var value: u16 = 40;
+
+    try std.testing.expectEqual(@as(u16, 40), try fetchSub(u16, &value, 5, .release));
+    try std.testing.expectEqual(@as(u16, 35), value);
+
+    try std.testing.expectEqual(@as(u16, 35), try fetchSub(u16, &value, 11, .acq_rel));
+    try std.testing.expectEqual(@as(u16, 24), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchSub(u16, &value, 1, .unordered));
+    try std.testing.expectEqual(@as(u16, 24), value);
 }
 
 test "phase3 atomic helper keeps fetch-nand updates explicit" {
