@@ -278,6 +278,7 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
@@ -298,13 +299,13 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
             ],
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
             ],
         },
         indent=2,
@@ -461,6 +462,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
@@ -486,11 +488,11 @@ def _sample_gap_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
