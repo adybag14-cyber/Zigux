@@ -36,7 +36,7 @@ The currently reviewable Phase 1 reminder packet is:
 
 ## Broader Closure Companions
 
-Public current-master readback now materializes the older validator-first and replay-side closure companions that earlier reminder surfaces treated as part of the broader closure stack, but the narrow current reminder packet still does not rely on them as its active closure proof.
+The older validator-first and replay-side closure companions remain broader closure-stack references rather than active current reminder-packet proof.
 
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/check-phase1-parity.py`
@@ -49,7 +49,7 @@ Public current-master readback now materializes the older validator-first and re
 
 Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane non-Phase-1 routes across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.
 
-This note does not treat those broader companions as proof that the older Phase 1 wrapper routes are back. It keeps the Lane 15 closure anchor honest by separating the returned broader companions from the still-missing Phase 1 wrapper routes, while the already-landed shared tests-root smoke route plus the shipped bench checker and shared reminder checker remain the narrower packet that current `master` can support directly.
+This note keeps those broader companions parked as historical closure-stack vocabulary until direct current-master rereads restore them. The already-landed shared tests-root smoke route plus the shipped bench checker and shared reminder checker remain the narrower packet that current `master` can support directly.
 
 ## Closure Validation
 
