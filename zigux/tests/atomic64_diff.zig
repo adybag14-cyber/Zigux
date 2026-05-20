@@ -343,7 +343,7 @@ test "atomic64 diff wrapper keeps the paired survey contract explicit" {
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_diff_survey_source,
         "test \"phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit\" {",
-        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper\" {",
+        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper and runtime blob pins aligned with the live gate\" {",
         &.{
             "test \"phase 4 atomic64 survey keeps wrapper handoff, owner map, and current local-only perf evidence explicit\" {",
             "test \"phase 4 atomic64 survey keeps the current roadmap gap summary reviewable\" {",
@@ -352,7 +352,7 @@ test "atomic64 diff wrapper keeps the paired survey contract explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_diff_survey_source,
-        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper blob pin aligned with the live wrapper\" {",
+        "test \"phase 4 atomic64 survey keeps the gate-evidence wrapper and runtime blob pins aligned with the live gate\" {",
     );
 }
 
