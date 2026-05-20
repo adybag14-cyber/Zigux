@@ -134,6 +134,30 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
 }
 
+test "phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit" {
+    const libbpf_survey = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_survey);
+
+    try expectContains(
+        libbpf_survey,
+        "Shared reminder surfaces may still name older bridge helper and focused build-shard vocabulary, but this survey should keep those bridge-facing paths separate from the exact authenticated helper set until the same readback mode serves them directly again.",
+    );
+    try expectContains(
+        libbpf_survey,
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+    );
+    try expectContains(libbpf_survey, "`zigux/tests/phase8_verify_routing_gap.zig`");
+    try expectContains(libbpf_survey, "`zigux/tests/phase8_verify_routing_gap_only_build.zig`");
+    try expectContains(
+        libbpf_survey,
+        "This survey should therefore keep the helper-first packet and the shared wrapper-route vocabulary explicit together without promoting the still-deferred setup-side routing, reopen-flow, token-materialization, object-model, or bridge-heavy work into direct authenticated helper proof.",
+    );
+}
+
 test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
 
