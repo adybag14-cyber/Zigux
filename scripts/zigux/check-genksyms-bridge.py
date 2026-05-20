@@ -309,14 +309,14 @@ EXPECTED_OUTPUTS = {
         "argv": ["scripts/genksyms/genksyms"],
         "options": {
             "debug_level": 0,
-            "warnings": False,
-            "dump_defs": False,
-            "preserve": False,
+            "warnings": false,
+            "dump_defs": false,
+            "preserve": false,
             "reference_files": [],
-            "dump_types_file": None,
+            "dump_types_file": null,
         },
     },
-    "debug_reference_types_expected.json": {
+    {
         "tool": "scripts/genksyms/genksyms",
         "stdin": "cpp-stream",
         "stdout": "symversions",
@@ -336,9 +336,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 2,
-            "warnings": True,
-            "dump_defs": True,
-            "preserve": True,
+            "warnings": true,
+            "dump_defs": true,
+            "preserve": true,
             "reference_files": ["foo.symref", "bar.symref"],
             "dump_types_file": "out.symtypes",
         },
@@ -359,9 +359,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 1,
-            "warnings": False,
-            "dump_defs": False,
-            "preserve": True,
+            "warnings": false,
+            "dump_defs": false,
+            "preserve": true,
             "reference_files": ["foo.symref"],
             "dump_types_file": "types.symtypes",
         },
@@ -382,9 +382,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 1,
-            "warnings": False,
-            "dump_defs": False,
-            "preserve": True,
+            "warnings": false,
+            "dump_defs": false,
+            "preserve": true,
             "reference_files": ["foo.symref"],
             "dump_types_file": "types.symtypes",
         },
@@ -476,11 +476,11 @@ EXPECTED_OUTPUTS = {
         "argv": ["scripts/genksyms/genksyms", "-w", "-q"],
         "options": {
             "debug_level": 0,
-            "warnings": False,
-            "dump_defs": False,
-            "preserve": False,
+            "warnings": false,
+            "dump_defs": false,
+            "preserve": false,
             "reference_files": [],
-            "dump_types_file": None,
+            "dump_types_file": null,
         },
     },
 }
@@ -516,7 +516,7 @@ EXPECTED_TOOL_TESTS = [
 
 EXPECTED_HARNESS_MARKERS = [
     'getenv("ZIGUX_GENKSYMS_TOOL")',
-    'execv(tool_path, child_argv);',
+    "execv(tool_path, child_argv);",
 ]
 
 EXPECTED_SELF_TEST_CASE_COUNT = 20
@@ -549,7 +549,7 @@ def validate_cases(payload: object) -> list[str]:
     issues: list[str] = []
     if payload != EXPECTED_CASES:
         if len(payload) != len(EXPECTED_CASES):
-            issues.append("genksyms_cases:case_count:" f"expected={len(EXPECTED_CASES)!r}:actual={len(payload)!r}")
+            issues.append(f"genksyms_cases:case_count:expected={len(EXPECTED_CASES)!r}:actual={len(payload)!r}")
         actual_names = [item.get("name") for item in payload if isinstance(item, dict)]
         expected_names = [case["name"] for case in EXPECTED_CASES]
         if actual_names != expected_names:
@@ -559,40 +559,16 @@ def validate_cases(payload: object) -> list[str]:
                 break
             actual_case = payload[index]
             if not isinstance(actual_case, dict):
-                issues.append("genksyms_cases:" f"entry:{index}:expected_object:actual={type(actual_case).__name__}")
+                issues.append(f"genksyms_cases:entry:{index}:expected_object:actual={type(actual_case).__name__}")
                 continue
             for key, expected_value in expected_case.items():
                 if actual_case.get(key) != expected_value:
-                    issues.append("genksyms_cases:" f"{expected_case['name']}:{key}:expected={expected_value!r}:" f"actual={actual_case.get(key)!r}")
+                    issues.append(
+                        f"genksyms_cases:{expected_case['name']}:{key}:"
+                        f"expected={expected_value!r}:actual={actual_case.get(key)!r}"
+                    )
             for key in sorted(set(actual_case) - set(expected_case)):
                 issues.append(f"genksyms_cases:{expected_case['name']}:unexpected_key:{key}")
-    return issues
-
-
-def validate_checker_text(text: str) -> list[str]:
-    issues: list[str] = []
-    required_markers = [
-        "EXPECTED_SELF_TEST_CASE_COUNT = 20",
-        'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
-        'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
-        'print("PHASE2_GENKSYMS_BRIDGE=pass")',
-        "PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT",
-        "runtime_compile_failed",
-        '"name": "long_version_before_missing_long_reference_argument"',
-        '"name": "abbreviated_long_version_before_missing_long_reference_argument"',
-        '"expected": "version_before_missing_long_reference_argument_expected.json"',
-        '"name": "abbreviated_long_version_before_invalid_short_option"',
-        '"name": "abbreviated_long_version_before_missing_short_option_argument"',
-        '"name": "long_version_before_unexpected_long_option_argument"',
-        '"name": "abbreviated_long_version_before_unexpected_long_option_argument"',
-        '"expected": "version_before_missing_short_option_argument_expected.json"',
-        '"expected": "version_before_unexpected_long_option_argument_expected.json"',
-        '"expected": "version_before_short_help_expected.json"',
-        '"expected": "version_before_long_help_expected.json"',
-    ]
-    for marker in required_markers:
-        if marker not in text:
-            issues.append(f"missing_marker:{GENKSYMS_CHECKER_REL}:{marker}")
     return issues
 
 
@@ -603,6 +579,60 @@ def validate_marker_counts(text: str, markers: list[str], label: str) -> list[st
         if count != 1:
             issues.append(f"marker_count:{label}:{marker}:count={count}:expected=1")
     return issues
+
+
+def collect_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    checker_path = root / GENKSYMS_CHECKER_REL
+    tool_path = root / GENKSYMS_TOOL_REL
+    harness_path = root / GENKSYMS_HARNESS_REL
+    cases_path = root / GENKSYMS_CASES_REL
+
+    for path, label in (
+        (checker_path, GENKSYMS_CHECKER_REL),
+        (tool_path, GENKSYMS_TOOL_REL),
+        (harness_path, GENKSYMS_HARNESS_REL),
+        (cases_path, GENKSYMS_CASES_REL),
+    ):
+        if not path.exists():
+            issues.append(f"missing_file:{label}")
+
+    for expected_name in EXPECTED_OUTPUTS:
+        expected_path = root / FIXTURE_ROOT_REL / expected_name
+        if not expected_path.exists():
+            issues.append(f"missing_file:{FIXTURE_ROOT_REL}/{expected_name}")
+
+    if issues:
+        return issues
+
+    tool_text = tool_path.read_text(encoding="utf-8")
+    harness_text = harness_path.read_text(encoding="utf-8")
+
+    issues.extend(validate_marker_counts(tool_text, EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL))
+    issues.extend(validate_marker_counts(harness_text, EXPECTED_HARNESS_MARKERS, GENKSYMS_HARNESS_REL))
+
+    cases_payload, case_load_issues = load_json(cases_path, GENKSYMS_CASES_REL)
+    issues.extend(case_load_issues)
+    if cases_payload is not None:
+        issues.extend(validate_cases(cases_payload))
+
+    for expected_name, expected_payload in EXPECTED_OUTPUTS.items():
+        expected_rel = f"{FIXTURE_ROOT_REL}/{expected_name}"
+        payload, payload_issues = load_json(root / expected_rel, expected_rel)
+        issues.extend(payload_issues)
+        if isinstance(payload, dict):
+            issues.extend(validate_expected_object(payload, expected_payload, expected_rel))
+        elif payload is not None:
+            issues.append(f"invalid_shape:{expected_rel}:expected_object")
+
+    return issues
+
+
+def emit_issues(issues: list[str]) -> int:
+    print("PHASE2_GENKSYMS_BRIDGE=fail")
+    for issue in issues:
+        print(issue)
+    return 1
 
 
 def build_runtime_stdout_observation(expected_name: str) -> dict[str, object]:
@@ -627,7 +657,12 @@ def validate_runtime_observation(case: dict[str, object], observation: dict[str,
             return issues
         issues.extend(validate_expected_object(payload, expected, f"{label}:stdout_json"))
         return issues
-    expected_process = {"stdout": expected["stdout"], "stderr": expected["stderr"], "exit_code": expected["exit_code"]}
+
+    expected_process = {
+        "stdout": expected["stdout"],
+        "stderr": expected["stderr"],
+        "exit_code": expected["exit_code"],
+    }
     issues.extend(validate_expected_object(observation, expected_process, f"{label}:process_json"))
     return issues
 
@@ -638,141 +673,188 @@ def validate_runtime_repeat(case: dict[str, object], first: dict[str, object], s
     return [f"{label}:determinism:expected_identical_replay:{case['name']}"]
 
 
+def build_self_test_root(root: Path) -> None:
+    (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+    (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
+    (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
+    (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
+    (root / GENKSYMS_HARNESS_REL).writeText("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
+    (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
+    for name, payload in EXPECTED_OUTPUTS.items():
+        (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="genksyms_bridge_selftest_") as tmp:
         root = Path(tmp)
-
-        def build_root() -> None:
-            (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
-            (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
-            (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
-            (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
-            (root / GENKSYMS_HARNESS_REL).write_text("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
-            (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
-            for name, payload in EXPECTED_OUTPUTS.items():
-                (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
         checks_run = 0
-        build_root()
-        if validate_checker_text((root / GENKSYMS_CHECKER_REL).read_text(encoding="utf-8")):
-            return 1
+
+        build_self_test_root(root)
+        assert collect_issues(root) == []
         checks_run += 1
-        if validate_runtime_observation(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), "runtime:minimal"):
-            return 1
+
+        build_self_test_root(root)
+        assert validate_runtime_observation(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            "runtime:minimal",
+        ) == []
         checks_run += 1
-        if validate_runtime_observation(EXPECTED_CASES[4], {"stdout": "", "stderr": "option '--d' is ambiguous\n", "exit_code": 1}, "runtime:ambiguous"):
-            return 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[4],
+            {"stdout": "", "stderr": "option '--d' is ambiguous\n", "exit_code": 1},
+            "runtime:ambiguous",
+        ) == []
         checks_run += 1
-        if validate_runtime_observation(
+
+        assert validate_runtime_observation(
             EXPECTED_CASES[7],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n", "exit_code": 1},
-            "runtime:long-version-missing-long-reference-argument",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[8],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n", "exit_code": 1},
-            "runtime:abbreviated-long-version-missing-long-reference-argument",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[13],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n", "exit_code": 1},
-            "runtime:long-version-unexpected-long-option-argument",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[14],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n", "exit_code": 1},
-            "runtime:abbreviated-long-version-unexpected-long-option-argument",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[17],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n", "exit_code": 1},
-            "runtime:abbreviated-long-version-invalid-short-option",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[18],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\nunrecognized option '--unknown'\n", "exit_code": 1},
-            "runtime:long-version-invalid-long-option",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[19],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\nunrecognized option '--unknown'\n", "exit_code": 1},
-            "runtime:abbreviated-long-version-invalid-long-option",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[21],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n", "exit_code": 1},
-            "runtime:abbreviated-long-version-missing-short-option-argument",
-        ):
-            return 1
-        checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[22],
             {
                 "stdout": "",
-                "stderr": EXPECTED_OUTPUTS["version_before_short_help_expected.json"]["stderr"],
-                "exit_code": 0,
+                "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n",
+                "exit_code": 1,
             },
-            "runtime:version-before-short-help",
-        ):
-            return 1
+            "runtime:long-version-missing-long-reference-argument",
+        ) == []
         checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[24],
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[8],
+            {
+                "stdout": "",
+                "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n",
+                "exit_code": 1,
+            },
+            "runtime:abbreviated-long-version-missing-long-reference-argument",
+        ) == []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[14],
+            {
+                "stdout": "",
+                "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n",
+                "exit_code": 1,
+            },
+            "runtime:abbreviated-long-version-unexpected-long-option-argument",
+        ) == []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[17],
+            {
+                "stdout": "",
+                "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n",
+                "exit_code": 1,
+            },
+            "runtime:abbreviated-long-version-invalid-short-option",
+        ) == []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[21],
+            {
+                "stdout": "",
+                "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n",
+                "exit_code": 1,
+            },
+            "runtime:abbreviated-long-version-missing-short-option-argument",
+        ) == []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[26],
             {
                 "stdout": "",
                 "stderr": EXPECTED_OUTPUTS["version_before_long_help_expected.json"]["stderr"],
                 "exit_code": 0,
             },
-            "runtime:version-before-long-help",
-        ):
-            return 1
+            "runtime:abbreviated-long-version-before-long-help",
+        ) == []
         checks_run += 1
-        if validate_runtime_observation(
-            EXPECTED_CASES[29],
-            {"stdout": "", "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n", "exit_code": 0},
-            "runtime:repeated-long-version",
-        ):
-            return 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[27],
+            {
+                "stdout": "",
+                "stderr": EXPECTED_OUTPUTS["version_before_short_help_expected.json"]["stderr"],
+                "exit_code": 0,
+            },
+            "runtime:abbreviated-long-version-before-short-help",
+        ) == []
         checks_run += 1
-        if not validate_runtime_observation(EXPECTED_CASES[0], {"stdout": "[]\n", "stderr": "", "exit_code": 0}, "runtime:minimal-bad"):
-            return 1
+
+        assert validate_runtime_repeat(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            build_runtime_stdout_observation("minimal_expected.json"),
+            "runtime:minimal-repeat",
+        ) == []
         checks_run += 1
-        if not validate_runtime_observation(EXPECTED_CASES[4], {"stdout": "", "stderr": "", "exit_code": 1}, "runtime:ambiguous-bad"):
-            return 1
+
+        assert validate_runtime_repeat(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            {"stdout": "{}\n", "stderr": "", "exit_code": 0},
+            "runtime:minimal-repeat-bad",
+        ) != []
         checks_run += 1
-        if validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), build_runtime_stdout_observation("minimal_expected.json"), "runtime:minimal-repeat"):
-            return 1
+
+        build_self_test_root(root)
+        (root / f"{FIXTURE_ROOT_REL}/version_before_long_help_expected.json").write_text("{}\n", encoding="utf-8")
+        assert any(
+            issue.startswith(f"{FIXTURE_ROOT_REL}/version_before_long_help_expected.json:")
+            for issue in collect_issues(root)
+        )
         checks_run += 1
-        if not validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), {"stdout": "{}\n", "stderr": "", "exit_code": 0}, "runtime:minimal-repeat-bad"):
-            return 1
-        checks_run += 1
-        build_root()
+
+        build_self_test_root(root)
         tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
         (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
-        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in validate_marker_counts((root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8"), EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL)):
-            return 1
+        assert any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in collect_issues(root))
         checks_run += 1
-        build_root()
+
+        build_self_test_root(root)
+        harness_text = (root / GENKSYMS_HARNESS_REL).read_text(encoding="utf-8")
+        (root / GENKSYMS_HARNESS_REL).write_text(
+            harness_text.replace(EXPECTED_HARNESS_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        assert any(issue.startswith(f"marker_count:{GENKSYMS_HARNESS_REL}:") for issue in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
         cases_payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
         cases_payload.pop()
         (root / GENKSYMS_CASES_REL).write_text(json.dumps(cases_payload, indent=2) + "\n", encoding="utf-8")
-        if not any(issue.startswith("genksyms_cases:case_count:") for issue in validate_cases(json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8")))):
-            return 1
+        assert any(issue.startswith("genksyms_cases:case_count:") for issue in collect_issues(root))
         checks_run += 1
+
+        build_self_test_root(root)
+        (root / f"{FIXTURE_ROOT_REL}/minimal_expected.json").unlink()
+        assert f"missing_file:{FIXTURE_ROOT_REL}/minimal_expected.json" in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (root / f"{FIXTURE_ROOT_REL}/minimal_expected.json").write_text("{\n", encoding="utf-8")
+        assert f"invalid_json:{FIXTURE_ROOT_REL}/minimal_expected.json:Expecting property name enclosed in double quotes" in collect_issues(root)
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[0],
+            {"stdout": "[]\n", "stderr": "", "exit_code": 0},
+            "runtime:minimal-bad",
+        ) != []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[4],
+            {"stdout": "", "stderr": "", "exit_code": 1},
+            "runtime:ambiguous-bad",
+        ) != []
+        checks_run += 1
+
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
@@ -781,6 +863,7 @@ def run_self_test() -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 2 genksyms wrapper packet.")
+    parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
@@ -789,8 +872,14 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        return emit_issues(issues)
+
     print("PHASE2_GENKSYMS_BRIDGE=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT={len(EXPECTED_CASES)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_OUTPUTS) + 4}")
     return 0
 
 
