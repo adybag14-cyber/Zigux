@@ -104,11 +104,11 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
     try expectContains(
         survey,
-        "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
+        "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `perf_buffer_poll.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
     );
     try expectContains(
         survey,
-        "The remaining repo-reality gap in this note is still authenticated exact-read flakiness around `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and some focused build companions.",
+        "The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should not describe those paths as mere authenticated-read flakiness or fold them back into the direct helper packet while they remain outside the same exact current-tree readback mode.",
     );
     try expectContains(
         survey,
