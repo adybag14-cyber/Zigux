@@ -51,6 +51,7 @@ REQUIRED_MARKERS = {
         "pub const next_arg = nextArg;",
         "pub fn memparse",
         "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
+        "test \"nextArg keeps leading equals tokens as bare parameters\" {",
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
@@ -60,6 +61,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+        'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
         'test "nextArg keeps empty input borrowed from the caller slice" {',
         'test "nextArg stays inside the first NUL for bare and key value tokens" {',
         'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
@@ -80,6 +82,8 @@ REQUIRED_MARKERS = {
         'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
         'const checker = try readRepoFile(allocator, checker_path);',
         'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -87,7 +91,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -248,6 +252,20 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_text = read_text(helper_path)
+        helper_leading_equals_marker = 'test "nextArg keeps leading equals tokens as bare parameters" {'
+        helper_path.write_text(
+            helper_text.replace(helper_leading_equals_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_bare_leading_equals_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_leading_equals_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest_text = read_text(manifest_path)
         manifest_marker = '"scripts/zigux/check-phase7-cmdline-packet.py"'
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
@@ -299,6 +317,28 @@ def run_self_test() -> None:
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_whitespace_only_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_helper_leading_equals_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_companion_leading_equals_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
         )
@@ -365,6 +405,17 @@ def run_self_test() -> None:
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_leading_whitespace_boundary_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = 'test "phase 7 cmdline companion replays bare leading-equals ownership" {'
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_bare_leading_equals_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
