@@ -43,6 +43,12 @@ REQUIRED_SHARED_REPLAYS = [
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
+REQUIRED_BASE64_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+]
+REQUIRED_BSEARCH_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+]
 EXPECTED_BASE64_LABELS = [
     "STD_PAD",
     "STD_NO_PAD",
@@ -53,7 +59,7 @@ EXPECTED_BASE64_LABELS = [
 ]
 EXPECTED_BSEARCH_LABELS = ["len15", "len64", "len1024"]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -96,6 +102,19 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     raise ValidationError(f"missing helper row in manifest: {key}")
 
 
+def require_checker_surfaces(
+    helper: dict[str, object],
+    key: str,
+    expected_surfaces: list[str],
+) -> None:
+    checker_surfaces = helper.get("checker_surfaces")
+    if not isinstance(checker_surfaces, list):
+        raise ValidationError(f"{key} checker_surfaces missing")
+    for surface in expected_surfaces:
+        if surface not in checker_surfaces:
+            raise ValidationError(f"{key} checker surface drifted: {surface}")
+
+
 def validate_evidence_manifest(path: Path) -> None:
     manifest = load_manifest(path)
     if manifest.get("packet") != "phase6-helper-evidence":
@@ -118,6 +137,8 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError("base64 dedicated_slowdown_replay drifted")
     if bsearch.get("dedicated_slowdown_replay") != "zigux/tests/phase6_bsearch_perf.zig":
         raise ValidationError("bsearch dedicated_slowdown_replay drifted")
+    require_checker_surfaces(base64, "base64", REQUIRED_BASE64_CHECKER_SURFACES)
+    require_checker_surfaces(bsearch, "bsearch", REQUIRED_BSEARCH_CHECKER_SURFACES)
 
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
@@ -203,10 +224,12 @@ def scaffold_repo(root: Path) -> None:
                     {
                         "key": "base64",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
+                        "checker_surfaces": REQUIRED_BASE64_CHECKER_SURFACES,
                     },
                     {
                         "key": "bsearch",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
+                        "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                     },
                 ],
                 "current_shared_replay_inventory": REQUIRED_SHARED_REPLAYS,
@@ -338,6 +361,30 @@ def run_self_test() -> None:
                 '"dedicated_slowdown_replay": "zigux/tests/phase6_base64.zig"',
             ),
             "base64 dedicated_slowdown_replay drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
+                '"scripts/zigux/check-phase6-present-entrypoints.py"',
+            ),
+            "base64 checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+                '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
+            ),
+            "bsearch checker surface drifted",
         )
         cases_run += 1
         scaffold_repo(root)
