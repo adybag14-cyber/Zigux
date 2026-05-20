@@ -36,6 +36,10 @@ MARKERS = {
         "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
         "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
         "does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet",
+        "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
+        "`scripts/zigux/validate-phase11.py`",
+        "`python3 scripts/zigux/validate-phase11.py`",
+        "`zigux/Makefile`",
         "`phase11-hvc-hv-ops-layout-proof-tests`",
         "`phase11-hvc-export-surface-layout-proof-tests`",
         "`phase11-hvc-cleanup-packet-proof`",
@@ -222,6 +226,10 @@ def build_self_test_fixture(root: Path) -> None:
 - `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
 - 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays
 - the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet
+- Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`, so keep that returned shared validation-and-build gate explicit beside the matrix packet instead of leaving it implied by neighboring reminder surfaces.
+- `scripts/zigux/validate-phase11.py`
+- `python3 scripts/zigux/validate-phase11.py`
+- `zigux/Makefile`
 - `phase11-hvc-hv-ops-layout-proof-tests`
 - `phase11-hvc-export-surface-layout-proof-tests`
 - `phase11-hvc-cleanup-packet-proof`
@@ -283,6 +291,11 @@ def run_self_test() -> None:
                 "matrix_gap_note",
                 "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`",
             ),
+            (
+                "matrix_gap_note",
+                "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
+            ),
+            ("matrix_gap_note", "`python3 scripts/zigux/validate-phase11.py`"),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -350,7 +363,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=11")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=13")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
