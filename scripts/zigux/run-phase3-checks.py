@@ -31,6 +31,14 @@ CHECK_COMMANDS = (
         ("PHASE3_POLICY_STARTER_PACKET=pass",),
     ),
     (
+        Path("scripts/zigux/check-phase3-policy-dump.py"),
+        (),
+        (
+            "validated zigux/tests/phase3_policy_dump.zig",
+            "validated zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3.py"),
         (),
         ("PHASE3_VALIDATION=pass",),
@@ -113,17 +121,18 @@ SELF_TEST_MISSING_CASES = (
     (1, "expected errptr-xarray script omission was not reported"),
     (2, "expected xarray-slot script omission was not reported"),
     (3, "expected policy starter script omission was not reported"),
-    (4, "expected shared ABI validator omission was not reported"),
-    (5, "expected shared ABI checker omission was not reported"),
-    (6, "expected shared-tests-routes script omission was not reported"),
-    (7, "expected readme-tooling script omission was not reported"),
-    (8, "expected catalog-selftest script omission was not reported"),
-    (9, "expected validator-support script omission was not reported"),
-    (10, "expected export-uapi survey script omission was not reported"),
-    (11, "expected abi-header-family survey script omission was not reported"),
-    (12, "expected policy-unsafe survey script omission was not reported"),
-    (13, "expected low-level-wrapper script omission was not reported"),
-    (14, "expected selftest-surface script omission was not reported"),
+    (4, "expected policy dump script omission was not reported"),
+    (5, "expected shared ABI validator omission was not reported"),
+    (6, "expected shared ABI checker omission was not reported"),
+    (7, "expected shared-tests-routes script omission was not reported"),
+    (8, "expected readme-tooling script omission was not reported"),
+    (9, "expected catalog-selftest script omission was not reported"),
+    (10, "expected validator-support script omission was not reported"),
+    (11, "expected export-uapi survey script omission was not reported"),
+    (12, "expected abi-header-family survey script omission was not reported"),
+    (13, "expected policy-unsafe survey script omission was not reported"),
+    (14, "expected low-level-wrapper script omission was not reported"),
+    (15, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -238,18 +247,29 @@ def run_self_test() -> int:
             print("expected failing child validator to fail the runner")
             return 1
 
-        shared_routes_path = root / CHECK_COMMANDS[6][0]
+        policy_dump_path = root / CHECK_COMMANDS[4][0]
+        populate_repo()
+        _write_synthetic_script(
+            policy_dump_path,
+            (CHECK_COMMANDS[4][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing policy-dump output marker to fail the runner")
+            return 1
+
+        shared_routes_path = root / CHECK_COMMANDS[7][0]
         populate_repo()
         _write_synthetic_script(
             shared_routes_path,
-            (CHECK_COMMANDS[6][2][0],),
+            (CHECK_COMMANDS[7][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing shared-routes output marker to fail the runner")
             return 1
 
-        readme_inventory_path = root / CHECK_COMMANDS[7][0]
+        readme_inventory_path = root / CHECK_COMMANDS[8][0]
         populate_repo()
         _write_synthetic_script(readme_inventory_path, ())
         if run_packet(root) != 1:
@@ -257,22 +277,22 @@ def run_self_test() -> int:
             print("expected missing readme-inventory output marker to fail the runner")
             return 1
 
-        header_family_path = root / CHECK_COMMANDS[11][0]
+        header_family_path = root / CHECK_COMMANDS[12][0]
         populate_repo()
         _write_synthetic_script(
             header_family_path,
-            (CHECK_COMMANDS[11][2][0],),
+            (CHECK_COMMANDS[12][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing abi-header-family pass marker to fail the runner")
             return 1
 
-        low_level_wrapper_path = root / CHECK_COMMANDS[13][0]
+        low_level_wrapper_path = root / CHECK_COMMANDS[14][0]
         populate_repo()
         _write_synthetic_script(
             low_level_wrapper_path,
-            (CHECK_COMMANDS[13][2][0],),
+            (CHECK_COMMANDS[14][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
@@ -282,7 +302,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 6}"
+            f"{len(SELF_TEST_MISSING_CASES) + 7}"
         )
         return 0
 
