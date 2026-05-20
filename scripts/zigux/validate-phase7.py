@@ -101,7 +101,16 @@ def scaffold_repo(root: Path) -> None:
     write(root / MAKEFILE_PATH, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
     write(root / MANIFEST_PATH, (source_root / MANIFEST_PATH).read_text(encoding="utf-8"))
     for rel_path, content in [
-        (Path("lib/string_helpers.zig"), "pub const STRING_UNITS_10 = 0;\npub const KasprintfStrarrayResult = struct {};\n"),
+        (
+            Path("lib/string_helpers.zig"),
+            "\n".join([
+                "pub const STRING_UNITS_10 = 0;",
+                "pub const KasprintfStrarrayResult = struct {};",
+                "pub fn kstrdupQuotable() void {}",
+                "pub fn kstrdupQuotableCmdline() void {}",
+                "",
+            ]),
+        ),
         (Path("lib/string_helpers_parse_int_array.zig"), "pub const ParseIntArrayResult = struct {};\npub fn parseIntArray() void {}\n"),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
@@ -133,7 +142,7 @@ def run_self_test() -> None:
         for rel_path, transform in [
             (MANIFEST_PATH, '"make -C zigux phase7-validate"'),
             (MAKEFILE_PATH, "phase7-validate:"),
-            (Path("lib/string_helpers_parse_int_array.zig"), "pub fn parseIntArray"),
+            (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
             (Path("lib/argv_split.zig"), "pub fn argvSplit"),
             (CHECKER_PATH, "delete"),
         ]:
