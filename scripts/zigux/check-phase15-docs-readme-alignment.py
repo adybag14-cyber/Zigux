@@ -24,7 +24,8 @@ REQUIRED_MARKERS = (
     "the shared Phase 15 docs-root handoff should also keep",
     "the named reopen trigger",
     "deep-core blocker-posture change",
-    "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence",
+    "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet",
     "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim",
 )
 
@@ -61,7 +62,8 @@ without implying any Architecture Council approval for a freeze-map status chang
 the shared Phase 15 docs-root handoff should also keep
 the named reopen trigger
 deep-core blocker-posture change
-treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence
+treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence
+`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet
 keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim
 """
 
@@ -126,17 +128,33 @@ def run_self_test() -> int:
         _write(
             root / DOCS_README_PATH,
             _sample_docs_readme().replace(
-                "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence\n",
+                "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence\n",
                 "",
                 1,
             ),
         )
         missing = collect_missing_markers(root)
         expected = [
-            "docs_readme:treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence"
+            "docs_readme:treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence"
         ]
         if missing != expected:
-            raise AssertionError(f"unexpected missing markers for repo-reality-gap case: {missing}")
+            raise AssertionError(f"unexpected missing markers for validator-gap case: {missing}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet"
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for lane-owner packet case: {missing}")
         case_count += 1
 
         _write(
