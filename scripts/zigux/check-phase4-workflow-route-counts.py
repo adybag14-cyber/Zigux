@@ -43,11 +43,14 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "phase4-artifact-diff-contract:",
     "scripts/zigux/artifact_diff.py --self-test",
     "scripts/zigux/check-artifact-diff-contract.py --self-test",
@@ -79,11 +82,14 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py",
 ]
 
 REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS = [
@@ -195,6 +201,9 @@ SELFTEST_CASES = [
     "missing_make_reversible_delivery_selftest_command",
     "missing_make_reversible_delivery_command",
     "missing_make_remaining_gap_command",
+    "missing_make_validator_replays_selftest_command",
+    "missing_make_validator_replays_command",
+    "missing_make_perf_baseline_command",
     "missing_workflow_validate_route",
     "missing_workflow_test_route",
     "missing_workflow_artifact_diff_helper_selftest",
@@ -222,11 +231,14 @@ phase4-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py
 
 phase4-artifact-diff-contract:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
@@ -680,6 +692,42 @@ def run_selftest() -> None:
         )
         expect_failure("missing remaining-gap Makefile command", run_check)
         covered_cases.append("missing_make_remaining_gap_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing validator-replays self-test Makefile command", run_check)
+        covered_cases.append("missing_make_validator_replays_selftest_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing validator-replays Makefile command", run_check)
+        covered_cases.append("missing_make_validator_replays_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing perf-baseline Makefile command", run_check)
+        covered_cases.append("missing_make_perf_baseline_command")
 
         write_baseline()
         workflow.write_text(
