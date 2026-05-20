@@ -194,6 +194,30 @@ test "zero-sized live allocations stay counted across null frees and oversized f
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "multiple zero-sized allocations stay independently tracked across mixed frees" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_bytes = kmallocBytes(0, GFP_KERNEL | __GFP_ZERO) orelse
+        return error.TestUnexpectedResult;
+    const zero_array = kmallocArray(0, 8, GFP_KERNEL) orelse
+        return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_bytes.len);
+    try std.testing.expectEqual(@as(usize, 0), zero_array.len);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    kfree(zero_array);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocBytes(std.math.maxInt(usize), GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(zero_bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "kmallocArray zeroes fresh allocations after earlier dirty frees" {
     kmalloc_nr_allocated = 0;
 
