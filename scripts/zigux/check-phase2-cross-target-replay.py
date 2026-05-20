@@ -13,16 +13,16 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
-FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+FIXTURE = Path("zigux") / "tests" / "fixtures" / "phase2_cross_targets.json"
+POLICY = Path("scripts") / "zigux" / "zig-toolchain-policy.json"
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_STATUS = "active"
 EXPECTED_ROUTE = "make -C zigux phase2-cross"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 ZIG_TEST_FILES = (
-    "scripts/zigux/kconfig/conf_bridge.zig",
-    "scripts/zigux/kconfig/confdata_bridge.zig",
+    Path("scripts") / "zigux" / "kconfig" / "conf_bridge.zig",
+    Path("scripts") / "zigux" / "kconfig" / "confdata_bridge.zig",
 )
 DEFAULT_TIMEOUT_SECONDS = 300
 
@@ -38,6 +38,10 @@ def reject_duplicate_object_pairs(pairs: list[tuple[object, object]]) -> dict[ob
             raise DuplicateJsonKeyError(str(key))
         payload[key] = value
     return payload
+
+
+def resolve_repo_path(root: Path, relative_path: Path) -> Path:
+    return root / relative_path
 
 
 def read_text(path: Path) -> str:
@@ -81,32 +85,34 @@ def normalize_timeout_seconds(value: int) -> int:
 
 
 def load_archive_target_scope(root: Path) -> list[str]:
-    payload = load_json(root / POLICY)
+    policy_path = resolve_repo_path(root, POLICY)
+    payload = load_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid policy payload in required file: {root / POLICY}")
+        raise SystemExit(f"invalid policy payload in required file: {policy_path}")
 
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {root / POLICY}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
 
     archive_target_scope = upgrade_policy.get("archive_target_scope")
     if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(f"invalid archive_target_scope in required file: {root / POLICY}")
+        raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
 
     normalized: list[str] = []
     seen_targets: set[str] = set()
     for value in archive_target_scope:
         if not is_strict_non_empty_string(value):
-            raise SystemExit(f"invalid archive_target_scope entry in required file: {root / POLICY}")
+            raise SystemExit(f"invalid archive_target_scope entry in required file: {policy_path}")
         if value in seen_targets:
-            raise SystemExit(f"duplicate archive_target_scope entry in required file: {root / POLICY}: {value}")
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}: {value}")
         seen_targets.add(value)
         normalized.append(value)
     return normalized
 
 
 def collect_fixture_issues(root: Path) -> list[str]:
-    payload = load_json(root / FIXTURE)
+    fixture_path = resolve_repo_path(root, FIXTURE)
+    payload = load_json(fixture_path)
     issues: list[str] = []
 
     if not isinstance(payload, dict):
@@ -172,18 +178,19 @@ def collect_fixture_issues(root: Path) -> list[str]:
 
 
 def load_targets(root: Path) -> list[str]:
-    payload = load_json(root / FIXTURE)
+    fixture_path = resolve_repo_path(root, FIXTURE)
+    payload = load_json(fixture_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid fixture payload in required file: {root / FIXTURE}")
+        raise SystemExit(f"invalid fixture payload in required file: {fixture_path}")
 
     cross_targets = payload.get("cross_targets")
     if not isinstance(cross_targets, list) or not cross_targets:
-        raise SystemExit(f"invalid cross_targets in required file: {root / FIXTURE}")
+        raise SystemExit(f"invalid cross_targets in required file: {fixture_path}")
 
     targets: list[str] = []
     for entry in cross_targets:
         if not isinstance(entry, dict) or not is_strict_non_empty_string(entry.get("target")):
-            raise SystemExit(f"invalid cross target entry in required file: {root / FIXTURE}")
+            raise SystemExit(f"invalid cross target entry in required file: {fixture_path}")
         targets.append(entry["target"])
     return targets
 
@@ -198,9 +205,10 @@ def emit_summary(mode: str, targets: list[str]) -> None:
 
 def replay_target(root: Path, zig: str, target: str, timeout_seconds: int) -> int:
     for rel_path in ZIG_TEST_FILES:
+        rel_path_text = rel_path.as_posix()
         try:
             completed = subprocess.run(
-                [zig, "test", rel_path, "-target", target, "--test-no-exec"],
+                [zig, "test", rel_path_text, "-target", target, "--test-no-exec"],
                 cwd=root,
                 check=False,
                 timeout=timeout_seconds,
@@ -209,14 +217,14 @@ def replay_target(root: Path, zig: str, target: str, timeout_seconds: int) -> in
             print("PHASE2_CROSS_TARGET_REPLAY=fail")
             print("PHASE2_CROSS_TARGET_REPLAY_MODE=single-target")
             print(f"PHASE2_CROSS_TARGET_REPLAY_TARGET={target}")
-            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path_text}")
             print(f"PHASE2_CROSS_TARGET_REPLAY_NOTE=zig timed out: {exc}")
             return 1
         except OSError as exc:
             print("PHASE2_CROSS_TARGET_REPLAY=fail")
             print("PHASE2_CROSS_TARGET_REPLAY_MODE=single-target")
             print(f"PHASE2_CROSS_TARGET_REPLAY_TARGET={target}")
-            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path_text}")
             print(f"PHASE2_CROSS_TARGET_REPLAY_NOTE=failed to execute zig: {exc}")
             return 1
 
@@ -224,7 +232,7 @@ def replay_target(root: Path, zig: str, target: str, timeout_seconds: int) -> in
             print("PHASE2_CROSS_TARGET_REPLAY=fail")
             print("PHASE2_CROSS_TARGET_REPLAY_MODE=single-target")
             print(f"PHASE2_CROSS_TARGET_REPLAY_TARGET={target}")
-            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path_text}")
             return completed.returncode
 
     emit_summary("single-target", [target])
@@ -256,7 +264,7 @@ def run_all_targets(root: Path, zig: str, timeout_seconds: int) -> int:
 
 def build_self_test_root(root: Path) -> None:
     write_text(
-        root / POLICY,
+        resolve_repo_path(root, POLICY),
         json.dumps(
             {
                 "phase": "Phase 2",
@@ -274,7 +282,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(
-        root / FIXTURE,
+        resolve_repo_path(root, FIXTURE),
         json.dumps(
             {
                 "phase": "Phase 2",
@@ -301,7 +309,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     for rel_path in ZIG_TEST_FILES:
-        write_text(root / rel_path, 'test {\n    try @import("std").testing.expect(true);\n}\n')
+        write_text(resolve_repo_path(root, rel_path), 'test {\n    try @import("std").testing.expect(true);\n}\n')
 
 
 def build_fake_zig(path: Path, log_path: Path) -> None:
@@ -371,8 +379,13 @@ def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_target_replay_") as tmp_dir:
         root = Path(tmp_dir)
-        fixture_path = root / FIXTURE
-        policy_path = root / POLICY
+        fixture_path = resolve_repo_path(root, FIXTURE)
+        policy_path = resolve_repo_path(root, POLICY)
+
+        assert policy_path == root / "scripts" / "zigux" / "zig-toolchain-policy.json"
+        assert fixture_path == root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+        assert ZIG_TEST_FILES[0] == Path("scripts") / "zigux" / "kconfig" / "conf_bridge.zig"
+        checks_run += 1
 
         build_self_test_root(root)
         assert collect_fixture_issues(root) == []
