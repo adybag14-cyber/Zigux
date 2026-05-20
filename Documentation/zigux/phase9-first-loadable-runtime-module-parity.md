@@ -47,7 +47,7 @@ Current `master` does not yet materialize that target as a coherent cross-family
 - the atomic64 side still exposes only a partial trusted-path packet around module and diff evidence plus family-local notes
 - the bitmap side still exposes only a partial trusted-path packet around the direct sample, top-bit companion, survey gate, and bounded build bundle
 - the shared runtime-loader substrate remains absent on the trusted path
-- the shared `zigux/tests/phase9_build.zig` bundle currently proves only `phase9-runtime-atomic64-diff` plus the bounded bitmap sample, survey, and top-bit routes; it does not prove a matched pair of first-loadable runtime modules
+- the shared `zigux/tests/phase9_build.zig` bundle now proves `phase9-runtime-atomic64-diff`, the build-local `phase9-runtime-atomic64-sample-tests` route name, the bounded bitmap sample, loader, survey, and top-bit routes, and the returned shared `phase9-runtime-loader-shared-tests` handoff step; it still does not prove a matched pair of first-loadable runtime modules because the atomic64 direct sample, loader, survey, and manifest remain absent on the same trusted path
 
 That means this note must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.
 
