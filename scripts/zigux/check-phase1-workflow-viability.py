@@ -459,7 +459,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase4_determinism_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         duplicate_block = (
