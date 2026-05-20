@@ -212,6 +212,17 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        failing_matrix_gap_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
+        build_stub_script(failing_matrix_gap_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_matrix_gap_failure = "live_failed:phase11-matrix-gap-survey:exit=1"
+        if expected_matrix_gap_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:matrix_gap_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sampleRepo(root)
         failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
         build_stub_script(failing_script, exit_code=1)
         issues = collect_issues(root)
@@ -230,6 +241,17 @@ def run_self_test() -> int:
         if expected_hvc_cleanup_failure not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:hvc_cleanup_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        failing_dw_teardown_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
+        build_stub_script(failing_dw_teardown_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_dw_teardown_failure = "live_failed:phase11-dw-wdt-teardown-packet:exit=1"
+        if expected_dw_teardown_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:dw_teardown_failure_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -255,22 +277,42 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        failing_shared_summary_script = root / "scripts/zigux/check-phase11-shared-summary-surfaces.py"
+        build_stub_script(failing_shared_summary_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_shared_summary_failure = "live_failed:phase11-shared-summary-surfaces:exit=1"
+        if expected_shared_summary_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:shared_summary_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("--root")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    return run_check(repo_root(args.root))
+    try:
+        run_check(args.root.resolve())
+    except CheckError as exc:
+        print(f"PHASE11_VALIDATION=fail: {exc}")
+        return 1
+
+    print("PHASE11_VALIDATION=pass")
+    print(f"PHASE11_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(f"PHASE11_VALIDATION_CHECK_COUNT={len(CHECKS)}")
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
