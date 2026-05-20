@@ -159,8 +159,12 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_readiness_gate_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps.zig",
+                "zigux/tests/phase15_indefinite_c_policy.json",
+                "zigux/tests/phase15_indefinite_c_policy.zig",
                 "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
+                "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+                "scripts/zigux/check-phase15-readiness-gate-packet.py",
                 "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
                 "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -180,6 +184,8 @@ def _sample_manifest() -> str:
             ],
             "checker_group_markers": [
                 "one focused review-process checker",
+                "one focused review-checklist study-only checker",
+                "one focused readiness-packet checker",
                 "one focused tests-readme checker",
                 "the shared-summary gap checker",
                 "the focused handoff-note checker",
@@ -235,11 +241,15 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`
+- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`
 
 ## Current governance posture to preserve
 
