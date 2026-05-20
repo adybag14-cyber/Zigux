@@ -52,7 +52,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 13
 
 class ValidationError(RuntimeError):
     pass
@@ -225,6 +225,9 @@ def run_self_test() -> None:
             (ARGV_SPLIT_CHECKER_PATH, "delete"),
             (MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "delete"),
             (DOCS_README_PATH, "delete"),
+            (DOCS_README_PATH, "Phase 7 notes"),
+            (SCRIPTS_README_PATH, "## Phase 7"),
+            (TESTS_README_PATH, "## Phase 7"),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
