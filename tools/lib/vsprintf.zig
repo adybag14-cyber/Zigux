@@ -164,6 +164,25 @@ test "scnprintfPad reuses the caller buffer after an earlier scratch overflow" {
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
 
+test "scnprintfPad zero logical size on offset caller slices clears only the view start and stays reusable" {
+    var backing = [_]u8{0xdd} ** 12;
+    const view = backing[4..9];
+
+    const zero_written = scnprintfPad(view, 0, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), zero_written);
+    try std.testing.expectEqual(@as(u8, 0xdd), backing[3]);
+    try std.testing.expectEqual(@as(u8, 0), view[0]);
+    try std.testing.expectEqual(@as(u8, 0xdd), view[1]);
+    try std.testing.expectEqual(@as(u8, 0xdd), backing[9]);
+
+    const written = scnprintfPad(view, view.len - 1, "{s}", .{"id"});
+    try std.testing.expectEqual(@as(usize, view.len - 1), written);
+    try std.testing.expectEqualStrings("id  ", view[0..written]);
+    try std.testing.expectEqual(@as(u8, 0), view[written]);
+    try std.testing.expectEqual(@as(u8, 0xdd), backing[3]);
+    try std.testing.expectEqual(@as(u8, 0xdd), backing[9]);
+}
+
 test "scnprintf family respects offset caller slices and leaves neighboring bytes untouched" {
     var scn_backing = [_]u8{0xaa} ** 10;
     const scn_view = scn_backing[2..8];
