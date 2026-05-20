@@ -186,11 +186,6 @@ const LongOptionResolution = union(enum) {
     match: LongOptionSpec,
 };
 
-const LongOptionValue = union(enum) {
-    value: []const u8,
-    failure: ParseFailure,
-};
-
 fn resolveLongOption(name: []const u8) LongOptionResolution {
     var prefix_match: ?LongOptionSpec = null;
     var prefix_count: usize = 0;
@@ -241,25 +236,6 @@ fn appendReferenceFile(
     return null;
 }
 
-fn takeLongOptionValue(
-    args: []const []const u8,
-    index: *usize,
-    inline_value: ?[]const u8,
-    option: LongOptionSpec,
-) LongOptionValue {
-    if (inline_value) |value| {
-        if (value.len == 0) {
-            return .{ .failure = .{ .missing_option_argument = option.failure_name } };
-        }
-        return .{ .value = value };
-    }
-    if (index.* + 1 >= args.len) {
-        return .{ .failure = .{ .missing_option_argument = option.failure_name } };
-    }
-    index.* += 1;
-    return .{ .value = args[index.*] };
-}
-
 fn parseLongOption(
     allocator: std.mem.Allocator,
     args: []const []const u8,
@@ -306,9 +282,12 @@ fn parseLongOption(
             return .none;
         },
         .reference, .dump_types => {
-            const value = switch (takeLongOptionValue(args, index, inline_value, option)) {
-                .value => |resolved| resolved,
-                .failure => |failure| return .{ .failure = failure },
+            const value = inline_value orelse blk: {
+                if (index.* + 1 >= args.len) {
+                    return .{ .failure = .{ .missing_option_argument = option.failure_name } };
+                }
+                index.* += 1;
+                break :blk args[index.*];
             };
 
             if (option.kind == .reference) {
@@ -778,6 +757,21 @@ test "genksyms bridge preserves abbreviated long version side effects before mis
     }
 }
 
+test "genksyms bridge preserves version side effects before missing short option arguments" {
+    const args = [_][]const u8{"-Vr"};
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .missing_option_argument => |option| try testing.expectEqualStrings("r", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge preserves long version side effects before missing short option arguments" {
     const args = [_][]const u8{
         "--version",
@@ -955,6 +949,17 @@ test "genksyms bridge renders missing short option argument like the fixture" {
     );
 }
 
+test "genksyms bridge renders unexpected long option argument like the fixture" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeUnexpectedOptionArgumentError(&output.writer, "--help");
+    try testing.expectEqualStrings(
+        "option '--help' doesn't allow an argument\n",
+        output.written(),
+    );
+}
+
 test "genksyms bridge help output only advertises implemented flags" {
     try testing.expectEqualStrings(
         "Usage:\n" ++
@@ -972,17 +977,6 @@ test "genksyms bridge help output only advertises implemented flags" {
         usage_text,
     );
     try testing.expect(std.mem.indexOf(u8, usage_text, "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver") == null);
-}
-
-test "genksyms bridge renders unexpected long option argument like the fixture" {
-    var output: std.Io.Writer.Allocating = .init(testing.allocator);
-    defer output.deinit();
-
-    try writeUnexpectedOptionArgumentError(&output.writer, "--help");
-    try testing.expectEqualStrings(
-        "option '--help' doesn't allow an argument\n",
-        output.written(),
-    );
 }
 
 test "genksyms bridge preserves long version side effects before unexpected long option arguments" {
@@ -1114,30 +1108,6 @@ test "genksyms bridge canonicalizes unexpected long option argument failures" {
     switch (outcome) {
         .failure => |failure| switch (failure.reason) {
             .unexpected_option_argument => |option| try testing.expectEqualStrings("--help", option),
-            else => return error.UnexpectedParseFailure,
-        },
-        else => return error.TestExpectedFailure,
-    }
-}
-
-test "genksyms bridge rejects empty inline long reference argument" {
-    const args = [_][]const u8{"--reference="};
-    const outcome = try parseArgs(testing.allocator, &args);
-    switch (outcome) {
-        .failure => |failure| switch (failure.reason) {
-            .missing_option_argument => |option| try testing.expectEqualStrings("--reference", option),
-            else => return error.UnexpectedParseFailure,
-        },
-        else => return error.TestExpectedFailure,
-    }
-}
-
-test "genksyms bridge canonicalizes abbreviated dump-types empty inline argument" {
-    const args = [_][]const u8{"--dump-t="};
-    const outcome = try parseArgs(testing.allocator, &args);
-    switch (outcome) {
-        .failure => |failure| switch (failure.reason) {
-            .missing_option_argument => |option| try testing.expectEqualStrings("--dump-types", option),
             else => return error.UnexpectedParseFailure,
         },
         else => return error.TestExpectedFailure,
