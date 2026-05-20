@@ -208,6 +208,8 @@ REQUIRED_MARKERS = {
         "run: make -C zigux phase12-smoke",
         "- name: Run current Phase 12 shared test packet",
         "run: make -C zigux phase12-test",
+        "- name: Run current Phase 12 aggregate route",
+        "run: make -C zigux phase12",
         "- name: Run current Phase 12 throughput-parity anchor",
         "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     ],
