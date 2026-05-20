@@ -26,8 +26,13 @@ BUILD_MARKERS = [
     'b.step("test", "Run Phase 7 runtime helper tests")',
 ]
 
-FORBIDDEN_MAKEFILE_MARKERS = [
+MAKEFILE_MARKERS = [
     "phase7-validate:",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
+]
+
+FORBIDDEN_MAKEFILE_MARKERS = [
     "phase7-string-helpers-test:",
     "phase7-string-helpers-survey:",
     "phase7-string-helpers-sample-boundary:",
@@ -44,6 +49,7 @@ FORBIDDEN_MAKEFILE_MARKERS = [
 REQUIRED_FILES = (VALIDATOR_PATH, BUILD_PATH, MAKEFILE_PATH)
 REQUIRED_PRESENT_MARKERS = {
     BUILD_PATH: BUILD_MARKERS,
+    MAKEFILE_PATH: MAKEFILE_MARKERS,
 }
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: FORBIDDEN_MAKEFILE_MARKERS,
@@ -77,13 +83,17 @@ FIXTURE_TEXTS = {
         [
             "PYTHON ?= python3",
             "ZIG ?= zig",
+            "ZIGUX_ROOT := ..",
             "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
             "PHASE3_SCRIPT_ROOT := ../scripts/zigux",
-            ".PHONY: phase2 phase3",
+            ".PHONY: phase2 phase3 phase7-validate",
             "phase2:",
             "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
             "phase3:",
             "\tcd .. && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+            "phase7-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
         ]
     )
     + "\n",
@@ -186,9 +196,26 @@ def run_self_test() -> None:
             'b.step("test", "Run Phase 7 runtime helper tests")',
             'b.step("phase7", "Run Phase 7 runtime helper tests")',
         ),
+        (
+            "missing_phase7_validate_route",
+            MAKEFILE_PATH,
+            "phase7-validate:",
+            "phase7-verify:",
+        ),
+        (
+            "missing_phase7_validate_selftest",
+            MAKEFILE_PATH,
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "$(PYTHON) scripts/zigux/validate-phase7.py --check-only",
+        ),
+        (
+            "missing_phase7_validate_run",
+            MAKEFILE_PATH,
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
+            "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py\n",
+        ),
     ]
     unexpected_marker_cases = [
-        ("phase7_validate_route_returned", "phase7-validate:\n\tpython3 scripts/zigux/validate-phase7.py\n"),
         ("phase7_cmdline_route_returned", "phase7-cmdline-survey:\n\tzig test zigux/tests/phase7_cmdline_survey.zig\n"),
         ("phase7_bundle_route_returned", "phase7: phase7-validate phase7-test\n"),
     ]
@@ -228,7 +255,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the shipped Phase 7 build graph keeps its helper dependency "
-            "paths and returned test steps in phase7_build.zig while Makefile wrappers remain parked."
+            "paths in phase7_build.zig while Makefile wrappers stay bounded to "
+            "phase7-validate and broader shared test wrappers remain parked."
         )
     )
     parser.add_argument(
