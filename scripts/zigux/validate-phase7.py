@@ -47,7 +47,12 @@ REQUIRED_FILES = [
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
-SELF_TEST_CASE_COUNT = 8
+REQUIRED_MAKEFILE_LINES = [
+    "phase7-validate:",
+    "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "$(PYTHON) scripts/zigux/validate-phase7.py",
+]
+SELF_TEST_CASE_COUNT = 10
 
 class ValidationError(RuntimeError):
     pass
@@ -60,6 +65,9 @@ def read_text(path: Path) -> str:
 
 def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
+
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") -> None:
     result = subprocess.run(
@@ -89,8 +97,12 @@ def validate(root: Path) -> None:
         raise ValidationError("phase7 replay inventory drift")
 
     makefile = read_text(root / MAKEFILE_PATH)
-    if "phase7-validate:" not in makefile or "$(PYTHON) scripts/zigux/validate-phase7.py" not in makefile:
-        raise ValidationError("phase7 make route missing")
+    for marker in REQUIRED_MAKEFILE_LINES:
+        count = count_exact_lines(makefile, marker)
+        if count == 0:
+            raise ValidationError(f"phase7 make route missing: {marker}")
+        if count != 1:
+            raise ValidationError(f"phase7 make route count drift: {marker} ({count} != 1)")
 
     run_checker(root, CHECKER_PATH)
     run_checker(root, MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "--root")
@@ -130,7 +142,10 @@ def scaffold_repo(root: Path) -> None:
         "`kstrdupQuotable()`",
         "`kstrdupQuotableCmdline()`",
     ]) + "\n")
-    write(root / MAKEFILE_PATH, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+    write(
+        root / MAKEFILE_PATH,
+        "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n",
+    )
     write(root / MANIFEST_PATH, json.dumps({
         "packet": EXPECTED_PACKET,
         "phase": EXPECTED_PHASE,
@@ -202,6 +217,8 @@ def run_self_test() -> None:
         for rel_path, transform in [
             (MANIFEST_PATH, '"make -C zigux phase7-validate"'),
             (MAKEFILE_PATH, "phase7-validate:"),
+            (MAKEFILE_PATH, "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"),
+            (MAKEFILE_PATH, "\t$(PYTHON) scripts/zigux/validate-phase7.py\n"),
             (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
             (Path("lib/argv_split.zig"), "pub fn argvSplit"),
             (CHECKER_PATH, "delete"),
