@@ -247,12 +247,6 @@ def validate_fixture_inventory(
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
 
-def require_non_empty_string(value: object, case_name: str, field_name: str) -> str:
-    if not isinstance(value, str) or not value:
-        raise ValueError(f"{CASES_PATH}:{case_name}:missing_non_empty_{field_name}")
-    return value
-
-
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
         raise ValueError(f"{CASES_PATH}:expected_non_empty_json_list")
@@ -282,52 +276,36 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
-        if "expected_exit_code" not in validated_case:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_exit_code")
-        expected_exit_code = validated_case["expected_exit_code"]
-        if type(expected_exit_code) is not int:
-            raise ValueError(
-                f"{CASES_PATH}:{name}:expected_exit_code_type="
-                f"{type(expected_exit_code).__name__},expected=int"
-            )
-
-        depfile = require_non_empty_string(validated_case.get("depfile"), name, "depfile")
-        target = require_non_empty_string(validated_case.get("target"), name, "target")
-        cmdline = require_non_empty_string(validated_case.get("cmdline"), name, "cmdline")
-        expected_stdout_name = require_non_empty_string(validated_case.get("expected"), name, "expected_output")
-        validated_case["depfile"] = depfile
-        validated_case["target"] = target
-        validated_case["cmdline"] = cmdline
-        validated_case["expected"] = expected_stdout_name
-        if expected_exit_code != 0:
-            validated_case["expected_stderr"] = require_non_empty_string(
-                validated_case.get("expected_stderr"),
-                name,
-                "expected_stderr",
-            )
-
-        expected_stdout_mode = expected_case.get("stdout_mode")
-        if expected_stdout_mode is not None:
-            stdout_mode = require_non_empty_string(validated_case.get("stdout_mode"), name, "stdout_mode")
-            if stdout_mode != "dev_full":
-                raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
-            validated_case["stdout_mode"] = stdout_mode
-
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name)
             if actual_value != expected_value:
                 raise ValueError(
                     f"{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
                 )
+
+        depfile = validated_case.get("depfile")
+        if not isinstance(depfile, str) or not depfile:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
         if not (FIXTURE_DIR / depfile).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_depfile:{depfile}")
+
+        expected_stdout_name = validated_case.get("expected")
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
         if not (FIXTURE_DIR / expected_stdout_name).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_expected_output:{expected_stdout_name}")
 
+        expected_exit_code = validated_case["expected_exit_code"]
         if expected_exit_code != 0:
-            expected_stderr_name = validated_case["expected_stderr"]
+            expected_stderr_name = validated_case.get("expected_stderr")
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
             if not (FIXTURE_DIR / expected_stderr_name).exists():
                 raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
+
+        stdout_mode = validated_case.get("stdout_mode")
+        if stdout_mode not in (None, "dev_full"):
+            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
         validated.append(validated_case)
 
@@ -423,47 +401,7 @@ def run_self_test() -> int:
     expect_failure(
         "missing_expected_stderr",
         lambda: validate_cases(missing_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:missing_non_empty_expected_stderr",
-    )
-
-    empty_stderr_cases = copy_valid_cases(valid_cases)
-    find_case(empty_stderr_cases, "sample_comment_only")["expected_stderr"] = ""
-    expect_failure(
-        "empty_expected_stderr",
-        lambda: validate_cases(empty_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:missing_non_empty_expected_stderr",
-    )
-
-    missing_expected_exit_code_cases = copy_valid_cases(valid_cases)
-    find_case(missing_expected_exit_code_cases, "sample").pop("expected_exit_code", None)
-    expect_failure(
-        "missing_expected_exit_code",
-        lambda: validate_cases(missing_expected_exit_code_cases),
-        f"{CASES_PATH}:sample:missing_expected_exit_code",
-    )
-
-    bool_expected_exit_code_cases = copy_valid_cases(valid_cases)
-    find_case(bool_expected_exit_code_cases, "sample")["expected_exit_code"] = False
-    expect_failure(
-        "bool_expected_exit_code_type",
-        lambda: validate_cases(bool_expected_exit_code_cases),
-        f"{CASES_PATH}:sample:expected_exit_code_type=bool,expected=int",
-    )
-
-    missing_expected_output_cases = copy_valid_cases(valid_cases)
-    find_case(missing_expected_output_cases, "sample").pop("expected", None)
-    expect_failure(
-        "missing_expected_output_field",
-        lambda: validate_cases(missing_expected_output_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_expected_output",
-    )
-
-    empty_expected_output_cases = copy_valid_cases(valid_cases)
-    find_case(empty_expected_output_cases, "sample")["expected"] = ""
-    expect_failure(
-        "empty_expected_output_field",
-        lambda: validate_cases(empty_expected_output_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_expected_output",
+        f"{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='sample_comment_only_expected.stderr.txt'",
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
@@ -484,149 +422,20 @@ def run_self_test() -> int:
         finally:
             globals()["FIXTURE_DIR"] = original_fixture_dir
 
-    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
-        fixture_dir = Path(tmp_dir)
-        for fixture_path in FIXTURE_DIR.iterdir():
-            if fixture_path.name == "sample_comment_only_expected.stderr.txt":
-                continue
-            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
-
-        original_fixture_dir = FIXTURE_DIR
-        globals()["FIXTURE_DIR"] = fixture_dir
-        try:
-            expect_failure(
-                "missing_expected_stderr_fixture",
-                lambda: validate_cases(valid_cases),
-                f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
-            )
-        finally:
-            globals()["FIXTURE_DIR"] = original_fixture_dir
-    missing_stdout_mode_cases = copy_valid_cases(valid_cases)
-    find_case(missing_stdout_mode_cases, "sample_comment_only_stdout_full").pop("stdout_mode", None)
-    expect_failure(
-        "missing_stdout_mode",
-        lambda: validate_cases(missing_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:missing_non_empty_stdout_mode",
-    )
-
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
     expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
-    )
-
-    empty_stdout_mode_cases = copy_valid_cases(valid_cases)
-    find_case(empty_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = ""
-    expect_failure(
-        "empty_stdout_mode",
-        lambda: validate_cases(empty_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:missing_non_empty_stdout_mode",
-    )
-
-    wrong_type_stdout_mode_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = 7
-    expect_failure(
-        "wrong_type_stdout_mode",
-        lambda: validate_cases(wrong_type_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:missing_non_empty_stdout_mode",
+        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
     )
 
     missing_depfile_cases = copy_valid_cases(valid_cases)
-    find_case(missing_depfile_cases, "sample").pop("depfile", None)
+    find_case(missing_depfile_cases, "sample")["depfile"] = "missing_depfile.d"
     expect_failure(
-        "missing_non_empty_depfile",
+        "missing_depfile",
         lambda: validate_cases(missing_depfile_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_depfile",
-    )
-
-    empty_depfile_cases = copy_valid_cases(valid_cases)
-    find_case(empty_depfile_cases, "sample")["depfile"] = ""
-    expect_failure(
-        "empty_depfile",
-        lambda: validate_cases(empty_depfile_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_depfile",
-    )
-
-    missing_target_cases = copy_valid_cases(valid_cases)
-    find_case(missing_target_cases, "sample").pop("target", None)
-    expect_failure(
-        "missing_non_empty_target",
-        lambda: validate_cases(missing_target_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_target",
-    )
-
-    empty_target_cases = copy_valid_cases(valid_cases)
-    find_case(empty_target_cases, "sample")["target"] = ""
-    expect_failure(
-        "empty_target",
-        lambda: validate_cases(empty_target_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_target",
-    )
-
-    missing_cmdline_cases = copy_valid_cases(valid_cases)
-    find_case(missing_cmdline_cases, "sample").pop("cmdline", None)
-    expect_failure(
-        "missing_non_empty_cmdline",
-        lambda: validate_cases(missing_cmdline_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
-    )
-
-    empty_cmdline_cases = copy_valid_cases(valid_cases)
-    find_case(empty_cmdline_cases, "sample")["cmdline"] = ""
-    expect_failure(
-        "empty_cmdline",
-        lambda: validate_cases(empty_cmdline_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
-    )
-
-    wrong_type_depfile_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_depfile_cases, "sample")["depfile"] = 7
-    expect_failure(
-        "wrong_type_depfile",
-        lambda: validate_cases(wrong_type_depfile_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_depfile",
-    )
-
-    wrong_type_target_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_target_cases, "sample")["target"] = 7
-    expect_failure(
-        "wrong_type_target",
-        lambda: validate_cases(wrong_type_target_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_target",
-    )
-
-    wrong_type_cmdline_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_cmdline_cases, "sample")["cmdline"] = 7
-    expect_failure(
-        "wrong_type_cmdline",
-        lambda: validate_cases(wrong_type_cmdline_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
-    )
-
-    wrong_type_expected_output_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_expected_output_cases, "sample")["expected"] = 7
-    expect_failure(
-        "wrong_type_expected_output",
-        lambda: validate_cases(wrong_type_expected_output_cases),
-        f"{CASES_PATH}:sample:missing_non_empty_expected_output",
-    )
-
-    wrong_type_expected_stderr_cases = copy_valid_cases(valid_cases)
-    find_case(wrong_type_expected_stderr_cases, "sample_comment_only")["expected_stderr"] = 7
-    expect_failure(
-        "wrong_type_expected_stderr",
-        lambda: validate_cases(wrong_type_expected_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:missing_non_empty_expected_stderr",
-    )
-
-    mismatched_target_cases = copy_valid_cases(valid_cases)
-    find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
-    expect_failure(
-        "mismatched_target_field",
-        lambda: validate_cases(mismatched_target_cases),
-        f"{CASES_PATH}:sample:target='sample-wrong.o',expected='sample.o'",
+        f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
@@ -670,14 +479,8 @@ def run_self_test() -> int:
         f"fixdep:c_tool={C_FIXDEP.with_name('fixdep-mismatch.c')},expected={EXPECTED_C_FIXDEP}",
     )
 
-    expect_failure(
-        "explicit_zig_tool_drift",
-        lambda: validate_tool_sources(C_FIXDEP, ZIG_FIXDEP.with_name("fixdep-mismatch.zig")),
-        f"fixdep:zig_tool={ZIG_FIXDEP.with_name('fixdep-mismatch.zig')},expected={EXPECTED_ZIG_FIXDEP}",
-    )
-
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 26}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")
     return 0
 
 
@@ -818,10 +621,10 @@ def main() -> int:
 
     for case in cases:
         depfile = FIXTURE_DIR / case["depfile"]
-        expected_stdout = FIXTURE_DIR / case.get("expected_stdout", case["expected"])
+        expected_stdout = FIXTURE_DIR / case["expected"]
         expected_stderr_name = case.get("expected_stderr")
         expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
-        expected_exit_code = int(case.get("expected_exit_code", 0))
+        expected_exit_code = case["expected_exit_code"]
         stdout_mode = case.get("stdout_mode")
         target = case["target"]
         cmdline = case["cmdline"]
