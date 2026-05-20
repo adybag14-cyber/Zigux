@@ -189,6 +189,7 @@ VALIDATOR_SUPPORT_MARKERS = (
     "`zigux/tests/README.md` now keeps the returned packet-local export/UAPI survey note and validator explicit beside the starter, helper, xarray-slot, policy, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
     "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root, tests-root, and scripts-root summaries while keeping any later scripts-root inventory follow-through separate, and it keeps the returned header-family survey follow-through explicit as a same-family companion.",
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
+    "make -C zigux phase3-low-level-wrappers-test",
 )
 
 VALIDATOR_SUPPORT_EXACT_ONCE_MARKERS = (
@@ -560,6 +561,11 @@ def run_self_test() -> int:
         (
             VALIDATOR_SUPPORT_PATH,
             "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "make -C zigux phase3-low-level-wrappers-test",
             "validator-support note",
         ),
         (
