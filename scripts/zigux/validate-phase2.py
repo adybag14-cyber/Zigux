@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 62
+EXPECTED_SELF_TEST_CASE_COUNT = 64
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -513,6 +513,12 @@ def run_self_test() -> int:
 
             globals()["probe_required_file"] = fail_closure_doc_probe
             assert ("REQUIRED_FILE_UNREADABLE", CLOSURE_DOC.relative_to(ROOT).as_posix()) in collect_issues(root)
+            result, output = capture_run_validator(root)
+            assert result == 1
+            assert "PHASE2_VALIDATION=fail" in output
+            assert "REQUIRED_FILE_UNREADABLE_START" in output
+            assert CLOSURE_DOC.relative_to(ROOT).as_posix() in output
+            checks_run += 1
             checks_run += 1
 
             build_self_test_root(root)
@@ -525,6 +531,12 @@ def run_self_test() -> int:
 
             globals()["probe_required_file"] = fail_checker_probe
             assert ("CHECKER_UNREADABLE", CHECKERS[0].relative_to(ROOT).as_posix()) in collect_issues(root)
+            result, output = capture_run_validator(root)
+            assert result == 1
+            assert "PHASE2_VALIDATION=fail" in output
+            assert "CHECKER_UNREADABLE_START" in output
+            assert CHECKERS[0].relative_to(ROOT).as_posix() in output
+            checks_run += 1
             checks_run += 1
         finally:
             globals()["probe_required_file"] = original_probe_required_file
