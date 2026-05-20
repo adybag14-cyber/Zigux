@@ -62,6 +62,7 @@ REQUIRED_CONFDATA_CASES = [
     "empty_config_symbol_names",
     "malformed_unset_comment_tokens",
     "last_state_transitions",
+    "duplicate_assignments",
     "duplicate_malformed_quoted_assignment",
 ]
 
@@ -610,6 +611,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "malformed_unset_comment_tokens", "input": "malformed_unset_comment_tokens.config", "expected": "malformed_unset_comment_tokens_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
+                    {"name": "duplicate_assignments", "input": "duplicate_assignments.config", "expected": "duplicate_assignments_expected.json"},
                     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
                 ]
             },
@@ -699,6 +701,7 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names.config",
                     "malformed_unset_comment_tokens.config",
                     "last_state_transitions.config",
+                    "duplicate_assignments.config",
                     "duplicate_malformed_quoted_assignment.config"
                 ],
                 "expected_packet": [
@@ -715,6 +718,7 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names_expected.json",
                     "malformed_unset_comment_tokens_expected.json",
                     "last_state_transitions_expected.json",
+                    "duplicate_assignments_expected.json",
                     "duplicate_malformed_quoted_assignment_expected.json"
                 ],
                 "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS
@@ -753,6 +757,7 @@ def build_self_test_root(root: Path) -> None:
         "empty_config_symbol_names_expected.json",
         "malformed_unset_comment_tokens_expected.json",
         "last_state_transitions_expected.json",
+        "duplicate_assignments_expected.json",
         "duplicate_malformed_quoted_assignment_expected.json",
         "sample.config",
         "escaped_strings.config",
@@ -767,6 +772,7 @@ def build_self_test_root(root: Path) -> None:
         "empty_config_symbol_names.config",
         "malformed_unset_comment_tokens.config",
         "last_state_transitions.config",
+        "duplicate_assignments.config",
         "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
@@ -928,7 +934,7 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert (
             "CONFDATA_CASE_ORDER_ACTUAL",
-            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_malformed_quoted_assignment",
+            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_assignments,duplicate_malformed_quoted_assignment",
         ) in issues
         assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
