@@ -332,6 +332,34 @@ def run_self_test() -> int:
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
             note_text
+            + "- `PHASE1_WORKFLOW_STATUS=active`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_status_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 workflow-viability guard`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_scope_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
             + "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`\n",
             encoding="utf-8",
         )
@@ -341,7 +369,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         note_path = root / NOTE_REL
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
@@ -416,6 +444,24 @@ def run_self_test() -> int:
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             workflow_text
+            + "      - name: Check current Phase 1 shared reminder packet\n"
+            + "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 1 shared reminder packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_shared_reminder_step_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 1 shared reminder packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_shared_reminder_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
             + "      - name: Check current Phase 1 closure packet\n"
             + "        run: python3 scripts/zigux/validate-phase1-closure.py\n",
             encoding="utf-8",
@@ -462,6 +508,24 @@ def run_self_test() -> int:
             return 1
         if "workflow_run:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
             print("self-test:duplicate_lane_check_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Run current Phase 1 shared tests-root smoke\n"
+            + "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Run current Phase 1 shared tests-root smoke:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase1_smoke_step_not_detected")
+            return 1
+        if "workflow_run:Run current Phase 1 shared tests-root smoke:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase1_smoke_run_not_detected")
             return 1
         case_count += 1
 
