@@ -33,6 +33,8 @@ DOCS_ROOT_MARKERS = (
     "pinned Zig toolchain",
 )
 
+EXACT_COUNT_DOCS_ROOT_MARKERS = DOCS_ROOT_MARKERS
+
 REVIEW_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
@@ -47,6 +49,8 @@ REVIEW_MARKERS = (
     "same pinned toolchain",
 )
 
+EXACT_COUNT_REVIEW_MARKERS = REVIEW_MARKERS
+
 TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
@@ -56,12 +60,17 @@ TESTS_MARKERS = (
     "repo-local `.zig-toolchain` fallback reused",
 )
 
+EXACT_COUNT_TESTS_MARKERS = TESTS_MARKERS
+
 BOOTSTRAP_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`third_party/README.md`",
     "pinned-archive integrity paths",
 )
+
+EXACT_COUNT_BOOTSTRAP_MARKERS = BOOTSTRAP_MARKERS
 
 WORKFLOW_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
@@ -106,9 +115,13 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(DOCS_ROOT_MARKERS)
+    + len(EXACT_COUNT_DOCS_ROOT_MARKERS)
     + len(REVIEW_MARKERS)
+    + len(EXACT_COUNT_REVIEW_MARKERS)
     + len(TESTS_MARKERS)
+    + len(EXACT_COUNT_TESTS_MARKERS)
     + len(BOOTSTRAP_MARKERS)
+    + len(EXACT_COUNT_BOOTSTRAP_MARKERS)
     + len(WORKFLOW_MARKERS)
     + len(WORKFLOW_MARKERS)
     + len(MAKEFILE_MARKERS)
@@ -164,6 +177,15 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
 
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
+
+
+def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append((code, f"{count}::{marker}"))
+    return issues
 
 
 def collect_exact_line_issues(
@@ -225,37 +247,27 @@ def validate_policy(payload: object) -> list[tuple[str, str]]:
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
+    docs_root_text = read_text(resolve_path(root, DOCS_ROOT_README))
+    review_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
+    tests_text = read_text(resolve_path(root, TESTS_README))
+    bootstrap_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
+    issues.extend(collect_missing_markers(docs_root_text, DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"))
+    issues.extend(collect_exact_count_markers(docs_root_text, EXACT_COUNT_DOCS_ROOT_MARKERS, "EXACT_COUNT_DOCS_ROOT_MARKERS"))
+    issues.extend(collect_missing_markers(review_text, REVIEW_MARKERS, "MISSING_REVIEW_MARKERS"))
+    issues.extend(collect_exact_count_markers(review_text, EXACT_COUNT_REVIEW_MARKERS, "EXACT_COUNT_REVIEW_MARKERS"))
+    issues.extend(collect_missing_markers(tests_text, TESTS_MARKERS, "MISSING_TESTS_MARKERS"))
+    issues.extend(collect_exact_count_markers(tests_text, EXACT_COUNT_TESTS_MARKERS, "EXACT_COUNT_TESTS_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_text, BOOTSTRAP_MARKERS, "MISSING_BOOTSTRAP_MARKERS"))
     issues.extend(
-        collect_missing_markers(
-            read_text(resolve_path(root, DOCS_ROOT_README)),
-            DOCS_ROOT_MARKERS,
-            "MISSING_DOCS_ROOT_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            read_text(resolve_path(root, REVIEW_CHECKLIST)),
-            REVIEW_MARKERS,
-            "MISSING_REVIEW_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            read_text(resolve_path(root, TESTS_README)),
-            TESTS_MARKERS,
-            "MISSING_TESTS_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            read_text(resolve_path(root, BOOTSTRAP_NOTES)),
-            BOOTSTRAP_MARKERS,
-            "MISSING_BOOTSTRAP_MARKERS",
+        collect_exact_count_markers(
+            bootstrap_text,
+            EXACT_COUNT_BOOTSTRAP_MARKERS,
+            "EXACT_COUNT_BOOTSTRAP_MARKERS",
         )
     )
     issues.extend(
         collect_forbidden_markers(
-            read_text(resolve_path(root, BOOTSTRAP_NOTES)),
+            bootstrap_text,
             FORBIDDEN_BOOTSTRAP_GAP_MARKERS,
             "FORBIDDEN_BOOTSTRAP_GAP_MARKERS",
         )
@@ -364,11 +376,25 @@ def run_self_test() -> int:
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in EXACT_COUNT_DOCS_ROOT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("EXACT_COUNT_DOCS_ROOT_MARKERS", f"2::{marker}") in collect_issues(root)
+            checks_run += 1
+
         for marker in REVIEW_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_REVIEW_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in EXACT_COUNT_REVIEW_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("EXACT_COUNT_REVIEW_MARKERS", f"2::{marker}") in collect_issues(root)
             checks_run += 1
 
         for marker in TESTS_MARKERS:
@@ -378,11 +404,25 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in EXACT_COUNT_TESTS_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("EXACT_COUNT_TESTS_MARKERS", f"2::{marker}") in collect_issues(root)
+            checks_run += 1
+
         for marker in BOOTSTRAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_BOOTSTRAP_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in EXACT_COUNT_BOOTSTRAP_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("EXACT_COUNT_BOOTSTRAP_MARKERS", f"2::{marker}") in collect_issues(root)
             checks_run += 1
 
         for marker in FORBIDDEN_BOOTSTRAP_GAP_MARKERS:
@@ -518,8 +558,13 @@ def main() -> int:
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE=pass")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_ROOT_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_DOCS_ROOT_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_REVIEW_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_TESTS_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_BOOTSTRAP_MARKER_COUNT={len(BOOTSTRAP_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_BOOTSTRAP_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_BOOTSTRAP_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     return 0
 
