@@ -52,6 +52,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 - `samples/zigux/README.md`
 - `samples/zigux/bytestream_fifo.zig`
 - `samples/zigux/kobject_example.zig`
+- `samples/zigux/kobject_example_attr_group_contract.zig`
 - `samples/zigux/kretprobe_example.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_bitmap.zig`
@@ -61,9 +62,10 @@ Fresh authenticated reread in this run still directly proves these current sampl
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the direct kobject port, the restored kretprobe port, and the bounded trace-events formatting companion.
+So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the direct kobject port plus its bounded attr-group companion, the restored kretprobe port, and the bounded trace-events formatting companion.
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/kobject_example.zig` as the current direct sample-root proof for its approved anchor.
+Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
 Keep the roadmap-backed `kobject` anchor explicit because current `master` now directly returns `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while fresh public current-`master` GitHub tree inspection still keeps `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` visible as companion evidence. Keep shared contributor guidance honest about that mixed direct-versus-public-tree-backed split instead of repeating older kobject-reread-needed wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof. When the lane reopens, reread the dedicated kobject survey note before tightening deeper lifecycle wording here.
