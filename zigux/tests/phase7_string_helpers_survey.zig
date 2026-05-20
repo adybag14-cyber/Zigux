@@ -31,6 +31,11 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 test "phase 7 string helpers survey keeps the expanded starter packet truthful" {
     const allocator = std.testing.allocator;
 
+    try std.testing.expectError(
+        error.FileNotFound,
+        std.Io.Dir.cwd().access(std.testing.io, "lib/string_helpers_parse_int_array.zig", .{}),
+    );
+
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
@@ -73,30 +78,34 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "`scripts/zigux/check-phase7-string-helpers-packet.py`");
     try expectContains(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectContainsCount(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
+    try expectContains(slice_note, "Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar");
+    try expectContains(slice_note, "do not treat a standalone `lib/string_helpers_parse_int_array.zig` sidecar as part of the current helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
     defer allocator.free(checker);
     try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");
-    try expectContains(checker, '"Documentation/zigux/phase7-string-helpers-slice.md"');
-    try expectContains(checker, '"zigux/tests/phase7_string_helpers_sample_boundary.zig"');
+    try expectContains(checker, "\"Documentation/zigux/phase7-string-helpers-slice.md\"");
+    try expectContains(checker, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
-    try expectContains(manifest, "\"lane_key\": \"helper-local\"");
-    try expectContains(manifest, "\"lane_key_note\": \"helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.\"");
-    try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-packet.py\"");
-    try expectContains(manifest, "\"samples/zigux/README.md\"");
+    try expectContains(manifest, "\\\"lane_key\\\": \\\"helper-local\\\"");
+    try expectContains(manifest, "\\\"lane_key_note\\\": \\\"helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.\\\"");
+    try expectContains(manifest, "\\\"current_master_state\\\": \\\"expanded_starter_packet\\\"");
+    try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");
+    try expectContains(manifest, "\\\"samples/zigux/README.md\\\"");
     try expectContains(manifest, "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters");
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
     try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
-    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
+    try expectContains(manifest, "current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar");
+    try expectContains(manifest, "should not drift back into a duplicate standalone `lib/string_helpers_parse_int_array.zig` sidecar");
+    try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectNotContains(manifest, "missing_review_surfaces");
-    try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
-    try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
+    try expectNotContains(manifest, "\\\"devmKasprintfStrarray\\\"");
+    try expectNotContains(manifest, "\\\"devm_kasprintf_strarray\\\"");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
