@@ -114,29 +114,31 @@ FILE_MARKERS: dict[str, list[str]] = {
     ],
     UNREGISTERED_GATE_SAMPLE_PATH: [
         'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {',
-        'error.FunctionThreadNotRegistered',
-        'error.RegistrationUnderflow',
+        "error.FunctionThreadNotRegistered",
+        "error.RegistrationUnderflow",
     ],
     REENTRY_GATE_SAMPLE_PATH: [
         'test "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages" {',
-        'error.FunctionThreadAlreadyRegistered',
+        "error.FunctionThreadAlreadyRegistered",
         'test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest" {',
     ],
     EXIT_ROLLBACK_GUARD_SAMPLE_PATH: [
         'test "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay" {',
-        'error.OutstandingRegistration',
-        'try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);',
+        'test "phase9 trace-events sample keeps initialized failed-exit rollback explicit before selftest replay" {',
+        'test "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay" {',
+        "error.OutstandingRegistration",
+        "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
     ],
     WORKFLOW_PATH: [
-        'python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test',
-        'python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py',
-        'python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test',
-        'python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py',
-        'zig test samples/zigux/runtime_trace_events.zig',
-        'zig test samples/zigux/runtime_trace_events_unregistered_gate.zig',
-        'zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig',
-        'zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig',
-        'zig test zigux/tests/runtime_trace_events_survey.zig',
+        "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
+        "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+        "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+        "zig test samples/zigux/runtime_trace_events.zig",
+        "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig",
+        "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
+        "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
+        "zig test zigux/tests/runtime_trace_events_survey.zig",
     ],
 }
 
@@ -148,6 +150,17 @@ def read_text(root: Path, rel_path: str) -> str:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def break_marker(marker: str) -> str:
+    if len(marker) == 1:
+        return "_"
+    replacement_tail = "_" if marker[-1] != "_" else "-"
+    return marker[:-1] + replacement_tail
+
+
+def tamper_marker_occurrences(content: str, marker: str) -> str:
+    return content.replace(marker, break_marker(marker))
 
 
 def build_fixture_text(rel_path: str, markers: list[str]) -> str:
@@ -195,7 +208,7 @@ def run_self_test() -> int:
             for marker in markers:
                 seed_fixture_tree(base)
                 current = read_text(base, rel_path)
-                write_text(base / rel_path, current.replace(marker, "", 1))
+                write_text(base / rel_path, tamper_marker_occurrences(current, marker))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for rel_path in FILE_MARKERS:
