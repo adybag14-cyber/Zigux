@@ -74,7 +74,7 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
 
     try std.testing.expectEqualStrings("arch-council", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-20", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.sequencing_note);
     try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gate_manifest.json", manifest.readiness_manifest);
     try std.testing.expectEqual(@as(usize, 17), manifest.direct_packet_paths.len);
@@ -110,7 +110,7 @@ test "phase 15 governance-lane sequencing note names the current packet and curr
     try expectContains(sequencing_note, "PHASE15_LANE_KEY=arch-council");
     try expectContains(sequencing_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(sequencing_note, manifest.surveyed_commit);
-    try expectContains(sequencing_note, "the dedicated handoff manifest plus focused handoff-note checker are landed");
+    try expectContains(sequencing_note, "the dedicated handoff manifest plus focused handoff-specific replay plus focused handoff-note checker are landed");
     try expectContains(sequencing_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectContains(sequencing_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(sequencing_note, "python3 scripts/zigux/check-phase15-handoff-note-alignment.py");
