@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 58
+EXPECTED_SELF_TEST_CASE_COUNT = 60
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -118,15 +118,25 @@ def collect_marker_count_issues(
     return []
 
 
-def collect_duplicate_checker_issues() -> list[tuple[str, str]]:
+def collect_checker_inventory() -> tuple[list[Path], list[tuple[str, str]]]:
     counts: dict[str, int] = {}
     for rel_path in EXPECTED_CHECKER_RELATIVE_PATHS:
         counts[rel_path] = 0
-    for checker in CHECKERS:
-        rel_path = checker.relative_to(ROOT).as_posix()
-        counts[rel_path] = counts.get(rel_path, 0) + 1
 
+    valid_checkers: list[Path] = []
     issues: list[tuple[str, str]] = []
+    for checker in CHECKERS:
+        if not isinstance(checker, Path):
+            issues.append(("INVALID_CHECKER_ENTRY_TYPE", repr(checker)))
+            continue
+        try:
+            rel_path = checker.relative_to(ROOT).as_posix()
+        except ValueError:
+            issues.append(("CHECKER_OUTSIDE_ROOT", str(checker)))
+            continue
+        counts[rel_path] = counts.get(rel_path, 0) + 1
+        valid_checkers.append(checker)
+
     for rel_path in EXPECTED_CHECKER_RELATIVE_PATHS:
         count = counts.get(rel_path, 0)
         if count == 0:
@@ -137,7 +147,7 @@ def collect_duplicate_checker_issues() -> list[tuple[str, str]]:
     for rel_path, count in sorted(counts.items()):
         if rel_path not in EXPECTED_CHECKER_RELATIVE_PATHS:
             issues.append(("UNEXPECTED_CHECKER_ENTRY", f"{rel_path}:count={count}"))
-    return issues
+    return valid_checkers, issues
 
 
 def collect_required_path_issue(
@@ -163,7 +173,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     review_checklist_text = read_text(root, REVIEW_CHECKLIST)
     makefile_text = read_text(root, MAKEFILE)
 
-    issues.extend(collect_duplicate_checker_issues())
+    valid_checkers, checker_issues = collect_checker_inventory()
+    issues.extend(checker_issues)
 
     for marker in EXPECTED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -212,7 +223,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 non_file_code="REQUIRED_FILE_NOT_FILE",
             )
         )
-    for path in CHECKERS:
+    for path in valid_checkers:
         issues.extend(
             collect_required_path_issue(
                 root,
@@ -352,6 +363,24 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("UNEXPECTED_CHECKER_ENTRY", "scripts/zigux/unexpected.py:count=1") in issues
             assert ("MISSING_CHECKER", "scripts/zigux/unexpected.py") in issues
+            checks_run += 1
+
+            globals()["CHECKERS"] = original_checkers[:-1] + ("scripts/zigux/unexpected.py",)
+            issues = collect_issues(root)
+            assert ("INVALID_CHECKER_ENTRY_TYPE", "'scripts/zigux/unexpected.py'") in issues
+            assert (
+                "MISSING_CHECKER_ENTRY",
+                EXPECTED_CHECKER_RELATIVE_PATHS[-1],
+            ) in issues
+            checks_run += 1
+
+            globals()["CHECKERS"] = original_checkers[:-1] + (Path("/tmp/outside.py"),)
+            issues = collect_issues(root)
+            assert ("CHECKER_OUTSIDE_ROOT", "/tmp/outside.py") in issues
+            assert (
+                "MISSING_CHECKER_ENTRY",
+                EXPECTED_CHECKER_RELATIVE_PATHS[-1],
+            ) in issues
             checks_run += 1
         finally:
             globals()["CHECKERS"] = original_checkers
