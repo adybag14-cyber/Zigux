@@ -17,6 +17,8 @@ REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+    "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
     "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-gpio-wdt-survey.md",
