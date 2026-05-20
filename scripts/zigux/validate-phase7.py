@@ -37,9 +37,7 @@ EXPECTED_HELPER_MARKERS = {
         "pub const KasprintfStrarrayResult",
         "pub fn kstrdupQuotable",
         "pub fn kstrdupQuotableCmdline",
-    ],
-    Path("lib/string_helpers_parse_int_array.zig"): [
-        "pub const ParseIntArrayResult",
+        "pub const ParseIntArrayError",
         "pub fn parseIntArray",
     ],
     Path("lib/cmdline.zig"): [
@@ -60,7 +58,6 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     Path("lib/string_helpers.zig"),
-    Path("lib/string_helpers_parse_int_array.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
@@ -161,7 +158,6 @@ def scaffold_repo(root: Path) -> None:
                 "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
                 "- `zigux/Makefile`",
                 "- `lib/string_helpers.zig`",
-                "- `lib/string_helpers_parse_int_array.zig`",
                 "- `lib/cmdline.zig`",
                 "- `lib/argv_split.zig`",
                 "",
@@ -173,6 +169,7 @@ def scaffold_repo(root: Path) -> None:
                 "",
                 "`kstrdupQuotable()`",
                 "`kstrdupQuotableCmdline()`",
+                "`parseIntArray()`",
             ]
         )
         + "\n",
@@ -200,7 +197,6 @@ def scaffold_repo(root: Path) -> None:
                     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
                     "zigux/Makefile",
                     "lib/string_helpers.zig",
-                    "lib/string_helpers_parse_int_array.zig",
                     "lib/cmdline.zig",
                     "lib/argv_split.zig",
                 ],
@@ -219,12 +215,9 @@ def scaffold_repo(root: Path) -> None:
                             "pub const KasprintfStrarrayResult",
                             "pub fn kstrdupQuotable",
                             "pub fn kstrdupQuotableCmdline",
+                            "pub const ParseIntArrayError",
+                            "pub fn parseIntArray",
                         ],
-                    },
-                    {
-                        "key": "string_helpers_parse_int_array",
-                        "zig_helper": "lib/string_helpers_parse_int_array.zig",
-                        "expected_markers": ["pub const ParseIntArrayResult", "pub fn parseIntArray"],
                     },
                     {
                         "key": "cmdline",
@@ -253,11 +246,8 @@ def scaffold_repo(root: Path) -> None:
             "pub const STRING_UNITS_10 = 0;\n"
             "pub const KasprintfStrarrayResult = struct {};\n"
             "pub fn kstrdupQuotable() void {}\n"
-            "pub fn kstrdupQuotableCmdline() void {}\n",
-        ),
-        (
-            Path("lib/string_helpers_parse_int_array.zig"),
-            "pub const ParseIntArrayResult = struct {};\n"
+            "pub fn kstrdupQuotableCmdline() void {}\n"
+            "pub const ParseIntArrayError = error{NoEntry};\n"
             "pub fn parseIntArray() void {}\n",
         ),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
