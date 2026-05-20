@@ -123,7 +123,8 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "PHASE5_STATUS=verified-direct-sample-and-tests-packet",
         "PHASE5_SLICE=kfifo-reference-sample-readback",
         "sample-plus-tests packet",
-        "sample-root file currently carries three in-file self-checks",
+        "sample-root file currently carries four in-file self-checks",
+        "runReinitBoundaryReplay() and its `init_runs` / `exit_runs` accounting",
         "four focused replay tests",
         "five survey-packet checks",
         "phase5_build.zig` route",
@@ -144,6 +145,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries one in-file self-check") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries three in-file self-checks") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still do not recover `zigux/tests/phase5_bytestream_fifo.zig`") == null);
 }
@@ -161,13 +163,14 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
     defer std.testing.allocator.free(survey_note);
 
     const required_markers = [_][]const u8{
-        "## Exact checks verified on 2026-05-19",
-        "`samples/zigux/bytestream_fifo.zig` currently carries three in-file self-checks",
+        "## Exact checks verified on 2026-05-20",
+        "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
         "`zigux/tests/phase5_bytestream_fifo.zig` currently carries four focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries five survey-packet checks",
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
         "`runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`",
         "wrapped `{ 28, 4 }` visible-span split",
+        "the reinit path through `runReinitBoundaryReplay()` with `init_runs_after_reinit = 2` and `exit_runs_after_second_exit = 2`",
         "`occupancySummary()` keeps that preview state explicit at `queue_len = 10`, `available = 22`, and `wrapped = false`",
         "`writableSpanSummary()` keeps the same preview boundary explicit at `tail_index = 17`, `writable_count = 22`, `first_window_len = 15`, `second_window_len = 7`, and `wraps = true`",
         "`runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`",
