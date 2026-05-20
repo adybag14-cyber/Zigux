@@ -156,6 +156,23 @@ test "ctype print graph and control boundaries stay table-aligned" {
     try std.testing.expect(!iscntrl(0xc0));
 }
 
+test "ctype print graph and punctuation helpers preserve relational invariants" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        try std.testing.expectEqual(isprint(byte) and !isspace(byte), isgraph(byte));
+        try std.testing.expectEqual(ispunct(byte), isgraph(byte) and !isalnum(byte));
+
+        if (ispunct(byte)) {
+            try std.testing.expect(isprint(byte));
+            try std.testing.expect(isgraph(byte));
+            try std.testing.expect(!isspace(byte));
+            try std.testing.expect(!iscntrl(byte));
+        }
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
