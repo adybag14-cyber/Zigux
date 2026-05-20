@@ -298,6 +298,25 @@ pub const RebootGlueCheckpointSummary = struct {
     blocked_on_host_shutdown_execution: bool,
 };
 
+pub const TeardownCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    platform_drvdata_owner_identity: []const u8,
+    watchdog_drvdata_owner_identity: []const u8,
+    stop_disposition: StopDisposition,
+    stop_allowed_by_watchdog_core: bool,
+    driver_stop_invoked: bool,
+    register_device_failure_stage: []const u8,
+    watchdog_drvdata_precedes_reboot_glue: bool,
+    reboot_glue_precedes_register_device_request: bool,
+    teardown_reuses_parent_linkage: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_host_shutdown_execution: bool,
+};
+
 pub const TeardownSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -734,10 +753,34 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn teardownCheckpointSummary(self: *Self, nowayout: bool) TeardownCheckpointSummary {
+        const stop_summary = self.requestStop(nowayout);
+        const watchdog_drvdata = self.watchdogDrvdataCheckpointSummary();
+        const register_failure = self.registerDeviceFailureSummary(nowayout);
+        const reboot_glue = self.rebootGlueCheckpointSummary();
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .platform_drvdata_owner_identity = watchdog_drvdata.platform_drvdata_owner_identity,
+            .watchdog_drvdata_owner_identity = watchdog_drvdata.watchdog_drvdata_owner_identity,
+            .stop_disposition = stop_summary.disposition,
+            .stop_allowed_by_watchdog_core = stop_summary.stop_allowed_by_watchdog_core,
+            .driver_stop_invoked = stop_summary.driver_stop_invoked,
+            .register_device_failure_stage = register_failure.failure_stage,
+            .watchdog_drvdata_precedes_reboot_glue = reboot_glue.watchdog_drvdata_precedes_reboot_glue,
+            .reboot_glue_precedes_register_device_request = reboot_glue.reboot_glue_precedes_register_device_request,
+            .teardown_reuses_parent_linkage = watchdog_drvdata.watchdog_drvdata_reuses_parent_linkage and reboot_glue.reboot_glue_reuses_parent_linkage,
+            .blocked_on_live_gpio_lookup = reboot_glue.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = reboot_glue.blocked_on_platform_registration,
+            .blocked_on_host_shutdown_execution = reboot_glue.blocked_on_host_shutdown_execution,
+        };
+    }
+
     pub fn summarizeTeardown(self: *Self, nowayout: bool) TeardownSummary {
         const stop_summary = self.requestStop(nowayout);
-        _ = self.registerDeviceFailureSummary(nowayout);
-        const reboot_glue = self.rebootGlueCheckpointSummary();
+        const teardown = self.teardownCheckpointSummary(nowayout);
         return .{
             .anchor = descriptor().anchor,
             .hw_algo = self.hw_algo,
@@ -747,8 +790,8 @@ pub const GpioWatchdogLab = struct {
             .line_is_output = stop_summary.line_is_output,
             .disable_count = stop_summary.disable_count,
             .request_stop_reviewable = true,
-            .register_device_failure_reviewable = true,
-            .reboot_glue_checkpoint_reviewable = reboot_glue.stop_on_reboot_requested,
+            .register_device_failure_reviewable = std.mem.eql(u8, teardown.register_device_failure_stage, "devm_watchdog_register_device"),
+            .reboot_glue_checkpoint_reviewable = teardown.watchdog_drvdata_precedes_reboot_glue and teardown.reboot_glue_precedes_register_device_request,
         };
     }
 
@@ -821,4 +864,33 @@ test "reboot glue checkpoint stays between watchdog drvdata and register-device 
     try std.testing.expect(register_call.register_device_requested);
     try std.testing.expect(register_call.blocked_on_reboot_glue);
     try std.testing.expect(teardown.reboot_glue_checkpoint_reviewable);
+}
+
+test "teardown checkpoint keeps ownership and failure ordering explicit" {
+    var stoppable = try GpioWatchdogLab.init(.toggle, 60, false);
+    _ = try stoppable.start();
+    const stoppable_teardown = stoppable.teardownCheckpointSummary(false);
+
+    try std.testing.expectEqual(StopDisposition.stopped, stoppable_teardown.stop_disposition);
+    try std.testing.expect(stoppable_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stoppable_teardown.driver_stop_invoked);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", stoppable_teardown.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", stoppable_teardown.watchdog_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", stoppable_teardown.register_device_failure_stage);
+    try std.testing.expect(stoppable_teardown.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(stoppable_teardown.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(stoppable_teardown.teardown_reuses_parent_linkage);
+    try std.testing.expect(stoppable_teardown.blocked_on_live_gpio_lookup);
+    try std.testing.expect(stoppable_teardown.blocked_on_platform_registration);
+    try std.testing.expect(stoppable_teardown.blocked_on_host_shutdown_execution);
+
+    var blocked = try GpioWatchdogLab.init(.level, 64, true);
+    _ = try blocked.start();
+    const blocked_teardown = blocked.teardownCheckpointSummary(true);
+
+    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, blocked_teardown.stop_disposition);
+    try std.testing.expect(!blocked_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked_teardown.driver_stop_invoked);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.watchdog_drvdata_owner_identity);
 }
