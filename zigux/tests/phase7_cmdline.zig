@@ -44,6 +44,25 @@ test "phase 7 cmdline companion replays option decoding, ranges, and malformed-i
     try std.testing.expectEqual(@as(i32, 2), wrapped_validate[0]);
 }
 
+test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {
+    var incomplete_hex: []const u8 = "0x";
+    var incomplete_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&incomplete_hex, &incomplete_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), incomplete_hex_value);
+    try std.testing.expectEqualStrings("x", incomplete_hex);
+
+    var plus_hex_rest: []const u8 = "+0x";
+    var plus_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&plus_hex_rest, &plus_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
+    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
+
+    var descending = [_]i32{ 0, 0, 0, 0 };
+    const descending_rest = cmdline.getOptions("4-2,9", descending.len, &descending);
+    try std.testing.expectEqualStrings("2,9", descending_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 4, 0, 0 }, &descending);
+}
+
 test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {
     var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
     const negative_rest = cmdline.getOptions("-2-1", negative_values.len, &negative_values);
