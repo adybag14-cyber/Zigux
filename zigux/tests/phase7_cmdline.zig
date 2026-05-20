@@ -179,6 +179,20 @@ test "nextArg stays inside the first NUL for bare and key value tokens" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(parsed_key_value.rest.ptr)), @as(usize, @intFromPtr(parsed_key_value.remaining.ptr)));
 }
 
+test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {
+    var quoted_value = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', ' ', 'q', 'u', 'i', 'e', 't', 0 };
+    const parsed = cmdline.nextArg(&quoted_value);
+
+    try std.testing.expectEqualStrings("root", parsed.param);
+    try std.testing.expectEqualStrings("/dev/vda1", parsed.value.?);
+    try std.testing.expectEqualStrings("quiet", parsed.rest);
+    try std.testing.expectEqualStrings("quiet", parsed.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(parsed.rest.ptr)), @as(usize, @intFromPtr(parsed.remaining.ptr)));
+}
+
 test "nextArg keeps rest and remaining as the same borrowed suffix view" {
     const parsed = cmdline.nextArg("mode=fast root=/dev/vda quiet");
     try std.testing.expectEqualStrings("mode", parsed.param);
