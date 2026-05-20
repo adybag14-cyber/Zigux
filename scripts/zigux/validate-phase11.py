@@ -34,6 +34,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "zigux/Makefile",
@@ -87,6 +88,14 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-cleanup-current-head",
         ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
+    ),
+    CheckSpec(
+        "phase11-hvc-targetless-unregister-witness-self-test",
+        ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-hvc-targetless-unregister-witness",
+        ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-teardown-packet-self-test",
@@ -220,6 +229,7 @@ def build_stub_script(
                 "parser = argparse.ArgumentParser()",
                 "parser.add_argument('--self-test', action='store_true')",
                 "parser.add_argument('--root')",
+                "parser.add_argument('--repo-root')",
                 "args = parser.parse_args()",
                 f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
                 f"LIVE_EXIT_CODE = {live_exit_literal}",
@@ -409,6 +419,34 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_hvc_targetless_witness_self_test_script = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+        build_stub_script(failing_hvc_targetless_witness_self_test_script, self_test_exit_code=1)
+        issues = collect_issues(root)
+        expected_hvc_targetless_witness_self_test_failure = "live_failed:phase11-hvc-targetless-unregister-witness-self-test:exit=1"
+        if expected_hvc_targetless_witness_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:hvc_targetless_witness_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        failing_hvc_targetless_witness_script = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+        build_stub_script(
+            failing_hvc_targetless_witness_script,
+            self_test_exit_code=0,
+            live_exit_code=1,
+        )
+        issues = collect_issues(root)
+        expected_hvc_targetless_witness_failure = "live_failed:phase11-hvc-targetless-unregister-witness:exit=1"
+        if expected_hvc_targetless_witness_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:hvc_targetless_witness_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_dw_teardown_self_test_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
         build_stub_script(failing_dw_teardown_self_test_script, self_test_exit_code=1)
         issues = collect_issues(root)
@@ -530,7 +568,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
