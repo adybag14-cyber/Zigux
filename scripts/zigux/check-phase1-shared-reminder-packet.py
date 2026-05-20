@@ -239,6 +239,12 @@ def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
+def mutate_append_fragment(root: Path, relative_path: str, fragment: str) -> None:
+    target = root / relative_path
+    text = target.read_text(encoding="utf-8")
+    target.write_text(text + fragment + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-success-") as tmpdir:
         root = Path(tmpdir)
@@ -265,6 +271,14 @@ def run_self_test() -> int:
             ),
         )
 
+    def make_forbidden_fragment_case(relative_path: str, fragment: str):
+        return (
+            f"forbidden_{relative_path.replace('/', '_').replace('.', '_')}_{abs(hash(fragment))}",
+            lambda root, relative_path=relative_path, fragment=fragment: mutate_append_fragment(
+                root, relative_path, fragment
+            ),
+        )
+
     cases: list[tuple[str, object]] = [("success", None)]
     for relative_path in REQUIRED_FILES:
         cases.append(make_missing_file_case(relative_path))
@@ -272,6 +286,8 @@ def run_self_test() -> int:
         for marker in markers:
             cases.append(make_marker_case(relative_path, marker, "remove"))
             cases.append(make_marker_case(relative_path, marker, "duplicate"))
+    for fragment in FORBIDDEN_FRAGMENTS:
+        cases.append(make_forbidden_fragment_case("Documentation/zigux/README.md", fragment))
 
     for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-case-") as tmpdir:
