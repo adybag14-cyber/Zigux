@@ -57,6 +57,7 @@ HELPER_SELF_TEST_CASES = [
     "bytes_missing_both",
     "legacy_sha256_alias",
     "invalid_mode_rejected",
+    "extra_positional_rejected",
 ]
 HELPER_SELF_TEST_LINES = [
     "ARTIFACT_DIFF_SELF_TEST=pass",
