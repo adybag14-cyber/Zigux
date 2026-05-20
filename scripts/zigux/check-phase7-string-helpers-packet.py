@@ -98,10 +98,16 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_string_helpers_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");',
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
-        'try expectContains(manifest, "\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\"");',
+        'try expectContains(manifest, "\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\"next_bounded_step\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(manifest, "\\\\\\"next_bounded_step\\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
+        'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
+        'try expectNotContains(helper_tests, "devmKasprintfStrarray");',
+        'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
+        'try expectNotContains(manifest, "\\\\\\"devmKasprintfStrarray\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\"devm_kasprintf_strarray\\\\\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-string-sample policy lane-local",
@@ -148,7 +154,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 35
 
 
 def read_text(path: Path) -> str:
@@ -360,6 +366,36 @@ def run_self_test() -> None:
         survey_follow_on_marker = 'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
         survey_path.write_text(read_text(survey_path).replace(survey_follow_on_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_follow_on_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_helper_devm_marker = 'try expectNotContains(helper, "pub fn devmKasprintfStrarray");'
+        survey_path.write_text(read_text(survey_path).replace(survey_helper_devm_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_helper_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_helper_devm_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_helper_devm_alias_marker = 'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");'
+        survey_path.write_text(read_text(survey_path).replace(survey_helper_devm_alias_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_helper_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_helper_devm_alias_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_tests_devm_marker = 'try expectNotContains(helper_tests, "devmKasprintfStrarray");'
+        survey_path.write_text(read_text(survey_path).replace(survey_tests_devm_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_tests_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_tests_devm_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_tests_devm_alias_marker = 'try expectNotContains(helper_tests, "devm_kasprintf_strarray");'
+        survey_path.write_text(read_text(survey_path).replace(survey_tests_devm_alias_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_tests_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_tests_devm_alias_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_manifest_devm_marker = 'try expectNotContains(manifest, "\\\\\\"devmKasprintfStrarray\\\\\\"");'
+        survey_path.write_text(read_text(survey_path).replace(survey_manifest_devm_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_manifest_devm_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_manifest_devm_alias_marker = 'try expectNotContains(manifest, "\\\\\\"devm_kasprintf_strarray\\\\\\"");'
+        survey_path.write_text(read_text(survey_path).replace(survey_manifest_devm_alias_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_manifest_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_manifest_devm_alias_marker}")
         write_fixture_root(tmp_root)
 
         boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
