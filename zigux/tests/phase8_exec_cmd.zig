@@ -33,6 +33,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 8 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "scripts/zigux/validate-phase8.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "tools/lib/subcmd/exec-cmd.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase8-exec-cmd-slice.md") == null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "scripts/zigux/check-phase8-exec-cmd-packet.py") == null);
 
     const checklist = try readRepoFile("Documentation/zigux/review-checklist.md");
     defer std.testing.allocator.free(checklist);
@@ -45,6 +47,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     defer std.testing.allocator.free(scripts_root);
     try std.testing.expect(std.mem.indexOf(u8, scripts_root, "## Phase 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, scripts_root, "scripts/zigux/validate-phase8.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root, "scripts/zigux/check-phase8-exec-cmd-packet.py") == null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root, "Documentation/zigux/phase8-exec-cmd-slice.md") == null);
 
     const validator = try readRepoFile("scripts/zigux/validate-phase8.py");
     defer std.testing.allocator.free(validator);
@@ -59,6 +63,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "make -C zigux phase8-exec-cmd-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "make -C zigux phase8-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "Documentation/zigux/phase8-exec-cmd-slice.md") == null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "scripts/zigux/check-phase8-exec-cmd-packet.py") == null);
 
     const makefile = try readRepoFile("zigux/Makefile");
     defer std.testing.allocator.free(makefile);
