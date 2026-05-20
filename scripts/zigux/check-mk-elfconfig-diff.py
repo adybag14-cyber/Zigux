@@ -11,6 +11,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig.zig"
+FD_TRAILING_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_bytes_test.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "mk_elfconfig"
 CASES_PATH = FIXTURE_DIR / "cases.json"
 
@@ -94,6 +95,12 @@ EXPECTED_ZIG_MARKERS = {
     "split_exact_not_elf_failure": 'test "split-read exact non-ELF header ignores later read failure and exits with stderr" {',
     "split_truncated_failure": 'test "split-read truncated input keeps stderr when a later read fails" {',
 }
+EXPECTED_FD_TRAILING_ZIG_MARKERS = {
+    "fd_trailing_elf32": 'test "fd-backed trailing 32-bit ELF input exits with stdout" {',
+    "fd_trailing_elf64": 'test "fd-backed trailing 64-bit ELF input exits with stdout" {',
+    "fd_trailing_invalid_class": 'test "fd-backed trailing invalid-class input exits silently" {',
+    "fd_trailing_not_elf": 'test "fd-backed trailing non-ELF input exits with stderr" {',
+}
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
@@ -165,9 +172,9 @@ def validate_fixture_inventory() -> None:
         raise ValueError(f"{FIXTURE_DIR}:unexpected_fixtures:{','.join(unexpected)}")
 
 
-def validate_zig_source_markers(path: Path) -> None:
+def validate_zig_source_markers(path: Path, markers: dict[str, str]) -> None:
     text = path.read_text(encoding="utf-8")
-    for label, marker in EXPECTED_ZIG_MARKERS.items():
+    for label, marker in markers.items():
         if marker not in text:
             raise ValueError(f"{path}:missing_marker:{label}")
 
@@ -277,7 +284,10 @@ def run_tool(binary: Path, input_bytes: bytes) -> dict[str, object]:
 
 def check_cases(*, zig: str, compiler: str) -> None:
     validate_fixture_inventory()
-    validate_zig_source_markers(ZIG_TOOL)
+    validate_zig_source_markers(ZIG_TOOL, EXPECTED_ZIG_MARKERS)
+    if not FD_TRAILING_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_TRAILING_ZIG_TOOL)
+    validate_zig_source_markers(FD_TRAILING_ZIG_TOOL, EXPECTED_FD_TRAILING_ZIG_MARKERS)
     cases = validate_cases(load_json(CASES_PATH))
     for case in cases:
         validate_expected_result(FIXTURE_DIR / case["expected"])
@@ -323,7 +333,10 @@ def run_self_test() -> None:
         decode_hex_input(FIXTURE_DIR / case["input"])
     if not ZIG_TOOL.exists():
         raise FileNotFoundError(ZIG_TOOL)
-    validate_zig_source_markers(ZIG_TOOL)
+    validate_zig_source_markers(ZIG_TOOL, EXPECTED_ZIG_MARKERS)
+    if not FD_TRAILING_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_TRAILING_ZIG_TOOL)
+    validate_zig_source_markers(FD_TRAILING_ZIG_TOOL, EXPECTED_FD_TRAILING_ZIG_MARKERS)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
 
