@@ -47,6 +47,27 @@ pub const __sw_hweight32 = swHweight32;
 pub const __sw_hweight64 = swHweight64;
 pub const hweight_long = hweightLong;
 
+fn expectClearLowestSetBitIdentity32(value: u32) !void {
+    if (value == 0) return;
+    const cleared = value & (value - 1);
+    try std.testing.expectEqual(swHweight32(value) - 1, swHweight32(cleared));
+    try std.testing.expectEqual(__sw_hweight32(value) - 1, __sw_hweight32(cleared));
+}
+
+fn expectClearLowestSetBitIdentity64(value: u64) !void {
+    if (value == 0) return;
+    const cleared = value & (value - 1);
+    try std.testing.expectEqual(swHweight64(value) - 1, swHweight64(cleared));
+    try std.testing.expectEqual(__sw_hweight64(value) - 1, __sw_hweight64(cleared));
+}
+
+fn expectClearLowestSetBitIdentityLong(value: usize) !void {
+    if (value == 0) return;
+    const cleared = value & (value - 1);
+    try std.testing.expectEqual(hweightLong(value) - 1, hweightLong(cleared));
+    try std.testing.expectEqual(hweight_long(value) - 1, hweight_long(cleared));
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -91,4 +112,45 @@ test "hweight helpers stay additive for disjoint masks" {
     const high_long: usize = if (@sizeOf(usize) == 4) 0xa800_0000 else 0xa800_0000_0000_0000;
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
+}
+
+test "software hweight helpers drop exactly one bit when clearing the lowest set bit" {
+    var value8: u32 = 1;
+    while (value8 <= 0xff) : (value8 += 1) {
+        const cleared = value8 & (value8 - 1);
+        try std.testing.expectEqual(swHweight8(value8) - 1, swHweight8(cleared));
+        try std.testing.expectEqual(__sw_hweight8(value8) - 1, __sw_hweight8(cleared));
+    }
+
+    var value16: u32 = 1;
+    while (value16 <= 0xffff) : (value16 += 1) {
+        const cleared = value16 & (value16 - 1);
+        try std.testing.expectEqual(swHweight16(value16) - 1, swHweight16(cleared));
+        try std.testing.expectEqual(__sw_hweight16(value16) - 1, __sw_hweight16(cleared));
+    }
+
+    var lcg32: u32 = 0x1234_5678;
+    var iter32: usize = 0;
+    while (iter32 < 256) : (iter32 += 1) {
+        lcg32 = lcg32 *% 1_664_525 +% 1_013_904_223;
+        try expectClearLowestSetBitIdentity32(lcg32);
+    }
+    try expectClearLowestSetBitIdentity32(0xffff_ffff);
+    try expectClearLowestSetBitIdentity32(0x8000_0001);
+
+    var lcg64: u64 = 0x0123_4567_89ab_cdef;
+    var iter64: usize = 0;
+    while (iter64 < 256) : (iter64 += 1) {
+        lcg64 = lcg64 *% 6_364_136_223_846_793_005 +% 1_442_695_040_888_963_407;
+        try expectClearLowestSetBitIdentity64(lcg64);
+    }
+    try expectClearLowestSetBitIdentity64(0xffff_ffff_ffff_ffff);
+    try expectClearLowestSetBitIdentity64(0x8000_0000_0000_0001);
+
+    var bit: usize = 0;
+    while (bit < @bitSizeOf(usize)) : (bit += 1) {
+        try expectClearLowestSetBitIdentityLong(@as(usize, 1) << @intCast(bit));
+    }
+    try expectClearLowestSetBitIdentityLong(std.math.maxInt(usize));
+    try expectClearLowestSetBitIdentityLong(if (@sizeOf(usize) == 4) 0xdead_beef else 0xdead_beef_cafe_babe);
 }
