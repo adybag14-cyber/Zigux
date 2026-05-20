@@ -63,6 +63,7 @@ Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proo
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
 Keep the roadmap-backed `kobject` anchor explicit because fresh public current-`master` GitHub tree inspection in this run still shows `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` on GitHub even though the authenticated contents route in this runtime still returns 404 for them. Keep shared contributor guidance honest about that mixed tree-visible-versus-authenticated-readback split instead of repeating older split-readback wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof. When the lane reopens, reread the dedicated kobject survey note before tightening deeper lifecycle wording here.
+Keep `samples/zigux/kobject_example_attr_group_contract.zig` framed as a bounded kobject companion for the current `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, the unnamed-group marker, and the NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.
 
 ## Tracing and probe packet
 
