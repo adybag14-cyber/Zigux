@@ -142,6 +142,11 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(before_exit.last_main_count, after_exit.last_main_count);
     try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);
+    try std.testing.expectEqual(before_exit.saw_vararg_payload, after_exit.saw_vararg_payload);
+    try std.testing.expectEqual(before_exit.saw_rel_loc_payload, after_exit.saw_rel_loc_payload);
+    try std.testing.expectEqual(before_exit.saw_conditional_path, after_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings(before_exit.main_thread_label orelse return error.ExpectedMainThreadLabel, after_exit.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings(before_exit.function_thread_label orelse return error.ExpectedFunctionThreadLabel, after_exit.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
     try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload, after_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -155,6 +160,7 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings(before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_exit.last_format_template orelse return error.ExpectedMainPayload, after_exit.last_format_template orelse return error.ExpectedMainPayload);
 
     const exited_before_rejected_ops = module.summary();
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
