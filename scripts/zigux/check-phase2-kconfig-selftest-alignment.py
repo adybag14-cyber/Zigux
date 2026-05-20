@@ -103,6 +103,33 @@ CONFDATA_MANIFEST_STATIC_FIELDS = {
     "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
 }
 
+CONFDATA_HELPER_LOCAL_ANCHORS = (
+    "confdata bridge parses bounded config states",
+    "confdata bridge emits bounded json output",
+    "confdata bridge decodes escaped quoted strings",
+    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
+    "confdata bridge escapes low control bytes in json output",
+    "confdata bridge accepts CRLF config lines",
+    "confdata bridge preserves trailing carriage return on final unterminated value line",
+    "confdata bridge ignores unterminated unset comment with trailing carriage return",
+    "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
+    "confdata bridge keeps explicit n assignments as tristate values",
+    "confdata bridge recognizes uppercase tristate assignments",
+    "confdata bridge ignores non-CONFIG lines like upstream confdata",
+    "confdata bridge ignores empty CONFIG symbol names",
+    "confdata bridge ignores malformed unset comments with extra tokens",
+    "confdata bridge keeps trailing escaped backslashes in quoted strings",
+    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+    "confdata bridge ignores malformed quoted values like upstream confdata",
+    "confdata bridge emits no entries for empty CONFIG symbol names",
+    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
+    "confdata bridge keeps only the last state across unset and set transitions",
+    "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
+    "confdata bridge releases appended entry ownership on index-allocation failure",
+)
+
 VALID_CASES_PAYLOAD = {
     "conf_cases": [
         {
@@ -153,7 +180,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(BRIDGE_CHECKER_LINE_MARKERS)
     + 3
     + 6
-    + 6
+    + 7
 )
 
 
@@ -237,6 +264,7 @@ def build_confdata_manifest_payload(confdata_cases: list[dict[str, object]]) -> 
         "cases": [case["name"] for case in confdata_cases],
         "input_packet": [case["input"] for case in confdata_cases],
         "expected_packet": [case["expected"] for case in confdata_cases],
+        "helper_local_anchors": list(CONFDATA_HELPER_LOCAL_ANCHORS),
     }
 
 
@@ -628,6 +656,18 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert any(
             code == "CONFDATA_MANIFEST_FIELD_MISMATCH" and value.startswith("expected_packet:")
+            for code, value in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = ["broken helper anchor"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "CONFDATA_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:")
             for code, value in issues
         )
         checks_run += 1
