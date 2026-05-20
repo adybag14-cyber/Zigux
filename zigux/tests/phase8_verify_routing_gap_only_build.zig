@@ -8,6 +8,6 @@ pub fn build(b: *std.Build) void {
     });
 
     const run = b.addRunArtifact(test_step);
-    const step = b.step("test", "Run the phase 8 verify routing gap witness tests.");
+    const step = b.step("test", "Run the phase 8 verify routing witness tests.");
     step.dependOn(&run.step);
 }
