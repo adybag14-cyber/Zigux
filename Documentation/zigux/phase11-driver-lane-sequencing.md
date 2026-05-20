@@ -140,7 +140,7 @@ checker plus the adjacent PM helper pair through
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
 `drivers/watchdog/dw_wdt_pm.zig`, and
 `drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as same-lane continuity
- evidence beside the returned DesignWare matrix note, without promoting live PM
+evidence beside the returned DesignWare matrix note, without promoting live PM
 execution, live MMIO validation, or broader platform-backed registration into
 the shared packet.
 
@@ -151,7 +151,7 @@ owner-packet follow-through as separate continuity lanes.
 HVC still has the smaller current-head continuity packet rather than the deeper
 starter-depth replay or manifest stack, but that smaller packet now includes the
 dedicated targetless-unregister witness checker beside the standalone
- targetless-unregister witness pair and shared three-proof inventory. bcm2835,
+targetless-unregister witness pair and shared three-proof inventory. bcm2835,
 gpio, and DesignWare reminder follow-through still belong
 to their own lanes.
 
