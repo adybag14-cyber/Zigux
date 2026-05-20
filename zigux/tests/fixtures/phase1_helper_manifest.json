@@ -58,6 +58,7 @@
         "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
         "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
+        "test \"bitmap scnprintf keeps contiguous ranges merged across word boundaries\"",
         "test \"bitmap scnprintf truncates and keeps a terminator slot\"",
         "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
         "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
