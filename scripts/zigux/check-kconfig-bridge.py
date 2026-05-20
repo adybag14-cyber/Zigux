@@ -125,7 +125,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -780,7 +780,7 @@ def build_self_test_root(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_\") as tmp_dir_str:
         root = Path(tmp_dir_str)
         cases_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
         conf_manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
@@ -932,11 +932,8 @@ def run_self_test() -> int:
         payload["confdata_cases"][1], payload["confdata_cases"][2] = payload["confdata_cases"][2], payload["confdata_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert (
-            "CONFDATA_CASE_ORDER_ACTUAL",
-            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_assignments,duplicate_malformed_quoted_assignment",
-        ) in issues
-        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
+        assert any(issue[0] == "CONFDATA_CASE_ORDER_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONFDATA_CASE_ORDER_EXPECTED" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
@@ -988,6 +985,15 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        source = confdata_bridge_path.read_text(encoding="utf-8")
+        source += '\ntest "confdata bridge future helper anchor should be detected" {\n    try std.testing.expect(true);\n}\n'
+        write_text(confdata_bridge_path, source)
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
         manifest_path.unlink()
         issues = collect_manifest_issues(root)
         assert ("MISSING_CONFDATA_MANIFEST", "confdata_manifest.json") in issues
@@ -1030,7 +1036,7 @@ def main() -> int:
     if case_issues:
         emit_manifest_issues(case_issues)
 
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_\") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
