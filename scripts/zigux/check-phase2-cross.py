@@ -25,7 +25,7 @@ EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -244,6 +244,13 @@ def run_self_test() -> int:
             path = resolve_path(root, MAKEFILE)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         build_self_test_root(root)
