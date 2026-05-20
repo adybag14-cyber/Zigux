@@ -39,6 +39,7 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE7_CMDLINE_PACKET_SELF_TEST=pass",
         "\"Documentation/zigux/phase7-cmdline-slice.md\",",
+        "FORBIDDEN_MARKERS = {",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -91,7 +92,16 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 30
+FORBIDDEN_MARKERS = {
+    "Documentation/zigux/phase7-cmdline-slice.md": [
+        "phase7_cmdline_next_arg_vectors",
+    ],
+    "zigux/tests/phase7_cmdline_manifest.json": [
+        "phase7_cmdline_next_arg_vectors",
+    ],
+}
+
+SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(path: Path) -> str:
@@ -112,11 +122,21 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
-def validate(root: Path) -> tuple[list[str], list[str]]:
+def collect_forbidden_markers(root: Path) -> list[str]:
+    forbidden: list[str] = []
+    for rel, markers in FORBIDDEN_MARKERS.items():
+        text = read_text(root / rel)
+        for marker in markers:
+            if marker in text:
+                forbidden.append(f"{rel}: {marker}")
+    return forbidden
+
+
+def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
-        return missing_files, []
-    return missing_files, collect_missing_markers(root)
+        return missing_files, [], []
+    return missing_files, collect_missing_markers(root), collect_forbidden_markers(root)
 
 
 def write(path: Path, content: str) -> None:
@@ -130,22 +150,31 @@ def write_fixture_root(tmp_root: Path) -> None:
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, forbidden_markers = validate(tmp_root)
     assert missing_markers == [], case
+    assert forbidden_markers == [], case
     assert missing_files == [rel], case
 
 
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, forbidden_markers = validate(tmp_root)
     assert missing_files == [], case
+    assert forbidden_markers == [], case
     assert missing_markers == [marker], case
+
+
+def expect_forbidden_marker(case: str, tmp_root: Path, marker: str) -> None:
+    missing_files, missing_markers, forbidden_markers = validate(tmp_root)
+    assert missing_files == [], case
+    assert missing_markers == [], case
+    assert forbidden_markers == [marker], case
 
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_cmdline_packet_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
+        assert validate(tmp_root) == ([], [], [])
         cases_run = 0
 
         companion_path = tmp_root / "zigux" / "tests" / "phase7_cmdline.zig"
@@ -195,6 +224,17 @@ def run_self_test() -> None:
             "missing_slice_next_step_marker",
             tmp_root,
             f"Documentation/zigux/phase7-cmdline-slice.md: {slice_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_text = read_text(slice_path)
+        forbidden_fixture_marker = "phase7_cmdline_next_arg_vectors"
+        slice_path.write_text(slice_text + forbidden_fixture_marker + "\n", encoding="utf-8")
+        expect_forbidden_marker(
+            "stale_slice_fixture_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-cmdline-slice.md: {forbidden_fixture_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -299,6 +339,17 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest_text = read_text(manifest_path)
+        manifest_forbidden_marker = "phase7_cmdline_next_arg_vectors"
+        manifest_path.write_text(manifest_text + manifest_forbidden_marker + "\n", encoding="utf-8")
+        expect_forbidden_marker(
+            "stale_manifest_fixture_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_forbidden_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_survey.zig"
         survey_text = read_text(survey_path)
         survey_marker = 'const checker = try readRepoFile(allocator, checker_path);'
@@ -311,7 +362,6 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        companion_text = read_text(companion_path)
         survey_text = read_text(survey_path)
         survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
@@ -528,7 +578,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing_files, missing_markers = validate(args.repo_root)
+    missing_files, missing_markers, forbidden_markers = validate(args.repo_root)
     if missing_files:
         print("PHASE7_CMDLINE_PACKET=fail")
         print("MISSING_PHASE7_CMDLINE_FILES_START")
@@ -545,11 +595,23 @@ def main() -> int:
         print("MISSING_PHASE7_CMDLINE_MARKERS_END")
         return 1
 
+    if forbidden_markers:
+        print("PHASE7_CMDLINE_PACKET=fail")
+        print("FORBIDDEN_PHASE7_CMDLINE_MARKERS_START")
+        for item in forbidden_markers:
+            print(item)
+        print("FORBIDDEN_PHASE7_CMDLINE_MARKERS_END")
+        return 1
+
     print("PHASE7_CMDLINE_PACKET=pass")
     print(f"PHASE7_CMDLINE_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE7_CMDLINE_PACKET_REQUIRED_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE7_CMDLINE_PACKET_FORBIDDEN_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
     )
     return 0
 
