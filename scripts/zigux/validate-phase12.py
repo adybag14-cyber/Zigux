@@ -183,11 +183,10 @@ REQUIRED_MARKERS = {
         "The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
     ],
     VIRTIO_NET_SURVEY_PATH: [
-        "`PHASE12_STATUS=starter-present-post-reset-replay-followup`",
-        "lane owner: `P12-L02`",
-        "current `master` now also carries `drivers/net/virtio_net_post_reset_replay.zig`",
-        "the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet",
-        "while the post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route",
+        "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
+        "lane owner: `P12-L04`",
+        "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes; `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints",
+        "the shared Phase 12 build route includes the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity replays, and current `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12`",
         "the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
@@ -206,6 +205,13 @@ REQUIRED_MARKERS = {
         "rollback-only split machine-checkable",
         "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
     ],
+    VIRTIO_NET_SURVEY_PATH: [
+        "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
+        "lane owner: `P12-L04`",
+        "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes; `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints",
+        "the shared Phase 12 build route includes the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity replays, and current `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12`",
+        "the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity",
+    ],
     VIRTIO_NET_PACKET_CHECKER_PATH: [
         "PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass",
         "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -215,7 +221,7 @@ REQUIRED_MARKERS = {
         "phase12-virtio-net-post-reset-replay-tests",
     ],
     VIRTIO_NET_MANIFEST_PATH: [
-        '"lane_key": "P12-L02"',
+        '"lane_key": "P12-L04"',
         '"phase": "Phase 12"',
         '"anchor": "drivers/net/virtio_net.c"',
         '"id": "phase12-build-gate"',
