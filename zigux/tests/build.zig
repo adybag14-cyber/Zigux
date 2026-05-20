@@ -766,7 +766,7 @@ pub fn build(b: *std.Build) void {
         "test",
         "Run the shared Zigux tests-root survey smoke",
     );
-    test_step.dependOn(&phase1_hostToolsSmoke.step);
+    test_step.dependOn(&phase1_host_tools_smoke.step);
     test_step.dependOn(phase3_test_step);
     test_step.dependOn(&phase11_gpio_wdt_verify.step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
