@@ -358,6 +358,8 @@ pub const VirtioInputLab = struct {
 
         const slot_count_i64 = @as(i64, record.metadata.maximum) - @as(i64, record.metadata.minimum) + 1;
         if (slot_count_i64 <= 0) return error.MultitouchSlotCountInvalid;
+        if (record.metadata.maximum > std.math.maxInt(u16)) return error.MultitouchSlotCountTooLarge;
+        if (slot_count_i64 > std.math.maxInt(u16)) return error.MultitouchSlotCountTooLarge;
 
         self.multitouch_enabled = true;
         self.planned_multitouch_slots = @intCast(slot_count_i64);
@@ -662,4 +664,18 @@ test "phase10 virtio input registration preflight keeps non-multitouch devices b
     try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expect(summary.blocker == null);
     try std.testing.expect(summary.ready_for_registration);
+}
+
+test "phase10 virtio input rejects oversized multitouch slot metadata before enabling slots" {
+    var device = try VirtioInputLab.init("virtio-touch", "slot-overflow", 6, null);
+
+    try device.configureConfigBitmap(.ev_bits, ev_abs, &[_]u16{abs_mt_slot});
+    try device.configureAbsInfo(abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = @as(i32, std.math.maxInt(u16)) + 1,
+    });
+
+    try std.testing.expectError(error.MultitouchSlotCountTooLarge, device.planMultitouchSlots());
+    try std.testing.expectEqual(@as(u16, 0), device.planned_multitouch_slots);
+    try std.testing.expect(!device.multitouch_enabled);
 }
