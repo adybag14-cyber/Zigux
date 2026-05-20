@@ -41,8 +41,8 @@ It is a PMO release artifact, not a new replay route.
 
 Reread `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against current `zigux/Makefile`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`.
 
-Current repo reality shows the next smallest release-owned drift is `Documentation/zigux/README.md`: the docs root still stops before any Phase 12 release-packet summary even though the sequencing, readiness, closure, coordination, scripts-root, tests-root, and checker-backed support packet are already live on current `master`.
+Current repo reality already keeps `Documentation/zigux/README.md` aligned with the shared Phase 12 release packet, so that older docs-root entrypoint gap is now closed on `master`.
 
-Refresh that docs-root Phase 12 entrypoint first, then compare it against the shared PMO packet for the next non-fallback-only reminder drift.
+The next honest same-lane reread is therefore the shared release packet itself: compare `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` for the next one-file reminder or checker truthfulness drift before widening into driver-local, DMA, queueing, throughput, or recovery work.
 
-If that docs-root entrypoint is already repaired and only `Documentation/zigux/phase12-raw-github-coverage-survey.md` needs exact bridge-readback blob refresh, leave the shared release notes parked and let the neighboring `complex-drivers-infra` lane absorb that fallback-only evidence update first.
+If that shared packet already stays aligned and only `Documentation/zigux/phase12-raw-github-coverage-survey.md` needs another exact bridge-readback refresh, leave the release notes parked and let the neighboring fallback-overview lane absorb that evidence-only update first.
