@@ -123,6 +123,9 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries");
+    try expectContains(helper_companion, "nextArg keeps empty input borrowed from the caller slice");
+    try expectContains(helper_companion, "nextArg stays inside the first NUL for bare and key value tokens");
+    try expectContains(helper_companion, "nextArg keeps rest and remaining as the same borrowed suffix view");
     try expectContains(helper_companion, "phase 7 cmdline companion replays bare quoted-empty-token ownership");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries");
