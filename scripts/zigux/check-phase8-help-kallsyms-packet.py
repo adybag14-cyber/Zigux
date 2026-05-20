@@ -56,6 +56,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "shared validation overlap only",
+        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "weak-object `V` and `v` classes still follow the current C header contract",
     ),
     MAKEFILE: (
         "phase8-help-kallsyms-test:",
@@ -77,9 +79,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
     ),
     KALLSYMS_TEST: (
-        'test "phase 8 kallsyms docs keep the parked parser and symbol-boundary contract explicit"',
-        'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
-        'test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract"',
+        'test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit"',
+        'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
+        'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
 }
 
@@ -100,11 +102,7 @@ def _write(path: Path, text: str) -> None:
 
 
 def validate_root(root: Path) -> ValidationResult:
-    missing_files = [
-        path.as_posix()
-        for path in REQUIRED_FILES
-        if not (root / path).exists()
-    ]
+    missing_files = [path.as_posix() for path in REQUIRED_FILES if not (root / path).exists()]
     missing_markers: list[str] = []
     for relative_path, markers in FILE_MARKERS.items():
         path = root / relative_path
@@ -134,10 +132,7 @@ def emit_result(result: ValidationResult) -> int:
 
     print("PHASE8_HELP_KALLSYMS_PACKET=pass")
     print(f"PHASE8_HELP_KALLSYMS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE8_HELP_KALLSYMS_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in FILE_MARKERS.values())}"
-    )
+    print("PHASE8_HELP_KALLSYMS_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in FILE_MARKERS.values())}")
     return 0
 
 
@@ -160,108 +155,59 @@ def run_self_test() -> int:
 
         help_slice = root / HELP_SLICE
         original_help_slice = _read(help_slice)
-        help_slice.write_text(
-            original_help_slice.replace("parked help-and-kallsyms packet reviewable", "", 1),
-            encoding="utf-8",
-        )
+        help_slice.write_text(original_help_slice.replace("parked help-and-kallsyms packet reviewable", "", 1), encoding="utf-8")
         missing_help_slice_marker = validate_root(root)
-        expected_help_slice_marker = (
-            "Documentation/zigux/phase8-help-slice.md:"
-            "parked help-and-kallsyms packet reviewable"
-        )
+        expected_help_slice_marker = "Documentation/zigux/phase8-help-slice.md:parked help-and-kallsyms packet reviewable"
         if expected_help_slice_marker not in missing_help_slice_marker.missing_markers:
             raise AssertionError("expected missing help slice marker to be reported")
         help_slice.write_text(original_help_slice, encoding="utf-8")
 
         tests_readme = root / TESTS_README
         original_tests_readme = _read(tests_readme)
-        tests_readme.write_text(
-            original_tests_readme.replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`", "", 1),
-            encoding="utf-8",
-        )
+        tests_readme.write_text(original_tests_readme.replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`", "", 1), encoding="utf-8")
         missing_tests_readme_marker = validate_root(root)
-        expected_tests_readme_marker = (
-            "zigux/tests/README.md:`zigux/tests/phase8_help_kallsyms_only_build.zig`"
-        )
+        expected_tests_readme_marker = "zigux/tests/README.md:`zigux/tests/phase8_help_kallsyms_only_build.zig`"
         if expected_tests_readme_marker not in missing_tests_readme_marker.missing_markers:
             raise AssertionError("expected missing tests README marker to be reported")
         tests_readme.write_text(original_tests_readme, encoding="utf-8")
 
         help_test = root / HELP_TEST
         original_help_test = _read(help_test)
-        help_test.write_text(
-            original_help_test.replace(
-                'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        help_test.write_text(original_help_test.replace('test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"', "", 1), encoding="utf-8")
         missing_help_test_marker = validate_root(root)
-        expected_help_test_marker = (
-            "zigux/tests/phase8_help.zig:"
-            'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"'
-        )
+        expected_help_test_marker = 'zigux/tests/phase8_help.zig:test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"'
         if expected_help_test_marker not in missing_help_test_marker.missing_markers:
             raise AssertionError("expected missing help test marker to be reported")
         help_test.write_text(original_help_test, encoding="utf-8")
 
         kallsyms_test = root / KALLSYMS_TEST
         original_kallsyms_test = _read(kallsyms_test)
-        kallsyms_test.write_text(
-            original_kallsyms_test.replace(
-                'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        kallsyms_test.write_text(original_kallsyms_test.replace('test "phase 8 kallsyms wrappers preserve the parked callback contract"', "", 1), encoding="utf-8")
         missing_kallsyms_test_marker = validate_root(root)
-        expected_kallsyms_test_marker = (
-            "zigux/tests/phase8_kallsyms.zig:"
-            'test "phase 8 kallsyms evidence still matches the live C helper anchors"'
-        )
+        expected_kallsyms_test_marker = 'zigux/tests/phase8_kallsyms.zig:test "phase 8 kallsyms wrappers preserve the parked callback contract"'
         if expected_kallsyms_test_marker not in missing_kallsyms_test_marker.missing_markers:
             raise AssertionError("expected missing kallsyms test marker to be reported")
         kallsyms_test.write_text(original_kallsyms_test, encoding="utf-8")
 
         build_path = root / HELP_KALLSYMS_BUILD
         original_build = _read(build_path)
-        build_path.write_text(
-            original_build.replace("phase8_kallsyms.zig", "", 1),
-            encoding="utf-8",
-        )
+        build_path.write_text(original_build.replace("phase8_kallsyms.zig", "", 1), encoding="utf-8")
         missing_build_marker = validate_root(root)
-        expected_build_marker = (
-            "zigux/tests/phase8_help_kallsyms_only_build.zig:phase8_kallsyms.zig"
-        )
+        expected_build_marker = "zigux/tests/phase8_help_kallsyms_only_build.zig:phase8_kallsyms.zig"
         if expected_build_marker not in missing_build_marker.missing_markers:
             raise AssertionError("expected missing shared build marker to be reported")
         build_path.write_text(original_build, encoding="utf-8")
 
-        build_path.write_text(
-            original_build.replace(
-                "Run the focused Phase 8 help and kallsyms shared tests.",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        build_path.write_text(original_build.replace("Run the focused Phase 8 help and kallsyms shared tests.", "", 1), encoding="utf-8")
         missing_build_description = validate_root(root)
-        expected_build_description = (
-            "zigux/tests/phase8_help_kallsyms_only_build.zig:"
-            "Run the focused Phase 8 help and kallsyms shared tests."
-        )
+        expected_build_description = "zigux/tests/phase8_help_kallsyms_only_build.zig:Run the focused Phase 8 help and kallsyms shared tests."
         if expected_build_description not in missing_build_description.missing_markers:
             raise AssertionError("expected missing shared build description to be reported")
         build_path.write_text(original_build, encoding="utf-8")
 
         makefile = root / MAKEFILE
         original_makefile = _read(makefile)
-        makefile.write_text(
-            original_makefile.replace("phase8-help-kallsyms-test:\n", "", 1),
-            encoding="utf-8",
-        )
+        makefile.write_text(original_makefile.replace("phase8-help-kallsyms-test:\n", "", 1), encoding="utf-8")
         missing_route = validate_root(root)
         expected_route_marker = "zigux/Makefile:phase8-help-kallsyms-test:"
         if expected_route_marker not in missing_route.missing_markers:
@@ -270,16 +216,18 @@ def run_self_test() -> int:
 
         kallsyms_slice = root / KALLSYMS_SLICE
         original_slice = _read(kallsyms_slice)
-        kallsyms_slice.write_text(
-            original_slice.replace("shared validation overlap only", "", 1),
-            encoding="utf-8",
-        )
+        kallsyms_slice.write_text(original_slice.replace("shared validation overlap only", "", 1), encoding="utf-8")
         missing_slice_marker = validate_root(root)
-        expected_slice_marker = (
-            "Documentation/zigux/phase8-kallsyms-slice.md:shared validation overlap only"
-        )
+        expected_slice_marker = "Documentation/zigux/phase8-kallsyms-slice.md:shared validation overlap only"
         if expected_slice_marker not in missing_slice_marker.missing_markers:
             raise AssertionError("expected missing kallsyms slice marker to be reported")
+        kallsyms_slice.write_text(original_slice, encoding="utf-8")
+
+        kallsyms_slice.write_text(original_slice.replace("oversized symbol names now truncate to `KSYM_NAME_LEN`", "", 1), encoding="utf-8")
+        missing_truncation_marker = validate_root(root)
+        expected_truncation_marker = "Documentation/zigux/phase8-kallsyms-slice.md:oversized symbol names now truncate to `KSYM_NAME_LEN`"
+        if expected_truncation_marker not in missing_truncation_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms truncation marker to be reported")
         kallsyms_slice.write_text(original_slice, encoding="utf-8")
 
         missing_source = root / KALLSYMS_SOURCE
@@ -290,7 +238,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
