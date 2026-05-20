@@ -6,7 +6,6 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 - shared control-surface packet, lane `P7-Y05`:
   - `Documentation/zigux/phase7-helper-lane-sequencing.md`
-  - `Documentation/zigux/phase7-string-helpers-slice.md`
   - `Documentation/zigux/phase7-shared-control-review-checkpoint.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
@@ -18,6 +17,16 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
   - parked shared reminder paths: `scripts/zigux/check-phase7-make-wrapper.py` and `zigux/tests/phase7_build.zig`
+
+- string_helpers packet, helper-local lane family:
+  - `Documentation/zigux/phase7-string-helpers-slice.md`
+  - `lib/string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers_survey.zig`
+  - `zigux/tests/phase7_string_helpers_manifest.json`
+  - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
+  - `scripts/zigux/check-phase7-string-helpers-packet.py`
+  - scheduled lane-family note: keep helper-local `string_helpers` slice, helper, dedicated replay, survey, manifest, sample-boundary, and checker drift out of `P7-Y05`; only route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, or shared-build reminders back to the shared-control packet
 
 - argv-split packet, lane `P7-L09`:
   - `Documentation/zigux/phase7-argv-split-slice.md`
@@ -54,6 +63,8 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 - the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml` and `zigux/Makefile`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold but still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, and the still-absent broader wrapper boundaries instead of claiming the older build-and-test routes have returned.
 
+- `string_helpers` currently survives through `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `scripts/zigux/check-phase7-string-helpers-packet.py`. Fresh helper-local reread for this slot confirmed those helper-local surfaces now directly materialize on current `master`, so keep `Documentation/zigux/phase7-string-helpers-slice.md` with the string_helpers helper-local lane family instead of the shared-control packet while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay routed to `P7-Y05`.
+
 - `argv_split` currently survives through `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`. Fresh helper-local reread for this slot confirmed the dedicated fixture vectors have now returned on current `master`, so `P7-L09` should treat the slice-helper-test-fixture-survey-manifest-checker packet as the current same-lane packet instead of carrying the fixture as a missing follow-on.
 
 - `cmdline` currently survives through `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and the no-standalone-cmdline-sample boundary in `samples/zigux/README.md`. Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`, so `P7-L10` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.
@@ -64,6 +75,7 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 - Treat scheduled lane `P7-Y07` as the argv-split alias for `P7-L09`; if a scheduled run starts under `P7-Y07`, keep the work inside the currently returned `argv_split` slice, helper, dedicated test, dedicated fixture, survey, manifest, and checker surfaces.
 - `P7-Y05` owns only shared validator, scripts-root, sample-root, tests-root, make-wrapper, and build-route truthfulness.
+- The helper-local string_helpers family owns `Documentation/zigux/phase7-string-helpers-slice.md`; do not route string_helpers helper, dedicated replay, survey, manifest, sample-boundary, or checker drift through `P7-Y05` just because the shared-control packet still rereads docs-root, tests-root, sample-root, validator, Makefile, workflow, or shared-build reminder files.
 - `P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift; because the current slot could directly reread `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`, keep same-lane work inside those returned surfaces.
 - `P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift; because the current slot could directly reread `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and the cmdline no-sample boundary in `samples/zigux/README.md`, keep same-lane work inside those returned surfaces.
 - `P7-L13` owns only rbtree direct-anchor-note, tool-root helper, dedicated replay, survey, manifest, or missing-surface reminder drift; because the current slot could directly reread `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, and `zigux/tests/phase7_rbtree_manifest.json` while the dedicated slice, fixture pair, parity checker, and roadmap-path `lib/rbtree.zig` still return 404 on current `master`, keep same-lane work inside that direct-readback fallback packet and keep the still-missing helper-local surfaces plus the broader `phase7-test` and `phase7` routes framed as parked reminder vocabulary.
@@ -71,6 +83,7 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 ## Next Bounded Step
 
+- If the drift is a string_helpers helper-local surface, keep the change inside `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, or `scripts/zigux/check-phase7-string-helpers-packet.py`; route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders back to `P7-Y05`.
 - If the drift is a partially returned `argv_split` surface, keep the change inside `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, or `scripts/zigux/check-phase7-argv-split-packet.py` while the helper-local packet stays the lane owner.
 - If the drift is a partially returned `cmdline` surface, keep the change inside `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, or `samples/zigux/README.md` while the helper-local packet stays the lane owner.
 - If the drift is the current `rbtree` fallback packet, keep the change inside `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, or `zigux/tests/phase7_rbtree_manifest.json` until a fresh same-lane reread proves one more helper-local surface has rematerialized on current `master`.
