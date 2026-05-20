@@ -32,23 +32,24 @@ ROLLBACK_THRESHOLD_MARKER = (
     "recovered documentation packet, the directly readable validator path, the "
     "readable current Makefile body, the directly readable release-boundary "
     "exact-count guard, the directly readable workqueue boundary shard, and the "
-    "still-missing executable packet members"
+    "still-missing broader wrapper-backed rerun routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
     "gap notes until the broader shared reminder packet stops treating the "
-    "current Makefile body as if it lacked `phase14-validate` or as if it "
-    "still shipped `phase14-smoke`, `phase14-test`, and `phase14`, and until "
-    "the missing executable packet members above return through exact current-"
-    "`master` contents readback; once they do, rerun the packet-local commands "
-    "below before restoring any stronger validator-first claim"
+    "current Makefile body as if it still shipped `phase14-smoke`, "
+    "`phase14-test`, and `phase14`, and until the build-side and broader "
+    "executable packet members return through exact current-`master` readback; "
+    "once they do, rerun the packet-local commands below before restoring any "
+    "stronger validator-first claim"
 )
 ROLLBACK_TRIGGER_MARKERS = [
     "    * recovered documentation packet drift",
     "    * validator-versus-reminder-surface drift",
     "    * workqueue-boundary-shard drift",
-    "    * executable packet member drift",
-    "    * anchor-local reminder drift",
+    "    * wrapper-route drift",
+    "    * build-side exact-readback-gap drift",
+    "    * broader executable-layer exact-readback-gap drift",
     "    * attached-toolchain guidance drift inside the shared smoke note",
 ]
 HISTORICAL_ROUTE_VOCABULARY_MARKERS = [
@@ -311,12 +312,12 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             fixture_smoke_note().replace(
-                "    * executable packet member drift\n",
+                "    * wrapper-route drift\n",
                 "",
                 1,
             ),
         )
-        if not any("executable packet member drift" in error for error in check(root)):
+        if not any("wrapper-route drift" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
             print("expected trigger-catalog drift to fail")
             return 1
