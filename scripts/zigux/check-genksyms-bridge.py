@@ -19,6 +19,7 @@ EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
 )
 
 HELP_USAGE = (
@@ -269,6 +270,11 @@ def build_self_test_root(root: Path) -> None:
                     "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
                     "expected_file": "positional_passthrough_expected.json",
                 },
+                {
+                    "name": "explicit_option_terminator",
+                    "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
+                    "expected_file": "explicit_option_terminator_expected.json",
+                },
             ],
             indent=2,
         )
@@ -280,6 +286,7 @@ def build_self_test_root(root: Path) -> None:
         "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json": ["--debug", "--dump", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
         "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json": ["--warnings", "--quiet", "--reference", "bar.symref"],
         "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json": ["-d", "leftover.c", "--", "--leftover", "positional"],
     }.items():
         write_text(root, rel, json.dumps(parse_args(argv), indent=2) + "\n")
 
