@@ -309,14 +309,14 @@ EXPECTED_OUTPUTS = {
         "argv": ["scripts/genksyms/genksyms"],
         "options": {
             "debug_level": 0,
-            "warnings": false,
-            "dump_defs": false,
-            "preserve": false,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": False,
             "reference_files": [],
-            "dump_types_file": null,
+            "dump_types_file": None,
         },
     },
-    {
+    "debug_reference_types_expected.json": {
         "tool": "scripts/genksyms/genksyms",
         "stdin": "cpp-stream",
         "stdout": "symversions",
@@ -336,9 +336,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 2,
-            "warnings": true,
-            "dump_defs": true,
-            "preserve": true,
+            "warnings": True,
+            "dump_defs": True,
+            "preserve": True,
             "reference_files": ["foo.symref", "bar.symref"],
             "dump_types_file": "out.symtypes",
         },
@@ -359,9 +359,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 1,
-            "warnings": false,
-            "dump_defs": false,
-            "preserve": true,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": True,
             "reference_files": ["foo.symref"],
             "dump_types_file": "types.symtypes",
         },
@@ -382,9 +382,9 @@ EXPECTED_OUTPUTS = {
         ],
         "options": {
             "debug_level": 1,
-            "warnings": false,
-            "dump_defs": false,
-            "preserve": true,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": True,
             "reference_files": ["foo.symref"],
             "dump_types_file": "types.symtypes",
         },
@@ -476,11 +476,11 @@ EXPECTED_OUTPUTS = {
         "argv": ["scripts/genksyms/genksyms", "-w", "-q"],
         "options": {
             "debug_level": 0,
-            "warnings": false,
-            "dump_defs": false,
-            "preserve": false,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": False,
             "reference_files": [],
-            "dump_types_file": null,
+            "dump_types_file": None,
         },
     },
 }
@@ -678,7 +678,7 @@ def build_self_test_root(root: Path) -> None:
     (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
     (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
     (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
-    (root / GENKSYMS_HARNESS_REL).writeText("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
+    (root / GENKSYMS_HARNESS_REL).write_text("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
     (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
     for name, payload in EXPECTED_OUTPUTS.items():
         (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
