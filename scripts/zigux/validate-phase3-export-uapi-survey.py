@@ -47,9 +47,11 @@ REQUIRED_MARKERS = {
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
         "- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.",
         "- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.",
+        "- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet, including both the `zigux_uapi_boundary_header_*()` relays and the Linux-facing `zigux_boundary_header_*()` compatibility aliases as thin wrappers instead of a second ownership root.",
         "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
         "Current `master` now directly serves `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet, and `scripts/zigux/check-phase3-catalog-selftest.py` as the dedicated guard that keeps the catalog helper's export/UAPI self-test markers fail-closed.",
         "Current `master` no longer shows a separate packet-local repo-reality gap for this starter export/UAPI packet.",
+        "Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion inside the packet itself.",
         "This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, and the returned catalog-selftest guard explicit as shipped same-family companions while continuing to avoid broader UAPI claims.",
     ),
     VALIDATOR_PATH: (
@@ -226,6 +228,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet, including both the `zigux_uapi_boundary_header_*()` relays and the Linux-facing `zigux_boundary_header_*()` compatibility aliases as thin wrappers instead of a second ownership root.",
+            "expected missing survey linux-header alias marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
             "expected missing survey layout relay marker was not reported",
         ),
@@ -238,6 +245,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
             "expected missing catalog-selftest guard marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion inside the packet itself.",
+            "expected missing roadmap-gap marker was not reported",
         ),
         (
             VALIDATOR_PATH,
