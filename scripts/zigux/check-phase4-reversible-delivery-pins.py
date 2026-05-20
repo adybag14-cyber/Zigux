@@ -26,20 +26,20 @@ EXPECTED_ARCHIVAL_SHA_LINES = (
 EXPECTED_CURRENT_HEAD_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=2529b35c9bfd2f750855db97cdc4ef2ba19b10b2`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=d8dd59e152e1d8c6be1278c976d3c54ab0786947`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=bc41b6af9d52b6af7de23737c1baba65f2419797`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA=59cf504020bf24f98d9b61ca05d3b66cb4fbc97a`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_SCRIPTS_README_BLOB_SHA=8b37001c3204e1ee89ab0f4e8f189f0516e1aaa1`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=6a56c502280d4ff33a58141e91a231f9968b1851`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=f2c6e213e20aa738914dd42abe76bd45e61cbc6a`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA=b19f58c82eeeacad6156c6fc3a398c52d8a546fa`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_SCRIPTS_README_BLOB_SHA=5acd6b1fd9db70bce8bd152194a58aab2c184eae`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=02fff445cf5c9be68eb169ffacd8f4c7c25fb5c9`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=7388f3faf59a7decbda49f35a7532faaa7abbf40`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=065a43cd4984f898207e5a9a3ff9434ecaa2adca`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=984085b3db4de17e86646b0c1463ee6224bd8efc`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=a81a8b754d25c728d0f1b0334fca8752fa594379`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=4760aab84afe7c311d6d2260b887e09849849a92`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=18120c3d7244fb4c71450740c0f4aa336ba684b4`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=4c55640a6ea0e267d5f7dff5bc19fae1e8a811f4`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=c535d9f78360e0c3dfd4b93f8f01b1f4b4dd89b8`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=d6c5e647c33a8034d00a06fcb190d0fc484f55cb`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=11f2e26e0de96bbf8e327fca7409b732a090c5bb`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=aeb0cfb34be8e590703147c0e2fc77e1536fd759`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=7aa1ad4f41b5f7c7474ceac97c632bd8037e9714`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=75c533b819a0bb422e69c92a33a23da7c04d5af1`",
 )
 
@@ -140,11 +140,11 @@ def baseline_note() -> str:
 def baseline_repo_warning() -> str:
     return "\n".join([
         "#!/usr/bin/env python3",
-        'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
+        'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"',
         "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
         "EXPECTED_PIN_SELF_TEST_CASES = 18",
-        '\"scripts/zigux/check-phase4-reversible-delivery-pins.py\"',
-        '\"scripts/zigux/check-phase4-perf-baseline-packet.py\"',
+        '\\"scripts/zigux/check-phase4-reversible-delivery-pins.py\\"',
+        '\\"scripts/zigux/check-phase4-perf-baseline-packet.py\\"',
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff.",
@@ -186,7 +186,7 @@ def run_self_test() -> int:
             (NOTE, ATOMIC64_RETURNED_SENTENCE, "Atomic64 return wording drifted."),
             (NOTE, "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, the roadmap-backed `atomic64_diff` pair, and the now-returned validator, build, and bitmap replay companions, while exact blob-pin refresh for those broader companions remains the remaining authenticated-readback gap in this handoff.", "Follow-up wording drifted."),
             (REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 18", "EXPECTED_PIN_SELF_TEST_CASES = 12"),
-            (REPO_REALITY_WARNING, '\"scripts/zigux/check-phase4-reversible-delivery-pins.py\"', '\"scripts/zigux/check-phase4-other-file.py\"'),
+            (REPO_REALITY_WARNING, '\\"scripts/zigux/check-phase4-reversible-delivery-pins.py\\"', '\\"scripts/zigux/check-phase4-other-file.py\\"'),
         )
         for rel, old, new in mutations:
             build_baseline_tree(root)
