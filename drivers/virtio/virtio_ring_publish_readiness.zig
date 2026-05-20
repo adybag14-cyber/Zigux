@@ -112,3 +112,32 @@ test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced e
     try std.testing.expect(summary.blocker == null);
     try std.testing.expect(queueCanPublish(summary));
 }
+
+test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .packed_ring, true, true);
+
+    inline for (0..8) |_| {
+        try ring.publishDescriptorChain(6);
+    }
+
+    _ = try ring.markBroken(6);
+    var summary = try summarizePublishReadiness(&ring, 6);
+    try std.testing.expect(summary.broken);
+    try std.testing.expectEqual(@as(u16, 8), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.available_descriptor_count);
+    try std.testing.expectEqualStrings("queue_broken", @tagName(summary.blocker.?));
+    try std.testing.expect(!queueCanPublish(summary));
+    try std.testing.expect(!queueHasPublishCapacity(summary));
+
+    _ = try ring.clearBroken(6);
+    summary = try summarizePublishReadiness(&ring, 6);
+    try std.testing.expect(!summary.broken);
+    try std.testing.expectEqual(@as(u16, 8), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.available_descriptor_count);
+    try std.testing.expectEqualStrings("queue_full", @tagName(summary.blocker.?));
+    try std.testing.expect(!queueCanPublish(summary));
+    try std.testing.expect(!queueHasPublishCapacity(summary));
+}
