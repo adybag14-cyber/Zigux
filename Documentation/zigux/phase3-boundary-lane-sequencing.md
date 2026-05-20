@@ -79,6 +79,8 @@ This note records the current scripts-root sequencing boundary for the bounded P
 
 Current Phase 3 follow-through is a boundary-discipline problem, not a license to widen the ABI packet. The live tree now carries enough directly readable starter, helper-local, xarray-slot, policy, low-level-wrapper, adjacent export/UAPI reminder, linux-facing header governance, shared ABI catalog helper, manifest-backed ABI inventory, layout replay, scripts-root validator surfaces, and the bounded header-family survey validator-and-note companions to keep one bounded review packet honest. That still does not justify broader catalog-selftest or replay claims, and the readable export/UAPI survey note plus its packet-local validator, the linux-facing header governance note, and the bounded header-family survey note should stay treated as adjacent reminder surfaces rather than as proof that the wider shared ABI validator family has returned.
 
+Legacy scheduled aliases `P3-Y10` and `P3-X10` should stay treated as the same shared anti-overlap owner-map lane now tracked under `P3-X12`, so they do not read as separate substrate packet owners beside the narrower helper-local and validator-local follow-through lanes.
+
 That means the safe same-lane sequencing rule is to keep Phase 3 work on directly coupled truthfulness, manifest, validator, or reminder repairs inside the already materialized packet. Missing broader Phase 3 routes should stay framed as repo-reality gaps until the files actually return on `master`.
 
 ## Scope
