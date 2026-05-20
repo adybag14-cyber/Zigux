@@ -57,6 +57,10 @@ GENKSYMS_QUIET_REL = Path("zigux/tests/fixtures/genksyms_bridge/quiet_overrides_
 GENKSYMS_TERMINATOR_REL = Path("zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json")
 GENKSYMS_POSITIONAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json")
 GENKSYMS_LONE_DASH_REL = Path("zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json")
+LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL = Path("scripts/zigux/check-lane05-local-first-archive-workflow.py")
+LOCAL_ARCHIVE_README_CHECKER_REL = Path("scripts/zigux/check-lane05-local-archive-readme.py")
+ARCHIVE_README_REL = Path("third_party/README.md")
+ARCHIVE_PAYLOAD_REL = Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
 
 REQUIRED_FILES = (
     WORKFLOW_REL,
@@ -64,6 +68,8 @@ REQUIRED_FILES = (
     PHASE2_BOOTSTRAP_NOTES_REL,
     PHASE2_VALIDATE_REL,
     PHASE2_CLOSURE_VALIDATE_REL,
+    LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL,
+    LOCAL_ARCHIVE_README_CHECKER_REL,
     INSTALL_ZIG_REL,
     TOOLCHAIN_CHECKER_REL,
     PINNING_CHECKER_REL,
@@ -86,6 +92,8 @@ REQUIRED_FILES = (
     CONFDATA_BRIDGE_REL,
     GENKSYMS_BRIDGE_REL,
     FIXDEP_BRIDGE_REL,
+    ARCHIVE_README_REL,
+    ARCHIVE_PAYLOAD_REL,
     MAKEFILE_REL,
     MANIFEST_REL,
     ARTIFACT_MANIFEST_REL,
@@ -111,9 +119,15 @@ REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`third_party/README.md`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/genksyms.zig`",
@@ -136,6 +150,13 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
     "`python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
     "`python3 scripts/zigux/check-kconfig-bridge.py`",
     "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
@@ -168,6 +189,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
@@ -175,6 +200,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
@@ -241,6 +268,25 @@ REQUIRED_MAKEFILE_LINES = (
 )
 
 EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("scripts/zigux/install-zig.py",)
+EXPECTED_MANIFEST_REVIEW_SURFACES = (
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/README.md",
+)
+EXPECTED_MANIFEST_CLOSURE_NOTES = (
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+)
+EXPECTED_MANIFEST_VALIDATORS = (
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+)
+EXPECTED_MANIFEST_POLICY = ("scripts/zigux/zig-toolchain-policy.json",)
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (
+    "third_party/README.md",
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+)
 EXPECTED_MANIFEST_CROSS_SUPPORT = (
     "scripts/zigux/check-phase2-cross.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -271,6 +317,17 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
 )
 EXPECTED_MANIFEST_CHECKERS = (
+    "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pinning.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-kconfig-bridge.py",
@@ -357,8 +414,8 @@ EXPECTED_CONF_CASE_DETAILS = [
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
-    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
-    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
+    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
@@ -420,10 +477,8 @@ EXPECTED_CONF_MANIFEST = {
     "randconfig_env_packet": ["randconfig_expected.json"],
 }
 
-
 def resolve(root: Path, rel: Path) -> Path:
     return root / rel
-
 
 def read_text(path: Path) -> str:
     try:
@@ -431,11 +486,9 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def read_json(path: Path) -> object:
     try:
@@ -443,10 +496,8 @@ def read_json(path: Path) -> object:
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
 
-
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
 
 def require_manifest_list(issues: list[tuple[str, str]], manifest: dict[str, object], key: str) -> list[str] | None:
     value = manifest.get("present_surfaces")
@@ -465,37 +516,26 @@ def require_manifest_list(issues: list[tuple[str, str]], manifest: dict[str, obj
         normalized.append(item)
     return normalized
 
-
 def collect_conf_packet_issues(issues: list[tuple[str, str]], kconfig_cases: object, conf_manifest: object) -> None:
     if not isinstance(kconfig_cases, dict):
-        issues.append(("INVALID_KCONFIG_CASES_SHAPE", "root"))
-    else:
-        conf_cases = kconfig_cases.get("conf_cases")
-        if not isinstance(conf_cases, list):
-            issues.append(("INVALID_KCONFIG_CASES_SHAPE", "conf_cases"))
-        elif conf_cases != EXPECTED_CONF_CASE_DETAILS:
-            issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
-
-    if not isinstance(conf_manifest, dict):
-        issues.append(("INVALID_CONF_MANIFEST_SHAPE", "root"))
+        issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
         return
-
+    if not isinstance(conf_manifest, dict):
+        issues.append(("CONF_MANIFEST_MISMATCH", "root"))
+        return
+    conf_cases = kconfig_cases.get("conf_cases")
+    if conf_cases != EXPECTED_CONF_CASE_DETAILS:
+        issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
     for key, expected in EXPECTED_CONF_MANIFEST.items():
         if conf_manifest.get(key) != expected:
             issues.append(("CONF_MANIFEST_MISMATCH", key))
 
-
 def collect_genksyms_packet_issues(issues: list[tuple[str, str]], genksyms_cases: object) -> None:
-    if not isinstance(genksyms_cases, list):
-        issues.append(("INVALID_GENKSYMS_CASES_SHAPE", "root"))
-        return
     if genksyms_cases != EXPECTED_GENKSYMS_CASES:
         issues.append(("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
 
-
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-
     for rel in REQUIRED_FILES:
         if not resolve(root, rel).exists():
             issues.append(("MISSING_REQUIRED_FILE", rel.as_posix()))
@@ -544,6 +584,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker in manifest_gaps:
             issues.append(("FORBIDDEN_MANIFEST_GAP", marker))
 
+    review_surfaces = require_manifest_list(issues, manifest, "review_surfaces")
+    closure_notes = require_manifest_list(issues, manifest, "closure_notes")
+    validators = require_manifest_list(issues, manifest, "validators")
     bootstrap_helpers = require_manifest_list(issues, manifest, "bootstrap_helpers")
     cross_support = require_manifest_list(issues, manifest, "cross_route_support")
     artifact_support = require_manifest_list(issues, manifest, "artifact_support")
@@ -552,7 +595,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     make_wrappers = require_manifest_list(issues, manifest, "make_wrappers")
     checkers = require_manifest_list(issues, manifest, "checkers")
     bridge_helpers = require_manifest_list(issues, manifest, "bridge_helpers")
+    policy = require_manifest_list(issues, manifest, "policy")
+    archive_support = require_manifest_list(issues, manifest, "archive_support")
 
+    if review_surfaces is not None:
+        for marker in EXPECTED_MANIFEST_REVIEW_SURFACES:
+            if marker not in review_surfaces:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"review_surfaces:{marker}"))
+    if closure_notes is not None:
+        for marker in EXPECTED_MANIFEST_CLOSURE_NOTES:
+            if marker not in closure_notes:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"closure_notes:{marker}"))
+    if validators is not None:
+        for marker in EXPECTED_MANIFEST_VALIDATORS:
+            if marker not in validators:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"validators:{marker}"))
     if bootstrap_helpers is not None:
         for marker in EXPECTED_MANIFEST_BOOTSTRAP_HELPERS:
             if marker not in bootstrap_helpers:
@@ -594,11 +651,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in EXPECTED_MANIFEST_BRIDGE_HELPERS:
             if marker not in bridge_helpers:
                 issues.append(("MISSING_MANIFEST_SURFACE", f"bridge_helpers:{marker}"))
+    if policy is not None:
+        for marker in EXPECTED_MANIFEST_POLICY:
+            if marker not in policy:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"policy:{marker}"))
+    if archive_support is not None:
+        for marker in EXPECTED_MANIFEST_ARCHIVE_SUPPORT:
+            if marker not in archive_support:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"archive_support:{marker}"))
 
     collect_conf_packet_issues(issues, kconfig_cases, conf_manifest)
     collect_genksyms_packet_issues(issues, genksyms_cases)
     return issues
-
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
@@ -612,7 +676,6 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
             print(value)
         print(f"{code}_END")
     return 1
-
 
 def build_self_test_root(root: Path) -> None:
     closure_text = """# Phase 2 Closure
@@ -629,9 +692,15 @@ def build_self_test_root(root: Path) -> None:
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `scripts/zigux/check-phase2-tool-manifest.py`
 - `scripts/zigux/check-phase2-artifact-tools-manifest.py`
+- `scripts/zigux/check-lane05-local-first-archive-workflow.py`
+- `scripts/zigux/check-lane05-local-archive-readme.py`
 - `scripts/zigux/check-genksyms-bridge.py`
 - `scripts/zigux/check-phase2-fixdep-gate.py`
 - `scripts/zigux/check-fixdep-diff.py`
+- `scripts/zigux/install-zig.py`
+- `scripts/zigux/check-phase2-cross.py`
+- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `third_party/README.md`
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/genksyms.zig`
@@ -663,6 +732,13 @@ The current closure-side packet keeps the fixdep governance and parity checker p
 ## Closure Validation
 
 - `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
+- `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`
+- `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`
+- `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`
+- `python3 scripts/zigux/check-lane05-local-archive-readme.py`
+- `python3 scripts/zigux/install-zig.py --self-test`
+- `python3 scripts/zigux/check-phase2-cross.py --self-test`
+- `python3 scripts/zigux/check-phase2-cross.py`
 - `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 - `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
@@ -728,13 +804,16 @@ The current closure-side packet keeps the fixdep governance and parity checker p
                 "scripts/zigux/check-phase2-docs-shared-reminder.py",
                 "scripts/zigux/check-phase2-tool-manifest.py",
                 "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+                "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+                "scripts/zigux/check-lane05-local-archive-readme.py",
                 "scripts/zigux/check-genksyms-bridge.py",
                 "scripts/zigux/check-phase2-fixdep-gate.py",
                 "scripts/zigux/check-fixdep-diff.py",
             ],
             "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
-            "policy": ["scripts/zigux/zig-toolchain-policy.json"],
+            "policy": list(EXPECTED_MANIFEST_POLICY),
+            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
             "make_wrappers": [
                 "zigux/Makefile",
                 "make -C zigux phase2-toolchain",
@@ -767,6 +846,8 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, PHASE2_BOOTSTRAP_NOTES_REL), "present\n")
     write_text(resolve(root, PHASE2_VALIDATE_REL), "present\n")
     write_text(resolve(root, PHASE2_CLOSURE_VALIDATE_REL), "present\n")
+    write_text(resolve(root, LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL), "present\n")
+    write_text(resolve(root, LOCAL_ARCHIVE_README_CHECKER_REL), "present\n")
     write_text(resolve(root, INSTALL_ZIG_REL), "present\n")
     write_text(resolve(root, TOOLCHAIN_CHECKER_REL), "present\n")
     write_text(resolve(root, PINNING_CHECKER_REL), "present\n")
@@ -789,6 +870,8 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, CONFDATA_BRIDGE_REL), "present\n")
     write_text(resolve(root, GENKSYMS_BRIDGE_REL), "present\n")
     write_text(resolve(root, FIXDEP_BRIDGE_REL), "present\n")
+    write_text(resolve(root, ARCHIVE_README_REL), "present\n")
+    write_text(resolve(root, ARCHIVE_PAYLOAD_REL), "present\n")
     write_text(resolve(root, MAKEFILE_REL), "\n".join(makefile_lines) + "\n")
     write_text(resolve(root, MANIFEST_REL), json.dumps(manifest, indent=2) + "\n")
     write_text(resolve(root, ARTIFACT_MANIFEST_REL), "{}\n")
@@ -808,12 +891,10 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, GENKSYMS_POSITIONAL_REL), "{}\n")
     write_text(resolve(root, GENKSYMS_LONE_DASH_REL), "{}\n")
 
-
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
-
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
@@ -823,7 +904,6 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
-
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -831,7 +911,6 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -862,6 +941,14 @@ def run_self_test() -> int:
         path = resolve(root, MAKEFILE_REL)
         path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "# removed"), encoding="utf-8")
         assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["archive_support"] = []
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_MANIFEST_SURFACE", "archive_support:third_party/README.md") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -915,7 +1002,6 @@ def run_self_test() -> int:
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 2 closure note against the shipped closure packet.")
