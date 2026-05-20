@@ -34,7 +34,7 @@ MANIFEST_MARKERS = [
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
     '"status": "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
-    '"status": "throughput_parity_helper_present_runtime_completion_missing"',
+    '"status": "throughput_parity_helper_present_review_only_runtime_completion_missing"',
     '"status": "split_helper_packet_direct_replays_present_shared_route_complete"',
     '"id": "phase12-build-gate"',
     '"status": "shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays"',
@@ -45,7 +45,7 @@ MANIFEST_MARKERS = [
 ]
 
 SURVEY_NOTE_MARKERS = [
-    "`PHASE12_STATUS=split-helper-packet-present-shared-build-quartet`",
+    "`PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only`",
     "lane owner: `P12-L04`",
     "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
@@ -53,21 +53,24 @@ SURVEY_NOTE_MARKERS = [
     "drivers/net/virtio_net_throughput_parity.zig",
     "summarizePostResetReplay()",
     "summarizeThroughputParity()",
+    "review-only throughput-ratio checks",
+    "not measured transport throughput evidence",
     "current `master` does not carry the older monolithic `drivers/net/virtio_net.zig` starter",
     "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes",
     "the shared Phase 12 build route reruns that quartet",
     "still does not claim live DMA-safe receive ownership",
+    "performance-risk wording refresh",
 ]
 
 SURVEY_GATE_MARKERS = [
-    "phase12 virtio net survey manifest tracks the shared-build quartet truthfully",
+    "phase12 virtio net survey manifest tracks the shared-build quartet and throughput-review boundary truthfully",
     "phase12 virtio net survey note reflects the quartet and preserved non-goals",
     "phase12 virtio net survey gate keeps the present files and shared routes explicit",
     "phase12 virtio net survey gate keeps throughput and transmit helper markers explicit",
     'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
     '"split_helper_packet_direct_replays_present_shared_route_complete"',
     '"shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays"',
-    'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet");',
+    'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only");',
     'try expectContains(survey_note, "lane owner: `P12-L04`");',
     'try expectContains(build_zig, "phase12_virtio_net_post_reset_replay.zig");',
     'try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");',
@@ -194,7 +197,7 @@ def make_fixture_tree(root: Path) -> None:
                         "status": "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"
                     },
                     "throughput_and_recovery_parity": {
-                        "status": "throughput_parity_helper_present_runtime_completion_missing"
+                        "status": "throughput_parity_helper_present_review_only_runtime_completion_missing"
                     },
                     "segmented_rollout": {
                         "status": "split_helper_packet_direct_replays_present_shared_route_complete"
