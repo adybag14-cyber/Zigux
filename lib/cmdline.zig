@@ -708,6 +708,15 @@ test "nextArg keeps quoted empty values explicit without swallowing the next tok
     try std.testing.expectEqualStrings("next", parsed.remaining);
 }
 
+test "nextArg keeps unterminated quoted values inside the current token" {
+    const parsed = nextArg("console=\"ttyS0,115200 root=/dev/vda");
+    try std.testing.expectEqualStrings("console", parsed.param);
+    try std.testing.expectEqualStrings("ttyS0,115200 root=/dev/vda", parsed.value.?);
+    try std.testing.expectEqualStrings("", parsed.rest);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(parsed.rest.ptr)), @as(usize, @intFromPtr(parsed.remaining.ptr)));
+}
+
 test "nextArg keeps parameter and value slices borrowed from caller storage" {
     var quoted_value = [_]u8{
         'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', ' ', 'q', 'u', 'i', 'e', 't', 0,
