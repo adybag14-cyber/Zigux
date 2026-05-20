@@ -187,6 +187,23 @@ pub const WatchdogDrvdataCheckpointSummary = struct {
     blocked_on_reboot_glue: bool,
 };
 
+pub const RegistrationIntentCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    always_running: bool,
+    timeout_init_requested: bool,
+    nowayout_from_module_param: bool,
+    stop_on_reboot_requested: bool,
+    pre_registration_start_requested: bool,
+    timeout_init_stays_before_nowayout: bool,
+    nowayout_stays_before_stop_on_reboot: bool,
+    stop_on_reboot_stays_before_pre_registration_start: bool,
+    pre_registration_start_stays_before_registration: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const NowayoutPolicySummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -575,6 +592,25 @@ pub const GpioWatchdogLab = struct {
         return self.platformDrvdataCheckpointSummary();
     }
 
+    pub fn registrationIntentCheckpointSummary(self: *const Self, nowayout: bool) RegistrationIntentCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .always_running = self.always_running,
+            .timeout_init_requested = true,
+            .nowayout_from_module_param = nowayout,
+            .stop_on_reboot_requested = true,
+            .pre_registration_start_requested = self.always_running,
+            .timeout_init_stays_before_nowayout = true,
+            .nowayout_stays_before_stop_on_reboot = true,
+            .stop_on_reboot_stays_before_pre_registration_start = true,
+            .pre_registration_start_stays_before_registration = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
     pub fn nowayoutPolicySummary(self: *const Self, nowayout: bool) NowayoutPolicySummary {
         const disposition: StopDisposition = if (nowayout)
             .blocked_by_nowayout
@@ -646,6 +682,7 @@ pub const GpioWatchdogLab = struct {
 
     pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {
         const plan = self.registrationPlanSummary(nowayout);
+        const intent = self.registrationIntentCheckpointSummary(nowayout);
         return .{
             .anchor = plan.anchor,
             .register_call = "devm_watchdog_register_device",
@@ -656,11 +693,11 @@ pub const GpioWatchdogLab = struct {
             .reaches_registration_running = plan.reaches_registration_running,
             .reaches_registration_line_state = plan.reaches_registration_line_state,
             .reaches_registration_line_is_output = plan.reaches_registration_line_is_output,
-            .nowayout_applied = nowayout,
+            .nowayout_applied = intent.nowayout_from_module_param,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
             .register_device_requested = true,
-            .blocked_on_live_gpio_lookup = true,
-            .blocked_on_platform_registration = true,
+            .blocked_on_live_gpio_lookup = intent.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = intent.blocked_on_platform_registration,
             .blocked_on_reboot_glue = true,
         };
     }
