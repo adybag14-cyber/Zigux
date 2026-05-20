@@ -88,12 +88,12 @@ SELF_TEST_CASES = [
 NOTE_MARKERS = (
     "# Phase 4 Gate Evidence",
     "`PHASE4_VALIDATOR_BLOB_SHA=dea77e6385618147aba44d3714f73b6c5249e942`",
-    "`PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
+    "`PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=984085b3db4de17e86646b0c1463ee6224bd8efc`",
     "`PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=5173368ba7f69587f6839931b380f1e77c456933`",
-    "`PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=b8fea944496bfd7e058778d8d6f8f09c2f4e5a2d`",
-    "`PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
-    "`PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
-    "`PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
+    "`PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=dd06e9c054396d39fe0bd7136ece0b2728f2cc9d`",
+    "`PHASE4_DOC_README_BLOB_SHA=b19f58c82eeeacad6156c6fc3a398c52d8a546fa`",
+    "`PHASE4_SCRIPT_README_BLOB_SHA=5acd6b1fd9db70bce8bd152194a58aab2c184eae`",
+    "`PHASE4_TESTS_README_BLOB_SHA=f2c6e213e20aa738914dd42abe76bd45e61cbc6a`",
     "`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
@@ -111,6 +111,7 @@ NOTE_MARKERS = (
     "## Exact Readback Evidence",
     "`scripts/zigux/check-phase4-gate-evidence.py` stays explicit as the broader packet checker, but this note intentionally does not exact-pin that checker's own blob because any checker edit would invalidate a self-recorded blob immediately.",
     "Use `Documentation/zigux/phase4-reversible-delivery-evidence.md` as the narrower direct-readback handoff while `scripts/zigux/check-phase4-gate-evidence.py` continues to guard this broader rollback-ownership note",
+    "The current bootstrap workflow no longer routes Phase 4 through `make -C zigux phase4-validate` or `make -C zigux phase4-test`.",
     "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
 )
 
@@ -155,10 +156,28 @@ MAKEFILE_MARKERS = (
 )
 
 WORKFLOW_MARKERS = (
-    "- name: Validate Phase 4 rollback routes",
-    "run: make -C zigux phase4-validate",
-    "- name: Run Phase 4 rollback tests",
-    "run: make -C zigux phase4-test",
+    "- name: Self-test current Phase 4 repo-reality warning checker",
+    "run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
+    "- name: Check current Phase 4 repo-reality warning packet",
+    "run: python3 scripts/zigux/check-phase4-repo-reality-warning.py",
+    "- name: Self-test current Phase 4 reversible-delivery pin checker",
+    "run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
+    "- name: Check current Phase 4 reversible-delivery pin packet",
+    "run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "- name: Self-test current Phase 4 tests README checker",
+    "run: python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test",
+    "- name: Check current Phase 4 tests README packet",
+    "run: python3 scripts/zigux/check-phase4-tests-readme-packet.py",
+    "- name: Self-test current Phase 4 artifact-diff helper",
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "- name: Self-test current Phase 4 artifact-diff determinism checker",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "- name: Check current Phase 4 artifact-diff determinism packet",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "- name: Self-test current Phase 4 artifact-diff validator replay checker",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "- name: Check current Phase 4 artifact-diff validator replay packet",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
 )
 
 CHECKLIST_MARKERS = (
@@ -319,12 +338,12 @@ def build_fixture_tree(root: Path) -> None:
                 "",
                 "## Status",
                 "  * `PHASE4_VALIDATOR_BLOB_SHA=dea77e6385618147aba44d3714f73b6c5249e942`",
-                "  * `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
+                "  * `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=984085b3db4de17e86646b0c1463ee6224bd8efc`",
                 "  * `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=5173368ba7f69587f6839931b380f1e77c456933`",
-                "  * `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=b8fea944496bfd7e058778d8d6f8f09c2f4e5a2d`",
-                "  * `PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
-                "  * `PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
-                "  * `PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
+                "  * `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=dd06e9c054396d39fe0bd7136ece0b2728f2cc9d`",
+                "  * `PHASE4_DOC_README_BLOB_SHA=b19f58c82eeeacad6156c6fc3a398c52d8a546fa`",
+                "  * `PHASE4_SCRIPT_README_BLOB_SHA=5acd6b1fd9db70bce8bd152194a58aab2c184eae`",
+                "  * `PHASE4_TESTS_README_BLOB_SHA=f2c6e213e20aa738914dd42abe76bd45e61cbc6a`",
                 "  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
                 "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
                 "  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
@@ -343,6 +362,7 @@ def build_fixture_tree(root: Path) -> None:
                 "## Exact Readback Evidence",
                 "`scripts/zigux/check-phase4-gate-evidence.py` stays explicit as the broader packet checker, but this note intentionally does not exact-pin that checker's own blob because any checker edit would invalidate a self-recorded blob immediately.",
                 "Use `Documentation/zigux/phase4-reversible-delivery-evidence.md` as the narrower direct-readback handoff while `scripts/zigux/check-phase4-gate-evidence.py` continues to guard this broader rollback-ownership note and `scripts/zigux/check-phase4-perf-baseline-packet.py` keeps the adjacent local-only perf packet exact.",
+                "The current bootstrap workflow no longer routes Phase 4 through `make -C zigux phase4-validate` or `make -C zigux phase4-test`.",
                 "That narrower handoff still keeps the parked kprobe packet's shared matrix anchor explicit as `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`.",
                 "",
             ]
@@ -381,10 +401,28 @@ phase4-kprobe-example-survey:
 phase4-test-fsmount-survey:
 phase4-perf-baseline-survey:
 ''')
-    write_text(root / WORKFLOW, '''- name: Validate Phase 4 rollback routes
-run: make -C zigux phase4-validate
-- name: Run Phase 4 rollback tests
-run: make -C zigux phase4-test
+    write_text(root / WORKFLOW, '''- name: Self-test current Phase 4 repo-reality warning checker
+run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test
+- name: Check current Phase 4 repo-reality warning packet
+run: python3 scripts/zigux/check-phase4-repo-reality-warning.py
+- name: Self-test current Phase 4 reversible-delivery pin checker
+run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
+- name: Check current Phase 4 reversible-delivery pin packet
+run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py
+- name: Self-test current Phase 4 tests README checker
+run: python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test
+- name: Check current Phase 4 tests README packet
+run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
+- name: Self-test current Phase 4 artifact-diff helper
+run: python3 scripts/zigux/artifact_diff.py --self-test
+- name: Self-test current Phase 4 artifact-diff determinism checker
+run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+- name: Check current Phase 4 artifact-diff determinism packet
+run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+- name: Self-test current Phase 4 artifact-diff validator replay checker
+run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+- name: Check current Phase 4 artifact-diff validator replay packet
+run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 ''')
     write_text(root / REVIEW_CHECKLIST, '''keep the directly readable local-only perf packet explicit
 keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`
@@ -429,9 +467,9 @@ def run_self_test() -> None:
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "dea77e6385618147aba44d3714f73b6c5249e942", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "a28a7393df1b270de8c80c57c30287d548bd0c4e", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "fa4ab6b736a3eba358630a9913b447f77569ab29", "cccccccccccccccccccccccccccccccccccccccc")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "ac515e3ed47c771b0947fde4200a90b9a1952c99", "dddddddddddddddddddddddddddddddddddddddd")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "4b22006c7278280203a23e6ec568cf8f47b62c7e", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "107d5d300f43fb5c9b0c7f9439601af3507a59ff", "ffffffffffffffffffffffffffffffffffffffff")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "b19f58c82eeeacad6156c6fc3a398c52d8a546fa", "dddddddddddddddddddddddddddddddddddddddd")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "5acd6b1fd9db70bce8bd152194a58aab2c184eae", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "f2c6e213e20aa738914dd42abe76bd45e61cbc6a", "ffffffffffffffffffffffffffffffffffffffff")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), ",".join(SELF_TEST_CASES), ",".join(SELF_TEST_CASES[:-1]))))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`")))
