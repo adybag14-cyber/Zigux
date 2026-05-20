@@ -3,9 +3,9 @@
 This sample-backed survey note tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/trace_events/trace-events-sample.c` anchor.
 
 ## Status
-- `PHASE5_STATUS=verified-shared-surface-truthfulness`
+- `PHASE5_STATUS=verified-public-fallback-companion-truthfulness`
 - `PHASE5_SLICE=trace-events-reference-sample-readback`
-- `PHASE5_LANE_KEY=P5-L16`
+- `PHASE5_LANE_KEY=P5-Y07`
 - `PHASE5_SURVEYED_COMMIT=51b8f2766be46cf0791ea33ca453d849777ecfba`
 - scope: keep the landed non-runtime trace-events packet reviewable through concrete sample evidence while recording which shared Phase 5 reminder surfaces are aligned on current `master` after the latest mixed reread
 
@@ -13,7 +13,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the four approved Linux anchors.
 
 The bounded same-lane job here is not to widen runtime behavior.
-It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them, keep the older shared `zigux/tests/phase5_build.zig` route visible only as shared companion evidence until direct reread returns it, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
+It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them, keep the shared `zigux/tests/phase5_build.zig` route visible only as shared companion evidence until direct reread returns it, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
 
 ## Current repo reality on `master`
 Fresh mixed reread on 2026-05-20 still directly reconfirmed the roadmap anchor plus the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` through authenticated sample-root readback.
@@ -27,7 +27,14 @@ That same 2026-05-20 reread also kept the broader non-runtime trace-events sampl
 - `zigux/tests/phase5_build.zig`
 
 Authenticated contents readback still returned `404` for the five sample-local companion paths and the shared build route above on 2026-05-20.
-Fresh public current-`master` reread in this run also surfaced those broader companion paths again through their live GitHub blob pages, so this note should keep them framed as current public-tree-backed companion or historical-support references rather than collapsing them into repo absence.
+Fresh public current-`master` reread in this run also surfaced the broader sample-local companion paths again through their live GitHub blob pages:
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `samples/zigux/trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample_manifest.json`
+- `zigux/tests/phase5_trace_events_sample_survey.zig`
+
+This note should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support evidence rather than collapsing it into repo absence. The shared `zigux/tests/phase5_build.zig` route should stay framed separately as shared companion evidence only until a fresh authenticated reread returns that path directly again.
 
 The bounded formatting companion is therefore the strongest direct sample-root trace-events evidence this run could reconfirm.
 Treat the focused `zig test` routes for the broader sample-local packet and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route as current public-tree-backed support vocabulary until a fresh reread returns those files directly again.
@@ -70,7 +77,8 @@ Broader helper-level trace-events cues from the older sample-local replay packet
 The precise current gap is not that Zigux lacks every trace-events reminder surface.
 The more accurate same-lane state on 2026-05-20 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
-- the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` again through their live GitHub blob pages
+- the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` again through their live GitHub blob pages
+- the shared `zigux/tests/phase5_build.zig` route should remain companion evidence only until a fresh authenticated reread returns it directly
 - same-lane documentation should therefore keep the broader sample-local packet and shared build route framed as current public-tree-backed companion or historical-support references instead of calling them repo absence or directly readable proof
 
 So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again.
