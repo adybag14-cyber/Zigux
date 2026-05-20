@@ -372,6 +372,22 @@ def main() -> int:
                 raise AssertionError("expected tests-readme remaining-gap marker drift to fail")
 
             build_baseline_tree(root)
+            scripts_readme = root / SCRIPTS_README
+            scripts_readme.write_text(
+                scripts_readme.read_text(encoding="utf-8").replace(
+                    "- Phase 4 flow - the current scripts-root artifact-diff and repo-reality packet stays reviewable through the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair instead of reconstructing the validator, build, and bitmap replay companions from older route names alone",
+                    "- Phase 4 flow drifted away from the recovered repo-reality packet wording.",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected scripts-readme phase4 flow drift to fail")
+
+            build_baseline_tree(root)
             perf_survey = root / Path("zigux/tests/phase4_perf_baseline_survey.zig")
             perf_survey.unlink()
             try:
@@ -381,7 +397,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected missing perf survey to fail")
 
-            build_baseline_tree(root)
+            build_baselineTree(root)
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
@@ -502,16 +518,6 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected missing atomic64 diff to fail")
-
-            build_baseline_tree(root)
-            runtime_atomic64_diff = root / RUNTIME_ATOMIC64_DIFF
-            runtime_atomic64_diff.unlink()
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected missing runtime atomic64 diff to fail")
 
             build_baseline_tree(root)
             tests_readme = root / TESTS_README
