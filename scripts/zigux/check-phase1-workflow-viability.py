@@ -183,7 +183,7 @@ def require_file_path(root: Path, relative_path: Path) -> list[str]:
     if not path.exists():
         return [f"missing_file:{relative_path.as_posix()}"]
     if not path.is_file():
-        return [f"non_file_path:{relative_path.as_posix()}]
+        return [f"non_file_path:{relative_path.as_posix()}"]
     return []
 
 
