@@ -19,6 +19,10 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
     "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-gpio-wdt-survey.md",
+    "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+    "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
+    "Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md",
     "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -257,7 +261,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         build_fake_zig(fake_zig)
         failing_matrix_gap_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
         build_stub_script(failing_matrix_gap_script, exit_code=1)
