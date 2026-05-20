@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 BENCH_EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")
 ARTIFACT_DIFF_HELPER_REL = Path("scripts/zigux/artifact_diff.py")
+PHASE1_PARITY_ARTIFACT_PACKET_REL = Path("scripts/zigux/check-phase1-parity-artifact-packet.py")
 PHASE1_HELPERS_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 PHASE1_HELPER_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 PHASE1_REPLAY_BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
@@ -109,6 +110,19 @@ OPTIONAL_CHECKS = (
         live_args=("--root", "{root}"),
         required=False,
         requires=(str(ARTIFACT_DIFF_HELPER_REL),),
+    ),
+    CheckSpec(
+        name="phase1-parity-artifact-packet",
+        script_rel=str(PHASE1_PARITY_ARTIFACT_PACKET_REL),
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+        requires=(
+            str(ARTIFACT_DIFF_HELPER_REL),
+            str(PHASE1_HELPERS_FIXTURE_REL),
+            str(PHASE1_HELPER_MANIFEST_REL),
+            str(PHASE1_REPLAY_BLOCKERS_REL),
+        ),
     ),
     CheckSpec(
         name="phase1-scripts-readme-alignment",
@@ -440,6 +454,18 @@ def run_self_test() -> int:
         assert summary.optional_skip_count == 0, summary
         case_count += 1
 
+        optional_parity_artifact_packet_live_root = base / "optional_parity_artifact_packet_live"
+        build_sample_repo(optional_parity_artifact_packet_live_root)
+        build_stub_script(
+            optional_parity_artifact_packet_live_root / "scripts/zigux/check-phase1-parity-artifact-packet.py",
+            live_exit=1,
+        )
+        issues, _, summary = collect_issues(optional_parity_artifact_packet_live_root)
+        assert "optional_live_failed:phase1-parity-artifact-packet:exit=1" in issues, issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
         optional_scripts_readme_live_root = base / "optional_scripts_readme_live"
         build_sample_repo(optional_scripts_readme_live_root)
         build_stub_script(
@@ -513,7 +539,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_readme_replay_blockers_live_root = base / "optional_readme_replay_blockers_live"
-        build_sample_repo(optional_readme_replay_blockers_live_root)
+        build_sampleRepo(optional_readme_replay_blockers_live_root)
         build_stub_script(
             optional_readme_replay_blockers_live_root / "scripts/zigux/check-phase1-readme-replay-blockers.py",
             live_exit=1,
@@ -535,7 +561,7 @@ def run_self_test() -> int:
         case_count += 1
 
         bench_self_test_skip_root = base / "bench_self_test_skip"
-        build_sample_repo(bench_self_test_skip_root)
+        build_sampleRepo(bench_self_test_skip_root)
         build_stub_script(
             bench_self_test_skip_root / "scripts/zigux/check-phase1-bench.py",
             self_test_exit=1,
@@ -549,7 +575,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_skip_root = base / "optional_skip"
-        build_sample_repo(optional_skip_root)
+        build_sampleRepo(optional_skip_root)
         (optional_skip_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py").unlink()
         issues, notes, summary = collect_issues(optional_skip_root)
         assert issues == [], issues
@@ -559,7 +585,7 @@ def run_self_test() -> int:
         case_count += 1
 
         artifact_diff_helper_skip_root = base / "artifact_diff_helper_skip"
-        build_sample_repo(artifact_diff_helper_skip_root)
+        build_sampleRepo(artifact_diff_helper_skip_root)
         (artifact_diff_helper_skip_root / ARTIFACT_DIFF_HELPER_REL).unlink()
         issues, notes, summary = collect_issues(artifact_diff_helper_skip_root)
         assert issues == [], issues
@@ -567,12 +593,16 @@ def run_self_test() -> int:
             f"skipped_optional:artifact-diff-contract:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}"
             in notes
         ), notes
-        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
-        assert summary.optional_skip_count == 1, summary
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 2, summary
+        assert summary.optional_skip_count == 2, summary
         case_count += 1
 
         shared_fixture_skip_root = base / "shared_fixture_skip"
-        build_sample_repo(shared_fixture_skip_root)
+        build_sampleRepo(shared_fixture_skip_root)
         (shared_fixture_skip_root / PHASE1_HELPERS_FIXTURE_REL).unlink()
         issues, notes, summary = collect_issues(shared_fixture_skip_root)
         assert issues == [], issues
@@ -588,12 +618,16 @@ def run_self_test() -> int:
             f"skipped_optional:phase1-fixture-manifest-alignment:missing_required_path:{PHASE1_HELPERS_FIXTURE_REL}"
             in notes
         ), notes
-        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 3, summary
-        assert summary.optional_skip_count == 3, summary
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 4, summary
+        assert summary.optional_skip_count == 4, summary
         case_count += 1
 
         optional_skip_required_path_root = base / "optional_skip_required_path"
-        build_sample_repo(optional_skip_required_path_root)
+        build_sampleRepo(optional_skip_required_path_root)
         (optional_skip_required_path_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
         issues, notes, summary = collect_issues(optional_skip_required_path_root)
         assert issues == [], issues
@@ -621,8 +655,12 @@ def run_self_test() -> int:
             f"skipped_optional:phase1-readme-replay-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}"
             in notes
         ), notes
-        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 6, summary
-        assert summary.optional_skip_count == 6, summary
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 7, summary
+        assert summary.optional_skip_count == 7, summary
         case_count += 1
 
     print("PHASE1_VALIDATE_SELF_TEST=pass")
