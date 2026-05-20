@@ -292,3 +292,19 @@ test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" 
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "35-bit and 115-bit synthetic fill prefixes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit zero boundaries") != null);
 }
+
+test "phase 4 bitmap survey keeps exact source inventory counts explicit" {
+    const total_case_count = std.mem.count(u8, bitmap_diff_source, ".name = \"test_");
+    const copy_case_count = std.mem.count(u8, bitmap_diff_source, ".name = \"test_copy ");
+    const threshold_checkpoint_count = std.mem.count(u8, bitmap_diff_source, "mixThresholdChecksum(&checksum, ");
+
+    try std.testing.expectEqual(@as(usize, 29), total_case_count);
+    try std.testing.expectEqual(@as(usize, 16), copy_case_count);
+    try std.testing.expectEqual(@as(usize, 13), total_case_count - copy_case_count);
+    try std.testing.expectEqual(@as(usize, 13), threshold_checkpoint_count);
+
+    try expectContains(
+        gate_evidence_source,
+        "a current source-inventory tally of `13 DiffCase`, `16 CopyCase`, and `13 mixThresholdChecksum()` checkpoints",
+    );
+}
