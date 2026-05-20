@@ -10,13 +10,26 @@ Purpose
 
 ## Phase 1 host-tools review packet
 
-Keep the current bounded Phase 1 tests-root reminder packet explicit through `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zigux/tests/README.md`.
+  * current direct-readback Phase 1 reminder packet:
+- `Documentation/zigux/phase1-closure.md`
+- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-phase1-string-review-packet.py`
+- `scripts/zigux/check-phase1-direct-owner-markers.py`
+- `scripts/zigux/check-phase1-bench.py`
+- `scripts/zigux/check-phase1-shared-reminder-packet.py`
+- `scripts/zigux/validate-phase1-closure.py`
+- `zigux/tests/build.zig`
+- `zigux/tests/phase1_host_tools_smoke.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/README.md`
 
-Keep the current shared tests-root smoke route explicit through `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`, and keep `.github/workflows/zigux-bootstrap.yml` framed as the adjacent workflow guard that replays the direct-owner, string-review, route-summary, bench, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`.
-
-Current `master` does materialize `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zigux/Makefile`, but the returned Makefile still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so keep those older Phase 1 wrapper names framed as historical packet members rather than shipped tests-root proof.
-
-Current `master` still does not directly materialize `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, or `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so keep those older validator-first, parity, bench-replay, and helper-replay companions framed as repo-reality gaps rather than direct tests-root evidence.
+  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
+  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof
+  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
 
 Tests-root reviewer prompt:
 - Does the bounded Phase 1 reminder keep the restored closure note, the closure-validator and shipped checker packet, the shared tests-root smoke route, the manifest-backed owner map, and the historical-gap wording for the older validator-first, parity, bench-replay, helper-replay, and missing Phase 1 Makefile routes aligned without widening back into the older full closure stack?
