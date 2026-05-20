@@ -44,9 +44,6 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");
     defer allocator.free(manifest_json);
 
-    const sequencing_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
-    defer allocator.free(sequencing_note);
-
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");
     defer allocator.free(slice_note);
 
@@ -77,7 +74,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try std.testing.expectEqual(@as(usize, 0), manifest.missing_paths.len);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-argv-split-slice.md");
-    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    try std.testing.expect(!stringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md"));
     try expectStringSliceContains(manifest.review_surfaces, "lib/argv_split.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_survey.zig");
@@ -94,9 +91,10 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectStringSliceContains(manifest.covered_helpers, "ArgvSplitResult.cArgv");
 
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
-    try expectContains(checker, "\"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass\",");
+    try expectContains(checker, "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass");
+    try expectNotContains(checker, "\"Documentation/zigux/phase7-helper-lane-sequencing.md\",");
     try expectContains(checker, "phase7_argv_split_vectors = [_]ArgvSplitVector{");
-    try expectContains(checker, 'test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {');
+    try expectContains(checker, "test \\\"phase 7 argv split companion replays repeated blank-result sentinel reuse\\\" {");
 
     try expectContains(fixture_vectors, "pub const ArgvSplitVector = struct {");
     try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
@@ -113,11 +111,6 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.");
     try expectContains(slice_note, "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.");
     try expectContains(slice_note, "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space");
-
-    try expectContains(sequencing_note, "- argv-split packet, lane `P7-L09`:");
-    try expectContains(sequencing_note, "  - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`");
-    try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated fixture vectors have now returned on current `master`");
-    try expectContains(sequencing_note, "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;");
 
     try expectContains(helper, "pub const ArgvSplitResult = struct {");
     try expectContains(helper, "pub fn countArgc");
@@ -141,6 +134,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectStringSliceContains(manifest.ownership_focus, "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL");
     try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
     try expectStringSliceContains(manifest.ownership_focus, "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership");
+    try expectStringSliceContains(manifest.ownership_focus, "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership");
     try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders");
     try expectContains(manifest.next_bounded_step, "fixture-backed");
     try expectContains(manifest.next_bounded_step, "vector-backed replay proof");
