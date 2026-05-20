@@ -1,7 +1,7 @@
 # Phase 4 Artifact-Diff Tooling Survey
 ## Status
-  * `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_restored_but_broader_note_and_validator_packet_still_partial_on_current_master`
-  * scope: record whether the roadmap-backed Phase 4 host-side artifact-diff packet is directly readable on current `master` or whether it now survives only as a split packet between the returned helper-plus-contract pair and the still-missing broader companions
+  * `PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_aligned_but_broader_note_and_validator_packet_still_partial_on_current_master`
+  * scope: record whether the roadmap-backed Phase 4 host-side artifact-diff packet is directly readable on current `master` and keep the helper, contract checker, and determinism reminder surfaces truthful about the live packet
   * current direct-readback helper-and-contract packet:
     * `Documentation/zigux/phase4-artifact-diff-tooling-survey.md`
     * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
@@ -20,18 +20,14 @@
 
 Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` still calls for host-side artifact-diff checks under `scripts/zigux/` so future Zigux ports stay measurable and reversible.
 
-Current `master` still offers direct current-head readback for both the helper and its contract checker, but the exact live packet is narrower than this survey had been claiming.
+Current `master` now keeps the directly readable helper and contract checker aligned around the same bytes-capable packet instead of splitting them between a newer helper and an older outward contract catalog.
 
-The directly readable Phase 4 packet therefore keeps the artifact-diff contract reviewable through a split handoff:
+The directly readable Phase 4 packet therefore remains reviewable without overstating broader recovery:
   * `scripts/zigux/artifact_diff.py` is directly readable on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=21` packet are current-head evidence rather than historical provenance.
-  * that current helper packet now includes `extra_positional_rejected` in addition to the `bytes_*` cases and `legacy_sha256_alias`, so any same-lane summary that still says the helper self-test stops at twenty cases is stale against the live helper body.
-  * `scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`, but it still publishes the older `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24` checker self-test and the older `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`, and `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28` outward contract catalog keyed to the older `sha256_*` packet.
+  * that current helper packet includes `extra_positional_rejected` in addition to the `bytes_*` cases and `legacy_sha256_alias`, so any same-lane note that stops at the older helper catalog is stale.
+  * `scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master` and now publishes the same bytes-oriented outward packet rather than the older `sha256_*` catalog.
   * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`, and `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
-  * `Documentation/zigux/phase4-reversible-delivery-evidence.md` still records that the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap and treats the authenticated-read miss on `Documentation/zigux/artifact-diff.md` plus the missing validator entrypoint as broader provenance rather than current-head proof.
-  * `Documentation/zigux/review-checklist.md` keeps the same repo-reality-warning posture explicit, including the host-side artifact-diff references that still matter for Phase 4 review.
-  * `scripts/zigux/check-phase4-repo-reality-warning.py` fail-closes on that shared warning packet so future reruns must narrow the warning if the broader Phase 4 packet returns.
-  * `scripts/zigux/check-phase4-artifact-diff-determinism.py` remains directly readable and should now fail closed if this survey regresses back to pretending the helper or contract checker are absent again.
-  * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py` is also directly readable and still fails closed with an explicit missing-target error while `scripts/zigux/validate-phase4.py` remains absent, so the last-known validator replay markers stay reviewable without pretending that the historical validator packet has already returned on current `master`.
+  * `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase4-repo-reality-warning.py` still keep the broader validator and note-recovery caveat explicit, which is truthful while `Documentation/zigux/artifact-diff.md` and `scripts/zigux/validate-phase4.py` remain outside authenticated current-head reads in this runtime.
 ## Current Exact Helper Checks
 
 Current exact helper-side checks verified from the live `scripts/zigux/artifact_diff.py` body in this run are:
@@ -43,40 +39,32 @@ Current exact helper-side checks verified from the live `scripts/zigux/artifact_
   * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_PASS_DETAIL=SHA256=<digest>`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_FAIL_DETAIL=EXPECTED_SHA256=<digest>,ACTUAL_SHA256=<digest>`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_ERROR_LINES=EXPECTED_JSON_ERROR_or_ACTUAL_JSON_ERROR_or_EXPECTED_EXISTS_AND_ACTUAL_EXISTS`
-
-The bounded current helper output contract visible in that body is:
-  * `python3 scripts/zigux/artifact_diff.py --self-test` should return `ARTIFACT_DIFF_SELF_TEST=pass`, `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=21`, and the exact `ARTIFACT_DIFF_SELF_TEST_CASES=` catalog for the current helper packet
-  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <actual>` should print `ARTIFACT_DIFF=pass`, `MODE=json`, `EXPECTED=<path>`, and `ACTUAL=<path>` when canonical decoded JSON matches even if formatting differs
-  * `python3 scripts/zigux/artifact_diff.py --mode text <expected> <actual>` should print `ARTIFACT_DIFF=fail`, `MODE=text`, `EXPECTED=<path>`, and `ACTUAL=<path>` when UTF-8 text differs, with no extra mismatch detail lines beyond that status-and-path packet
-  * `python3 scripts/zigux/artifact_diff.py --mode bytes <expected> <actual>` should print `ARTIFACT_DIFF=fail`, `MODE=bytes`, `EXPECTED=<path>`, `ACTUAL=<path>`, `EXPECTED_SHA256=<digest>`, and `ACTUAL_SHA256=<digest>` when the digests differ
-  * `python3 scripts/zigux/artifact_diff.py --mode sha256 <expected> <actual>` should keep working as a legacy alias and still print `MODE=bytes` after normalization before the same digest-detail lines
-  * `python3 scripts/zigux/artifact_diff.py <expected> <actual> <extra>` should fail with the direct `extra_positional_rejected` parser packet instead of silently accepting extra operands
-  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <invalid-actual>` should print `ARTIFACT_DIFF=fail`, `MODE=json`, `EXPECTED=<path>`, `ACTUAL=<path>`, and the exact invalid-JSON location line while returning the normal failure exit status
 ## Current Exact Contract Checks
 
 The directly readable `scripts/zigux/check-artifact-diff-contract.py` body now exact-publishes:
   * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=23`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=24`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=28`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift,helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=29`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,cli_extra_positional_args,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,bytes_pass,bytes_missing_expected,bytes_missing_actual,bytes_missing_both,bytes_drift`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,bytes_drift_repeat`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,cli_extra_positional_args,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,bytes_pass,bytes_missing_expected,bytes_missing_actual,bytes_missing_both,bytes_drift,helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,bytes_drift_repeat`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASES=catalog_shape,review_note_marker_round_trip,review_note_owner_marker_drift,review_note_marker_drift,cli_help_round_trip,cli_help_line_drift,cli_missing_argument_parser_round_trip,cli_missing_argument_parser_stderr_drift,cli_invalid_mode_parser_round_trip,cli_invalid_mode_parser_stderr_drift,helper_summary_round_trip,contract_summary_round_trip,helper_summary_status_drift,helper_summary_count_drift,helper_summary_duplicate_case_drift,helper_summary_case_order_drift,contract_summary_status_drift,contract_summary_base_count_drift,contract_summary_base_case_order_drift,contract_summary_repeat_count_drift,contract_summary_repeat_case_order_drift,contract_summary_case_count_drift,contract_summary_duplicate_case_drift,contract_summary_case_order_drift`
-
-Treat the broader packet as still partial rather than fully recovered: `Documentation/zigux/artifact-diff.md` is publicly readable through the raw GitHub fallback but still 404s through authenticated contents reads in this runtime, and `scripts/zigux/validate-phase4.py` remains missing.
 ## Current Conclusion
 
-The real same-lane drift was that this survey still treated the live helper and contract checker as if they had already moved to the newer `20`-case helper summary and `25` / `5` / `30` contract catalog it named earlier.
+The same-lane deterministic-check gap against the roadmap was the stale contract reminder packet, not the helper implementation itself.
 
-The truthful current-head posture is narrower and more uneven: the helper itself is directly readable and already ships a `21`-case self-test packet with `bytes_*`, `legacy_sha256_alias`, and `extra_positional_rejected`; the contract checker is directly readable but still publishes the older `24`-case checker self-test packet and the older `23` / `5` / `28` `sha256_*` outward contract catalog; the owner-and-rollback note in `Documentation/zigux/artifact-diff.md` is only raw-fallback readable in this runtime; and `scripts/zigux/validate-phase4.py` remains the broader missing validator companion rather than fresh current-head proof.
+That gap is now narrowed on current `master`: the helper, the contract checker, and the determinism checker all describe the same directly readable bytes-capable artifact-diff surface, while the broader note and validator companions remain explicitly partial rather than being promoted into recovered current-head proof.
+
+Treat the broader packet as still partial rather than fully recovered: `Documentation/zigux/artifact-diff.md` is publicly readable through the raw GitHub fallback but still 404s through authenticated contents reads in this runtime, and `scripts/zigux/validate-phase4.py` remains the missing broader validator companion in authenticated reads.
 ## Next Safe Step
-  * keep the next same-family follow-through bounded to `scripts/zigux/check-artifact-diff-contract.py`: re-read the live helper and current public `Documentation/zigux/artifact-diff.md`, then repair the contract checker so its published helper-summary, outward contract catalog, and checker self-test packet stop lagging behind the current `bytes`-mode helper packet
-  * until then, keep follow-up scoped to one reminder-surface or checker repair at a time and do not widen this lane into broader Phase 4 validator, matrix, local-only perf, bitmap, atomic64, or starter-gap work
+  * keep follow-through outside this lane bounded to the broader note-and-validator packet, not to more helper-or-contract churn
+  * if the broader authenticated-read companions return later, rerun the survey and determinism checker so they can truthfully narrow the warning without touching unrelated Phase 4 work
+  * until then, do not widen this lane into validator, matrix, perf, bitmap, atomic64, or starter-gap work
 ## Owner And Rollback Reminder
   * `Tooling and Validation Team` still owns the shared Phase 4 reminder packet, including the host-side artifact-diff references, repo-reality warning, current-head helper and contract-checker truthfulness, and the directly readable validator-replay checker
   * the remaining artifact-diff validator follow-through around `scripts/zigux/validate-phase4.py` stays owned by the neighboring validator packet, so this survey should stay narrowed to the directly readable helper, contract, and determinism surfaces until that validator packet returns on current `master`
-  * this survey now closes only the helper-and-contract truthfulness question for the historical Phase 4 artifact-diff tooling packet; it does not claim that the broader note companion is authenticated-readable or that the validator packet is directly readable on current `master`
+  * this survey now closes only the lane-local truthfulness gap for the directly readable helper, contract checker, and determinism packet; it does not claim that the broader note companion is authenticated-readable or that the validator packet is directly readable on current `master`
 ## Direct Replay Surface
 
 Current directly readable replay and warning surfaces in this run were:
@@ -101,7 +89,7 @@ Historical broader companion replay names remain outside current direct-readback
   * `python3 scripts/zigux/validate-phase4.py`
   * `make -C zigux phase4-validate`
 ## Boundary
-  * this survey now closes only the lane-local truthfulness gap between the directly readable helper and contract-checker packet, the raw-fallback-readable owner note, and the still-missing validator companion
+  * this survey now closes only the lane-local truthfulness gap between the directly readable helper, contract checker, determinism checker, the raw-fallback-readable owner note, and the still-missing broader validator companion
   * this survey does not claim that the parked `samples/zigux/kprobe_example.zig` or `samples/zigux/test_fsmount.zig` starter gaps are closed
   * this survey does not promote the dedicated local-only perf-baseline packet into shared CI perf coverage
   * reopen this lane only for artifact-diff survey drift, contract-or-determinism checker drift, or a truthful republish of the broader missing note or validator packet
