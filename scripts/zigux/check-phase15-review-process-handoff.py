@@ -17,7 +17,7 @@ SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
 BUILD_GATE_PATH = Path("zigux/tests/phase15_architecture_council_review_process_build.zig")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-19"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-20"
 
 
 def _read_text(path: Path) -> str:
