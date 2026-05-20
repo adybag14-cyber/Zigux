@@ -97,6 +97,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+        "standalone timer or clockevent helper behavior",
+        "broader timeout-sensitive routing behavior",
     ),
     Path("scripts/zigux/README.md"): (
         "## Phase 8",
@@ -437,6 +439,20 @@ def run_self_test() -> int:
             raise AssertionError("expected missing survey routing marker to be reported")
         survey.write_text(original_survey, encoding="utf-8")
 
+        timer_boundary_marker = "standalone timer or clockevent helper behavior"
+        survey.write_text(
+            original_survey.replace(timer_boundary_marker, "", 1),
+            encoding="utf-8",
+        )
+        missing_timer_boundary_marker = validate_root(root)
+        expected_timer_boundary_marker = (
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
+            + timer_boundary_marker
+        )
+        if expected_timer_boundary_marker not in missing_timer_boundary_marker.missing_markers:
+            raise AssertionError("expected missing timer/clockevent survey marker to be reported")
+        survey.write_text(original_survey, encoding="utf-8")
+
         missing_helper = root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
         missing_helper.unlink()
         missing_perf_helper = validate_root(root)
@@ -475,7 +491,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
