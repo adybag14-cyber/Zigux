@@ -118,7 +118,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -244,6 +244,56 @@ def parse_args(argv: list[str]) -> dict[str, object]:
     }
 
 
+def load_cases_payload(root: Path) -> tuple[list[dict[str, object]] | None, list[tuple[str, str]]]:
+    try:
+        raw_cases = json.loads(read_text(root, CASES_FIXTURE))
+    except json.JSONDecodeError:
+        return None, [("INVALID_CASES_FIXTURE_JSON", CASES_FIXTURE)]
+
+    if not isinstance(raw_cases, list):
+        return None, [("INVALID_CASES_FIXTURE_PAYLOAD", type(raw_cases).__name__)]
+
+    issues: list[tuple[str, str]] = []
+    validated_cases: list[dict[str, object]] = []
+    for index, case in enumerate(raw_cases):
+        if not isinstance(case, dict):
+            issues.append(("INVALID_CASE_ENTRY", f"index={index}:type={type(case).__name__}"))
+            continue
+
+        name = case.get("name")
+        expected_file = case.get("expected_file")
+        args = case.get("args")
+
+        if not isinstance(name, str) or not name:
+            issues.append(("INVALID_CASE_FIELD", f"index={index}:name"))
+        if not isinstance(expected_file, str) or not expected_file:
+            issues.append(("INVALID_CASE_FIELD", f"index={index}:expected_file"))
+        if not isinstance(args, list):
+            issues.append(("INVALID_CASE_FIELD", f"index={index}:args"))
+            continue
+        if any(not isinstance(arg, str) for arg in args):
+            issues.append(("INVALID_CASE_ARGS_ENTRY", f"index={index}"))
+            continue
+
+        if (
+            isinstance(name, str)
+            and name
+            and isinstance(expected_file, str)
+            and expected_file
+        ):
+            validated_cases.append(
+                {
+                    "name": name,
+                    "expected_file": expected_file,
+                    "args": list(args),
+                }
+            )
+
+    if issues:
+        return None, issues
+    return validated_cases, []
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -279,7 +329,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if help_payload != {"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}:
         issues.append(("HELP_FIXTURE_MISMATCH", HELP_FIXTURE))
 
-    cases = json.loads(read_text(root, CASES_FIXTURE))
+    cases, case_issues = load_cases_payload(root)
+    issues.extend(case_issues)
+    if issues:
+        return issues
+    assert cases is not None
+
     actual_case_keys = tuple((case["name"], case["expected_file"]) for case in cases)
     if actual_case_keys != EXPECTED_CASE_KEYS:
         issues.append(("CASE_ROSTER_MISMATCH", CASES_FIXTURE))
@@ -407,6 +462,38 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(root, CASES_FIXTURE, "{}\n")
+        assert ("INVALID_CASES_FIXTURE_PAYLOAD", "dict") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, CASES_FIXTURE, json.dumps(["broken"], indent=2) + "\n")
+        assert ("INVALID_CASE_ENTRY", "index=0:type=str") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        broken_cases = list(CASE_FIXTURES)
+        broken_cases[0] = {
+            "name": "minimal",
+            "args": ["-d", 7],
+            "expected_file": "minimal_expected.json",
+        }
+        write_text(root, CASES_FIXTURE, json.dumps(broken_cases, indent=2) + "\n")
+        assert ("INVALID_CASE_ARGS_ENTRY", "index=0") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        broken_cases = list(CASE_FIXTURES)
+        broken_cases[0] = {
+            "name": "minimal",
+            "args": [],
+            "expected_file": "",
+        }
+        write_text(root, CASES_FIXTURE, json.dumps(broken_cases, indent=2) + "\n")
+        assert ("INVALID_CASE_FIELD", "index=0:expected_file") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, WORKFLOW, "      - name: Self-test current Phase 2 genksyms bridge checker\n")
         assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[1]) in collect_issues(root)
         checks += 1
@@ -436,7 +523,7 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, GENKSYMS_ZIG, "const help_expected_json = @embedFile(\"missing.json\");\n")
+        write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
         assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
 
