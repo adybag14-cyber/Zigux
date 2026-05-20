@@ -49,15 +49,15 @@ EXPECTED_SELF_TEST_CASES = (
 )
 
 SURVEY_MARKERS = (
-    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_restored_but_broader_note_and_validator_packet_still_partial_on_current_master",
+    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_aligned_but_broader_note_and_validator_packet_still_partial_on_current_master",
     "current direct-readback helper-and-contract packet:",
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
     "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=21`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=23`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=28`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=29`",
     ".github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps",
 )
 
@@ -116,6 +116,7 @@ CONTRACT_BASE_CASES = (
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
+    "cli_extra_positional_args",
     "text_pass",
     "text_mismatch",
     "text_missing_expected",
@@ -129,11 +130,11 @@ CONTRACT_BASE_CASES = (
     "json_invalid_expected",
     "json_invalid_actual",
     "json_invalid_both",
-    "sha256_pass",
-    "sha256_missing_expected",
-    "sha256_missing_actual",
-    "sha256_missing_both",
-    "sha256_drift",
+    "bytes_pass",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "bytes_drift",
 )
 
 CONTRACT_REPEAT_CASES = (
@@ -141,7 +142,7 @@ CONTRACT_REPEAT_CASES = (
     "cli_help_output_repeat",
     "text_pass_repeat",
     "json_mismatch_repeat",
-    "sha256_drift_repeat",
+    "bytes_drift_repeat",
 )
 
 CONTRACT_SELF_TEST_CASES = (
@@ -238,7 +239,7 @@ def require_current_contract_checker(text: str) -> None:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 21-case helper replay catalog")
     base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if base_cases != CONTRACT_BASE_CASES:
-        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case base contract catalog")
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case base contract catalog")
     repeat_cases = tuple(extract_literal_assignment(text, "REPEAT_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if repeat_cases != CONTRACT_REPEAT_CASES:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 5-case repeat contract catalog")
