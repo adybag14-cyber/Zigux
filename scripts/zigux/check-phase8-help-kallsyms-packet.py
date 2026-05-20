@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
+HELP_SLICE = Path("Documentation/zigux/phase8-help-slice.md")
 KALLSYMS_SLICE = Path("Documentation/zigux/phase8-kallsyms-slice.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
@@ -15,11 +16,13 @@ MAKEFILE = Path("zigux/Makefile")
 TESTS_README = Path("zigux/tests/README.md")
 HELP_KALLSYMS_BUILD = Path("zigux/tests/phase8_help_kallsyms_only_build.zig")
 HELP_BUILD = Path("zigux/tests/phase8_help_only_build.zig")
+HELP_TEST = Path("zigux/tests/phase8_help.zig")
 KALLSYMS_BUILD = Path("zigux/tests/phase8_kallsyms_only_build.zig")
 HELP_SOURCE = Path("tools/lib/subcmd/help.zig")
 KALLSYMS_SOURCE = Path("tools/lib/symbol/kallsyms.zig")
 
 REQUIRED_FILES = (
+    HELP_SLICE,
     KALLSYMS_SLICE,
     CHECKLIST,
     VALIDATOR,
@@ -27,12 +30,18 @@ REQUIRED_FILES = (
     TESTS_README,
     HELP_KALLSYMS_BUILD,
     HELP_BUILD,
+    HELP_TEST,
     KALLSYMS_BUILD,
     HELP_SOURCE,
     KALLSYMS_SOURCE,
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
+    HELP_SLICE: (
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-kallsyms-test`",
+        "parked help-and-kallsyms packet reviewable",
+    ),
     KALLSYMS_SLICE: (
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
@@ -48,6 +57,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_help.zig",
         "phase8_kallsyms.zig",
         "Run the phase 8 help and kallsyms tests.",
+    ),
+    HELP_TEST: (
+        'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
+        'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
     ),
 }
 
@@ -126,6 +139,40 @@ def run_self_test() -> int:
         if passing.missing_files or passing.missing_markers:
             raise AssertionError("expected passing fixture to validate")
 
+        help_slice = root / HELP_SLICE
+        original_help_slice = _read(help_slice)
+        help_slice.write_text(
+            original_help_slice.replace("parked help-and-kallsyms packet reviewable", "", 1),
+            encoding="utf-8",
+        )
+        missing_help_slice_marker = validate_root(root)
+        expected_help_slice_marker = (
+            "Documentation/zigux/phase8-help-slice.md:"
+            "parked help-and-kallsyms packet reviewable"
+        )
+        if expected_help_slice_marker not in missing_help_slice_marker.missing_markers:
+            raise AssertionError("expected missing help slice marker to be reported")
+        help_slice.write_text(original_help_slice, encoding="utf-8")
+
+        help_test = root / HELP_TEST
+        original_help_test = _read(help_test)
+        help_test.write_text(
+            original_help_test.replace(
+                'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_help_test_marker = validate_root(root)
+        expected_help_test_marker = (
+            "zigux/tests/phase8_help.zig:"
+            'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"'
+        )
+        if expected_help_test_marker not in missing_help_test_marker.missing_markers:
+            raise AssertionError("expected missing help test marker to be reported")
+        help_test.write_text(original_help_test, encoding="utf-8")
+
         build_path = root / HELP_KALLSYMS_BUILD
         original_build = _read(build_path)
         build_path.write_text(
@@ -174,7 +221,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
