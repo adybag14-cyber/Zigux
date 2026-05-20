@@ -117,6 +117,7 @@ REQUIRED_MARKERS = {
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
+        "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
@@ -341,7 +342,12 @@ def run_self_test() -> int:
             write_fixture_tree(base)
             write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
-        case_count = (len(missing_file_cases) + len(marker_cases) + len(exact_count_cases) + len(forbidden_cases))
+        case_count = (
+            len(missing_file_cases)
+            + len(marker_cases)
+            + len(exact_count_cases)
+            + len(forbidden_cases)
+        )
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(f"PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT={case_count}")
         return 0
