@@ -1,32 +1,35 @@
 # Phase 13 Landlock Syscalls Survey Gap
 
-This note records one bounded Phase 13 review-noise gap in the Landlock syscall helper packet on current `master`.
+This note records the current helper-local survey posture for the Phase 13 Landlock syscall packet on `master`.
 
-## Current Drift
+## Current Repo Reality
 
-The shipped `security/landlock/syscalls.zig` helper already keeps the release-side `fop_ruleset_release()` planner and the combined `ruleset_fops` wrapper contract explicit.
+The Phase 13 roadmap still keeps `security/landlock/syscalls.c` inside bounded security helper pilots. On current `master`, that helper-local packet is now materially aligned and intentionally narrow:
 
-The remaining review-noise drift is now narrower than the older survey-first story:
+- `security/landlock/syscalls.zig` keeps the create-ruleset, restrict-self, add-rule, ruleset-fd install, ruleset-fd stub, and `fop_ruleset_release()` planners explicit without claiming live FD installation, credential mutation, or enforcement
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md` and `Documentation/zigux/phase13-landlock-syscalls-governance.md` now match that helper boundary and truthfully record the absent direct survey, replay, reviewability, manifest, and shared-build companions as repo-reality gaps
+- the broader shared Phase 13 reminder packet already keeps those same direct syscall companions parked as repo-reality gaps instead of presenting them as shipped evidence
 
-  * `Documentation/zigux/phase13-landlock-syscalls-governance.md` still described `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` as materialized on current `master`
-  * `Documentation/zigux/phase13-landlock-syscalls-slice.md` still carried the same overstatement and treated the shared `zigux/tests/phase13_build.zig` companion as the only missing path
-  * the broader Phase 13 roadmap, contributor, and lane-sequencing notes now record those direct syscall survey and replay companions as repo-reality gaps instead
+## Remaining Gaps
 
-## Why This Matters
+The helper-local packet no longer has the older review-noise drift that originally justified this note. The remaining gaps are unchanged and stay outside this bounded helper-local step:
 
-The Phase 13 roadmap still keeps `security/landlock/syscalls.c` inside bounded security helper pilots. That makes truthful packet accounting more valuable than speculative helper growth. Stale helper-local notes create review noise by implying a wider direct syscall survey or replay packet than current `master` actually materializes.
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_build.zig`
+- the live FD-installation, credential-mutation, and broader ruleset-state surfaces that the current helper-first packet still does not claim
 
-## Bounded Fix
+## Why This Still Matters
 
-Keep the repair inside the helper-local notes only:
+The lane should stay evidence-first. Once the helper-local notes are truthful, reopening the packet just to restate missing survey or replay files becomes churn. The honest next move is to leave those repo-reality gaps visible without pretending the helper packet needs another local wrapper or note refresh today.
 
-  * refresh `Documentation/zigux/phase13-landlock-syscalls-governance.md` so it matches the visible helper-local packet and the currently absent direct survey, replay, reviewability, manifest, and shared-build companions
-  * refresh `Documentation/zigux/phase13-landlock-syscalls-slice.md` so it matches the same current packet boundary
-  * keep the update tied to `security/landlock/syscalls.zig`, `planFopRulesetRelease()`, `ruleset_fops`, and the absent `phase13-landlock-syscalls-survey.md`, `phase13_landlock_syscalls.zig`, `phase13_landlock_syscalls_reviewability.zig`, `phase13_landlock_syscalls_manifest.json`, and `phase13_build.zig` paths
-  * do not widen into anonymous-inode internals, live FD installation, credential mutation, or domain state
+## Next Bounded Step
 
-## Guardrail
+Leave this lane parked unless one of two things happens:
 
-The broader shared Phase 13 reminder packet already keeps these direct syscall survey and replay companions recorded as repo-reality gaps through `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, and `Documentation/zigux/phase13-contributor-workflow-guide.md`.
+- a future helper-local note starts overstating the visible syscall packet again
+- current `master` rematerializes one of the direct survey or replay companions and a dedicated validation-only follow-up can retarget the helper-local packet around that new repo reality
 
-Leave any future survey-file reintroduction or validation-only survey-checker retargeting to its own dedicated follow-up lane rather than mixing it into the helper-local packet again.
+Do not widen this note into anonymous-inode internals, live FD installation, credential mutation, or domain state.
