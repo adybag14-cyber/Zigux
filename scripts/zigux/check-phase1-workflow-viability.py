@@ -81,6 +81,7 @@ REQUIRED_FILE_RELS = (
     Path("scripts/zigux/check-phase1-bench.py"),
     Path("scripts/zigux/check-phase1-shared-reminder-packet.py"),
     Path("scripts/zigux/validate-phase1-closure.py"),
+    Path("scripts/zigux/check-phase1-workflow-phase12-tail.py"),
     Path("scripts/zigux/check-phase1-workflow-viability.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
@@ -339,6 +340,27 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        missing_tail_guard_root = root / "missing-tail-guard-root"
+        write_sample_root(missing_tail_guard_root)
+        missing_tail_guard = missing_tail_guard_root / Path("scripts/zigux/check-phase1-workflow-phase12-tail.py")
+        missing_tail_guard.unlink()
+        failures = collect_failures(missing_tail_guard_root)
+        if "missing_file:scripts/zigux/check-phase1-workflow-phase12-tail.py" not in failures:
+            print("self-test:expected_missing_tail_guard_failure")
+            return 1
+        case_count += 1
+
+        non_file_tail_guard_root = root / "non-file-tail-guard-root"
+        write_sample_root(non_file_tail_guard_root)
+        non_file_tail_guard = non_file_tail_guard_root / Path("scripts/zigux/check-phase1-workflow-phase12-tail.py")
+        non_file_tail_guard.unlink()
+        non_file_tail_guard.mkdir()
+        failures = collect_failures(non_file_tail_guard_root)
+        if "non_file_path:scripts/zigux/check-phase1-workflow-phase12-tail.py" not in failures:
+            print("self-test:expected_non_file_tail_guard_failure")
+            return 1
+        case_count += 1
+
         build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
@@ -355,7 +377,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
         inserted = (
@@ -381,7 +403,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         note_path = root / NOTE_REL
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
@@ -410,7 +432,7 @@ def run_self_test() -> int:
             "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zig build test --build-file zigux/tests/build.zig,zig build bench --build-file zigux/tests/build.zig,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench`\n",
         )
         for duplicate_line in duplicate_note_lines:
-            build_sample_repo(root)
+            build_sampleRepo(root)
             note_path = root / NOTE_REL
             note_text = note_path.read_text(encoding="utf-8")
             note_path.write_text(note_text + duplicate_line, encoding="utf-8")
@@ -461,7 +483,7 @@ def run_self_test() -> int:
             ("Check current Phase 4 artifact-diff validator replay packet", "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "duplicate_phase4_validator"),
         )
         for step_name, run_command, label in duplicate_workflow_checks:
-            build_sample_repo(root)
+            build_sampleRepo(root)
             workflow_path = root / WORKFLOW_REL
             workflow_text = workflow_path.read_text(encoding="utf-8")
             workflow_path.write_text(
@@ -477,7 +499,7 @@ def run_self_test() -> int:
                 return 1
             case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
