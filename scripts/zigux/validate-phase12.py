@@ -77,6 +77,7 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 # Exact blob pins in the raw-coverage note belong to the neighboring fallback lane.
 RAW_GITHUB_BRIDGE_MARKERS = [
     "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`scripts/zigux/validate-phase12.py`",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "`scripts/zigux/README.md`",
