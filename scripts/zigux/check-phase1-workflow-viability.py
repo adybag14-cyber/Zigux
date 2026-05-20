@@ -163,11 +163,19 @@ def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> l
     return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
 
 
+def require_file_path(root: Path, relative_path: Path) -> list[str]:
+    path = root / relative_path
+    if not path.exists():
+        return [f"missing_file:{relative_path.as_posix()}"]
+    if not path.is_file():
+        return [f"non_file_path:{relative_path.as_posix()}"]
+    return []
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
     for relative_path in REQUIRED_FILE_RELS:
-        if not (root / relative_path).exists():
-            failures.append(f"missing_file:{relative_path.as_posix()}")
+        failures.extend(require_file_path(root, relative_path))
     if failures:
         return failures
 
@@ -285,6 +293,28 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        non_file_root = root / "non-file-root"
+        write_sample_root(non_file_root)
+        non_file_target = non_file_root / Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
+        non_file_target.unlink()
+        non_file_target.mkdir()
+        failures = collect_failures(non_file_root)
+        if "non_file_path:scripts/zigux/check-phase1-shared-reminder-packet.py" not in failures:
+            print("self-test:expected_non_file_required_path_failure")
+            return 1
+        case_count += 1
+
+        sample_root_non_file = root / "written-sample-root-non-file"
+        write_sample_root(sample_root_non_file)
+        sample_non_file_target = sample_root_non_file / Path("zigux/Makefile")
+        sample_non_file_target.unlink()
+        sample_non_file_target.mkdir()
+        failures = collect_failures(sample_root_non_file)
+        if "non_file_path:zigux/Makefile" not in failures:
+            print("self-test:expected_sample_root_non_file_failure")
+            return 1
+        case_count += 1
+
         build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_text = workflow_path.read_text(encoding="utf-8")
@@ -366,161 +396,37 @@ def run_self_test() -> int:
             case_count += 1
 
         duplicate_workflow_checks = (
-            (
-                "Self-test current Phase 1 shared reminder checker",
-                "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
-                "duplicate_shared_reminder_selftest",
-            ),
-            (
-                "Check current Phase 1 shared reminder packet",
-                "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
-                "duplicate_shared_reminder",
-            ),
-            (
-                "Self-test current Phase 1 closure validator",
-                "python3 scripts/zigux/validate-phase1-closure.py --self-test",
-                "duplicate_closure_selftest",
-            ),
-            (
-                "Check current Phase 1 closure packet",
-                "python3 scripts/zigux/validate-phase1-closure.py",
-                "duplicate_closure",
-            ),
-            (
-                "Self-test current Phase 1 workflow viability checker",
-                "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test",
-                "duplicate_lane_selftest",
-            ),
-            (
-                "Check current Phase 1 workflow viability",
-                "python3 scripts/zigux/check-phase1-workflow-viability.py",
-                "duplicate_lane_check",
-            ),
-            (
-                "Self-test current Phase 3 interop packet",
-                "python3 scripts/zigux/validate_phase3_selftest.py",
-                "duplicate_phase3_interop_selftest",
-            ),
-            (
-                "Check current Phase 3 interop packet",
-                "python3 scripts/zigux/run-phase3-checks.py",
-                "duplicate_phase3_interop_check",
-            ),
-            (
-                "Run current Phase 3 policy starter-packet replay",
-                "make -C zigux phase3-policy-starter-packet-test",
-                "duplicate_phase3_policy_starter",
-            ),
-            (
-                "Run current Phase 3 policy dump replay",
-                "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
-                "duplicate_phase3_policy_dump",
-            ),
-            (
-                "Self-test current Phase 3 low-level wrapper survey validator",
-                "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-                "duplicate_phase3_low_level_selftest",
-            ),
-            (
-                "Check current Phase 3 low-level wrapper survey packet",
-                "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-                "duplicate_phase3_low_level_check",
-            ),
-            (
-                "Run current Phase 3 low-level wrapper replay",
-                "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-                "duplicate_phase3_low_level_replay",
-            ),
-            (
-                "Run current Phase 3 shared tests-root packet",
-                "zig build phase3-test --build-file zigux/tests/build.zig",
-                "duplicate_phase3_shared_tests_root",
-            ),
-            (
-                "Run current Phase 3 ABI dump replay",
-                "zig build phase3-dump --build-file zigux/tests/build.zig",
-                "duplicate_phase3_abi_dump",
-            ),
-            (
-                "Run current Phase 1 shared tests-root smoke",
-                "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
-                "duplicate_phase1_smoke",
-            ),
-            (
-                "Self-test current Phase 4 repo-reality warning checker",
-                "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
-                "duplicate_phase4_repo_reality_selftest",
-            ),
-            (
-                "Check current Phase 4 repo-reality warning packet",
-                "python3 scripts/zigux/check-phase4-repo-reality-warning.py",
-                "duplicate_phase4_repo_reality_check",
-            ),
-            (
-                "Self-test current Phase 4 reversible-delivery pin checker",
-                "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
-                "duplicate_phase4_reversible_selftest",
-            ),
-            (
-                "Check current Phase 4 reversible-delivery pin packet",
-                "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py",
-                "duplicate_phase4_reversible_check",
-            ),
-            (
-                "Self-test current Phase 4 tests README checker",
-                "python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test",
-                "duplicate_phase4_tests_readme_selftest",
-            ),
-            (
-                "Check current Phase 4 tests README packet",
-                "python3 scripts/zigux/check-phase4-tests-readme-packet.py",
-                "duplicate_phase4_tests_readme_check",
-            ),
-            (
-                "Validate Phase 4 rollback routes",
-                "make -C zigux phase4-validate",
-                "duplicate_phase4_validate",
-            ),
-            (
-                "Run Phase 4 rollback tests",
-                "make -C zigux phase4-test",
-                "duplicate_phase4_rollback_tests",
-            ),
-            (
-                "Self-test current Phase 4 artifact-diff helper",
-                "python3 scripts/zigux/artifact_diff.py --self-test",
-                "duplicate_phase4_helper",
-            ),
-            (
-                "Self-test current Phase 4 artifact-diff contract checker",
-                "python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
-                "duplicate_phase4_contract_selftest",
-            ),
-            (
-                "Check current Phase 4 artifact-diff contract packet",
-                "python3 scripts/zigux/check-artifact-diff-contract.py",
-                "duplicate_phase4_contract_check",
-            ),
-            (
-                "Self-test current Phase 4 artifact-diff determinism checker",
-                "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-                "duplicate_phase4_determinism_selftest",
-            ),
-            (
-                "Check current Phase 4 artifact-diff determinism packet",
-                "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
-                "duplicate_phase4_determinism_check",
-            ),
-            (
-                "Self-test current Phase 4 artifact-diff validator replay checker",
-                "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
-                "duplicate_phase4_validator_selftest",
-            ),
-            (
-                "Check current Phase 4 artifact-diff validator replay packet",
-                "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
-                "duplicate_phase4_validator",
-            ),
+            ("Self-test current Phase 1 shared reminder checker", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test", "duplicate_shared_reminder_selftest"),
+            ("Check current Phase 1 shared reminder packet", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py", "duplicate_shared_reminder"),
+            ("Self-test current Phase 1 closure validator", "python3 scripts/zigux/validate-phase1-closure.py --self-test", "duplicate_closure_selftest"),
+            ("Check current Phase 1 closure packet", "python3 scripts/zigux/validate-phase1-closure.py", "duplicate_closure"),
+            ("Self-test current Phase 1 workflow viability checker", "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test", "duplicate_lane_selftest"),
+            ("Check current Phase 1 workflow viability", "python3 scripts/zigux/check-phase1-workflow-viability.py", "duplicate_lane_check"),
+            ("Self-test current Phase 3 interop packet", "python3 scripts/zigux/validate_phase3_selftest.py", "duplicate_phase3_interop_selftest"),
+            ("Check current Phase 3 interop packet", "python3 scripts/zigux/run-phase3-checks.py", "duplicate_phase3_interop_check"),
+            ("Run current Phase 3 policy starter-packet replay", "make -C zigux phase3-policy-starter-packet-test", "duplicate_phase3_policy_starter"),
+            ("Run current Phase 3 policy dump replay", "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "duplicate_phase3_policy_dump"),
+            ("Self-test current Phase 3 low-level wrapper survey validator", "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test", "duplicate_phase3_low_level_selftest"),
+            ("Check current Phase 3 low-level wrapper survey packet", "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "duplicate_phase3_low_level_check"),
+            ("Run current Phase 3 low-level wrapper replay", "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig", "duplicate_phase3_low_level_replay"),
+            ("Run current Phase 3 shared tests-root packet", "zig build phase3-test --build-file zigux/tests/build.zig", "duplicate_phase3_shared_tests_root"),
+            ("Run current Phase 3 ABI dump replay", "zig build phase3-dump --build-file zigux/tests/build.zig", "duplicate_phase3_abi_dump"),
+            ("Run current Phase 1 shared tests-root smoke", "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig", "duplicate_phase1_smoke"),
+            ("Self-test current Phase 4 repo-reality warning checker", "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test", "duplicate_phase4_repo_reality_selftest"),
+            ("Check current Phase 4 repo-reality warning packet", "python3 scripts/zigux/check-phase4-repo-reality-warning.py", "duplicate_phase4_repo_reality_check"),
+            ("Self-test current Phase 4 reversible-delivery pin checker", "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test", "duplicate_phase4_reversible_selftest"),
+            ("Check current Phase 4 reversible-delivery pin packet", "python3 scripts/zigux/check-phase4-reversible-delivery-pins.py", "duplicate_phase4_reversible_check"),
+            ("Self-test current Phase 4 tests README checker", "python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test", "duplicate_phase4_tests_readme_selftest"),
+            ("Check current Phase 4 tests README packet", "python3 scripts/zigux/check-phase4-tests-readme-packet.py", "duplicate_phase4_tests_readme_check"),
+            ("Validate Phase 4 rollback routes", "make -C zigux phase4-validate", "duplicate_phase4_validate"),
+            ("Run Phase 4 rollback tests", "make -C zigux phase4-test", "duplicate_phase4_rollback_tests"),
+            ("Self-test current Phase 4 artifact-diff helper", "python3 scripts/zigux/artifact_diff.py --self-test", "duplicate_phase4_helper"),
+            ("Self-test current Phase 4 artifact-diff contract checker", "python3 scripts/zigux/check-artifact-diff-contract.py --self-test", "duplicate_phase4_contract_selftest"),
+            ("Check current Phase 4 artifact-diff contract packet", "python3 scripts/zigux/check-artifact-diff-contract.py", "duplicate_phase4_contract_check"),
+            ("Self-test current Phase 4 artifact-diff determinism checker", "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test", "duplicate_phase4_determinism_selftest"),
+            ("Check current Phase 4 artifact-diff determinism packet", "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py", "duplicate_phase4_determinism_check"),
+            ("Self-test current Phase 4 artifact-diff validator replay checker", "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test", "duplicate_phase4_validator_selftest"),
+            ("Check current Phase 4 artifact-diff validator replay packet", "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "duplicate_phase4_validator"),
         )
         for step_name, run_command, label in duplicate_workflow_checks:
             build_sample_repo(root)
@@ -547,7 +453,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         failures = collect_failures(root)
-        if not any(failure == "workflow_forbidden:python3 scripts/zigux/validate-phase1.py:unexpected_present" for failure in failures):
+        if "workflow_forbidden:python3 scripts/zigux/validate-phase1.py:unexpected_present" not in failures:
             print("self-test:expected_forbidden_failure")
             return 1
         case_count += 1
