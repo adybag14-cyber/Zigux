@@ -14,6 +14,7 @@
   - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
   - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+  - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -32,9 +33,10 @@
   - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+  - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `drivers/tty/hvc/hvc_console.h`
-- that narrower proof packet remains `layout_assert`-backed through the focused build wiring in `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, which imports `zigux/helpers/layout_assert.zig` for both the `hv_ops` and exported-surface proof shards instead of relying on note-only or ad hoc offset claims.
+- that narrower proof packet remains `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` together with the dedicated exported-helper replay in `zigux/tests/phase11_hvc_export_surface_layout_build.zig`; those build routes keep the `hv_ops` and exported-surface proof shards tied to `zigux/helpers/layout_assert.zig` instead of relying on note-only or ad hoc offset claims.
 
 ## Roadmap Fit
 - Phase 11 still treats bounded watchdog and HVC public surfaces as the simple-production-driver anchors.
@@ -46,9 +48,9 @@
 
 ## Current-Head Boundary
 - `phase11-hvc-hv-ops-layout-proof-tests`: `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` still materializes the focused header-proof route, and `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` still proves `struct hv_ops` at size 72, alignment 8, with callback-table offsets 0 through 64 while tying each callback marker back to `drivers/tty/hvc/hvc_console.h` through the shared `layout_assert` helper substrate.
-- `phase11-hvc-export-surface-layout-proof-tests`: the same focused proof/build pair keeps `struct winsize` explicit at size 8, alignment 2, with offsets 0, 2, 4, and 6; keeps the exported helper surface itself explicit as `HvcExportSurface` at size 72, alignment 8, with offsets 0 through 64 from `hvc_instantiate` through `notifier_hangup_irq`; keeps the helper signatures machine-checked through `notifier_hangup_irq`; and preserves the exported-surface ABI proof as a `layout_assert`-backed checkpoint instead of a prose-only reminder.
+- `phase11-hvc-export-surface-layout-proof-tests`: `zigux/tests/phase11_hvc_export_surface_layout_build.zig` keeps the dedicated exported-helper replay directly readable, and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig` keeps `struct winsize` explicit at size 8, alignment 2, with offsets 0, 2, 4, and 6; keeps the exported helper surface itself explicit as `HvcExportSurface` at size 72, alignment 8, with offsets 0 through 64 from `hvc_instantiate` through `notifier_hangup_irq`; keeps the helper signatures machine-checked through `notifier_hangup_irq`; and preserves the exported-surface ABI proof as a `layout_assert`-backed checkpoint instead of a prose-only reminder.
 - `phase11-hvc-console-header-constant-assert`: `drivers/tty/hvc/hvc_console.h` still exposes `MAX_NR_HVC_CONSOLES` and `HVC_ALLOC_TTY_ADAPTERS` beside the `hv_ops` callback table and exported helper declarations.
-- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` still points at the proof-backed adjunct packet, records the exact `check-phase11-build-inventory.py` and `check-phase11-hvc-cleanup-current-head.py` readback commands, and keeps both dedicated survey replays and shared split replays empty instead of pretending the removed shared `zigux/tests/phase11_build.zig` route is live again.
+- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` still points at the proof-backed adjunct packet, names `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` as the current adjunct build trio, records the exact `check-phase11-build-inventory.py` and `check-phase11-hvc-cleanup-current-head.py` readback commands, and keeps both dedicated survey replays and shared split replays empty instead of pretending the removed shared `zigux/tests/phase11_build.zig` route is live again.
 
 ## Why This Stays Bounded
 
