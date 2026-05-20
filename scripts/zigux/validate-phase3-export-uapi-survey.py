@@ -22,20 +22,19 @@ LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
-SHARED_TESTS_HEADER_FAMILY_IMPORT = (
-    'root_module.addImport("header_family_binding", header_family_binding);'
-)
+SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
+        "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-        "Current `master` still shows one packet-local compile-wiring gap",
-        "the shared tests-root replay route in `zigux/tests/build.zig` does not yet import `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
-        "The dedicated replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig` remains the truthful compile gate",
-        "plus the one shared-route wiring follow-through above",
+        "Current `master` no longer shows the older packet-local compile-wiring gap",
+        "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
+        "the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring",
+        "the shared tests-root replay wiring explicit as shipped same-family evidence",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
@@ -80,13 +79,13 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
-        '"shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig"',
-        '"wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further"',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+        '"keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"',
     ),
     TESTS_BUILD_PATH: (
-        "fn addPhase3ExportUapiLayout(",
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
         '"phase3-export-uapi-layout"',
+        'root_module.addImport("header_family_binding", header_family_binding);',
         'root_module.addImport("export_shim", export_shim);',
     ),
     LAYOUT_TEST_PATH: (
@@ -108,6 +107,11 @@ REQUIRED_MARKERS = {
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
         'print("PHASE3_CATALOG_SELFTEST_CHECK=pass")',
     ),
+    SHARED_CHECK_RUNNER_PATH: (
+        '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"phase3-validate"',
+    ),
 }
 
 
@@ -118,17 +122,6 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
-
-def _phase3_export_uapi_layout_block(build_text: str) -> str:
-    start = "fn addPhase3ExportUapiLayout("
-    end = "fn addPhase3LowLevelWrappers("
-    if start not in build_text:
-        return ""
-    tail = build_text.split(start, 1)[1]
-    if end not in tail:
-        return tail
-    return tail.split(end, 1)[0]
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -143,16 +136,6 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
-
-    build_block = _phase3_export_uapi_layout_block(_read(repo_root / TESTS_BUILD_PATH))
-    if not build_block:
-        issues.append(
-            "could not isolate addPhase3ExportUapiLayout block in zigux/tests/build.zig"
-        )
-    elif SHARED_TESTS_HEADER_FAMILY_IMPORT in build_block:
-        issues.append(
-            "shared tests-root export/UAPI layout gap has closed in zigux/tests/build.zig; refresh the packet-local survey and manifest markers"
-        )
     return issues
 
 
@@ -173,30 +156,6 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
     return 0
 
 
-def _expect_closed_shared_tests_gap(root: Path) -> int:
-    _populate_repo(root)
-    target = root / TESTS_BUILD_PATH
-    target.write_text(
-        _read(target).replace(
-            'root_module.addImport("export_shim", export_shim);',
-            'root_module.addImport("export_shim", export_shim);\n'
-            f"    {SHARED_TESTS_HEADER_FAMILY_IMPORT}",
-            1,
-        ),
-        encoding="utf-8",
-    )
-    issues = validate_repo(root)
-    expected = (
-        "shared tests-root export/UAPI layout gap has closed in zigux/tests/build.zig; "
-        "refresh the packet-local survey and manifest markers"
-    )
-    if expected not in issues:
-        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
-        print("expected closed shared tests-root gap marker was not reported")
-        return 1
-    return 0
-
-
 def run_self_test() -> int:
     marker_cases = (
         (
@@ -206,18 +165,18 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "Current `master` still shows one packet-local compile-wiring gap",
-            "expected missing compile-gap survey marker was not reported",
+            "Current `master` no longer shows the older packet-local compile-wiring gap",
+            "expected missing shared-route-aligned survey marker was not reported",
         ),
         (
             MANIFEST_PATH,
-            '"shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig"',
-            "expected missing manifest compile-gap marker was not reported",
+            '"keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"',
+            "expected missing manifest next-safe-step marker was not reported",
         ),
         (
             TESTS_BUILD_PATH,
-            'root_module.addImport("export_shim", export_shim);',
-            "expected missing shared tests-root export shim marker was not reported",
+            'root_module.addImport("header_family_binding", header_family_binding);',
+            "expected missing shared tests-root header-family import marker was not reported",
         ),
         (
             LAYOUT_BUILD_PATH,
@@ -266,11 +225,8 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
-        if _expect_closed_shared_tests_gap(root) != 0:
-            return 1
-
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={2 + len(marker_cases)}")
+    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
     return 0
 
 
