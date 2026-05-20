@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from collections import Counter
 import shutil
 import subprocess
 import sys
@@ -62,8 +63,8 @@ def validate(root: Path) -> list[str]:
 
     for rel_path, markers in REQUIRED_MARKERS.items():
         text = read_text(root, rel_path)
-        for marker in markers:
-            if marker not in text:
+        for marker, required_count in Counter(markers).items():
+            if text.count(marker) < required_count:
                 problems.append(f"missing-marker:{rel_path}:{marker}")
     return problems
 
