@@ -82,11 +82,10 @@ EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
     "direct-anchor drift inside the current helper-local packet or committed shared "
     "replay drift in the bitmap parity fields; current master still ships direct "
-    "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, empty-buffer, and "
-    "allocator-reset anchors here, while zero-bit and Linux-style alias follow-through "
-    "no longer live in the helper-local packet, and if the separate bitmap "
-    "closure-validator anchor-sync repair is still outstanding, treat that as the only "
-    "other bitmap follow-through."
+    "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, empty-buffer, "
+    "allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror "
+    "anchors here, and if the separate bitmap closure-validator anchor-sync repair is "
+    "still outstanding, treat that as the only other bitmap follow-through."
 )
 EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
