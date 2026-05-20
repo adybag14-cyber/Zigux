@@ -117,11 +117,22 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 
-def read_manifest(path: Path) -> dict:
+def read_manifest(path: Path) -> dict[str, object]:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        content = path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+    except IsADirectoryError as exc:
+        raise SystemExit(f"required file is not a file: {path}") from exc
+
+    try:
+        manifest = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+
+    if not isinstance(manifest, dict):
+        raise SystemExit(f"invalid json shape in required file: {path}")
+    return manifest
 
 
 def find_duplicate_strings(entries: list[str]) -> list[str]:
@@ -221,6 +232,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + 3
     )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_") as tmp_dir:
@@ -297,7 +309,35 @@ def run_self_test() -> int:
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
         checks_run += 1
 
+        manifest_path.write_text("{\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid manifest json did not abort")
+
+        manifest_path.write_text("[]\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json shape in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("non-object manifest shape did not abort")
+
         manifest_path.unlink()
+        manifest_path.mkdir(parents=True)
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file is not a file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("directory manifest path did not abort")
+
+        manifest_path.rmdir()
         try:
             collect_issues(root)
         except SystemExit as exc:
