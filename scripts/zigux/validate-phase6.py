@@ -32,22 +32,26 @@ HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")
 PERF_THRESHOLD_CHECKER = Path("scripts/zigux/check-phase6-perf-threshold-markers.py")
 
+CHECKER_INVOCATIONS = [
+    (SHARED_SURFACE_CHECKER, "--repo-root"),
+    (PRESENT_ENTRYPOINTS_CHECKER, "--repo-root"),
+    (BASE64_CORPUS_CHECKER, "--repo-root"),
+    (BSEARCH_CORPUS_CHECKER, "--repo-root"),
+    (BASE64_BSEARCH_PERF_MARKERS_CHECKER, "--repo-root"),
+    (CHECKSUM_CORPUS_CHECKER, "--repo-root"),
+    (CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER, "--repo-root"),
+    (HEXDUMP_PACKET_CHECKER, "--repo-root"),
+    (HEXDUMP_ROUTE_CHECKER, "--root"),
+    (PERF_THRESHOLD_CHECKER, "--repo-root"),
+]
+
 REQUIRED_FILES = [
     HELPER_EVIDENCE_CATALOG,
     HELPER_EVIDENCE_MANIFEST,
     HELPER_PARITY_MANIFEST,
     PHASE6_BUILD,
     MAKEFILE,
-    SHARED_SURFACE_CHECKER,
-    PRESENT_ENTRYPOINTS_CHECKER,
-    BASE64_CORPUS_CHECKER,
-    BSEARCH_CORPUS_CHECKER,
-    BASE64_BSEARCH_PERF_MARKERS_CHECKER,
-    CHECKSUM_CORPUS_CHECKER,
-    CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
-    HEXDUMP_PACKET_CHECKER,
-    HEXDUMP_ROUTE_CHECKER,
-    PERF_THRESHOLD_CHECKER,
+    *[checker for checker, _ in CHECKER_INVOCATIONS],
 ]
 
 EXPECTED_HELPER_EVIDENCE_PACKET = "phase6-helper-evidence"
@@ -114,7 +118,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -190,21 +194,32 @@ def validate(root: Path) -> None:
     require_snippets(root / PHASE6_BUILD, REQUIRED_BUILD_SNIPPETS)
     require_snippets(root / HELPER_EVIDENCE_CATALOG, REQUIRED_CATALOG_SNIPPETS)
 
-    run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")
-    run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")
-    run_checker(root, BASE64_CORPUS_CHECKER, "--repo-root")
-    run_checker(root, BSEARCH_CORPUS_CHECKER, "--repo-root")
-    run_checker(root, BASE64_BSEARCH_PERF_MARKERS_CHECKER, "--repo-root")
-    run_checker(root, CHECKSUM_CORPUS_CHECKER, "--repo-root")
-    run_checker(root, CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER, "--repo-root")
-    run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")
-    run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")
-    run_checker(root, PERF_THRESHOLD_CHECKER, "--repo-root")
+    for checker, flag in CHECKER_INVOCATIONS:
+        run_checker(root, checker, flag)
 
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def make_checker_stub(expected_flag: str) -> str:
+    return "\n".join(
+        [
+            "#!/usr/bin/env python3",
+            "from pathlib import Path",
+            "import sys",
+            f"EXPECTED_FLAG = {expected_flag!r}",
+            "",
+            "if len(sys.argv) != 3:",
+            "    raise SystemExit(f'unexpected argv length: {len(sys.argv)}')",
+            "if sys.argv[1] != EXPECTED_FLAG:",
+            "    raise SystemExit(f'unexpected flag: {sys.argv[1]}')",
+            "if not Path(sys.argv[2]).is_dir():",
+            "    raise SystemExit(f'unexpected repo root: {sys.argv[2]}')",
+            "",
+        ]
+    )
 
 
 def scaffold_repo(root: Path) -> None:
@@ -247,19 +262,8 @@ def scaffold_repo(root: Path) -> None:
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-    for checker in [
-        SHARED_SURFACE_CHECKER,
-        PRESENT_ENTRYPOINTS_CHECKER,
-        BASE64_CORPUS_CHECKER,
-        BSEARCH_CORPUS_CHECKER,
-        BASE64_BSEARCH_PERF_MARKERS_CHECKER,
-        CHECKSUM_CORPUS_CHECKER,
-        CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
-        HEXDUMP_PACKET_CHECKER,
-        HEXDUMP_ROUTE_CHECKER,
-        PERF_THRESHOLD_CHECKER,
-    ]:
-        write(root / checker, "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
+    for checker, expected_flag in CHECKER_INVOCATIONS:
+        write(root / checker, make_checker_stub(expected_flag))
 
 
 def expect_failure(fn) -> None:
@@ -351,6 +355,14 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         (root / PERF_THRESHOLD_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / SHARED_SURFACE_CHECKER, make_checker_stub("--root"))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / HEXDUMP_ROUTE_CHECKER, make_checker_stub("--repo-root"))
         expect_failure(lambda: validate(root))
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
