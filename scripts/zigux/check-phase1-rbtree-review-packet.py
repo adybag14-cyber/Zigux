@@ -245,6 +245,7 @@ def build_sample_repo(root: Path) -> None:
 def run_self_test() -> int:
     cases = [
         ("missing_helper", "missing_file:tools/lib/rbtree.zig"),
+        ("missing_lane_packet_note", f"lane_line:{EXPECTED_LANE_LINES[0]}:expected=1:actual=0"),
         ("missing_lane_line", f"lane_line:{EXPECTED_LANE_LINES[1]}:expected=1:actual=0"),
         ("missing_symbol", f"helper_symbol:{EXPECTED_SOURCE_SYMBOLS[0]}:expected=1:actual=0"),
         ("missing_anchor", f"helper_anchor:{EXPECTED_HELPER_TEST_ANCHORS[5]}:expected=1:actual=0"),
@@ -262,28 +263,34 @@ def run_self_test() -> int:
         if collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:baseline")
 
-        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[1] + "\n", "", 1)
+        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[0] + "\n", "", 1)
         write_text(tmp_root, LANE_NOTE_REL, lane_text)
         if cases[1][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:missing_lane_packet_note")
+
+        build_sample_repo(tmp_root)
+        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[1] + "\n", "", 1)
+        write_text(tmp_root, LANE_NOTE_REL, lane_text)
+        if cases[2][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_lane_line")
 
         build_sample_repo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_SOURCE_SYMBOLS[0] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[2][1] not in collect_failures(tmp_root):
+        if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_symbol")
 
         build_sample_repo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[5] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[3][1] not in collect_failures(tmp_root):
+        if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_anchor")
 
         build_sample_repo(tmp_root)
         manifest = load_json(tmp_root, MANIFEST_REL)
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[4][1] not in collect_failures(tmp_root):
+        if cases[5][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:manifest_drift")
 
         build_sampleRepo = build_sample_repo
@@ -291,7 +298,7 @@ def run_self_test() -> int:
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["rbtree"]["cached_leftmost_return_serials"] = [0, -1, 2]
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[5][1] not in collect_failures(tmp_root):
+        if cases[6][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:fixture_drift")
 
         build_sampleRepo(tmp_root)
@@ -299,11 +306,11 @@ def run_self_test() -> int:
         duplicated = EXPECTED_HELPER_TEST_ANCHORS[5]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[6][1] not in collect_failures(tmp_root):
+        if cases[7][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:duplicate_anchor")
 
     print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
