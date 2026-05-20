@@ -22,8 +22,11 @@ EXPECTED_PHASE = "Phase 7"
 EXPECTED_SCOPE = "shared leaf-library evidence rows and validation foothold only"
 EXPECTED_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
     "zigux/Makefile",
     "lib/string_helpers.zig",
@@ -40,9 +43,6 @@ EXPECTED_ROADMAP_ANCHORS = [
 EXPECTED_GAPS = [
     "lib/rbtree.zig",
     "zigux/tests/phase7_build.zig",
-    "zigux/tests/README.md Phase 7 shared reminder packet",
-    "scripts/zigux/README.md Phase 7 shared reminder packet",
-    "Documentation/zigux/README.md Phase 7 shared reminder packet",
 ]
 EXPECTED_HELPERS = [
     (
@@ -68,6 +68,9 @@ EXPECTED_REPLAYS = [
 ]
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
+    "- `Documentation/zigux/README.md`",
+    "- `scripts/zigux/README.md`",
+    "- `zigux/tests/README.md`",
     "- `lib/string_helpers_parse_int_array.zig`",
     "## Current replay inventory",
     "- `make -C zigux phase7-validate`",
@@ -80,7 +83,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase7-validate:",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-README_GAP_RULES = [
+README_REQUIRED_RULES = [
     (DOCS_README_PATH, ["Phase 7 notes"]),
     (SCRIPTS_README_PATH, ["## Phase 7"]),
     (TESTS_README_PATH, ["## Phase 7"]),
@@ -108,13 +111,6 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(f"missing expected Phase 7 marker in {path.as_posix()}: {snippet}")
-
-
-def require_absent_snippets(path: Path, snippets: list[str]) -> None:
-    content = read_text(path)
-    for snippet in snippets:
-        if snippet in content:
-            raise ValidationError(f"Phase 7 readme-gap drift in {path.as_posix()}: {snippet}")
 
 
 def validate(repo_root: Path) -> None:
@@ -155,8 +151,8 @@ def validate(repo_root: Path) -> None:
             if marker not in content:
                 raise ValidationError(f"phase7 helper marker missing for {key}: {marker}")
 
-    for rel_path, forbidden_snippets in README_GAP_RULES:
-        require_absent_snippets(repo_root / rel_path, forbidden_snippets)
+    for rel_path, required_snippets in README_REQUIRED_RULES:
+        require_snippets(repo_root / rel_path, required_snippets)
 
 
 def write(path: Path, content: str) -> None:
@@ -173,9 +169,9 @@ def scaffold_repo(root: Path) -> None:
         *REQUIRED_CATALOG_SNIPPETS,
     ]) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 6 notes\n")
-    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 6\n")
-    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 5 sample packet\n")
+    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
+    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
+    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     write(root / MANIFEST_PATH, json.dumps({
         "packet": EXPECTED_PACKET,
         "phase": EXPECTED_PHASE,
@@ -217,7 +213,7 @@ def run_self_test() -> None:
         validate(root)
         cases_run = 0
         for path, snippet, mode in [
-            (root / CATALOG_PATH, "- `lib/string_helpers_parse_int_array.zig`", "delete_line"),
+            (root / CATALOG_PATH, "- `Documentation/zigux/README.md`", "delete_line"),
             (root / CATALOG_PATH, "- `make -C zigux phase7-validate`", "delete_line"),
             (root / CATALOG_PATH, "`kstrdupQuotable()`", "delete_line"),
             (root / MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py", "delete_line"),
@@ -225,9 +221,9 @@ def run_self_test() -> None:
             (root / MANIFEST_PATH, '"make -C zigux phase7-validate"', "delete_line"),
             (root / Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", "delete_line"),
             (root / Path("lib/argv_split.zig"), "pub fn argvSplit", "delete_line"),
-            (root / DOCS_README_PATH, "Phase 7 notes", "inject"),
-            (root / SCRIPTS_README_PATH, "## Phase 7", "inject"),
-            (root / TESTS_README_PATH, "## Phase 7", "inject"),
+            (root / DOCS_README_PATH, "Phase 7 notes", "delete_line"),
+            (root / SCRIPTS_README_PATH, "## Phase 7", "delete_line"),
+            (root / TESTS_README_PATH, "## Phase 7", "delete_line"),
         ]:
             scaffold_repo(root)
             expect_failure(root, path, snippet, mode)
