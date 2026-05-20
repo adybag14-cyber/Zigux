@@ -36,6 +36,35 @@ test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishab
     try std.testing.expect(queueHasPublishCapacity(summary));
 }
 
+test "phase10 virtio ring publish-readiness wrapper keeps unpublished chains visible while remaining queue-local publishable" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(2, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(2);
+    try ring.publishDescriptorChain(2);
+
+    var summary = try summarizePublishReadiness(&ring, 2);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 6), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+
+    const kick = try ring.prepareKick(2);
+    try std.testing.expect(kick.needs_kick);
+    try std.testing.expectEqual(@as(u16, 2), kick.num_added);
+
+    summary = try summarizePublishReadiness(&ring, 2);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 6), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+}
+
 test "phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(3, 8, .packed_ring, true, true);
