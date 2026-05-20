@@ -15,6 +15,8 @@ REQUIRED_MARKERS = {
         "`phase10-virtio-ring-survey-gate`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
+        "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+        "`phase10-queue-publish-readiness-helper`",
         "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
@@ -26,8 +28,11 @@ REQUIRED_MARKERS = {
         "the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
+        "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
+        "the publish-readiness wrapper-facing replay",
+        "`phase10-queue-publish-readiness-helper`",
         "the broader ring replay still remains outside direct current-head evidence in this slice",
         "the dedicated survey gate is now a landed review surface inside this slice",
     ],
@@ -47,6 +52,15 @@ REQUIRED_MARKERS = {
         'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
         'test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {',
         'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
+    ],
+    "drivers/virtio/virtio_ring_publish_readiness.zig": [
+        "pub const QueuePublishReadinessSummary = virtio_ring.QueuePublishReadinessSummary;",
+        "pub fn summarizePublishReadiness(",
+        "pub fn queueCanPublish(summary: QueuePublishReadinessSummary) bool {",
+        "pub fn queueHasPublishCapacity(summary: QueuePublishReadinessSummary) bool {",
+        'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
+        'test "phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity" {',
+        'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
     ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
@@ -76,6 +90,8 @@ REQUIRED_MARKERS = {
         '"architecture_council_reopen_required": true,',
         '"architecture_council_reopen_attached": false,',
         '"id": "phase10-virtio-ring-survey-gate"',
+        '"id": "phase10-queue-publish-readiness-helper"',
+        '"id": "phase10-ring-publish-readiness-replay"',
         '"status": "starter_landed"',
         '"id": "phase10-ring-verify-replay"',
         '"id": "phase10-ring-lab-driver-bridge"',
@@ -224,11 +240,19 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-survey.md",
+                "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-ring-survey.md",
                 "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
                 "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-ring-slice.md",
+                "`drivers/virtio/virtio_ring_publish_readiness.zig`",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-slice.md",
@@ -245,6 +269,14 @@ def run_self_test() -> int:
             (
                 "drivers/virtio/virtio_ring_verify.zig",
                 'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
+            ),
+            (
+                "drivers/virtio/virtio_ring_publish_readiness.zig",
+                "pub fn summarizePublishReadiness(",
+            ),
+            (
+                "drivers/virtio/virtio_ring_publish_readiness.zig",
+                'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -299,6 +331,14 @@ def run_self_test() -> int:
                 '"id": "phase10-virtio-ring-survey-gate"',
             ),
             (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"id": "phase10-queue-publish-readiness-helper"',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"id": "phase10-ring-publish-readiness-replay"',
+            ),
+            (
                 "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
                 "const packed_summary = try ring.notificationDataSummary(2);",
             ),
@@ -328,11 +368,12 @@ def run_self_test() -> int:
             expect_forbidden_marker(root, rel_path, marker)
 
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
+        expect_missing_file(root, "drivers/virtio/virtio_ring_publish_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(
         "PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT="
-        f"{len(cases) + len(forbidden_cases) + 1}"
+        f"{len(cases) + len(forbidden_cases) + 2}"
     )
     return 0
 
