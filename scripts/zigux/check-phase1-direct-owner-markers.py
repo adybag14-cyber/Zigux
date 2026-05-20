@@ -85,6 +85,25 @@ EXPECTED_BITMAP_REQUIRED_ANCHORS = [
     'test "bitmap or across a multiword tail still lets callers clamp the last word" {',
     'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
 ]
+EXPECTED_BITMAP_OR_WINDOW_ANCHOR = 'test "bitmap or keeps caller-selected bit window"'
+EXPECTED_BITMAP_OR_MULTIWORD_TAIL_ANCHOR = (
+    'test "bitmap or across a multiword tail still lets callers clamp the last word"'
+)
+EXPECTED_BITMAP_WEIGHTED_TAIL_COUNT_ANCHOR = (
+    'test "bitmap weighted or and xor clamp counts to the declared tail window"'
+)
+EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY = (
+    "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation "
+    "words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, "
+    "while current master keeps the direct helper-local bitmap packet bounded to whole-word "
+    "range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and "
+    "aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit "
+    "logical short-circuit coverage, tail-masked predicate behavior, out-of-range tail-bit "
+    "full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor "
+    "and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length "
+    "caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias "
+    "mirror coverage, and allocator optional-reset coverage."
+)
 EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
     "direct-anchor drift inside the current helper-local packet or committed shared "
@@ -151,7 +170,7 @@ REQUIRED_EXACT_LINES = {
         "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
         "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
         "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`. ",
-        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; the restored `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` companions are now live broader reminder evidence on current `master`, but string should stay parked on the helper-local sysfs review anchors unless those direct string surfaces drift.",
+        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; the restored `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` companions are now live broader reminder evidence on current `master`, but string should stay parked on the helper-local sysfs review anchors unless those direct string surfaces drift.`",
         "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=the shared reminder packet now keeps scripts/zigux/check-phase1-bench.py explicit across Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md, while the older installer-backed, validator-first, bench-route, and replay names stay historical packet members until they reread cleanly on current master`",
         "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md now all carry the shipped bench-checker wording, while Documentation/zigux/phase1-closure.md plus scripts/zigux/validate-phase1-closure.py keep the restored closure-side packet explicit and the broader installer-backed, validator-first, bench-route, and replay names remain historical packet members until direct current-master rereads restore them`",
@@ -190,9 +209,9 @@ REQUIRED_EXACT_LINES = {
         "phase1_direct_anchor_tie_breakers": "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
     },
     BITMAP_HELPER_REL: {
-        "bitmap_or_window_anchor": 'test "bitmap or keeps caller-selected bit window" {',
-        "bitmap_or_multiword_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word" {',
-        "bitmap_weighted_or_xor_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
+        "bitmap_or_window_anchor": EXPECTED_BITMAP_REQUIRED_ANCHORS[0],
+        "bitmap_or_multiword_anchor": EXPECTED_BITMAP_REQUIRED_ANCHORS[1],
+        "bitmap_weighted_or_xor_anchor": EXPECTED_BITMAP_REQUIRED_ANCHORS[2],
     },
 }
 
@@ -205,6 +224,10 @@ MANIFEST_EXPECTATIONS = {
     ("lane_sequencing", "direct_anchor_followup_helpers"): EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
     ("lane_sequencing", "rule_summary"): EXPECTED_RULE_SUMMARY,
     ("lane_sequencing", "anti_overlap_rule"): EXPECTED_ANTI_OVERLAP_RULE,
+    ("review_anchors", "tools/lib/bitmap.zig", "or_window_anchor"): EXPECTED_BITMAP_OR_WINDOW_ANCHOR,
+    ("review_anchors", "tools/lib/bitmap.zig", "or_multiword_tail_anchor"): EXPECTED_BITMAP_OR_MULTIWORD_TAIL_ANCHOR,
+    ("review_anchors", "tools/lib/bitmap.zig", "weighted_tail_count_anchor"): EXPECTED_BITMAP_WEIGHTED_TAIL_COUNT_ANCHOR,
+    ("review_anchors", "tools/lib/bitmap.zig", "review_packet_summary"): EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
     ("review_anchors", "tools/lib/bitmap.zig", "next_safe_step_note"): EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"): EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
@@ -295,6 +318,10 @@ def sample_manifest() -> str:
                 },
                 "review_anchors": {
                     "tools/lib/bitmap.zig": {
+                        "or_window_anchor": EXPECTED_BITMAP_OR_WINDOW_ANCHOR,
+                        "or_multiword_tail_anchor": EXPECTED_BITMAP_OR_MULTIWORD_TAIL_ANCHOR,
+                        "weighted_tail_count_anchor": EXPECTED_BITMAP_WEIGHTED_TAIL_COUNT_ANCHOR,
+                        "review_packet_summary": EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
                         "next_safe_step_note": EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
                     },
                     "tools/lib/find_bit.zig": {
