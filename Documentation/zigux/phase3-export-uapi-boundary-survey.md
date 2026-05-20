@@ -42,15 +42,15 @@ Current `master` now directly serves `scripts/zigux/phase3_catalog.py` as the bo
 
 ## Current Gap
 
-Current `master` still shows one packet-local compile-wiring gap: the shared tests-root replay route in `zigux/tests/build.zig` does not yet import `header_family_binding` inside `addPhase3ExportUapiLayout(...)`, even though `zigux/tests/phase3_export_uapi_layout.zig` already uses that module.
+Current `master` no longer shows the older packet-local compile-wiring gap: the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`, so the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring.
 
-The dedicated replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig` remains the truthful compile gate until the shared tests-root route receives the same header-family wiring.
+The dedicated replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig` remains the smallest focused compile gate for this packet, but it no longer stands in for missing shared-route wiring.
 
-The shared Phase 3 validator runner at `scripts/zigux/run-phase3-checks.py` keeps this dedicated export/UAPI survey replay inside the existing `phase3-validate` packet even while the shared tests-root compile wiring remains intentionally blocked on the header_family_binding follow-through.
+The shared Phase 3 validator runner at `scripts/zigux/run-phase3-checks.py` keeps this dedicated export/UAPI survey replay inside the existing `phase3-validate` packet without needing to describe a still-blocked shared tests-root compile handoff.
 
-Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet plus the one shared-route wiring follow-through above, not a missing export/UAPI companion inside the packet itself.
+Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion or shared-route wiring problem inside the packet itself.
 
-This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, the live curated binding companions, and the shared tests-root compile-gap explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.
+This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, the live curated binding companions, and the shared tests-root replay wiring explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.
 
 ## Scope
 
