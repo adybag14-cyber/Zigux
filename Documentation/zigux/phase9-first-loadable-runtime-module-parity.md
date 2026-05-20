@@ -3,7 +3,7 @@
 ## Status
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
-- `PHASE9_LANE_KEY=P9-L01`
+- `PHASE9_LANE_KEY=P9-L02`
 - scope: cross-family repo-reality survey for the bounded atomic64 and bitmap runtime pilot packets only
 
 ## Current Repo Reality
@@ -58,6 +58,6 @@ Keep this note lane-local and repo-reality-first:
 - do not infer real runtime execution, depmod publication, or live registration control from the currently readable partial pilot packet
 
 ## Next Bounded Step
-Leave `P9-L01` parked after this shared note refresh unless a fresh live reread proves that both families return to a directly readable first-loadable packet shape at the same time.
+Leave `P9-L02` parked after this shared note refresh unless a fresh live reread proves that both families return to a directly readable first-loadable packet shape at the same time.
 If only one family gains or loses trusted-path coverage, hand the repair back to that owning family lane.
 If the shared runtime-loader substrate returns, hand the loader-side proof back to the shared loader lane before reviving cross-family parity claims here.
