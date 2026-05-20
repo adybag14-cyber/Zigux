@@ -745,6 +745,71 @@ test "list sort reuses non-unit comparator context across repeated reordering" {
     try std.testing.expect(head.prev == &entries[3].node);
 }
 
+test "list sort preserves current non-unit context order when a later pass ties everything" {
+    const Entry = struct {
+        key: i32,
+        ordinal: usize,
+        node: ListHead = .{},
+    };
+
+    const SortMode = enum { ascending, descending };
+
+    const non_unit_cmp = struct {
+        fn less(priv: ?*anyopaque, a: *const ListHead, b: *const ListHead) i32 {
+            const mode: *const SortMode = @ptrCast(@alignCast(priv.?));
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+
+            if (lhs.key == rhs.key) return 0;
+            const ascending = lhs.key < rhs.key;
+            return if (mode.* == .ascending)
+                (if (ascending) -11 else 13)
+            else
+                (if (ascending) 13 else -11);
+        }
+    }.less;
+
+    const ties_cmp = struct {
+        fn less(_: ?*anyopaque, _: *const ListHead, _: *const ListHead) i32 {
+            return 0;
+        }
+    }.less;
+
+    var head: ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 5, .ordinal = 1 },
+        .{ .key = 1, .ordinal = 2 },
+        .{ .key = 5, .ordinal = 3 },
+        .{ .key = 4, .ordinal = 4 },
+        .{ .key = 1, .ordinal = 5 },
+    };
+    for (&entries) |*entry| listAddTail(&entry.node, &head);
+
+    var mode = SortMode.descending;
+    listSort(&mode, &head, non_unit_cmp);
+    listSort(null, &head, ties_cmp);
+
+    var keys: [6]i32 = undefined;
+    var ordinals: [6]usize = undefined;
+    var idx: usize = 0;
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        keys[idx] = entry.key;
+        ordinals[idx] = entry.ordinal;
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+        idx += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &.{ 5, 5, 4, 2, 1, 1 }, keys[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 4, 0, 2, 5 }, ordinals[0..idx]);
+    try std.testing.expect(head.next == &entries[1].node);
+    try std.testing.expect(head.prev == &entries[5].node);
+}
+
 test "list sort accepts signed subtractive comparator" {
     const Entry = struct {
         key: i32,
