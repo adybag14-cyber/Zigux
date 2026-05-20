@@ -16,7 +16,9 @@ CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
-ARGV_SPLIT_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+DOCS_README_PATH = Path("Documentation/zigux/README.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -24,8 +26,6 @@ EXPECTED_SCOPE = "shared leaf-library evidence rows and validation foothold only
 EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-shared-surface.py",
     "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
-    "python3 scripts/zigux/check-phase7-argv-split-packet.py",
-    "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -35,13 +35,15 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     MAKEFILE_PATH,
     CHECKER_PATH,
-    ARGV_SPLIT_CHECKER_PATH,
+    DOCS_README_PATH,
+    SCRIPTS_README_PATH,
+    TESTS_README_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/string_helpers_parse_int_array.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 6
 
 
 class ValidationError(RuntimeError):
@@ -59,9 +61,9 @@ def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
 
 
-def run_checker(root: Path, checker_path: Path) -> None:
+def run_checker(root: Path) -> None:
     result = subprocess.run(
-        [sys.executable, str(root / checker_path), "--repo-root", str(root)],
+        [sys.executable, str(root / CHECKER_PATH), "--repo-root", str(root)],
         cwd=root,
         text=True,
         capture_output=True,
@@ -69,7 +71,7 @@ def run_checker(root: Path, checker_path: Path) -> None:
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
-        raise ValidationError(f"{checker_path.as_posix()} failed: {detail}")
+        raise ValidationError(f"{CHECKER_PATH.as_posix()} failed: {detail}")
 
 
 def validate(root: Path) -> None:
@@ -91,8 +93,7 @@ def validate(root: Path) -> None:
     if "phase7-validate:" not in makefile or "$(PYTHON) scripts/zigux/validate-phase7.py" not in makefile:
         raise ValidationError("phase7 make route missing")
 
-    run_checker(root, CHECKER_PATH)
-    run_checker(root, ARGV_SPLIT_CHECKER_PATH)
+    run_checker(root)
 
 
 def write(path: Path, content: str) -> None:
@@ -101,10 +102,102 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
-    source_root = Path(__file__).resolve().parents[2]
-    write(root / CATALOG_PATH, (source_root / CATALOG_PATH).read_text(encoding="utf-8"))
+    source_root = Path(__file__).resolve().parent
+    write(root / CATALOG_PATH, "\n".join([
+        "- packet: `phase7-leaf-library-evidence`",
+        "- phase: `Phase 7`",
+        "- lane scope: shared leaf-library evidence rows and validation foothold only",
+        "",
+        "## Current direct-readback companions",
+        "- `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
+        "- `scripts/zigux/check-phase7-shared-surface.py`",
+        "- `scripts/zigux/validate-phase7.py`",
+        "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
+        "- `zigux/Makefile`",
+        "- `lib/string_helpers.zig`",
+        "- `lib/string_helpers_parse_int_array.zig`",
+        "- `lib/cmdline.zig`",
+        "- `lib/argv_split.zig`",
+        "",
+        "## Current replay inventory",
+        "- `make -C zigux phase7-validate`",
+        "",
+        "## Current repo-reality gaps",
+        "- `lib/rbtree.zig`",
+        "",
+        "`kstrdupQuotable()`",
+        "`kstrdupQuotableCmdline()`",
+    ]) + "\n")
     write(root / MAKEFILE_PATH, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
-    write(root / MANIFEST_PATH, (source_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+    write(root / MANIFEST_PATH, json.dumps({
+        "packet": EXPECTED_PACKET,
+        "phase": EXPECTED_PHASE,
+        "lane_scope": EXPECTED_SCOPE,
+        "current_direct_readback_companions": [
+            "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
+            "scripts/zigux/check-phase7-shared-surface.py",
+            "scripts/zigux/validate-phase7.py",
+            "zigux/tests/phase7_leaf_library_evidence_manifest.json",
+            "zigux/Makefile",
+            "lib/string_helpers.zig",
+            "lib/string_helpers_parse_int_array.zig",
+            "lib/cmdline.zig",
+            "lib/argv_split.zig",
+        ],
+        "roadmap_anchors": [
+            "lib/string_helpers.c",
+            "lib/cmdline.c",
+            "lib/argv_split.c",
+            "lib/rbtree.c",
+        ],
+        "current_direct_helper_evidence": [
+            {
+                "key": "string_helpers",
+                "zig_helper": "lib/string_helpers.zig",
+                "expected_markers": [
+                    "pub const STRING_UNITS_10",
+                    "pub const KasprintfStrarrayResult",
+                    "pub fn kstrdupQuotable",
+                    "pub fn kstrdupQuotableCmdline",
+                ],
+            },
+            {
+                "key": "string_helpers_parse_int_array",
+                "zig_helper": "lib/string_helpers_parse_int_array.zig",
+                "expected_markers": [
+                    "pub const ParseIntArrayResult",
+                    "pub fn parseIntArray",
+                ],
+            },
+            {
+                "key": "cmdline",
+                "zig_helper": "lib/cmdline.zig",
+                "expected_markers": [
+                    "pub fn parseOptionStr",
+                    "pub fn getOption",
+                ],
+            },
+            {
+                "key": "argv_split",
+                "zig_helper": "lib/argv_split.zig",
+                "expected_markers": [
+                    "pub const ArgvSplitResult",
+                    "pub fn argvSplit",
+                ],
+            },
+        ],
+        "current_replay_inventory": EXPECTED_REPLAYS,
+        "current_repo_reality_gaps": [
+            "lib/rbtree.zig",
+            "zigux/tests/phase7_build.zig",
+            "zigux/tests/README.md Phase 7 shared reminder packet",
+            "scripts/zigux/README.md Phase 7 shared reminder packet",
+            "Documentation/zigux/README.md Phase 7 shared reminder packet",
+        ],
+    }, indent=2) + "\n")
+    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 6 notes\n")
+    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 6\n")
+    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 5 sample packet\n")
     for rel_path, content in [
         (
             Path("lib/string_helpers.zig"),
@@ -121,14 +214,8 @@ def scaffold_repo(root: Path) -> None:
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
     ]:
         write(root / rel_path, content)
-    write(
-        root / CHECKER_PATH,
-        (source_root / CHECKER_PATH).read_text(encoding="utf-8"),
-    )
-    write(
-        root / ARGV_SPLIT_CHECKER_PATH,
-        (source_root / ARGV_SPLIT_CHECKER_PATH).read_text(encoding="utf-8"),
-    )
+    checker_text = (source_root / "check-phase7-shared-surface.py").read_text(encoding="utf-8")
+    write(root / CHECKER_PATH, checker_text)
 
 
 def expect_failure(root: Path, rel_path: Path, transform: str) -> None:
@@ -152,10 +239,11 @@ def run_self_test() -> None:
         cases_run = 0
         for rel_path, transform in [
             (MANIFEST_PATH, '"make -C zigux phase7-validate"'),
-            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase7-argv-split-packet.py"'),
-            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test"'),
             (MAKEFILE_PATH, "phase7-validate:"),
-            (ARGV_SPLIT_CHECKER_PATH, "delete"),
+            (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline"),
+            (Path("lib/argv_split.zig"), "pub fn argvSplit"),
+            (CHECKER_PATH, "delete"),
+            (DOCS_README_PATH, "delete"),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
