@@ -64,6 +64,8 @@ SELF_TEST_CASES = [
     "bytes_missing_actual",
     "bytes_missing_both",
     "legacy_sha256_alias",
+    "missing_mode_value_rejected",
+    "missing_positional_arguments_rejected",
     "invalid_mode_rejected",
     "extra_positional_rejected",
 ]
@@ -318,6 +320,22 @@ def run_self_test() -> int:
         assert_case("ARTIFACT_DIFF=pass" in legacy_alias.stdout, "legacy_sha256_alias")
         assert_case("MODE=bytes" in legacy_alias.stdout, "legacy_sha256_alias")
         covered.append("legacy_sha256_alias")
+
+        missing_mode_value = run_parser_probe(["--mode"])
+        assert_case(missing_mode_value.returncode == 2, "missing_mode_value_rejected")
+        assert_case(
+            " ".join(missing_mode_value.stderr.split()) == MISSING_ARGUMENT_ERROR,
+            "missing_mode_value_rejected",
+        )
+        covered.append("missing_mode_value_rejected")
+
+        missing_positionals = run_parser_probe(["--mode", "text"])
+        assert_case(missing_positionals.returncode == 2, "missing_positional_arguments_rejected")
+        assert_case(
+            " ".join(missing_positionals.stderr.split()) == MISSING_ARGUMENT_ERROR,
+            "missing_positional_arguments_rejected",
+        )
+        covered.append("missing_positional_arguments_rejected")
 
         invalid_mode = run_parser_probe(["--mode", "yaml", str(expected), str(actual)])
         assert_case(invalid_mode.returncode == 2, "invalid_mode_rejected")
