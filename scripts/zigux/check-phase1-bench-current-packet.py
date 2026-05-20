@@ -145,6 +145,36 @@ EXPECTED_ASSERT_BLOCKS = {
             "}",
         ),
         (
+            "for key in sorted(BITMAP_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_bitmap_exact_required", key)',
+        ),
+        (
+            "for key in sorted(FIND_BIT_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_find_bit_exact_required", key)',
+        ),
+        (
+            "for key in sorted(STRING_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_string_exact_required", key)',
+        ),
+        (
+            "for key in sorted(HWEIGHT_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_hweight_exact_required", key)',
+        ),
+        (
+            "for key in sorted(LIST_SORT_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_list_sort_exact_required", key)',
+        ),
+        (
+            "for key in sorted(RBTREE_REQUIRED_EXACT_CHECKSUMS):",
+            "if key in checksum_keys and key not in exact_checksums:",
+            'return ("expectations_checksums_rbtree_exact_required", key)',
+        ),
+        (
             'kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))',
             'assert kind == "expectations_duplicate_keys"',
             'assert payload == ["status"]',
@@ -237,6 +267,14 @@ EXPECTED_ASSERT_BLOCKS = {
             "case_count += 1",
         ),
         (
+            "for key, value, expected_kind in (",
+            'missing_output = ok_output.replace(f"\\n{key}={value}", "")',
+            'kind, payload = validate_output(expectations, missing_output)',
+            "assert kind == expected_kind",
+            "assert payload == [key]",
+            "case_count += 1",
+        ),
+        (
             'kind, payload = validate_output(expectations, mismatch_output)',
             'assert kind == "exact_checksum_mismatch"',
             'assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)',
@@ -251,14 +289,6 @@ EXPECTED_ASSERT_BLOCKS = {
             'kind, payload = validate_output(expectations, duplicate_output)',
             'assert kind == "duplicate"',
             'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
-        ),
-        (
-            "for key, value, expected_kind in (",
-            'missing_output = ok_output.replace(f"\\n{key}={value}", "")',
-            'kind, payload = validate_output(expectations, missing_output)',
-            "assert kind == expected_kind",
-            "assert payload == [key]",
-            "case_count += 1",
         ),
         (
             "kind, payload = validate_expectations(reordered_checksums)",
