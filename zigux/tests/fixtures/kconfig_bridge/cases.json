@@ -205,6 +205,11 @@
       "expected": "last_state_transitions_expected.json"
     },
     {
+      "name": "duplicate_assignments",
+      "input": "duplicate_assignments.config",
+      "expected": "duplicate_assignments_expected.json"
+    },
+    {
       "name": "duplicate_malformed_quoted_assignment",
       "input": "duplicate_malformed_quoted_assignment.config",
       "expected": "duplicate_malformed_quoted_assignment_expected.json"
