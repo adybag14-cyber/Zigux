@@ -18,13 +18,13 @@ This note keeps the current `include/zigux/abi.h` boundary truthful on `master` 
 - `include/zigux/abi.h` remains the canonical owner for `zigux_boundary_header`, `zigux_export_status`, `zigux_interop_policy`, the chrdev budget-window layout constants and structs, the notifier/list/hlist relay structs, and the inline header/status/policy helpers.
 - Current `master` still pairs that canonical header with `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/layout_assert.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump_current.zig`, `scripts/zigux/check-phase3-abi.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
 - The shared ABI replay already keeps the notifier priority helpers, malformed list detection helpers, layout assertions, status helpers, and interop-policy decoding visible beside the published header surface.
-- The focused checker already fails closed on many shared ABI header markers, but current repo evidence still leaves the notifier source markers themselves as the next direct same-packet guard to tighten rather than a reason to grow `include/zigux/abi.h` again.
+- The focused checker now also fails closed on notifier source markers inside `zigux_notifier_chain_has_nonincreasing_priority()` and `zigux_notifier_first_chain_priority_increase()`, so priority-sequence regressions in the inline header helpers no longer hide behind signature-only coverage.
 
 ## Next Safe Step
 
 - Do not add another ABI-header surface in this lane just to keep activity moving.
-- The next same-packet move is to publish one focused `scripts/zigux/check-phase3-abi.py` tightening so it fails closed if `zigux_notifier_chain_priority_increase`, `zigux_notifier_first_chain_priority_increase()`, or `zigux_notifier_chain_has_nonincreasing_priority()` disappear from `include/zigux/abi.h`.
-- If that checker repair lands, refresh this note only as needed to keep the focused-checker claim and directly coupled file list honest.
+- Keep this note parked unless a fresh current-master reread finds a smaller same-packet checker or replay drift around the already-landed notifier guard, header helpers, or manifest-backed packet inventory.
+- If that future reread finds drift, refresh this note only as needed to keep the focused-checker claim and directly coupled file list honest.
 
 ## Boundary
 
