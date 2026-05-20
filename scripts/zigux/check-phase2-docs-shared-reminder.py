@@ -147,6 +147,7 @@ REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "current directly readable Phase 2 local-first archive, toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, tool-manifest, artifact-support, fixdep, genksyms-bridge, and required-make-route packet",
     "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
