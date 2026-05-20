@@ -118,11 +118,18 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
+
+
+def read_json(root: Path, rel: str, issue_code: str) -> tuple[object | None, tuple[str, str] | None]:
+    try:
+        return json.loads(read_text(root, rel)), None
+    except json.JSONDecodeError:
+        return None, (issue_code, rel)
 
 
 def write_text(root: Path, rel: str, content: str) -> None:
@@ -245,10 +252,9 @@ def parse_args(argv: list[str]) -> dict[str, object]:
 
 
 def load_cases_payload(root: Path) -> tuple[list[dict[str, object]] | None, list[tuple[str, str]]]:
-    try:
-        raw_cases = json.loads(read_text(root, CASES_FIXTURE))
-    except json.JSONDecodeError:
-        return None, [("INVALID_CASES_FIXTURE_JSON", CASES_FIXTURE)]
+    raw_cases, read_issue = read_json(root, CASES_FIXTURE, "INVALID_CASES_FIXTURE_JSON")
+    if read_issue is not None:
+        return None, [read_issue]
 
     if not isinstance(raw_cases, list):
         return None, [("INVALID_CASES_FIXTURE_PAYLOAD", type(raw_cases).__name__)]
@@ -325,7 +331,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
         issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
 
-    help_payload = json.loads(read_text(root, HELP_FIXTURE))
+    help_payload, help_issue = read_json(root, HELP_FIXTURE, "INVALID_HELP_FIXTURE_JSON")
+    if help_issue is not None:
+        issues.append(help_issue)
+        return issues
     if help_payload != {"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}:
         issues.append(("HELP_FIXTURE_MISMATCH", HELP_FIXTURE))
 
@@ -341,7 +350,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     for case in cases:
         expected_rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
-        expected_payload = json.loads(read_text(root, expected_rel))
+        expected_payload, expected_issue = read_json(root, expected_rel, "INVALID_EXPECTED_FIXTURE_JSON")
+        if expected_issue is not None:
+            issues.append(expected_issue)
+            continue
         actual_payload = parse_args(case["args"])
         if expected_payload != actual_payload:
             issues.append(("CASE_MISMATCH", case["name"]))
@@ -415,6 +427,11 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(root, HELP_FIXTURE, "{broken\n")
+        assert ("INVALID_HELP_FIXTURE_JSON", HELP_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, MAKEFILE, "phase2-genksyms:\n")
         assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
         checks += 1
@@ -459,6 +476,18 @@ def run_self_test() -> int:
             + "\n",
         )
         assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+            "{broken\n",
+        )
+        assert (
+            "INVALID_EXPECTED_FIXTURE_JSON",
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+        ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -552,7 +581,10 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
 
-    case_count = len(json.loads(read_text(args.root.resolve(), CASES_FIXTURE)))
+    cases, case_issues = load_cases_payload(args.root.resolve())
+    assert not case_issues
+    assert cases is not None
+    case_count = len(cases)
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
