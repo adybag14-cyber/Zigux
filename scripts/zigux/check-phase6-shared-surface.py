@@ -11,6 +11,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 HELPER_EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
 
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
@@ -69,7 +70,20 @@ REQUIRED_PARITY_MANIFEST_SNIPPETS = [
     '"scripts/zigux/check-phase6-checksum-c-parity.py"',
 ]
 
-SELF_TEST_CASE_COUNT = 9
+REQUIRED_VALIDATOR_SNIPPETS = [
+    'BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")',
+    'BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")',
+    'CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")',
+    'HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")',
+    'HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")',
+    'run_checker(root, BASE64_CORPUS_CHECKER, "--repo-root")',
+    'run_checker(root, BSEARCH_CORPUS_CHECKER, "--repo-root")',
+    'run_checker(root, CHECKSUM_CORPUS_CHECKER, "--repo-root")',
+    'run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")',
+    'run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")',
+]
+
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -97,6 +111,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_EVIDENCE_MANIFEST_SNIPPETS)
     require_snippets(repo_root / HELPER_PARITY_MANIFEST_PATH, REQUIRED_PARITY_MANIFEST_SNIPPETS)
+    require_snippets(repo_root / VALIDATOR_PATH, REQUIRED_VALIDATOR_SNIPPETS)
 
 
 def write(path: Path, content: str) -> None:
@@ -109,6 +124,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_MANIFEST_PATH, "\n".join(REQUIRED_EVIDENCE_MANIFEST_SNIPPETS) + "\n")
     write(root / HELPER_PARITY_MANIFEST_PATH, "\n".join(REQUIRED_PARITY_MANIFEST_SNIPPETS) + "\n")
+    write(root / VALIDATOR_PATH, "\n".join(REQUIRED_VALIDATOR_SNIPPETS) + "\n")
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
@@ -148,6 +164,8 @@ def run_self_test() -> None:
             (root / HELPER_PARITY_MANIFEST_PATH, '"make -C zigux phase6-perf"'),
             (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-base64-c-parity.py"'),
             (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-c-parity.py"'),
+            (root / VALIDATOR_PATH, 'CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")'),
+            (root / VALIDATOR_PATH, 'run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
