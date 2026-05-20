@@ -367,9 +367,19 @@ def run_self_test() -> int:
 
         duplicate_workflow_checks = (
             (
+                "Self-test current Phase 1 shared reminder checker",
+                "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
+                "duplicate_shared_reminder_selftest",
+            ),
+            (
                 "Check current Phase 1 shared reminder packet",
                 "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
                 "duplicate_shared_reminder",
+            ),
+            (
+                "Self-test current Phase 1 closure validator",
+                "python3 scripts/zigux/validate-phase1-closure.py --self-test",
+                "duplicate_closure_selftest",
             ),
             (
                 "Check current Phase 1 closure packet",
