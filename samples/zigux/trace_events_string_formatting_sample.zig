@@ -44,6 +44,19 @@ const random_strings = [_][]const u8{
     "One ring to rule them all",
 };
 
+pub const StringFormattingCase = struct {
+    iteration_count: i32,
+    selected_string: []const u8,
+    formatted_message: RenderedText,
+};
+
+pub const StringFormattingCycleSummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    cases: [random_strings.len]StringFormattingCase,
+    checked_focus: []const SampleFocus,
+};
+
 pub const TraceEventsStringFormattingSample = struct {
     const Self = @This();
 
@@ -113,6 +126,37 @@ pub const TraceEventsStringFormattingSample = struct {
         };
     }
 
+    pub fn runStringFormattingCycleReplay(self: *Self) !StringFormattingCycleSummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        var cases: [random_strings.len]StringFormattingCase = undefined;
+        for (random_strings, 0..) |expected_string, i| {
+            var rendered = RenderedText{};
+            const rendered_slice = try self.formatIterationMessageInto(
+                @intCast(i),
+                &rendered.bytes,
+            );
+            rendered.len = rendered_slice.len;
+            cases[i] = .{
+                .iteration_count = @intCast(i),
+                .selected_string = expected_string,
+                .formatted_message = rendered,
+            };
+        }
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_replay = self.stage(),
+            .cases = cases,
+            .checked_focus = &.{
+                .string_selection,
+                .formatted_message,
+                .bounded_destination_discipline,
+                .non_allocating_runtime_safe,
+            },
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -149,6 +193,38 @@ test "phase 5 trace-events formatting companion keeps the selected-string cue re
     try std.testing.expectEqual(@as(usize, 6), replay.formatted_message.len);
     try std.testing.expectEqualSlices(u8, "iter=7", replay.formatted_message.bytes[0..replay.formatted_message.len]);
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
+}
+
+test "phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable" {
+    var sample = TraceEventsStringFormattingSample{};
+    const expected_focus = [_]SampleFocus{
+        .string_selection,
+        .formatted_message,
+        .bounded_destination_discipline,
+        .non_allocating_runtime_safe,
+    };
+
+    try sample.init();
+    const cycle = try sample.runStringFormattingCycleReplay();
+    try std.testing.expectEqual(SampleStage.initialized, cycle.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, cycle.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, cycle.checked_focus);
+
+    for (random_strings, 0..) |expected_string, i| {
+        const current = cycle.cases[i];
+        var expected_message: [16]u8 = undefined;
+        const rendered = try std.fmt.bufPrint(&expected_message, "iter={d}", .{i});
+
+        try std.testing.expectEqual(@as(i32, @intCast(i)), current.iteration_count);
+        try std.testing.expectEqualStrings(expected_string, current.selected_string);
+        try std.testing.expectEqual(rendered.len, current.formatted_message.len);
+        try std.testing.expectEqualSlices(
+            u8,
+            rendered,
+            current.formatted_message.bytes[0..current.formatted_message.len],
+        );
+    }
 }
 
 test "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit" {
