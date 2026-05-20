@@ -82,11 +82,11 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(checker, "PHASE7_RBTREE_PARITY=pass");
     try expectContains(checker, "PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT=");
     try expectContains(checker, "PHASE7_RBTREE_PARITY_SELF_TEST=pass");
-    try expectContains(checker, "\\\"Documentation/zigux/phase7-rbtree-slice.md\\\",");
-    try expectContains(checker, "\\\"tools/lib/rbtree.zig\\\",");
-    try expectContains(checker, "\\\"zigux/tests/phase7_rbtree.zig\\\",");
-    try expectContains(checker, "\\\"zigux/tests/phase7_rbtree_survey.zig\\\",");
-    try expectContains(checker, "\\\"zigux/tests/phase7_rbtree_manifest.json\\\",");
+    try expectContains(checker, "\"Documentation/zigux/phase7-rbtree-slice.md\",");
+    try expectContains(checker, "\"tools/lib/rbtree.zig\",");
+    try expectContains(checker, "\"zigux/tests/phase7_rbtree.zig\",");
+    try expectContains(checker, "\"zigux/tests/phase7_rbtree_survey.zig\",");
+    try expectContains(checker, "\"zigux/tests/phase7_rbtree_manifest.json\",");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`");
     try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L13`");
@@ -173,12 +173,12 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(direct_anchor_note, "`Documentation/zigux/phase7-rbtree-slice.md`");
     try expectContains(direct_anchor_note, "`scripts/zigux/check-phase7-rbtree-parity.py`");
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot directly returned:");
-    try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot also directly returned these shared non-owner surfaces:");
+    try expectContains(direct_anchor_note, "Fresh current-master reread in this slot also confirmed these shared non-owner surfaces:");
     try expectContains(direct_anchor_note, "`scripts/zigux/check-phase7-build-wiring.py`");
     try expectContains(direct_anchor_note, "`scripts/zigux/validate-phase7.py`");
     try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig`");
     try expectContains(direct_anchor_note, "`zigux/Makefile`");
-    try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned 404 for these dedicated companion or roadmap-path surfaces:");
+    try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion or roadmap-path surfaces:");
     try expectContains(direct_anchor_note, "`lib/rbtree.zig`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
