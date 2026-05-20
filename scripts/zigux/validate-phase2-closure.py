@@ -52,7 +52,11 @@ GENKSYMS_HELP_REL = Path("zigux/tests/fixtures/genksyms_bridge/help_expected.jso
 GENKSYMS_MINIMAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/minimal_expected.json")
 GENKSYMS_DEBUG_REL = Path("zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json")
 GENKSYMS_LONG_REL = Path("zigux/tests/fixtures/genksyms_bridge/long_options_expected.json")
+GENKSYMS_ABBREVIATED_REL = Path("zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json")
 GENKSYMS_QUIET_REL = Path("zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json")
+GENKSYMS_TERMINATOR_REL = Path("zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json")
+GENKSYMS_POSITIONAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json")
+GENKSYMS_LONE_DASH_REL = Path("zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json")
 
 REQUIRED_FILES = (
     WORKFLOW_REL,
@@ -95,7 +99,11 @@ REQUIRED_FILES = (
     GENKSYMS_MINIMAL_REL,
     GENKSYMS_DEBUG_REL,
     GENKSYMS_LONG_REL,
+    GENKSYMS_ABBREVIATED_REL,
     GENKSYMS_QUIET_REL,
+    GENKSYMS_TERMINATOR_REL,
+    GENKSYMS_POSITIONAL_REL,
+    GENKSYMS_LONE_DASH_REL,
 )
 
 REQUIRED_CLOSURE_MARKERS = (
@@ -122,7 +130,11 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
     "`python3 scripts/zigux/check-kconfig-bridge.py`",
@@ -252,7 +264,11 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
 )
 EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
@@ -304,9 +320,29 @@ EXPECTED_GENKSYMS_CASES = [
         "expected_file": "long_options_expected.json",
     },
     {
+        "name": "abbreviated_long_options",
+        "args": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
+        "expected_file": "abbreviated_long_options_expected.json",
+    },
+    {
         "name": "quiet_overrides_warning",
         "args": ["--warnings", "--quiet", "--reference", "bar.symref"],
         "expected_file": "quiet_overrides_warning_expected.json",
+    },
+    {
+        "name": "explicit_option_terminator",
+        "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
+        "expected_file": "explicit_option_terminator_expected.json",
+    },
+    {
+        "name": "positional_passthrough",
+        "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "expected_file": "positional_passthrough_expected.json",
+    },
+    {
+        "name": "lone_dash_passthrough",
+        "args": ["-", "-d"],
+        "expected_file": "lone_dash_passthrough_expected.json",
     },
 ]
 
@@ -612,7 +648,11 @@ def build_self_test_root(root: Path) -> None:
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`
 
 ## Current Repo-Reality Gaps
 
@@ -762,7 +802,11 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, GENKSYMS_MINIMAL_REL), "{}\n")
     write_text(resolve(root, GENKSYMS_DEBUG_REL), "{}\n")
     write_text(resolve(root, GENKSYMS_LONG_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_ABBREVIATED_REL), "{}\n")
     write_text(resolve(root, GENKSYMS_QUIET_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_TERMINATOR_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_POSITIONAL_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_LONE_DASH_REL), "{}\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
