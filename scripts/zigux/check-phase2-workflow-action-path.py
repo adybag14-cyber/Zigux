@@ -29,6 +29,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-cross.py": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+    "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-toolchain-pinning.py": 1,
 }
 
 ORDERED_STEP_MARKERS = (
@@ -39,9 +41,10 @@ ORDERED_STEP_MARKERS = (
     "- name: Self-test current Phase 2 cross selftest alignment checker",
     "- name: Check current Phase 2 cross alignment packet",
     "- name: Self-test current Phase 2 toolchain pinning checker",
+    "- name: Check current Phase 2 toolchain pinning packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -159,6 +162,8 @@ def build_self_test_root(root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
                 "      - name: Self-test current Phase 2 toolchain pinning checker",
                 "        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+                "      - name: Check current Phase 2 toolchain pinning packet",
+                "        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
                 "",
             ]
         ),
@@ -222,13 +227,13 @@ def run_self_test() -> int:
         workflow_path.write_text(
             duplicate_exact_line(
                 workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-phase2-cross.py",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
             ),
             encoding="utf-8",
         )
         assert (
             "DUPLICATE_WORKFLOW_RUN",
-            "python3 scripts/zigux/check-phase2-cross.py:count=2",
+            "python3 scripts/zigux/check-phase2-toolchain-pinning.py:count=2",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -238,50 +243,37 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", str(path.relative_to(ROOT))) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        workflow_path = resolve_path(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_step_markers(
-                workflow_path.read_text(encoding="utf-8"),
-                "Self-test current Phase 2 cross checker",
-                "Check current Phase 2 cross alignment packet",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "STEP_ORDER",
-            "- name: Self-test current Phase 2 cross checker -> - name: Check current Phase 2 direct cross-route packet",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = resolve_path(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_step_markers(
-                workflow_path.read_text(encoding="utf-8"),
-                "Check current Phase 2 direct cross-route packet",
-                "Self-test current Phase 2 cross selftest alignment checker",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "STEP_ORDER",
-            "- name: Check current Phase 2 direct cross-route packet -> - name: Self-test current Phase 2 cross selftest alignment checker",
-        ) in collect_issues(root)
-        checks_run += 1
+        for first, second in (
+            ("Self-test current Phase 2 cross checker", "Check current Phase 2 direct cross-route packet"),
+            ("Check current Phase 2 direct cross-route packet", "Self-test current Phase 2 cross selftest alignment checker"),
+            ("Check current Phase 2 cross alignment packet", "Self-test current Phase 2 toolchain pinning checker"),
+            ("Self-test current Phase 2 toolchain pinning checker", "Check current Phase 2 toolchain pinning packet"),
+        ):
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                swap_step_markers(
+                    workflow_path.read_text(encoding="utf-8"),
+                    first,
+                    second,
+                ),
+                encoding="utf-8",
+            )
+            assert (("STEP_ORDER", f"{'- name: ' + first} -> {'- name: ' + second}")) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         workflow_path = resolve_path(root, WORKFLOW)
         workflow_path.write_text(
             replace_once(
                 workflow_path.read_text(encoding="utf-8"),
-                "- name: Self-test current Phase 2 toolchain pinning checker\n",
+                "- name: Check current Phase 2 toolchain pinning packet\n",
             ),
             encoding="utf-8",
         )
         assert (
             "MISSING_STEP_MARKER",
-            "- name: Self-test current Phase 2 toolchain pinning checker",
+            "- name: Check current Phase 2 toolchain pinning packet",
         ) in collect_issues(root)
         checks_run += 1
 
