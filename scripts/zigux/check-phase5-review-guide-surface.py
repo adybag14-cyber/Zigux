@@ -221,7 +221,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 14
+    expected_case_count = 15
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -342,6 +342,24 @@ def run_self_test() -> int:
         expected = [f"{SCRIPTS_ROOT_PATH}:missing_text:{SCRIPTS_ROOT_MARKERS[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected scripts-root bytestream-build failure: {failures}")
+        checks_run += 1
+
+        missing_tests_root_kobject_marker_root = root / "missing_tests_root_kobject_marker"
+        _seed(missing_tests_root_kobject_marker_root)
+        _write(
+            missing_tests_root_kobject_marker_root / TESTS_ROOT_PATH,
+            _placeholder_text(
+                TESTS_ROOT_PATH,
+                (
+                    TESTS_ROOT_MARKERS[0],
+                    TESTS_ROOT_MARKERS[1],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_tests_root_kobject_marker_root)
+        expected = [f"{TESTS_ROOT_PATH}:missing_text:{TESTS_ROOT_MARKERS[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected tests-root kobject failure: {failures}")
         checks_run += 1
 
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
