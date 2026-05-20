@@ -97,12 +97,12 @@ REQUIRED_MARKERS = {
         'try expectContains(manifest, "\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
         'try expectContains(manifest, "\\\\"next_bounded_step\\\\": \\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
-        'try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-string-sample policy lane-local",
         "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet",
-        "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
+        "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -122,7 +122,7 @@ COUNTED_MARKERS = {
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         (
-            "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
+            "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
             1,
         ),
     ],
@@ -308,13 +308,13 @@ def run_self_test() -> None:
         expect_missing_marker("missing_survey_checker_selftest_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
-        survey_follow_on_marker = 'try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
+        survey_follow_on_marker = 'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
         survey_path.write_text(read_text(survey_path).replace(survey_follow_on_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_follow_on_marker}")
         write_fixture_root(tmp_root)
 
         boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
-        boundary_marker = "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
+        boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
         boundary_path.write_text(read_text(boundary_path).replace(boundary_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_boundary_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {boundary_marker}")
         write_fixture_root(tmp_root)
@@ -429,10 +429,6 @@ def main() -> int:
         return 1
 
     print("PHASE7_STRING_HELPERS_PACKET=pass")
-    print(f"PHASE7_STRING_HELPERS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE7_STRING_HELPERS_PACKET_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
-    print("PHASE7_STRING_HELPERS_PACKET_COUNTED_MARKER_COUNT=" f"{sum(len(markers) for markers in COUNTED_MARKERS.values())}")
-    print("PHASE7_STRING_HELPERS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
     return 0
 
 
