@@ -428,8 +428,15 @@ pub const VirtioInputLab = struct {
 
     pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
         const queue_plan_ready = self.event_descriptor_count != 0 and self.status_descriptor_count != 0 and self.queued_event_buffer_count != 0;
-        const capability_setup_ready = self.hasAbsCapability(abs_mt_slot) and self.findAbsInfoIndex(abs_mt_slot) != null;
-        const multitouch_slots_ready = self.planned_multitouch_slots != 0;
+        const has_multitouch_capability = self.hasAbsCapability(abs_mt_slot);
+        const capability_setup_ready = if (has_multitouch_capability)
+            self.findAbsInfoIndex(abs_mt_slot) != null
+        else
+            self.config_bitmap_count != 0;
+        const multitouch_slots_ready = if (has_multitouch_capability)
+            self.planned_multitouch_slots != 0
+        else
+            true;
 
         const blocker: ?RegistrationBlocker = if (self.event_descriptor_count == 0)
             .event_queue_unconfigured
@@ -630,4 +637,29 @@ test "phase10 virtio input teardown summary keeps device ids explicit across res
     try std.testing.expect(after_reset.preserves_identity);
     try std.testing.expect(!after_reset.clears_runtime_state);
     try std.testing.expect(!after_reset.clears_capability_state);
+}
+
+test "phase10 virtio input registration preflight keeps non-multitouch devices below slot planning" {
+    var device = try VirtioInputLab.init("virtio-tablet", "registration-plain", 5, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+
+    var summary = device.registrationPreflightSummary();
+    try std.testing.expectEqual(RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(!summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expect(!summary.ready_for_registration);
+
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    summary = device.registrationPreflightSummary();
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(summary.ready_for_registration);
 }
