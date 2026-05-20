@@ -31,7 +31,7 @@ This run could verify that:
 
 - `Documentation/zigux/phase8-kallsyms-slice.md` is present on `master`
 - `scripts/zigux/validate-phase8.py` is present on `master`
-- the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the direct parser callback wrapper surface around `kallsymsParseFile()` and `forEachParsedPath()`, and the current `parseLine()` plus reader and wrapper tests still preserve one trailing `\r` on CRLF-backed symbol names instead of normalizing those names before slicing
+- the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the direct parser callback wrapper surface around `kallsymsParseFile()` and `forEachParsedPath()`, oversized symbol names now truncate to `KSYM_NAME_LEN`, weak-object `V` and `v` classes still follow the current C header contract, and the current `parseLine()` plus reader and wrapper tests still preserve one trailing `\r` on CRLF-backed symbol names instead of normalizing those names before slicing
 - the public raw fallback also returns usable `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig` bodies, and the focused replay still expects `startup_64\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work
 - authenticated GitHub contents reads still fail for the dedicated kallsyms helper, checker, focused test, and focused build file paths
 - the current container and devbox still could not replay those same raw file fetches directly, so this run still stops short of a local helper replay even though the public raw readback is now coherent
@@ -46,6 +46,8 @@ The current readable packet still covers:
 - the helper-first expansion wording and one future `kallsymsParse()` wrapper target
 - one directly readable lane note that now matches the mixed read surface available to this scheduled run
 - one directly readable `tools/lib/symbol/kallsyms.zig` helper body through the public raw fallback
+- oversized symbol names now truncate to `KSYM_NAME_LEN`
+- weak-object `V` and `v` classes still follow the current C header contract
 - one directly readable `scripts/zigux/check-phase8-help-kallsyms-packet.py` checker body through the public raw fallback
 - directly readable focused replay and focused build surfaces in `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` through the public raw fallback
 - the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names
