@@ -780,7 +780,7 @@ def build_self_test_root(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_\") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         cases_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
         conf_manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
@@ -1036,7 +1036,7 @@ def main() -> int:
     if case_issues:
         emit_manifest_issues(case_issues)
 
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_\") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
