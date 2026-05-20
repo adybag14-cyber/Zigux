@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 52
+EXPECTED_SELF_TEST_CASE_COUNT = 58
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -401,7 +401,7 @@ def run_self_test() -> int:
         for path in (SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST, MAKEFILE):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
-            assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file missing:")
+            assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
             checks_run += 1
 
         for path in (SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST, MAKEFILE):
@@ -409,28 +409,29 @@ def run_self_test() -> int:
             unreadable = resolve_path(root, path)
             unreadable.unlink()
             unreadable.mkdir()
-            assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file unreadable:")
+            assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
             unreadable.rmdir()
             checks_run += 1
 
-        build_self_test_root(root)
-        resolve_path(root, SCRIPTS_README).unlink()
-        result, output = capture_run_validator(root)
-        assert result == 1
-        assert "PHASE2_VALIDATION=fail" in output
-        assert "PHASE2_VALIDATION_NOTE=required file missing:" in output
-        checks_run += 1
+        for path in (SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST, MAKEFILE):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            result, output = capture_run_validator(root)
+            assert result == 1
+            assert "PHASE2_VALIDATION=fail" in output
+            assert "PHASE2_VALIDATION_NOTE=required file missing:" in output
+            checks_run += 1
 
-        build_self_test_root(root)
-        unreadable = resolve_path(root, SCRIPTS_README)
-        unreadable.unlink()
-        unreadable.mkdir()
-        result, output = capture_run_validator(root)
-        assert result == 1
-        assert "PHASE2_VALIDATION=fail" in output
-        assert "PHASE2_VALIDATION_NOTE=required file unreadable:" in output
-        unreadable.rmdir()
-        checks_run += 1
+            build_self_test_root(root)
+            unreadable = resolve_path(root, path)
+            unreadable.unlink()
+            unreadable.mkdir()
+            result, output = capture_run_validator(root)
+            assert result == 1
+            assert "PHASE2_VALIDATION=fail" in output
+            assert "PHASE2_VALIDATION_NOTE=required file unreadable:" in output
+            unreadable.rmdir()
+            checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
             build_self_test_root(root)
