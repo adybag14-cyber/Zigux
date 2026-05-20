@@ -4,20 +4,32 @@ const sample = @import("kobject_example_sample");
 test "phase 5 kobject sample keeps the descriptor contract explicit through the focused test surface too" {
     const descriptor = sample.KobjectExampleSample.descriptor();
     const contract = sample.KobjectExampleSample.reviewContract();
+    const expected_focus = [_][]const u8{
+        "descriptor",
+        "registration",
+        "shared_b_dispatch",
+        "value_roundtrip",
+        "lifecycle_boundary",
+    };
+    const expected_non_goals = [_][]const u8{
+        "sysfs file creation parity",
+        "kernel_kobj integration",
+        "uevent delivery",
+        "loadable module registration",
+    };
 
     try std.testing.expectEqualStrings("kobject_example", descriptor.name);
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", descriptor.anchor);
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
-    try std.testing.expectEqualStrings("descriptor", contract.focus[0]);
-    try std.testing.expectEqualStrings("registration", contract.focus[1]);
-    try std.testing.expectEqualStrings("shared_b_dispatch", contract.focus[2]);
-    try std.testing.expectEqualStrings("value_roundtrip", contract.focus[3]);
-    try std.testing.expectEqualStrings("lifecycle_boundary", contract.focus[4]);
-    try std.testing.expectEqualStrings("sysfs file creation parity", contract.non_goals[0]);
-    try std.testing.expectEqualStrings("kernel_kobj integration", contract.non_goals[1]);
-    try std.testing.expectEqualStrings("uevent delivery", contract.non_goals[2]);
-    try std.testing.expectEqualStrings("loadable module registration", contract.non_goals[3]);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    inline for (expected_focus, 0..) |focus, idx| {
+        try std.testing.expectEqualStrings(focus, contract.focus[idx]);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    inline for (expected_non_goals, 0..) |non_goal, idx| {
+        try std.testing.expectEqualStrings(non_goal, contract.non_goals[idx]);
+    }
 }
 
 test "phase 5 kobject sample keeps the anchor replay explicit through the focused test surface too" {
@@ -42,6 +54,7 @@ test "phase 5 kobject sample keeps the anchor replay explicit through the focuse
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
+    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
     inline for (contract.focus, 0..) |focus, idx| {
         try std.testing.expectEqualStrings(focus, replay.checked_focus[idx]);
     }
