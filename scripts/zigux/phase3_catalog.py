@@ -94,6 +94,7 @@ TEST_PATHS = (
     Path("zigux/tests/phase3_export_uapi_layout_build.zig"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump_current.zig"),
+    Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
 )
 
 COMMANDS = (
