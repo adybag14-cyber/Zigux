@@ -96,7 +96,7 @@ Keep `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-p
 
 Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.
 
-Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-missing-gap-note plus shared-support-bundle fallback split already named by the PMO release packet.
+Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.
 
 keep the degraded rerun order honest by relying on the repo-local `.zig-toolchain` fallback in `zigux/Makefile` before the attached-Zig `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` vocabulary.
 
@@ -194,7 +194,7 @@ Current `master` does materialize `zigux/Makefile`, but its live body currently 
 Keep `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `net/core/skbuff_bridge.zig` framed as exact-readback gaps rather than shipped tests-root evidence until the same current-`master` read mode returns them again.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 14 reminder keep the recovered study-only packet through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, and `zigux/tests/phase14_workqueue_reviewability.zig` aligned with the readable non-owner Makefile posture without reviving `phase14-smoke`, `phase14-test`, `phase14`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, or `net/core/skbuff_bridge.zig` as shipped tests-root proof?
+- Does the bounded Phase 14 reminder keep the recovered study-only packet through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `zigux/tests/phase14_workqueue_reviewability.zig` aligned with the readable non-owner Makefile posture without reviving `phase14-smoke`, `phase14-test`, `phase14`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, or `net/core/skbuff_bridge.zig` as shipped tests-root proof?
 
 ## Phase 15 shared governance packet
 
