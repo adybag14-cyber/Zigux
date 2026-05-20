@@ -98,6 +98,10 @@ REQUIRED_MARKERS = {
         "  * status bucket: `study_only`",
         "  * rollback threshold: `0` tolerated same-packet drifts",
         "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`",
+        "  * executable packet members still unrecovered through this lane's exact contents path:",
+        "    * `zigux/tests/phase14_build.zig`",
+        "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+        "    * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     ],
     RELEASE_BOUNDARY_PATH: [
         "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` now returns through the current contents path and keeps the release-facing exact-count posture aligned with the current shared reminder packet",
@@ -183,6 +187,8 @@ REQUIRED_MARKERS = {
         "phase14-validate:",
         "scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
         "scripts/zigux/check-phase14-shared-smoke-route.py",
+        "scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+        "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
         "scripts/zigux/validate-phase14.py --self-test",
         "scripts/zigux/validate-phase14.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -337,6 +343,7 @@ def run_self_test() -> int:
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
+            (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][5]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
