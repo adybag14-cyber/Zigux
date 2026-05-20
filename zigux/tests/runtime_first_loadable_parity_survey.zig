@@ -61,6 +61,9 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build, "\"phase9-first-loadable-runtime-module-parity-survey-tests\"");
+    try expectContains(phase9_build, "\"runtime_first_loadable_parity_survey.zig\"");
+    try expectContains(phase9_build, "\"Run the Phase 9 first-loadable runtime-module parity survey tests.\"");
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-sample-tests\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-loader-tests\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-module-tests\"") == null);
