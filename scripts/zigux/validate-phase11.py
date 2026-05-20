@@ -279,7 +279,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         build_fake_zig(fake_zig)
         failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
         build_stub_script(failing_script, exit_code=1)
