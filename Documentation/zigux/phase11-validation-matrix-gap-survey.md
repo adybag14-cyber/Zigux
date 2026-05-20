@@ -34,6 +34,8 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/validate-phase11.py`
+- `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 
 Authenticated GitHub contents rereads in this run rematerialize the gpio
@@ -68,6 +70,11 @@ That inventory does not stand in for a whole-Phase-11 replay roster while the
 current reread expansion now covers all four driver-local matrix notes plus the
 existing HVC continuity packet.
 
+Current `master` also materializes `scripts/zigux/validate-phase11.py` and
+`zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`,
+so keep that returned shared validation-and-build gate explicit beside the
+matrix packet instead of leaving it implied by neighboring reminder surfaces.
+
 ## Validation Gate
 
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
@@ -75,6 +82,8 @@ existing HVC continuity packet.
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/validate-phase11.py`
+- `python3 scripts/zigux/validate-phase11.py`
 
 ## Matrix Survey
 
@@ -105,14 +114,14 @@ existing HVC continuity packet.
 - Treat this survey as current-head driver-local matrix truthfulness only, not
   as proof of full platform-backed closure for any Phase 11 driver lane.
 - Do not use the returned driver-local Phase 11 matrices, the adjacent
-  header-parity matrix, or the narrower HVC continuity packet to overclaim
-  broader GPIO descriptor execution, watchdog-core registration side effects,
-  notifier execution, khvcd execution, sysrq execution, MMIO behavior, or
-  host-backed teardown.
+  header-parity matrix, the narrower HVC continuity packet, or the returned
+  shared validation-and-build gate to overclaim broader GPIO descriptor
+  execution, watchdog-core registration side effects, notifier execution, khvcd
+  execution, sysrq execution, MMIO behavior, or host-backed teardown.
 - Keep the driver-local matrix packet explicit through gpio and HVC
   authenticated-contents rereads plus bcm2835 and DesignWare raw `master`
   fallback rereads, while preserving the narrower HVC build inventory as
   adjacent continuity evidence rather than a cross-driver replay roster.
-- If a reread driver-local matrix returns or disappears, update this survey and
-  both matrix-gap checkers in the same bounded pass so the shared packet
-  description stays honest.
+- If a reread driver-local matrix returns or disappears, update this survey, the
+  shared validation-and-build gate wording, and both matrix-gap checkers in the
+  same bounded pass so the shared packet description stays honest.
