@@ -39,6 +39,7 @@ BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_BUILD_TEXT_MARKERS = (
     "phase11_hvc_cleanup_packet_proof.zig",
@@ -126,6 +127,14 @@ REQUIRED_WORKFLOW_PHASE11_STEPS = (
         "Run current Phase 11 HVC cleanup packet proof",
         "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     ),
+)
+
+REQUIRED_MAKEFILE_ROUTE_MARKERS = (
+    "phase11-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 )
 
 
@@ -266,6 +275,7 @@ def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
     build_text = read_text(root / BUILD_FILE_PATH)
     workflow_text = read_text(root / WORKFLOW_PATH)
+    makefile_text = read_text(root / MAKEFILE_PATH)
     for marker in REQUIRED_BUILD_TEXT_MARKERS:
         if marker not in build_text:
             raise CheckError(f"missing marker in {BUILD_FILE_PATH}: {marker}")
@@ -327,6 +337,7 @@ def run_check(root: Path) -> None:
             raise CheckError(f"missing workflow step in {WORKFLOW_PATH}: {name}")
         if normalize_whitespace(f"run: {run}") not in normalized_workflow_text:
             raise CheckError(f"missing workflow run in {WORKFLOW_PATH}: {run}")
+    require_text_markers(root / MAKEFILE_PATH, REQUIRED_MAKEFILE_ROUTE_MARKERS)
     expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
@@ -451,12 +462,20 @@ jobs:
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
 """
 
+FIXTURE_MAKEFILE_TEXT = """phase11-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+"""
+
 
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
     write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
+    write(root / MAKEFILE_PATH, FIXTURE_MAKEFILE_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -546,6 +565,22 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_hv_ops_workflow_step, "Run current Phase 11 HVC hv_ops layout proof")
+        case_count += 1
+
+        missing_makefile_marker = tmpdir / "missing_makefile_marker"
+        shutil.copytree(fixture, missing_makefile_marker, dirs_exist_ok=True)
+        write(
+            missing_makefile_marker / MAKEFILE_PATH,
+            read_text(missing_makefile_marker / MAKEFILE_PATH).replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_makefile_marker,
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+        )
         case_count += 1
 
         wrong_adjunct_replays = tmpdir / "wrong_adjunct_replays"
