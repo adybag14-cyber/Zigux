@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
@@ -20,6 +21,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/check-phase10-ring-packet.py",
