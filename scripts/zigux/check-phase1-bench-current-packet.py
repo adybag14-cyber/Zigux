@@ -56,7 +56,7 @@ MARKERS = {
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
     ),
     BENCH_FAILURE_CHECKER_REL: (
-        "\"\"\"Guard the Lane 16 bench checker's fail-closed failure packets.\"\"\"",
+        '"""Guard the Lane 16 bench checker\'s fail-closed failure packets."""',
         "def extract_assert_block(text: str, first_line: str) -> list[str]:",
         "FORBIDDEN_EXPECTATION_FAILURE_FRAGMENTS = (",
         '"EXPECTATIONS_PATH=",',
@@ -69,8 +69,8 @@ MARKERS = {
         'print("PHASE1_BENCH_FAILURE_PACKET_SELF_TEST=pass")',
     ),
     BENCH_SUCCESS_CHECKER_REL: (
-        "\"\"\"Guard the Lane 16 bench checker's clean success packet.\"\"\"",
-        "def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:",
+        '"""Guard the Lane 16 bench checker\'s clean success packet."""',
+        'def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:',
         "FORBIDDEN_FRAGMENTS = (",
         "FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS = (",
         "'PHASE1_BENCH_CHECK_REASON=',",
@@ -285,20 +285,48 @@ def mutate_assert_block_order(root: Path, relative_path: str, first_line: str) -
 
 
 def mutate_assert_block_remove_line(
-    root: Path, relative_path: str, first_line: str, line_index: int
+    root: Path,
+    relative_path: str,
+    first_line: str,
+    removed_line: str,
 ) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
     actual_block = extract_assert_block(text, first_line)
-    trimmed = actual_block[:line_index] + actual_block[line_index + 1 :]
+    updated_block = [line for line in actual_block if line != removed_line]
     original = "\n".join(actual_block)
-    updated = "\n".join(trimmed)
+    updated = "\n".join(updated_block)
     path.write_text(text.replace(original, updated, 1), encoding="utf-8")
-    return trimmed
+    return updated_block
+
+
+def mutate_assert_block_duplicate_line(
+    root: Path,
+    relative_path: str,
+    first_line: str,
+    duplicated_line: str,
+) -> list[str]:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    actual_block = extract_assert_block(text, first_line)
+    updated_block: list[str] = []
+    duplicated = False
+    for line in actual_block:
+        updated_block.append(line)
+        if not duplicated and line == duplicated_line:
+            updated_block.append(line)
+            duplicated = True
+    original = "\n".join(actual_block)
+    updated = "\n".join(updated_block)
+    path.write_text(text.replace(original, updated, 1), encoding="utf-8")
+    return updated_block
 
 
 def expected_issue(
-    relative_path: str, needle: str | None, operation: str, block: list[str] | None = None
+    relative_path: str,
+    needle: str | None,
+    operation: str,
+    block: list[str] | None = None,
 ) -> str:
     if operation == "unlink":
         return f"missing_file:{relative_path}"
@@ -311,7 +339,11 @@ def expected_issue(
     if operation == "append":
         assert needle is not None
         return f"{relative_path}:forbidden:{needle}:actual=1"
-    assert operation in {"assert_block_reorder", "assert_block_remove_line"}
+    assert operation in (
+        "assert_block_reorder",
+        "assert_block_remove_line",
+        "assert_block_duplicate_line",
+    )
     assert needle is not None
     assert block is not None
     return f"{relative_path}:assert_block:{needle}:{block!r}"
@@ -328,39 +360,39 @@ def run_self_test() -> int:
                 print(issue)
             return 1
 
-    cases: list[tuple[str, str, str | None, str, int | None]] = []
+    cases: list[tuple[str, str, str | None, str]] = []
     for relative_path in REQUIRED_FILES:
-        cases.append((f"missing_file:{relative_path}", relative_path, None, "unlink", None))
+        cases.append((f"missing_file:{relative_path}", relative_path, None, "unlink"))
     for relative_path, markers in MARKERS.items():
         for marker in markers:
-            cases.append((f"remove:{relative_path}", relative_path, marker, "remove", None))
-            cases.append((f"duplicate:{relative_path}", relative_path, marker, "duplicate", None))
+            cases.append((f"remove:{relative_path}", relative_path, marker, "remove"))
+            cases.append((f"duplicate:{relative_path}", relative_path, marker, "duplicate"))
     for relative_path, fragments in FORBIDDEN_FRAGMENTS.items():
         for fragment in fragments:
-            cases.append((f"forbidden:{relative_path}", relative_path, fragment, "append", None))
+            cases.append((f"forbidden:{relative_path}", relative_path, fragment, "append"))
     for relative_path, blocks in EXPECTED_ASSERT_BLOCKS.items():
         for block in blocks:
-            cases.append(
-                (
-                    f"assert_block:{relative_path}:{block[0]}:reorder",
-                    relative_path,
-                    block[0],
-                    "assert_block_reorder",
-                    None,
-                )
-            )
-            for line_index in range(1, len(block) - 1):
+            cases.append((f"assert_block:{relative_path}:{block[0]}", relative_path, block[0], "assert_block_reorder"))
+            for removed_line in block[1:-1]:
                 cases.append(
                     (
-                        f"assert_block:{relative_path}:{block[0]}:remove_line:{line_index}",
+                        f"assert_block_line_drop:{relative_path}:{block[0]}:{removed_line}",
                         relative_path,
-                        block[0],
+                        f"{block[0]}\n{removed_line}",
                         "assert_block_remove_line",
-                        line_index,
+                    )
+                )
+            for duplicated_line in block[1:-1]:
+                cases.append(
+                    (
+                        f"assert_block_line_duplicate:{relative_path}:{block[0]}:{duplicated_line}",
+                        relative_path,
+                        f"{block[0]}\n{duplicated_line}",
+                        "assert_block_duplicate_line",
                     )
                 )
 
-    for label, relative_path, needle, operation, line_index in cases:
+    for label, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -380,10 +412,16 @@ def run_self_test() -> int:
             elif operation == "assert_block_reorder":
                 assert needle is not None
                 block = mutate_assert_block_order(root, relative_path, needle)
+            elif operation == "assert_block_duplicate_line":
+                assert needle is not None
+                first_line, duplicated_line = needle.split("\n", 1)
+                block = mutate_assert_block_duplicate_line(root, relative_path, first_line, duplicated_line)
+                needle = first_line
             else:
                 assert needle is not None
-                assert line_index is not None
-                block = mutate_assert_block_remove_line(root, relative_path, needle, line_index)
+                first_line, removed_line = needle.split("\n", 1)
+                block = mutate_assert_block_remove_line(root, relative_path, first_line, removed_line)
+                needle = first_line
             issues = collect_issues(root)
             if issues != [expected_issue(relative_path, needle, operation, block)]:
                 print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
