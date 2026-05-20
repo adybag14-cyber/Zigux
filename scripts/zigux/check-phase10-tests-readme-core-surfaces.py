@@ -204,6 +204,18 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
     else:
         raise AssertionError("expected scripts-root marker failure")
 
+    bad_mmio_companion = good_companion.replace(
+        "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
+        "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion-missing.md`",
+        1,
+    )
+    try:
+        check_companion_text(bad_mmio_companion)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing mmio companion marker failure")
+
     bad_guide_companion = good_companion.replace(
         "`Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, ",
         "",
@@ -229,7 +241,7 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
         raise AssertionError("expected missing returned core replay marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
