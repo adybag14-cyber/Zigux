@@ -43,7 +43,7 @@ EXPECTED_CROSS_TARGET_FIELDS = {
     "route",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -107,11 +107,11 @@ def load_archive_sha256_targets(root: Path) -> list[str]:
     normalized: list[str] = []
     seen_targets: set[str] = set()
     for key, value in archive_sha256.items():
-        if not isinstance(key, str) or not key.strip():
+        if not isinstance(key, str) or not key or key != key.strip():
             raise SystemExit(f"invalid archive_sha256 key in required file: {policy_path}")
-        if not isinstance(value, str) or not value.strip():
+        if not isinstance(value, str) or not value or value != value.strip():
             raise SystemExit(f"invalid archive_sha256 value in required file: {policy_path}: {key}")
-        target = key.strip()
+        target = key
         if target in seen_targets:
             raise SystemExit(f"duplicate archive_sha256 key in required file: {policy_path}: {target}")
         normalized.append(target)
@@ -382,6 +382,32 @@ def run_self_test() -> int:
             assert "duplicate archive_target_scope entry" in str(exc)
         else:
             raise AssertionError("duplicate archive_target_scope entry did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"] = {" x86_64-linux ": "3" * 64}
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 key" in str(exc)
+        else:
+            raise AssertionError("whitespace-padded archive_sha256 key did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"] = {"x86_64-linux": f" {'3' * 64} "}
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 value" in str(exc)
+        else:
+            raise AssertionError("whitespace-padded archive_sha256 value did not abort")
         checks_run += 1
 
         build_self_test_root(root)
