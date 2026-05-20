@@ -88,7 +88,7 @@ REQUIRED_MARKERS = {
         "pub fn permitsRawPointerBridgeByte(scope: u8) bool {",
     ),
     NARROW_PATH: (
-        "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
+        "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
         "pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {",
         "pub fn pointerAtByte(comptime T: type, address: usize, byte_len: usize, scope: u8) RawPointerBridgeError!*align(1) T {",
         "pub fn constSliceAtByte(comptime T: type, address: usize, len: usize, scope: u8) RawPointerBridgeError![]align(1) const T {",
