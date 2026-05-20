@@ -28,6 +28,7 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
 ]
 EXPECTED_PARITY_DIRECT_EVIDENCE = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
@@ -46,7 +47,7 @@ EXPECTED_PUBLIC_TREE_COMPANIONS = [
 ]
 REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, so keep that broader perf note as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
-    "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.",
+    "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`.",
 ]
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
