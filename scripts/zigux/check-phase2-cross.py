@@ -50,9 +50,12 @@ def load_fixture(path: Path) -> dict[str, object]:
     except OSError as exc:
         raise RuntimeError(f"required file unreadable: {path}") from exc
 
-    payload = json.loads(raw)
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"fixture is not valid json: {path}") from exc
     if not isinstance(payload, dict):
-        raise ValueError("fixture must be a JSON object")
+        raise RuntimeError(f"fixture is not a JSON object: {path}")
     return payload
 
 
@@ -439,22 +442,13 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         (root / FIXTURE_REL).write_text("{\n", encoding="utf-8")
-        try:
-            validate_fixture(root)
-        except json.JSONDecodeError:
-            case_count += 1
-        else:
-            raise AssertionError("invalid JSON did not raise JSONDecodeError")
+        assert_runtime_error_contains(lambda: validate_fixture(root), "fixture is not valid json:")
+        case_count += 1
 
         build_self_test_root(root)
         write_fixture(root, ["not", "an", "object"])
-        try:
-            validate_fixture(root)
-        except ValueError as exc:
-            assert str(exc) == "fixture must be a JSON object"
-            case_count += 1
-        else:
-            raise AssertionError("non-object fixture did not raise ValueError")
+        assert_runtime_error_contains(lambda: validate_fixture(root), "fixture is not a JSON object:")
+        case_count += 1
 
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
@@ -550,14 +544,6 @@ def main() -> int:
     try:
         issues = validate_fixture(args.root)
     except RuntimeError as exc:
-        print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE={exc}")
-        return 1
-    except json.JSONDecodeError as exc:
-        print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
-        return 1
-    except ValueError as exc:
         print("PHASE2_CROSS=fail")
         print(f"PHASE2_CROSS_NOTE={exc}")
         return 1
