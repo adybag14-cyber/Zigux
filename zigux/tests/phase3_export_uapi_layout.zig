@@ -155,6 +155,11 @@ test "export shim mirrors boundary header predicate helpers" {
         .abi_version = export_shim.abi_version,
         .flags = 0x22,
     };
+    const undersized = export_shim.BoundaryHeader{
+        .size = export_shim.header_size - 1,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x17,
+    };
     const stale = export_shim.BoundaryHeader{
         .size = export_shim.header_size,
         .abi_version = export_shim.abi_version + 1,
@@ -176,6 +181,13 @@ test "export shim mirrors boundary header predicate helpers" {
     try testing.expect(export_shim.headerIsCompatible(future));
     try testing.expect(export_shim.extendsBoundary(future));
     try testing.expectEqual(@as(u32, 16), export_shim.requestedExtraBytes(future));
+
+    try testing.expect(!export_shim.isCanonicalSize(undersized.size));
+    try testing.expect(!export_shim.isCompatibleSize(undersized.size));
+    try testing.expect(!export_shim.headerIsCanonical(undersized));
+    try testing.expect(!export_shim.headerIsCompatible(undersized));
+    try testing.expect(!export_shim.extendsBoundary(undersized));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(undersized));
 
     try testing.expect(!export_shim.isCurrentAbiVersion(stale.abi_version));
     try testing.expect(!export_shim.headerIsCanonical(stale));
@@ -209,6 +221,12 @@ test "export shim keeps facility tagged statuses explicit" {
 }
 
 test "export shim relays starter dev_t validation and range checks through the focused replay" {
+    const valid_fields = export_shim.makeDevTFields(uapi_dev_t.max_major, uapi_dev_t.max_minor);
+    const invalid_major_fields = export_shim.makeDevTFields(uapi_dev_t.max_major + 1, 0);
+    const invalid_minor_fields = export_shim.makeDevTFields(0, uapi_dev_t.max_minor + 1);
+    const valid_field_status = export_shim.validateDeviceFields(valid_fields);
+    const invalid_major_field_status = export_shim.validateDeviceFields(invalid_major_fields);
+    const invalid_minor_field_status = export_shim.validateDeviceFields(invalid_minor_fields);
     const valid = export_shim.validateDeviceNumber(uapi_dev_t.max_major, uapi_dev_t.max_minor);
     const invalid = export_shim.validateDeviceNumber(uapi_dev_t.max_major + 1, 0);
     const good_range = export_shim.validateDeviceRange(
@@ -219,6 +237,21 @@ test "export shim relays starter dev_t validation and range checks through the f
         export_shim.makeDevTFields(1, 3),
         export_shim.makeDevTFields(1, 2),
     );
+
+    try testing.expect(export_shim.statusIsOk(valid_field_status));
+    try testing.expectEqual(@as(i32, 0), valid_field_status.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid_field_status.facility);
+    try testing.expectEqual(@as(u16, 0), valid_field_status.flags);
+
+    try testing.expect(!export_shim.statusIsOk(invalid_major_field_status));
+    try testing.expectEqual(@as(i32, -22), invalid_major_field_status.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_major_field_status.facility);
+    try testing.expectEqual(@as(u16, 1), invalid_major_field_status.flags);
+
+    try testing.expect(!export_shim.statusIsOk(invalid_minor_field_status));
+    try testing.expectEqual(@as(i32, -22), invalid_minor_field_status.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_minor_field_status.facility);
+    try testing.expectEqual(@as(u16, 1), invalid_minor_field_status.flags);
 
     try testing.expect(export_shim.statusIsOk(valid));
     try testing.expectEqual(@as(i32, 0), valid.code);
