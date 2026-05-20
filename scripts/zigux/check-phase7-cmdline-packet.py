@@ -53,6 +53,7 @@ REQUIRED_MARKERS = {
         "pub fn memparse",
         "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
         "test \"nextArg keeps leading equals tokens as bare parameters\" {",
+        "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
@@ -84,6 +85,7 @@ REQUIRED_MARKERS = {
         'const checker = try readRepoFile(allocator, checker_path);',
         'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
     ],
     "samples/zigux/README.md": [
@@ -101,7 +103,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 32
+SELF_TEST_CASE_COUNT = 34
 
 
 def read_text(path: Path) -> str:
@@ -306,6 +308,20 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_text = read_text(helper_path)
+        helper_borrowed_suffix_marker = 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'
+        helper_path.write_text(
+            helper_text.replace(helper_borrowed_suffix_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_borrowed_suffix_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_borrowed_suffix_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest_text = read_text(manifest_path)
         manifest_marker = '"scripts/zigux/check-phase7-cmdline-packet.py"'
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
@@ -363,7 +379,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_whitespace_only_marker",
@@ -374,10 +390,21 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps leading equals tokens as bare parameters\\\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_leading_equals_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\\\" {");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_helper_borrowed_suffix_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
         )
