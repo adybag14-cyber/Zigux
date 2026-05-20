@@ -402,6 +402,16 @@ def run_self_test() -> int:
                 "duplicate_phase3_policy_dump",
             ),
             (
+                "Run current Phase 3 shared tests-root packet",
+                "zig build phase3-test --build-file zigux/tests/build.zig",
+                "duplicate_phase3_shared_tests_root",
+            ),
+            (
+                "Run current Phase 3 ABI dump replay",
+                "zig build phase3-dump --build-file zigux/tests/build.zig",
+                "duplicate_phase3_abi_dump",
+            ),
+            (
                 "Run current Phase 1 shared tests-root smoke",
                 "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
                 "duplicate_phase1_smoke",
@@ -425,6 +435,21 @@ def run_self_test() -> int:
                 "Check current Phase 4 artifact-diff contract packet",
                 "python3 scripts/zigux/check-artifact-diff-contract.py",
                 "duplicate_phase4_contract_check",
+            ),
+            (
+                "Self-test current Phase 4 artifact-diff determinism checker",
+                "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+                "duplicate_phase4_determinism_selftest",
+            ),
+            (
+                "Check current Phase 4 artifact-diff determinism packet",
+                "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+                "duplicate_phase4_determinism_check",
+            ),
+            (
+                "Self-test current Phase 4 artifact-diff validator replay checker",
+                "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+                "duplicate_phase4_validator_selftest",
             ),
             (
                 "Check current Phase 4 artifact-diff validator replay packet",
