@@ -160,6 +160,7 @@ REVIEW_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`make -C zigux phase2-fixdep`",
 )
 
 TESTS_MARKERS = (
