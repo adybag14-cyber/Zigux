@@ -287,7 +287,7 @@ REQUIRED_MARKERS = {
         "abi.NOTIFIER_DONE,",
         '@offsetOf(abi.NotifierBlock, "priority"),',
         '"  \\\"abi_version\\\": {},\\n"',
-        '"  \\\"notifier\\\": {\\n"',
+        '"  \\\"notifier\\\": {{\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
