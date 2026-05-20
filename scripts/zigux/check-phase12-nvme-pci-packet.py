@@ -13,6 +13,7 @@ from pathlib import Path
 CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
 
 MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
+DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
@@ -131,6 +132,14 @@ EXPECTED_GAPS = {
 EXTRA_REQUIRED_PATHS = (
     "drivers/nvme/host/pci.zig",
     "drivers/nvme/host/pci_verify.zig",
+    str(DIRECT_BUILD_PATH),
+)
+
+DIRECT_BUILD_MARKERS = (
+    "phase12_nvme_pci.zig",
+    "phase12-nvme-pci-direct-tests",
+    "phase12-nvme-pci-direct-test",
+    "Run the direct Phase 12 NVMe PCI replay in isolation",
 )
 
 
@@ -241,6 +250,13 @@ def check_manifest(root: Path) -> int:
     for relative_path in EXTRA_REQUIRED_PATHS:
         require_existing_path(root, relative_path)
 
+    direct_build_text = read_text(root, DIRECT_BUILD_PATH)
+    require_markers(
+        direct_build_text,
+        DIRECT_BUILD_MARKERS,
+        "nvme_pci direct build route",
+    )
+
     return len(gaps)
 
 
@@ -276,6 +292,7 @@ def write_fixture(root: Path) -> None:
             indent=2,
         )
         + "\n",
+        DIRECT_BUILD_PATH: "\n".join(DIRECT_BUILD_MARKERS) + "\n",
     }
 
     for relative_path, text in fixture_files.items():
@@ -286,13 +303,15 @@ def write_fixture(root: Path) -> None:
     for expected in EXPECTED_GAPS.values():
         absolute_path = root / expected["zigux_destination"]
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path == root / MANIFEST_PATH:
+        if absolute_path in (root / MANIFEST_PATH, root / DIRECT_BUILD_PATH):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
+        if absolute_path == root / DIRECT_BUILD_PATH:
+            continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
 
@@ -373,11 +392,22 @@ def run_self_test() -> int:
             raise AssertionError("expected shared-build-route drift to fail")
 
         write_fixture(root)
-        (root / "drivers/nvme/host/pci_verify.zig").unlink()
+        (root / DIRECT_BUILD_PATH).write_text("phase12_nvme_pci.zig\n", encoding="utf-8")
         try:
             check_manifest(root)
         except CheckFailure as exc:
-            if "pci_verify.zig" not in str(exc):
+            if "direct build route" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected direct-build marker drift to fail")
+
+        write_fixture(root)
+        (root / DIRECT_BUILD_PATH).unlink()
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "phase12_nvme_pci_build.zig" not in str(exc):
                 raise
             cases += 1
         else:
