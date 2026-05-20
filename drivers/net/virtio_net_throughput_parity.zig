@@ -54,6 +54,9 @@ pub const ThroughputParitySummary = struct {
 pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputParitySummary {
     if (request.queue_pairs_before_reset == 0) return error.QueuePairsBeforeResetMissing;
     if (request.receive_buffers_before_reset == 0) return error.ReceiveBuffersBeforeResetMissing;
+    if (request.transmit_queue_was_stopped and request.wake_threshold == 0) {
+        return error.StoppedQueueWakeThresholdMissing;
+    }
     if (request.expected_min_ratio_pct > 100) return error.ExpectedRatioOutOfRange;
 
     const queue_pair_ratio_pct = ratioPct(
@@ -245,6 +248,19 @@ test "summarizeThroughputParity rejects missing refill baselines" {
         .receive_buffers_before_reset = 0,
         .receive_buffers_after_restore = 0,
         .recycled_transmit_descriptors = 0,
+    }));
+}
+
+test "summarizeThroughputParity rejects zero wake thresholds for stopped queues" {
+    try std.testing.expectError(error.StoppedQueueWakeThresholdMissing, summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 0,
+        .wake_threshold = 0,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
     }));
 }
 
