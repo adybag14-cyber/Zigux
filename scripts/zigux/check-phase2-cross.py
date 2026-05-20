@@ -108,6 +108,7 @@ STATIC_SELF_TEST_CASE_LABELS = (
     "invalid_cross_target_route",
     "empty_cross_target_review_status",
     "invalid_cross_target_mode",
+    "non_dict_cross_target_entry",
     "emit_issue_code_order",
 )
 
@@ -960,6 +961,19 @@ def run_self_test() -> int:
         fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"] = [fixture["cross_targets"][0], []]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_ENTRY", "index=1") in issues
+        assert (
+            "CROSS_TARGET_SET_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=x86_64-linux",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
