@@ -17,6 +17,7 @@ MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 ARGV_SPLIT_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -38,6 +39,7 @@ REQUIRED_FILES = [
     MAKEFILE_PATH,
     CHECKER_PATH,
     ARGV_SPLIT_CHECKER_PATH,
+    BUILD_WIRING_CHECKER_PATH,
     MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
@@ -52,7 +54,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 14
 
 class ValidationError(RuntimeError):
     pass
@@ -107,6 +109,7 @@ def validate(root: Path) -> None:
     run_checker(root, CHECKER_PATH)
     run_checker(root, MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_CHECKER_PATH)
+    run_checker(root, BUILD_WIRING_CHECKER_PATH)
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -193,6 +196,8 @@ def scaffold_repo(root: Path) -> None:
     write(root / CHECKER_PATH, checker_text)
     argv_split_checker_text = (source_root / "check-phase7-argv-split-packet.py").read_text(encoding="utf-8")
     write(root / ARGV_SPLIT_CHECKER_PATH, argv_split_checker_text)
+    build_wiring_checker_text = (source_root / "check-phase7-build-wiring.py").read_text(encoding="utf-8")
+    write(root / BUILD_WIRING_CHECKER_PATH, build_wiring_checker_text)
     alignment_checker_text = (source_root / "check-phase7-make-wrapper-selftest-alignment.py").read_text(encoding="utf-8")
     write(root / MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, alignment_checker_text)
 
@@ -223,6 +228,7 @@ def run_self_test() -> None:
             (Path("lib/argv_split.zig"), "pub fn argvSplit"),
             (CHECKER_PATH, "delete"),
             (ARGV_SPLIT_CHECKER_PATH, "delete"),
+            (BUILD_WIRING_CHECKER_PATH, "delete"),
             (MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "delete"),
             (DOCS_README_PATH, "delete"),
             (DOCS_README_PATH, "Phase 7 notes"),
