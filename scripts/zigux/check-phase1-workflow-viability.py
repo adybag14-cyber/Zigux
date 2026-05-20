@@ -346,6 +346,20 @@ def run_self_test() -> int:
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
             note_text
+            + "- `PHASE1_WORKFLOW_PHASE1_TAIL=Self-test current Phase 1 shared reminder checker,Check current Phase 1 shared reminder packet,Self-test current Phase 1 closure validator,Check current Phase 1 closure packet`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase1_tail_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
             + "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 3 ABI dump replay,Run current Phase 1 shared tests-root smoke`\n",
             encoding="utf-8",
         )
@@ -366,6 +380,20 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "note:expected=1:actual=2" not in failures:
             print("self-test:duplicate_phase4_tail_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zig build test --build-file zigux/tests/build.zig,zig build bench --build-file zigux/tests/build.zig,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_forbidden_historical_snippets_note_not_detected")
             return 1
         case_count += 1
 
