@@ -254,13 +254,13 @@ EXACT_COUNT_MARKERS = {
 
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
-        return marker in text.splitlines()
+        return marker in [line.lstrip() for line in text.splitlines()]
     return marker in text
 
 
 def count_marker_occurrences(rel_path: str, text: str, marker: str) -> int:
     if rel_path in EXACT_LINE_MARKER_PATHS:
-        return text.splitlines().count(marker)
+        return sum(1 for line in text.splitlines() if line.lstrip() == marker)
     return text.count(marker)
 
 
@@ -360,6 +360,10 @@ def remove_marker(path: Path, marker: str) -> None:
     updated = text.replace(f"- {marker}\n", "", 1)
     if updated == text:
         updated = text.replace(f"{marker}\n", "", 1)
+    if marker in updated:
+        updated = updated.replace(marker, "__REMOVED_PHASE12_MARKER__", 1)
+    if updated == text:
+        raise SystemExit(f"unable to mutate marker in fixture: {marker}")
     path.write_text(updated, encoding="utf-8")
 
 
