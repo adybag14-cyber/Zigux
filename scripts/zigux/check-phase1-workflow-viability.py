@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -223,6 +224,13 @@ def build_sample_repo(root: Path) -> None:
         write_file(root, relative_path, "# placeholder\n")
 
 
+def write_sample_root(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+    root.mkdir(parents=True, exist_ok=True)
+    build_sample_repo(root)
+
+
 def rewrite_once(text: str, old: str, new: str = "") -> str:
     if old not in text:
         raise AssertionError(f"missing sample text: {old}")
@@ -237,6 +245,13 @@ def run_self_test() -> int:
         build_sample_repo(root)
         if collect_failures(root):
             print("self-test:unexpected_failures")
+            return 1
+        case_count += 1
+
+        sample_root = root / "written-sample-root"
+        write_sample_root(sample_root)
+        if collect_failures(sample_root):
+            print("self-test:write_sample_root_output_failed")
             return 1
         case_count += 1
 
@@ -273,7 +288,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         failures = collect_failures(root)
-        if not any(failure.startswith("workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=2") or failure.startswith("workflow_adjacent_chain:missing:") for failure in failures):
+        if not any(
+            failure.startswith("workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=2")
+            or failure.startswith("workflow_adjacent_chain:missing:")
+            for failure in failures
+        ):
             print("self-test:expected_duplicate_or_chain_failure")
             return 1
         case_count += 1
@@ -305,6 +324,34 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "note:expected=1:actual=2" not in failures:
             print("self-test:duplicate_required_adjacency_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 closure packet and before current Phase 3 interop packet`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_insertion_point_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
+            + "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 3 ABI dump replay,Run current Phase 1 shared tests-root smoke`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase3_buffer_note_not_detected")
             return 1
         case_count += 1
 
@@ -380,6 +427,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="run checker self-tests")
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="write a current-like sample repository root for replay and exit",
+    )
     return parser.parse_args()
 
 
@@ -387,6 +439,10 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
+    if args.write_sample_root is not None:
+        write_sample_root(args.write_sample_root)
+        print(f"phase1-workflow-viability:sample-root-written:{args.write_sample_root}")
+        return 0
 
     failures = collect_failures(args.root)
     if failures:
