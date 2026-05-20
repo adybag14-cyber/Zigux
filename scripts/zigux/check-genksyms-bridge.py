@@ -6,7 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MAKEFILE = "zigux/Makefile"
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
@@ -117,6 +117,8 @@ LONG_OPTION_SPECS = (
     ("reference", "reference", True),
     ("warnings", "warnings", False),
 )
+
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -336,6 +338,15 @@ def build_self_test_root(root: Path) -> None:
         write_text(root, rel, json.dumps(parse_args(case["args"]), indent=2) + "\n")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_genksyms_bridge_") as tmp_dir:
@@ -415,6 +426,26 @@ def run_self_test() -> int:
         assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[2]}:count=2") in collect_issues(root)
         checks += 1
 
+        build_self_test_root(root)
+        write_text(
+            root,
+            MAKEFILE,
+            duplicate_exact_line(read_text(root, MAKEFILE), REQUIRED_MAKEFILE_LINES[2]),
+        )
+        assert ("DUPLICATE_MAKEFILE_LINE", f"{REQUIRED_MAKEFILE_LINES[2]}:count=2") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, GENKSYMS_ZIG, "const help_expected_json = @embedFile(\"missing.json\");\n")
+        assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / HELP_FIXTURE).unlink()
+        assert ("MISSING_REQUIRED_PATH", HELP_FIXTURE) in collect_issues(root)
+        checks += 1
+
+    assert checks == EXPECTED_SELF_TEST_CASE_COUNT
     print("GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={checks}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
