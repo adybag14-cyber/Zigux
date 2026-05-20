@@ -213,6 +213,9 @@ EXACT_LINE_MARKER_PATHS = {
 }
 
 EXACT_COUNT_MARKERS = {
+    DOCS_README_PATH: {
+        "current `master` also directly serves `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`, so keep the shared build gate explicit from the docs root too.": 1,
+    },
     RELEASE_READINESS_SURVEY_PATH: {
         "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.": 1,
     },
