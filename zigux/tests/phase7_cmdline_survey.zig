@@ -116,6 +116,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "pub fn nextArg");
     try expectContains(helper, "pub const next_arg = nextArg;");
     try expectContains(helper, "pub fn memparse");
+    try expectContains(helper, "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {");
 
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
