@@ -93,6 +93,7 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: make -C zigux phase2-fixdep",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
@@ -496,7 +497,7 @@ def build_self_test_root(root: Path) -> None:
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+    return text.replace(marker, replacement)
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
