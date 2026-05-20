@@ -176,7 +176,6 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
 def _expect_closed_shared_tests_gap(root: Path) -> int:
     _populate_repo(root)
     target = root / TESTS_BUILD_PATH
-    target.writeText if False else None
     target.write_text(
         _read(target).replace(
             'root_module.addImport("export_shim", export_shim);',
