@@ -23,6 +23,11 @@ PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
 PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
+MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references."
+MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
+MODULE_SLICE_ADJACENT_CONTEXT_MARKER = (
+    "Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence."
+)
 
 CHECKLIST_REQUIRED_MARKERS = [
     "if the change touches the shared Phase 9 runtime-pilot packet",
@@ -59,6 +64,13 @@ MODULE_SLICE_REQUIRED_MARKERS = [
     "Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded shared Phase 9 build bundle: it keeps `phase9-runtime-atomic64-diff` rooted in `runtime_atomic64_diff.zig` and also names the separate bitmap-family rerun handles.",
     "The adjacent shared allocator/init-flow review packet has returned through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds",
     "Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, while `samples/zigux/runtime_bitmap_loader.zig` and the other direct bitmap sample-family files remain trusted-contents gaps.",
+    PHASE2_CONF_BRIDGE_MARKER,
+    PHASE2_CONFDATA_BRIDGE_MARKER,
+    PHASE3_EXPORTS_MARKER,
+    PHASE3_EXPORT_SHIM_MARKER,
+    MODULE_SLICE_PHASE2_BOUNDARY_MARKER,
+    MODULE_SLICE_PHASE3_BOUNDARY_MARKER,
+    MODULE_SLICE_ADJACENT_CONTEXT_MARKER,
 ]
 
 SCRIPTS_README_REQUIRED_MARKERS = [
@@ -225,8 +237,9 @@ def main() -> int:
         description=(
             "Check that the current Phase 9 reviewer-facing packet keeps the trace-events runtime family, "
             "the returned shared allocator/init-flow packet, the partial runtime bitmap reminder, "
-            "the aligned scripts-root summary, and the no-Phase-9-make-route boundary explicit across the checklist, "
-            "sequencing note, trace-events module slice, scripts README, samples README, and live Makefile posture."
+            "the aligned scripts README, the trace-events module-slice earlier-phase boundary reminders, "
+            "and the no-Phase-9-make-route boundary explicit across the checklist, sequencing note, "
+            "trace-events module slice, scripts README, samples README, and live Makefile posture."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
