@@ -2,18 +2,18 @@
   "lane_key": "P12-L13",
   "phase": "Phase 12",
   "surveyed_commit": "unresolved_on_master",
-  "verified_on": "2026-05-19",
+  "verified_on": "2026-05-20",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
     "zigux/tests/"
   ],
   "survey_summary": {
-    "preexisting_virtio_scsi_zig_present": true,
-    "preexisting_phase12_direct_test_present": true,
-    "preexisting_phase12_syntax_lab_present": true,
-    "preexisting_phase12_repeated_replan_gate_present": true,
-    "preexisting_phase12_repeated_rollback_gate_present": true,
+    "preexisting_virtio_scsi_zig_present": false,
+    "preexisting_phase12_direct_test_present": false,
+    "preexisting_phase12_syntax_lab_present": false,
+    "preexisting_phase12_repeated_replan_gate_present": false,
+    "preexisting_phase12_repeated_rollback_gate_present": false,
     "preexisting_phase12_support_packet_present": false,
     "preexisting_phase12_support_manifest_present": true,
     "preexisting_phase12_packet_checker_present": true,
@@ -27,141 +27,99 @@
   "roadmap_gap_check": {
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
-      "status": "starter_present_runtime_dma_blocked",
-      "current_surface": "Current master carries a bounded virtio_scsi Zig starter around queue layout, probe snapshot, host limits, queue depth clamps, command and sense-buffer ownership planning, request-submit sequencing, completion-handback sequencing, io-map summaries, control-path governance, and transport-reset recovery summaries, but it still stops before live DMA-safe request submission or completion flow.",
-      "blocked_by": "DMA-safe request and sense-buffer ownership, sg chaining, and virtqueue submit-completion execution still need later driver-local packets."
+      "status": "rollback_evidence_only_live_starter_missing",
+      "current_surface": "Current master preserves only the survey note, fallback catalog, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and make routes for the virtio_scsi lane; it no longer serves a driver-local starter or replay surface.",
+      "blocked_by": "DMA-safe request and sense-buffer ownership, sg chaining, and virtqueue submit-completion execution still require the driver-local starter family to return before later runtime packets can land honestly."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_queue_submit_completion_host_limit_depth_io_map_recovery_present_lane_local_validation_present_shared_build_missing",
-      "current_surface": "The driver-local starter, direct test, syntax lab, repeated-replan gate, repeated-rollback gate, survey note, survey gate, and support-manifest reminder surfaces are all present on current master, and the starter now also keeps request-submit sequencing, completion-handback sequencing, command-buffer ownership planning, control-path restore order, and recovery ordering reviewable before any live queue execution even though the shared phase12 build route no longer replays the virtio_scsi packet.",
-      "blocked_by": "Live blk-mq wiring, runtime virtqueue kicks, and transport-backed completion flow remain outside the current starter."
+      "status": "rollback_evidence_present_no_live_queue_planner",
+      "current_surface": "The rollback-only survey packet keeps the missing starter explicit and the shared phase12 build route remains support-bundle evidence only for virtio_net rather than a virtio_scsi replay path.",
+      "blocked_by": "No live queue-family planner, no request-queue replay, and no driver-local rollback gates are currently served on master."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
-      "status": "starter_completion_and_recovery_summary_present_runtime_execution_missing",
-      "current_surface": "The current starter proves bounded transport-reset recovery planning, second-cycle rollback readiness, request-submit ordering, completion-handback ordering, control-path restore reviewability, event-buffer ownership, host-scan restore-order reviewability, and pre-runtime command-buffer ownership without claiming live reset execution, host-scan runtime work, or measured throughput behavior.",
-      "blocked_by": "No throughput benchmark, no runtime reset replay, and no transport-backed host-scan execution are landed yet."
+      "status": "rollback_evidence_present_no_runtime_recovery_replay",
+      "current_surface": "Current master preserves only archival and survey evidence for the older recovery packet and does not currently serve transport-reset replay, repeated rollback, or host-scan restore review surfaces.",
+      "blocked_by": "No throughput benchmark, no runtime reset replay, and no transport-backed host-scan execution are landed on current master."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "survey_packet_direct_replay_and_rollback_validation_present_support_packet_removed",
-      "current_surface": "Current master now carries the direct virtio_scsi replay, repeated rollback gates, this survey note, the survey manifest, the survey gate, and the support-manifest reminder surfaces as review surfaces beside the driver-local starter after the older support replay was removed.",
-      "blocked_by": "Live DMA-safe request flow, TMF execution, Scsi_Host registration, and transport-backed host-scan runtime work still need later driver-local packets."
+      "status": "survey_packet_and_fallback_present_driver_local_replay_missing",
+      "current_surface": "Current master carries the survey note, fallback catalog, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and make routes as rollback evidence while the older driver-local replay family is absent.",
+      "blocked_by": "The direct starter, direct replay, syntax lab, repeated replan gate, and repeated rollback gate are all absent on current master."
     }
   },
   "gaps": [
     {
+      "id": "phase12-virtio-scsi-driver-starter",
+      "status": "missing_on_master",
+      "kind": "repo_reality_gap",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "Current master no longer serves the bounded virtio_scsi driver-local starter that older survey notes described."
+    },
+    {
+      "id": "phase12-virtio-scsi-direct-replay",
+      "status": "missing_on_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
+      "why_now": "Current master no longer serves the direct virtio_scsi replay file, so the lane must stay rollback-evidence only."
+    },
+    {
+      "id": "phase12-virtio-scsi-syntax-lab",
+      "status": "missing_on_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+      "why_now": "Current master no longer serves the dedicated syntax lab for the older driver-local starter."
+    },
+    {
+      "id": "phase12-virtio-scsi-repeated-replan-gate",
+      "status": "missing_on_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+      "why_now": "Current master no longer serves the repeated replan gate, so second-cycle recovery evidence is archival only."
+    },
+    {
+      "id": "phase12-virtio-scsi-repeated-rollback-gate",
+      "status": "missing_on_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
+      "why_now": "Current master no longer serves the repeated rollback gate, so post-restore readiness evidence is archival only."
+    },
+    {
       "id": "phase12-build-gate",
-      "status": "lane_local_validation_present_shared_build_missing",
+      "status": "shared_support_bundle_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "Current master still carries the shared Phase 12 build route, but it now wires only the virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests instead of replaying the virtio_scsi lane-local packet."
+      "why_now": "Current master still carries the shared Phase 12 build route, but it wires only the virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests."
     },
     {
       "id": "phase12-make-target",
       "status": "shared_make_targets_present",
       "kind": "validation",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "Current master keeps phase12-smoke, phase12-test, and phase12 aligned with the shared Phase 12 build route even though those shared routes now serve as support-bundle evidence only for the virtio_scsi survey packet."
+      "why_now": "Current master keeps phase12-smoke, phase12-test, and phase12 aligned with the shared Phase 12 support bundle even though the virtio_scsi lane is rollback-evidence only."
     },
     {
       "id": "phase12-virtio-scsi-survey-gate",
-      "status": "lane_local_validation_present",
+      "status": "rollback_evidence_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "The dedicated survey gate keeps the bounded starter, direct tests, rollback replay, fallback companion, removed support packet, and blocked runtime claims explicit."
+      "why_now": "The dedicated survey gate now keeps the rollback-only split machine-checkable instead of pretending the older replay files still exist on master."
     },
     {
       "id": "phase12-virtio-scsi-survey-note",
-      "status": "survey_present",
+      "status": "rollback_evidence_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The survey note records the same bounded queue, request-submit sequencing, completion-handback sequencing, repeated rollback, recovery, fallback-path, and support-bundle-only shared-route boundary that current master now exposes."
-    },
-    {
-      "id": "phase12-virtio-scsi-syntax-lab-gate",
-      "status": "landed_on_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
-      "why_now": "The dedicated syntax lab keeps the current driver-local starter reachable even though the shared Phase 12 smoke route no longer replays the virtio_scsi packet."
-    },
-    {
-      "id": "phase12-virtio-scsi-repeated-replan-gate",
-      "status": "landed_on_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
-      "why_now": "The repeated-replan gate keeps the second-cycle transport-reset boundary explicit without claiming runtime reset execution."
-    },
-    {
-      "id": "phase12-virtio-scsi-repeated-rollback-gate",
-      "status": "landed_on_master",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
-      "why_now": "The repeated-rollback gate keeps the second-cycle rollback contract and post-restore readiness explicit without claiming runtime reset execution."
-    },
-    {
-      "id": "phase12-virtio-scsi-support-packet",
-      "status": "support_packet_removed_survey_manifest_present",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase12_virtio_scsi_manifest.json",
-      "why_now": "Current master no longer materializes zigux/tests/phase12_virtio_scsi_packet.zig, but it still carries the support manifest fixture, packet checker, slice note, survey manifest, and survey gate for the bounded virtio_scsi starter."
-    },
-    {
-      "id": "phase12-virtio-scsi-queue-layout-starter",
-      "status": "landed_on_master",
-      "kind": "complex_driver_starter",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries a bounded queue-layout planner through planQueueLayout() and requestQueue() without claiming live request submission."
-    },
-    {
-      "id": "phase12-virtio-scsi-host-limit-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded probe and host-limit summaries through captureHostLimitSummary() without claiming scsi_host registration."
-    },
-    {
-      "id": "phase12-virtio-scsi-queue-depth-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries a bounded queue-depth clamp through recoveryQueueDepthSummary() without claiming blk-mq runtime depth changes."
-    },
-    {
-      "id": "phase12-virtio-scsi-command-buffer-ownership-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded command and sense-buffer ownership planning through captureCommandBufferOwnershipSummary() without claiming live DMA submission or completion flow."
-    },
-    {
-      "id": "phase12-virtio-scsi-request-submit-sequencing-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded request-submit sequencing through captureRequestSubmitSequencingSummary() so queue selection, preallocated command and sense-buffer use, and pre-kick ordering stay reviewable without claiming live request execution."
-    },
-    {
-      "id": "phase12-virtio-scsi-completion-handback-sequencing-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded completion-handback sequencing through captureCompletionHandbackSummary() so used-ring observation, sense-buffer readback, and command and sense-buffer ownership return stay reviewable without claiming live interrupt delivery or host completion execution."
-    },
-    {
-      "id": "phase12-virtio-scsi-io-map-and-recovery-summary",
-      "status": "landed_on_master",
-      "kind": "complex_driver_followup",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "Current master now carries bounded io-map and recovery summaries through recoveryControlPathGovernanceSummary(), recoveryEventBufferOwnershipSummary(), recoveryRequestQueueRestoreSummary(), and recoveryHostScanSummary() without claiming runtime queue execution."
+      "why_now": "The survey note now records the same rollback-only current-master boundary that the manifest, fixture, survey gate, and checker validate."
     },
     {
       "id": "phase12-virtio-scsi-runtime-request-flow",
-      "status": "blocked_on_dma_scsi_host_runtime",
+      "status": "blocked_on_driver_return_dma_scsi_host_runtime",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "Live DMA-safe request submission, completion flow, scsi_host registration, TMF execution, event-queue runtime handling, and host-scan recovery remain outside the current bounded starter."
+      "why_now": "Live DMA-safe request submission, completion flow, scsi_host registration, TMF execution, event-queue runtime handling, and host-scan recovery remain outside the current rollback-only packet."
     }
   ]
 }
