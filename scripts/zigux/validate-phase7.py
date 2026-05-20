@@ -113,8 +113,11 @@ def scaffold_repo(root: Path) -> None:
         "",
         "## Current direct-readback companions",
         "- `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
+        "- `Documentation/zigux/README.md`",
         "- `scripts/zigux/check-phase7-shared-surface.py`",
         "- `scripts/zigux/validate-phase7.py`",
+        "- `scripts/zigux/README.md`",
+        "- `zigux/tests/README.md`",
         "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
         "- `zigux/Makefile`",
         "- `lib/string_helpers.zig`",
@@ -138,8 +141,11 @@ def scaffold_repo(root: Path) -> None:
         "lane_scope": EXPECTED_SCOPE,
         "current_direct_readback_companions": [
             "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
+            "Documentation/zigux/README.md",
             "scripts/zigux/check-phase7-shared-surface.py",
             "scripts/zigux/validate-phase7.py",
+            "scripts/zigux/README.md",
+            "zigux/tests/README.md",
             "zigux/tests/phase7_leaf_library_evidence_manifest.json",
             "zigux/Makefile",
             "lib/string_helpers.zig",
@@ -193,14 +199,11 @@ def scaffold_repo(root: Path) -> None:
         "current_repo_reality_gaps": [
             "lib/rbtree.zig",
             "zigux/tests/phase7_build.zig",
-            "zigux/tests/README.md Phase 7 shared reminder packet",
-            "scripts/zigux/README.md Phase 7 shared reminder packet",
-            "Documentation/zigux/README.md Phase 7 shared reminder packet",
         ],
     }, indent=2) + "\n")
-    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 6 notes\n")
-    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 6\n")
-    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 5 sample packet\n")
+    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
+    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
+    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     for rel_path, content in [
         (
             Path("lib/string_helpers.zig"),
