@@ -10,6 +10,17 @@ import sys
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
+PUSH_TRIGGER = "push:"
+PUSH_MASTER_BRANCH = "branches: [ master ]"
+PULL_REQUEST_TRIGGER = "pull_request:"
+WORKFLOW_DISPATCH_TRIGGER = "workflow_dispatch:"
+CONCURRENCY_BLOCK = "concurrency:"
+CONCURRENCY_GROUP = (
+    "group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) "
+    "|| format('{0}-{1}', github.workflow, github.ref) }}"
+)
+CONCURRENCY_CANCEL = "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}"
+JOBS_BLOCK = "jobs:"
 CHECKOUT_STEP = "- name: Checkout"
 SETUP_STEP = "- name: Setup pinned Zig toolchain"
 TOOLCHAIN_SELF_TEST_STEP = "- name: Self-test current Zig toolchain checker"
@@ -122,6 +133,14 @@ def check_workflow(text: str) -> None:
     for marker in LOCAL_ARCHIVE_MARKERS:
         require_marker(text, marker, "workflow local-first marker")
 
+    require_marker(text, PUSH_TRIGGER, "workflow push trigger")
+    require_marker(text, PUSH_MASTER_BRANCH, "workflow master push branch line")
+    require_marker(text, PULL_REQUEST_TRIGGER, "workflow pull_request trigger")
+    require_marker(text, WORKFLOW_DISPATCH_TRIGGER, "workflow dispatch trigger")
+    require_marker(text, CONCURRENCY_BLOCK, "workflow concurrency block")
+    require_marker(text, CONCURRENCY_GROUP, "workflow exact-head concurrency group")
+    require_marker(text, CONCURRENCY_CANCEL, "workflow master concurrency cancel policy")
+    require_marker(text, JOBS_BLOCK, "workflow jobs block")
     require_marker(text, CHECKOUT_STEP, "workflow checkout step name")
     require_marker(text, SETUP_STEP, "workflow setup step name")
     require_marker(text, TOOLCHAIN_SELF_TEST_STEP, "workflow toolchain self-test step name")
@@ -144,6 +163,13 @@ def check_workflow(text: str) -> None:
         require_marker(text, self_test_step, "retained bootstrap step")
         require_marker(text, check_step, "retained bootstrap step")
 
+    require_exact_count(text, PUSH_TRIGGER, 1, "workflow trigger")
+    require_exact_line_count(text, PUSH_MASTER_BRANCH, 1, "workflow master push branch line")
+    require_exact_count(text, PULL_REQUEST_TRIGGER, 1, "workflow trigger")
+    require_exact_count(text, WORKFLOW_DISPATCH_TRIGGER, 1, "workflow trigger")
+    require_exact_count(text, CONCURRENCY_BLOCK, 1, "workflow block")
+    require_exact_line_count(text, CONCURRENCY_GROUP, 1, "workflow concurrency line")
+    require_exact_line_count(text, CONCURRENCY_CANCEL, 1, "workflow concurrency line")
     require_exact_count(text, SETUP_STEP, 1, "workflow step name")
     require_exact_count(text, TOOLCHAIN_SELF_TEST_STEP, 1, "workflow step name")
     require_exact_count(text, POLICY_STEP, 1, "workflow step name")
@@ -168,6 +194,11 @@ def check_workflow(text: str) -> None:
         require_exact_count(text, self_test_step, 1, "retained bootstrap step")
         require_exact_count(text, check_step, 1, "retained bootstrap step")
 
+    require_order(text, PUSH_TRIGGER, PUSH_MASTER_BRANCH, "workflow trigger order")
+    require_order(text, PUSH_MASTER_BRANCH, PULL_REQUEST_TRIGGER, "workflow trigger order")
+    require_order(text, PULL_REQUEST_TRIGGER, WORKFLOW_DISPATCH_TRIGGER, "workflow trigger order")
+    require_order(text, WORKFLOW_DISPATCH_TRIGGER, CONCURRENCY_BLOCK, "workflow block order")
+    require_order(text, CONCURRENCY_BLOCK, JOBS_BLOCK, "workflow block order")
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
     require_order(text, TOOLCHAIN_SELF_TEST_STEP, POLICY_STEP, "workflow step order")
@@ -183,6 +214,12 @@ def check_workflow(text: str) -> None:
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_order(text, self_test_step, check_step, "retained bootstrap step order")
 
+    require_order(
+        text,
+        CONCURRENCY_GROUP,
+        CONCURRENCY_CANCEL,
+        "workflow concurrency order",
+    )
     require_order(
         text,
         'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -260,6 +297,14 @@ def check_workflow(text: str) -> None:
 
 def run_self_test() -> int:
     good_workflow = """name: zigux-bootstrap
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   bootstrap:
     steps:
@@ -347,6 +392,58 @@ jobs:
 """
     check_workflow(good_workflow)
     case_count = 1
+
+    missing_push_trigger = good_workflow.replace(
+        "  push:\n    branches: [ master ]\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_push_trigger)
+    except SystemExit as exc:
+        assert "workflow push trigger" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing push trigger failure")
+
+    missing_push_branch = good_workflow.replace(
+        "    branches: [ master ]\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_push_branch)
+    except SystemExit as exc:
+        assert "workflow master push branch line" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing master push branch failure")
+
+    missing_concurrency_group = good_workflow.replace(
+        f"  {CONCURRENCY_GROUP}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_concurrency_group)
+    except SystemExit as exc:
+        assert "workflow exact-head concurrency group" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing concurrency group failure")
+
+    missing_concurrency_cancel = good_workflow.replace(
+        f"  {CONCURRENCY_CANCEL}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_concurrency_cancel)
+    except SystemExit as exc:
+        assert "workflow master concurrency cancel policy" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing concurrency cancel failure")
 
     missing_policy_load = good_workflow.replace(
         '          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))\n',
