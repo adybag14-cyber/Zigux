@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import tempfile
 from pathlib import Path
 
@@ -183,10 +185,40 @@ def collect_issues(readme_text: str) -> list[tuple[str, str]]:
     return issues
 
 
-def emit_issues(issues: list[tuple[str, str]]) -> None:
+def emit_issues(issues: list[tuple[str, str]]) -> int:
     print("PHASE2_KCONFIG_README_ALIGNMENT=fail")
     for code, detail in issues:
         print(f"{code}={detail}")
+    return 1
+
+
+def emit_note(note: str) -> int:
+    print("PHASE2_KCONFIG_README_ALIGNMENT=fail")
+    print(f"PHASE2_KCONFIG_README_ALIGNMENT_NOTE={note}")
+    return 1
+
+
+def run_checker(*, root: Path | None, readme: Path | None) -> int:
+    readme_path = resolve_readme_path(root=root, readme=readme)
+    try:
+        readme_text = read_text(readme_path)
+    except SystemExit as exc:
+        return emit_note(str(exc))
+
+    issues = collect_issues(readme_text)
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_KCONFIG_README_ALIGNMENT=pass")
+    print(f"README={readme_path}")
+    return 0
+
+
+def capture_run_checker(*, root: Path | None, readme: Path | None) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = run_checker(root=root, readme=readme)
+    return result, stdout.getvalue()
 
 
 def build_base_text() -> str:
@@ -218,6 +250,18 @@ def assert_system_exit_contains(callback, expected_fragment: str) -> None:
         assert expected_fragment in str(exc), str(exc)
         return
     raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
+def assert_run_checker_note_contains(
+    *,
+    root: Path | None,
+    readme: Path | None,
+    expected_fragment: str,
+) -> None:
+    exit_code, output = capture_run_checker(root=root, readme=readme)
+    assert exit_code == 1, output
+    assert "PHASE2_KCONFIG_README_ALIGNMENT=fail" in output, output
+    assert f"PHASE2_KCONFIG_README_ALIGNMENT_NOTE={expected_fragment}" in output, output
 
 
 def run_self_test() -> int:
@@ -260,11 +304,19 @@ def run_self_test() -> int:
             "required file missing:",
         )
         checks_run += 1
+        assert_run_checker_note_contains(root=missing_root, readme=None, expected_fragment="required file missing:")
+        checks_run += 1
 
         missing_explicit = root / "README.missing.md"
         assert_system_exit_contains(
             lambda: read_text(resolve_readme_path(root=root, readme=missing_explicit)),
             "required file missing:",
+        )
+        checks_run += 1
+        assert_run_checker_note_contains(
+            root=root,
+            readme=missing_explicit,
+            expected_fragment="required file missing:",
         )
         checks_run += 1
 
@@ -275,6 +327,12 @@ def run_self_test() -> int:
             "required file unreadable:",
         )
         checks_run += 1
+        assert_run_checker_note_contains(
+            root=root / "unreadable-root",
+            readme=None,
+            expected_fragment="required file unreadable:",
+        )
+        checks_run += 1
 
         unreadable_explicit = root / "README.unreadable.md"
         unreadable_explicit.mkdir()
@@ -283,8 +341,14 @@ def run_self_test() -> int:
             "required file unreadable:",
         )
         checks_run += 1
+        assert_run_checker_note_contains(
+            root=root,
+            readme=unreadable_explicit,
+            expected_fragment="required file unreadable:",
+        )
+        checks_run += 1
 
-    expected_case_count = 7 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
+    expected_case_count = 11 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
     if checks_run != expected_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
@@ -308,15 +372,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    readme_path = resolve_readme_path(root=args.root, readme=args.readme)
-    issues = collect_issues(read_text(readme_path))
-    if issues:
-        emit_issues(issues)
-        return 1
-
-    print("PHASE2_KCONFIG_README_ALIGNMENT=pass")
-    print(f"README={readme_path}")
-    return 0
+    return run_checker(root=args.root, readme=args.readme)
 
 
 if __name__ == "__main__":
