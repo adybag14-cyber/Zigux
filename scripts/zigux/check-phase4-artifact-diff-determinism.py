@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import sys
 import tempfile
 from pathlib import Path
 
@@ -109,28 +108,7 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "extra_positional_rejected",
 )
 
-CONTRACT_HELPER_SELF_TEST_CASES = (
-    "text_pass",
-    "text_mismatch",
-    "json_pass",
-    "json_mismatch",
-    "json_invalid_expected",
-    "json_invalid_actual",
-    "json_invalid_both",
-    "json_missing_expected",
-    "json_missing_actual",
-    "json_missing_both",
-    "bytes_pass",
-    "bytes_drift",
-    "text_missing_expected",
-    "text_missing_actual",
-    "text_missing_both",
-    "bytes_missing_expected",
-    "bytes_missing_actual",
-    "bytes_missing_both",
-    "legacy_sha256_alias",
-    "invalid_mode_rejected",
-)
+CONTRACT_HELPER_SELF_TEST_CASES = HELPER_EXPECTED_SELF_TEST_CASES
 
 CONTRACT_BASE_CASES = (
     "helper_self_test",
@@ -244,53 +222,35 @@ def require_current_helper_contract(text: str) -> None:
         raise RuntimeError(
             f"{DIRECT_HELPER.as_posix()} must keep MODE_CHOICES={HELPER_EXPECTED_MODE_CHOICES}, saw {mode_choices}"
         )
-
     legacy_aliases = extract_literal_assignment(text, "LEGACY_MODE_ALIASES", DIRECT_HELPER.as_posix())
     if legacy_aliases != HELPER_EXPECTED_LEGACY_MODE_ALIASES:
         raise RuntimeError(
             f"{DIRECT_HELPER.as_posix()} must keep LEGACY_MODE_ALIASES={HELPER_EXPECTED_LEGACY_MODE_ALIASES}, saw {legacy_aliases}"
         )
-
     self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", DIRECT_HELPER.as_posix()))
     if self_test_cases != HELPER_EXPECTED_SELF_TEST_CASES:
-        raise RuntimeError(
-            f"{DIRECT_HELPER.as_posix()} must keep the current 21-case self-test catalog"
-        )
+        raise RuntimeError(f"{DIRECT_HELPER.as_posix()} must keep the current 21-case self-test catalog")
 
 
 def require_current_contract_checker(text: str) -> None:
     helper_cases = tuple(extract_literal_assignment(text, "HELPER_SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
     if helper_cases != CONTRACT_HELPER_SELF_TEST_CASES:
-        raise RuntimeError(
-            f"{CONTRACT_CHECKER.as_posix()} must keep the current 20-case helper replay catalog"
-        )
-
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 21-case helper replay catalog")
     base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if base_cases != CONTRACT_BASE_CASES:
-        raise RuntimeError(
-            f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case base contract catalog"
-        )
-
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case base contract catalog")
     repeat_cases = tuple(extract_literal_assignment(text, "REPEAT_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if repeat_cases != CONTRACT_REPEAT_CASES:
-        raise RuntimeError(
-            f"{CONTRACT_CHECKER.as_posix()} must keep the current 5-case repeat contract catalog"
-        )
-
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 5-case repeat contract catalog")
     self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
     if self_test_cases != CONTRACT_SELF_TEST_CASES:
-        raise RuntimeError(
-            f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case self-test catalog"
-        )
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case self-test catalog")
 
 
 def require_current_repo_reality(root: Path) -> None:
-    missing_direct = [path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()]
-    if missing_direct:
-        raise RuntimeError(
-            "current direct-readback packet is missing required members: "
-            f"{missing_direct}"
-        )
+    missing = [path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()]
+    if missing:
+        raise RuntimeError(f"current direct-readback packet is missing required members: {missing}")
 
 
 def check(root: Path) -> None:
@@ -350,13 +310,7 @@ def contract_fixture_text() -> str:
 def fixture_root(root: Path) -> None:
     write(
         root / SURVEY,
-        "\n".join(
-            [
-                *SURVEY_MARKERS,
-                bullet_paths(CURRENT_DIRECT_PACKET),
-                bullet_paths(AUTH_MISSING_BROADER_COMPANIONS),
-            ]
-        )
+        "\n".join([*SURVEY_MARKERS, bullet_paths(CURRENT_DIRECT_PACKET), bullet_paths(AUTH_MISSING_BROADER_COMPANIONS)])
         + "\n",
     )
     write(root / PHASE4_NOTE, "\n".join(NOTE_MARKERS) + "\n")
@@ -415,7 +369,7 @@ def self_test() -> None:
         covered.append(expect_failure(root, "helper_catalog_drift"))
 
         fixture_root(root)
-        write(root / CONTRACT_CHECKER, read(root, CONTRACT_CHECKER).replace('    "sha256_drift",\n', "", 1))
+        write(root / CONTRACT_CHECKER, read(root, CONTRACT_CHECKER).replace('    "extra_positional_rejected",\n', "", 1))
         covered.append(expect_failure(root, "contract_catalog_drift"))
 
         fixture_root(root)
@@ -423,15 +377,10 @@ def self_test() -> None:
         covered.append(expect_failure(root, "direct_packet_missing"))
 
     if tuple(covered) != EXPECTED_SELF_TEST_CASES:
-        raise AssertionError(
-            f"expected self-test catalog {EXPECTED_SELF_TEST_CASES}, saw {tuple(covered)}"
-        )
+        raise AssertionError(f"expected self-test catalog {EXPECTED_SELF_TEST_CASES}, saw {tuple(covered)}")
 
     print("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass")
-    print(
-        "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT="
-        f"{len(EXPECTED_SELF_TEST_CASES)}"
-    )
+    print(f"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}")
 
 
 def main() -> int:
@@ -442,13 +391,10 @@ def main() -> int:
     try:
         check(args.root.resolve())
     except RuntimeError as exc:
-        print(f"PHASE4_ARTIFACT_DIFF_DETERMINISM=fail: {exc}", file=sys.stderr)
+        print(f"PHASE4_ARTIFACT_DIFF_DETERMINISM=fail: {exc}")
         return 1
     print("PHASE4_ARTIFACT_DIFF_DETERMINISM=pass")
-    print(
-        "PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS="
-        f"{len(CURRENT_DIRECT_PACKET)}"
-    )
+    print(f"PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS={len(CURRENT_DIRECT_PACKET)}")
     print(
         "PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS="
         f"{len(AUTH_MISSING_BROADER_COMPANIONS)}"
