@@ -30,6 +30,10 @@ PHASE2_NOTES_MARKERS = (
     "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness",
 )
 
+PHASE2_NOTES_EXACT_COUNT_MARKERS = (
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, or returned fixdep packet on current `master`.",
+)
+
 PHASE2_NOTES_FORBIDDEN_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "historical packet members until same-lane work rematerializes them on `master`",
@@ -85,6 +89,10 @@ REVIEW_CHECKLIST_MARKERS = (
     "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
 )
 
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
+    "current directly readable Phase 2 toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, tool-manifest, and required-make-route packet",
+)
+
 REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
     "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "current rematerialized Phase 2 closure-side, closure-validator, validation, artifact-support, toolchain self-check, and make-wrapper packet",
@@ -110,6 +118,10 @@ SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
     "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+    "keep those installer, tool-manifest, direct cross-route, and genksyms bridge surfaces explicit beside the shipped toolchain and kbuild reminder packet",
+)
+
+SCRIPTS_README_EXACT_COUNT_MARKERS = (
     "keep those installer, tool-manifest, direct cross-route, and genksyms bridge surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
 
@@ -142,6 +154,15 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
     return [(code, marker) for marker in markers if marker in text]
 
 
+def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append((code, f"{count}::{marker}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     phase2_notes_text = read_text(resolve_path(root, PHASE2_NOTES))
@@ -152,6 +173,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             phase2_notes_text,
             PHASE2_NOTES_MARKERS,
             "MISSING_PHASE2_NOTES_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_count_markers(
+            phase2_notes_text,
+            PHASE2_NOTES_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_PHASE2_NOTES_MARKERS",
         )
     )
     issues.extend(
@@ -169,6 +197,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
+        collect_exact_count_markers(
+            review_checklist_text,
+            REVIEW_CHECKLIST_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
+    issues.extend(
         collect_forbidden_markers(
             review_checklist_text,
             REVIEW_CHECKLIST_FORBIDDEN_MARKERS,
@@ -180,6 +215,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             scripts_readme_text,
             SCRIPTS_README_MARKERS,
             "MISSING_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_count_markers(
+            scripts_readme_text,
+            SCRIPTS_README_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_SCRIPTS_README_MARKERS",
         )
     )
     issues.extend(
@@ -227,10 +269,13 @@ def run_self_test() -> int:
     expected_case_count = (
         1
         + len(PHASE2_NOTES_MARKERS)
+        + len(PHASE2_NOTES_EXACT_COUNT_MARKERS)
         + len(PHASE2_NOTES_FORBIDDEN_MARKERS)
         + len(REVIEW_CHECKLIST_MARKERS)
+        + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)
         + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
         + len(SCRIPTS_README_MARKERS)
+        + len(SCRIPTS_README_EXACT_COUNT_MARKERS)
         + len(SCRIPTS_README_FORBIDDEN_MARKERS)
         + 3
     )
@@ -246,6 +291,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_PHASE2_NOTES_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in PHASE2_NOTES_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_NOTES)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_PHASE2_NOTES_MARKERS", f"2::{marker}") in issues
             checks_run += 1
 
         for marker in PHASE2_NOTES_FORBIDDEN_MARKERS:
@@ -264,6 +317,14 @@ def run_self_test() -> int:
             assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in REVIEW_CHECKLIST_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_REVIEW_CHECKLIST_MARKERS", f"2::{marker}") in issues
+            checks_run += 1
+
         for marker in REVIEW_CHECKLIST_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
@@ -278,6 +339,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in SCRIPTS_README_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_SCRIPTS_README_MARKERS", f"2::{marker}") in issues
             checks_run += 1
 
         for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
@@ -325,6 +394,10 @@ def main() -> int:
     print(
         "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
         f"{len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+    )
+    print(
+        "PHASE2_DOCS_SHARED_REMINDER_EXACT_COUNT_MARKER_COUNT="
+        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
