@@ -240,6 +240,16 @@ test "phase 6 checksum pseudo-header helpers keep high-length IPv6 carries visib
     try std.testing.expectEqual(referenceFold(v6_result), checksum.tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
 }
 
+test "phase 6 checksum fast-path fixtures stay aligned with focused correctness replay" {
+    for (fixtures.fast_path_cases) |case| {
+        try std.testing.expectEqual(@as(u8, 4), case.header[0] >> 4);
+        try std.testing.expectEqual(case.header.len, @as(usize, (case.header[0] & 0x0f) * 4));
+        try std.testing.expectEqual(@as(usize, 0), case.header.len & 3);
+        try std.testing.expectEqual(referenceCompute(case.header), checksum.compute(case.header));
+        try std.testing.expectEqual(checksum.compute(case.header), checksum.ipFastCsum(case.header));
+    }
+}
+
 test "phase 6 checksum negate stays involutive across representative carry edges" {
     const cases = [_]struct {
         sum: u32,
