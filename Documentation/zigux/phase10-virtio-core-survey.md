@@ -41,7 +41,7 @@ The bootstrap ledger still stops earlier in the commit train and does not yet re
 Current `master` keeps these same-lane gaps explicit:
 
 - mixed-read visibility drift: exact-path connector reads for the core manifest and core survey gate still fail from this environment even though public current-`master` blob readback materializes them, so future same-lane rereads should preserve the mixed-source verification path
-- stale core-packet inventory drift: `Documentation/zigux/phase10-virtio-core-slice.md` and `zigux/tests/phase10_virtio_core_manifest.json` still describe the `virtio_driver_id` helper-and-replay pair as shipped Phase 10 evidence even though current public and exact-path rereads both still fail for those two paths
+- stale survey-note drift: this survey previously said `Documentation/zigux/phase10-virtio-core-slice.md` and `zigux/tests/phase10_virtio_core_manifest.json` still shipped the `virtio_driver_id` helper-and-replay pair, but current public current-`master` rereads now show both packet members already leave `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` outside shipped claims, so the remaining same-lane truthfulness work is keeping future rereads from reintroducing that overclaim
 - stale guardrail reference drift: this survey previously named `scripts/zigux/check-phase10-core-packet.py` as a live core-packet surface even though current exact-path connector reads and repo search do not materialize that file on `master`, while `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `scripts/zigux/validate-phase10.py` do remain live guardrails for the packet
 - still-blocked transport-facing bridge: `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle` remain outside the allowed Phase 10 core packet until a fresh Architecture Council reopen request attaches new evidence
 
@@ -85,12 +85,12 @@ The honest current lane checks are mixed repository-readback checks plus the exi
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 
-No attached-Zig replay was available in this run because there is still no writable live Zigux checkout in this workspace. Public current-`master` readback now shows the direct core-survey shared-build route again, so the remaining same-packet follow-through is truthfulness around mixed-source visibility and the overclaimed driver-id pair rather than missing build wiring.
+No attached-Zig replay was available in this run because there is still no writable live Zigux checkout in this workspace. Public current-`master` readback now shows the direct core-survey shared-build route again, so the remaining same-packet follow-through is truthfulness around mixed-source visibility, the survey note's stale overclaim, and the narrower missing driver-id pair rather than missing build wiring.
 
 ## Next bounded step
 
 Keep the follow-through inside the same core packet only:
 
-- refresh `Documentation/zigux/phase10-virtio-core-slice.md` and `zigux/tests/phase10_virtio_core_manifest.json` so they stop presenting `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` as shipped current-`master` evidence until those two paths actually land
-- keep future rereads explicit about the mixed-source readback requirement while `zigux/tests/phase10_virtio_core_manifest.json` and `zigux/tests/phase10_virtio_core_survey.zig` still `404` through direct contents reads from this environment, and treat the next same-lane truthfulness follow-through as the packet-local core slice plus manifest repair rather than widening into ring, MMIO, or transport work
+- keep `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, and `zigux/tests/phase10_virtio_core_manifest.json` aligned around the same current-`master` truth: the `virtio_driver_id` helper-and-replay pair is not shipped evidence until those two paths actually materialize again
+- keep future rereads explicit about the mixed-source readback requirement while `zigux/tests/phase10_virtio_core_manifest.json` and `zigux/tests/phase10_virtio_core_survey.zig` still `404` through direct contents reads from this environment, and treat the next same-lane truthfulness follow-through as the packet-local survey note guardrail plus current-head reread instead of widening into ring, MMIO, or transport work
 - if a writable checkout becomes available, rerun the narrowest honest replay with `zig build phase10-virtio-core-survey-tests --build-file zigux/tests/phase10_build.zig` before widening any further
