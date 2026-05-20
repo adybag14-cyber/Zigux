@@ -34,11 +34,15 @@ VALIDATE_REQUIRED_SNIPPETS = (
     '"run: zig test scripts/zigux/kconfig/confdata_bridge.zig",',
     '"run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",',
     '"run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",',
+    '"run: make -C zigux phase2-kconfig",',
+    '"phase2-kconfig:",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",',
     '"cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",',
     '"cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",',
     '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",',
+    '"phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",',
 )
 
 REQUIRED_MAKEFILE_LINES = (
@@ -153,13 +157,17 @@ def build_validate_phase2_text() -> str:
             '    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",',
             '    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",',
             '    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",',
+            '    "run: make -C zigux phase2-kconfig",',
             ')',
             'REQUIRED_MAKEFILE_LINES = (',
+            '    "phase2-kconfig:",',
             '    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",',
             '    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",',
             '    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",',
             '    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",',
+            '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",',
             '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",',
+            '    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",',
             ')',
         ]
     ) + "\n"
@@ -245,6 +253,32 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         if ("DUPLICATE_VALIDATE_PHASE2_SNIPPET", f"{VALIDATE_REQUIRED_SNIPPETS[0]}:count=2") not in issues:
             raise SystemExit("phase2-kconfig-route-contract:self-test:duplicate_validate_snippet")
+        case_count += 1
+
+        build_good_root(root)
+        validate_path = root / VALIDATE_PHASE2
+        validate_path.write_text(
+            read_text(validate_path).replace(VALIDATE_REQUIRED_SNIPPETS[13], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        if ("MISSING_VALIDATE_PHASE2_SNIPPET", VALIDATE_REQUIRED_SNIPPETS[13]) not in issues:
+            raise SystemExit("phase2-kconfig-route-contract:self-test:missing_validate_route_anchor")
+        case_count += 1
+
+        build_good_root(root)
+        validate_path = root / VALIDATE_PHASE2
+        validate_path.write_text(
+            read_text(validate_path).replace(
+                VALIDATE_REQUIRED_SNIPPETS[13] + "\n",
+                VALIDATE_REQUIRED_SNIPPETS[13] + "\n    " + VALIDATE_REQUIRED_SNIPPETS[13] + "\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        if ("DUPLICATE_VALIDATE_PHASE2_SNIPPET", f"{VALIDATE_REQUIRED_SNIPPETS[13]}:count=2") not in issues:
+            raise SystemExit("phase2-kconfig-route-contract:self-test:duplicate_validate_route_anchor")
         case_count += 1
 
         build_good_root(root)
