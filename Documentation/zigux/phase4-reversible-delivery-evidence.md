@@ -3,7 +3,7 @@
 This note records the smallest shared Phase 4 evidence packet that keeps the already-landed rollback-readiness work reviewable on current `master` without reopening starter implementation or widening the dedicated local-only perf packet into shared CI approval.
 ## Status
   * `PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_keeps_archival_self_pins_and_flapping_broader_blob_refresh_debt`
-  * `PHASE4_REVERSIBLE_DELIVERY_LANE_KEY=P4-L24`
+  * `PHASE4_REVERSIBLE_DELIVERY_LANE_KEY=P4-L23`
   * `PHASE4_REVERSIBLE_DELIVERY_PHASE=Phase 4`
   * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-20`
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
