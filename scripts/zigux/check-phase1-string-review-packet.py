@@ -279,6 +279,18 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
     return current
 
 
+def iter_anchor_strings(expected: object) -> list[str]:
+    anchors: list[str] = []
+    if isinstance(expected, str):
+        if expected.startswith('test "'):
+            anchors.append(expected)
+    elif isinstance(expected, list):
+        for item in expected:
+            if isinstance(item, str) and item.startswith('test "'):
+                anchors.append(item)
+    return anchors
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -299,10 +311,22 @@ def collect_failures(root: Path) -> list[str]:
             require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol)
         )
 
+    seen_helper_anchors = set(EXPECTED_HELPER_TEST_ANCHORS)
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
         failures.extend(
             require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor)
         )
+
+    for key, expected in EXPECTED_STRING_PACKET.items():
+        if key == "helper_test_anchors":
+            continue
+        for anchor in iter_anchor_strings(expected):
+            if anchor in seen_helper_anchors:
+                continue
+            failures.extend(
+                require_exact_occurrence(helper_text, f"string_helper_packet:{key}", anchor)
+            )
+            seen_helper_anchors.add(anchor)
 
     for label, marker in EXPECTED_STRING_LANE_MARKERS:
         failures.extend(
@@ -360,10 +384,24 @@ def sample_lane_note() -> str:
 
 
 def build_sample_repo(root: Path) -> None:
+    helper_lines = list(EXPECTED_STRING_SOURCE_SYMBOLS)
+    seen = set(helper_lines)
+    for anchor in EXPECTED_HELPER_TEST_ANCHORS:
+        if anchor not in seen:
+            helper_lines.append(anchor)
+            seen.add(anchor)
+    for key, expected in EXPECTED_STRING_PACKET.items():
+        if key == "helper_test_anchors":
+            continue
+        for anchor in iter_anchor_strings(expected):
+            if anchor not in seen:
+                helper_lines.append(anchor)
+                seen.add(anchor)
+
     write_file(
         root,
         STRING_HELPER_REL,
-        "\n".join(EXPECTED_STRING_SOURCE_SYMBOLS + EXPECTED_HELPER_TEST_ANCHORS) + "\n",
+        "\n".join(helper_lines) + "\n",
     )
     write_file(root, STRING_MANIFEST_REL, sample_manifest())
     write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
@@ -410,6 +448,14 @@ def run_self_test() -> int:
     )
     mutation_specs.extend(
         (
+            f"packet_anchor_phase1_helper_replay_{kind}",
+            ("packet_anchor", EXPECTED_STRING_PACKET["phase1_helper_replay_anchor"]),
+            kind,
+        )
+        for kind in ("remove", "duplicate")
+    )
+    mutation_specs.extend(
+        (
             f"lane_marker_{idx}_{kind}",
             ("lane_marker", marker),
             kind,
@@ -444,6 +490,15 @@ def run_self_test() -> int:
                     text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
                 path.write_text(text, encoding="utf-8")
             elif isinstance(target, tuple) and target[0] == "helper_anchor":
+                path = root / STRING_HELPER_REL
+                marker = target[1]
+                text = path.read_text(encoding="utf-8")
+                if kind == "remove":
+                    text = text.replace(marker + "\n", "", 1)
+                else:
+                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
+                path.write_text(text, encoding="utf-8")
+            elif isinstance(target, tuple) and target[0] == "packet_anchor":
                 path = root / STRING_HELPER_REL
                 marker = target[1]
                 text = path.read_text(encoding="utf-8")
