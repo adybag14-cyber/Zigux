@@ -173,6 +173,27 @@ test "kmallocArray treats zero-sized elements as freeable zero-sized allocations
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "zero-sized live allocations stay counted across null frees and oversized fail paths" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_live = kmallocBytes(0, GFP_KERNEL | __GFP_ZERO) orelse
+        return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_live.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocBytes(std.math.maxInt(usize), GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(zero_live);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "kmallocArray zeroes fresh allocations after earlier dirty frees" {
     kmalloc_nr_allocated = 0;
 
