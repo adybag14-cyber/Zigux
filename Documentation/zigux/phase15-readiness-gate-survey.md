@@ -15,7 +15,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 
 Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
 
-Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the dedicated review-process manifest plus focused replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused indefinite-C lane-owner replay, the dedicated parity-scorecard JSON companion plus focused replay, the dedicated handoff-next-steps manifest plus focused replay, the readiness manifest, the shipped docs-root, scripts-root, and tests-root alignment checks, and the focused readiness-packet checker. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
+Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the dedicated review-process manifest plus focused replay plus focused build-file replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused indefinite-C lane-owner replay, the dedicated parity-scorecard JSON companion plus focused replay, the dedicated handoff-next-steps manifest plus focused replay, the readiness manifest, the shipped docs-root, scripts-root, and tests-root alignment checks, the focused handoff-note checker, and the focused readiness-packet checker. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
 
 This survey keeps those two truths together:
 
@@ -39,11 +39,13 @@ This survey keeps those two truths together:
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
