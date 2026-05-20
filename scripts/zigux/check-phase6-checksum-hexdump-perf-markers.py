@@ -44,10 +44,19 @@ REQUIRED_EVIDENCE_REPLAYS = [
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
-CHECKSUM_CASES = {"64B", "1501B"}
-HEXDUMP_CASES = {"16B-plain-g1", "32B-ascii-g2", "16B-ascii-g4", "16B-ascii-g8"}
+EXPECTED_CHECKSUM_CASES = {
+    "64B": {"iterations": 200000, "max_slowdown_pct": 150},
+    "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
+}
+EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
+EXPECTED_HEXDUMP_CASES = {
+    "16B-plain-g1": {"reps": 40000, "max_slowdown_pct": 175},
+    "32B-ascii-g2": {"reps": 10000, "max_slowdown_pct": 550},
+    "16B-ascii-g4": {"reps": 20000, "max_slowdown_pct": 550},
+    "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
+}
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 15
 
 
 class ValidationError(RuntimeError):
@@ -123,6 +132,33 @@ def validate_evidence_manifest(path: Path) -> None:
             )
 
 
+def validate_case_matrix(
+    name: str,
+    cases: object,
+    expected: dict[str, dict[str, int]],
+) -> None:
+    if not isinstance(cases, list):
+        raise ValidationError(f"{name} perf cases missing")
+
+    by_label: dict[str, dict[str, object]] = {}
+    for case in cases:
+        if not isinstance(case, dict):
+            raise ValidationError(f"{name} perf case entry is not an object")
+        label = case.get("label")
+        if not isinstance(label, str):
+            raise ValidationError(f"{name} perf case label missing")
+        by_label[label] = case
+
+    if set(by_label) != set(expected):
+        raise ValidationError(f"{name} perf case drift: {sorted(by_label)}")
+
+    for label, fields in expected.items():
+        case = by_label[label]
+        for field, value in fields.items():
+            if case.get(field) != value:
+                raise ValidationError(f"{name} {label} {field} drifted")
+
+
 def validate_parity_manifest(path: Path) -> None:
     manifest = load_manifest(path)
     if manifest.get("packet") != "phase6-helper-parity":
@@ -140,27 +176,21 @@ def validate_parity_manifest(path: Path) -> None:
     if not isinstance(hexdump_perf, dict):
         raise ValidationError("hexdump current_perf_evidence missing")
 
-    checksum_cases = checksum_perf.get("cases")
-    if not isinstance(checksum_cases, list):
-        raise ValidationError("checksum perf cases missing")
-    checksum_labels = {
-        case.get("label")
-        for case in checksum_cases
-        if isinstance(case, dict) and isinstance(case.get("label"), str)
-    }
-    if checksum_labels != CHECKSUM_CASES:
-        raise ValidationError(f"checksum perf case drift: {sorted(checksum_labels)}")
+    validate_case_matrix(
+        "checksum",
+        checksum_perf.get("cases"),
+        EXPECTED_CHECKSUM_CASES,
+    )
+    if checksum_perf.get("payload_case_labels") != list(EXPECTED_CHECKSUM_CASES):
+        raise ValidationError("checksum payload_case_labels drifted")
+    if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS:
+        raise ValidationError("checksum ipv4_fast_path_case_labels drifted")
 
-    hexdump_cases = hexdump_perf.get("cases")
-    if not isinstance(hexdump_cases, list):
-        raise ValidationError("hexdump perf cases missing")
-    hexdump_labels = {
-        case.get("label")
-        for case in hexdump_cases
-        if isinstance(case, dict) and isinstance(case.get("label"), str)
-    }
-    if hexdump_labels != HEXDUMP_CASES:
-        raise ValidationError(f"hexdump perf case drift: {sorted(hexdump_labels)}")
+    validate_case_matrix(
+        "hexdump",
+        hexdump_perf.get("cases"),
+        EXPECTED_HEXDUMP_CASES,
+    )
 
     checksum_routes = checksum_perf.get("linux_style_rerun_routes")
     hexdump_routes = hexdump_perf.get("linux_style_rerun_routes")
@@ -225,9 +255,19 @@ def scaffold_repo(root: Path) -> None:
                         "key": "checksum",
                         "current_perf_evidence": {
                             "cases": [
-                                {"label": "64B"},
-                                {"label": "1501B"},
+                                {
+                                    "label": "64B",
+                                    "iterations": 200000,
+                                    "max_slowdown_pct": 150,
+                                },
+                                {
+                                    "label": "1501B",
+                                    "iterations": 12000,
+                                    "max_slowdown_pct": 150,
+                                },
                             ],
+                            "payload_case_labels": ["64B", "1501B"],
+                            "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS,
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-checksum-perf",
                                 "make -C zigux phase6-perf",
@@ -238,10 +278,26 @@ def scaffold_repo(root: Path) -> None:
                         "key": "hexdump",
                         "current_perf_evidence": {
                             "cases": [
-                                {"label": "16B-plain-g1"},
-                                {"label": "32B-ascii-g2"},
-                                {"label": "16B-ascii-g4"},
-                                {"label": "16B-ascii-g8"},
+                                {
+                                    "label": "16B-plain-g1",
+                                    "reps": 40000,
+                                    "max_slowdown_pct": 175,
+                                },
+                                {
+                                    "label": "32B-ascii-g2",
+                                    "reps": 10000,
+                                    "max_slowdown_pct": 550,
+                                },
+                                {
+                                    "label": "16B-ascii-g4",
+                                    "reps": 20000,
+                                    "max_slowdown_pct": 550,
+                                },
+                                {
+                                    "label": "16B-ascii-g8",
+                                    "reps": 20000,
+                                    "max_slowdown_pct": 600,
+                                },
                             ],
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-hexdump-perf",
@@ -371,10 +427,58 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                '"iterations": 12000',
+                '"iterations": 16000',
+            ),
+            "checksum 1501B iterations drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"IPV4_60B"',
+                '"IPV4_64B"',
+            ),
+            "checksum ipv4_fast_path_case_labels drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"label": "32B-ascii-g2"',
                 '"label": "32B-ascii-g4"',
             ),
             "hexdump perf case drift",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"reps": 10000',
+                '"reps": 8000',
+            ),
+            "hexdump 32B-ascii-g2 reps drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"max_slowdown_pct": 600',
+                '"max_slowdown_pct": 650',
+            ),
+            "hexdump 16B-ascii-g8 max_slowdown_pct drifted",
         )
         cases_run += 1
         scaffold_repo(root)
