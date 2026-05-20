@@ -108,6 +108,13 @@ def load_archive_target_scope(root: Path) -> list[str]:
             raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}: {value}")
         seen_targets.add(value)
         normalized.append(value)
+
+    unsupported_targets = [value for value in normalized if value not in EXPECTED_TARGET_ORDER]
+    if unsupported_targets:
+        raise SystemExit(
+            "unsupported archive_target_scope target in required file: "
+            f"{policy_path}: {', '.join(unsupported_targets)}"
+        )
     return normalized
 
 
@@ -622,11 +629,22 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "riscv64-linux"]
+        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "aarch64-linux"]
         policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_fixture_issues(root)
         assert "fixture:archive_target_scope:['x86_64-linux']" in issues
         assert any(issue.startswith("fixture:archive_required_target_set_mismatch:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "riscv64-linux"]
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        result, output = capture_stdout(run_checked, root, None, None, False, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "unsupported archive_target_scope target in required file" in output
+        assert "riscv64-linux" in output
         checks_run += 1
 
         build_self_test_root(root)
