@@ -19,12 +19,24 @@ MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 
 EXPECTED_SOURCE_SYMBOLS = [
+    "pub fn find_first_bit(addr: []const Word, nbits: usize) usize {",
+    "pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {",
+    "pub fn find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
+    "pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
     "pub fn findFirstAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
     "pub fn find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
     "pub fn _find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
+    "pub fn find_first_zero_bit(addr: []const Word, nbits: usize) usize {",
+    "pub fn _find_first_zero_bit(addr: []const Word, nbits: usize) usize {",
+    "pub fn find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn _find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {",
     "pub fn getValue8(addr: []const Word, offset: usize) u8 {",
     "pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
     "pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
@@ -298,7 +310,7 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-review:self-test:missing_next_safe_step_line")
 
         build_sample_repo(tmp_root)
-        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_SOURCE_SYMBOLS[13] + "\n", "", 1)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_SOURCE_SYMBOLS[25] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
@@ -352,7 +364,7 @@ def run_self_test() -> int:
         if cases[10][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_source_only_anchor")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         lane_text = load_text(tmp_root, LANE_NOTE_REL)
         lane_text = lane_text.replace(
             EXPECTED_LANE_PARAGRAPH + "\n",
