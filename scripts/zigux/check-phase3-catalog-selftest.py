@@ -14,6 +14,10 @@ LOW_LEVEL_WRAPPER_SURVEY_PATH = Path("Documentation/zigux/phase3-low-level-wrapp
 LOW_LEVEL_WRAPPER_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
 HEADER_FAMILY_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 HEADER_FAMILY_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
+LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
+LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH = Path(
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+)
 
 REQUIRED_MARKERS = {
     CATALOG_PATH: (
@@ -26,6 +30,7 @@ REQUIRED_MARKERS = {
         'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+        'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("zigux/tests/phase3_abi.zig")',
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
@@ -36,6 +41,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py"',
+        '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
         '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-xarray-slot.py --self-test"',
         '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
@@ -66,6 +73,16 @@ REQUIRED_MARKERS = {
     HEADER_FAMILY_VALIDATOR_PATH: (
         'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")',
+    ),
+    LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH: (
+        "Documentation/zigux/phase3-abi-slice.md",
+        "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+        "zigux/tests/fixtures/phase3_abi_manifest.json",
+    ),
+    LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH: (
+        'NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
+        'HEADER_PATH = Path("include/linux/zigux.h")',
+        'print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")',
     ),
 }
 
@@ -152,6 +169,11 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+            "expected missing catalog linux-zigux header-governance validator marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("zigux/tests/phase3_abi.zig")',
             "expected missing catalog shared abi core replay marker was not reported",
         ),
@@ -164,6 +186,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
             "expected missing catalog header-family self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
+            "expected missing catalog linux-zigux header-governance self-test route marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -229,6 +256,16 @@ def run_self_test() -> int:
             HEADER_FAMILY_VALIDATOR_PATH,
             'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
             "expected missing header-family validator catalog-selftest marker was not reported",
+        ),
+        (
+            LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH,
+            'NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
+            "expected missing linux-zigux header-governance note path marker was not reported",
+        ),
+        (
+            LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH,
+            'print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")',
+            "expected missing linux-zigux header-governance self-test pass marker was not reported",
         ),
     )
 
