@@ -122,7 +122,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase10-validate",
         "make -C zigux phase10-test",
         "make -C zigux phase10",
-        "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`",
+        "public current-`master` readback now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig`, so keep those returned core-side companions explicit beside the returned core survey while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower core-side repo-reality gaps in this scripts-root reminder",
         "keep risky transport parked",
         PHASE10_SCRIPTS_ROOT_PHRASE,
     ],
@@ -222,6 +222,9 @@ FORBIDDEN_MARKERS = {
         "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
         "current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps rather than direct current-`master` evidence.",
     ],
+    "scripts/zigux/README.md": [
+        "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`",
+    ],
     "zigux/tests/phase10_build.zig": [
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
     ],
@@ -257,6 +260,12 @@ SELF_TEST_MUTATIONS = [
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
         "zigux/tests/phase10_build.zig:forbidden:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
+    ),
+    (
+        "scripts/zigux/README.md",
+        "public current-`master` readback now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig`, so keep those returned core-side companions explicit beside the returned core survey while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower core-side repo-reality gaps in this scripts-root reminder",
+        "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, so keep the broader core-side slice framed as a repo-reality gap while the returned core survey, ring, input, and MMIO packet anchors continue to carry the bounded shared reminder",
+        "scripts/zigux/README.md:forbidden:current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`",
     ),
 ]
 
