@@ -17,6 +17,7 @@ MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 ARGV_SPLIT_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -37,6 +38,7 @@ REQUIRED_FILES = [
     MAKEFILE_PATH,
     CHECKER_PATH,
     ARGV_SPLIT_CHECKER_PATH,
+    MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -45,12 +47,10 @@ REQUIRED_FILES = [
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
-SELF_TEST_CASE_COUNT = 7
-
+SELF_TEST_CASE_COUNT = 8
 
 class ValidationError(RuntimeError):
     pass
-
 
 def read_text(path: Path) -> str:
     try:
@@ -58,14 +58,12 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
-
 def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
 
-
-def run_checker(root: Path, checker_path: Path) -> None:
+def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") -> None:
     result = subprocess.run(
-        [sys.executable, str(root / checker_path), "--repo-root", str(root)],
+        [sys.executable, str(root / checker_path), root_flag, str(root)],
         cwd=root,
         text=True,
         capture_output=True,
@@ -74,7 +72,6 @@ def run_checker(root: Path, checker_path: Path) -> None:
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
         raise ValidationError(f"{checker_path.as_posix()} failed: {detail}")
-
 
 def validate(root: Path) -> None:
     missing = [path.as_posix() for path in REQUIRED_FILES if not (root / path).exists()]
@@ -96,13 +93,12 @@ def validate(root: Path) -> None:
         raise ValidationError("phase7 make route missing")
 
     run_checker(root, CHECKER_PATH)
+    run_checker(root, MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_CHECKER_PATH)
-
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def scaffold_repo(root: Path) -> None:
     source_root = Path(__file__).resolve().parent
@@ -160,61 +156,19 @@ def scaffold_repo(root: Path) -> None:
             "lib/rbtree.c",
         ],
         "current_direct_helper_evidence": [
-            {
-                "key": "string_helpers",
-                "zig_helper": "lib/string_helpers.zig",
-                "expected_markers": [
-                    "pub const STRING_UNITS_10",
-                    "pub const KasprintfStrarrayResult",
-                    "pub fn kstrdupQuotable",
-                    "pub fn kstrdupQuotableCmdline",
-                ],
-            },
-            {
-                "key": "string_helpers_parse_int_array",
-                "zig_helper": "lib/string_helpers_parse_int_array.zig",
-                "expected_markers": [
-                    "pub const ParseIntArrayResult",
-                    "pub fn parseIntArray",
-                ],
-            },
-            {
-                "key": "cmdline",
-                "zig_helper": "lib/cmdline.zig",
-                "expected_markers": [
-                    "pub fn parseOptionStr",
-                    "pub fn getOption",
-                ],
-            },
-            {
-                "key": "argv_split",
-                "zig_helper": "lib/argv_split.zig",
-                "expected_markers": [
-                    "pub const ArgvSplitResult",
-                    "pub fn argvSplit",
-                ],
-            },
+            {"key": "string_helpers", "zig_helper": "lib/string_helpers.zig", "expected_markers": ["pub const STRING_UNITS_10", "pub const KasprintfStrarrayResult", "pub fn kstrdupQuotable", "pub fn kstrdupQuotableCmdline"]},
+            {"key": "string_helpers_parse_int_array", "zig_helper": "lib/string_helpers_parse_int_array.zig", "expected_markers": ["pub const ParseIntArrayResult", "pub fn parseIntArray"]},
+            {"key": "cmdline", "zig_helper": "lib/cmdline.zig", "expected_markers": ["pub fn parseOptionStr", "pub fn getOption"]},
+            {"key": "argv_split", "zig_helper": "lib/argv_split.zig", "expected_markers": ["pub const ArgvSplitResult", "pub fn argvSplit"]},
         ],
         "current_replay_inventory": EXPECTED_REPLAYS,
-        "current_repo_reality_gaps": [
-            "lib/rbtree.zig",
-            "zigux/tests/phase7_build.zig",
-        ],
+        "current_repo_reality_gaps": ["lib/rbtree.zig", "zigux/tests/phase7_build.zig"],
     }, indent=2) + "\n")
     write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
     write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
     write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     for rel_path, content in [
-        (
-            Path("lib/string_helpers.zig"),
-            "\n".join([
-                "pub const STRING_UNITS_10 = 0;",
-                "pub const KasprintfStrarrayResult = struct {};",
-                "pub fn kstrdupQuotable() void {}",
-                "pub fn kstrdupQuotableCmdline() void {}",
-                "",
-            ]),
-        ),
+        (Path("lib/string_helpers.zig"), "pub const STRING_UNITS_10 = 0;\npub const KasprintfStrarrayResult = struct {};\npub fn kstrdupQuotable() void {}\npub fn kstrdupQuotableCmdline() void {}\n"),
         (Path("lib/string_helpers_parse_int_array.zig"), "pub const ParseIntArrayResult = struct {};\npub fn parseIntArray() void {}\n"),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
@@ -224,7 +178,8 @@ def scaffold_repo(root: Path) -> None:
     write(root / CHECKER_PATH, checker_text)
     argv_split_checker_text = (source_root / "check-phase7-argv-split-packet.py").read_text(encoding="utf-8")
     write(root / ARGV_SPLIT_CHECKER_PATH, argv_split_checker_text)
-
+    alignment_checker_text = (source_root / "check-phase7-make-wrapper-selftest-alignment.py").read_text(encoding="utf-8")
+    write(root / MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, alignment_checker_text)
 
 def expect_failure(root: Path, rel_path: Path, transform: str) -> None:
     if transform == "delete":
@@ -237,7 +192,6 @@ def expect_failure(root: Path, rel_path: Path, transform: str) -> None:
     except (ValidationError, json.JSONDecodeError):
         return
     raise AssertionError("expected validation failure")
-
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validate_") as tmpdir:
@@ -252,6 +206,7 @@ def run_self_test() -> None:
             (Path("lib/argv_split.zig"), "pub fn argvSplit"),
             (CHECKER_PATH, "delete"),
             (ARGV_SPLIT_CHECKER_PATH, "delete"),
+            (MAKE_WRAPPER_ALIGNMENT_CHECKER_PATH, "delete"),
             (DOCS_README_PATH, "delete"),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
@@ -271,13 +226,11 @@ def run_self_test() -> None:
     print("PHASE7_VALIDATE_SELF_TEST=pass")
     print(f"PHASE7_VALIDATE_SELF_TEST_CASE_COUNT={cases_run}")
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
-
 
 def main() -> int:
     args = parse_args()
@@ -291,7 +244,6 @@ def main() -> int:
         return 1
     print("PHASE7_VALIDATE=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
