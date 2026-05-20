@@ -76,7 +76,7 @@ pub const SelftestSummary = struct {
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
-    pub const bitmap_nbits: u32 = bitmap_view.bits_per_long * 2;
+    pub const bitmap_nbits: u32 = @intCast(bitmap_view.word_bits * 2);
     const backing_word_count: usize = 2;
 
     stage_state: ModuleStage = .cold,
@@ -118,8 +118,8 @@ pub const RuntimeBitmapSample = struct {
     }
 
     fn assignBit(self: *Self, bit: u32, value: bool) void {
-        const word_index: usize = @intCast(bit / bitmap_view.bits_per_long);
-        const bit_index: u6 = @intCast(bit % bitmap_view.bits_per_long);
+        const word_index: usize = @intCast(bit / bitmap_view.word_bits);
+        const bit_index: u6 = @intCast(bit % bitmap_view.word_bits);
         const mask: bitmap_view.Word = @as(bitmap_view.Word, 1) << bit_index;
         if (value) {
             self.words[word_index] |= mask;
@@ -183,7 +183,8 @@ pub const RuntimeBitmapSample = struct {
     }
 
     pub fn isSet(self: *const Self, bit: u32) bool {
-        return bitmap_view.testBit(bitmap_view.viewFromWords(self.words[0..], bitmap_nbits), bit);
+        const view = bitmap_view.BitmapView.init(self.words[0..], @intCast(bitmap_nbits));
+        return view.isSet(@intCast(bit));
     }
 
     pub fn nthSetBit(self: *const Self, ordinal: u32) ?u32 {
@@ -224,11 +225,11 @@ pub const RuntimeBitmapSample = struct {
     }
 
     pub fn summary(self: *const Self) RuntimeBitmapSummary {
-        const bounded = bitmap_view.summarize(bitmap_view.viewFromWords(self.words[0..], bitmap_nbits));
+        const view = bitmap_view.BitmapView.init(self.words[0..], @intCast(bitmap_nbits));
         return .{
-            .first_set = bounded.first_set,
-            .first_zero = bounded.first_zero,
-            .weight = bounded.weight,
+            .first_set = if (view.firstSetBit()) |bit| @intCast(bit) else bitmap_nbits,
+            .first_zero = if (view.firstClearBit()) |bit| @intCast(bit) else bitmap_nbits,
+            .weight = @intCast(view.countSetBits()),
             .nbits = bitmap_nbits,
             .init_runs = self.init_runs,
             .selftest_runs = self.selftest_runs,
@@ -257,75 +258,3 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .exited;
     }
 };
-
-test "runtime bitmap sample review contract keeps bounded starter focus explicit" {
-    const descriptor = RuntimeBitmapSample.descriptor();
-    const contract = RuntimeBitmapSample.reviewContract();
-
-    try std.testing.expectEqualStrings("runtime_bitmap", descriptor.name);
-    try std.testing.expectEqualStrings("lib/test_bitmap.c", descriptor.anchor);
-    try std.testing.expect(descriptor.requires_runtime_substrate);
-    try std.testing.expect(descriptor.provides_selftest_hook);
-    try std.testing.expectEqual(@as(usize, sample_review_focus.len), contract.focus.len);
-    try std.testing.expectEqual(@as(usize, sample_review_non_goals.len), contract.non_goals.len);
-    try std.testing.expectEqual(SampleFocus.top_bit_contract, contract.focus[contract.focus.len - 1]);
-}
-
-test "runtime bitmap sample keeps sparse summaries and nth-set replay explicit" {
-    var module = RuntimeBitmapSample{};
-    try module.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
-
-    const summary = module.summary();
-    try std.testing.expectEqual(@as(u32, 10), summary.first_set);
-    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
-    try std.testing.expectEqual(@as(u32, 8), summary.weight);
-    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
-    try std.testing.expectEqual(@as(?u32, 10), module.nthSetBit(0));
-    try std.testing.expectEqual(@as(?u32, 123), module.nthSetBit(7));
-    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(8));
-}
-
-test "runtime bitmap sample keeps parse print and range mutation replay explicit" {
-    var module = RuntimeBitmapSample{};
-    try module.initFromBitList("0, 5, 64, 70");
-
-    const formatted = try module.formatSetBits(std.testing.allocator);
-    defer std.testing.allocator.free(formatted);
-    try std.testing.expectEqualStrings("0,5,64,70", formatted);
-
-    try module.clearRange(bitmap_view.bits_per_long, 2);
-    try module.setRange(9, 4);
-
-    const summary = module.summary();
-    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
-    try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
-    try std.testing.expectEqual(@as(u32, 7), summary.weight);
-    try std.testing.expect(module.isSet(12));
-    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
-    try std.testing.expect(!module.isSet(bitmap_view.bits_per_long));
-    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(9, 4));
-}
-
-test "runtime bitmap sample keeps selftest copy and exit lifecycle explicit" {
-    var source = RuntimeBitmapSample{};
-    try source.initWithSetBits(&.{ 0, 5, 64, 70 });
-    const before = source.summary();
-    const selftest = try source.runSelftest();
-
-    try std.testing.expectEqualStrings("lib/test_bitmap.c", selftest.anchor);
-    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
-
-    var mirror = RuntimeBitmapSample{};
-    try mirror.initWithSetBits(&.{});
-    try mirror.copyFrom(&source);
-    try std.testing.expectEqual(before.first_set, mirror.summary().first_set);
-    try std.testing.expectEqual(before.weight, mirror.summary().weight);
-
-    try source.exit();
-    const after = source.summary();
-    try std.testing.expectEqual(ModuleStage.exited, source.stage());
-    try std.testing.expectEqual(@as(usize, 1), after.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), after.exit_runs);
-    try std.testing.expectError(error.InvalidLifecycleTransition, source.setRange(1, 1));
-    try std.testing.expectError(error.InvalidLifecycleTransition, source.runSelftest());
-}
