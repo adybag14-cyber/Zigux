@@ -436,14 +436,6 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
-    "zigux/tests/build.zig",
-    "zigux/tests/phase3_abi.zig",
-    "zigux/tests/phase3_abi_dump_current.zig",
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
-    "zigux/tests/phase3_export_uapi_layout.zig",
-    "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "zigux/tests/phase3_low_level_wrappers.zig",
-    "zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 REQUIRED_REPLAY_ROUTES = (
