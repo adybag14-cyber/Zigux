@@ -13,7 +13,7 @@
 - `zigux/tests/phase12_virtio_scsi_manifest.json` keeps the lane key, surveyed commit, shipped paths, and direct validation commands machine-checkable for the current survey packet
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` keep the newer roadmap-gap survey machine-checkable beside the direct replay and rollback gates
 - `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, and survey gate remain lane-local validation surfaces
-- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the survey manifest, slice note, or support-bundle reminder drifts
+- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the survey manifest, survey note, slice note, or support-bundle reminder drifts
 
 ## Repo-reality boundaries
 - `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap
