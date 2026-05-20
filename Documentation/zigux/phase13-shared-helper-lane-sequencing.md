@@ -42,6 +42,8 @@ Keep these shared reminder surfaces aligned when broad Phase 13 wording changes:
 - `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
+The shared reminder packet is largely aligned on current `master`, but one broader scripts-root follow-through intentionally remains parked outside this lane step: `scripts/zigux/README.md` still needs to keep `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` explicit as repo-reality gaps beside the shipped `Documentation/zigux/phase13-libfs-slice.md` packet.
+
 shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
 tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
@@ -54,7 +56,7 @@ do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zig
 2. Treat adjacent notifier evidence as release-surface support, not as an extra shared replay step.
 3. Use the shared-summary guard and the tests-root alignment companion before widening contributor wording across the packet.
 4. Keep the Makefile-backed route family recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
-5. Leave broader docs-root, scripts-root, and tests-root refresh for a separate same-lane follow-up.
+5. Leave broader docs-root and tests-root refresh for a separate same-lane follow-up, and keep the parked scripts-root `libfs` reminder drift explicit as a separate developer-enablement follow-through until that one-file README repair lands.
 
 ## Non-Goals
 
