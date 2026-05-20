@@ -16,7 +16,7 @@ Treat the current Phase 4 validation packet as the shipped rollback-readiness an
 
 ## Current repo reality
 
-Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` as the current direct-readback handoff before reopening older broader Phase 4 companions.
+Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` as the current direct-readback handoff before widening beyond the exact packet that handoff already names.
 
 - current direct-readback shared handoff:
   - `Documentation/zigux/phase4-reversible-delivery-evidence.md`
@@ -30,19 +30,20 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `zigux/tests/phase4_perf_baseline_survey.zig`
   - `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
   - `make -C zigux phase4-perf-baseline-survey`
-- historical broader shared exact-readback and owner-map packet until a same-family lane rereads or republishes it:
-  - `Documentation/zigux/artifact-diff.md`
+- recovered broader shared exact-readback and owner-map companions that now reread directly on current `master`:
   - `Documentation/zigux/phase4-gate-evidence.md`
   - `Documentation/zigux/phase4-validation-matrix.md`
-  - `scripts/zigux/artifact_diff.py`
-  - `scripts/zigux/check-artifact-diff-contract.py`
-  - `scripts/zigux/check-phase4-artifact-diff-determinism.py`
+  - `Documentation/zigux/phase4-validation-lane-sequencing.md`
+  - `scripts/zigux/check-phase4-gate-evidence.py`
   - `scripts/zigux/check-phase4-remaining-gap-matrix.py`
   - `scripts/zigux/check-phase4-workflow-route-counts.py`
-  - `scripts/zigux/validate-phase4.py`
-  - `zigux/tests/phase4_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
+- broader validator and bitmap replay companions that still need raw-fallback proof or fresh authenticated blob capture:
+  - `scripts/zigux/validate-phase4.py`
+  - `zigux/tests/phase4_build.zig`
+  - `zigux/tests/bitmap_diff.zig`
+  - `zigux/tests/phase4_bitmap_live_helper_replay.zig`
 - parked starter-gap packets:
   - `Documentation/zigux/phase4-kprobe-example-gap-survey.md`
   - `zigux/tests/phase4_kprobe_example_manifest.json`
@@ -51,7 +52,7 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `zigux/tests/phase4_test_fsmount_manifest.json`
   - `zigux/tests/phase4_test_fsmount_survey.zig`
 
-That means current Phase 4 work is no longer about inventing a missing validation family. The live sequencing risk is overlap between the current direct-readback handoff and older broader route names: shared exact-readback, reversible-delivery, or review-checklist wording can accidentally reopen local perf-policy work, parked starter-gap packet work, or historical broader validator and lab-matrix companions as if those companions were already direct current-head evidence again.
+That means current Phase 4 work is no longer about inventing a missing validation family. The live sequencing risk is overlap between the current direct-readback handoff, the recovered broader note-and-checker companions, and the still-flapping validator and bitmap replay routes: shared exact-readback, reversible-delivery, or review-checklist wording can accidentally reopen local perf-policy work, parked starter-gap packet work, or the still-unpinned validator/build/bitmap replay companions as if all of those surfaces were already one uniformly direct current-head packet again.
 
 ## Owner map
 
@@ -61,12 +62,12 @@ Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentati
 
 This shared lane owns only:
 - wording that keeps the current direct-readback handoff explicit instead of reconstructing the broader shared packet from older route names alone
-- wording that keeps `Documentation/zigux/phase4-validation-matrix.md` plus `scripts/zigux/check-phase4-remaining-gap-matrix.py` paired as one shared lab-matrix control surface when that broader pair is directly readable again, so current runs repair the repo-reality handoff first instead of reopening parked-gap or perf lanes from stale route names alone
+- wording that keeps `Documentation/zigux/phase4-validation-matrix.md` plus `scripts/zigux/check-phase4-remaining-gap-matrix.py` paired as one shared lab-matrix control surface now that that broader pair is directly readable again, so current runs repair the repo-reality handoff first instead of reopening parked-gap or perf lanes from stale route names alone
 - wording that keeps the shipped atomic64, bitmap, helper-backed bitmap replay, and manifest-backed survey packet boundaries explicit together
-- wording that keeps the shipped host-side artifact-diff helper contract, deterministic catalog replay, and validator-first replay routes explicit together without treating them as current direct-readback proof while the broader packet is still historical here
+- wording that keeps the shipped host-side artifact-diff helper contract, deterministic catalog replay, and validator-first replay routes explicit together without treating the still-flapping validator/build/bitmap replay companions as exact direct-readback proof
 - wording that keeps the current rollback owners, reviewer prompts, reversible-delivery handoff, and validator-first replay routes explicit together
 - wording that keeps the current broader shared-CI perf-promotion coordination-owner split explicit across both landed rollback gates while the dedicated Validation and Perf Team decision-owner cue stays inside the adjacent local-only perf packet
-- wording that keeps the directly readable local-only perf packet and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
+- wording that keeps the directly readable local-only perf packet, the recovered broader note-and-checker companions, and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
 
 This shared lane does not own the approved local perf commands and acceptable limits themselves, and it does not own starter-gap packet-local reminder wording beyond naming that those packets remain parked and adjacent.
 
@@ -115,7 +116,7 @@ When a Phase 4 validation change is proposed, choose the narrowest owner first.
 - Keep dedicated local perf checker maintenance in that same dedicated perf packet.
 - If a change refreshes the current shared coordination-owner split across both landed rollback gates, keep it in the shared exact-readback lane even when the dedicated perf packet still carries the adjacent decision-owner cue.
 - If a change only refreshes how the shipped rollback-readiness packet, the reversible-delivery handoff, the shared review checklist, the host-side artifact-diff tooling packet, the rollback-owner map, the validator-first route, and adjacent parked packets are described together, keep it in the shared exact-readback lane.
-- If the drift is limited to `Documentation/zigux/phase4-validation-matrix.md` and `scripts/zigux/check-phase4-remaining-gap-matrix.py`, repair that shared lab-matrix pair first only after current direct reads stop treating that pair as historical broader packet members and the published matrix-side repair is directly readable again.
+- If the drift is limited to `Documentation/zigux/phase4-validation-matrix.md` and `scripts/zigux/check-phase4-remaining-gap-matrix.py`, repair that shared lab-matrix pair first while keeping the narrower direct-readback handoff and the still-flapping validator/build/bitmap replay companions explicit, rather than treating the matrix pair as historical broader packet members.
 - If the drift is limited to blob pins or exact-readback markers in `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-gate-evidence.md`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, or `scripts/zigux/check-phase4-gate-evidence.py`, repair the directly readable repo-reality handoff first and return to this sequencing note only if the published pin refresh still leaves the owner split ambiguous.
 - If a shared reminder surface needs one perf-local or starter-gap cue, point to that exact packet instead of restating packet-local behavior from memory.
 - Do not use the shared exact-readback lane to change local-only perf limits or starter-gap packet-local replay wording.
@@ -127,7 +128,7 @@ When a Phase 4 validation change is proposed, choose the narrowest owner first.
 Use this note to keep future Phase 4 follow-through bounded:
 - reopen the current direct-readback shared lane first for one repo-reality warning, rollback-owner, current-head readback, review-checklist, tests-root, or exact-pin repair across the already landed shared Phase 4 packet
 - route matrix-side or sequencing-note remaining-gap reminder drift through the live `P4-L24` matrix reminder lane, and route dedicated remaining-gap checker measurability drift through the live `P4-L19` checker-maintenance lane, before treating the parked starter-gap manifests' historical `P4-L19` label as a reason to reopen this sequencing note or the parked packets
-- reopen the broader shared exact-readback lane only after a same-family reread or republish makes the validator, lab-matrix, or workflow-route companions directly readable again
+- reopen broader validator/build/bitmap replay follow-through only after a same-family reread or republish makes `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, or `zigux/tests/phase4_bitmap_live_helper_replay.zig` directly readable again through the same current-head route, because the broader note-and-checker companions are already back on current `master`
 - treat blob-pin refreshes inside `Documentation/zigux/phase4-reversible-delivery-evidence.md` or `Documentation/zigux/phase4-gate-evidence.md` as shared exact-readback follow-through, not as a reason to reopen this sequencing note unless the published repair still leaves the validation-lane split unclear
 - reopen the dedicated perf lane only for one checker, manifest, survey, benchmark-command, acceptable-limit, or local-only policy truthfulness repair
 - reopen a parked starter-gap lane only for one packet-local note, manifest, survey gate, wrapper, entrypoint, owner-map, or next-step truthfulness repair, even while the packet-local status blocks still share the historical `P4-L19` coordination label
