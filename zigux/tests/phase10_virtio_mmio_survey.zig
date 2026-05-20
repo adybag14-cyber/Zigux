@@ -27,6 +27,7 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, manifest compan
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_manifest.json");
     try expectContains(survey_note, "interrupt-ack disposition review");
+    try expectContains(survey_note, "staged config-write planning");
     try expectContains(survey_note, "config-write disposition reporting");
     try expectContains(survey_note, "feature-negotiation deltas");
     try expectContains(survey_note, "dedicated MMIO lab replay");
