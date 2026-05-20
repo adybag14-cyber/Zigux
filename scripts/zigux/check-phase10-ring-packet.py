@@ -60,12 +60,13 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+        "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "the publish-readiness wrapper-facing replay",
         "`phase10-queue-publish-readiness-helper`",
         "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
-        "the dedicated survey gate is now a landed review surface inside this slice",
+        "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
     "drivers/virtio/virtio_ring.zig": [
         "pub const QueueShapeSummary = struct {",
@@ -160,9 +161,9 @@ REQUIRED_MARKERS = {
         "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        'test "phase10 virtio ring survey note keeps the broader public-readback replay explicit beside the queue-local helper packet" {',
-        'try expectContains(survey_note, "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not");',
-        'try expectContains(build_file, "\\\"phase10-virtio-ring-survey-tests\\\"");',
+        'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");',
+        'try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");',
+        'try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");',
         'test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {',
     ],
 }
@@ -180,6 +181,7 @@ FORBIDDEN_MARKERS = {
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
+        "the dedicated survey gate is now a landed review surface inside this slice",
         "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`",
         "the broader ring replay still remains outside direct current-head evidence in this slice",
     ],
@@ -302,114 +304,24 @@ def fixture_manifest() -> dict[str, object]:
             "preexisting_ring_publish_readiness_present": True,
         },
         "gaps": [
-            {
-                "id": "phase10-build-gate",
-                "status": "starter_landed",
-                "kind": "validation",
-                "zigux_destination": "zigux/tests/phase10_build.zig",
-            },
-            {
-                "id": "phase10-virtio-core-lab-starter",
-                "status": "starter_landed",
-                "kind": "lab_driver_starter",
-                "zigux_destination": "drivers/virtio/virtio.zig",
-            },
-            {
-                "id": "phase10-virtio-ring-survey-gate",
-                "status": "starter_landed",
-                "kind": "validation",
-                "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-            },
-            {
-                "id": "phase10-virtio-ring-survey-note",
-                "status": "starter_landed",
-                "kind": "documentation",
-                "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-            },
-            {
-                "id": "phase10-virtqueue-shape-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-used-buffer-polling-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-callback-enable-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-callback-delay-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-notify-prepare-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-notification-data-summary-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-broken-queue-poll-guard",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-queue-publish-readiness-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
-            },
-            {
-                "id": "phase10-queue-reset-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-queue-reset-readiness-helper",
-                "status": "starter_landed",
-                "kind": "queue_wrapper",
-                "zigux_destination": "drivers/virtio/virtio_ring.zig",
-            },
-            {
-                "id": "phase10-ring-publish-readiness-replay",
-                "status": "starter_landed",
-                "kind": "validation",
-                "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
-            },
-            {
-                "id": "phase10-ring-verify-replay",
-                "status": "starter_landed",
-                "kind": "validation",
-                "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
-            },
-            {
-                "id": "phase10-virtio-ring-slice-note",
-                "status": "starter_landed",
-                "kind": "documentation",
-                "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-            },
-            {
-                "id": "phase10-ring-lab-driver-bridge",
-                "status": "blocked_on_risky_transport",
-                "kind": "roadmap_gap",
-                "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-            },
+            {"id": "phase10-build-gate", "status": "starter_landed", "kind": "validation", "zigux_destination": "zigux/tests/phase10_build.zig"},
+            {"id": "phase10-virtio-core-lab-starter", "status": "starter_landed", "kind": "lab_driver_starter", "zigux_destination": "drivers/virtio/virtio.zig"},
+            {"id": "phase10-virtio-ring-survey-gate", "status": "starter_landed", "kind": "validation", "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig"},
+            {"id": "phase10-virtio-ring-survey-note", "status": "starter_landed", "kind": "documentation", "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md"},
+            {"id": "phase10-virtqueue-shape-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-used-buffer-polling-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-callback-enable-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-callback-delay-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-notify-prepare-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-notification-data-summary-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-broken-queue-poll-guard", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-queue-publish-readiness-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig"},
+            {"id": "phase10-queue-reset-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-queue-reset-readiness-helper", "status": "starter_landed", "kind": "queue_wrapper", "zigux_destination": "drivers/virtio/virtio_ring.zig"},
+            {"id": "phase10-ring-publish-readiness-replay", "status": "starter_landed", "kind": "validation", "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig"},
+            {"id": "phase10-ring-verify-replay", "status": "starter_landed", "kind": "validation", "zigux_destination": "drivers/virtio/virtio_ring_verify.zig"},
+            {"id": "phase10-virtio-ring-slice-note", "status": "starter_landed", "kind": "documentation", "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md"},
+            {"id": "phase10-ring-lab-driver-bridge", "status": "blocked_on_risky_transport", "kind": "roadmap_gap", "zigux_destination": "drivers/virtio/virtio_mmio.zig"},
         ],
     }
 
@@ -419,10 +331,7 @@ def write_fixture(root: Path) -> None:
         target = root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
         if rel_path == MANIFEST_PATH:
-            target.write_text(
-                json.dumps(fixture_manifest(), indent=2) + "\n",
-                encoding="utf-8",
-            )
+            target.write_text(json.dumps(fixture_manifest(), indent=2) + "\n", encoding="utf-8")
         else:
             target.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
@@ -491,154 +400,53 @@ def run_self_test() -> int:
             )
 
         cases = [
-            (
-                "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "`drivers/virtio/virtio_ring_publish_readiness.zig`",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-                "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-slice.md",
-                "`drivers/virtio/virtio_ring_publish_readiness.zig`",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-slice.md",
-                "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
-            ),
-            (
-                "drivers/virtio/virtio_ring.zig",
-                "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {",
-            ),
-            (
-                "drivers/virtio/virtio_ring_verify.zig",
-                "pub fn summarizeNotificationState(",
-            ),
-            (
-                "drivers/virtio/virtio_ring_verify.zig",
-                'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
-            ),
-            (
-                "drivers/virtio/virtio_ring_publish_readiness.zig",
-                "pub fn summarizePublishReadiness(",
-            ),
-            (
-                "drivers/virtio/virtio_ring_publish_readiness.zig",
-                'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),',
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                '.name = "phase10-virtio-ring-publish-readiness-tests",',
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
-                "const packed_summary = try ring.notificationDataSummary(2);",
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_survey.zig",
-                'try expectContains(survey_note, "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not");',
-            ),
-            (
-                "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
-                "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
-            ),
+            ("Documentation/zigux/phase10-virtio-ring-survey.md", "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`"),
+            ("Documentation/zigux/phase10-virtio-ring-survey.md", "`drivers/virtio/virtio_ring_publish_readiness.zig`"),
+            ("Documentation/zigux/phase10-virtio-ring-survey.md", "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not"),
+            ("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md", "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "`drivers/virtio/virtio_ring_publish_readiness.zig`"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice"),
+            ("drivers/virtio/virtio_ring.zig", "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {"),
+            ("drivers/virtio/virtio_ring_verify.zig", "pub fn summarizeNotificationState("),
+            ("drivers/virtio/virtio_ring_verify.zig", 'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {'),
+            ("drivers/virtio/virtio_ring_publish_readiness.zig", "pub fn summarizePublishReadiness("),
+            ("drivers/virtio/virtio_ring_publish_readiness.zig", 'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {'),
+            ("zigux/tests/phase10_build.zig", '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),'),
+            ("zigux/tests/phase10_build.zig", '.name = "phase10-virtio-ring-publish-readiness-tests",'),
+            ("zigux/tests/phase10_build.zig", '.name = "phase10-virtio-ring-notification-data-readiness-tests",'),
+            ("zigux/tests/phase10_build.zig", "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);"),
+            ("zigux/tests/phase10_build.zig", "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);"),
+            ("zigux/tests/phase10_virtio_ring_notification_data_readiness.zig", "const packed_summary = try ring.notificationDataSummary(2);"),
+            ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
+            ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
+            ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");'),
+            ("zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig", "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));"),
         ]
         for rel_path, marker in cases:
             expect_missing_marker(root, rel_path, marker)
 
         forbidden_cases = [
-            (
-                "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-                "the broader ring replay now rematerializes",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-ring-slice.md",
-                "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
-            ),
+            ("Documentation/zigux/phase10-virtio-ring-survey.md", "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`"),
+            ("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md", "the broader ring replay now rematerializes"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice"),
+            ("Documentation/zigux/phase10-virtio-ring-slice.md", "the dedicated survey gate is now a landed review surface inside this slice"),
         ]
         for rel_path, marker in forbidden_cases:
             expect_forbidden_marker(root, rel_path, marker)
 
         manifest_field_cases = [
-            (
-                '"freeze_status_change_claimed": false',
-                '"freeze_status_change_claimed": true',
-                f"{MANIFEST_PATH}:freeze_status_change_claimed:True",
-            ),
-            (
-                '"risky_transport_posture": "blocked_on_risky_transport"',
-                '"risky_transport_posture": "starter_landed"',
-                f"{MANIFEST_PATH}:risky_transport_posture:starter_landed",
-            ),
-            (
-                '"allowed_evidence_kinds": [\n    "driver_local_lab_slices",\n    "survey_manifests",\n    "shared_validation_gates"\n  ]',
-                '"allowed_evidence_kinds": [\n    "driver_local_lab_slices"\n  ]',
-                f"{MANIFEST_PATH}:allowed_evidence_kinds:['driver_local_lab_slices']",
-            ),
-            (
-                '"forbidden_transport_claims": [\n    "queue_setup_reset_paths",\n    "irq_parity",\n    "dma_paths",\n    "input_registration_lifecycle",\n    "probe_remove_lifecycle"\n  ]',
-                '"forbidden_transport_claims": [\n    "queue_setup_reset_paths"\n  ]',
-                f"{MANIFEST_PATH}:forbidden_transport_claims:['queue_setup_reset_paths']",
-            ),
-            (
-                '"architecture_council_reopen_required": true',
-                '"architecture_council_reopen_required": false',
-                f"{MANIFEST_PATH}:architecture_council_reopen_required:False",
-            ),
-            (
-                '"architecture_council_reopen_attached": false',
-                '"architecture_council_reopen_attached": true',
-                f"{MANIFEST_PATH}:architecture_council_reopen_attached:True",
-            ),
-            (
-                f'"freeze_boundary_owner_lane": "{EXPECTED_FREEZE_BOUNDARY_OWNER}"',
-                '"freeze_boundary_owner_lane": "P10-L12"',
-                f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12",
-            ),
-            (
-                '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper"',
-                '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "validation"',
-                f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:kind:validation",
-            ),
-            (
-                '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "roadmap_gap"',
-                '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "queue_wrapper"',
-                f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:kind:queue_wrapper",
-            ),
-            (
-                '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_verify.zig"',
-                '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_wrong_verify.zig"',
-                f"{MANIFEST_PATH}:gap:phase10-ring-verify-replay:zigux_destination:drivers/virtio/virtio_ring_wrong_verify.zig",
-            ),
+            ('"freeze_status_change_claimed": false', '"freeze_status_change_claimed": true', f"{MANIFEST_PATH}:freeze_status_change_claimed:True"),
+            ('"risky_transport_posture": "blocked_on_risky_transport"', '"risky_transport_posture": "starter_landed"', f"{MANIFEST_PATH}:risky_transport_posture:starter_landed"),
+            ('"allowed_evidence_kinds": [\n    "driver_local_lab_slices",\n    "survey_manifests",\n    "shared_validation_gates"\n  ]', '"allowed_evidence_kinds": [\n    "driver_local_lab_slices"\n  ]', f"{MANIFEST_PATH}:allowed_evidence_kinds:['driver_local_lab_slices']"),
+            ('"forbidden_transport_claims": [\n    "queue_setup_reset_paths",\n    "irq_parity",\n    "dma_paths",\n    "input_registration_lifecycle",\n    "probe_remove_lifecycle"\n  ]', '"forbidden_transport_claims": [\n    "queue_setup_reset_paths"\n  ]', f"{MANIFEST_PATH}:forbidden_transport_claims:['queue_setup_reset_paths']"),
+            ('"architecture_council_reopen_required": true', '"architecture_council_reopen_required": false', f"{MANIFEST_PATH}:architecture_council_reopen_required:False"),
+            ('"architecture_council_reopen_attached": false', '"architecture_council_reopen_attached": true', f"{MANIFEST_PATH}:architecture_council_reopen_attached:True"),
+            (f'"freeze_boundary_owner_lane": "{EXPECTED_FREEZE_BOUNDARY_OWNER}"', '"freeze_boundary_owner_lane": "P10-L12"', f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12"),
+            ('"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper"', '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "validation"', f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:kind:validation"),
+            ('"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "roadmap_gap"', '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "queue_wrapper"', f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:kind:queue_wrapper"),
+            ('"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_verify.zig"', '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_wrong_verify.zig"', f"{MANIFEST_PATH}:gap:phase10-ring-verify-replay:zigux_destination:drivers/virtio/virtio_ring_wrong_verify.zig"),
         ]
         for old, new, expected in manifest_field_cases:
             expect_manifest_field_drift(root, old, new, expected)
@@ -647,17 +455,12 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_ring_publish_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print(
-        "PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT="
-        f"{len(cases) + len(forbidden_cases) + len(manifest_field_cases) + 2}"
-    )
+    print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={len(cases) + len(forbidden_cases) + len(manifest_field_cases) + 2}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current directly re-readable Phase 10 virtio ring packet."
-    )
+    parser = argparse.ArgumentParser(description="Validate the current directly re-readable Phase 10 virtio ring packet.")
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--root", default=str(ROOT))
     args = parser.parse_args()
