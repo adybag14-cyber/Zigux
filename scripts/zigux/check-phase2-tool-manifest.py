@@ -12,7 +12,7 @@ MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 REQUIRED_TOP_LEVEL = {
     "phase": "Phase 2",
     "status": "active",
-    "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, fixdep, and tranche-closure reminder packet",
+    "scope": "current directly readable scripts-root toolchain, local-archive, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, fixdep, and tranche-closure reminder packet",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
@@ -33,6 +33,8 @@ REQUIRED_PRESENT_SURFACES = {
     ),
     "checkers": (
         "scripts/zigux/check-zig-toolchain.py",
+        "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+        "scripts/zigux/check-lane05-local-archive-readme.py",
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-kbuild-routes.py",
@@ -59,6 +61,10 @@ REQUIRED_PRESENT_SURFACES = {
     ),
     "policy": (
         "scripts/zigux/zig-toolchain-policy.json",
+    ),
+    "archive_support": (
+        "third_party/README.md",
+        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     ),
     "make_wrappers": (
         "zigux/Makefile",
@@ -103,11 +109,11 @@ REQUIRED_PRESENT_SURFACES = {
 }
 
 REQUIRED_NOTE_MARKERS = (
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
 )
 
 
