@@ -86,6 +86,12 @@ EXACT_COUNT_TESTS_README_MARKERS = (
     "current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
 )
+EXACT_COUNT_DOCS_ROOT_MARKERS = (
+    "keep the bounded Phase 2 docs-root packet explicit through the returned closure-side validator pair, the shipped installer and direct cross-route companions, the surviving toolchain and shared-reminder guards, the selected kconfig bridge helpers, the bounded genksyms bridge helper packet, the current manifests, and the shipped make-wrapper routes instead of treating that now-rematerialized tranche as historical-only evidence.",
+    "the current docs-root Phase 2 reminder packet should stay parked on `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/Makefile`, with `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, the current kconfig bridge manifests, and the current genksyms bridge fixture roster keeping the same packet aligned across docs-root, scripts-root, and tests-root surfaces.",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master` again, so keep the installer and direct cross-route packet explicit beside the shipped toolchain, kconfig, genksyms, and make-wrapper surfaces instead of leaving them in historical-gap wording.",
+    "`python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side, bounded genksyms bridge, and make-wrapper packet without widening it back into older missing-route assumptions.",
+)
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`",
@@ -160,6 +166,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_exact_count_markers(tests_readme_text, EXACT_COUNT_TESTS_README_MARKERS, "EXACT_COUNT_TESTS_README_MARKERS"))
     issues.extend(collect_forbidden_markers(tests_readme_text, FORBIDDEN_TESTS_README_MARKERS, "FORBIDDEN_TESTS_README_MARKERS"))
     issues.extend(collect_missing_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"))
+    issues.extend(collect_exact_count_markers(docs_root_text, EXACT_COUNT_DOCS_ROOT_MARKERS, "EXACT_COUNT_DOCS_ROOT_MARKERS"))
     return issues
 
 
@@ -194,7 +201,15 @@ def remove_marker(text: str, marker: str) -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(REQUIRED_TESTS_README_MARKERS) + len(EXACT_COUNT_TESTS_README_MARKERS) + len(FORBIDDEN_TESTS_README_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + 2
+    expected_case_count = (
+        1
+        + len(REQUIRED_TESTS_README_MARKERS)
+        + len(EXACT_COUNT_TESTS_README_MARKERS)
+        + len(FORBIDDEN_TESTS_README_MARKERS)
+        + len(REQUIRED_DOCS_ROOT_MARKERS)
+        + len(EXACT_COUNT_DOCS_ROOT_MARKERS)
+        + 2
+    )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -228,6 +243,13 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
+        for marker in EXACT_COUNT_DOCS_ROOT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_DOCS_ROOT_MARKERS", f"2::{marker}") in issues
+            checks_run += 1
         for path in (TESTS_README, DOCS_ROOT_README):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
@@ -259,6 +281,7 @@ def main() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_DOCS_ROOT_MARKERS)}")
     return 0
 
 
