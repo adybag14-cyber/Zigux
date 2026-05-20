@@ -161,14 +161,11 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 
-
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
-
 def run_capture(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
-
 
 def run_redirected(
     cmd: list[str],
@@ -197,7 +194,6 @@ def run_redirected(
         stderr=result.stderr or "",
     )
 
-
 def find_compiler(explicit: str | None) -> str:
     if explicit:
         return explicit
@@ -206,7 +202,6 @@ def find_compiler(explicit: str | None) -> str:
         if path:
             return path
     raise FileNotFoundError("no C compiler found on PATH")
-
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -222,17 +217,14 @@ def find_zig(explicit: str | None) -> str:
         return str(fallback)
     raise FileNotFoundError("no zig executable found; set --zig or ZIG")
 
-
 def load_cases(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
-
 
 def validate_tool_sources(c_fixdep: Path, zig_fixdep: Path) -> None:
     if c_fixdep != EXPECTED_C_FIXDEP:
         raise ValueError(f"fixdep:c_tool={c_fixdep},expected={EXPECTED_C_FIXDEP}")
     if zig_fixdep != EXPECTED_ZIG_FIXDEP:
         raise ValueError(f"fixdep:zig_tool={zig_fixdep},expected={EXPECTED_ZIG_FIXDEP}")
-
 
 def validate_fixture_inventory(
     fixture_dir: Path = FIXTURE_DIR,
@@ -246,7 +238,6 @@ def validate_fixture_inventory(
     if unexpected:
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
-
 def require_non_empty_string(
     case: dict[str, object],
     name: str,
@@ -257,7 +248,6 @@ def require_non_empty_string(
     if not isinstance(value, str) or not value:
         raise ValueError(f"{CASES_PATH}:{name}:{error_suffix}")
     return value
-
 
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
@@ -365,7 +355,6 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
 
     return validated
 
-
 def expect_failure(label: str, callback, expected_message: str) -> None:
     try:
         callback()
@@ -378,10 +367,8 @@ def expect_failure(label: str, callback, expected_message: str) -> None:
         return
     raise SystemExit(f"fixdep:self-test:{label}:missing_failure:{expected_message!r}")
 
-
 def copy_valid_cases(valid_cases: list[dict[str, object]]) -> list[dict[str, object]]:
     return [dict(case) for case in valid_cases]
-
 
 def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, object]:
     for case in valid_cases:
@@ -391,6 +378,32 @@ def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, obje
     raise KeyError(name)
 
 
+def expect_key_error(label: str, callback, expected_key: str) -> None:
+    try:
+        callback()
+    except KeyError as exc:
+        actual_key = exc.args[0] if exc.args else None
+        if actual_key != expected_key:
+            raise SystemExit(
+                f"fixdep:self-test:{label}:expected_key={expected_key!r}:actual_key={actual_key!r}"
+            ) from exc
+        return
+    raise SystemExit(f"fixdep:self-test:{label}:missing_key_error:{expected_key!r}")
+
+
+def resolve_runtime_case(
+    case: dict[str, object],
+) -> tuple[Path, Path | None, int, str | None, str, str]:
+    expected_stdout = FIXTURE_DIR / case["expected"]
+    expected_stderr_name = case.get("expected_stderr")
+    expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
+    expected_exit_code = case["expected_exit_code"]
+    stdout_mode = case.get("stdout_mode")
+    target = case["target"]
+    cmdline = case["cmdline"]
+    return expected_stdout, expected_stderr, expected_exit_code, stdout_mode, target, cmdline
+
+
 def run_self_test() -> int:
     global FIXTURE_DIR
 
@@ -398,6 +411,33 @@ def run_self_test() -> int:
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
     self_test_case_count = len(valid_cases)
+
+    runtime_case = resolve_runtime_case(find_case(valid_cases, "sample"))
+    if runtime_case[0] != FIXTURE_DIR / "sample_expected.txt":
+        raise SystemExit(
+            f"fixdep:self-test:runtime_case_expected_output:expected={FIXTURE_DIR / 'sample_expected.txt'!r}:"
+            f"actual={runtime_case[0]!r}"
+        )
+    self_test_case_count += 1
+
+    runtime_alias_case = dict(find_case(valid_cases, "sample"))
+    runtime_alias_case.pop("expected", None)
+    runtime_alias_case["expected_stdout"] = "sample_expected.txt"
+    expect_key_error(
+        "runtime_expected_output_requires_direct_field",
+        lambda: resolve_runtime_case(runtime_alias_case),
+        "expected",
+    )
+    self_test_case_count += 1
+
+    runtime_missing_exit_code_case = dict(find_case(valid_cases, "sample_comment_only"))
+    runtime_missing_exit_code_case.pop("expected_exit_code", None)
+    expect_key_error(
+        "runtime_expected_exit_code_requires_direct_field",
+        lambda: resolve_runtime_case(runtime_missing_exit_code_case),
+        "expected_exit_code",
+    )
+    self_test_case_count += 1
 
     expect_failure(
         "non_list_cases",
@@ -716,13 +756,11 @@ def run_self_test() -> int:
     print(f"FIXDEP_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
-
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(":").lower()
     tail = resolved.as_posix().split(":", 1)[1]
     return f"/mnt/{drive}{tail}"
-
 
 def compile_run_c_wsl(
     tmp_dir: Path,
@@ -763,7 +801,7 @@ def compile_run_c_wsl(
             ]
         ),
         "rc=$?",
-        f"printf '%s' \"$rc\" > {shlex.quote(windows_to_wsl(rc_path))}",
+        f"printf '%s' \\\"$rc\\\" > {shlex.quote(windows_to_wsl(rc_path))}",
     ]
     lines[3] += f" > {stdout_redirect} 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
     script_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
@@ -778,7 +816,6 @@ def compile_run_c_wsl(
         stdout=stdout_text,
         stderr=stderr_path.read_text(encoding="utf-8"),
     )
-
 
 def compile_run_c(
     tmp_dir: Path,
@@ -806,7 +843,6 @@ def compile_run_c(
     run(compile_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
-
 def run_zig(
     zig: str,
     tmp_dir: Path,
@@ -820,20 +856,16 @@ def run_zig(
     run(build_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
-
 def compare_returncode(label: str, expected: int, actual: int) -> None:
     if expected != actual:
         raise RuntimeError(f"{label} return code mismatch: expected {expected}, got {actual}")
-
 
 def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.CompletedProcess[str]) -> None:
     stdout_path.write_text(result.stdout, encoding="utf-8")
     stderr_path.write_text(result.stderr, encoding="utf-8")
 
-
 def diff_text(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bounded fixdep C/Zig artifact parity.")
@@ -854,13 +886,14 @@ def main() -> int:
 
     for case in cases:
         depfile = FIXTURE_DIR / case["depfile"]
-        expected_stdout = FIXTURE_DIR / case.get("expected_stdout", case["expected"])
-        expected_stderr_name = case.get("expected_stderr")
-        expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
-        expected_exit_code = int(case.get("expected_exit_code", 0))
-        stdout_mode = case.get("stdout_mode")
-        target = case["target"]
-        cmdline = case["cmdline"]
+        (
+            expected_stdout,
+            expected_stderr,
+            expected_exit_code,
+            stdout_mode,
+            target,
+            cmdline,
+        ) = resolve_runtime_case(case)
 
         with tempfile.TemporaryDirectory(prefix=f"zigux_fixdep_{case['name']}_") as tmp_dir_str:
             tmp_dir = Path(tmp_dir_str)
@@ -917,7 +950,6 @@ def main() -> int:
         print("FIXDEP_DETERMINISM=pass")
         print(f"FIXTURE_DIR={FIXTURE_DIR}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
