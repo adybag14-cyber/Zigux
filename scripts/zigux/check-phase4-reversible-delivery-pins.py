@@ -14,7 +14,6 @@ REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py"
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
-EXPECTED_PIN_SELF_TEST_CASES = 18
 
 EXPECTED_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`",
@@ -39,11 +38,14 @@ EXPECTED_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=a1629d16cbee12a163e71aeb862368764260ecf9`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=75c533b819a0bb422e69c92a33a23da7c04d5af1`",
 )
+EXPECTED_STATUS_LINES = (
+    "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
+    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
+)
+EXPECTED_PIN_SELF_TEST_CASES = len(EXPECTED_SHA_LINES) + 6
 
 NOTE_MARKERS = (
-    "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
-    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
     "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
@@ -84,7 +86,7 @@ def require(text: str, markers: tuple[str, ...], label: str) -> None:
 def check(root: Path) -> None:
     note = read(root, NOTE)
     warning = read(root, REPO_REALITY_WARNING)
-    require(note, EXPECTED_SHA_LINES + NOTE_MARKERS, NOTE.as_posix())
+    require(note, EXPECTED_SHA_LINES + EXPECTED_STATUS_LINES + NOTE_MARKERS, NOTE.as_posix())
     require(warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
 
 
@@ -137,10 +139,10 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         cases += 1
-        for line in EXPECTED_SHA_LINES[:12]:
+        for line in EXPECTED_SHA_LINES:
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
-        cases += _expect_failure(root, NOTE, "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`", "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`")
-        cases += _expect_failure(root, NOTE, "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`", "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=17`")
+        cases += _expect_failure(root, NOTE, "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`", "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`")
+        cases += _expect_failure(root, NOTE, "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`", "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=17`")
         cases += _expect_failure(root, NOTE, "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:", "The provenance wording drifted:")
         cases += _expect_failure(root, REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 18", "EXPECTED_PIN_SELF_TEST_CASES = 17")
         cases += _expect_failure(root, REPO_REALITY_WARNING, "scripts/zigux/check-phase4-perf-baseline-packet.py", "scripts/zigux/check-phase4-perf-packet.py")
