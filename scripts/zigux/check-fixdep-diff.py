@@ -247,30 +247,6 @@ def validate_fixture_inventory(
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
 
-def require_non_empty_string(
-    name: str,
-    case: dict[str, object],
-    field_name: str,
-    error_name: str,
-) -> str:
-    value = case.get(field_name)
-    if not isinstance(value, str) or not value:
-        raise ValueError(f"{CASES_PATH}:{name}:{error_name}")
-    return value
-
-
-def get_expected_exit_code(name: str, case: dict[str, object]) -> int:
-    expected_exit_code = case.get("expected_exit_code")
-    if expected_exit_code is None:
-        raise ValueError(f"{CASES_PATH}:{name}:missing_expected_exit_code")
-    if not isinstance(expected_exit_code, int) or isinstance(expected_exit_code, bool):
-        raise ValueError(
-            f"{CASES_PATH}:{name}:expected_exit_code_type="
-            f"{type(expected_exit_code).__name__},expected=int"
-        )
-    return expected_exit_code
-
-
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
         raise ValueError(f"{CASES_PATH}:expected_non_empty_json_list")
@@ -300,32 +276,39 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
-        depfile = require_non_empty_string(name, validated_case, "depfile", "missing_non_empty_depfile")
-        target = require_non_empty_string(name, validated_case, "target", "missing_non_empty_target")
-        cmdline = require_non_empty_string(name, validated_case, "cmdline", "missing_non_empty_cmdline")
-        expected_stdout_name = require_non_empty_string(
-            name,
-            validated_case,
-            "expected",
-            "missing_expected_output",
-        )
-        expected_exit_code = get_expected_exit_code(name, validated_case)
-        if expected_exit_code != 0:
-            expected_stderr_name = require_non_empty_string(
-                name,
-                validated_case,
-                "expected_stderr",
-                "missing_expected_stderr",
+        depfile = validated_case.get("depfile")
+        if not isinstance(depfile, str) or not depfile:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
+
+        target = validated_case.get("target")
+        if not isinstance(target, str) or not target:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_target")
+
+        cmdline = validated_case.get("cmdline")
+        if not isinstance(cmdline, str) or not cmdline:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_cmdline")
+
+        expected_stdout_name = validated_case.get("expected")
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
+
+        expected_exit_code = validated_case.get("expected_exit_code", 0)
+        if not isinstance(expected_exit_code, int):
+            raise ValueError(
+                f"{CASES_PATH}:{name}:expected_exit_code_type="
+                f"{type(expected_exit_code).__name__},expected=int"
             )
+        if expected_exit_code != 0:
+            expected_stderr_name = validated_case.get("expected_stderr")
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
 
         stdout_mode = validated_case.get("stdout_mode")
-        if "stdout_mode" in expected_case and stdout_mode is None:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_stdout_mode")
         if stdout_mode not in (None, "dev_full"):
             raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
         for field_name, expected_value in expected_case.items():
-            actual_value = validated_case.get(field_name)
+            actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
             if actual_value != expected_value:
                 raise ValueError(
                     f"{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
@@ -340,12 +323,15 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
 
         validated.append(validated_case)
 
+    if seen_names != EXPECTED_CASE_ORDER:
+        raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
+
+    if len(validated) != len(EXPECTED_CASES):
+        raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")
+
     missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)
     if missing_names:
         raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")
-
-    if seen_names != EXPECTED_CASE_ORDER:
-        raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
 
     return validated
 
@@ -381,21 +367,13 @@ def run_self_test() -> int:
     validate_fixture_inventory()
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
-    self_test_case_count = len(valid_cases)
-    validate_cases(copy_valid_cases(valid_cases))
-    self_test_case_count += 1
 
-    def counted_expect_failure(label: str, callback, expected_message: str) -> None:
-        nonlocal self_test_case_count
-        expect_failure(label, callback, expected_message)
-        self_test_case_count += 1
-
-    counted_expect_failure(
+    expect_failure(
         "non_list_cases",
         lambda: validate_cases({"cases": valid_cases}),
         f"{CASES_PATH}:expected_non_empty_json_list",
     )
-    counted_expect_failure(
+    expect_failure(
         "empty_cases",
         lambda: validate_cases([]),
         f"{CASES_PATH}:expected_non_empty_json_list",
@@ -403,7 +381,7 @@ def run_self_test() -> int:
 
     non_object_cases = copy_valid_cases(valid_cases)
     non_object_cases[0] = "sample"
-    counted_expect_failure(
+    expect_failure(
         "non_object_case_entry",
         lambda: validate_cases(non_object_cases),
         f"{CASES_PATH}:entry[0]:expected_json_object",
@@ -411,23 +389,15 @@ def run_self_test() -> int:
 
     missing_name_cases = copy_valid_cases(valid_cases)
     missing_name_cases[0].pop("name", None)
-    counted_expect_failure(
+    expect_failure(
         "missing_case_name",
         lambda: validate_cases(missing_name_cases),
         f"{CASES_PATH}:entry[0]:missing_non_empty_name",
     )
 
-    empty_name_cases = copy_valid_cases(valid_cases)
-    empty_name_cases[0]["name"] = ""
-    counted_expect_failure(
-        "empty_case_name",
-        lambda: validate_cases(empty_name_cases),
-        f"{CASES_PATH}:entry[0]:missing_non_empty_name",
-    )
-
     duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]["name"] = duplicate_name_cases[0]["name"]
-    counted_expect_failure(
+    expect_failure(
         "duplicate_name",
         lambda: validate_cases(duplicate_name_cases),
         f"{CASES_PATH}:duplicate_name:{valid_cases[0]['name']}",
@@ -435,7 +405,7 @@ def run_self_test() -> int:
 
     unexpected_name_cases = copy_valid_cases(valid_cases)
     unexpected_name_cases[0]["name"] = "unexpected_fixdep_case"
-    counted_expect_failure(
+    expect_failure(
         "unexpected_name",
         lambda: validate_cases(unexpected_name_cases),
         f"{CASES_PATH}:unexpected_name:unexpected_fixdep_case",
@@ -443,25 +413,17 @@ def run_self_test() -> int:
 
     unexpected_field_cases = copy_valid_cases(valid_cases)
     find_case(unexpected_field_cases, "sample")["unexpected_field"] = "unexpected"
-    counted_expect_failure(
+    expect_failure(
         "unexpected_field",
         lambda: validate_cases(unexpected_field_cases),
         f"{CASES_PATH}:sample:unexpected_field:unexpected_field",
-    )
-
-    missing_expected_name_cases = copy_valid_cases(valid_cases)
-    missing_expected_name_cases.pop()
-    counted_expect_failure(
-        "missing_expected_name",
-        lambda: validate_cases(missing_expected_name_cases),
-        f"{CASES_PATH}:missing_name:sample_output_write",
     )
 
     expected_stdout_alias_cases = copy_valid_cases(valid_cases)
     sample_alias_case = find_case(expected_stdout_alias_cases, "sample")
     sample_alias_case.pop("expected", None)
     sample_alias_case["expected_stdout"] = "sample_expected.txt"
-    counted_expect_failure(
+    expect_failure(
         "unexpected_expected_stdout_field",
         lambda: validate_cases(expected_stdout_alias_cases),
         f"{CASES_PATH}:sample:unexpected_field:expected_stdout",
@@ -469,7 +431,7 @@ def run_self_test() -> int:
 
     reordered_cases = copy_valid_cases(valid_cases)
     reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
-    counted_expect_failure(
+    expect_failure(
         "reordered_case_packet",
         lambda: validate_cases(reordered_cases),
         f"{CASES_PATH}:case_order="
@@ -478,23 +440,15 @@ def run_self_test() -> int:
 
     missing_stderr_cases = copy_valid_cases(valid_cases)
     find_case(missing_stderr_cases, "sample_comment_only").pop("expected_stderr", None)
-    counted_expect_failure(
+    expect_failure(
         "missing_expected_stderr",
         lambda: validate_cases(missing_stderr_cases),
         f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
     )
 
-    empty_expected_stderr_cases = copy_valid_cases(valid_cases)
-    find_case(empty_expected_stderr_cases, "sample_comment_only")["expected_stderr"] = ""
-    counted_expect_failure(
-        "empty_expected_stderr_field",
-        lambda: validate_cases(empty_expected_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
-    )
-
     non_string_expected_stderr_cases = copy_valid_cases(valid_cases)
     find_case(non_string_expected_stderr_cases, "sample_comment_only")["expected_stderr"] = []
-    counted_expect_failure(
+    expect_failure(
         "non_string_expected_stderr_field",
         lambda: validate_cases(non_string_expected_stderr_cases),
         f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
@@ -502,19 +456,365 @@ def run_self_test() -> int:
 
     missing_expected_output_cases = copy_valid_cases(valid_cases)
     find_case(missing_expected_output_cases, "sample").pop("expected", None)
-    counted_expect_failure(
+    expect_failure(
         "missing_expected_output_field",
         lambda: validate_cases(missing_expected_output_cases),
         f"{CASES_PATH}:sample:missing_expected_output",
     )
 
-    empty_expected_output_cases = copy_valid_cases(valid_cases)
-    find_case(empty_expected_output_cases, "sample")["expected"] = ""
-    counted_expect_failure(
-        "empty_expected_output_field",
-        lambda: validate_cases(empty_expected_output_cases),
-        f"{CASES_PATH}:sample:missing_expected_output",
+    string_expected_exit_cases = copy_valid_cases(valid_cases)
+    find_case(string_expected_exit_cases, "sample_comment_only")["expected_exit_code"] = "1"
+    expect_failure(
+        "string_expected_exit_code_type",
+        lambda: validate_cases(string_expected_exit_cases),
+        f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=str,expected=int",
     )
 
-    non_string_expected_output_cases = copy_valid_cases(valid_cases)
-    find_case(non_string_expected_output_cases, "sample")[
+    mismatched_target_cases = copy_valid_cases(valid_cases)
+    find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
+    expect_failure(
+        "mismatched_target_field",
+        lambda: validate_cases(mismatched_target_cases),
+        f"{CASES_PATH}:sample:target='sample-wrong.o',expected='sample.o'",
+    )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        for fixture_path in FIXTURE_DIR.iterdir():
+            if fixture_path.name == "sample_expected.txt":
+                continue
+            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
+
+        original_fixture_dir = FIXTURE_DIR
+        FIXTURE_DIR = fixture_dir
+        try:
+            expect_failure(
+                "missing_expected_output_fixture",
+                lambda: validate_cases(valid_cases),
+                f"{CASES_PATH}:missing_expected_output:sample_expected.txt",
+            )
+        finally:
+            FIXTURE_DIR = original_fixture_dir
+
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        for fixture_path in FIXTURE_DIR.iterdir():
+            if fixture_path.name == "sample_comment_only_expected.stderr.txt":
+                continue
+            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
+
+        original_fixture_dir = FIXTURE_DIR
+        FIXTURE_DIR = fixture_dir
+        try:
+            expect_failure(
+                "missing_expected_stderr_fixture",
+                lambda: validate_cases(valid_cases),
+                f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
+            )
+        finally:
+            FIXTURE_DIR = original_fixture_dir
+
+    unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
+    find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
+    expect_failure(
+        "unsupported_stdout_mode",
+        lambda: validate_cases(unsupported_stdout_mode_cases),
+        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
+    )
+
+    missing_depfile_cases = copy_valid_cases(valid_cases)
+    find_case(missing_depfile_cases, "sample").pop("depfile", None)
+    expect_failure(
+        "missing_non_empty_depfile",
+        lambda: validate_cases(missing_depfile_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_depfile",
+    )
+
+    missing_target_cases = copy_valid_cases(valid_cases)
+    find_case(missing_target_cases, "sample").pop("target", None)
+    expect_failure(
+        "missing_non_empty_target",
+        lambda: validate_cases(missing_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+
+    empty_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(empty_cmdline_cases, "sample")["cmdline"] = ""
+    expect_failure(
+        "missing_non_empty_cmdline",
+        lambda: validate_cases(empty_cmdline_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
+    )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_depfile_fixture_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        for fixture_path in FIXTURE_DIR.iterdir():
+            if fixture_path.name == "sample.d":
+                continue
+            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
+
+        original_fixture_dir = FIXTURE_DIR
+        FIXTURE_DIR = fixture_dir
+        try:
+            expect_failure(
+                "missing_depfile",
+                lambda: validate_cases(valid_cases),
+                f"{CASES_PATH}:missing_depfile:sample.d",
+            )
+        finally:
+            FIXTURE_DIR = original_fixture_dir
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        validate_fixture_inventory(
+            fixture_dir,
+            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
+        expect_failure(
+            "missing_escaped_space_fixture",
+            lambda: validate_fixture_inventory(
+                fixture_dir,
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+            ),
+            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
+        expect_failure(
+            "unexpected_fixture_inventory",
+            lambda: validate_fixture_inventory(
+                fixture_dir,
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+            ),
+            f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
+        )
+
+    expect_failure(
+        "explicit_c_tool_drift",
+        lambda: validate_tool_sources(C_FIXDEP.with_name("fixdep-mismatch.c"), ZIG_FIXDEP),
+        f"fixdep:c_tool={C_FIXDEP.with_name('fixdep-mismatch.c')},expected={EXPECTED_C_FIXDEP}",
+    )
+    expect_failure(
+        "explicit_zig_tool_drift",
+        lambda: validate_tool_sources(C_FIXDEP, ZIG_FIXDEP.with_name("fixdep-mismatch.zig")),
+        f"fixdep:zig_tool={ZIG_FIXDEP.with_name('fixdep-mismatch.zig')},expected={EXPECTED_ZIG_FIXDEP}",
+    )
+
+    print("FIXDEP_SELF_TEST=pass")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 22}")
+    return 0
+
+
+def windows_to_wsl(path: Path) -> str:
+    resolved = path.resolve()
+    drive = resolved.drive.rstrip(":").lower()
+    tail = resolved.as_posix().split(":", 1)[1]
+    return f"/mnt/{drive}{tail}"
+
+
+def compile_run_c_wsl(
+    tmp_dir: Path,
+    exe: Path,
+    compiler: str,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    script_path = tmp_dir / "run_fixdep_c.sh"
+    stdout_path = tmp_dir / "fixdep.c.actual.txt"
+    stderr_path = tmp_dir / "fixdep.c.actual.stderr.txt"
+    rc_path = tmp_dir / "fixdep.c.actual.rc"
+    stdout_redirect = windows_to_wsl(stdout_path) if stdout_mode is None else "/dev/full"
+    lines = [
+        "#!/usr/bin/env bash",
+        "set -euo pipefail",
+        " ".join(
+            [
+                shlex.quote(compiler),
+                "-std=gnu11",
+                "-Wall",
+                "-Wextra",
+                "-I",
+                shlex.quote(windows_to_wsl(ROOT / "scripts" / "include")),
+                "-o",
+                shlex.quote(windows_to_wsl(exe)),
+                shlex.quote(windows_to_wsl(C_FIXDEP)),
+            ]
+        ),
+        " ".join(
+            [
+                shlex.quote(windows_to_wsl(exe)),
+                shlex.quote(windows_to_wsl(depfile)),
+                shlex.quote(target),
+                shlex.quote(cmdline),
+            ]
+        ),
+        "rc=$?",
+        f"printf '%s' \"$rc\" > {shlex.quote(windows_to_wsl(rc_path))}",
+    ]
+    lines[3] += f" > {stdout_redirect} 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
+    script_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    run(["wsl", "bash", windows_to_wsl(script_path)], cwd=str(ROOT))
+    if stdout_mode is None:
+        stdout_text = stdout_path.read_text(encoding="utf-8")
+    else:
+        stdout_text = ""
+    return subprocess.CompletedProcess(
+        args=[str(exe), str(depfile), target, cmdline],
+        returncode=int(rc_path.read_text(encoding="utf-8") or "0"),
+        stdout=stdout_text,
+        stderr=stderr_path.read_text(encoding="utf-8"),
+    )
+
+
+def compile_run_c(
+    tmp_dir: Path,
+    compiler: str,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    exe = tmp_dir / ("fixdep-c.exe" if os.name == "nt" else "fixdep-c")
+    if os.name == "nt" and shutil.which("wsl"):
+        return compile_run_c_wsl(tmp_dir, exe, compiler, depfile, target, cmdline, stdout_mode)
+
+    compile_cmd = [
+        compiler,
+        "-std=gnu11",
+        "-Wall",
+        "-Wextra",
+        "-I",
+        str(ROOT / "scripts" / "include"),
+        "-o",
+        str(exe),
+        str(C_FIXDEP),
+    ]
+    run(compile_cmd, cwd=str(ROOT))
+    return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
+
+
+def run_zig(
+    zig: str,
+    tmp_dir: Path,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    exe = tmp_dir / ("fixdep-zig.exe" if os.name == "nt" else "fixdep-zig")
+    build_cmd = [zig, "build-exe", str(ZIG_FIXDEP), "-femit-bin=" + str(exe)]
+    run(build_cmd, cwd=str(ROOT))
+    return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
+
+
+def compare_returncode(label: str, expected: int, actual: int) -> None:
+    if expected != actual:
+        raise RuntimeError(f"{label} return code mismatch: expected {expected}, got {actual}")
+
+
+def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.CompletedProcess[str]) -> None:
+    stdout_path.write_text(result.stdout, encoding="utf-8")
+    stderr_path.write_text(result.stderr, encoding="utf-8")
+
+
+def diff_text(expected: Path, actual: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check bounded fixdep C/Zig artifact parity.")
+    parser.add_argument("--refresh", action="store_true", help="Refresh the committed expected output from current C fixdep.")
+    parser.add_argument("--cc", help="Explicit C compiler path to use.")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in fixdep manifest, fixture-inventory, and explicit-tool checks.")
+    parser.add_argument("--zig", help="Explicit zig executable path to use.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    compiler = args.cc or os.environ.get("CC") or ("gcc" if os.name == "nt" and shutil.which("wsl") else find_compiler(None))
+    zig = find_zig(args.zig)
+    validate_fixture_inventory()
+    cases = validate_cases(load_cases(CASES_PATH))
+    validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
+
+    for case in cases:
+        depfile = FIXTURE_DIR / case["depfile"]
+        expected_stdout = FIXTURE_DIR / case["expected"]
+        expected_stderr_name = case.get("expected_stderr")
+        expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
+        expected_exit_code = int(case.get("expected_exit_code", 0))
+        stdout_mode = case.get("stdout_mode")
+        target = case["target"]
+        cmdline = case["cmdline"]
+
+        with tempfile.TemporaryDirectory(prefix=f"zigux_fixdep_{case['name']}_") as tmp_dir_str:
+            tmp_dir = Path(tmp_dir_str)
+            c_actual = tmp_dir / "fixdep.c.actual.txt"
+            c_actual_stderr = tmp_dir / "fixdep.c.actual.stderr.txt"
+            c_repeat = tmp_dir / "fixdep.c.repeat.txt"
+            c_repeat_stderr = tmp_dir / "fixdep.c.repeat.stderr.txt"
+            zig_actual = tmp_dir / "fixdep.zig.actual.txt"
+            zig_actual_stderr = tmp_dir / "fixdep.zig.actual.stderr.txt"
+            zig_repeat = tmp_dir / "fixdep.zig.repeat.txt"
+            zig_repeat_stderr = tmp_dir / "fixdep.zig.repeat.stderr.txt"
+            implicit_expected_stderr = tmp_dir / "fixdep.expected.stderr.txt"
+            implicit_expected_stderr.write_text("", encoding="utf-8")
+            expected_stderr_path = expected_stderr or implicit_expected_stderr
+
+            c_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline, stdout_mode)
+            zig_result = run_zig(zig, tmp_dir, depfile, target, cmdline, stdout_mode)
+            write_result(c_actual, c_actual_stderr, c_result)
+            write_result(zig_actual, zig_actual_stderr, zig_result)
+
+            if args.refresh:
+                expected_stdout.write_text(c_result.stdout, encoding="utf-8")
+                if expected_stderr is not None:
+                    expected_stderr.write_text(c_result.stderr, encoding="utf-8")
+                continue
+
+            c_repeat_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline, stdout_mode)
+            zig_repeat_result = run_zig(zig, tmp_dir, depfile, target, cmdline, stdout_mode)
+            write_result(c_repeat, c_repeat_stderr, c_repeat_result)
+            write_result(zig_repeat, zig_repeat_stderr, zig_repeat_result)
+
+            compare_returncode(f"{case['name']} C", expected_exit_code, c_result.returncode)
+            compare_returncode(f"{case['name']} Zig", expected_exit_code, zig_result.returncode)
+            compare_returncode(f"{case['name']} C-vs-Zig", c_result.returncode, zig_result.returncode)
+            compare_returncode(f"{case['name']} C repeat", c_result.returncode, c_repeat_result.returncode)
+            compare_returncode(f"{case['name']} Zig repeat", zig_result.returncode, zig_repeat_result.returncode)
+
+            diff_text(expected_stdout, c_actual)
+            diff_text(expected_stdout, zig_actual)
+            diff_text(c_actual, zig_actual)
+            diff_text(c_actual, c_repeat)
+            diff_text(zig_actual, zig_repeat)
+            diff_text(c_actual_stderr, zig_actual_stderr)
+            diff_text(c_actual_stderr, c_repeat_stderr)
+            diff_text(zig_actual_stderr, zig_repeat_stderr)
+            diff_text(expected_stderr_path, c_actual_stderr)
+            diff_text(expected_stderr_path, zig_actual_stderr)
+
+    if args.refresh:
+        print("FIXDEP_REFRESH=pass")
+        print(f"FIXTURE_DIR={FIXTURE_DIR}")
+    else:
+        print("FIXDEP_DIFF=pass")
+        print("FIXDEP_DETERMINISM=pass")
+        print(f"FIXTURE_DIR={FIXTURE_DIR}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
