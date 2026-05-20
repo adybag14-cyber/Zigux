@@ -108,6 +108,7 @@ COMMANDS = (
     "python3 scripts/zigux/check-phase3-catalog-selftest.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
