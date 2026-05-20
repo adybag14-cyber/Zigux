@@ -1,6 +1,6 @@
 # Phase 3 ABI Header-Family Survey
 
-This note closes the missing survey follow-through for the current bounded Phase 3 ABI header-family packet on `master` without widening into the separate header-family binding lane.
+This note keeps the current bounded Phase 3 ABI header-family packet truthful on `master` without widening into broader shared replay or later Phase 3 route claims.
 
 ## Scope
 
@@ -19,10 +19,11 @@ This note closes the missing survey follow-through for the current bounded Phase
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
 - `PHASE3_VERSION_BINDING_PATH=zigux/bindings/version.zig`
 - `PHASE3_DEV_T_BINDING_PATH=zigux/bindings/dev_t.zig`
+- `PHASE3_HEADER_FAMILY_BINDING_PATH=zigux/bindings/header_family.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
-- the survey is limited to already-landed header-family version, boundary-header, and starter `dev_t` relay surfaces
+- the survey is limited to already-landed header-family version, boundary-header, starter `dev_t`, and shared header-family binding relay surfaces
 
 ## Current Header-Family Packet
 
@@ -33,16 +34,19 @@ This note closes the missing survey follow-through for the current bounded Phase
 - `include/zigux/dev_t.h` remains the canonical owner for the starter `dev_t` limits, `zigux_dev_t_fields_make()`, `zigux_mkdev()`, `zigux_major()`, `zigux_minor()`, `zigux_dev_t_fields_is_valid()`, and `zigux_dev_t_fields_range_is_valid()`.
 - `zigux/uapi/version.zig` and `zigux/bindings/version.zig` keep the current version packet aligned through `current()`, `matchesCurrent()`, the `hasCurrent*` helper family, and the shared size, alignment, and field-offset constants.
 - `zigux/uapi/dev_t.zig` and `zigux/bindings/dev_t.zig` keep the starter `dev_t` packet aligned through `init()`, `makeDeviceNumber()`, `majorFromDeviceNumber()`, `minorFromDeviceNumber()`, `fieldsFromDeviceNumber()`, `validate()`, and `validateRange()`.
+- `zigux/bindings/header_family.zig` now keeps the shared header-family binding relay explicit through `currentVersion()`, `versionMatchesCurrent()`, `currentBoundaryHeader()`, `compatibleBoundaryHeader()`, `boundaryHeaderRequestedExtraBytes()`, `initDevTFields()`, `fieldsFromDeviceNumber()`, `validateVersionStatus()`, `validateDevTFieldsStatus()`, and `validateDevTRangeStatus()` without creating a third semantic owner beside the canonical headers and starter bindings.
 - `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the current version relay, canonical boundary-header relay, starter `dev_t` relay, and status-tagged export shim edges visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
-- Current `master` now directly serves this survey note, the packet-local validator, the shared Phase 3 slice note, the manifest-backed ABI inventory, the catalog helper, and the catalog-selftest guard as explicit same-family companions for the bounded header-family packet.
+- Current `master` now directly serves this survey note, the packet-local validator, the shared Phase 3 slice note, the manifest-backed ABI inventory, the catalog helper, the catalog-selftest guard, and `zigux/bindings/header_family.zig` as explicit same-family companions for the bounded header-family packet.
 
 ## Boundary
 
-- this survey does not claim that the separate `zigux/bindings/header_family.zig` binding follow-through is already shipped on `master`
+- `zigux/bindings/header_family.zig` is now part of this bounded packet and should stay aligned with `include/linux/zigux.h`, `include/zigux/abi.h`, `include/zigux/dev_t.h`, the shared ABI slice note, this survey, the focused layout replay, and the manifest-backed inventory rather than being treated as still missing current-master evidence.
 - this survey does not widen Phase 3 into allocator, MMIO, notifier, xarray, scheduler, or driver-port claims
-- header-family growth should keep `include/zigux/abi.h`, `include/zigux/dev_t.h`, `include/linux/zigux.h`, the shared ABI slice note, this survey, and the manifest-backed inventory aligned in the same bounded change
-- if a future header-family binding surface lands, it should refresh this survey as follow-through rather than turning relay churn into fake Phase 3 closure
+- header-family growth should keep `include/zigux/abi.h`, `include/zigux/dev_t.h`, `include/linux/zigux.h`, `zigux/bindings/header_family.zig`, the shared ABI slice note, this survey, and the manifest-backed inventory aligned in the same bounded change
+- any later same-family work should refresh this survey as follow-through rather than turning already-landed relay coverage into fake Phase 3 closure
 
 ## Current Gap
 
-Current `master` no longer has a packet-local repo-reality gap for the bounded header-family survey follow-through itself. The remaining wider gap in this same family is the separate broader header-family binding follow-through, which should stay on its own bounded lane instead of being implied by this survey packet.
+Current `master` no longer has a packet-local repo-reality gap for the bounded header-family survey follow-through itself. The bounded packet now includes the landed shared header-family binding relay at `zigux/bindings/header_family.zig` beside `zigux/bindings/abi.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, the canonical headers, the focused export-or-UAPI layout replay, the manifest-backed inventory, the catalog helper, the catalog-selftest guard, and the packet-local survey validator.
+
+The remaining wider same-family work is no longer the header-family binding relay itself. Keep any broader shared replay, docs-root reminder, or later export/UAPI follow-through on their own bounded lanes instead of implying that the already-landed header-family relay is still missing.
