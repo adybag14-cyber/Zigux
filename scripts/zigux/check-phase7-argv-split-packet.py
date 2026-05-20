@@ -50,6 +50,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_argv_split.zig": [
         "const argv_split = @import(\"argv_split\");",
         "test \"phase 7 argv split companion replays copied-storage token ownership\" {",
+        "test \"phase 7 argv split companion replays non-blank cross-call ownership independence\" {",
         "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {",
         "test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {",
         "test \"phase 7 argv split companion replays caller-owned teardown and failure boundaries\" {",
@@ -92,7 +93,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 33
+SELF_TEST_CASE_COUNT = 34
 
 
 def read_text(path: Path) -> str:
@@ -316,6 +317,12 @@ def run_self_test() -> None:
         helper_marker = "test \"argvSplit treats a leading NUL as blank input\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_leading_nul_blank_input_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = "test \"phase 7 argv split companion replays non-blank cross-call ownership independence\" {"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_cross_call_ownership_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
