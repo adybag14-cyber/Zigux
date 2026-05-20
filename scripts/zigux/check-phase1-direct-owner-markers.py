@@ -136,6 +136,29 @@ EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "across the string review packet and this lane note unless dedicated shared sysfs "
     "fixture keys land; do not reopen missing closure-side validator names by default."
 )
+EXPECTED_STRING_STRNCHR_REVIEW_ANCHOR = (
+    'test "strnchr honors count and C-string boundaries"'
+)
+EXPECTED_STRING_STRNCHRNUL_REVIEW_ANCHOR = (
+    'test "strnchrNul returns the first match, NUL, or count boundary"'
+)
+EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS = [
+    'test "strchr mirrors full-length C-string searches"',
+    'test "strrchr finds the last in-range match with C-string semantics"',
+    'test "strpbrk finds the first accepted byte with C-string semantics"',
+    'test "strspn counts the accepted prefix with C-string semantics"',
+    'test "strnchr honors count and C-string boundaries"',
+    'test "strnlen honors count and C-string boundaries"',
+    'test "strnchrNul returns the first match, NUL, or count boundary"',
+]
+EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY = (
+    "the direct counted-search and C-string search-length follow-up stays explicit because "
+    "the shared Phase 1 replay still does not carry dedicated counted-search or "
+    "search-length fixture keys, so strchr() or strrchr() full-length C-string searches, "
+    "strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, "
+    "strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() "
+    "or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors"
+)
 EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR = (
     'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"'
 )
@@ -169,7 +192,8 @@ REQUIRED_EXACT_LINES = {
         "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed fixture still owns exact find(), findFirst(), nextMatch(), and matchIterator() duplicate-search fields and the shared host-tools smoke route keeps duplicate-range iteration plus the parked cached_leftmost_return_serials witness explicit`",
         "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
         "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
-        "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`. ",
+        "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
+        "string_counted_search_strspn_note": "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix anchor review-visible on current `master`, so future string-only rereads should treat accepted-byte-prefix scanning as part of that helper-local search family instead of leaving it implicit beside `strpbrk()` and `strnchr()`.",
         "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; the restored `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` companions are now live broader reminder evidence on current `master`, but string should stay parked on the helper-local sysfs review anchors unless those direct string surfaces drift.",
         "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=the shared reminder packet now keeps scripts/zigux/check-phase1-bench.py explicit across Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md, while the older installer-backed, validator-first, bench-route, and replay names stay historical packet members until they reread cleanly on current master`",
         "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py`",
@@ -238,6 +262,10 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/rbtree.zig", "duplicate_search_replay_keys"): EXPECTED_RBTREE_DUPLICATE_SEARCH_REPLAY_KEYS,
     ("review_anchors", "tools/lib/rbtree.zig", "cached_root_alias_anchor"): EXPECTED_RBTREE_CACHED_ROOT_ALIAS_ANCHOR,
     ("review_anchors", "tools/lib/string.zig", "next_safe_step_note"): EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/string.zig", "strnchr_review_anchor"): EXPECTED_STRING_STRNCHR_REVIEW_ANCHOR,
+    ("review_anchors", "tools/lib/string.zig", "counted_search_review_anchors"): EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS,
+    ("review_anchors", "tools/lib/string.zig", "strnchrnul_review_anchor"): EXPECTED_STRING_STRNCHRNUL_REVIEW_ANCHOR,
+    ("review_anchors", "tools/lib/string.zig", "strnchr_review_summary"): EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY,
 }
 
 
@@ -338,6 +366,10 @@ def sample_manifest() -> str:
                     },
                     "tools/lib/string.zig": {
                         "next_safe_step_note": EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
+                        "strnchr_review_anchor": EXPECTED_STRING_STRNCHR_REVIEW_ANCHOR,
+                        "counted_search_review_anchors": EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS,
+                        "strnchrnul_review_anchor": EXPECTED_STRING_STRNCHRNUL_REVIEW_ANCHOR,
+                        "strnchr_review_summary": EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY,
                     },
                 },
             },
