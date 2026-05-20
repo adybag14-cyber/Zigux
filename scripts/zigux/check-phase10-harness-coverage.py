@@ -101,7 +101,7 @@ REQUIRED_MARKERS = {
     "drivers/virtio/virtio_input_verify.zig": [
         "test \"phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit\" {",
         "test \"phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims\" {",
-        "test \"phase10 virtio input verify keeps teardown wrapper parity explicit across reset\" {",
+        "test \"phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset\" {",
     ],
     "drivers/virtio/virtio_ring_verify.zig": [
         "pub fn summarizeNotificationData(",
