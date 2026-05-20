@@ -89,8 +89,16 @@ CHECKS = (
         ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
     ),
     CheckSpec(
+        "phase11-dw-wdt-teardown-packet-self-test",
+        ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
+    ),
+    CheckSpec(
         "phase11-dw-wdt-teardown-packet",
         ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
+    ),
+    CheckSpec(
+        "phase11-dw-wdt-verify-alignment-self-test",
+        ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
     ),
     CheckSpec(
         "phase11-dw-wdt-verify-alignment",
@@ -287,7 +295,8 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         build_fake_zig(fake_zig)
         failing_build_inventory_self_test_script = root / "scripts/zigux/check-phase11-build-inventory.py"
         build_stub_script(failing_build_inventory_self_test_script, self_test_exit_code=1)
@@ -401,8 +410,24 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_dw_teardown_self_test_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
+        build_stub_script(failing_dw_teardown_self_test_script, self_test_exit_code=1)
+        issues = collect_issues(root)
+        expected_dw_teardown_self_test_failure = "live_failed:phase11-dw-wdt-teardown-packet-self-test:exit=1"
+        if expected_dw_teardown_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:dw_teardown_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_dw_teardown_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
-        build_stub_script(failing_dw_teardown_script, self_test_exit_code=1)
+        build_stub_script(
+            failing_dw_teardown_script,
+            self_test_exit_code=0,
+            live_exit_code=1,
+        )
         issues = collect_issues(root)
         expected_dw_teardown_failure = "live_failed:phase11-dw-wdt-teardown-packet:exit=1"
         if expected_dw_teardown_failure not in issues:
@@ -413,8 +438,24 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_dw_verify_self_test_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
+        build_stub_script(failing_dw_verify_self_test_script, self_test_exit_code=1)
+        issues = collect_issues(root)
+        expected_dw_verify_self_test_failure = "live_failed:phase11-dw-wdt-verify-alignment-self-test:exit=1"
+        if expected_dw_verify_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:dw_verify_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_dw_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
-        build_stub_script(failing_dw_script, self_test_exit_code=1)
+        build_stub_script(
+            failing_dw_script,
+            self_test_exit_code=0,
+            live_exit_code=1,
+        )
         issues = collect_issues(root)
         expected_dw_failure = "live_failed:phase11-dw-wdt-verify-alignment:exit=1"
         if expected_dw_failure not in issues:
@@ -490,7 +531,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
