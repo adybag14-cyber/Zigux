@@ -17,13 +17,13 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`phase10-queue-publish-readiness-helper`",
-        "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
+        "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
         "current packet lane on master: `P10-L10`",
         "adjacent freeze-boundary owner: `P10-L11`",
-        "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder",
+        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
         "the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stays part of the same directly readable ring packet",
         "the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work",
     ],
@@ -33,7 +33,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "the publish-readiness wrapper-facing replay",
         "`phase10-queue-publish-readiness-helper`",
-        "the broader ring replay still remains outside direct current-head evidence in this slice",
+        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
         "the dedicated survey gate is now a landed review surface inside this slice",
     ],
     "drivers/virtio/virtio_ring.zig": [
@@ -126,25 +126,28 @@ REQUIRED_MARKERS = {
         "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        'test "phase10 virtio ring survey note keeps the missing broader replay explicit beside the queue-local helper packet" {',
-        'try expectContains(survey_note, "broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize");',
+        'test "phase10 virtio ring survey note keeps the broader public-readback replay explicit beside the queue-local helper packet" {',
+        'try expectContains(survey_note, "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not");',
         'try expectContains(build_file, "\\\"phase10-virtio-ring-survey-tests\\\"");',
         'test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {',
     ],
 }
 
 FORBIDDEN_MARKERS = {
+    "Documentation/zigux/phase10-virtio-ring-survey.md": [
+        "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
+        "the broader replay `zigux/tests/phase10_virtio_ring.zig`, the focused queue-local replays",
+        "the broader ring replay, the queue-local ring helper ladder, the wrapper-facing verify replay",
+    ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
         "the broader ring replay now rematerializes",
         "`zigux/tests/phase10_virtio_ring.zig` joins direct current-head evidence beside the queue-local helper ladder",
+        "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
         "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`",
-    ],
-    "Documentation/zigux/phase10-virtio-ring-survey.md": [
-        "the broader replay `zigux/tests/phase10_virtio_ring.zig`, the focused queue-local replays",
-        "the broader ring replay, the queue-local ring helper ladder, the wrapper-facing verify replay",
+        "the broader ring replay still remains outside direct current-head evidence in this slice",
     ],
 }
 
@@ -244,11 +247,11 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
+                "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-                "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder",
+                "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-slice.md",
@@ -256,7 +259,7 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-slice.md",
-                "the broader ring replay still remains outside direct current-head evidence in this slice",
+                "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
             ),
             (
                 "drivers/virtio/virtio_ring.zig",
@@ -344,7 +347,7 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_virtio_ring_survey.zig",
-                'try expectContains(survey_note, "broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize");',
+                'try expectContains(survey_note, "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not");',
             ),
             (
                 "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
@@ -355,6 +358,10 @@ def run_self_test() -> int:
             expect_missing_marker(root, rel_path, marker)
 
         forbidden_cases = [
+            (
+                "Documentation/zigux/phase10-virtio-ring-survey.md",
+                "the broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize on current `master`",
+            ),
             (
                 "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
                 "the broader ring replay now rematerializes",
