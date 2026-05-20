@@ -59,6 +59,7 @@ REQUIRED_MARKERS = {
         'const cmdline = @import("cmdline");',
         'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
+        'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
@@ -103,7 +104,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 34
+SELF_TEST_CASE_COUNT = 35
 
 
 def read_text(path: Path) -> str:
@@ -379,7 +380,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_whitespace_only_marker",
@@ -390,7 +391,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps leading equals tokens as bare parameters\\\\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_leading_equals_marker",
@@ -401,7 +402,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_borrowed_suffix_marker",
@@ -438,6 +439,17 @@ def run_self_test() -> None:
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_option_decoding_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = 'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {'
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_incomplete_hex_descending_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
