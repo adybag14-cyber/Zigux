@@ -621,6 +621,23 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"allrandom.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
+
+    var empty_capture = try TestCapture.init(std.testing.allocator, 224);
+    defer empty_capture.deinit();
+
+    try runConfBridge(&empty_capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .allconfig = "",
+        .seed = "0xC0FFEE",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"mode\":\"randconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
 test "conf bridge omits randconfig allconfig sentinel without explicit override" {
