@@ -59,6 +59,12 @@ def resolve_zig(override: str | None) -> str | None:
     return shutil.which("zig")
 
 
+def normalize_timeout_seconds(value: int) -> int:
+    if value <= 0:
+        raise SystemExit("--timeout-seconds must be a positive integer")
+    return value
+
+
 def load_archive_target_scope(root: Path) -> list[str]:
     payload = load_json(root / POLICY)
     if not isinstance(payload, dict):
@@ -317,6 +323,8 @@ def fail_with_note(note: str) -> int:
 
 def run_checked(root: Path, zig: str | None, target: str | None, all_targets: bool, timeout_seconds: int) -> int:
     try:
+        timeout_seconds = normalize_timeout_seconds(timeout_seconds)
+
         issues = collect_fixture_issues(root)
         if issues:
             print("PHASE2_CROSS_TARGET_REPLAY=fail")
@@ -468,6 +476,13 @@ def run_self_test() -> int:
         assert result == 0
         assert "PHASE2_CROSS_TARGET_REPLAY_MODE=summary" in output
         assert "PHASE2_CROSS_TARGET_REPLAY_TARGET_COUNT=2" in output
+        checks_run += 1
+
+        build_self_test_root(root)
+        result, output = capture_stdout(run_checked, root, None, None, False, 0)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "--timeout-seconds must be a positive integer" in output
         checks_run += 1
 
         build_self_test_root(root)
