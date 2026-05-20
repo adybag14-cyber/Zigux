@@ -24,6 +24,12 @@ test "phase10 virtio ring survey note keeps the broader public-readback replay e
     const verify_file = try readRepoRelative(allocator, "drivers/virtio/virtio_ring_verify.zig");
     defer allocator.free(verify_file);
 
+    const publish_readiness_file = try readRepoRelative(
+        allocator,
+        "drivers/virtio/virtio_ring_publish_readiness.zig",
+    );
+    defer allocator.free(publish_readiness_file);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "lane: `P10-L10`");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
@@ -42,6 +48,22 @@ test "phase10 virtio ring survey note keeps the broader public-readback replay e
     try expectContains(
         verify_file,
         "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
+    );
+    try expectContains(
+        publish_readiness_file,
+        "pub fn summarizePublishReadiness(",
+    );
+    try expectContains(
+        publish_readiness_file,
+        "pub fn queueHasPublishCapacity(summary: QueuePublishReadinessSummary) bool {",
+    );
+    try expectContains(
+        publish_readiness_file,
+        "test \"phase10 virtio ring publish-readiness wrapper keeps unpublished chains visible while remaining queue-local publishable\" {",
+    );
+    try expectContains(
+        publish_readiness_file,
+        "test \"phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity\" {",
     );
     try expectContains(build_file, "virtio_ring_publish_readiness_module");
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
