@@ -113,19 +113,19 @@ int main(int argc, char **argv)
 \tunsigned char ei[EI_NIDENT];
 
 \tif (fread(ei, 1, EI_NIDENT, stdin) != EI_NIDENT) {
-\t\tfprintf(stderr, "Error: input truncated\\n");
+\t\tfprintf(stderr, \"Error: input truncated\\n\");
 \t\treturn 1;
 \t}
 \tif (memcmp(ei, ELFMAG, SELFMAG) != 0) {
-\t\tfprintf(stderr, "Error: not ELF\\n");
+\t\tfprintf(stderr, \"Error: not ELF\\n\");
 \t\treturn 1;
 \t}
 \tswitch (ei[EI_CLASS]) {
 \tcase ELFCLASS32:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS32\\n");
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS32\\n\");
 \t\tbreak;
 \tcase ELFCLASS64:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
 \t\tbreak;
 \tdefault:
 \t\texit(1);
@@ -268,6 +268,10 @@ def build_zig_tool(zig: str, output: Path) -> None:
     run([zig, "build-exe", str(ZIG_TOOL), "-O", "Debug", f"-femit-bin={output}"])
 
 
+def run_zig_tests(zig: str, source: Path) -> None:
+    run([zig, "test", str(source)])
+
+
 def run_tool(binary: Path, input_bytes: bytes) -> dict[str, object]:
     result = subprocess.run(
         [str(binary)],
@@ -288,6 +292,8 @@ def check_cases(*, zig: str, compiler: str) -> None:
     if not FD_TRAILING_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_TRAILING_ZIG_TOOL)
     validate_zig_source_markers(FD_TRAILING_ZIG_TOOL, EXPECTED_FD_TRAILING_ZIG_MARKERS)
+    run_zig_tests(zig, ZIG_TOOL)
+    run_zig_tests(zig, FD_TRAILING_ZIG_TOOL)
     cases = validate_cases(load_json(CASES_PATH))
     for case in cases:
         validate_expected_result(FIXTURE_DIR / case["expected"])
