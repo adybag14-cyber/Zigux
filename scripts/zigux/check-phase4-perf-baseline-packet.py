@@ -31,7 +31,7 @@ EXPECTED_BOOTSTRAP_CI_POSTURE = (
 EXPECTED_SELF_TEST_CASES = 24
 
 MANIFEST_MARKERS = (
-    '"lane_key": "P4-L20"',
+    '"lane_key": "P4-L22"',
     '"phase": "Phase 4"',
     '"owner": "Validation and Perf Team"',
     '"rollback_owner": "Validation and Perf Team"',
@@ -52,12 +52,12 @@ MANIFEST_MARKERS = (
 
 SURVEY_MARKERS = (
     'test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {',
-    'try requireMarkerCount("\\\\\\\"acceptable_limit_iterations\\\\\\\": 4", 2);',
-    'try requireMarkerCount("\\\\\\\"acceptable_limit_sample_count\\\\\\\": 7", 2);',
-    'try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");',
-    'try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");',
-    'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");',
-    'try requireMarker("\\\\\\\"coordination_owners\\\\\\\": [");',
+    'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);',
+    'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);',
+    'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");',
+    'try requireMarker("\\\"coordination_owners\\\": [");',
 )
 
 MATRIX_MARKERS = (
@@ -137,7 +137,7 @@ def expect_json_value(payload: object, path: tuple[str | int, ...], expected: ob
 
 def validate_manifest_json(manifest_data: dict[str, object], missing: list[str]) -> None:
     expected_values = (
-        (("lane_key",), "P4-L20"),
+        (("lane_key",), "P4-L22"),
         (("phase",), "Phase 4"),
         (("owner",), "Validation and Perf Team"),
         (("rollback_owner",), "Validation and Perf Team"),
@@ -260,7 +260,7 @@ def build_fixture_tree(root: Path) -> None:
     write_text(
         root / MANIFEST,
         """{
-  \"lane_key\": \"P4-L20\",
+  \"lane_key\": \"P4-L22\",
   \"phase\": \"Phase 4\",
   \"owner\": \"Validation and Perf Team\",
   \"rollback_owner\": \"Validation and Perf Team\",
@@ -341,14 +341,14 @@ def build_fixture_tree(root: Path) -> None:
     write_text(
         root / SURVEY,
         """test \"phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit\" {
-    try requireMarkerCount("\\\\\\\"acceptable_limit_iterations\\\\\\\": 4", 2);
-    try requireMarkerCount("\\\\\\\"acceptable_limit_sample_count\\\\\\\": 7", 2);
+    try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);
+    try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);
 }
 test \"phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit\" {
-    try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");
-    try requireMarker("\\\\\\\"benchmark_command\\\\\\\": \\\\\\\\\\\\\\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\\\\\\\\\\\\\"");
-    try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");
-    try requireMarker("\\\\\\\"coordination_owners\\\\\\\": [");
+    try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");
+    try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");
+    try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");
+    try requireMarker("\\\"coordination_owners\\\": [");
 }
 """,
     )
@@ -428,7 +428,7 @@ def run_self_test() -> int:
             (MANIFEST, '"sample_count_note": "seven monotonic samples"', '"sample_count_note": "six monotonic samples"', "manifest_json:atomic64.evidence.0.sample_count_note:"),
             (MANIFEST, '"id": "phase4-perf-baseline-bitmap-command-evidence"', '"id": "phase4-perf-baseline-bitmap-run-evidence"', "manifest_json:bitmap.evidence.1.id:"),
             (MANIFEST, '"id": "phase4-perf-baseline-shared-promotion-decision"', '"id": "phase4-perf-baseline-shared-promotion-record"', "manifest_json:promotion_decision.id:"),
-            (SURVEY, 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");', 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"approved\\\\\\\\\\\\\\\"");', 'survey_marker:try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
             (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here"),
