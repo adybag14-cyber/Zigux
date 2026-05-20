@@ -590,6 +590,36 @@ def run_self_test() -> int:
 
         manifest_field_cases = [
             (
+                '"freeze_status_change_claimed": false',
+                '"freeze_status_change_claimed": true',
+                f"{MANIFEST_PATH}:freeze_status_change_claimed:True",
+            ),
+            (
+                '"risky_transport_posture": "blocked_on_risky_transport"',
+                '"risky_transport_posture": "starter_landed"',
+                f"{MANIFEST_PATH}:risky_transport_posture:starter_landed",
+            ),
+            (
+                '"allowed_evidence_kinds": [\n    "driver_local_lab_slices",\n    "survey_manifests",\n    "shared_validation_gates"\n  ]',
+                '"allowed_evidence_kinds": [\n    "driver_local_lab_slices"\n  ]',
+                f"{MANIFEST_PATH}:allowed_evidence_kinds:['driver_local_lab_slices']",
+            ),
+            (
+                '"forbidden_transport_claims": [\n    "queue_setup_reset_paths",\n    "irq_parity",\n    "dma_paths",\n    "input_registration_lifecycle",\n    "probe_remove_lifecycle"\n  ]',
+                '"forbidden_transport_claims": [\n    "queue_setup_reset_paths"\n  ]',
+                f"{MANIFEST_PATH}:forbidden_transport_claims:['queue_setup_reset_paths']",
+            ),
+            (
+                '"architecture_council_reopen_required": true',
+                '"architecture_council_reopen_required": false',
+                f"{MANIFEST_PATH}:architecture_council_reopen_required:False",
+            ),
+            (
+                '"architecture_council_reopen_attached": false',
+                '"architecture_council_reopen_attached": true',
+                f"{MANIFEST_PATH}:architecture_council_reopen_attached:True",
+            ),
+            (
                 f'"freeze_boundary_owner_lane": "{EXPECTED_FREEZE_BOUNDARY_OWNER}"',
                 '"freeze_boundary_owner_lane": "P10-L12"',
                 f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12",
