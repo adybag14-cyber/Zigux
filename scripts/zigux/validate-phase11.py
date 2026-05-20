@@ -130,6 +130,10 @@ def command_for(spec: CheckSpec, root: Path) -> list[str]:
     raise ValueError(f"unsupported command kind for {spec.name}: {command[0]}")
 
 
+def is_zig_check(spec: CheckSpec) -> bool:
+    return bool(spec.command) and spec.command[0] == "zig"
+
+
 def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -149,7 +153,7 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
         issues.append(f"{prefix}:stderr={stderr}")
 
 
-def collect_issues(root: Path) -> list[str]:
+def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     issues: list[str] = []
 
     for rel in REQUIRED_PATHS:
@@ -160,6 +164,8 @@ def collect_issues(root: Path) -> list[str]:
         return issues
 
     for spec in CHECKS:
+        if skip_zig_builds and is_zig_check(spec):
+            continue
         completed = run_command(command_for(spec, root), root)
         if completed.returncode != 0:
             issues.append(f"live_failed:{spec.name}:exit={completed.returncode}")
@@ -168,8 +174,8 @@ def collect_issues(root: Path) -> list[str]:
     return issues
 
 
-def run_check(root: Path) -> int:
-    issues = collect_issues(root)
+def run_check(root: Path, *, skip_zig_builds: bool = False) -> int:
+    issues = collect_issues(root, skip_zig_builds=skip_zig_builds)
     if issues:
         print("PHASE11_VALIDATION=fail")
         print("PHASE11_VALIDATION_ISSUES_START")
@@ -470,9 +476,21 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        build_fake_zig(
+            fake_zig,
+            fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        )
+        issues = collect_issues(root, skip_zig_builds=True)
+        if issues:
+            raise SystemExit(
+                "phase11-validate-self-test:skip_zig_builds_not_honored:"
+                + ",".join(issues)
+            )
+
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -480,13 +498,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--skip-zig-builds", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     try:
-        return run_check(args.root.resolve())
+        return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig_builds)
     except Exception as exc:  # pragma: no cover - defensive top-level guard
         print(f"PHASE11_VALIDATION=fail: {exc}")
         return 1
