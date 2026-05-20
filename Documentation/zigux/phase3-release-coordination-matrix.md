@@ -1,6 +1,6 @@
 # Phase 3 Release Coordination Matrix
 
-This matrix is the compact PMO coordination companion for the current Phase 3 ABI and interop packet.
+This matrix is the compact PMO coordination companion for the active Phase 3 ABI and interop packet.
 
 It is a release-planning artifact, not a closure claim and not a new replay route.
 
@@ -9,78 +9,108 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - `PHASE3_STATUS=active`
 - `PHASE3_RELEASE_CLOSED=no`
 - shared-summary lane owner: `pmo-release`
-- scope: keep the bounded Phase 3 ABI, export/UAPI, header-family, policy, and low-level-wrapper packet reviewable on current `master` without implying wider header-family binding closure or later runtime and driver delivery
-- shared slice companion: `Documentation/zigux/phase3-abi-slice.md`
-- header-family survey companion: `Documentation/zigux/phase3-abi-header-family-survey.md`
-- export/UAPI survey companion: `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
+- scope: keep the active Phase 3 packet reviewable through the current shared ABI, starter-packet, helper-local, export/UAPI, and low-level-wrapper surfaces without implying broader closure or a returned wider validator family
+- sequencing companion: `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+- ABI slice companion: `Documentation/zigux/phase3-abi-slice.md`
+- err_ptr and xarray companion: `Documentation/zigux/phase3-errptr-xarray-slice.md`
 - policy companion: `Documentation/zigux/phase3-policy-slice.md`
+- validator-support companion: `Documentation/zigux/phase3-validator-support-surface.md`
+- export/UAPI companion: `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
 - low-level-wrapper companion: `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
 - linux-header governance companion: `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- shared validator bundle: `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-abi-header-family-survey.py`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-- catalog guard bundle: `scripts/zigux/phase3_catalog.py` and `scripts/zigux/check-phase3-catalog-selftest.py`
-- shared manifest companion: `zigux/tests/fixtures/phase3_abi_manifest.json`
+- header-family survey companion: `Documentation/zigux/phase3-abi-header-family-survey.md`
+- freeze-map companion: `Documentation/zigux/freeze-map.md`
+- shared validator packet: `scripts/zigux/validate-phase3.py`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/check-phase3-readme-tooling-inventory.py`, `scripts/zigux/check-phase3-catalog-selftest.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and `scripts/zigux/validate-phase3-abi-header-family-survey.py`
+- shared replay wiring: `zigux/tests/build.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zigux/Makefile`
 
-## Repo-Reality Correction
+## Active Shared Packet
 
-Current `master` now directly serves both `Documentation/zigux/phase3-abi-header-family-survey.md` and `scripts/zigux/validate-phase3-abi-header-family-survey.py`.
+Keep shared release wording tied to the bounded Phase 3 substrate family already materialized on current `master`:
 
-Keep release coordination aligned to those directly readable current-master files rather than repeating older wording that treated the header-family survey pair as missing.
+- shared ABI boundaries:
+  - `include/linux/zigux.h`
+  - `include/zigux/dev_t.h`
+  - `include/zigux/abi.h`
+  - `zigux/bindings/dev_t.zig`
+  - `zigux/bindings/version.zig`
+  - `zigux/bindings/abi.zig`
+  - `zigux/bindings/notifier_abi.zig`
+  - `zigux/kernel/export_shim.zig`
+  - `zigux/uapi/dev_t.zig`
+  - `zigux/uapi/version.zig`
+- helper-local active packet:
+  - `zigux/helpers/err_ptr.zig`
+  - `zigux/helpers/xa_value.zig`
+  - `zigux/helpers/xarray_slot_view.zig`
+  - `zigux/helpers/panic_policy.zig`
+  - `zigux/helpers/allocator_policy.zig`
+  - `zigux/helpers/unsafe_policy.zig`
+  - `zigux/helpers/atomic.zig`
+  - `zigux/helpers/barrier.zig`
+  - `zigux/helpers/mmio.zig`
+  - `zigux/unsafe/narrow.zig`
+- directly readable shared tests and manifest packet:
+  - `zigux/tests/phase3_abi.zig`
+  - `zigux/tests/phase3_dev_t_starter_packet.zig`
+  - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
+  - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
+  - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+  - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
+  - `zigux/tests/phase3_policy_starter_packet.zig`
+  - `zigux/tests/phase3_policy_starter_packet_build.zig`
+  - `zigux/tests/phase3_low_level_wrappers.zig`
+  - `zigux/tests/phase3_low_level_wrappers_build.zig`
+  - `zigux/tests/phase3_export_uapi_layout.zig`
+  - `zigux/tests/phase3_export_uapi_layout_build.zig`
+  - `zigux/tests/fixtures/phase3_abi_manifest.json`
 
-The remaining wider Phase 3 gap in that family is still the separate broader header-family binding follow-through, including `zigux/bindings/header_family.zig`, not the survey pair itself.
+Keep that packet framed as bounded ABI, helper, starter, layout-replay, and survey-backed release evidence. Do not round it up into broader Phase 3 closure, full interop completion, or later-phase runtime delivery.
 
 ## Owner Split
 
-- PMO / Release Management: keep this matrix, `Documentation/zigux/phase3-abi-slice.md`, the header-family survey, the export/UAPI survey, the policy note, the low-level-wrapper survey, and the shared validator bundle aligned around the same active-not-closed release posture
-- shared ABI packet: keep `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump_current.zig`, `zigux/tests/build.zig`, and `zigux/tests/fixtures/phase3_abi_manifest.json` explicit as the current shared ABI proof packet
-- export/UAPI and header-family packet: keep `include/linux/zigux.h`, `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` explicit as the current bounded relay and layout packet
-- policy and low-level-wrapper packet: keep `Documentation/zigux/phase3-policy-slice.md`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig` explicit as adjacent release-surface support without promoting them into full tranche closure by themselves
+- PMO / Release Management: keep this matrix, `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-validator-support-surface.md`, and the docs-root reminder packet aligned around the same active-not-closed posture and the same bounded replay family.
+- ABI and export boundary owners: keep `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/fixtures/phase3_abi_manifest.json` grounded in their shipped reviewability surfaces.
+- Helper-local owners: keep the `err_ptr` / `xarray`, `xarray_slot`, policy, and low-level-wrapper slices grounded in `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, and their directly readable helper and test companions instead of promoting them into broader shared-release closure evidence.
+- Validator and catalog owners: keep `scripts/zigux/validate-phase3.py`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/check-phase3-readme-tooling-inventory.py`, `scripts/zigux/check-phase3-catalog-selftest.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and `scripts/zigux/validate-phase3-abi-header-family-survey.py` explicit as the current shared truthfulness and rerun packet.
 
-## Shared Release Order
+## Release Handle
 
-1. `python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test`
-2. `python3 scripts/zigux/validate-phase3.py`
-3. `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test`
-4. `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`
-5. `python3 scripts/zigux/validate-phase3-export-uapi-survey.py`
-6. `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test`
-7. `zig build phase3-abi-core-packet --build-file zigux/tests/build.zig`
-8. `zig build phase3-dump --build-file zigux/tests/build.zig`
-9. `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
-10. `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
+Keep the stable Phase 3 release-planning handle distinct from the helper-local and validator-local write lanes:
 
-Keep this validator-first then replay-second order explicit in release wording. Do not skip straight to the focused replay routes when the shared Phase 3 docs or manifest have drifted.
+1. `Documentation/zigux/phase3-release-coordination-matrix.md`
+2. `Documentation/zigux/phase3-boundary-lane-sequencing.md`
+3. `Documentation/zigux/phase3-validator-support-surface.md`
+4. `scripts/zigux/validate-phase3.py`
+5. `make -C zigux phase3-validate`
+6. `make -C zigux phase3`
 
-## Release Blocker
+Keep these focused rerun routes explicit as bounded companions rather than broader closure proof:
 
-The current Phase 3 packet is reviewable and partially replayable, but it is not ready for tranche closure.
+1. `zig build phase3-abi-core-packet --build-file zigux/tests/build.zig`
+2. `zig build phase3-dump --build-file zigux/tests/build.zig`
+3. `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
+4. `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
+5. `make -C zigux phase3-policy-starter-packet-test`
 
-Keep the broader header-family binding follow-through framed as the blocking shared-family gap:
-
-- `zigux/bindings/header_family.zig`
-
-Do not let release wording treat the now-present survey pair as a closure blocker that still needs to be recreated, and do not let the remaining binding gap be hidden behind the newer survey note.
+That keeps the release handle centered on the shared validator-first and bounded replay packet already wired into current `master`, while leaving broader reminder refreshes or helper-local semantics in their own lanes.
 
 ## Boundaries
 
-- This matrix does not close Phase 3.
-- This matrix does not imply that the broader header-family binding lane has landed.
-- This matrix does not widen Phase 3 into Phase 4 rollback ownership, Phase 9 runtime pilots, or later driver phases.
-- `Documentation/zigux/freeze-map.md` remains the owner for deeper study-only and freeze-in-C boundaries outside this bounded ABI packet.
+- This matrix does not close the Phase 3 tranche.
+- This matrix does not imply that the wider shared ABI validator family has returned beyond the currently readable packet.
+- This matrix does not promote helper-local starter, dump, or survey surfaces into a claim that broader Phase 3 interop delivery is complete.
+- `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper transport, queueing, and study-only anchors, so this PMO note must not imply delivery against `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`.
+
+## Review Use
+
+When the shared Phase 3 packet moves:
+
+1. reread this matrix beside `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+2. rerun `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
+3. rerun `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
+4. rerun `python3 scripts/zigux/check-phase3-abi.py --self-test`
+5. keep any broader README, checklist, or tests-root reminder refresh as a separate same-lane step when a fresh repo reread proves drift there
 
 ## Next Bounded Step
 
-Leave this matrix parked unless a fresh repo-first reread finds drift between:
-
-- `Documentation/zigux/phase3-abi-slice.md`
-- `Documentation/zigux/phase3-abi-header-family-survey.md`
-- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
-- `Documentation/zigux/phase3-policy-slice.md`
-- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-- `scripts/zigux/validate-phase3.py`
-- `scripts/zigux/validate-phase3-abi-header-family-survey.py`
-- `scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-- `scripts/zigux/check-phase3-catalog-selftest.py`
-- `zigux/tests/fixtures/phase3_abi_manifest.json`
-
-If the next Phase 3 PMO follow-through is needed after that, prefer one narrow truthfulness repair in the shared docs-root packet or one explicit binding-gap note rather than widening into helper-local implementation work.
+The next honest PMO follow-through is not another new release artifact. It is a narrow truthfulness reread to see whether the docs-root, scripts-root, and tests-root shared Phase 3 reminders all name this same active-not-closed packet without drifting into broader closure language.
