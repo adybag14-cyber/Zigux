@@ -103,7 +103,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -288,6 +288,14 @@ def run_self_test() -> None:
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"] = []
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / SHARED_SURFACE_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / PRESENT_ENTRYPOINTS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
