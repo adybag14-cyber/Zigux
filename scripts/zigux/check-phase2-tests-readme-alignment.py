@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
     "current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:",
@@ -130,6 +132,31 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`zigux/Makefile`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
+REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-tool-manifest.py",
+    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/install-zig.py",
+    "zigux/Makefile",
+    "make -C zigux phase2-toolchain",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
+    "make -C zigux phase2-genksyms",
+    "make -C zigux phase2-fixdep",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/fixdep/cases.json",
+)
 
 
 def read_text(path: Path) -> str:
@@ -139,12 +166,35 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"required json invalid: {path}: {exc}") from exc
+
+
 def resolve_path(root: Path, path: Path) -> Path:
     try:
         rel = path.relative_to(ROOT)
     except ValueError:
         rel = path
     return root / rel
+
+
+def collect_manifest_strings(value: object) -> set[str]:
+    if isinstance(value, str):
+        return {value}
+    if isinstance(value, list):
+        strings: set[str] = set()
+        for item in value:
+            strings.update(collect_manifest_strings(item))
+        return strings
+    if isinstance(value, dict):
+        strings: set[str] = set()
+        for item in value.values():
+            strings.update(collect_manifest_strings(item))
+        return strings
+    return set()
 
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
@@ -164,13 +214,26 @@ def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) 
     return issues
 
 
+def collect_missing_manifest_surfaces(strings: set[str]) -> list[tuple[str, str]]:
+    return [
+        ("MISSING_PHASE2_TOOL_MANIFEST_SURFACES", surface)
+        for surface in REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES
+        if surface not in strings
+    ]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
     docs_root_text = read_text(resolve_path(root, DOCS_ROOT_README))
+    phase2_tool_manifest = read_json(resolve_path(root, PHASE2_TOOL_MANIFEST))
+    manifest_strings = collect_manifest_strings(phase2_tool_manifest)
     issues = collect_missing_markers(tests_readme_text, REQUIRED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS")
     issues.extend(collect_exact_count_markers(tests_readme_text, EXACT_COUNT_TESTS_README_MARKERS, "EXACT_COUNT_TESTS_README_MARKERS"))
     issues.extend(collect_forbidden_markers(tests_readme_text, FORBIDDEN_TESTS_README_MARKERS, "FORBIDDEN_TESTS_README_MARKERS"))
     issues.extend(collect_missing_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"))
+    issues.extend(collect_missing_manifest_surfaces(manifest_strings))
+    if phase2_tool_manifest.get("repo_reality_gaps") != []:
+        issues.append(("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(phase2_tool_manifest.get("repo_reality_gaps"), sort_keys=True)))
     return issues
 
 
@@ -195,6 +258,19 @@ def write_text(path: Path, content: str) -> None:
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
+    write_text(
+        resolve_path(root, PHASE2_TOOL_MANIFEST),
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "present_surfaces": {"all": list(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)},
+                "repo_reality_gaps": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+    )
 
 
 def remove_marker(text: str, marker: str) -> str:
@@ -205,7 +281,15 @@ def remove_marker(text: str, marker: str) -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(REQUIRED_TESTS_README_MARKERS) + len(EXACT_COUNT_TESTS_README_MARKERS) + len(FORBIDDEN_TESTS_README_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + 2
+    expected_case_count = (
+        1
+        + len(REQUIRED_TESTS_README_MARKERS)
+        + len(EXACT_COUNT_TESTS_README_MARKERS)
+        + len(FORBIDDEN_TESTS_README_MARKERS)
+        + len(REQUIRED_DOCS_ROOT_MARKERS)
+        + len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)
+        + 5
+    )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -239,7 +323,34 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
-        for path in (TESTS_README, DOCS_ROOT_README):
+        for surface in REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES:
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_TOOL_MANIFEST)
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["present_surfaces"]["all"].remove(surface)
+            path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_PHASE2_TOOL_MANIFEST_SURFACES", surface) in issues
+            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["repo_reality_gaps"] = ["legacy-gap"]
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", '["legacy-gap"]') in issues
+        checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
+        path.write_text("{\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required json invalid" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid json did not abort")
+        for path in (TESTS_README, DOCS_ROOT_README, PHASE2_TOOL_MANIFEST):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             try:
@@ -256,7 +367,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 tests-root and docs-root reminder packet aligned.")
+    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 tests-root, docs-root, and manifest packet aligned.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
@@ -270,6 +381,7 @@ def main() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_MANIFEST_SURFACE_COUNT={len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)}")
     return 0
 
 
