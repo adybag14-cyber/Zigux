@@ -115,6 +115,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "current-master-readback-2026-05-20");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
+    try expectContains(policy_note, "code that remains in C indefinitely");
     try expectContains(policy_note, "evidence archive path");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "retired_from_active_discussion");
@@ -128,6 +129,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "phase15-indefinite-c-review-process-companion-sync");
     try expectContains(policy_note, "phase15-indefinite-c-ownership-template-sync");
     try expectContains(policy_note, "phase15-indefinite-c-lane-owner-companion-sync");
+    try expectContains(policy_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
 
     try expectContains(review_process, "`Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit");
     try expectContains(review_process, "indefinite-C policy link or explicit non-applicability note");
@@ -147,6 +149,11 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(lane_owner_alignment, "lane owner");
     try expectContains(lane_owner_alignment, "required approver set");
 
+    const source_of_truth = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-source-of-truth") orelse return error.MissingRequirement;
+    try std.testing.expectEqual(@as(usize, 2), source_of_truth.required_terms.len);
+    try expectContains(source_of_truth.required_terms[0], "product source of truth");
+    try expectContains(source_of_truth.required_terms[1], "remains in C indefinitely");
+
     const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 20), recordkeeping.required_terms.len);
     try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[5]);
@@ -162,6 +169,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqual(@as(usize, 3), exception_path.required_terms.len);
     try expectContains(exception_path.required_terms[0], "no silent exception path");
     try expectContains(exception_path.required_terms[1], "Architecture Council reopen request");
+    try expectContains(exception_path.required_terms[2], "trigger-specific evidence refresh");
 
     const reopen_catalog = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-reopen-trigger-catalog") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 3), reopen_catalog.required_terms.len);
@@ -195,4 +203,5 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
     try std.testing.expectEqualStrings("freeze_map", blocker_gap.kind);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", blocker_gap.zigux_destination);
+    try expectContains(blocker_gap.why_now, "lacks evidence strong enough");
 }
