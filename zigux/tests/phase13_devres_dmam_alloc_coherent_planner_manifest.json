@@ -39,6 +39,8 @@
     "zero-sized requests free the release record",
     "release_record_consumed",
     "releases_from_devres",
+    "warns_on_release_miss",
+    "destroys_release_record_before_free",
     "dma_map_*",
     "dma_unmap_*",
     "dma_sync_*",
