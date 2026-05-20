@@ -36,5 +36,16 @@
       "bar.symref"
     ],
     "expected_file": "quiet_overrides_warning_expected.json"
+  },
+  {
+    "name": "positional_passthrough",
+    "args": [
+      "leftover.c",
+      "-d",
+      "rightover.h",
+      "-r",
+      "foo.symref"
+    ],
+    "expected_file": "positional_passthrough_expected.json"
   }
 ]
