@@ -242,11 +242,14 @@ test "phase 6 checksum pseudo-header helpers keep high-length IPv6 carries visib
 
 test "phase 6 checksum fast-path fixtures stay aligned with focused correctness replay" {
     for (fixtures.fast_path_cases) |case| {
+        const ihl_words: usize = case.header[0] & 0x0f;
         try std.testing.expectEqual(@as(u8, 4), case.header[0] >> 4);
-        try std.testing.expectEqual(case.header.len, @as(usize, (case.header[0] & 0x0f) * 4));
+        try std.testing.expectEqual(case.header.len, @as(usize, ihl_words * 4));
         try std.testing.expectEqual(@as(usize, 0), case.header.len & 3);
         try std.testing.expectEqual(referenceCompute(case.header), checksum.compute(case.header));
         try std.testing.expectEqual(checksum.compute(case.header), checksum.ipFastCsum(case.header));
+        try std.testing.expectEqual(checksum.compute(case.header), checksum.ipFastCsumIhl(case.header, ihl_words));
+        try std.testing.expectEqual(checksum.ipFastCsum(case.header), checksum.ipFastCsumIhl(case.header, ihl_words));
     }
 }
 
