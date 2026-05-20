@@ -25,6 +25,7 @@ HELP_KALLSYMS_BUILD = Path("zigux/tests/phase8_help_kallsyms_only_build.zig")
 HELP_BUILD = Path("zigux/tests/phase8_help_only_build.zig")
 HELP_TEST = Path("zigux/tests/phase8_help.zig")
 KALLSYMS_BUILD = Path("zigux/tests/phase8_kallsyms_only_build.zig")
+KALLSYMS_TEST = Path("zigux/tests/phase8_kallsyms.zig")
 HELP_SOURCE = Path("tools/lib/subcmd/help.zig")
 KALLSYMS_SOURCE = Path("tools/lib/symbol/kallsyms.zig")
 
@@ -39,6 +40,7 @@ REQUIRED_FILES = (
     HELP_BUILD,
     HELP_TEST,
     KALLSYMS_BUILD,
+    KALLSYMS_TEST,
     HELP_SOURCE,
     KALLSYMS_SOURCE,
 )
@@ -73,6 +75,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_TEST: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
+    ),
+    KALLSYMS_TEST: (
+        'test "phase 8 kallsyms docs keep the parked parser and symbol-boundary contract explicit"',
+        'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
+        'test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract"',
     ),
 }
 
@@ -199,6 +206,25 @@ def run_self_test() -> int:
             raise AssertionError("expected missing help test marker to be reported")
         help_test.write_text(original_help_test, encoding="utf-8")
 
+        kallsyms_test = root / KALLSYMS_TEST
+        original_kallsyms_test = _read(kallsyms_test)
+        kallsyms_test.write_text(
+            original_kallsyms_test.replace(
+                'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_kallsyms_test_marker = validate_root(root)
+        expected_kallsyms_test_marker = (
+            "zigux/tests/phase8_kallsyms.zig:"
+            'test "phase 8 kallsyms evidence still matches the live C helper anchors"'
+        )
+        if expected_kallsyms_test_marker not in missing_kallsyms_test_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms test marker to be reported")
+        kallsyms_test.write_text(original_kallsyms_test, encoding="utf-8")
+
         build_path = root / HELP_KALLSYMS_BUILD
         original_build = _read(build_path)
         build_path.write_text(
@@ -264,7 +290,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
