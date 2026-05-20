@@ -31,6 +31,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit",
         "Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.",
+        "`zigux/tests/phase7_build.zig` needed public blob/raw fallback after the authenticated contents bridge returned `404`, so keep that one path framed as returned shared non-owner evidence without overstating authenticated whole-file coverage.",
         "This slice must stay truthful about the current direct helper path. The readable helper is still rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`.",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
@@ -48,6 +49,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "`zigux/tests/phase7_build.zig`",
         "`scripts/zigux/validate-phase7.py`",
+        "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.",
         "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
@@ -97,7 +99,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -222,6 +224,16 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface."
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_fallback_provenance_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         note_marker = "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
@@ -306,6 +318,16 @@ def run_self_test() -> None:
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_slice_shared_validator_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_marker = "`zigux/tests/phase7_build.zig` needed public blob/raw fallback after the authenticated contents bridge returned `404`, so keep that one path framed as returned shared non-owner evidence without overstating authenticated whole-file coverage."
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_slice_fallback_provenance_marker",
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
         )
