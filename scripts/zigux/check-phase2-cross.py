@@ -24,9 +24,13 @@ MAKEFILE_LINES = (
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+EXPECTED_REVIEW_STATUS_BY_TARGET = {
+    "x86_64-linux": "pinned bootstrap archive",
+    "aarch64-linux": "route contract only",
+}
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -152,8 +156,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("UNSUPPORTED_CROSS_TARGET", target))
         if route != ROUTE:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
+        expected_review_status = EXPECTED_REVIEW_STATUS_BY_TARGET.get(target)
         if not isinstance(review_status, str) or not review_status.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+        elif expected_review_status is not None and review_status != expected_review_status:
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
         if validation_mode not in ALLOWED_VALIDATION_MODES:
             issues.append(("INVALID_CROSS_TARGET_MODE", target))
             continue
@@ -348,6 +355,28 @@ def run_self_test() -> int:
         fixture["cross_targets"][1]["review_status"] = ""
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:review_status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][0]["review_status"] = "route contract only"
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "INVALID_CROSS_TARGET_REVIEW_STATUS",
+            "x86_64-linux:route contract only",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["review_status"] = "pinned bootstrap archive"
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "INVALID_CROSS_TARGET_REVIEW_STATUS",
+            "aarch64-linux:pinned bootstrap archive",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
