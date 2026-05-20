@@ -56,9 +56,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
 )
 
-REQUIRED_REPO_REALITY_GAPS = (
-    "scripts/zigux/check-phase3-catalog-selftest.py",
-)
+REQUIRED_REPO_REALITY_GAPS = ()
 
 REQUIRED_MARKERS = {
     POLICY_NOTE_PATH: (
@@ -87,14 +85,15 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase3.py",
     ),
     SHARED_REMINDER_GAP_PATH: (
-        "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate",
+        "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared tests-root plus scripts-root Phase 3 summaries now reflect those returns while the docs-root Phase 3 reminder still stays narrower",
         "Documentation/zigux/phase3-policy-slice.md",
+        "Documentation/zigux/phase3-validator-support-surface.md",
         "Documentation/zigux/README.md",
         "zigux/tests/README.md",
         "scripts/zigux/README.md",
         "scripts/zigux/phase3_catalog.py",
         "zigux/tests/fixtures/phase3_abi_manifest.json",
-        "PHASE3_SHARED_REMINDER_NEXT_STEP=keep any future same-lane follow-through scoped to scripts/zigux/README.md inventory truthfulness, or rerun the shared-summary reread only if current master changes reopen Phase 3 reminder drift",
+        "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh Documentation/zigux/README.md so the docs-root Phase 3 reminder explicitly carries the returned validator-support, err_ptr/xarray, xarray_slot, and shared catalog companion surfaces without overstating broader shared replay or wider header-family returns",
     ),
     ABI_HEADER_PATH: (
         "#define ZIGUX_PANIC_ABORT 0U",
@@ -160,7 +159,6 @@ REQUIRED_MARKERS = {
         '"zigux/helpers/layout_assert.zig"',
         '"zigux/unsafe/narrow.zig"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
-        '"scripts/zigux/check-phase3-catalog-selftest.py"',
     ),
 }
 
@@ -168,7 +166,7 @@ SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (POLICY_NOTE_PATH, "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`"),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (SHARED_REMINDER_GAP_PATH, "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate"),
+    (SHARED_REMINDER_GAP_PATH, "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared tests-root plus scripts-root Phase 3 summaries now reflect those returns while the docs-root Phase 3 reminder still stays narrower"),
     (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
     (LAYOUT_ASSERT_PATH, "pub fn assertInteropPolicyLayout() LayoutError!void {"),
     (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {"),
@@ -176,7 +174,6 @@ SELF_TEST_CASES = (
     (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {"),
     (TEST_PATH, 'test "unsafe policy starter packet keeps access semantics explicit" {'),
     (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
-    (MANIFEST_PATH, '"scripts/zigux/check-phase3-catalog-selftest.py"'),
 )
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
@@ -351,21 +348,6 @@ def run_self_test() -> int:
         _populate_repo(root)
         manifest_path = root / MANIFEST_PATH
         manifest = json.loads(_read(manifest_path))
-        manifest["repo_reality_gaps"] = []
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(root)
-        expected_missing_gap = (
-            "phase3_policy_starter_packet_manifest.json missing repo_reality_gaps entry: "
-            "scripts/zigux/check-phase3-catalog-selftest.py"
-        )
-        if expected_missing_gap not in issues:
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected repo-reality-gap guard was not reported: {expected_missing_gap}")
-            return 1
-
-        _populate_repo(root)
-        manifest_path = root / MANIFEST_PATH
-        manifest = json.loads(_read(manifest_path))
         manifest["repo_reality_gaps"].append(TEST_PATH.as_posix())
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -379,7 +361,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 3}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 2}")
     return 0
 
 
