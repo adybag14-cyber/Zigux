@@ -212,16 +212,11 @@ def fixture_smoke_note() -> str:
             *ROLLBACK_TRIGGER_MARKERS,
             "  * packet-local command posture preserved by this note:",
             (
-                "    * no current attached-toolchain `make -C zigux phase14-smoke`, "
-                "`make -C zigux phase14-test`, or `make -C zigux phase14` fallback is "
-                "usable from this note, because the readable `zigux/Makefile` body still "
-                "omits those targets even though it now exposes `phase14-validate`"
-            ),
-            (
-                "    * keep those older wrapper names recorded only as historical packet "
-                "vocabulary until the same readback mode restores both the dedicated Phase "
-                "14 build files and the remaining `phase14-*` Makefile targets on current "
-                "`master`"
+                "    * the current readable route layer still stops at `make -C zigux "
+                "phase14-validate`; no current attached-toolchain `make -C zigux "
+                "phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux "
+                "phase14` fallback is usable from this note because the readable "
+                "`zigux/Makefile` body still omits those targets"
             ),
             (
                 "    * `zigux/Makefile` is directly readable again through the current "
@@ -235,7 +230,22 @@ def fixture_smoke_note() -> str:
                 "`phase12-smoke`, `phase12-test`, `phase12`, and `phase14-validate`, but "
                 "no `phase14-smoke`, `phase14-test`, or `phase14` targets"
             ),
-            "    * that means later same-lane follow-through should only touch the smallest shared reminder surface that drifts against this returned Makefile split, not default back to a validator-local exact-line sync or an already-aligned tests-root rewrite",
+            (
+                "    * keep those older wrapper names recorded only as historical packet "
+                "vocabulary until the same exact readback mode restores the broader "
+                "Phase 14 Makefile routes on current `master`"
+            ),
+            (
+                "    * that means later same-lane follow-through should only touch the "
+                "smallest shared reminder surface that drifts against this returned "
+                "Makefile split"
+            ),
+            (
+                "    * that means later same-lane follow-through should only touch the "
+                "smallest shared reminder surface that drifts against this returned "
+                "Makefile split, not default back to a validator-local exact-line sync "
+                "or an already-aligned tests-root rewrite"
+            ),
             "",
         ]
     )
