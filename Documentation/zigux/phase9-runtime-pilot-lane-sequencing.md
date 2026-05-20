@@ -41,12 +41,12 @@ Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 
 Fresh mixed reread now shows the allocator/init-flow packet is back on current `master`, even though the exact authenticated contents-read path still flakes on some of the deeper loader files in this runtime.
 
 - direct build-bundle proof: `zigux/tests/phase9_build.zig` now names `runtime_loader_allocator_init_flow.zig` through the dedicated `phase9-runtime-loader-allocator-init-flow-tests` test and keeps that replay inside the shared `phase9-runtime-bitmap-tests` bundle
-- direct shared-reminder proof: `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep the allocator/init-flow packet explicit again instead of leaving it as purely historical vocabulary
+- direct shared-reminder proof is now split: `Documentation/zigux/README.md` and `zigux/tests/README.md` keep the allocator/init-flow packet explicit again instead of leaving it as purely historical vocabulary, while `scripts/zigux/README.md` still keeps the narrower trace-events-only Phase 9 summary and therefore remains the smallest stale shared reminder surface in this lane
 - direct sample-root proof is still mixed: authenticated reads keep the current sample-root roster narrower, but public-tree fallback rereads do return the four loader scaffolds `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`
 - public-tree fallback also returns the deeper shared loader surfaces `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, and `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 - `scripts/zigux/check-phase9-build-only-surface.py` is part of the current shared packet and already guards the review-first allocator/init-flow bundle rather than a removed wider-family reminder
 
-That means the truthful shared-owner posture is no longer “the broader runtime-loader packet is absent.” The truthful posture is narrower and more useful: the review-first allocator/init-flow packet has returned, but deeper loadable-runtime publication and module-install-root completion still remain blocked.
+That means the truthful shared-owner posture is no longer “the broader runtime-loader packet is absent.” The truthful posture is narrower and more useful: the review-first allocator/init-flow packet has returned, but deeper loadable-runtime publication and module-install-root completion still remain blocked, and the scripts-root Phase 9 reminder is the next smallest stale summary surface rather than current proof of full alignment.
 
 ### 3. The runtime bitmap side is still only partial
 
@@ -91,7 +91,7 @@ This lane should not reopen:
 
 - new runtime behavior based only on stale reminder wording
 - checker growth when the active problem is a stale shared summary
-- backlog promotion of the partial bitmap reminder packet into proof that the deeper bitmap family returned
+- backlog promotion of the partial runtime bitmap reminder packet into proof that the deeper bitmap family returned
 - blocked publication or install-root completion claims that the returned allocator/init-flow packet still does not prove
 
 Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.
@@ -102,8 +102,8 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 
 ## Recommended next-step order
 
-1. Re-read the smallest shared reminder surfaces that still deny the returned allocator/init-flow packet and trim one stale undercount at a time.
-2. Prefer `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, or another single shared reminder surface only after a fresh exact reread confirms the same mixed-source packet shape.
+1. Re-read `scripts/zigux/README.md` first, because it is now the smallest stale shared reminder surface still denying the returned allocator/init-flow packet.
+2. After that, prefer `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, or another single shared reminder surface only after a fresh exact reread confirms the same mixed-source packet shape.
 3. If the still-missing bitmap loader, module, diff, and manifest legs return later, widen the bitmap-side reminder packet only after the trusted direct read path returns those exact files.
 4. If the blocked publication or install-root surfaces return later, widen this note only after an exact reread proves those deeper loader-family files too.
 
