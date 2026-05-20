@@ -23,6 +23,7 @@ COMPANION_REQUIRED_MARKERS = (
     "`Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`",
     "`Documentation/zigux/phase10-virtio-ring-survey.md`",
     "`zigux/tests/phase10_virtio_ring_survey.zig`",
+    "the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
@@ -121,6 +122,8 @@ The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
 Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.
+
+Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.
 
 Tests-root reviewer prompt:
 - keep the blocked risky-transport posture explicit
@@ -264,8 +267,20 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
     else:
         raise AssertionError("expected missing returned core replay marker failure")
 
+    bad_ring_companion = good_companion.replace(
+        "Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.",
+        "Keep the public current-`master` `zigux/tests/phase10_virtio_ring_missing.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.",
+        1,
+    )
+    try:
+        check_companion_text(bad_ring_companion)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing returned broader ring companion marker failure")
+
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
