@@ -72,6 +72,14 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-bootstrap.py",
 )
 
+REQUIRED_WORKFLOW_STEP_SEQUENCE = (
+    "Compile current scripts",
+    "Self-test current Zig toolchain checker",
+    "Check current Zig toolchain policy packet",
+    "Check current pinned Zig archive packet",
+    "Self-test current Lane 05 local-first archive checker",
+)
+
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
@@ -107,6 +115,61 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
+
+def replace_step_name(text: str, marker: str, replacement: str) -> str:
+    return replace_exact_line(text, f"- name: {marker}", f"      - name: {replacement}")
+
+
+def duplicate_step_name(text: str, marker: str) -> str:
+    return duplicate_exact_line(text, f"- name: {marker}")
+
+
+def swap_step_names(text: str, first: str, second: str) -> str:
+    first_marker = f"- name: {first}"
+    second_marker = f"- name: {second}"
+    lines = text.splitlines()
+    first_index: int | None = None
+    second_index: int | None = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == first_marker and first_index is None:
+            first_index = index
+        elif stripped == second_marker and second_index is None:
+            second_index = index
+    if first_index is None or second_index is None:
+        raise AssertionError(f"step markers not found: {first}, {second}")
+    lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
+    return "\n".join(lines) + "\n"
+
+
+def insert_step_after(text: str, anchor_step: str, new_step_name: str, new_run: str) -> str:
+    lines = text.splitlines()
+    anchor = f"- name: {anchor_step}"
+    for index, line in enumerate(lines):
+        if line.strip() != anchor:
+            continue
+        insert_at = index + 1
+        while insert_at < len(lines):
+            stripped = lines[insert_at].strip()
+            if stripped.startswith("- name: "):
+                break
+            insert_at += 1
+        lines[insert_at:insert_at] = [
+            f"      - name: {new_step_name}",
+            f"        run: {new_run}",
+        ]
+        return "\n".join(lines) + "\n"
+    raise AssertionError(f"step marker not found: {anchor_step}")
+
+
+def collect_step_names(text: str) -> list[str]:
+    names: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- name: "):
+            names.append(stripped.removeprefix("- name: ").strip())
+    return names
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -149,6 +212,34 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    step_names = collect_step_names(workflow)
+    step_indices: list[int] = []
+    for marker in REQUIRED_WORKFLOW_STEP_SEQUENCE:
+        count = step_names.count(marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_STEP", marker))
+            continue
+        if count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_STEP", f"{marker}:count={count}"))
+            continue
+        step_indices.append(step_names.index(marker))
+
+    if len(step_indices) == len(REQUIRED_WORKFLOW_STEP_SEQUENCE):
+        if step_indices != sorted(step_indices):
+            issues.append(
+                (
+                    "MISORDERED_WORKFLOW_STEP_SEQUENCE",
+                    " -> ".join(REQUIRED_WORKFLOW_STEP_SEQUENCE),
+                )
+            )
+        elif any(current - previous != 1 for previous, current in zip(step_indices, step_indices[1:])):
+            issues.append(
+                (
+                    "NONCONTIGUOUS_WORKFLOW_STEP_SEQUENCE",
+                    " -> ".join(REQUIRED_WORKFLOW_STEP_SEQUENCE),
+                )
+            )
 
     return issues
 
@@ -266,7 +357,37 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
     write_text(root, "zigux/tests/README.md", "present\n")
-    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
+    write_text(
+        root,
+        WORKFLOW,
+        "\n".join(
+            (
+                "name: zigux-bootstrap",
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Compile current scripts",
+                "        run: python3 -m py_compile scripts/zigux/*.py",
+                "      - name: Self-test current Zig toolchain checker",
+                f"        {REQUIRED_WORKFLOW_LINES[0]}",
+                "      - name: Check current Zig toolchain policy packet",
+                f"        {REQUIRED_WORKFLOW_LINES[1]}",
+                "      - name: Check current pinned Zig archive packet",
+                f"        {REQUIRED_WORKFLOW_LINES[2]}",
+                "      - name: Self-test current Lane 05 local-first archive checker",
+                "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+                "      - name: Self-test current Lane 01 bootstrap charter checker",
+                f"        {REQUIRED_WORKFLOW_LINES[3]}",
+                "      - name: Check current Lane 01 bootstrap charter packet",
+                f"        {REQUIRED_WORKFLOW_LINES[4]}",
+                "      - name: Self-test current bootstrap validator",
+                f"        {REQUIRED_WORKFLOW_LINES[5]}",
+                "      - name: Check current bootstrap validator packet",
+                f"        {REQUIRED_WORKFLOW_LINES[6]}",
+            )
+        )
+        + "\n",
+    )
 
 
 def run_self_test() -> int:
@@ -320,7 +441,7 @@ def run_self_test() -> int:
             replace_exact_line(
                 read_text(root, WORKFLOW),
                 REQUIRED_WORKFLOW_LINES[-1],
-                "run: python3 scripts/zigux/other.py",
+                "        run: python3 scripts/zigux/other.py",
             ),
         )
         assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[-1]) in collect_issues(root)
@@ -334,6 +455,57 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-zig-toolchain.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-zig-toolchain.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        workflow = swap_step_names(
+            read_text(root, WORKFLOW),
+            "Check current Zig toolchain policy packet",
+            "Check current pinned Zig archive packet",
+        )
+        write_text(root, WORKFLOW, workflow)
+        assert (
+            "MISORDERED_WORKFLOW_STEP_SEQUENCE",
+            " -> ".join(REQUIRED_WORKFLOW_STEP_SEQUENCE),
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            insert_step_after(
+                read_text(root, WORKFLOW),
+                "Check current pinned Zig archive packet",
+                "Unrelated drift step",
+                "python3 scripts/zigux/unrelated.py",
+            ),
+        )
+        assert (
+            "NONCONTIGUOUS_WORKFLOW_STEP_SEQUENCE",
+            " -> ".join(REQUIRED_WORKFLOW_STEP_SEQUENCE),
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_step_name(
+                read_text(root, WORKFLOW),
+                "Compile current scripts",
+                "Compile some other scripts",
+            ),
+        )
+        assert ("MISSING_WORKFLOW_STEP", "Compile current scripts") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, WORKFLOW, duplicate_step_name(read_text(root, WORKFLOW), "Self-test current Lane 05 local-first archive checker"))
+        assert (
+            "DUPLICATE_WORKFLOW_STEP",
+            "Self-test current Lane 05 local-first archive checker:count=2",
+        ) in collect_issues(root)
         checks += 1
 
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
@@ -359,6 +531,7 @@ def main() -> int:
     print("BOOTSTRAP_VALIDATION=pass")
     print(f"BOOTSTRAP_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"BOOTSTRAP_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"BOOTSTRAP_WORKFLOW_STEP_SEQUENCE_COUNT={len(REQUIRED_WORKFLOW_STEP_SEQUENCE)}")
     return 0
 
 
