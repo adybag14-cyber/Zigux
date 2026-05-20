@@ -71,6 +71,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
     "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: make -C zigux phase2-fixdep",
     "run: zig test scripts/zigux/fixdep.zig",
 )
 
