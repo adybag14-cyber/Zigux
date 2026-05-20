@@ -209,6 +209,12 @@ TESTS_README_MARKERS = (
     "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
 )
 
+SCRIPTS_README_MARKERS = (
+    "`scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`",
+    "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
+    "current `master` keeps the broader Phase 4 validator, build, and bitmap replay companions in a split-readback state rather than the missing bucket: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap in authenticated contents reads in this runtime, but public raw fallback rereads return those files on current `master`, so keep them explicit as now-returned companions while exact authenticated blob-pin refresh remains pending",
+)
+
 COUNT_MARKERS = (
     ("PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT", EXPECTED_TARGET_COUNT),
     ("PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT", EXPECTED_SELF_TEST_CASE_COUNT),
@@ -226,7 +232,7 @@ MUTATIONS: list[tuple[str, str, str, Path | None]] = [
     ("phase9_build_manifest_blob_pin_drift", "`PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`", "`PHASE4_BUILD_BLOB_SHA=1111111111111111111111111111111111111111`", NOTE),
     ("phase9_build_survey_blob_pin_drift", "`PHASE4_WORKFLOW_BLOB_SHA=a4aad5b4904fb2d68f63921dc7693eea94f80780`", "`PHASE4_WORKFLOW_BLOB_SHA=2222222222222222222222222222222222222222`", NOTE),
     ("doc_readme_blob_pin_drift", "9d0cab0cd4d06641176eb476759d2ad8dd718f95", "dddddddddddddddddddddddddddddddddddddddd", NOTE),
-    ("script_readme_blob_pin_drift", "131c6315fc23f72576f0a60b2cb7ff1b6b59f492", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", NOTE),
+    ("script_readme_blob_pin_drift", SCRIPTS_README_MARKERS[1], "scripts README drift", SCRIPTS_README),
     ("tests_readme_blob_pin_drift", "12241316c04389c56aa4058ab0308431fbe431e8", "ffffffffffffffffffffffffffffffffffffffff", NOTE),
     ("atomic64_diff_blob_pin_drift", "e84bf84b5e24428d596fe25502512fa24ce28b51", "9999999999999999999999999999999999999999", NOTE),
     ("review_checklist_blob_pin_drift", "fd5608046518c5c726a130a5ff11625fbe5e2fe5", "8888888888888888888888888888888888888888", NOTE),
@@ -390,9 +396,10 @@ def build_fixture_tree(root: Path) -> None:
     write_text(root / MAKEFILE, "phase4-validate:\n\tscripts/zigux/check-phase4-gate-evidence.py\n\tscripts/zigux/check-phase4-remaining-gap-matrix.py\nphase4-kprobe-example-survey:\nphase4-test-fsmount-survey:\nphase4-perf-baseline-survey:\n")
     write_text(root / WORKFLOW, "\n".join(WORKFLOW_MARKERS) + "\n")
     write_text(root / REVIEW_CHECKLIST, "\n".join(CHECKLIST_MARKERS) + "\n")
+    write_text(root / SCRIPTS_README, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(root / TESTS_README, "\n".join(TESTS_README_MARKERS) + "\n")
     for rel in required_files():
-        if rel in {NOTE, MATRIX, MAKEFILE, WORKFLOW, REVIEW_CHECKLIST, TESTS_README}:
+        if rel in {NOTE, MATRIX, MAKEFILE, WORKFLOW, REVIEW_CHECKLIST, SCRIPTS_README, TESTS_README}:
             continue
         write_text(root / rel, "placeholder\n")
 
@@ -416,6 +423,7 @@ def validate_root(root: Path) -> list[str]:
     require_markers(read_text(root / MAKEFILE), ("phase4-validate:", "phase4-kprobe-example-survey:", "phase4-test-fsmount-survey:", "phase4-perf-baseline-survey:"), "makefile", missing)
     require_markers(read_text(root / WORKFLOW), WORKFLOW_MARKERS, "workflow", missing)
     require_markers(read_text(root / REVIEW_CHECKLIST), CHECKLIST_MARKERS, "checklist", missing)
+    require_markers(read_text(root / SCRIPTS_README), SCRIPTS_README_MARKERS, "scripts_readme", missing)
     require_markers(read_text(root / TESTS_README), TESTS_README_MARKERS, "tests_readme", missing)
     return missing
 
