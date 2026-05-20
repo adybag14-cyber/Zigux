@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 82
+EXPECTED_SELF_TEST_CASE_COUNT = 92
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -476,6 +476,16 @@ def assert_system_exit_contains(callback, expected_fragment: str) -> None:
     raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
 
 
+def assert_run_checker_note_contains(root: Path, expected_fragment: str) -> None:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        exit_code = run_checker(root)
+    output = stdout.getvalue()
+    assert exit_code == 1, output
+    assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output, output
+    assert f"PHASE2_TOOL_MANIFEST_PACKETS_NOTE={expected_fragment}" in output, output
+
+
 def run_checker(root: Path) -> int:
     try:
         issues = collect_issues(root)
@@ -825,23 +835,40 @@ def run_self_test() -> int:
         assert_system_exit_contains(lambda: collect_issues(root), "manifest is not an object:")
         checks_run += 1
 
+        for path in (CLOSURE_DOC, BOOTSTRAP_NOTES, PHASE2_VALIDATOR, PHASE2_CLOSURE_VALIDATOR):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert_run_checker_note_contains(root, "required file missing:")
+            checks_run += 1
+
+            build_self_test_root(root)
+            unreadable = resolve_path(root, path)
+            unreadable.unlink()
+            unreadable.mkdir(parents=True)
+            assert_run_checker_note_contains(root, "required file unreadable:")
+            unreadable.rmdir()
+            checks_run += 1
+
         build_self_test_root(root)
-        unreadable = resolve_path(root, CLOSURE_DOC)
-        unreadable.unlink()
-        unreadable.mkdir(parents=True)
-        result, output = capture_run_checker(root)
-        assert result == 1
-        assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output
-        assert "PHASE2_TOOL_MANIFEST_PACKETS_NOTE=required file unreadable:" in output
-        unreadable.rmdir()
+        resolve_path(root, MANIFEST).unlink()
+        assert_run_checker_note_contains(root, "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
+        resolve_path(root, MANIFEST).mkdir(parents=True)
+        assert_run_checker_note_contains(root, "manifest is unreadable:")
+        resolve_path(root, MANIFEST).rmdir()
         checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, "{\n")
-        result, output = capture_run_checker(root)
-        assert result == 1
-        assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output
-        assert "PHASE2_TOOL_MANIFEST_PACKETS_NOTE=manifest is not valid json:" in output
+        assert_run_checker_note_contains(root, "manifest is not valid json:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "[]\n")
+        assert_run_checker_note_contains(root, "manifest is not an object:")
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
