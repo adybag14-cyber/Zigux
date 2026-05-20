@@ -57,9 +57,12 @@ REQUIRED_MARKERS = {
         "pub fn compareExchangeStrong(",
         "pub fn compareExchangeWeak(",
         "pub fn fetchAdd(",
+        "pub fn fetchSub(",
         "pub fn fetchNand(",
         "pub fn fetchOr(",
         "pub fn fetchAnd(",
+        "pub fn fetchXor(",
+        "pub fn fetchMin(",
     ),
     BARRIER_PATH: (
         "pub fn compiler() void {",
