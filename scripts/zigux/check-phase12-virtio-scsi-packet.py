@@ -301,6 +301,21 @@ def run_self_test() -> int:
             "missing survey-manifest status",
         )
 
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / MAKEFILE_PATH,
+            good_makefile_text().replace(
+                MAKEFILE_MARKERS[2] + "\n",
+                "",
+                1,
+            ),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            MAKEFILE_MARKERS[2],
+            "missing makefile aggregate route",
+        )
+
         expect_contains(
             check(tmp_root, source_text="PHASE12_CHECK_PACKET=broken"),
             "checker marker missing from checker source",
@@ -310,7 +325,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
