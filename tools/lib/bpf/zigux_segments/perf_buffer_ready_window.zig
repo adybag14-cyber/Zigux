@@ -13,6 +13,24 @@ pub fn resolveReadyBufferWindowMappedSizeAtAttempt(
     return perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(buffer_windows, buffer_index);
 }
 
+pub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt(
+    buffers: []const perf_buffer_poll.BufferObservation,
+    buffer_windows: []const ?perf_buffer_poll.BufferWindowObservation,
+    attempt_index: usize,
+) i32 {
+    const mapped_size = resolveReadyBufferWindowMappedSizeAtAttempt(
+        buffers,
+        buffer_windows,
+        attempt_index,
+    ) catch |err| return switch (err) {
+        error.MissingReadyBuffer => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        error.InvalidIndex => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        error.MissingWindow => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    };
+    return std.math.cast(i32, mapped_size) orelse
+        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW));
+}
+
 pub fn resolveReadyBufferWindowLookupReturnAtAttempt(
     buffers: []const perf_buffer_poll.BufferObservation,
     buffer_windows: []const ?perf_buffer_poll.BufferWindowObservation,
@@ -68,6 +86,63 @@ test "phase8 perf-buffer ready-window helper resolves ready-buffer windows witho
     try std.testing.expectError(
         error.MissingWindow,
         resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &missing_window, 1),
+    );
+}
+
+test "phase8 perf-buffer ready-window helper keeps mapped-size returns errno-shaped and overflow-aware" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(i32, 4096),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 8192),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &missing_window, 1),
+    );
+
+    const overflow_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = @as(usize, std.math.maxInt(i32)) + 1 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
+        resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &overflow_windows, 0),
     );
 }
 
