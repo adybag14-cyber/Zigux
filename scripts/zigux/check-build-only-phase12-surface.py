@@ -128,7 +128,7 @@ REQUIRED_MARKERS = {
         "smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
         "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
-        "test_step.dependOn(&run_virtio_net_post_RESET_REPLAY_tests.step);",
+        "test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
         "test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
     ],
     WORKFLOW_PATH: [
