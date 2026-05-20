@@ -176,6 +176,8 @@ Keep the approved Phase 5 in-memory ownership-and-lifetime idiom reviewable from
 * the initialized-but-not-registered zero-active-attributes boundary stays explicit through `runPreRegistrationBoundaryReplay()` instead of dissolving into broader lifecycle prose
 * `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited snapshots plus the active-attribute-count progression visible from contributor-facing guidance
 * the unnamed attribute-group shape, shared `baz`/`bar` dispatch, and the registered replay packet stay reviewable without reopening runtime-substrate claims
+* `samples/zigux/kobject_example_attr_group_contract.zig` keeps the bounded `foo`/`baz`/`bar` attribute-group contract, the shared `0664` mode cue, the unnamed-group marker, and the NULL-terminated attribute-list slot explicit without turning that companion into a fifth Phase 5 sample
+* `zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains shared public-tree-backed companion evidence
 * keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet
 
 Keep the non-goal boundary equally explicit here:
