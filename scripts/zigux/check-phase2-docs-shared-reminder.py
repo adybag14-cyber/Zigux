@@ -24,7 +24,7 @@ PHASE2_NOTES_MARKERS = (
     "`scripts/zigux/install-zig.py` is directly readable on current `master`",
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master`",
     "`third_party/README.md` is directly readable on current `master`",
-    "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL` from `scripts/zigux/zig-toolchain-policy.json`, tries `community-mirrors.txt` before the direct Zig download URL, and reruns `python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"` inside each install attempt so the pinned bootstrap setup path stays reviewable at the same policy-driven boundary as the later reminder hooks.",
+    "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL` from `scripts/zigux/zig-toolchain-policy.json`, tries `community-mirrors.txt` before the direct Zig download URL, and reruns `python3 scripts/zigux/check-zig-toolchain.py --zig \\\"$zig_path\\\"` inside each install attempt so the pinned bootstrap setup path stays reviewable at the same policy-driven boundary as the later reminder hooks.",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`",
@@ -44,6 +44,13 @@ PHASE2_NOTES_MARKERS = (
     "`make -C zigux phase2-cross`",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, or returned fixdep packet on current `master`.",
     "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness, local-first archive workflow truthfulness, third_party archive README truthfulness",
+    "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, fixdep governance and parity packet, and make-wrapper-backed toolchain plus direct-cross route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
+)
+
+PHASE2_NOTES_EXACT_COUNT_MARKERS = (
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL` from `scripts/zigux/zig-toolchain-policy.json`, tries `community-mirrors.txt` before the direct Zig download URL, and reruns `python3 scripts/zigux/check-zig-toolchain.py --zig \\\"$zig_path\\\"` inside each install attempt so the pinned bootstrap setup path stays reviewable at the same policy-driven boundary as the later reminder hooks.",
     "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, fixdep governance and parity packet, and make-wrapper-backed toolchain plus direct-cross route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
 )
 
@@ -115,6 +122,13 @@ REVIEW_CHECKLIST_MARKERS = (
     "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
 
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "current directly readable Phase 2 local-first archive, toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, tool-manifest, artifact-support, fixdep, genksyms-bridge, and required-make-route packet",
+    "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
+)
+
 REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
     "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "current rematerialized Phase 2 closure-side, closure-validator, validation, artifact-support, toolchain self-check, and make-wrapper packet",
@@ -172,6 +186,15 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
     return [(code, marker) for marker in markers if marker in text]
 
 
+def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append((code, f"{count}::{marker}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     phase2_notes_text = read_text(resolve_path(root, PHASE2_NOTES))
@@ -182,6 +205,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             phase2_notes_text,
             PHASE2_NOTES_MARKERS,
             "MISSING_PHASE2_NOTES_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_count_markers(
+            phase2_notes_text,
+            PHASE2_NOTES_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_PHASE2_NOTES_MARKERS",
         )
     )
     issues.extend(
@@ -196,6 +226,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             review_checklist_text,
             REVIEW_CHECKLIST_MARKERS,
             "MISSING_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_count_markers(
+            review_checklist_text,
+            REVIEW_CHECKLIST_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_REVIEW_CHECKLIST_MARKERS",
         )
     )
     issues.extend(
@@ -257,8 +294,10 @@ def run_self_test() -> int:
     expected_case_count = (
         1
         + len(PHASE2_NOTES_MARKERS)
+        + len(PHASE2_NOTES_EXACT_COUNT_MARKERS)
         + len(PHASE2_NOTES_FORBIDDEN_MARKERS)
         + len(REVIEW_CHECKLIST_MARKERS)
+        + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)
         + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(SCRIPTS_README_FORBIDDEN_MARKERS)
@@ -278,6 +317,14 @@ def run_self_test() -> int:
             assert ("MISSING_PHASE2_NOTES_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in PHASE2_NOTES_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_NOTES)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_PHASE2_NOTES_MARKERS", f"2::{marker}") in issues
+            checks_run += 1
+
         for marker in PHASE2_NOTES_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, PHASE2_NOTES)
@@ -292,6 +339,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_REVIEW_CHECKLIST_MARKERS", f"2::{marker}") in issues
             checks_run += 1
 
         for marker in REVIEW_CHECKLIST_FORBIDDEN_MARKERS:
@@ -355,6 +410,10 @@ def main() -> int:
     print(
         "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
         f"{len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+    )
+    print(
+        "PHASE2_DOCS_SHARED_REMINDER_EXACT_COUNT_MARKER_COUNT="
+        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
