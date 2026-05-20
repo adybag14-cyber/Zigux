@@ -10,7 +10,7 @@
   ],
   "survey_summary": {
     "dw_wdt_c_lines": 701,
-    "preexisting_phase11_build_present": true,
+    "preexisting_phase11_build_present": false,
     "preexisting_phase11_gpio_lane_present": true,
     "preexisting_phase11_bcm2835_lane_present": true,
     "dw_wdt_zig_present": true,
@@ -26,10 +26,10 @@
   "gaps": [
     {
       "id": "phase11-build-gate",
-      "status": "starter_landed",
+      "status": "shared_gap_current_head",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "The shared Phase 11 build route still keeps the current DesignWare starter, the direct replay, the teardown-parity replay, and the bounded platform-registration scaffold visible beside the other simple-driver surfaces."
+      "why_now": "The older shared Phase 11 build route no longer reads back on current `master`, while `zigux/tests/fixtures/phase11_build_inventory.json` now keeps only the HVC adjunct proof trio. The DesignWare packet should therefore track `zigux/tests/phase11_build.zig` as a current-head shared gap instead of overstating it as a landed live replay."
     },
     {
       "id": "phase11-dw-wdt-survey-gate",
