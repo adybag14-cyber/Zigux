@@ -122,6 +122,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(helper_tests, "phase 7 string helpers starter reports parse-int-array allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
