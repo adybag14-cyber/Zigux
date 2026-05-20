@@ -91,3 +91,41 @@ test "phase11 gpio watchdog keeps register-device failure summary tied to the sa
     try std.testing.expect(summary.blocked_on_reboot_glue);
     try std.testing.expect(summary.keeps_runtime_reviewable);
 }
+
+test "phase11 gpio watchdog keeps remove-handoff teardown reviewable without live unregister behavior" {
+    var stoppable_stop = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    _ = try stoppable_stop.start();
+    const stop_summary = stoppable_stop.requestStop(false);
+
+    var stoppable_teardown = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    _ = try stoppable_teardown.start();
+    const failure_summary = stoppable_teardown.registerDeviceFailureSummary(false);
+    const teardown = stoppable_teardown.summarizeTeardown(false);
+
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, stop_summary.disposition);
+    try std.testing.expect(stop_summary.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stop_summary.driver_stop_invoked);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", failure_summary.failure_stage);
+    try std.testing.expect(teardown.request_stop_reviewable);
+    try std.testing.expect(teardown.register_device_failure_reviewable);
+    try std.testing.expect(teardown.reboot_glue_checkpoint_reviewable);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, teardown.stop_disposition);
+    try std.testing.expect(teardown.line_state);
+    try std.testing.expect(!teardown.line_is_output);
+    try std.testing.expectEqual(@as(usize, 1), teardown.disable_count);
+
+    var guarded = try gpio_wdt.GpioWatchdogLab.init(.level, 400, true);
+    _ = try guarded.start();
+    const guarded_stop = guarded.requestStop(true);
+    const guarded_teardown = guarded.summarizeTeardown(true);
+
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, guarded_stop.disposition);
+    try std.testing.expect(!guarded_stop.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!guarded_stop.driver_stop_invoked);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, guarded_teardown.stop_disposition);
+    try std.testing.expect(guarded_teardown.line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), guarded_teardown.disable_count);
+    try std.testing.expect(guarded_teardown.request_stop_reviewable);
+    try std.testing.expect(guarded_teardown.register_device_failure_reviewable);
+    try std.testing.expect(guarded_teardown.reboot_glue_checkpoint_reviewable);
+}
