@@ -89,6 +89,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge keeps only the last assignment for duplicate symbols",
     "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
     "confdata bridge keeps only the last state across unset and set transitions",
+    "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
     "confdata bridge releases appended entry ownership on index-allocation failure",
 ]
 
@@ -776,7 +777,6 @@ def build_self_test_root(root: Path) -> None:
         "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
-
 
 def run_self_test() -> int:
     checks_run = 0
