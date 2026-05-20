@@ -97,11 +97,13 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_anchor`");
     try expectContains(slice_note, "`PHASE7_SLICE=cmdline-runtime-leaf`");
+    try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L10`");
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.");
     try expectContains(slice_note, "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.");
 
     try expectContains(sequencing_note, "- cmdline packet, lane `P7-L10`:");
     try expectContains(sequencing_note, "  - `Documentation/zigux/phase7-cmdline-slice.md`");
+    try expectContains(sequencing_note, "  - `samples/zigux/README.md`");
     try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`");
     try expectContains(sequencing_note, "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;");
 
@@ -129,6 +131,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectStringSliceContains(manifest.ownership_focus, "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior");
     try expectStringSliceContains(manifest.ownership_focus, "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary");
     try expectStringSliceContains(manifest.ownership_focus, "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership");
+    try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders");
     try expectContains(manifest.next_bounded_step, "helper-local survey-manifest-checker truthfulness packet");
     try expectContains(manifest.next_bounded_step, "bounded parsing replay proof");
 
