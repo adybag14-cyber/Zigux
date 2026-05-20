@@ -476,7 +476,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_self_test_root = base / "optional_self_test"
-        build_sampleRepo(optional_self_test_root)
+        build_sample_repo(optional_self_test_root)
         build_stub_script(
             optional_self_test_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
             self_test_exit=1,
