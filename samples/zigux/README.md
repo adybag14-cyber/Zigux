@@ -9,6 +9,7 @@ Fresh mixed readback on 2026-05-20 confirmed these current sample-root files on 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
+* `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_bitmap.zig`
@@ -35,6 +36,8 @@ Keep that kobject packet framed as the approved in-memory ownership-and-lifetime
 * `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited lifecycle cues explicit
 * keep the initialized-only `abandoned_before_registration` exit split distinct from the registered `tore_down_registered_attributes` teardown path
 * keep sysfs file creation, `kernel_kobj` integration, uevents, and module registration out of scope
+
+Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.zig` as a bounded kobject companion. Keep that file framed as reviewability help for the current `foo`/`baz`/`bar` attribute-group contract, `0664` modes, unnamed-group cue, and NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.
 
 Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.
 
