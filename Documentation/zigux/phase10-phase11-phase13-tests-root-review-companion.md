@@ -82,6 +82,8 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-devres-slice.md`
@@ -113,8 +115,6 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
