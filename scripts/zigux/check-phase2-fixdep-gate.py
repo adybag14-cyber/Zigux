@@ -106,6 +106,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
+    + 5
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -162,18 +163,48 @@ def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
     if not isinstance(raw_cases, list):
         return [("INVALID_FIXDEP_CASES_JSON", path.as_posix())]
 
-    seen_names = {
-        name
-        for case in raw_cases
-        for name in [case.get("name") if isinstance(case, dict) else None]
-        if isinstance(name, str) and name
-    }
+    issues: list[tuple[str, str]] = []
+    actual_names: list[str] = []
+    seen_names: set[str] = set()
+    duplicate_names: set[str] = set()
 
-    return [
+    for index, raw_case in enumerate(raw_cases):
+        if not isinstance(raw_case, dict):
+            issues.append(("INVALID_FIXDEP_CASE_ENTRY", f"index={index}:type={type(raw_case).__name__}"))
+            continue
+
+        name = raw_case.get("name")
+        if not isinstance(name, str) or not name:
+            issues.append(("INVALID_FIXDEP_CASE_NAME", f"index={index}:name={name!r}"))
+            continue
+
+        actual_names.append(name)
+        if name in seen_names:
+            duplicate_names.add(name)
+        else:
+            seen_names.add(name)
+
+        if name not in REQUIRED_FIXDEP_CASE_NAMES:
+            issues.append(("UNEXPECTED_FIXDEP_CASE", name))
+
+    for name in sorted(duplicate_names):
+        issues.append(("DUPLICATE_FIXDEP_CASE", name))
+
+    expected_names = list(REQUIRED_FIXDEP_CASE_NAMES)
+    if actual_names != expected_names:
+        issues.append(
+            (
+                "FIXDEP_CASE_ORDER_MISMATCH",
+                f"actual={actual_names!r}:expected={expected_names!r}",
+            )
+        )
+
+    issues.extend(
         ("MISSING_FIXDEP_CASE", name)
         for name in REQUIRED_FIXDEP_CASE_NAMES
         if name not in seen_names
-    ]
+    )
+    return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -417,6 +448,51 @@ def run_self_test() -> int:
             path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
             assert ("MISSING_FIXDEP_CASE", name) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        cases = json.loads(path.read_text(encoding="utf-8"))
+        cases[1]["name"] = cases[0]["name"]
+        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_FIXDEP_CASE", REQUIRED_FIXDEP_CASE_NAMES[0]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        cases = json.loads(path.read_text(encoding="utf-8"))
+        cases[0]["name"] = "unexpected_fixdep_case"
+        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("UNEXPECTED_FIXDEP_CASE", "unexpected_fixdep_case") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        cases = json.loads(path.read_text(encoding="utf-8"))
+        cases[0], cases[1] = cases[1], cases[0]
+        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(code == "FIXDEP_CASE_ORDER_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        cases = json.loads(path.read_text(encoding="utf-8"))
+        cases[0] = "broken"
+        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_FIXDEP_CASE_ENTRY", "index=0:type=str") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        cases = json.loads(path.read_text(encoding="utf-8"))
+        cases[0]["name"] = ""
+        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''" ) in issues
+        checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
             build_self_test_root(root)
