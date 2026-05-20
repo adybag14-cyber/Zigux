@@ -97,6 +97,20 @@ pub fn assertHListNodeLayout() LayoutError!void {
     try expectFieldLayout(abi.HListNode, "pprev", @sizeOf(usize));
 }
 
+pub fn assertListBackLinkBreakLayout() LayoutError!void {
+    try expectLayout(abi.ListBackLinkBreak, @sizeOf(usize) * 3, @alignOf(usize));
+    try expectFieldLayout(abi.ListBackLinkBreak, "current_index", 0);
+    try expectFieldLayout(abi.ListBackLinkBreak, "expected_prev", @sizeOf(usize));
+    try expectFieldLayout(abi.ListBackLinkBreak, "actual_prev", @sizeOf(usize) * 2);
+}
+
+pub fn assertHListPrevLinkBreakLayout() LayoutError!void {
+    try expectLayout(abi.HListPrevLinkBreak, @sizeOf(usize) * 3, @alignOf(usize));
+    try expectFieldLayout(abi.HListPrevLinkBreak, "current_index", 0);
+    try expectFieldLayout(abi.HListPrevLinkBreak, "expected_pprev", @sizeOf(usize));
+    try expectFieldLayout(abi.HListPrevLinkBreak, "actual_pprev", @sizeOf(usize) * 2);
+}
+
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 12, 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window", 0);
@@ -134,6 +148,8 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
     try assertListHeadLayout();
     try assertHListHeadLayout();
     try assertHListNodeLayout();
+    try assertListBackLinkBreakLayout();
+    try assertHListPrevLinkBreakLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
