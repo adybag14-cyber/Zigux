@@ -10,9 +10,11 @@ from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-gate-evidence.md")
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+DOCS_README = Path("Documentation/zigux/README.md")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
 REVERSIBLE_NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 SEQUENCING_NOTE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
@@ -22,6 +24,7 @@ ARTIFACT_DIFF_CONTRACT = Path("scripts/zigux/check-artifact-diff-contract.py")
 ARTIFACT_DIFF_DETERMINISM = Path("scripts/zigux/check-phase4-artifact-diff-determinism.py")
 VALIDATOR = Path("scripts/zigux/validate-phase4.py")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
+ATOMIC64_DIFF = Path("zigux/tests/atomic64_diff.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 BITMAP_MANIFEST = Path("zigux/tests/phase4_bitmap_diff_manifest.json")
@@ -38,7 +41,7 @@ TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 SELF = Path("scripts/zigux/check-phase4-gate-evidence.py")
 
 EXPECTED_TARGET_COUNT = 19
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 49
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -53,6 +56,8 @@ SELF_TEST_CASES = [
     "doc_readme_blob_pin_drift",
     "script_readme_blob_pin_drift",
     "tests_readme_blob_pin_drift",
+    "atomic64_diff_blob_pin_drift",
+    "review_checklist_blob_pin_drift",
     "gate_evidence_self_test_case_count_drift",
     "gate_evidence_self_test_cases_drift",
     "shared_validator_reruns_gate_evidence_check_drift",
@@ -83,6 +88,9 @@ SELF_TEST_CASES = [
     "missing_perf_survey_file",
     "missing_kprobe_manifest_file",
     "missing_test_fsmount_survey_file",
+    "missing_doc_readme_file",
+    "missing_script_readme_file",
+    "missing_atomic64_diff_file",
     "missing_note_file",
 ]
 
@@ -99,21 +107,23 @@ NOTE_MARKERS = (
     "`PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=5173368ba7f69587f6839931b380f1e77c456933`",
     "`PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=dd06e9c054396d39fe0bd7136ece0b2728f2cc9d`",
     "`PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`",
-    "`PHASE4_MAKEFILE_BLOB_SHA=7f0f4cab8042ae95cb52834691a2ffac7a847a6a`",
+    "`PHASE4_MAKEFILE_BLOB_SHA=dad92428ad0145c9b465d1395e8ef79c7459f1d3`",
     "`PHASE4_WORKFLOW_BLOB_SHA=a4aad5b4904fb2d68f63921dc7693eea94f80780`",
-    "`PHASE4_DOC_README_BLOB_SHA=b19f58c82eeeacad6156c6fc3a398c52d8a546fa`",
-    "`PHASE4_SCRIPT_README_BLOB_SHA=5acd6b1fd9db70bce8bd152194a58aab2c184eae`",
-    "`PHASE4_TESTS_README_BLOB_SHA=f2c6e213e20aa738914dd42abe76bd45e61cbc6a`",
+    "`PHASE4_DOC_README_BLOB_SHA=9d0cab0cd4d06641176eb476759d2ad8dd718f95`",
+    "`PHASE4_SCRIPT_README_BLOB_SHA=131c6315fc23f72576f0a60b2cb7ff1b6b59f492`",
+    "`PHASE4_TESTS_README_BLOB_SHA=12241316c04389c56aa4058ab0308431fbe431e8`",
+    "`PHASE4_ATOMIC64_DIFF_BLOB_SHA=e84bf84b5e24428d596fe25502512fa24ce28b51`",
     "`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
+    "`PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=fd5608046518c5c726a130a5ff11625fbe5e2fe5`",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`",
     "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
     "`PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
     "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
@@ -208,17 +218,19 @@ MUTATIONS: list[tuple[str, str, str, Path | None]] = [
     ("validator_blob_pin_drift", "dea77e6385618147aba44d3714f73b6c5249e942", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", NOTE),
     ("phase4_build_manifest_blob_pin_drift", "a28a7393df1b270de8c80c57c30287d548bd0c4e", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", NOTE),
     ("phase4_build_survey_blob_pin_drift", "fa4ab6b736a3eba358630a9913b447f77569ab29", "cccccccccccccccccccccccccccccccccccccccc", NOTE),
-    ("makefile_blob_pin_drift", "`PHASE4_MAKEFILE_BLOB_SHA=7f0f4cab8042ae95cb52834691a2ffac7a847a6a`", "`PHASE4_MAKEFILE_BLOB_SHA=3333333333333333333333333333333333333333`", NOTE),
+    ("makefile_blob_pin_drift", "`PHASE4_MAKEFILE_BLOB_SHA=dad92428ad0145c9b465d1395e8ef79c7459f1d3`", "`PHASE4_MAKEFILE_BLOB_SHA=3333333333333333333333333333333333333333`", NOTE),
     ("phase9_build_manifest_blob_pin_drift", "`PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`", "`PHASE4_BUILD_BLOB_SHA=1111111111111111111111111111111111111111`", NOTE),
     ("phase9_build_survey_blob_pin_drift", "`PHASE4_WORKFLOW_BLOB_SHA=a4aad5b4904fb2d68f63921dc7693eea94f80780`", "`PHASE4_WORKFLOW_BLOB_SHA=2222222222222222222222222222222222222222`", NOTE),
-    ("doc_readme_blob_pin_drift", "b19f58c82eeeacad6156c6fc3a398c52d8a546fa", "dddddddddddddddddddddddddddddddddddddddd", NOTE),
-    ("script_readme_blob_pin_drift", "5acd6b1fd9db70bce8bd152194a58aab2c184eae", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", NOTE),
-    ("tests_readme_blob_pin_drift", "f2c6e213e20aa738914dd42abe76bd45e61cbc6a", "ffffffffffffffffffffffffffffffffffffffff", NOTE),
-    ("gate_evidence_self_test_case_count_drift", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`", NOTE),
+    ("doc_readme_blob_pin_drift", "9d0cab0cd4d06641176eb476759d2ad8dd718f95", "dddddddddddddddddddddddddddddddddddddddd", NOTE),
+    ("script_readme_blob_pin_drift", "131c6315fc23f72576f0a60b2cb7ff1b6b59f492", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", NOTE),
+    ("tests_readme_blob_pin_drift", "12241316c04389c56aa4058ab0308431fbe431e8", "ffffffffffffffffffffffffffffffffffffffff", NOTE),
+    ("atomic64_diff_blob_pin_drift", "e84bf84b5e24428d596fe25502512fa24ce28b51", "9999999999999999999999999999999999999999", NOTE),
+    ("review_checklist_blob_pin_drift", "fd5608046518c5c726a130a5ff11625fbe5e2fe5", "8888888888888888888888888888888888888888", NOTE),
+    ("gate_evidence_self_test_case_count_drift", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=48`", NOTE),
     ("shared_validator_reruns_gate_evidence_check_drift", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`", NOTE),
     ("shared_validator_reruns_gate_evidence_self_test_drift", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false`", NOTE),
     ("shared_validator_expected_target_count_drift", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`", NOTE),
-    ("shared_validator_expected_self_test_case_count_drift", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`", NOTE),
+    ("shared_validator_expected_self_test_case_count_drift", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=48`", NOTE),
     ("runtime_atomic64_survey_packet_presence_drift", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`", NOTE),
     ("bitmap_diff_survey_replay_marker_drift", "zigux/tests/phase4_bitmap_diff_survey.zig", "zigux/tests/phase4_bitmap_survey.zig", MATRIX),
     ("kprobe_gap_packet_presence_drift", "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`", NOTE),
@@ -246,6 +258,9 @@ MISSING_FILE_CASES: list[tuple[str, Path]] = [
     ("missing_perf_survey_file", PERF_SURVEY),
     ("missing_kprobe_manifest_file", KPROBE_MANIFEST),
     ("missing_test_fsmount_survey_file", TEST_FSMOUNT_SURVEY),
+    ("missing_doc_readme_file", DOCS_README),
+    ("missing_script_readme_file", SCRIPTS_README),
+    ("missing_atomic64_diff_file", ATOMIC64_DIFF),
     ("missing_note_file", NOTE),
 ]
 
@@ -291,9 +306,11 @@ def required_files() -> tuple[Path, ...]:
     return (
         NOTE,
         MATRIX,
+        DOCS_README,
         MAKEFILE,
         WORKFLOW,
         REVIEW_CHECKLIST,
+        SCRIPTS_README,
         TESTS_README,
         REVERSIBLE_NOTE,
         SEQUENCING_NOTE,
@@ -303,6 +320,7 @@ def required_files() -> tuple[Path, ...]:
         ARTIFACT_DIFF_DETERMINISM,
         VALIDATOR,
         PHASE4_BUILD,
+        ATOMIC64_DIFF,
         ATOMIC64_MANIFEST,
         ATOMIC64_SURVEY,
         BITMAP_MANIFEST,
@@ -330,21 +348,23 @@ def build_fixture_tree(root: Path) -> None:
         "  * `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=5173368ba7f69587f6839931b380f1e77c456933`",
         "  * `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=dd06e9c054396d39fe0bd7136ece0b2728f2cc9d`",
         "  * `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`",
-        "  * `PHASE4_MAKEFILE_BLOB_SHA=7f0f4cab8042ae95cb52834691a2ffac7a847a6a`",
+        "  * `PHASE4_MAKEFILE_BLOB_SHA=dad92428ad0145c9b465d1395e8ef79c7459f1d3`",
         "  * `PHASE4_WORKFLOW_BLOB_SHA=a4aad5b4904fb2d68f63921dc7693eea94f80780`",
-        "  * `PHASE4_DOC_README_BLOB_SHA=b19f58c82eeeacad6156c6fc3a398c52d8a546fa`",
-        "  * `PHASE4_SCRIPT_README_BLOB_SHA=5acd6b1fd9db70bce8bd152194a58aab2c184eae`",
-        "  * `PHASE4_TESTS_README_BLOB_SHA=f2c6e213e20aa738914dd42abe76bd45e61cbc6a`",
+        "  * `PHASE4_DOC_README_BLOB_SHA=9d0cab0cd4d06641176eb476759d2ad8dd718f95`",
+        "  * `PHASE4_SCRIPT_README_BLOB_SHA=131c6315fc23f72576f0a60b2cb7ff1b6b59f492`",
+        "  * `PHASE4_TESTS_README_BLOB_SHA=12241316c04389c56aa4058ab0308431fbe431e8`",
+        "  * `PHASE4_ATOMIC64_DIFF_BLOB_SHA=e84bf84b5e24428d596fe25502512fa24ce28b51`",
         "  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a28a7393df1b270de8c80c57c30287d548bd0c4e`",
         "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=fa4ab6b736a3eba358630a9913b447f77569ab29`",
+        "  * `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=fd5608046518c5c726a130a5ff11625fbe5e2fe5`",
         "  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-        "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+        "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`",
         "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
         "  * `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
         "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
         "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
         "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-        "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+        "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49`",
         "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
         "  * `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
         "  * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
