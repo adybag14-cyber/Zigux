@@ -161,14 +161,11 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 
-
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
-
 def run_capture(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
-
 
 def run_redirected(
     cmd: list[str],
@@ -197,7 +194,6 @@ def run_redirected(
         stderr=result.stderr or "",
     )
 
-
 def find_compiler(explicit: str | None) -> str:
     if explicit:
         return explicit
@@ -206,7 +202,6 @@ def find_compiler(explicit: str | None) -> str:
         if path:
             return path
     raise FileNotFoundError("no C compiler found on PATH")
-
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -222,17 +217,14 @@ def find_zig(explicit: str | None) -> str:
         return str(fallback)
     raise FileNotFoundError("no zig executable found; set --zig or ZIG")
 
-
 def load_cases(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
-
 
 def validate_tool_sources(c_fixdep: Path, zig_fixdep: Path) -> None:
     if c_fixdep != EXPECTED_C_FIXDEP:
         raise ValueError(f"fixdep:c_tool={c_fixdep},expected={EXPECTED_C_FIXDEP}")
     if zig_fixdep != EXPECTED_ZIG_FIXDEP:
         raise ValueError(f"fixdep:zig_tool={zig_fixdep},expected={EXPECTED_ZIG_FIXDEP}")
-
 
 def validate_fixture_inventory(
     fixture_dir: Path = FIXTURE_DIR,
@@ -246,12 +238,10 @@ def validate_fixture_inventory(
     if unexpected:
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
-
 def require_non_empty_string(value: object, case_name: str, field_name: str) -> str:
     if not isinstance(value, str) or not value:
         raise ValueError(f"{CASES_PATH}:{case_name}:missing_non_empty_{field_name}")
     return value
-
 
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
@@ -340,7 +330,6 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
 
     return validated
 
-
 def expect_failure(label: str, callback, expected_message: str) -> None:
     try:
         callback()
@@ -353,10 +342,8 @@ def expect_failure(label: str, callback, expected_message: str) -> None:
         return
     raise SystemExit(f"fixdep:self-test:{label}:missing_failure:{expected_message!r}")
 
-
 def copy_valid_cases(valid_cases: list[dict[str, object]]) -> list[dict[str, object]]:
     return [dict(case) for case in valid_cases]
-
 
 def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, object]:
     for case in valid_cases:
@@ -364,7 +351,6 @@ def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, obje
         if case_name == name:
             return case
     raise KeyError(name)
-
 
 def run_self_test() -> int:
     validate_fixture_inventory()
@@ -606,7 +592,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").writeText("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
             frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
@@ -654,13 +640,11 @@ def run_self_test() -> int:
     print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 23}")
     return 0
 
-
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(":").lower()
     tail = resolved.as_posix().split(":", 1)[1]
     return f"/mnt/{drive}{tail}"
-
 
 def compile_run_c_wsl(
     tmp_dir: Path,
@@ -717,7 +701,6 @@ def compile_run_c_wsl(
         stderr=stderr_path.read_text(encoding="utf-8"),
     )
 
-
 def compile_run_c(
     tmp_dir: Path,
     compiler: str,
@@ -744,7 +727,6 @@ def compile_run_c(
     run(compile_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
-
 def run_zig(
     zig: str,
     tmp_dir: Path,
@@ -758,20 +740,16 @@ def run_zig(
     run(build_cmd, cwd=str(ROOT))
     return run_redirected([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
-
 def compare_returncode(label: str, expected: int, actual: int) -> None:
     if expected != actual:
         raise RuntimeError(f"{label} return code mismatch: expected {expected}, got {actual}")
-
 
 def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.CompletedProcess[str]) -> None:
     stdout_path.write_text(result.stdout, encoding="utf-8")
     stderr_path.write_text(result.stderr, encoding="utf-8")
 
-
 def diff_text(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bounded fixdep C/Zig artifact parity.")
@@ -855,7 +833,6 @@ def main() -> int:
         print("FIXDEP_DETERMINISM=pass")
         print(f"FIXTURE_DIR={FIXTURE_DIR}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
