@@ -222,6 +222,7 @@ test "phase1 host-tools smoke exercises live helper behavior" {
 
     const sysfs = [_][]const u8{ "disabled", "auto\n", "manual" };
     try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));
+    try std.testing.expect(string.sysfs_streq("auto\n", "auto"));
 
     const lookup = [_][]const u8{ "disabled", "manual", "manual", "auto" };
     const lookup_cstr = [_]u8{ 'a', 'u', 't', 'o', 0, 'x' };
@@ -233,6 +234,7 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(?usize, null), string.strnchr(&counted, counted.len, 'c'));
     try std.testing.expectEqual(@as(usize, 2), string.strnchrNul(&counted, counted.len, 'z'));
     try std.testing.expectEqual(@as(usize, 1), string.strnchrnul(&counted, counted.len, 'b'));
+    try std.testing.expectEqual(@as(usize, 4), string.strspn("abba!", "ab"));
 
     var tree_entries = [_]RbtreeSmokeEntry{
         .{ .key = 10, .serial = 0 },
