@@ -23,6 +23,7 @@ PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-pol
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/phase8-libbpf-segment-survey.md"),
     Path("Documentation/zigux/review-checklist.md"),
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
@@ -55,6 +56,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "Phase 8 notes",
         "tools/lib/subcmd/exec-cmd.zig",
         "scripts/zigux/validate-phase8.py",
+    ),
+    Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
+        "PHASE8_SURVEY=libbpf-segment-gap-readback",
+        "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
     ),
     Path("Documentation/zigux/review-checklist.md"): (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
@@ -211,6 +218,10 @@ def _passing_fixture(root: Path) -> None:
         "\n".join(FILE_MARKERS[Path("Documentation/zigux/README.md")]),
     )
     _write(
+        root / "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "\n".join(FILE_MARKERS[Path("Documentation/zigux/phase8-libbpf-segment-survey.md")]),
+    )
+    _write(
         root / "Documentation/zigux/review-checklist.md",
         "\n".join(FILE_MARKERS[Path("Documentation/zigux/review-checklist.md")]),
     )
@@ -303,6 +314,21 @@ def run_self_test() -> int:
             raise AssertionError("expected missing perf-buffer helper file to be reported")
         _write(perf_helper, "pub fn summarizePollExecutionResultFromWaitResult() void {}\n")
 
+        survey_path = root / "Documentation/zigux/phase8-libbpf-segment-survey.md"
+        original_survey = _read(survey_path)
+        survey_path.write_text(
+            original_survey.replace("`tools/lib/bpf/zigux_segments/verify.zig`", "", 1),
+            encoding="utf-8",
+        )
+        missing_survey_marker = validate_root(root)
+        expected_survey_marker = (
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
+            "`tools/lib/bpf/zigux_segments/verify.zig`"
+        )
+        if expected_survey_marker not in missing_survey_marker.missing_markers:
+            raise AssertionError("expected missing libbpf survey marker to be reported")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         tests_checker = root / TESTS_ALIGNMENT_CHECKER
         tests_checker.unlink()
         missing_checker = validate_root(root)
@@ -311,7 +337,7 @@ def run_self_test() -> int:
         _write(tests_checker, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
