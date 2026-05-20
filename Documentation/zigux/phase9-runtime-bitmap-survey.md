@@ -11,7 +11,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 ## Current repo reality
 - trusted current-tree contents reads on 2026-05-20 do materialize `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - the same trusted read path still returns missing for `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json`
-- keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body still names the restored direct sample and top-bit proofs beside the still-missing loader, module, and diff legs; do not treat that bundle alone as proof that the broader runtime bitmap packet returned
+- keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body now reruns the restored direct sample, survey, and top-bit proofs; do not treat that bundle alone as proof that the broader runtime bitmap packet returned or that the missing loader, module, diff, and manifest legs returned
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
 
 ## Boundaries
@@ -20,7 +20,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - do not claim loadable runtime bitmap module parity
 - do not present the partial bitmap packet as proof that the broader shared runtime-loader packet returned
 - keep `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` framed as same-lane repo-reality gaps until the trusted current-tree read path returns them directly again
-- keep the focused `phase9-runtime-bitmap-tests` route name framed only as bounded build-bundle vocabulary while the loader, module, diff, and manifest legs stay absent on the trusted path
+- keep the focused `phase9-runtime-bitmap-tests` route name framed only as a bounded rerun handle for the visible sample, survey, and top-bit packet while the loader, module, diff, and manifest legs stay absent on the trusted path
 
 ## Roadmap gap
 - the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`
@@ -32,7 +32,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 2. `zig test samples/zigux/runtime_bitmap.zig`
 3. `zig test samples/zigux/runtime_bitmap_top_bit_contract.zig`
 
-Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as bounded reminder-bundle handles only while the loader, module, diff, and manifest legs remain absent.
+Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as bounded rerun handles for the visible sample, survey, and top-bit packet only while the loader, module, diff, and manifest legs remain absent.
 
 ## Next bounded step
 
