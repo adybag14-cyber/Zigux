@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 76
+EXPECTED_SELF_TEST_CASE_COUNT = 78
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -295,6 +295,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             missing_files,
             missing_code="",
             unexpected_code="MISSING_FILE_ALREADY_PRESENT_ON_BRANCH",
+            non_file_code="MISSING_FILE_NOT_FILE_ON_BRANCH",
         )
     )
     issues.extend(
@@ -303,6 +304,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             master_present_branch_missing_files,
             missing_code="MASTER_PRESENT_BRANCH_PATH_NOT_MISSING_ON_BRANCH",
             unexpected_code="MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT_ON_BRANCH",
+            non_file_code="MASTER_PRESENT_BRANCH_PATH_NOT_FILE_ON_BRANCH",
         )
     )
     if isinstance(present_files, list) and isinstance(missing_files, list):
@@ -623,6 +625,36 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, Path(EXPECTED_MISSING_FILES[0]), "# restored on branch\n")
         assert ("MISSING_FILE_ALREADY_PRESENT_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        missing_dir = resolve_path(root, Path(EXPECTED_MISSING_FILES[0]))
+        if missing_dir.exists():
+            if missing_dir.is_dir():
+                missing_dir.rmdir()
+            else:
+                missing_dir.unlink()
+        missing_dir.parent.mkdir(parents=True, exist_ok=True)
+        missing_dir.mkdir()
+        assert ("MISSING_FILE_NOT_FILE_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = [EXPECTED_MISSING_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        master_missing_dir = resolve_path(root, Path(EXPECTED_MISSING_FILES[0]))
+        if master_missing_dir.exists():
+            if master_missing_dir.is_dir():
+                master_missing_dir.rmdir()
+            else:
+                master_missing_dir.unlink()
+        master_missing_dir.parent.mkdir(parents=True, exist_ok=True)
+        master_missing_dir.mkdir()
+        assert (
+            "MASTER_PRESENT_BRANCH_PATH_NOT_FILE_ON_BRANCH",
+            EXPECTED_MISSING_FILES[0],
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
