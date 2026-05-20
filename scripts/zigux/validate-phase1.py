@@ -852,6 +852,42 @@ def run_self_test() -> int:
         assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
         case_count += 1
 
+        shared_fixture_not_file_root = base / "shared_fixture_not_file"
+        build_sample_repo(shared_fixture_not_file_root)
+        (shared_fixture_not_file_root / PHASE1_HELPERS_FIXTURE_REL).unlink()
+        (shared_fixture_not_file_root / PHASE1_HELPERS_FIXTURE_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(shared_fixture_not_file_root)
+        assert issues == [], issues
+        assert (
+            f"skipped_optional:phase1-shared-fixture-gate:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-shared-replay-roster:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-fixture-manifest-alignment:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 4, summary
+        assert summary.optional_skip_count == 4, summary
+        assert "phase1-shared-fixture-gate" not in summary.optional_run_names, summary
+        assert "phase1-shared-replay-roster" not in summary.optional_run_names, summary
+        assert "phase1-fixture-manifest-alignment" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        assert summary.optional_skip_notes == (
+            f"skipped_optional:phase1-parity-artifact-packet:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}",
+            f"skipped_optional:phase1-shared-fixture-gate:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}",
+            f"skipped_optional:phase1-shared-replay-roster:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}",
+            f"skipped_optional:phase1-fixture-manifest-alignment:required_path_not_file:{PHASE1_HELPERS_FIXTURE_REL}",
+        ), summary
+        case_count += 1
+
         optional_skip_required_path_root = base / "optional_skip_required_path"
         build_sample_repo(optional_skip_required_path_root)
         (optional_skip_required_path_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
@@ -883,6 +919,60 @@ def run_self_test() -> int:
         ), notes
         assert (
             f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 7, summary
+        assert summary.optional_skip_count == 7, summary
+        assert "phase1-replay-blockers" not in summary.optional_run_names, summary
+        assert "phase1-parity" not in summary.optional_run_names, summary
+        assert "phase1-shared-replay-roster" not in summary.optional_run_names, summary
+        assert "phase1-fixture-manifest-alignment" not in summary.optional_run_names, summary
+        assert "phase1-c-harness-blockers" not in summary.optional_run_names, summary
+        assert "phase1-readme-replay-blockers" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        assert summary.optional_skip_notes == (
+            f"skipped_optional:phase1-replay-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-parity:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-shared-replay-roster:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-fixture-manifest-alignment:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-c-harness-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+            f"skipped_optional:phase1-readme-replay-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}",
+        ), summary
+        case_count += 1
+
+        replay_blockers_not_file_root = base / "replay_blockers_not_file"
+        build_sample_repo(replay_blockers_not_file_root)
+        (replay_blockers_not_file_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
+        (replay_blockers_not_file_root / PHASE1_REPLAY_BLOCKERS_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(replay_blockers_not_file_root)
+        assert issues == [], issues
+        assert (
+            f"skipped_optional:phase1-replay-blockers:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-parity:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-shared-replay-roster:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-fixture-manifest-alignment:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-c-harness-blockers:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-readme-replay-blockers:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-parity-artifact-packet:required_path_not_file:{PHASE1_REPLAY_BLOCKERS_REL}"
             in notes
         ), notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 7, summary
