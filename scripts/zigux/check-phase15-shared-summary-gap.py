@@ -62,6 +62,7 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
+    "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
@@ -274,7 +275,7 @@ def run_self_test() -> int:
             _sample_gap_note().replace(
                 "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n", "", 2
             ).replace(
-                "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "",
                 1,
             ),
@@ -300,6 +301,19 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-tests-checker failure: {failures}")
+
+        missing_readiness_checker_root = root / "missing_readiness_checker"
+        _seed_repo(missing_readiness_checker_root)
+        _write(
+            missing_readiness_checker_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace("`scripts/zigux/check-phase15-readiness-gate-packet.py`", "", 1),
+        )
+        failures = collect_failures(missing_readiness_checker_root)
+        expected = [
+            "gap note missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-readiness-checker failure: {failures}")
 
         handoff_root = root / "handoff"
         _seed_repo(handoff_root)
