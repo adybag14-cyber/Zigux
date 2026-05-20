@@ -29,6 +29,7 @@ Current `master` keeps the bounded HVC continuity packet reviewable through thes
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -39,7 +40,7 @@ Current `master` keeps the bounded HVC continuity packet reviewable through thes
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-The returned HVC validation matrix and build-inventory checker stay explicit inside that smaller current-head packet, and the exported-surface, `hv_ops`, and cleanup proof packets each still include both their proof source and their build file. The standalone targetless-unregister witness likewise stays directly readable as a separate failure-mode replay that rereads the current starter against the verify-helper boundary note without promoting itself into the shared three-entry build inventory.
+The returned HVC validation matrix, build-inventory checker, and dedicated targetless-unregister witness checker stay explicit inside that smaller current-head packet, and the exported-surface, `hv_ops`, and cleanup proof packets each still include both their proof source and their build file. The standalone targetless-unregister witness likewise stays directly readable as a separate failure-mode replay that rereads the current starter against the verify-helper boundary note without promoting itself into the shared three-entry build inventory.
 
 Current direct contents reads in this lane now keep the returned direct HVC starter explicit through `drivers/tty/hvc/hvc_console.zig`, but they still do not rematerialize `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader direct HVC starter-depth packet framed as survey-recorded same-lane archival vocabulary until a future reread proves those deeper anchor paths returned again.
 
@@ -49,11 +50,11 @@ Current authenticated contents reads in this lane also do not rematerialize `scr
 
 Current `master` keeps the returned direct HVC starter plus the smaller proof-backed HVC continuity packet reviewable while the broader starter-depth packet stays survey-recorded archival vocabulary and the dedicated survey-checker path remains absent from direct readback.
 
-This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, omit the returned build-inventory checker, omit the returned exported-surface, `hv_ops`, cleanup proof/build, or targetless-unregister witness shards, or promote the absent survey checker as live evidence.
+This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, omit the returned build-inventory checker, omit the dedicated targetless-unregister witness checker, omit the returned exported-surface, `hv_ops`, cleanup proof/build, or targetless-unregister witness shards, or promote the absent survey checker as live evidence.
 
 ## Safe Reading
 
-Use the returned `drivers/tty/hvc/hvc_console.zig` starter, the current HVC survey note, this companion, the verify-helper-boundary note, the returned HVC validation matrix, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, the surviving HVC proof/build adjuncts, and the standalone targetless-unregister witness pair as the truthful readback for this lane on current `master`.
+Use the returned `drivers/tty/hvc/hvc_console.zig` starter, the current HVC survey note, this companion, the verify-helper-boundary note, the returned HVC validation matrix, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, the shared build inventory anchor, the surviving HVC proof/build adjuncts, and the standalone targetless-unregister witness pair as the truthful readback for this lane on current `master`.
 
 Keep the older starter-depth packet visible only as survey-recorded archival vocabulary until a future reread rematerializes its missing anchor paths.
 
