@@ -31,7 +31,7 @@ EXPECTED_BOOTSTRAP_CI_POSTURE = (
 EXPECTED_SELF_TEST_CASES = 24
 
 MANIFEST_MARKERS = (
-    '"lane_key": "P4-L22"',
+    '"lane_key": "P4-L20"',
     '"phase": "Phase 4"',
     '"owner": "Validation and Perf Team"',
     '"rollback_owner": "Validation and Perf Team"',
@@ -137,7 +137,7 @@ def expect_json_value(payload: object, path: tuple[str | int, ...], expected: ob
 
 def validate_manifest_json(manifest_data: dict[str, object], missing: list[str]) -> None:
     expected_values = (
-        (("lane_key",), "P4-L22"),
+        (("lane_key",), "P4-L20"),
         (("phase",), "Phase 4"),
         (("owner",), "Validation and Perf Team"),
         (("rollback_owner",), "Validation and Perf Team"),
@@ -260,7 +260,7 @@ def build_fixture_tree(root: Path) -> None:
     write_text(
         root / MANIFEST,
         """{
-  \"lane_key\": \"P4-L22\",
+  \"lane_key\": \"P4-L20\",
   \"phase\": \"Phase 4\",
   \"owner\": \"Validation and Perf Team\",
   \"rollback_owner\": \"Validation and Perf Team\",
