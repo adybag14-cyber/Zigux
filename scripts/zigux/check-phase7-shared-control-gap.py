@@ -17,7 +17,6 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 
 DIRECT_PACKET = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
-    "Documentation/zigux/phase7-string-helpers-slice.md",
     "Documentation/zigux/phase7-shared-control-review-checkpoint.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -26,12 +25,6 @@ DIRECT_PACKET = [
     "scripts/zigux/check-phase7-shared-control-gap.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/validate-phase7.py",
-    "lib/string_helpers.zig",
-    "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_string_helpers.zig",
-    "zigux/tests/phase7_string_helpers_manifest.json",
-    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-    "zigux/tests/phase7_string_helpers_survey.zig",
 ]
 
 PARKED_SHARED_CONTROL_PATHS = [
@@ -77,6 +70,9 @@ REQUIRED_WORKFLOW_LINES = [
 
 REQUIRED_SEQUENCING_SNIPPETS = [
     "- shared control-surface packet, lane `P7-Y05`:",
+    "- string_helpers packet, helper-local lane family:",
+    "keep helper-local `string_helpers` slice, helper, dedicated replay, survey, manifest, sample-boundary, and checker drift out of `P7-Y05`; only route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, or shared-build reminders back to the shared-control packet",
+    "keep `Documentation/zigux/phase7-string-helpers-slice.md` with the string_helpers helper-local lane family instead of the shared-control packet while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay routed to `P7-Y05`.",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
@@ -176,7 +172,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / REVIEW_CHECKPOINT_PATH, "\n".join(REQUIRED_REVIEW_SNIPPETS) + "\n")
     write(root / BUILD_WIRING_CHECKER_PATH, "\n".join(["FORBIDDEN_MAKEFILE_MARKERS", '"phase7-test:"', '"phase7:"']) + "\n")
     write(root / SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate\n")
-    for rel in DIRECT_PACKET[3:]:
+    for rel in DIRECT_PACKET[2:]:
         path = root / Path(rel)
         if path.exists():
             continue
@@ -208,7 +204,7 @@ def run_self_test() -> None:
 
         cases_run = 0
         cases = [
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "narrow foothold", ""),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[3], "returned narrow", ""),
             (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow", ""),
             (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`", ""),
             (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true", ""),
@@ -233,7 +229,7 @@ def run_self_test() -> None:
                 raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
-        (root / Path(DIRECT_PACKET[9])).unlink()
+        (root / SHARED_SURFACE_VALIDATOR_PATH).unlink()
         try:
             validate(root)
         except ValidationError:
