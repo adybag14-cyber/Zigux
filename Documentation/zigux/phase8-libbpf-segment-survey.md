@@ -20,7 +20,7 @@ Exact authenticated contents readback on 2026-05-19 still keeps `Documentation/z
 
 The directly readable stable-output helper set therefore remains the verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `perf_buffer_poll.zig`, and `online_cpu_routing.zig`. Shared reminder surfaces may still name the bridge helper and focused build shards, but this survey should keep those bridge-facing paths separate from the exact authenticated helper set until the same readback mode serves them directly again.
 
-`Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.
+`Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders without treating older missing slice names as direct current-readback proof.
 
 `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.
 
