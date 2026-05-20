@@ -15,11 +15,27 @@ test "phase10 virtio mmio keeps probe gating anchored below transport-backed cla
 
     var probe = device.probePreflightSummary();
     try std.testing.expect(!probe.legacy_guest_page_size_ready);
+    try std.testing.expect(probe.consumes_identity_snapshot);
     try std.testing.expect(!probe.ready_for_probe_handoff);
 
     _ = try device.writeRegister(.guest_page_size, 4096);
     probe = device.probePreflightSummary();
     try std.testing.expect(probe.legacy_guest_page_size_ready);
+    try std.testing.expect(probe.consumes_identity_snapshot);
+    try std.testing.expect(probe.ready_for_probe_handoff);
+
+    device.magic_value = 0;
+    const mismatched_identity = device.transportIdentitySummary();
+    try std.testing.expect(!mismatched_identity.magic_matches);
+
+    probe = device.probePreflightSummary();
+    try std.testing.expect(probe.legacy_guest_page_size_ready);
+    try std.testing.expect(!probe.consumes_identity_snapshot);
+    try std.testing.expect(!probe.ready_for_probe_handoff);
+
+    device.magic_value = virtio_mmio.mmio_magic_value;
+    probe = device.probePreflightSummary();
+    try std.testing.expect(probe.consumes_identity_snapshot);
     try std.testing.expect(probe.ready_for_probe_handoff);
 }
 
