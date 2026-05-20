@@ -29,6 +29,7 @@ REQUIRED_MARKERS = (
     "- `zigux/tests/fixtures/phase1_helper_manifest.json`",
     "- `zigux/tests/README.md`",
     "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
     "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
     "Tests-root reviewer prompt:",
@@ -141,12 +142,15 @@ def run_self_test() -> int:
         ("missing_packet_header", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[0])),
         ("missing_shared_checker", lambda root: mutate_remove_marker(root, "- `scripts/zigux/check-phase1-shared-reminder-packet.py`")),
         ("missing_smoke_route", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[16])),
-        ("missing_broader_companion_warning", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[17])),
-        ("missing_direct_anchor_split", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[18])),
-        ("duplicate_direct_anchor_split", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[18])),
-        ("duplicate_reviewer_prompt", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[20])),
+        ("missing_makefile_posture", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[17])),
+        ("duplicate_makefile_posture", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[17])),
+        ("missing_broader_companion_warning", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[18])),
+        ("missing_direct_anchor_split", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[19])),
+        ("duplicate_direct_anchor_split", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[19])),
+        ("duplicate_reviewer_prompt", lambda root: mutate_duplicateMarker(root, REQUIRED_MARKERS[21])),
         ("forbidden_workflow_gate_heading", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[0])),
         ("forbidden_shared_reminder_selftest", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[1])),
+        ("forbidden_shared_reminder_live_check", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[2])),
     ]
 
     with tempfile.TemporaryDirectory(prefix="phase1-tests-readme-direct-anchor-selftest-") as tmpdir:
