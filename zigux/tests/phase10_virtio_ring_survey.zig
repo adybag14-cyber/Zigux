@@ -35,6 +35,7 @@ test "phase10 virtio ring survey note keeps the broader public-readback replay e
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(
         survey_note,
         "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
@@ -91,7 +92,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and blocked transp
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_ring_survey.zig\"");
 }
 
-test "phase10 virtio ring slice companions keep the public-readback replay and landed survey gate explicit" {
+test "phase10 virtio ring slice companions keep the notification-data replay, public-readback companion, and landed survey gate explicit" {
     const allocator = std.testing.allocator;
 
     const slice_note = try readRepoRelative(
@@ -100,12 +101,13 @@ test "phase10 virtio ring slice companions keep the public-readback replay and l
     );
     defer allocator.free(slice_note);
 
+    try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(
         slice_note,
         "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
     );
+    try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_survey.zig");
-    try expectContains(slice_note, "the dedicated survey gate is now a landed review surface inside this slice");
 }
 
 test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {
