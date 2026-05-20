@@ -13,6 +13,7 @@ const HandoffManifest = struct {
     handoff_rule_markers: []const []const u8,
     roadmap_alignment_markers: []const []const u8,
     pending_next_step_markers: []const []const u8,
+    missing_route_markers: []const []const u8,
 };
 
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {
@@ -58,6 +59,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_alignment_markers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_step_markers.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.missing_route_markers.len);
 
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
@@ -66,6 +68,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     try expectSliceContains(manifest.present_paths, "scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.still_missing_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.still_missing_paths, "zigux/tests/phase15_build.zig");
+    try expectSliceContains(manifest.missing_route_markers, "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`");
 }
 
 test "phase 15 handoff note treats the focused replay as present and broader companions as still missing" {
@@ -108,6 +111,9 @@ test "phase 15 handoff note treats the focused replay as present and broader com
         try expectContains(handoff_note, marker);
     }
     for (manifest.pending_next_step_markers) |marker| {
+        try expectContains(handoff_note, marker);
+    }
+    for (manifest.missing_route_markers) |marker| {
         try expectContains(handoff_note, marker);
     }
 }
