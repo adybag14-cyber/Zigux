@@ -458,7 +458,7 @@ def run_self_test() -> int:
     )
     expect_failure(
         expected_substring="to have sha256",
-        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").writeBytes(
+        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").write_bytes(
             b"y" * EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
         ),
         check_only=True,
