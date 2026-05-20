@@ -91,14 +91,42 @@ EXPECTED_ASSERT_BLOCKS = {
             'assert payload == ("pass", None)',
         ),
         (
+            'unexpected_output = ok_output + "\\nPHASE1_BENCH_SPURIOUS=13"',
+            'kind, payload = validate_output(expectations, unexpected_output)',
+            'assert kind == "unexpected"',
+            'assert payload == ["PHASE1_BENCH_SPURIOUS"]',
+        ),
+        (
+            'duplicate_iteration_output = ok_output + "\\nPHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000"',
+            'kind, payload = validate_output(expectations, duplicate_iteration_output)',
+            'assert kind == "duplicate"',
+            'assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS"]',
+        ),
+        (
             'kind, payload = validate_output(expectations, missing_rbtree_iteration_output)',
             'assert kind == "missing_rbtree_iterations"',
             'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
         ),
         (
+            'kind, payload = validate_output(expectations, rbtree_iteration_mismatch_output)',
+            'assert kind == "rbtree_iteration_mismatch"',
+            'assert payload == ("PHASE1_BENCH_RBTREE_ITERATIONS", 4000, "4")',
+        ),
+        (
             'kind, payload = validate_output(expectations, mismatch_output)',
             'assert kind == "exact_checksum_mismatch"',
             'assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)',
+        ),
+        (
+            'kind, payload = validate_output(expectations, duplicate_mismatch_output)',
+            'assert kind == "exact_checksum_mismatch"',
+            'assert payload == ("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM", 11, 110)',
+        ),
+        (
+            'duplicate_output = ok_output + "\\nPHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12"',
+            'kind, payload = validate_output(expectations, duplicate_output)',
+            'assert kind == "duplicate"',
+            'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
         ),
         (
             'for key, value, expected_kind in (',
