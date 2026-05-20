@@ -162,3 +162,43 @@ test "lane10 zero-shape replay keeps single-byte caller views terminator-only an
     try std.testing.expectEqualStrings("ok", buffer[0..reused_print]);
     try std.testing.expectEqual(@as(u8, 0), buffer[reused_print]);
 }
+
+test "lane10 zero-shape replay keeps live zero-length slab state isolated from later fail paths" {
+    slab.kmalloc_nr_allocated = 0;
+
+    const live = slab.kmallocBytes(0, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(live);
+    try std.testing.expectEqual(@as(usize, 0), live.len);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+
+    try std.testing.expect(slab.kmallocBytes(8, 0) == null);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+
+    try std.testing.expect(slab.kmallocArray(std.math.maxInt(usize), 2, slab.GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+
+    const later = slab.kmallocBytes(4, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(later);
+    try std.testing.expectEqual(@as(isize, 2), slab.kmalloc_nr_allocated);
+}
+
+test "lane10 zero-shape replay grows generated strerror from tiny to exact-fit caller views" {
+    var buffer = [_]u8{0xaa} ** 47;
+
+    const tiny = str_error_r.strErrorR(4096, buffer[0..1]);
+    try std.testing.expectEqual(@as(usize, 0), tiny.len);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    for (buffer[1..]) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    const exact = str_error_r.strErrorR(4096, &buffer);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 47)=22", exact);
+    try std.testing.expectEqual(@intFromPtr(&buffer[0]), @intFromPtr(exact.ptr));
+    try std.testing.expectEqual(@as(u8, 0), buffer[exact.len]);
+
+    const known = str_error_r.strErrorR(12, &buffer);
+    try std.testing.expectEqualStrings("Cannot allocate memory", known);
+    try std.testing.expectEqual(@intFromPtr(&buffer[0]), @intFromPtr(known.ptr));
+    try std.testing.expectEqual(@as(u8, 0), buffer[known.len]);
+}
