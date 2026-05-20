@@ -126,7 +126,7 @@ ALLCONFIG_SENTINEL_MODES = {
     "alldefconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 31
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -149,11 +149,11 @@ def compile_tool(zig: str, source: Path, output: Path) -> None:
     run([zig, "build-exe", str(source), "-femit-bin=" + str(output)], cwd=str(ROOT))
 
 
-def read_json(path: Path) -> object:
+def read_json(path: Path, issue_code: str) -> tuple[object | None, tuple[str, str] | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+        return json.loads(path.read_text(encoding="utf-8")), None
+    except json.JSONDecodeError:
+        return None, (issue_code, path.name)
 
 
 def validate_case_mapping(
@@ -200,7 +200,9 @@ def validate_case_mapping(
 
 def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]], list[dict[str, object]], list[tuple[str, str]]]:
     cases_path = fixture_dir / "cases.json"
-    payload = read_json(cases_path)
+    payload, read_issue = read_json(cases_path, "INVALID_CASES_JSON")
+    if read_issue is not None:
+        return [], [], [read_issue]
     if not isinstance(payload, dict):
         return [], [], [("INVALID_CASES_PAYLOAD", type(payload).__name__)]
 
@@ -293,9 +295,11 @@ def collect_conf_manifest_issues(
         issues.append(("CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL", ",".join(source_helper_anchors)))
         issues.append(("CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED", ",".join(REQUIRED_CONF_HELPER_ANCHORS)))
 
-    manifest = read_json(conf_manifest)
+    manifest, read_issue = read_json(conf_manifest, "INVALID_CONF_MANIFEST_JSON")
+    if read_issue is not None:
+        return issues + [read_issue]
     if not isinstance(manifest, dict):
-        return [("INVALID_CONF_MANIFEST_PAYLOAD", type(manifest).__name__)]
+        return issues + [("INVALID_CONF_MANIFEST_PAYLOAD", type(manifest).__name__)]
 
     expected_case_names = [str(case["name"]) for case in conf_cases]
     expected_stdout_packet = [str(case["expected"]) for case in conf_cases]
@@ -362,9 +366,11 @@ def collect_confdata_manifest_issues(
         issues.append(("CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL", ",".join(source_helper_anchors)))
         issues.append(("CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED", ",".join(REQUIRED_CONFDATA_HELPER_ANCHORS)))
 
-    manifest = read_json(confdata_manifest)
+    manifest, read_issue = read_json(confdata_manifest, "INVALID_CONFDATA_MANIFEST_JSON")
+    if read_issue is not None:
+        return issues + [read_issue]
     if not isinstance(manifest, dict):
-        return [("INVALID_CONFDATA_MANIFEST_PAYLOAD", type(manifest).__name__)]
+        return issues + [("INVALID_CONFDATA_MANIFEST_PAYLOAD", type(manifest).__name__)]
 
     expected_case_names = [str(case["name"]) for case in confdata_cases]
     expected_input_packet = [str(case["input"]) for case in confdata_cases]
@@ -793,6 +799,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        write_text(cases_path, "{broken\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CASES_JSON", "cases.json") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
         write_text(cases_path, "[]\n")
         issues = collect_manifest_issues(root)
         assert ("INVALID_CASES_PAYLOAD", "list") in issues
@@ -955,6 +967,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        write_text(conf_manifest_path, "{broken\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONF_MANIFEST_JSON", "conf_manifest.json") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
         conf_manifest_path.unlink()
         issues = collect_manifest_issues(root)
         assert ("MISSING_CONF_MANIFEST", "conf_manifest.json") in issues
@@ -991,6 +1009,12 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
         assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(manifest_path, "{broken\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONFDATA_MANIFEST_JSON", "confdata_manifest.json") in issues
         checks_run += 1
 
         build_self_test_root(root)
