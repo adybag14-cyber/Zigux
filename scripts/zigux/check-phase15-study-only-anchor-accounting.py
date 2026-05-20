@@ -10,6 +10,7 @@ FREEZE_MAP_REL = Path("Documentation/zigux/freeze-map.md")
 FREEZE_GOVERNANCE_REL = Path("Documentation/zigux/phase15-freeze-map-governance.md")
 PARITY_SCORECARD_REL = Path("Documentation/zigux/phase15-parity-scorecard.md")
 HANDOFF_REL = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
+SHARED_SUMMARY_REL = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 
 STUDY_ONLY_ANCHORS = (
     "kernel/workqueue.c",
@@ -21,7 +22,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_LANE_KEY=P15-L05",
     "PHASE15_SLICE=study-only-anchor-accounting",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "current-master-readback-2026-05-18",
+    "current-master-readback-2026-05-20",
     "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only",
     "`Documentation/zigux/freeze-map.md`",
     "the Phase 15 freeze-map governance note",
@@ -32,6 +33,7 @@ REQUIRED_NOTE_MARKERS = (
     "the current governance packet is still blocker-accounting and handoff truthfulness, not port-readiness",
     "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
     "if a future scorecard or governance note changes the reported study-only count, this note must reconcile the same anchor set directly instead of leaving the count implicit",
+    "if the handoff-next-steps survey or shared-summary gap note changes how the study-only anchors are summarized, this note must stay aligned with that same two-anchor inventory and maintenance boundary",
 )
 
 FREEZE_MAP_MARKERS = (
@@ -55,6 +57,11 @@ HANDOFF_MARKERS = (
     "if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet",
 )
 
+SHARED_SUMMARY_MARKERS = (
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -74,6 +81,7 @@ def collect_failures(root: Path) -> list[str]:
         FREEZE_GOVERNANCE_REL,
         PARITY_SCORECARD_REL,
         HANDOFF_REL,
+        SHARED_SUMMARY_REL,
     )
     for rel in required_files:
         if not (root / rel).exists():
@@ -86,6 +94,7 @@ def collect_failures(root: Path) -> list[str]:
     freeze_governance = _read(root / FREEZE_GOVERNANCE_REL)
     parity_scorecard = _read(root / PARITY_SCORECARD_REL)
     handoff = _read(root / HANDOFF_REL)
+    shared_summary = _read(root / SHARED_SUMMARY_REL)
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in study_only_note:
@@ -98,6 +107,8 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"freeze_map:missing_anchor:{anchor}")
         if anchor not in handoff:
             failures.append(f"handoff:missing_anchor:{anchor}")
+        if anchor not in shared_summary:
+            failures.append(f"shared_summary:missing_anchor:{anchor}")
 
     for marker in FREEZE_MAP_MARKERS:
         if marker not in freeze_map:
@@ -115,6 +126,10 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in handoff:
             failures.append(f"handoff:missing:{marker}")
 
+    for marker in SHARED_SUMMARY_MARKERS:
+        if marker not in shared_summary:
+            failures.append(f"shared_summary:missing:{marker}")
+
     return failures
 
 
@@ -127,7 +142,7 @@ def _sample_study_only_note() -> str:
 - `PHASE15_LANE_KEY=P15-L05`
 - `PHASE15_SLICE=study-only-anchor-accounting`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
 - scope: keep the two roadmap-backed study-only anchors explicit beside the freeze map, the Phase 15 freeze-map governance note, the parity scorecard, the handoff-next-steps survey, and the shared-summary gap note without claiming a status-bucket review, a direct Zigux bridge, or an Architecture Council approval path
 
 The roadmap keeps two deep-core areas in a narrower posture than the four freeze-in-C anchors: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only until years of narrower evidence justify anything stronger.
@@ -141,6 +156,7 @@ The roadmap keeps two deep-core areas in a narrower posture than the four freeze
 
 - if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it
 - if a future scorecard or governance note changes the reported study-only count, this note must reconcile the same anchor set directly instead of leaving the count implicit
+- if the handoff-next-steps survey or shared-summary gap note changes how the study-only anchors are summarized, this note must stay aligned with that same two-anchor inventory and maintenance boundary
 
 ## Study-Only Anchor Inventory
 
@@ -208,12 +224,30 @@ def _sample_handoff() -> str:
 """
 
 
+def _sample_shared_summary() -> str:
+    return """# Phase 15 Shared Summary Gap
+
+## Current shared-summary watchpoints
+
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+
+## Recovery rule
+
+- if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+
+## Current governance posture to preserve
+
+- keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
+"""
+
+
 def _seed(root: Path) -> None:
     _write(root / STUDY_ONLY_NOTE_REL, _sample_study_only_note())
     _write(root / FREEZE_MAP_REL, _sample_freeze_map())
     _write(root / FREEZE_GOVERNANCE_REL, _sample_freeze_governance())
     _write(root / PARITY_SCORECARD_REL, _sample_parity_scorecard())
     _write(root / HANDOFF_REL, _sample_handoff())
+    _write(root / SHARED_SUMMARY_REL, _sample_shared_summary())
 
 
 def run_self_test() -> int:
@@ -292,6 +326,24 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected handoff-rule failure: {failures}")
+        case_count += 1
+
+        missing_shared_summary = root / "missing_shared_summary"
+        _seed(missing_shared_summary)
+        _write(
+            missing_shared_summary / SHARED_SUMMARY_REL,
+            _sample_shared_summary().replace(
+                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_shared_summary)
+        expected = [
+            "shared_summary:missing:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected shared-summary failure: {failures}")
         case_count += 1
 
     print("PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING_SELF_TEST=pass")
