@@ -24,6 +24,8 @@ REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
+CPU_MASK_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask.zig")
+LOGGING_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
 PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")
@@ -33,6 +35,7 @@ PIN_PATH_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path_verify.zig
 READY_BUFFER_ATTEMPT_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig")
 READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig")
 READY_BUFFER_WINDOW_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig")
+TYPE_NAMES_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names.zig")
 TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
@@ -60,6 +63,8 @@ REQUIRED_FILES = (
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     VERIFY_SEGMENT,
+    CPU_MASK_SEGMENT,
+    LOGGING_SEGMENT,
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
     PIN_PATH_SEGMENT,
@@ -69,6 +74,7 @@ REQUIRED_FILES = (
     READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
     READY_BUFFER_FD_VERIFY_SEGMENT,
     READY_BUFFER_WINDOW_VERIFY_SEGMENT,
+    TYPE_NAMES_SEGMENT,
     TYPE_NAMES_VERIFY_SEGMENT,
 )
 
@@ -164,40 +170,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd",
         "Run the phase 8 exec-cmd review witness tests.",
     ),
-    Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
-        "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
-        '"zigux/tests/README.md"',
-        '"scripts/zigux/README.md"',
-        "resolveReadyBufferFdAtAttempt",
-        "resolveReadyBufferFdLookupReturnAtAttempt",
-        "summarizePollExecutionResultFromWaitResult",
-        "summarizeBufferFdLookup",
-        "summarizeBufferWindowLookup",
-    ),
-    VERIFY_ROUTING_GAP_TEST: (
-        "phase 8 verify routing witness records the current CPU-index verifier closure",
-        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
-        "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
-        "phase 8 verify routing witness records the current direct-readback libbpf survey packet",
-    ),
-    Path("zigux/tests/phase8_file_path_handle_bridge.zig"): (
-        "phase 8 file-path handle bridge",
-        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-    ),
-    Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"): (
-        "phase8_file_path_handle_bridge.zig",
-        "phase8_file_path_handle_bridge",
-        "Run the phase 8 file-path-handle bridge tests.",
-    ),
-    VERIFY_ROUTING_GAP_BUILD: (
-        "phase8_verify_routing_gap.zig",
-        "phase8_verify_routing_gap",
-        "Run the phase 8 verify routing witness tests.",
-    ),
-    Path("zigux/tests/phase8_build.zig"): (
-        "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
-        "phase8_perf_buffer_poll",
-        "phase8_file_path_handle_bridge",
+    CPU_MASK_SEGMENT: (
+        "pub fn parseCpuMaskString(",
+        "pub fn summarizePossibleCpusFromReader(",
+        "pub fn derivePerfBufferAutoCpuCountFromReader(",
     ),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"): (
         "pub const BufferFdLookupDisposition = enum {",
@@ -225,6 +201,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
         'test "program pin-path helpers mirror the bounded libbpf program pin contract" {',
+    ),
+    LOGGING_SEGMENT: (
+        "pub fn parseLogLevelSetting(",
+        "pub fn libbpfVersionString(",
+        "pub fn formatLibbpfError(",
     ),
     LOGGING_VERIFY_SEGMENT: (
         "phase8 logging helper entrypoints stay explicit",
@@ -255,6 +236,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8 ready-buffer window verifier keeps mapped-size and lookup-return wrappers explicit",
         "summarizeBufferWindowMappedSize",
         "summarizeBufferWindowLookupReturn",
+    ),
+    TYPE_NAMES_SEGMENT: (
+        "pub fn libbpfBpfMapTypeStr(",
+        "pub fn libbpfBpfAttachTypeStr(",
+        "pub fn formatLibbpfBpfProgType(",
     ),
     TYPE_NAMES_VERIFY_SEGMENT: (
         "phase8 libbpf type-name helper entrypoints stay explicit",
@@ -598,6 +584,20 @@ def run_self_test() -> int:
             raise AssertionError("expected missing perf-buffer helper file to be reported")
         _write(missing_helper, "\n".join(FILE_MARKERS[Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig")]) + "\n")
 
+        cpu_mask_helper = root / CPU_MASK_SEGMENT
+        cpu_mask_helper.unlink()
+        missing_cpu_mask_helper = validate_root(root)
+        if CPU_MASK_SEGMENT.as_posix() not in missing_cpu_mask_helper.missing_files:
+            raise AssertionError("expected missing cpu-mask helper file to be reported")
+        _write(cpu_mask_helper, "\n".join(FILE_MARKERS[CPU_MASK_SEGMENT]) + "\n")
+
+        logging_helper = root / LOGGING_SEGMENT
+        logging_helper.unlink()
+        missing_logging_helper = validate_root(root)
+        if LOGGING_SEGMENT.as_posix() not in missing_logging_helper.missing_files:
+            raise AssertionError("expected missing logging helper file to be reported")
+        _write(logging_helper, "\n".join(FILE_MARKERS[LOGGING_SEGMENT]) + "\n")
+
         pin_path_helper = root / PIN_PATH_SEGMENT
         pin_path_helper.unlink()
         missing_pin_path_helper = validate_root(root)
@@ -622,6 +622,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing verify-routing build shard to be reported")
         _write(verify_build, "\n".join(FILE_MARKERS[VERIFY_ROUTING_GAP_BUILD]) + "\n")
 
+        type_names_helper = root / TYPE_NAMES_SEGMENT
+        type_names_helper.unlink()
+        missing_type_names_helper = validate_root(root)
+        if TYPE_NAMES_SEGMENT.as_posix() not in missing_type_names_helper.missing_files:
+            raise AssertionError("expected missing type-names helper file to be reported")
+        _write(type_names_helper, "\n".join(FILE_MARKERS[TYPE_NAMES_SEGMENT]) + "\n")
+
         online_cpu_routing = root / ONLINE_CPU_ROUTING_SEGMENT
         online_cpu_routing.unlink()
         missing_online_cpu_routing = validate_root(root)
@@ -630,7 +637,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
