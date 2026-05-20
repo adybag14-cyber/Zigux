@@ -14,6 +14,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 
 
 def infer_repo_root() -> Path:
@@ -85,6 +86,11 @@ SAMPLES_README_REQUIRED_MARKERS = [
     "Do not widen this lane into runtime-loader, module-registration, procfs, sysfs, user-copy, workqueue, ring-buffer, or other runtime-substrate claims.",
 ]
 
+TESTS_README_REQUIRED_MARKERS = [
+    "Keep the current bounded Phase 15 governance reminder explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
+    "without implying any Architecture Council approval for a freeze-map status change",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -104,6 +110,7 @@ def validate(root: Path) -> list[str]:
         LANE_SEQUENCING_PATH,
         SCRIPTS_README_PATH,
         SAMPLES_README_PATH,
+        TESTS_README_PATH,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -139,6 +146,11 @@ def validate(root: Path) -> list[str]:
     for marker in SAMPLES_README_REQUIRED_MARKERS:
         if marker not in samples_readme:
             failures.append(f"missing_marker:{SAMPLES_README_PATH}:{marker}")
+
+    tests_readme = read_text(root, TESTS_README_PATH)
+    for marker in TESTS_README_REQUIRED_MARKERS:
+        if marker not in tests_readme:
+            failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
 
     return failures
 
@@ -209,6 +221,16 @@ def build_samples_readme_fixture_text() -> str:
 """
 
 
+def build_tests_readme_fixture_text() -> str:
+    return """# zigux/tests
+
+Keep the current bounded Phase 15 governance reminder explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned readiness and handoff survey packet members, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, and build-level surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
+"""
+
+
 def seed_fixture_tree(base: Path) -> None:
     write_text(base / FREEZE_MAP_PATH, build_freeze_map_fixture_text())
     write_text(base / STUDY_ONLY_ACCOUNTING_PATH, build_study_only_accounting_fixture_text())
@@ -216,6 +238,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text())
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
+    write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -280,6 +303,14 @@ def run_self_test() -> int:
             write_text(base / SAMPLES_README_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{SAMPLES_README_PATH}:{marker}")
 
+        for marker in TESTS_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_tests_readme_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / TESTS_README_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
+
         for rel_path in [
             FREEZE_MAP_PATH,
             STUDY_ONLY_ACCOUNTING_PATH,
@@ -287,6 +318,7 @@ def run_self_test() -> int:
             LANE_SEQUENCING_PATH,
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
+            TESTS_README_PATH,
         ]:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
@@ -301,6 +333,7 @@ def run_self_test() -> int:
     print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     return 0
 
 
@@ -331,6 +364,7 @@ def main() -> int:
     print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES=pass")
     return 0
 
