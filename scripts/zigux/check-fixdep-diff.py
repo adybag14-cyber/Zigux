@@ -541,6 +541,15 @@ def run_self_test() -> int:
     )
     self_test_case_count += 1
 
+    empty_stderr_cases = copy_valid_cases(valid_cases)
+    find_case(empty_stderr_cases, "sample_comment_only")["expected_stderr"] = ""
+    expect_failure(
+        "empty_expected_stderr",
+        lambda: validate_cases(empty_stderr_cases),
+        f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
+    )
+    self_test_case_count += 1
+
     bad_expected_stderr_type_cases = copy_valid_cases(valid_cases)
     find_case(bad_expected_stderr_type_cases, "sample_comment_only")["expected_stderr"] = True
     expect_failure(
@@ -555,6 +564,15 @@ def run_self_test() -> int:
     expect_failure(
         "missing_expected_output_field",
         lambda: validate_cases(missing_expected_output_cases),
+        f"{CASES_PATH}:sample:missing_expected_output",
+    )
+    self_test_case_count += 1
+
+    empty_expected_output_cases = copy_valid_cases(valid_cases)
+    find_case(empty_expected_output_cases, "sample")["expected"] = ""
+    expect_failure(
+        "empty_expected_output_field",
+        lambda: validate_cases(empty_expected_output_cases),
         f"{CASES_PATH}:sample:missing_expected_output",
     )
     self_test_case_count += 1
@@ -604,6 +622,15 @@ def run_self_test() -> int:
     )
     self_test_case_count += 1
 
+    empty_target_cases = copy_valid_cases(valid_cases)
+    find_case(empty_target_cases, "sample")["target"] = ""
+    expect_failure(
+        "empty_target",
+        lambda: validate_cases(empty_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+    self_test_case_count += 1
+
     bad_target_type_cases = copy_valid_cases(valid_cases)
     find_case(bad_target_type_cases, "sample")["target"] = 7
     expect_failure(
@@ -636,6 +663,15 @@ def run_self_test() -> int:
     expect_failure(
         "missing_non_empty_depfile",
         lambda: validate_cases(missing_depfile_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_depfile",
+    )
+    self_test_case_count += 1
+
+    empty_depfile_cases = copy_valid_cases(valid_cases)
+    find_case(empty_depfile_cases, "sample")["depfile"] = ""
+    expect_failure(
+        "empty_depfile",
+        lambda: validate_cases(empty_depfile_cases),
         f"{CASES_PATH}:sample:missing_non_empty_depfile",
     )
     self_test_case_count += 1
@@ -818,7 +854,7 @@ def compile_run_c_wsl(
             ]
         ),
         "rc=$?",
-        f"printf '%s' \\\"$rc\\\" > {shlex.quote(windows_to_wsl(rc_path))}",
+        f"printf '%s' \"$rc\" > {shlex.quote(windows_to_wsl(rc_path))}",
     ]
     lines[3] += f" > {stdout_redirect} 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
     script_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
@@ -909,14 +945,7 @@ def main() -> int:
 
     for case in cases:
         depfile = FIXTURE_DIR / case["depfile"]
-        (
-            expected_stdout,
-            expected_stderr,
-            expected_exit_code,
-            stdout_mode,
-            target,
-            cmdline,
-        ) = resolve_runtime_case(case)
+        expected_stdout, expected_stderr, expected_exit_code, stdout_mode, target, cmdline = resolve_runtime_case(case)
 
         with tempfile.TemporaryDirectory(prefix=f"zigux_fixdep_{case['name']}_") as tmp_dir_str:
             tmp_dir = Path(tmp_dir_str)
