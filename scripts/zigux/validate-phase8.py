@@ -26,8 +26,10 @@ VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_buil
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
+PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")
 LOGGING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging_verify.zig")
 ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")
+PIN_PATH_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path_verify.zig")
 READY_BUFFER_ATTEMPT_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig")
 READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig")
 READY_BUFFER_WINDOW_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig")
@@ -60,8 +62,10 @@ REQUIRED_FILES = (
     VERIFY_SEGMENT,
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
+    PIN_PATH_SEGMENT,
     LOGGING_VERIFY_SEGMENT,
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+    PIN_PATH_VERIFY_SEGMENT,
     READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
     READY_BUFFER_FD_VERIFY_SEGMENT,
     READY_BUFFER_WINDOW_VERIFY_SEGMENT,
@@ -111,6 +115,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/logging_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
@@ -202,7 +208,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     VERIFY_SEGMENT: (
         'const logging_verify = @import("logging_verify.zig");',
+        'const pin_path_verify = @import("pin_path_verify.zig");',
         "std.testing.refAllDecls(logging_verify);",
+        "std.testing.refAllDecls(pin_path_verify);",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit",
@@ -211,6 +219,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+    ),
+    PIN_PATH_SEGMENT: (
+        'pub const default_bpf_fs_path = "/sys/fs/bpf";',
+        "pub fn buildValidatedMapPinPath(",
+        "pub fn buildValidatedSanitizedProgramPinPath(",
+        'test "program pin-path helpers mirror the bounded libbpf program pin contract" {',
     ),
     LOGGING_VERIFY_SEGMENT: (
         "phase8 logging helper entrypoints stay explicit",
@@ -221,6 +235,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8 online-cpu routing verifier keeps cpu-index wrappers explicit",
         "resolveNextOnlineCpuRouteCpuIndex",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
+    ),
+    PIN_PATH_VERIFY_SEGMENT: (
+        "phase8 pin-path helper entrypoints stay explicit",
+        "buildValidatedSanitizedProgramPinPath",
+        "phase8 pin-path helpers keep stable map and program outputs explicit",
     ),
     READY_BUFFER_ATTEMPT_VERIFY_SEGMENT: (
         "phase8 ready-buffer attempt helper entrypoints stay explicit",
@@ -379,6 +398,7 @@ def _passing_fixture(root: Path) -> None:
     for helper in (
         LOGGING_VERIFY_SEGMENT,
         ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+        PIN_PATH_VERIFY_SEGMENT,
         READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
         READY_BUFFER_FD_VERIFY_SEGMENT,
         READY_BUFFER_WINDOW_VERIFY_SEGMENT,
@@ -536,6 +556,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing online-cpu routing verify file to be reported")
         _write(online_cpu_verify, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_VERIFY_SEGMENT]) + "\n")
 
+        pin_path_verify = root / PIN_PATH_VERIFY_SEGMENT
+        pin_path_verify.unlink()
+        missing_pin_path_verify = validate_root(root)
+        if PIN_PATH_VERIFY_SEGMENT.as_posix() not in missing_pin_path_verify.missing_files:
+            raise AssertionError("expected missing pin-path verify file to be reported")
+        _write(pin_path_verify, "\n".join(FILE_MARKERS[PIN_PATH_VERIFY_SEGMENT]) + "\n")
+
         ready_buffer_attempt_verify = root / READY_BUFFER_ATTEMPT_VERIFY_SEGMENT
         ready_buffer_attempt_verify.unlink()
         missing_ready_buffer_attempt_verify = validate_root(root)
@@ -571,6 +598,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing perf-buffer helper file to be reported")
         _write(missing_helper, "\n".join(FILE_MARKERS[Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig")]) + "\n")
 
+        pin_path_helper = root / PIN_PATH_SEGMENT
+        pin_path_helper.unlink()
+        missing_pin_path_helper = validate_root(root)
+        if PIN_PATH_SEGMENT.as_posix() not in missing_pin_path_helper.missing_files:
+            raise AssertionError("expected missing pin-path helper file to be reported")
+        _write(pin_path_helper, "\n".join(FILE_MARKERS[PIN_PATH_SEGMENT]) + "\n")
+
         missing_bridge_build = root / "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
         missing_bridge_build.unlink()
         missing_build = validate_root(root)
@@ -596,7 +630,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
