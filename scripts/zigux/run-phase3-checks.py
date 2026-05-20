@@ -110,6 +110,11 @@ CHECK_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+        (),
+        ("validated Documentation/zigux/phase3-linux-zigux-header-governance.md",),
+    ),
+    (
         Path("scripts/zigux/check-phase3-selftest-surface.py"),
         (),
         ("validated scripts/zigux/README.md",),
@@ -132,7 +137,8 @@ SELF_TEST_MISSING_CASES = (
     (12, "expected abi-header-family survey script omission was not reported"),
     (13, "expected policy-unsafe survey script omission was not reported"),
     (14, "expected low-level-wrapper script omission was not reported"),
-    (15, "expected selftest-surface script omission was not reported"),
+    (15, "expected linux-zigux header-governance script omission was not reported"),
+    (16, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -234,10 +240,10 @@ def run_self_test() -> int:
                 print(message)
                 return 1
 
-        failing_path = CHECK_COMMANDS[-2][0]
+        failing_path = root / CHECK_COMMANDS[-2][0]
         populate_repo()
         _write_synthetic_script(
-            root / failing_path,
+            failing_path,
             CHECK_COMMANDS[-2][2],
             failure_code=9,
         )
@@ -299,10 +305,18 @@ def run_self_test() -> int:
             print("expected missing low-level-wrapper pass marker to fail the runner")
             return 1
 
+        linux_zigux_header_path = root / CHECK_COMMANDS[15][0]
+        populate_repo()
+        _write_synthetic_script(linux_zigux_header_path, ())
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing linux-zigux header-governance output marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 7}"
+            f"{len(SELF_TEST_MISSING_CASES) + 8}"
         )
         return 0
 
