@@ -248,7 +248,14 @@ def emit_summary(mode: str, targets: list[str]) -> None:
     print(f"PHASE2_CROSS_TARGET_REPLAY_FILE_COUNT={len(ZIG_TEST_FILES)}")
 
 
-def replay_target(root: Path, zig: str, target: str, timeout_seconds: int) -> int:
+def replay_target(
+    root: Path,
+    zig: str,
+    target: str,
+    timeout_seconds: int,
+    *,
+    emit_pass_summary: bool = True,
+) -> int:
     for rel_path in ZIG_TEST_FILES:
         rel_path_text = rel_path.as_posix()
         try:
@@ -280,7 +287,8 @@ def replay_target(root: Path, zig: str, target: str, timeout_seconds: int) -> in
             print(f"PHASE2_CROSS_TARGET_REPLAY_FAILED_FILE={rel_path_text}")
             return completed.returncode
 
-    emit_summary("single-target", [target])
+    if emit_pass_summary:
+        emit_summary("single-target", [target])
     return 0
 
 
@@ -298,7 +306,7 @@ def run_single_target(root: Path, zig: str, target: str, timeout_seconds: int) -
 def run_all_targets(root: Path, zig: str, timeout_seconds: int) -> int:
     targets = load_targets(root)
     for target in targets:
-        result = replay_target(root, zig, target, timeout_seconds)
+        result = replay_target(root, zig, target, timeout_seconds, emit_pass_summary=False)
         if result != 0:
             print("PHASE2_CROSS_TARGET_REPLAY_MODE=all-targets")
             return result
@@ -722,6 +730,7 @@ def run_self_test() -> int:
         assert "PHASE2_CROSS_TARGET_REPLAY_MODE=all-targets" in output
         assert "PHASE2_CROSS_TARGET_REPLAY_TARGET_COUNT=2" in output
         assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux,aarch64-linux" in output
+        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=single-target" not in output
         checks_run += 1
 
         build_self_test_root(root)
