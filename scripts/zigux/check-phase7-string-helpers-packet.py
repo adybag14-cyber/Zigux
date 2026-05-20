@@ -45,11 +45,16 @@ REQUIRED_MARKERS = {
     ],
     "lib/string_helpers.zig": [
         "pub fn kstrdupQuotable(",
+        "pub fn kstrdup_quotable(",
         "pub fn kstrdupQuotableFile(",
         "pub fn kstrdup_quotable_file(",
         "pub fn kstrdupQuotableCmdline(",
+        "pub fn kstrdup_quotable_cmdline(",
         "pub fn parseIntArray(",
+        "pub fn parse_int_array(",
         "pub fn stringUpper(",
+        "pub fn string_upper(",
+        "pub fn stringLower(",
         "pub fn string_lower(",
     ],
     "zigux/tests/phase7_string_helpers.zig": [
@@ -58,6 +63,9 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
+        'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
+        'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {',
+        'test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {',
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         '"scripts/zigux/check-phase7-string-helpers-packet.py"',
@@ -106,7 +114,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -203,10 +211,30 @@ def run_self_test() -> None:
         expect_missing_marker("missing_helper_cmdline_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
+        helper_alias_marker = "pub fn kstrdup_quotable("
+        helper_path.write_text(read_text(helper_path).replace(helper_alias_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_quotable_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_alias_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_parse_alias_marker = "pub fn parse_int_array("
+        helper_path.write_text(read_text(helper_path).replace(helper_parse_alias_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_parse_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_parse_alias_marker}")
+        write_fixture_root(tmp_root)
+
         tests_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers.zig"
         tests_marker = 'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {'
         tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_file_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_alloc_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_file_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_alloc_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_cmdline_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_cmdline_alloc_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_cmdline_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_alloc_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
