@@ -2,7 +2,7 @@
 
 PHASE9_SURVEYED_COMMIT=9ca34d1aa5c3031e1126cf951cf7e4bc515fe7b4
 
-This survey keeps the Phase 9 runtime trace-events packet aligned with the roadmap after current `master` narrowed down to one direct sample family instead of the older broader loader-backed packet.
+This survey keeps the Phase 9 runtime trace-events packet aligned with the roadmap after current `master` narrowed down to one direct sample family plus an adjacent shared loader-handoff build shard instead of the older broader loader-backed packet.
 
 ## Roadmap anchor
 
@@ -33,33 +33,32 @@ The exit-rollback companion still keeps failed-exit rollback explicit after reus
 The registration-reentry companion still keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
+Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`: the live file names `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-trace-events-loader-substrate-drift-tests`, and aggregate `phase9-runtime-loader-shared-tests`, but those steps remain shared-owner evidence rather than family-local trace-events proof.
+
 ## Gap Versus Roadmap
 
-This packet is enough to keep one pilot-module review surface honest, but it is not the broader shared runtime-loader publication story. The adjacent shared allocator/init-flow review packet has returned on current `master`; this lane still treats that returned packet as neighboring evidence rather than family-local trace-events proof.
+This packet is enough to keep one pilot-module review surface honest, but it is not the broader shipped runtime publication story. The adjacent shared allocator/init-flow review packet has returned on current `master`; this lane still treats that returned packet and the shared loader-handoff build shard as neighboring evidence rather than family-local trace-events proof.
 
-Current `master` still does not expose, inside this family-local trace-events proof packet:
+Current `master` still does not expose, inside this family-local trace-events proof packet itself:
 
-- the broader shared `zigux/tests/runtime_*` replay family beyond this narrow survey witness
-- `zigux/kernel/runtime_loader.zig`
-- `zigux/kernel/runtime_loader_contract.zig`
-- the older `samples/zigux/runtime_*_loader.zig` scaffolds
-- dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
+- a dedicated trace-events-only build route in `zigux/tests/phase9_build.zig`
+- a family-local loader parity witness beyond the adjacent shared `runtime_trace_events_loader_substrate_drift.zig` handoff check
+- shipped runtime publication, install-root, or depmod-visible proof for the broader loader family
 
-Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded Phase 9 build bundle rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, survey, and top-bit targets rather than a broader shared runtime-loader or trace-events build packet.
+Current `master` now exposes the shared loader-backed surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds through the adjacent `phase9-runtime-loader-shared-tests` shard in `zigux/tests/phase9_build.zig`, but that shard still stays neighboring shared-owner evidence instead of a returned family-local trace-events packet.
 
-The returned shared allocator/init-flow packet now lives separately through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds, but those shared surfaces still stop short of proving broader runtime publication or loadable-runtime-complete substrate work.
+Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet explicit through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, so the family-local boundary above is about avoiding trace-events overclaim rather than proof that the bitmap family is complete.
 
-Current `master` does still keep the separate Phase 9 runtime bitmap reminder packet explicit through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, so the absent-loader wording above is about the older trace-events loader-backed packet rather than proof that any direct bitmap sample-family file has returned.
-
-So this survey packet closes one bounded roadmap gap by restoring a direct review witness under `zigux/tests/runtime_*`, but it does not claim returned shared loader parity, live `module_init()` or `module_exit()` wiring, depmod-visible registration, or broader runtime-substrate readiness.
+So this survey packet closes one bounded roadmap gap by restoring a direct review witness under `zigux/tests/runtime_*`, but it does not claim dedicated trace-events build-route ownership, shipped broader runtime publication parity, live `module_init()` or `module_exit()` wiring beyond the current sample family, or loadable-runtime-complete substrate work.
 
 ## Boundary Rules
 
 - Keep this survey note, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` aligned with the surviving four-file sample family only.
 - Keep `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` paired with this survey packet as the family-local pilot-module note.
-- Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and the shared Phase 9 reminder surfaces adjacent rather than re-owned by this lane.
-- Do not invent `validate-phase9.py`, a returned shared loader packet, or extra runtime bitmap or kretprobe evidence here.
+- Keep the adjacent shared loader-handoff shard in `zigux/tests/phase9_build.zig` explicit without promoting it into family-local trace-events proof.
+- Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and the other shared Phase 9 reminder surfaces adjacent rather than re-owned by this lane.
+- Do not invent `validate-phase9.py`, a returned trace-events-only loader packet, or extra runtime bitmap or kretprobe evidence here.
 
 ## Next Bounded Step
 
-If the trace-events sample family changes again, refresh only the family-local survey note, manifest, survey gate, and module-slice wording needed to keep the narrow pilot-module packet truthful.
+If the trace-events sample family changes again, refresh only the family-local survey note, manifest, survey gate, and module-slice wording needed to keep the narrow pilot-module packet truthful while leaving the shared loader-handoff shard as neighboring evidence unless it is explicitly promoted by the owning shared Phase 9 lane.
