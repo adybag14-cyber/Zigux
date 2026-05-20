@@ -65,7 +65,6 @@ REQUIRED_SNIPPETS = {
         '        "max_decode_slowdown_pct": 325,',
         '          "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",',
         '          "make -C zigux phase6-base64-perf",',
-        '          "make -C zigux phase6-perf"',
         '      "key": "bsearch",',
         '      "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",',
         '        "budget_model": "comparison_budget",',
@@ -161,6 +160,12 @@ REQUIRED_SNIPPETS = {
     ],
 }
 
+REQUIRED_SNIPPET_COUNTS = {
+    PHASE6_HELPER_PARITY_MANIFEST_PATH: {
+        '          "make -C zigux phase6-perf"': 4,
+    },
+}
+
 SELF_TEST_CASES = [
     (
         BASE64_VECTORS_PATH,
@@ -196,6 +201,11 @@ SELF_TEST_CASES = [
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
         '            "reps": 40000,',
         '            "reps": 45000,',
+    ),
+    (
+        PHASE6_HELPER_PARITY_MANIFEST_PATH,
+        '          "make -C zigux phase6-perf"',
+        '          "make -C zigux phase6-perf-gate"',
     ),
     (
         BSEARCH_VECTORS_PATH,
@@ -243,6 +253,20 @@ def read_text(path: Path) -> str:
 
 
 
+def validate_snippet_counts(path: Path, content: str) -> None:
+    required_counts = REQUIRED_SNIPPET_COUNTS.get(path)
+    if required_counts is None:
+        return
+    for snippet, expected_count in required_counts.items():
+        actual_count = content.count(snippet)
+        if actual_count != expected_count:
+            raise ValidationError(
+                f"unexpected Phase 6 perf marker count in {path.as_posix()}: "
+                f"expected {expected_count} occurrences of {snippet!r}, found {actual_count}"
+            )
+
+
+
 def validate(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -251,6 +275,7 @@ def validate(repo_root: Path) -> None:
                 raise ValidationError(
                     f"missing expected Phase 6 perf marker in {rel_path.as_posix()}: {snippet}"
                 )
+        validate_snippet_counts(rel_path, content)
 
 
 
@@ -262,7 +287,13 @@ def write(path: Path, content: str) -> None:
 
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
-        write(root / rel_path, "\n".join(snippets) + "\n")
+        content_lines = list(snippets)
+        required_counts = REQUIRED_SNIPPET_COUNTS.get(rel_path, {})
+        for snippet, expected_count in required_counts.items():
+            existing_count = content_lines.count(snippet)
+            if existing_count < expected_count:
+                content_lines.extend([snippet] * (expected_count - existing_count))
+        write(root / rel_path, "\n".join(content_lines) + "\n")
 
 
 
