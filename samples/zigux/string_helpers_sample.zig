@@ -1,13 +1,7 @@
 const std = @import("std");
 const string_helpers = @import("string_helpers");
 
-pub const SampleStage = enum(u8) {
-    cold,
-    initialized,
-    replay_complete,
-    exited,
-};
-
+pub const SampleStage = enum(u8) { cold, initialized, replay_complete, exited };
 pub const SampleFocus = enum {
     newline_tolerant_matching,
     bounded_size_rendering,
@@ -17,25 +11,14 @@ pub const SampleFocus = enum {
     case_conversion_preview,
     non_allocating_runtime_safe,
 };
-
-pub const SampleDescriptor = struct {
-    name: []const u8,
-    anchor: []const u8,
-    requires_runtime_substrate: bool,
-    provides_selfcheck: bool,
-};
-
-pub const RenderedText = struct {
-    bytes: [16]u8 = [_]u8{0} ** 16,
-    len: usize = 0,
-};
-
+pub const SampleDescriptor = struct { name: []const u8, anchor: []const u8, requires_runtime_substrate: bool, provides_selfcheck: bool };
+pub const RenderedText = struct { bytes: [16]u8 = [_]u8{0} ** 16, len: usize = 0 };
 pub const ReplaySummary = struct {
     anchor: []const u8,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     comparable_match: bool,
-    matched_index: i32,
+    matched_index: usize,
     size_text: RenderedText,
     compact_size_text: RenderedText,
     replaced_text: RenderedText,
@@ -53,126 +36,59 @@ pub const ReplaySummary = struct {
 
 pub const StringHelpersSample = struct {
     const Self = @This();
-
     stage_state: SampleStage = .cold,
     init_runs: usize = 0,
     exit_runs: usize = 0,
 
     pub fn descriptor() SampleDescriptor {
-        return .{
-            .name = "string_helpers_sample",
-            .anchor = "lib/string_helpers.c",
-            .requires_runtime_substrate = false,
-            .provides_selfcheck = true,
-        };
+        return .{ .name = "string_helpers_sample", .anchor = "lib/string_helpers.c", .requires_runtime_substrate = false, .provides_selfcheck = true };
     }
-
-    pub fn stage(self: *const Self) SampleStage {
-        return self.stage_state;
-    }
-
+    pub fn stage(self: *const Self) SampleStage { return self.stage_state; }
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
-
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
-
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
-
         const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
-
         var size_text = RenderedText{};
-        size_text.len = string_helpers.stringGetSize(
-            1536,
-            1,
-            string_helpers.STRING_UNITS_2,
-            &size_text.bytes,
-        );
-
+        size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &size_text.bytes, 0);
         var compact_size_text = RenderedText{};
-        compact_size_text.len = string_helpers.stringGetSize(
-            1536,
-            1,
-            string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,
-            &compact_size_text.bytes,
-        );
-
+        compact_size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES, &compact_size_text.bytes, 0);
         var replaced_text = RenderedText{};
         @memcpy(replaced_text.bytes[0..10], "mode-ready");
         replaced_text.bytes[10] = 0;
         _ = string_helpers.strreplace(replaced_text.bytes[0..11], '-', '_');
         replaced_text.len = 10;
-
         var padded_text = RenderedText{};
         string_helpers.memcpyAndPad(padded_text.bytes[0..5], "xy", 2, '.');
         padded_text.len = 5;
-
         var upper_text = RenderedText{};
         string_helpers.stringUpper(upper_text.bytes[0..6], "miXeD\x00tail");
         upper_text.len = 5;
-
         var lower_text = RenderedText{};
         string_helpers.stringLower(lower_text.bytes[0..5], "HeLP\x00tail");
         lower_text.len = 4;
-
         var unescaped_text = RenderedText{};
-        unescaped_text.len = string_helpers.stringUnescape(
-            "line\\n",
-            &unescaped_text.bytes,
-            unescaped_text.bytes.len,
-            string_helpers.UNESCAPE_SPACE,
-        );
-
+        unescaped_text.len = string_helpers.stringUnescape("line\\n", &unescaped_text.bytes, unescaped_text.bytes.len, string_helpers.UNESCAPE_SPACE);
         var exact_unescape_text = RenderedText{};
-        exact_unescape_text.len = string_helpers.stringUnescape(
-            "\\n",
-            &exact_unescape_text.bytes,
-            2,
-            string_helpers.UNESCAPE_SPACE,
-        );
-
+        exact_unescape_text.len = string_helpers.stringUnescape("\\n", &exact_unescape_text.bytes, 2, string_helpers.UNESCAPE_SPACE);
         var escaped_text = RenderedText{};
-        escaped_text.len = string_helpers.stringEscapeMem(
-            "\n",
-            &escaped_text.bytes,
-            string_helpers.ESCAPE_HEX,
-            null,
-        );
-
+        escaped_text.len = string_helpers.stringEscapeMem("\n", &escaped_text.bytes, 0, string_helpers.ESCAPE_HEX, null);
         var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };
-        bounded_escape_text.len = string_helpers.stringEscapeMem(
-            "\n",
-            bounded_escape_text.bytes[0..5],
-            string_helpers.ESCAPE_HEX,
-            null,
-        );
-
+        bounded_escape_text.len = string_helpers.stringEscapeMem("\n", bounded_escape_text.bytes[0..5], 0, string_helpers.ESCAPE_HEX, null);
         var selected_escape_text = RenderedText{};
-        selected_escape_text.len = string_helpers.stringEscapeMem(
-            "A\n\tZ",
-            &selected_escape_text.bytes,
-            string_helpers.ESCAPE_SPACE,
-            "\n",
-        );
-
+        selected_escape_text.len = string_helpers.stringEscapeMem("A\n\tZ", &selected_escape_text.bytes, 0, string_helpers.ESCAPE_SPACE, "\n");
         var appended_escape_text = RenderedText{};
-        appended_escape_text.len = string_helpers.stringEscapeMem(
-            "A\nZ",
-            &appended_escape_text.bytes,
-            string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,
-            "\n",
-        );
-
+        appended_escape_text.len = string_helpers.stringEscapeMem("A\nZ", &appended_escape_text.bytes, 0, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
         self.stage_state = .replay_complete;
-
         return .{
             .anchor = descriptor().anchor,
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
             .comparable_match = string_helpers.sysfsStreq("mode", "mode\n"),
-            .matched_index = string_helpers.sysfsMatchString(&values, values.len, "enabled\n"),
+            .matched_index = string_helpers.sysfsMatchString(&values, "enabled\n") orelse unreachable,
             .size_text = size_text,
             .compact_size_text = compact_size_text,
             .replaced_text = replaced_text,
@@ -185,24 +101,11 @@ pub const StringHelpersSample = struct {
             .bounded_escape_text = bounded_escape_text,
             .selected_escape_text = selected_escape_text,
             .appended_escape_text = appended_escape_text,
-            .checked_focus = &.{
-                .newline_tolerant_matching,
-                .bounded_size_rendering,
-                .deterministic_escape_subset,
-                .bounded_destination_discipline,
-                .bounded_buffer_mutation,
-                .case_conversion_preview,
-                .non_allocating_runtime_safe,
-            },
+            .checked_focus = &.{ .newline_tolerant_matching, .bounded_size_rendering, .deterministic_escape_subset, .bounded_destination_discipline, .bounded_buffer_mutation, .case_conversion_preview, .non_allocating_runtime_safe },
         };
     }
-
     pub fn exit(self: *Self) !void {
-        switch (self.stage()) {
-            .initialized, .replay_complete => {},
-            else => return error.InvalidLifecycleTransition,
-        }
-
+        switch (self.stage()) { .initialized, .replay_complete => {}, else => return error.InvalidLifecycleTransition }
         self.exit_runs += 1;
         self.stage_state = .exited;
     }
@@ -217,13 +120,12 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try sample.init();
     const replay = try sample.runAnchorReplay();
     const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
-
     try std.testing.expectEqualStrings("lib/string_helpers.c", replay.anchor);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expect(replay.comparable_match);
-    try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
-    try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
+    try std.testing.expectEqual(@as(usize, 1), replay.matched_index);
+    try std.testing.expectEqual(@as(?usize, null), string_helpers.matchString(values[0..2], "ignored"));
     try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&replay.size_text.bytes));
     try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);
     try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&replay.compact_size_text.bytes));
@@ -236,11 +138,11 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
     try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
     try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
-    try std.testing.expectEqualSlices(u8, "\\x0a", replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqualSlices(u8, "\\x0A", replay.escaped_text.bytes[0..replay.escaped_text.len]);
     try std.testing.expectEqual(@as(usize, 4), replay.bounded_escape_text.len);
-    try std.testing.expectEqualSlices(u8, "\\x0a?", replay.bounded_escape_text.bytes[0..5]);
+    try std.testing.expectEqualSlices(u8, "\\x0A?", replay.bounded_escape_text.bytes[0..5]);
     try std.testing.expectEqualSlices(u8, "A\\n\tZ", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
-    try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
+    try std.testing.expectEqualSlices(u8, "A\\x0AZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
     try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
 }
 
