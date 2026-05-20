@@ -43,6 +43,7 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strchr(buf: []const u8, needle: u8) ?usize {",
     "pub fn strrchr(buf: []const u8, needle: u8) ?usize {",
     "pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {",
+    "pub fn strspn(buf: []const u8, accept: []const u8) usize {",
     "pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {",
     "pub fn strnlen(buf: []const u8, count: usize) usize {",
     "pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {",
@@ -95,6 +96,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strchr mirrors full-length C-string searches"',
     'test "strrchr finds the last in-range match with C-string semantics"',
     'test "strpbrk finds the first accepted byte with C-string semantics"',
+    'test "strspn counts the accepted prefix with C-string semantics"',
     'test "strnchr honors count and C-string boundaries"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
@@ -169,6 +171,7 @@ EXPECTED_STRING_PACKET = {
         'test "strchr mirrors full-length C-string searches"',
         'test "strrchr finds the last in-range match with C-string semantics"',
         'test "strpbrk finds the first accepted byte with C-string semantics"',
+        'test "strspn counts the accepted prefix with C-string semantics"',
         'test "strnchr honors count and C-string boundaries"',
         'test "strnlen honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
@@ -179,8 +182,9 @@ EXPECTED_STRING_PACKET = {
         "the direct counted-search and C-string search-length follow-up stays explicit because the "
         "shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture "
         "keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte "
-        "scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() "
-        "or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors"
+        "scanning, strspn() accepted-prefix scanning, strnchr() count-limited scanning, strnlen() "
+        "count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain "
+        "owned by the helper-local anchors"
     ),
     "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
     "basename_review_summary": (
