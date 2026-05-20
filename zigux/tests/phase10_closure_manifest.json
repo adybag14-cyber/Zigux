@@ -106,6 +106,7 @@
       "status": "out_of_scope",
       "evidence": [
         "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
         "Documentation/zigux/phase9-runtime-trace-events-survey.md",
         "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
         "Documentation/zigux/review-checklist.md",
@@ -118,6 +119,10 @@
         "samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
         "zigux/tests/README.md",
         "zigux/tests/phase9_build.zig",
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        "zigux/tests/runtime_loader_gap_survey.zig",
+        "zigux/tests/runtime_loader_lifecycle_boundary_guard.zig",
+        "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
         "zigux/tests/runtime_trace_events_manifest.json",
         "zigux/tests/runtime_trace_events_survey.zig"
       ]
