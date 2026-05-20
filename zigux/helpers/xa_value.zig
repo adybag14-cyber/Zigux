@@ -86,6 +86,22 @@ test "first rejected inline value aliases the err_ptr floor" {
     try std.testing.expect(!isValue(raw));
 }
 
+test "first in-band even raw stays between the first two rejected tagged aliases" {
+    const first_rejected_value = safe_inline_limit + 1;
+    const second_rejected_value = safe_inline_limit + 2;
+    const first_rejected_raw = (first_rejected_value << 1) | value_tag_mask;
+    const second_rejected_raw = (second_rejected_value << 1) | value_tag_mask;
+    const skipped_even_raw = err_ptr.fromErrorCode(-4094);
+
+    try std.testing.expectEqual(err_ptr.err_floor, first_rejected_raw);
+    try std.testing.expectEqual(err_ptr.err_floor + 2, second_rejected_raw);
+    try std.testing.expectEqual(err_ptr.err_floor + 1, skipped_even_raw);
+    try std.testing.expect(err_ptr.isErrValue(skipped_even_raw));
+    try std.testing.expect(!isValue(skipped_even_raw));
+    try std.testing.expectEqual(@as(usize, 0), skipped_even_raw & value_tag_mask);
+    try std.testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(skipped_even_raw));
+}
+
 test "second rejected inline value skips the first err_ptr raw and lands on the next tagged error" {
     const overlapping_value = safe_inline_limit + 2;
     const raw = (overlapping_value << 1) | value_tag_mask;
