@@ -34,6 +34,11 @@ EXPECTED_FIXTURE_FIELDS = {
 }
 
 
+def probe_required_file(path: Path) -> None:
+    with path.open("rb") as handle:
+        handle.read(0)
+
+
 def require_files(root: Path) -> list[tuple[str, str]]:
     required = [
         FIXTURE_REL,
@@ -43,12 +48,16 @@ def require_files(root: Path) -> list[tuple[str, str]]:
     for rel in required:
         candidate = root / rel
         rel_str = str(rel)
-        if candidate.is_file():
+        if not candidate.is_file():
+            if candidate.exists():
+                issues.append(("required_path_not_file", rel_str))
+            else:
+                issues.append(("required_file_missing", rel_str))
             continue
-        if candidate.exists():
-            issues.append(("required_path_not_file", rel_str))
-        else:
-            issues.append(("required_file_missing", rel_str))
+        try:
+            probe_required_file(candidate)
+        except OSError:
+            issues.append(("required_file_unreadable", rel_str))
     return issues
 
 
@@ -131,11 +140,15 @@ def resolve_zig(override: str | None) -> str | None:
 
 def validate_zig_test_file(root: Path, rel_path: str) -> str | None:
     candidate = root / rel_path
-    if candidate.is_file():
-        return None
-    if candidate.exists():
-        return f"zig test path is not a file: {rel_path}"
-    return f"zig test path missing on branch: {rel_path}"
+    if not candidate.is_file():
+        if candidate.exists():
+            return f"zig test path is not a file: {rel_path}"
+        return f"zig test path missing on branch: {rel_path}"
+    try:
+        probe_required_file(candidate)
+    except OSError:
+        return f"zig test path unreadable on branch: {rel_path}"
+    return None
 
 
 def run_cross_compile(root: Path, target: str, zig: str) -> int:
@@ -223,6 +236,7 @@ def emit_required_file_issues(issues: list[tuple[str, str]]) -> int:
 
     missing = [value for code, value in issues if code == "required_file_missing"]
     non_file = [value for code, value in issues if code == "required_path_not_file"]
+    unreadable = [value for code, value in issues if code == "required_file_unreadable"]
 
     if missing:
         print("PHASE2_CROSS_MISSING_FILES_START")
@@ -234,6 +248,11 @@ def emit_required_file_issues(issues: list[tuple[str, str]]) -> int:
         for rel_path in non_file:
             print(rel_path)
         print("PHASE2_CROSS_NON_FILE_PATHS_END")
+    if unreadable:
+        print("PHASE2_CROSS_UNREADABLE_FILES_START")
+        for rel_path in unreadable:
+            print(rel_path)
+        print("PHASE2_CROSS_UNREADABLE_FILES_END")
     return 1
 
 
@@ -532,6 +551,36 @@ def run_self_test() -> int:
         assert "PHASE2_CROSS_NOTE=zig test path is not a file: scripts/zigux/fixdep.zig" in output
         (root / "scripts/zigux/fixdep.zig").rmdir()
         case_count += 1
+
+        original_probe_required_file = globals()["probe_required_file"]
+        try:
+            build_self_test_root(root)
+
+            def fail_fixture_probe(path: Path) -> None:
+                if path == root / FIXTURE_REL:
+                    raise OSError("simulated unreadable fixture")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_fixture_probe
+            missing = require_files(root)
+            assert ("required_file_unreadable", str(FIXTURE_REL)) in missing
+            case_count += 1
+
+            build_self_test_root(root)
+
+            def fail_fixdep_probe(path: Path) -> None:
+                if path == root / "scripts/zigux/fixdep.zig":
+                    raise OSError("simulated unreadable zig test file")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_fixdep_probe
+            result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
+            assert result == 1
+            assert "PHASE2_CROSS_FAILED_FILE=scripts/zigux/fixdep.zig" in output
+            assert "PHASE2_CROSS_NOTE=zig test path unreadable on branch: scripts/zigux/fixdep.zig" in output
+            case_count += 1
+        finally:
+            globals()["probe_required_file"] = original_probe_required_file
 
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
