@@ -465,6 +465,12 @@ jobs:
       - name: Check current Phase 11 HVC cleanup current-head packet
         run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
 
+      - name: Run current Phase 11 HVC hv_ops layout proof
+        run: zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+
+      - name: Run current Phase 11 HVC export surface layout proof
+        run: zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+
       - name: Run current Phase 11 HVC cleanup packet proof
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
 
