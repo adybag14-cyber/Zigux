@@ -13,13 +13,22 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const bitmap_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const runtime_bitmap_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_bitmap.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_sample_module.addImport("bitmap_view", bitmap_view_module);
+
     const runtime_bitmap_sample_tests = b.addTest(.{
         .name = "phase9-runtime-bitmap-sample-tests",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("../../samples/zigux/runtime_bitmap.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
+        .root_module = runtime_bitmap_sample_module,
     });
 
     const runtime_bitmap_survey_tests = b.addTest(.{
@@ -31,13 +40,16 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const runtime_bitmap_top_bit_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_top_bit_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
+
     const runtime_bitmap_top_bit_tests = b.addTest(.{
         .name = "phase9-runtime-bitmap-top-bit-tests",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
+        .root_module = runtime_bitmap_top_bit_module,
     });
 
     const runtime_first_loadable_parity_survey_tests = b.addTest(.{
