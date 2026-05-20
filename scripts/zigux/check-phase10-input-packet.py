@@ -22,6 +22,7 @@ FILES = [
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_closure_manifest.json",
+    "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
@@ -93,6 +94,7 @@ SURVEY_NOTE_MARKERS = [
     "Current `master` keeps this input lane reviewable through the bounded helper packet:",
     "Do not claim a transport-backed Phase 10 input compile or lifecycle replay from this survey until the risky transport bridge itself changes.",
     "wrapper-facing teardown-reset verify parity stays explicit across reset",
+    "scripts/zigux/check-phase10-harness-coverage.py",
 ]
 
 MANIFEST_MARKERS = [
@@ -275,12 +277,13 @@ CLOSURE_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_build.zig",
 ]
 
 
 def read_text(root: Path, rel_path: str) -> str:
-    return (root / rel_path).read_text(encoding="utf-8")
+    return (root /rel_path).read_text(encoding="utf-8")
 
 
 def read_json(root: Path, rel_path: str) -> dict:
@@ -505,6 +508,7 @@ def write_fixture(root: Path) -> None:
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_GATE_MARKERS) + "\n",
+        "scripts/zigux/check-phase10-harness-coverage.py": "phase10 harness coverage placeholder\n",
     }
     for rel_path, markers in TEST_MARKERS.items():
         fixture_contents[rel_path] = "\n".join(markers) + "\n"
@@ -603,6 +607,12 @@ def run_self_test() -> int:
                 "module_note:zigux/tests/phase10_virtio_input_manifest.json",
             ),
             (
+                "Documentation/zigux/phase10-virtio-input-survey.md",
+                "scripts/zigux/check-phase10-harness-coverage.py",
+                "scripts/zigux/check-phase10-harness-coverage-missing.py",
+                "survey_note:scripts/zigux/check-phase10-harness-coverage.py",
+            ),
+            (
                 "zigux/tests/phase10_build.zig",
                 '"phase10-virtio-input-verify-tests"',
                 '"phase10-virtio-input-verify-drift"',
@@ -669,9 +679,10 @@ def run_self_test() -> int:
 
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
+        expect_missing_file(root, "scripts/zigux/check-phase10-harness-coverage.py")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
