@@ -172,6 +172,47 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     );
 }
 
+test "phase 8 perf-buffer poll helper keeps interrupted and buffer-state return paths explicit" {
+    const interrupted = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+        0,
+        -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        &.{},
+        &.{},
+    );
+    try std.testing.expectEqual(
+        perf_buffer_poll.PollReturnDisposition.interrupted,
+        interrupted.disposition,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        interrupted.return_value,
+    );
+    try std.testing.expectEqual(
+        perf_buffer_poll.PollOutcome.interrupted,
+        interrupted.execution.poll.outcome,
+    );
+
+    const buffer_state_failure = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+        12,
+        2,
+        &.{
+            .{ .error_code = -105 },
+            .{},
+        },
+        &.{},
+    );
+    try std.testing.expectEqual(
+        perf_buffer_poll.PollReturnDisposition.buffer_state_failed,
+        buffer_state_failure.disposition,
+    );
+    try std.testing.expectEqual(@as(i32, -105), buffer_state_failure.return_value);
+    try std.testing.expectEqual(
+        perf_buffer_poll.PollOutcome.failed,
+        buffer_state_failure.execution.poll.outcome,
+    );
+    try std.testing.expectEqual(@as(?i32, -105), buffer_state_failure.execution.poll.first_error);
+}
+
 test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {
     try std.testing.expectError(
         perf_buffer_poll.PollError.InconsistentProcessingAccountingSummary,
