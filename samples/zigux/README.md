@@ -27,6 +27,15 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
+Current `master` still keeps the roadmap-backed `kobject` packet visible through public current-`master` readback for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig`, even though authenticated contents reread for those same paths still flakes in this runtime.
+
+Keep that kobject packet framed as the approved in-memory ownership-and-lifetime idiom for the Phase 5 anchor:
+
+* `runPreRegistrationBoundaryReplay()` keeps the initialized-but-not-registered zero-active-attributes boundary explicit
+* `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited lifecycle cues explicit
+* keep the initialized-only `abandoned_before_registration` exit split distinct from the registered `tore_down_registered_attributes` teardown path
+* keep sysfs file creation, `kernel_kobj` integration, uevents, and module registration out of scope
+
 Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.
 
 ## Phase 9 runtime pilot family
