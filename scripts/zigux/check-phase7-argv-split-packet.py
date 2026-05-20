@@ -11,7 +11,6 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "lib/argv_split.zig",
@@ -23,12 +22,6 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
-    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
-        "- argv-split packet, lane `P7-L09`:",
-        "  - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`",
-        "Fresh helper-local reread for this slot confirmed the dedicated fixture vectors have now returned on current `master`",
-        "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;",
-    ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "`PHASE7_STATUS=helper_local_test_packet_landed`",
         "`PHASE7_SLICE=argv-split-runtime-leaf`",
@@ -67,12 +60,15 @@ REQUIRED_MARKERS = {
         "fixture-backed helper-local survey-manifest-checker truthfulness packet",
         "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
         "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
+        "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         "test \"phase 7 argv split survey keeps the returned fixture-backed helper-local packet truthful\" {",
         "try std.testing.expectEqualStrings(\"helper_slice_test_fixture_survey_manifest_anchor\", manifest.current_master_state);",
         "const fixture_vectors = try readRepoFile(allocator, fixture_path);",
-        "try expectContains(helper, \"test \\\\\\\"argvSplit treats whitespace before the first NUL as blank input\\\\\\\" {\");",
+        "try std.testing.expect(!stringSliceContains(manifest.review_surfaces, \"Documentation/zigux/phase7-helper-lane-sequencing.md\"));",
+        "try expectNotContains(checker, \"\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",\");",
+        "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
         "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");",
     ],
@@ -92,7 +88,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 33
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -148,47 +144,6 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
-        sequencing_text = read_text(sequencing_path)
-        sequencing_marker = "- argv-split packet, lane `P7-L09`:"
-        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_sequencing_lane_heading",
-            tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        sequencing_text = read_text(sequencing_path)
-        sequencing_marker = "  - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`"
-        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_sequencing_fixture_path_marker",
-            tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        sequencing_text = read_text(sequencing_path)
-        sequencing_marker = "Fresh helper-local reread for this slot confirmed the dedicated fixture vectors have now returned on current `master`"
-        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_sequencing_fixture_return_marker",
-            tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        sequencing_text = read_text(sequencing_path)
-        sequencing_marker = "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;"
-        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_sequencing_lane_ownership_marker",
-            tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
-        )
-        write_fixture_root(tmp_root)
-
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
         fixture_path.unlink()
         expect_missing_file("missing_argv_split_fixture_vectors", tmp_root, "zigux/tests/fixtures/phase7_argv_split_vectors.zig")
@@ -214,7 +169,7 @@ def run_self_test() -> None:
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest_text = read_text(manifest_path)
-        manifest_marker = '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"'
+        manifest_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_fixture_marker", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
@@ -231,27 +186,45 @@ def run_self_test() -> None:
         expect_missing_marker("missing_manifest_fixture_first_nul_vector_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
 
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_owner_boundary_marker", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         survey_text = read_text(survey_path)
-        survey_marker = 'const fixture_vectors = try readRepoFile(allocator, fixture_path);'
+        survey_marker = "const fixture_vectors = try readRepoFile(allocator, fixture_path);"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_fixture_reader", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");'
+        survey_marker = "try std.testing.expect(!stringSliceContains(manifest.review_surfaces, \"Documentation/zigux/phase7-helper-lane-sequencing.md\"));"
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_owner_boundary_guard", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = "try expectNotContains(checker, \"\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",\");"
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_checker_boundary_guard", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_first_nul_blank_proof_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");'
+        survey_marker = "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_repeated_blank_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(fixture_vectors, "whitespace_before_first_nul_reuses_empty_packet");'
+        survey_marker = "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
@@ -306,19 +279,19 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
-        helper_marker = 'test "argvSplit treats whitespace before the first NUL as blank input" {'
+        helper_marker = "test \"argvSplit treats whitespace before the first NUL as blank input\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_first_nul_blank_input_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
-        helper_marker = 'test "argvSplit treats a leading NUL as blank input" {'
+        helper_marker = "test \"argvSplit treats a leading NUL as blank input\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_leading_nul_blank_input_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 argv split companion replays repeated blank-result sentinel reuse" {'
+        companion_marker = "test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {"
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_companion_repeated_blank_replay_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         write_fixture_root(tmp_root)
