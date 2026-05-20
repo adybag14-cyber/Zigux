@@ -125,6 +125,15 @@ The tracefs helpers share the same serialization gate, but one path keeps a file
   - genuinely narrower stay-in-C evidence appears around reserve or commit publication, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
 - next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`; while the contents-path readback remains partial, keep the returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence instead of shared parity proof
 
+## Attached Toolchain and Environment Guidance
+- current guidance status: `packet_local_only`
+- keep the attached Zig toolchain as ring-buffer-local replay support only when a checkout-capable Zigux tree is present beside it
+- if a run only has GitHub readback plus the attached toolchain, record the toolchain as environment context and do not claim a fresh local replay for this packet
+- checkout-capable attached-toolchain command examples, kept as packet-local vocabulary rather than shared-smoke proof:
+  - `/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`
+  - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- because the current `P14-L08` lane still depends on public-raw-backed recovery for the returned survey companion and the shared build shard, these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture recorded above
+
 ## Recorded gaps
 The current lane state is:
 - landed `phase14-freeze-map-note`
@@ -152,7 +161,7 @@ This survey slice does not claim:
 - mmap or splice ownership for the tracefs ring-buffer interfaces
 
 ## Gates
-Keep the returned replay vocabulary explicit without overstating the still-partial contents-path readback:
+Keep the returned replay vocabulary explicit without overstating the still-partial contents-path readback. Only treat the commands below as completed replay evidence when a checkout-capable tree and the attached Zig toolchain are available together in the same run; otherwise keep them as packet-local guidance only:
 1. dedicated ring-buffer survey replay, backed by current public raw-file readback
    - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
 2. shared Phase 14 build bundle replay, backed by current public raw-file readback
