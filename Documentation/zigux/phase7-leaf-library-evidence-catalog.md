@@ -23,7 +23,7 @@
 
 ## Current direct helper evidence
 
-- `lib/string_helpers.zig` keeps the returned string-unit, escape, unescape, and `kasprintf` support packet readable on current `master`.
+- `lib/string_helpers.zig` keeps the returned string-unit, escape, unescape, `kasprintf`, `kstrdupQuotable()`, and `kstrdupQuotableCmdline()` support packet readable on current `master`.
 - `lib/string_helpers_parse_int_array.zig` keeps the focused integer-array parsing companion explicit without pretending the broader shared Phase 7 packet is already closed.
 - `lib/cmdline.zig` keeps the current option parsing, `memparse`, and integer-range handling packet readable on current `master`.
 - `lib/argv_split.zig` keeps the current whitespace-tokenization helper family readable on current `master`.
