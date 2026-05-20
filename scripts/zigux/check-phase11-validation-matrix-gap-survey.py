@@ -36,6 +36,7 @@ MARKERS = {
         "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
         "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
         "does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet",
+        "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
         "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
         "`scripts/zigux/validate-phase11.py`",
         "`python3 scripts/zigux/validate-phase11.py`",
@@ -101,6 +102,12 @@ REQUIRED_SHARED_ADJUNCT_REPLAYS = (
     "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+)
+
+REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS = (
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 )
 
 
@@ -196,6 +203,11 @@ def run_check(root: Path) -> None:
         inventory.get("shared_adjunct_replays"),
         REQUIRED_SHARED_ADJUNCT_REPLAYS,
     )
+    expect_exact_string_list(
+        "shared_adjunct_build_replays",
+        inventory.get("shared_adjunct_build_replays"),
+        REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -226,6 +238,7 @@ def build_self_test_fixture(root: Path) -> None:
 - `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
 - 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays
 - the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet
+- The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head HVC build routes explicit as adjacent continuity evidence rather than treating them as a cross-driver replay roster.
 - Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`, so keep that returned shared validation-and-build gate explicit beside the matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - `scripts/zigux/validate-phase11.py`
 - `python3 scripts/zigux/validate-phase11.py`
@@ -245,6 +258,7 @@ def build_self_test_fixture(root: Path) -> None:
                 "test_root_modules": list(REQUIRED_TEST_ROOT_MODULES),
                 "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
                 "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
+                "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
             },
             indent=2,
         )
@@ -290,6 +304,10 @@ def run_self_test() -> None:
             (
                 "matrix_gap_note",
                 "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`",
+            ),
+            (
+                "matrix_gap_note",
+                "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
             ),
             (
                 "matrix_gap_note",
@@ -348,6 +366,13 @@ def run_self_test() -> None:
         write(wrong_count_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_count_root, "shared_adjunct_replays does not match")
 
+        wrong_adjunct_build_root = tmpdir / "wrong_adjunct_build"
+        shutil.copytree(fixture_root, wrong_adjunct_build_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_adjunct_build_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["shared_adjunct_build_replays"] = inventory["shared_adjunct_build_replays"][:-1]
+        write(wrong_adjunct_build_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_adjunct_build_root, "shared_adjunct_build_replays does not match")
+
         wrong_module_root_root = tmpdir / "wrong_module_root"
         shutil.copytree(fixture_root, wrong_module_root_root, dirs_exist_ok=True)
         inventory = json.loads((wrong_module_root_root / FILES["inventory"]).read_text(encoding="utf-8"))
@@ -363,7 +388,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=13")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=15")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
