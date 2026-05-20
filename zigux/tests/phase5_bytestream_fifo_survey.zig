@@ -56,7 +56,7 @@ test "phase 5 bytestream fifo manifest still records the bounded replay contract
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 16), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 }
 
@@ -87,6 +87,10 @@ test "phase 5 bytestream fifo manifest keeps queue-shape wording aligned" {
     try std.testing.expect(std.mem.indexOf(u8, writable.expected, "tail_index=4, writable_count=0") != null);
     try std.testing.expect(std.mem.indexOf(u8, writable.expected, "tail_index=1, writable_count=8") != null);
     try std.testing.expect(std.mem.indexOf(u8, writable.expected, "total_available=") == null);
+
+    const reinit = findExactCheck(manifest, "reinit-after-exit") orelse return error.MissingExactCheck;
+    try std.testing.expect(std.mem.indexOf(u8, reinit.expected, "available() back at 32") != null);
+    try std.testing.expect(std.mem.indexOf(u8, reinit.expected, "init_runs = 2 and exit_runs = 2") != null);
 }
 
 test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidance explicit" {
@@ -125,7 +129,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "sample-plus-tests packet",
         "sample-root file currently carries four in-file self-checks",
         "runReinitBoundaryReplay() and its `init_runs` / `exit_runs` accounting",
-        "four focused replay tests",
+        "five focused replay tests",
         "five survey-packet checks",
         "phase5_build.zig` route",
         "StorageBacking.embedded_fixed_buffer",
@@ -146,6 +150,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries one in-file self-check") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries three in-file self-checks") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "four focused replay tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still do not recover `zigux/tests/phase5_bytestream_fifo.zig`") == null);
 }
@@ -165,7 +170,7 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
     const required_markers = [_][]const u8{
         "## Exact checks verified on 2026-05-20",
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
-        "`zigux/tests/phase5_bytestream_fifo.zig` currently carries four focused replay tests",
+        "`zigux/tests/phase5_bytestream_fifo.zig` currently carries five focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries five survey-packet checks",
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
         "`runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`",
@@ -199,6 +204,7 @@ test "phase 5 bytestream fifo survey note keeps the non-runtime ownership rule e
         "`StorageBacking.embedded_fixed_buffer` is the only declared storage backing",
         "`init()` and `exit()` define the lifetime edges explicitly",
         "`reset()` clears queue contents without turning the sample into a runtime-owned object",
+        "`runReinitBoundaryReplay()` keeps repeatable reuse explicit without promoting the sample into a runtime-owned registration surface",
         "no procfs, user-copy, locking, or module-registration surface is claimed",
     };
     for (required_markers) |needle| {
