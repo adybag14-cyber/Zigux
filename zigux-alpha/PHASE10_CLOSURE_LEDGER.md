@@ -73,11 +73,12 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-mmio-packet.py`
 - `PHASE10_LEDGER_EXACT_CHECK_6=python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `PHASE10_LEDGER_EXACT_CHECK_7=python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-- `PHASE10_LEDGER_EXACT_CHECK_8=python3 scripts/zigux/validate-phase10-closure.py`
-- `PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10-validate`
-- `PHASE10_LEDGER_EXACT_CHECK_10=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-- `PHASE10_LEDGER_EXACT_CHECK_11=make -C zigux phase10-test`
-- `PHASE10_LEDGER_EXACT_CHECK_12=make -C zigux phase10`
+- `PHASE10_LEDGER_EXACT_CHECK_8=python3 scripts/zigux/validate-phase10.py`
+- `PHASE10_LEDGER_EXACT_CHECK_9=python3 scripts/zigux/validate-phase10-closure.py`
+- `PHASE10_LEDGER_EXACT_CHECK_10=make -C zigux phase10-validate`
+- `PHASE10_LEDGER_EXACT_CHECK_11=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `PHASE10_LEDGER_EXACT_CHECK_12=make -C zigux phase10-test`
+- `PHASE10_LEDGER_EXACT_CHECK_13=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_shared_phase10_surfaces_drift_again_around_the_manifest_backed_packet_and_reopen_P10-L06_only_if_a_fresh_shared_reminder_reread_proves_new_drift`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-queue-shape-bookkeeping-helper,phase10-config-generation-bookkeeping-helper,phase10-interrupt-ack-bookkeeping-helper,phase10-lifecycle-guard-bookkeeping-helper,phase10-driver-validation-narrowing-helper,phase10-reset-replay-bookkeeping-helper`
@@ -95,6 +96,6 @@ The same manifest also carries the survey-provenance packet for the current clos
 
 Fresh public GitHub fallback rereads now materialize the previously stale ring and MMIO packet surfaces on current `master`, including `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-ring-packet.py`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`. Because the packet-local slice-note set is also directly readable again, this ledger no longer carries the older repo-reality-gap or contents-bridge-gap wording for those surfaces.
 
-The current exact replay packet is the manifest-backed shared closure route: `check-phase10-bootstrap-route.py`, `check-phase10-shared-freeze-boundary.py`, `check-phase10-ring-packet.py`, `check-phase10-input-packet.py`, `check-phase10-mmio-packet.py`, `check-phase10-harness-coverage.py`, `check-phase10-tests-readme-core-surfaces.py`, `validate-phase10-closure.py`, `make -C zigux phase10-validate`, `zig build test --build-file zigux/tests/phase10_build.zig --summary all`, `make -C zigux phase10-test`, and `make -C zigux phase10`.
+The current exact replay packet is the manifest-backed shared closure route: `check-phase10-bootstrap-route.py`, `check-phase10-shared-freeze-boundary.py`, `check-phase10-ring-packet.py`, `check-phase10-input-packet.py`, `check-phase10-mmio-packet.py`, `check-phase10-harness-coverage.py`, `check-phase10-tests-readme-core-surfaces.py`, `validate-phase10.py`, `validate-phase10-closure.py`, `make -C zigux phase10-validate`, `zig build test --build-file zigux/tests/phase10_build.zig --summary all`, `make -C zigux phase10-test`, and `make -C zigux phase10`.
 
 The shared closure manifest-backed helper ladders stay explicit here for all four bounded Phase 10 lanes, so reviewers can recover the current core, ring, input, and MMIO starter packet directly from this tranche record instead of stopping at older shorthand.
