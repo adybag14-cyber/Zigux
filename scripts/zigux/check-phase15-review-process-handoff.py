@@ -139,6 +139,12 @@ def collect_failures(root: Path) -> list[str]:
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing reopen-evidence field: {field}")
 
+    for field in manifest.get("supporting_context_fields", []):
+        if field not in review_process:
+            failures.append(f"review-process note is missing supporting context field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing supporting context field: {field}")
+
     for marker in manifest.get("study_only_anchor_review_markers", []):
         if marker not in review_process:
             failures.append(f"review-process note is missing study-only boundary marker: {marker}")
@@ -248,6 +254,10 @@ def _sample_manifest() -> str:
                 "the blocker disposition being challenged",
                 "the narrower seam or policy change that makes the new review safe to consider",
             ],
+            "supporting_context_fields": [
+                "governance lane sequencing link or explicit scope note",
+                "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
+            ],
             "indefinite_c_policy_required_markers": [
                 "required approver set",
                 "automatic return-to-blocked trigger",
@@ -344,6 +354,8 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
 - indefinite-C policy link or explicit non-applicability note
+- governance lane sequencing link or explicit scope note
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation
 - explicit non-goals
 - written rationale
 
@@ -423,6 +435,9 @@ This is a review packet template, not approval by itself.
 - refreshed evidence by path:
 - the blocker disposition being challenged:
 - the narrower seam or policy change that makes the new review safe to consider:
+
+- governance lane sequencing link or explicit scope note:
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation:
 
 - Prefer the dated master readback form for parked governance and stay-in-C review packets.
 - Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
@@ -627,6 +642,34 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected stay-in-C closeout failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "- governance lane sequencing link or explicit scope note\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review-process note is missing supporting context field: governance lane sequencing link or explicit scope note"
+        ]:
+            raise AssertionError(f"unexpected supporting-context note failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace(
+                "- study-only anchor accounting link or explicit freeze-map-anchor confirmation:\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "decision-record template is missing supporting context field: study-only anchor accounting link or explicit freeze-map-anchor confirmation"
+        ]:
+            raise AssertionError(f"unexpected supporting-context template failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace("`kernel/workqueue.c` and ", "", 1),
