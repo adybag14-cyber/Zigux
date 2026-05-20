@@ -9,13 +9,13 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=P7-L13`
 - lane-key note: `P7-L13` keeps the dedicated rbtree packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
 - scope: keep the Phase 7 rbtree lane limited to the returned tool-root helper, the dedicated slice note, the direct-anchor note, the dedicated replay, the dedicated survey, the dedicated manifest, and the dedicated parity checker
-- lane state: current `master` directly carries `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json`. Treat those surfaces as the current helper-local packet for this slice. Keep `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig` explicit as still-missing same-family follow-ons unless a fresh reread proves they have rematerialized on current `master`. Keep `scripts/zigux/check-phase7-build-wiring.py` and `scripts/zigux/validate-phase7.py` explicit as directly readable shared-control build evidence rather than helper-local ownership.
+- lane state: current `master` directly carries `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json`. Treat those surfaces as the current helper-local packet for this slice. Keep `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as still-missing same-family follow-ons unless a fresh reread proves they have rematerialized on current `master`. Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.
 
 ## Why This Slice Exists
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `rbtree` state on `master` now carries a bounded helper-local packet around ordered insertion, ordered traversal, duplicate-range matching, cached-leftmost promotion, erase-init ownership boundaries, and checker-backed reviewability while keeping the roadmap-path port, dedicated fixture pair, shared build file, and shared-control follow-ons outside this same helper family.
+The current `rbtree` state on `master` now carries a bounded helper-local packet around ordered insertion, ordered traversal, duplicate-range matching, cached-leftmost promotion, erase-init ownership boundaries, and checker-backed reviewability while keeping the roadmap-path port and dedicated fixture pair outside this same helper family.
 
 This slice must stay truthful about the current direct helper path. The readable helper is still rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`.
 
@@ -32,17 +32,16 @@ This slice must stay truthful about the current direct helper path. The readable
 - `zigux/tests/phase7_rbtree_survey.zig`
 - `zigux/tests/phase7_rbtree_manifest.json`
 
-3. keep the roadmap-path port and dedicated fixture/build follow-ons explicit as still missing until they really materialize
+3. keep the roadmap-path port and dedicated fixture follow-ons explicit as still missing until they really materialize
 - `lib/rbtree.zig`
 - `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
-- `zigux/tests/phase7_build.zig`
 
 4. keep adjacent Phase 7 families and shared-control surfaces out of this packet unless a fresh reread says otherwise
 - do not count `Documentation/zigux/phase7-string-helpers-slice.md`
 - do not count `Documentation/zigux/phase7-cmdline-slice.md`
 - do not count `Documentation/zigux/phase7-argv-split-slice.md`
-- keep directly readable shared-control build evidence such as `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` framed as non-owner evidence rather than helper-local ownership
+- keep directly readable shared-control build evidence such as `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` framed as non-owner evidence rather than helper-local ownership
 
 ## Current Parity Surface
 
@@ -64,9 +63,9 @@ The current helper-local replay keeps these proofs explicit:
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 
 - path truthfulness keeps the returned helper rooted at `tools/lib/rbtree.zig` while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`
-- same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit without claiming the dedicated fixture pair or shared build file as returned
+- same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit without claiming the dedicated fixture pair as returned
 - cross-helper truthfulness keeps the landed `string_helpers` packet explicit while keeping the `cmdline`, `argv_split`, and `rbtree` packets distinct instead of collapsing them into one shared reminder claim
-- build-graph truthfulness keeps readable non-owner evidence such as `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` separate from this helper-local packet until a fresh reread proves a dedicated rbtree build surface has returned
+- build-graph truthfulness keeps readable non-owner evidence such as `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` separate from this helper-local packet while the roadmap-path port and dedicated fixture pair still do not directly materialize on current `master`
 
 ## Non-goals
 
@@ -74,10 +73,11 @@ This helper-local Phase 7 rbtree slice does not yet claim:
 
 - the roadmap-path port at `lib/rbtree.zig`
 - the dedicated fixture pair at `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
-- the shared Phase 7 build file at `zigux/tests/phase7_build.zig`
-- shared Makefile wrapper routes or workflow steps for Phase 7 runtime-helper gates
-- ownership of the shared validator at `scripts/zigux/validate-phase7.py`
+- dedicated Makefile wrapper routes for `phase7-rbtree-test`, `phase7-rbtree-survey`, `phase7-test`, or aggregate `phase7`
+- shared workflow steps for Phase 7 runtime-helper gates
+- ownership of the shared validators at `scripts/zigux/check-phase7-build-wiring.py` and `scripts/zigux/validate-phase7.py`
+- ownership of the shared build file at `zigux/tests/phase7_build.zig`
 
 ## Next Bounded Step
 
-Keep same-lane follow-through inside this slice-backed direct-helper packet until one more dedicated rbtree surface such as `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, or `zigux/tests/phase7_build.zig` rematerializes on current `master`, and do not widen into make-wrapper or workflow lanes before that happens.
+Keep same-lane follow-through inside this slice-backed direct-helper packet until one more dedicated rbtree surface such as `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes on current `master`, and do not widen into dedicated make-wrapper or workflow-recovery lanes before that happens.
