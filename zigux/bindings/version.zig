@@ -11,6 +11,7 @@ pub const abi_minor_offset: usize = uapi.abi_minor_offset;
 pub const header_family_revision_offset: usize = uapi.header_family_revision_offset;
 
 pub const Version = uapi.Version;
+pub const ExportStatus = @TypeOf(uapi.validate(uapi.current()));
 
 pub fn current() Version {
     return uapi.current();
@@ -36,6 +37,10 @@ pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {
 
 pub fn matchesCurrent(version: Version) bool {
     return uapi.matchesCurrent(version);
+}
+
+pub fn validate(version: Version) ExportStatus {
+    return uapi.validate(version);
 }
 
 comptime {
@@ -92,4 +97,16 @@ test "version binding stays aligned with the UAPI layout surface" {
     try std.testing.expectEqual(uapi.matchesCurrent(live), matchesCurrent(live));
     try std.testing.expect(uapi.eql(live, live));
     try std.testing.expect(eql(live, live));
+}
+
+test "version binding relays status-tagged validation from the UAPI surface" {
+    const live = current();
+    const stale = Version{
+        .abi_major = abi_major,
+        .abi_minor = abi_minor + 1,
+        .header_family_revision = header_family_revision,
+    };
+
+    try std.testing.expectEqual(uapi.validate(live), validate(live));
+    try std.testing.expectEqual(uapi.validate(stale), validate(stale));
 }
