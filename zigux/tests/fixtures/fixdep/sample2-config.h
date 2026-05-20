@@ -1,0 +1,1 @@
+#define CONFIG_ZIGUX_SECOND 1
