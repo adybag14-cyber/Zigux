@@ -286,6 +286,8 @@ REENTRY_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
     "const exited_before_rejected_main = module.summary();",
     "try std.testing.expectEqual(ModuleStage.exited, exited_before_rejected_main.stage);",
+    "const exited_after_rejected_init = module.summary();",
+    "try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_init));",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));",
     "const exited_after_rejected_main = module.summary();",
     "try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_main));",
