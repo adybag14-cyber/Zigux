@@ -4,6 +4,7 @@
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
 - `PHASE9_LANE_KEY=P9-L02`
+- `PHASE9_SURVEYED_COMMIT=2026-05-20-first-loadable-parity-partial-readback`
 - scope: cross-family repo-reality survey for the bounded atomic64 and bitmap runtime pilot packets only
 
 ## Current Repo Reality
