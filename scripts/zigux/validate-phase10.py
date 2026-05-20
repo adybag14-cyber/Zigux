@@ -393,7 +393,6 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_path = root / "zigux/tests/phase10_build.zig"
-        build_path.writeText = build_path.write_text
         build_path.write_text("const only_core = 1;\n", encoding="utf-8")
         issues = collect_issues(root)
         if "phase10_core_packet:build:phase10-virtio-core-survey-tests" not in issues:
