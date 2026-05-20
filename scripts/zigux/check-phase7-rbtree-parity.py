@@ -30,6 +30,7 @@ REQUIRED_MARKERS = {
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit",
+        "Keep `scripts/zigux/validate-phase7.py` explicit as directly readable shared-validator evidence rather than helper-local ownership.",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
@@ -93,7 +94,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -274,6 +275,16 @@ def run_self_test() -> None:
             "missing_checker_selftest_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_marker = "Keep `scripts/zigux/validate-phase7.py` explicit as directly readable shared-validator evidence rather than helper-local ownership."
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_slice_shared_validator_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
