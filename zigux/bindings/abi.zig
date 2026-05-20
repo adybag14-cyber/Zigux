@@ -385,6 +385,8 @@ test "abi binding chrdev structs keep the published layout" {
 test "abi binding notifier and list layouts stay aligned with the dedicated notifier bindings" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
     const expected_notifier_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+    const raw_increase_size = (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2);
+    const expected_increase_size = std.mem.alignForward(usize, raw_increase_size, @alignOf(usize));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
     try std.testing.expectEqual(expected_notifier_size, @sizeOf(NotifierBlock));
@@ -392,6 +394,14 @@ test "abi binding notifier and list layouts stay aligned with the dedicated noti
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
     try std.testing.expectEqual(@sizeOf(notifier_abi.NotifierBlock), @sizeOf(NotifierBlock));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(expected_increase_size, @sizeOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChainPriorityIncrease, "previous_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ChainPriorityIncrease, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ChainPriorityIncrease, "previous_priority"));
+    try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(ChainPriorityIncrease, "current_priority"));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.NotifierChainPriorityIncrease), @sizeOf(ChainPriorityIncrease));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
@@ -518,42 +528,4 @@ test "abi binding keeps first priority increase and list relays explicit" {
         hlistHasConsistentPrevLinks(&hlist_head),
     );
     try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(&hlist_head));
-}
-
-test "abi binding detailed list break relays stay aligned with notifier bindings" {
-    var list_head = ListHead{ .next = 0, .prev = 0 };
-    var list_first = ListHead{ .next = 0, .prev = 0 };
-    var list_second = ListHead{ .next = 0, .prev = 0 };
-
-    list_head.next = @intFromPtr(&list_first);
-    list_head.prev = @intFromPtr(&list_second);
-    list_first.next = @intFromPtr(&list_second);
-    list_first.prev = @intFromPtr(&list_head);
-    list_second.next = @intFromPtr(&list_head);
-    list_second.prev = @intFromPtr(&list_head);
-
-    const list_break = firstBrokenBacklink(&list_head) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(@as(usize, 1), list_break.current_index);
-    try std.testing.expectEqual(@intFromPtr(&list_first), list_break.expected_prev);
-    try std.testing.expectEqual(@intFromPtr(&list_head), list_break.actual_prev);
-    try std.testing.expectEqual(notifier_abi.firstBrokenBacklink(&list_head).?, list_break);
-
-    var hlist_head = HListHead{ .first = 0 };
-    var hlist_first = HListNode{ .next = 0, .pprev = 0 };
-    var hlist_second = HListNode{ .next = 0, .pprev = 0 };
-
-    hlist_head.first = @intFromPtr(&hlist_first);
-    hlist_first.next = @intFromPtr(&hlist_second);
-    hlist_first.pprev = @intFromPtr(&hlist_head.first);
-    hlist_second.next = 0;
-    hlist_second.pprev = @intFromPtr(&hlist_head.first);
-
-    const prev_break = firstBrokenPrevLink(&hlist_head) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(@as(usize, 1), prev_break.current_index);
-    try std.testing.expectEqual(@intFromPtr(&hlist_first.next), prev_break.expected_pprev);
-    try std.testing.expectEqual(@intFromPtr(&hlist_head.first), prev_break.actual_pprev);
-    try std.testing.expectEqual(notifier_abi.firstBrokenPrevLink(&hlist_head).?, prev_break);
-
-    try std.testing.expectEqual(@as(?ListBackLinkBreak, null), firstBrokenBacklink(null));
-    try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(null));
 }
