@@ -352,6 +352,24 @@ test "readHeader keeps exact invalid-class bytes when the next read would fail" 
     }, header.bytes[0..header.len]);
 }
 
+test "readHeader keeps exact non-ELF bytes when the next read would fail" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 9, 7, 8 },
+        .fail_on_call = 3,
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    }, header.bytes[0..header.len]);
+}
+
 test "readHeader stops at the first ELF header" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
