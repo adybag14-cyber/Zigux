@@ -113,6 +113,8 @@ test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo ex
 
     try std.testing.expectEqual(@as(u8, 0b1010_1010), try atomic.fetchNand(u8, &state, 0b1111_0000, .seq_cst));
     try std.testing.expectEqual(@as(u8, 0b0101_1111), state);
+    try std.testing.expectEqual(@as(u8, 0b0101_1111), try atomic.fetchNand(u8, &state, 0b0000_1111, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), state);
 
     var register: u8 = 0;
     const register_ptr: *volatile u8 = @ptrCast(&register);
@@ -120,7 +122,7 @@ test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo ex
     barrier.release();
     mmio.write(u8, register_ptr, state);
     barrier.acquire();
-    try std.testing.expectEqual(@as(u8, 0b0101_1111), mmio.read(u8, const_register_ptr));
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), mmio.read(u8, const_register_ptr));
     try std.testing.expectEqual(@as(?atomic.Ordering, .monotonic), atomic.weakestAllowedFailureOrder(.seq_cst));
 }
 
