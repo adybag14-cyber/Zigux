@@ -48,11 +48,14 @@ MARKERS = {
         'return ("expectations_json_error", exc)',
         'print(f"EXPECTATIONS_PATH={payload}")',
         'print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))',
+        'print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))',
+        'print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))',
         'print(f"BENCH_COMMAND_EXIT={result.returncode}")',
         'print(f"PHASE1_BENCH_ZIG={zig}")',
         'print("PHASE1_BENCH_CHECK=pass")',
         'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
+        'print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")',
     ),
 }
 
@@ -77,6 +80,11 @@ EXPECTED_ASSERT_BLOCKS = {
             'kind, payload = validate_expectations(duplicate_checksum_list)',
             'assert kind == "expectations_duplicate_checksums"',
             'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
+        ),
+        (
+            'kind, _ = validate_output(expectations, ok_output)',
+            'assert kind == "pass"',
+            'case_count += 1',
         ),
         (
             'status_mismatch_output = ok_output.replace(',
