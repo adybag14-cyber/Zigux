@@ -93,3 +93,27 @@ test "lane10 zero-shape replay keeps zero-sized zalloc state free-safe" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0 }, &nested.?.bytes);
     try std.testing.expect(nested.?.maybe_count == null);
 }
+
+test "lane10 zero-shape replay keeps zero-capacity caller views inert and reusable" {
+    var buffer = [_]u8{0xaa} ** 32;
+
+    const empty_error = str_error_r.strErrorR(13, buffer[0..0]);
+    try std.testing.expectEqual(@as(usize, 0), empty_error.len);
+
+    const empty_print = vsprintf.scnprintf(buffer[0..0], "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), empty_print);
+
+    for (buffer) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    const rendered_error = str_error_r.strErrorR(13, &buffer);
+    try std.testing.expectEqualStrings("Permission denied", rendered_error);
+    try std.testing.expectEqual(@intFromPtr(&buffer[0]), @intFromPtr(rendered_error.ptr));
+    try std.testing.expectEqual(@as(u8, 0), buffer[rendered_error.len]);
+
+    const reused_print = vsprintf.vscnprintf(&buffer, "{s}", .{"ok"});
+    try std.testing.expectEqual(@as(usize, 2), reused_print);
+    try std.testing.expectEqualStrings("ok", buffer[0..reused_print]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[reused_print]);
+}
