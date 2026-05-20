@@ -25,7 +25,9 @@
       "zig_helper": "lib/string_helpers.zig",
       "expected_markers": [
         "pub const STRING_UNITS_10",
-        "pub const KasprintfStrarrayResult"
+        "pub const KasprintfStrarrayResult",
+        "pub fn kstrdupQuotable",
+        "pub fn kstrdupQuotableCmdline"
       ]
     },
     {
