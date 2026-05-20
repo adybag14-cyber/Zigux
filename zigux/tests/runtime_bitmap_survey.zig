@@ -133,6 +133,7 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(top_bit_file, "runtime bitmap sample keeps top-bit lifecycle mutation explicit");
     try expectContains(top_bit_file, "runtime bitmap sample rejects exited top-bit source copies without disturbing the target sample leg");
     try expectContains(top_bit_file, "runtime bitmap sample rejects cold top-bit source copies without disturbing the target sample leg");
+    try expectContains(top_bit_file, "runtime bitmap sample rejects copy reentry after target exit without disturbing either sample leg");
     try expectContains(top_bit_file, "const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;");
     try expectContains(top_bit_file, "try std.testing.expectEqualStrings(\"127\", direct_formatted);");
     try expectContains(top_bit_file, "try module.clearRange(top_bit, 1);");
@@ -140,6 +141,7 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(top_bit_file, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, module.stage());");
     try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&exited_source));");
     try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&cold_source));");
+    try expectContains(top_bit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, target.copyFrom(&source));");
 
     inline for (present_bitmap_family_files) |path| {
         try expectPresent(path);
