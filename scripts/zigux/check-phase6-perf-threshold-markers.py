@@ -14,6 +14,7 @@ class ValidationError(RuntimeError):
 
 BASE64_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 BASE64_PERF_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+BASE64_SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 BSEARCH_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_vectors.zig")
 BSEARCH_PERF_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
 CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
@@ -21,6 +22,7 @@ CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 HEXDUMP_PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+PHASE6_HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 
 REQUIRED_SNIPPETS = {
     BASE64_VECTORS_PATH: [
@@ -43,6 +45,27 @@ REQUIRED_SNIPPETS = {
         "for (fixtures.perf_cases[idx + 1 ..]) |other| {",
         "if (encode_slowdown > case.max_encode_slowdown_pct) {",
         "if (decode_slowdown > case.max_decode_slowdown_pct) {",
+    ],
+    BASE64_SLICE_PATH: [
+        "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+    ],
+    PHASE6_HELPER_PARITY_MANIFEST_PATH: [
+        '      "key": "base64",',
+        '      "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",',
+        '      "slice_note": "Documentation/zigux/phase6-base64-slice.md",',
+        '      "current_perf_evidence": {',
+        '          "STD_PAD",',
+        '          "STD_NO_PAD",',
+        '          "URLSAFE_PAD",',
+        '          "URLSAFE_NO_PAD",',
+        '          "IMAP_PAD",',
+        '          "IMAP_NO_PAD"',
+        '        "iterations": 12000,',
+        '        "max_encode_slowdown_pct": 150,',
+        '        "max_decode_slowdown_pct": 325,',
+        '          "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",',
+        '          "make -C zigux phase6-base64-perf",',
+        '          "make -C zigux phase6-perf"',
     ],
     BSEARCH_VECTORS_PATH: [
         '.{ .label = "len15", .len = representative_ascending_values.len, .reps = 4_000 },',
@@ -103,6 +126,16 @@ SELF_TEST_CASES = [
         BASE64_PERF_PATH,
         "for (fixtures.perf_cases[idx + 1 ..]) |other| {",
         "for (fixtures.perf_cases[0..0]) |other| {",
+    ),
+    (
+        BASE64_SLICE_PATH,
+        "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+        "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 16000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+    ),
+    (
+        PHASE6_HELPER_PARITY_MANIFEST_PATH,
+        '        "max_decode_slowdown_pct": 325,',
+        '        "max_decode_slowdown_pct": 350,',
     ),
     (
         BSEARCH_VECTORS_PATH,
