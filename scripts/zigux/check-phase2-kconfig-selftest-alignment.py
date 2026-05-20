@@ -105,7 +105,10 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_LINES)
     + len(MAKEFILE_LINES)
     + len(SCRIPTS_README_MARKERS)
+    + len(SCRIPTS_README_MARKERS)
     + len(TESTS_README_MARKERS)
+    + len(TESTS_README_MARKERS)
+    + len(REVIEW_CHECKLIST_MARKERS)
     + len(REVIEW_CHECKLIST_MARKERS)
     + len(KCONFIG_BRIDGE_SURFACE_PATHS)
     + len(BRIDGE_CHECKER_LINE_MARKERS)
@@ -141,6 +144,22 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_exact_marker_issues(
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -171,10 +190,29 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
     issues.extend(
-        collect_missing_markers(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS")
+        collect_exact_marker_issues(
+            scripts_readme_text,
+            SCRIPTS_README_MARKERS,
+            "MISSING_SCRIPTS_README_MARKERS",
+            "DUPLICATE_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_marker_issues(
+            tests_readme_text,
+            TESTS_README_MARKERS,
+            "MISSING_TESTS_README_MARKERS",
+            "DUPLICATE_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_marker_issues(
+            review_checklist_text,
+            REVIEW_CHECKLIST_MARKERS,
+            "MISSING_REVIEW_CHECKLIST_MARKERS",
+            "DUPLICATE_REVIEW_CHECKLIST_MARKERS",
+        )
     )
 
     for marker in BRIDGE_CHECKER_LINE_MARKERS:
@@ -345,6 +383,14 @@ def run_self_test() -> int:
             assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in SCRIPTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_SCRIPTS_README_MARKERS", f"{marker}:count=2") in issues
+            checks_run += 1
+
         for marker in TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
@@ -353,12 +399,28 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_TESTS_README_MARKERS", f"{marker}:count=2") in issues
+            checks_run += 1
+
         for marker in REVIEW_CHECKLIST_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_REVIEW_CHECKLIST_MARKERS", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in BRIDGE_CHECKER_LINE_MARKERS:
