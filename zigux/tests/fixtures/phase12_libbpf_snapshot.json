@@ -32,5 +32,37 @@
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
       "blob_sha": "aeae78c8821a50e4f4a28bb4c0ae4dd7ec2ae577"
     }
-  ]
+  ],
+  "verification_evidence": {
+    "checked_at_utc": "2026-05-20T18:50:00Z",
+    "readback_mode": "github-contents-readback",
+    "checker": {
+      "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
+      "blob_sha": "167af95adbdaa4f7d696755e7a7ee7713a46014f",
+      "modified_at_utc": "2026-05-18T19:54:50Z",
+      "self_test_case_count": 18
+    },
+    "current_note_blobs": [
+      {
+        "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "blob_sha": "ebe3ce71898a082bf0fcd491ca552834d40f3098",
+        "modified_at_utc": "2026-05-20T12:08:26Z"
+      },
+      {
+        "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+        "blob_sha": "2ec7a0bce1d4ace9bf6247551d1e691bab90d5a1",
+        "modified_at_utc": "2026-05-19T19:04:21Z"
+      },
+      {
+        "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+        "blob_sha": "14ff4036c45560e262746ddba2a4577e49c583cd",
+        "modified_at_utc": "2026-05-19T18:51:42Z"
+      },
+      {
+        "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
+        "blob_sha": "aeae78c8821a50e4f4a28bb4c0ae4dd7ec2ae577",
+        "modified_at_utc": "2026-05-20T09:18:22Z"
+      }
+    ]
+  }
 }
