@@ -22,6 +22,7 @@ class FileExpectation:
 
 
 REQUIRED_PACKET_FILES = (
+    "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
@@ -33,6 +34,14 @@ REQUIRED_PACKET_FILES = (
 )
 
 FILE_EXPECTATIONS = (
+    FileExpectation(
+        "Documentation/zigux/phase11-driver-lane-sequencing.md",
+        (
+            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        ),
+    ),
     FileExpectation(
         "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
         (
@@ -145,6 +154,19 @@ def make_fixture(root: Path) -> None:
 
     write_text(
         root,
+        "Documentation/zigux/phase11-driver-lane-sequencing.md",
+        "\n".join(
+            (
+                "# sequencing",
+                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
         "\n".join(
             (
@@ -215,6 +237,16 @@ def run_self_test() -> int:
         validate(temp_dir)
         total_cases += 1
 
+        sequencing = temp_dir / "Documentation/zigux/phase11-driver-lane-sequencing.md"
+        sequencing.write_text("# sequencing\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected lane sequencing fragment check to fail")
+
+        make_fixture(temp_dir)
         matrix = temp_dir / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
         matrix.write_text("# matrix\n", encoding="utf-8")
         try:
