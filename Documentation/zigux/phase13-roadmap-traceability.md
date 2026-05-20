@@ -42,9 +42,10 @@ Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and no
 
 Use this compact reread before editing the broader Phase 13 reminder packet.
 
-- refresh basis: current `master` direct readback on `2026-05-19`
+- refresh basis: current `master` direct readback on `2026-05-20`
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`
 - shared-summary guard handoff note: `Documentation/zigux/phase13-shared-summary-guard-gap.md` keeps the old missing-checker closure explicit beside that shipped guard
 - stable shared tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` keeps the returned direct `devres` DMA replay and the still-missing Landlock syscall test companions explicit in the shared reminder packet
 - stable contributor-facing handle: `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
@@ -95,7 +96,6 @@ Keep the remaining shared-summary, validator-first, and direct-companion gaps ex
 
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
-- `scripts/zigux/validate-phase13-release.py`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_devres.zig`
@@ -114,7 +114,9 @@ Keep the remaining shared-summary, validator-first, and direct-companion gaps ex
 - `zigux/helpers/notifier_chain_view.zig`
 - `include/zigux/notifier_abi.h`
 
-Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-devres-survey.md` alongside the narrower bounded devres coordination packet, and the live libfs packet now materializes `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json` while `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` remain repo-reality gaps. `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` now keeps the returned direct `devres` DMA replay plus the still-missing Landlock syscall direct companions explicit in the shared tests-root reminder surface. Keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent shared build companion, the still-missing direct Landlock syscall companions, the older direct devres companions, and the missing notifier-chain companion stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
+Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.
+
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-devres-survey.md` alongside the narrower bounded devres coordination packet, and the live libfs packet now materializes `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json` while `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` remain repo-reality gaps. `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` now keeps the returned direct `devres` DMA replay plus the still-missing Landlock syscall direct companions explicit in the shared tests-root reminder surface. Keep those surfaces aligned as shipped shared evidence while the absent shared build companion, the still-missing direct Landlock syscall companions, the older direct devres companions, and the missing notifier-chain companion stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
 
 ## Boundaries
 
