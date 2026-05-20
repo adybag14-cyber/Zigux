@@ -76,6 +76,7 @@ MANIFEST_MARKERS = [
     '"shared_validation_gates"',
     '"forbidden_transport_claims": [',
     '"queue_setup_reset_paths"',
+    '"queue_reset_execution"',
     '"irq_parity"',
     '"dma_paths"',
     '"probe_remove_lifecycle"',
@@ -266,6 +267,8 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-slice.md", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket moved inside this slice", "slice_note:the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"lane_key": "P10-L11"', '"lane_key": "P10-L10"', 'manifest:"lane_key": "P10-L11"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "missing"', 'manifest:"freeze_boundary_status": "aligned"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"forbidden_transport_claims": [', '"forbidden_transport_claims_missing": [', 'manifest:"forbidden_transport_claims": [')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_reset_execution"', '"queue_reset_execution_missing"', 'manifest:"queue_reset_execution"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-interrupt-ack-disposition-helper"', '"id": "phase10-mmio-ack-missing"', 'manifest:"id": "phase10-mmio-interrupt-ack-disposition-helper"')
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "self.pending_config_write = null;", "self.pending_config_write = stale;", "helper:self.pending_config_write = null;")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub const ConfigWritePlanFreshnessSummary = struct {", "pub const ConfigWritePlanFreshnessMissing = struct {", "helper:pub const ConfigWritePlanFreshnessSummary = struct {")
@@ -284,7 +287,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=24")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
