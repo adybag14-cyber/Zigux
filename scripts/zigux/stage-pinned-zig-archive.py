@@ -137,31 +137,52 @@ def copy_file(source: Path, destination: Path) -> None:
             dst.write(chunk)
 
 
+def inspect_destination(
+    source: Path,
+    destination: Path,
+    *,
+    expected_size: int,
+    expected_sha: str,
+    actual_sha: str,
+) -> tuple[str, str] | None:
+    if not destination.exists():
+        return None
+    if not destination.is_file():
+        raise ValueError(f"destination archive is not a regular file: {destination}")
+    destination_sha = validate_source_archive(
+        destination,
+        expected_size=expected_size,
+        expected_sha=expected_sha,
+    )
+    if source.resolve() == destination.resolve(strict=False):
+        return "already_present", destination_sha
+    if destination_sha != actual_sha:
+        raise ValueError(
+            f"destination archive {destination} already exists with different bytes than {source}"
+        )
+    return "already_present", destination_sha
+
+
 def stage_archive(root: Path, source: Path, *, check_only: bool) -> tuple[str, str, Path]:
     target, filename, expected_sha, expected_size, destination = load_archive_metadata(root)
     require_clean_third_party(root, filename)
     actual_sha = validate_source_archive(source, expected_size=expected_size, expected_sha=expected_sha)
 
+    existing_destination = inspect_destination(
+        source,
+        destination,
+        expected_size=expected_size,
+        expected_sha=expected_sha,
+        actual_sha=actual_sha,
+    )
     if check_only:
+        if existing_destination is not None:
+            _, destination_sha = existing_destination
+            return "checked", destination_sha, destination
         return "checked", actual_sha, destination
-
-    source_resolved = source.resolve()
-    destination_resolved = destination.resolve(strict=False)
-    if destination.exists():
-        if not destination.is_file():
-            raise ValueError(f"destination archive is not a regular file: {destination}")
-        destination_sha = validate_source_archive(
-            destination,
-            expected_size=expected_size,
-            expected_sha=expected_sha,
-        )
-        if source_resolved == destination_resolved:
-            return "already_present", destination_sha, destination
-        if destination_sha != actual_sha:
-            raise ValueError(
-                f"destination archive {destination} already exists with different bytes than {source}"
-            )
-        return "already_present", destination_sha, destination
+    if existing_destination is not None:
+        status, destination_sha = existing_destination
+        return status, destination_sha, destination
 
     copy_file(source, destination)
     staged_sha = validate_source_archive(
@@ -225,6 +246,12 @@ def run_self_test() -> int:
         assert status == "already_present"
         assert actual_sha == expected_sha
         assert second_destination == destination
+        case_count += 1
+
+        status, actual_sha, checked_destination = stage_archive(root, source, check_only=True)
+        assert status == "checked"
+        assert actual_sha == expected_sha
+        assert checked_destination == destination
         case_count += 1
 
     def expect_failure(
@@ -309,6 +336,18 @@ def run_self_test() -> int:
             b"y" * EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
         ),
         check_only=False,
+    )
+    expect_failure(
+        expected_substring="destination archive is not a regular file",
+        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").mkdir(),
+        check_only=True,
+    )
+    expect_failure(
+        expected_substring="to have sha256",
+        mutator=lambda root, source: (root / THIRD_PARTY_DIR / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz").write_bytes(
+            b"y" * EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
+        ),
+        check_only=True,
     )
 
     print("STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST=pass")
