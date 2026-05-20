@@ -62,12 +62,13 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking",
     "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`",
     "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages",
-    "the runtime bitmap side is narrower than older shared reminders claimed.",
-    "current `master` therefore supports a partial runtime bitmap reminder packet plus a bounded build bundle, not a fully returned bitmap sample family",
-    "does not currently expose the broader shared runtime-loader packet",
+    "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages remains part of the still-shipped narrow packet",
+    "The shared runtime-loader allocator/init-flow packet has returned",
+    "the review-first allocator/init-flow packet has returned, but deeper loadable-runtime publication and module-install-root completion still remain blocked.",
+    "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces",
+    "the shared runtime-loader allocator/init-flow packet has returned through a mixed direct-read plus public-tree-fallback packet and should be treated as current shared-owner evidence again",
     "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness",
-    "Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
+    "Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
 ]
 
 MODULE_SLICE_REQUIRED_MARKERS = [
@@ -269,7 +270,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, lane-sequencing note, trace-events module-slice note, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, the partial bitmap reminder packet, the absent broader shared runtime-loader packet, the earlier Phase 2 and Phase 3 boundary references, and the no-Phase-9-make-route policy explicit."
+        description="Check that the Phase 9 review checklist, lane-sequencing note, trace-events module-slice note, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, the current allocator/init-flow shared-loader reminder, the partial bitmap reminder packet, the earlier Phase 2 and Phase 3 boundary references, and the no-Phase-9-make-route policy explicit."
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
