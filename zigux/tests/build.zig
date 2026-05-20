@@ -358,6 +358,53 @@ fn addPhase3BitmapCpumaskDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase3BitmapCpumaskTailProjection(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const uapi_bitmap_cpumask = b.createModule(.{
+        .root_source_file = b.path("../uapi/bitmap_cpumask.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_cpumask_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/bitmap_cpumask.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_cpumask_binding.addImport("uapi_bitmap_cpumask", uapi_bitmap_cpumask);
+
+    const bitmap_view_helper = b.createModule(.{
+        .root_source_file = b.path("../helpers/bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_view_helper.addImport("bitmap_cpumask_binding", bitmap_cpumask_binding);
+
+    const cpumask_view_helper = b.createModule(.{
+        .root_source_file = b.path("../helpers/cpumask_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cpumask_view_helper.addImport("bitmap_cpumask_binding", bitmap_cpumask_binding);
+    cpumask_view_helper.addImport("bitmap_view_helper", bitmap_view_helper);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_bitmap_cpumask_tail_projection.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("bitmap_view_helper", bitmap_view_helper);
+    root_module.addImport("cpumask_view_helper", cpumask_view_helper);
+
+    const tests = b.addTest(.{
+        .name = "phase3-bitmap-cpumask-tail-projection",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3PolicyStarterPacket(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -513,6 +560,11 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_bitmap_cpumask_starter_packet = addPhase3BitmapCpumaskStarterPacket(b, target, optimize);
     const phase3_bitmap_cpumask_dump = addPhase3BitmapCpumaskDump(b, target, optimize);
+    const phase3_bitmap_cpumask_tail_projection = addPhase3BitmapCpumaskTailProjection(
+        b,
+        target,
+        optimize,
+    );
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
@@ -568,12 +620,19 @@ pub fn build(b: *std.Build) void {
     );
     phase3_bitmap_cpumask_dump_step.dependOn(&phase3_bitmap_cpumask_dump.step);
 
+    const phase3_bitmap_cpumask_tail_projection_step = b.step(
+        "phase3-bitmap-cpumask-tail-projection",
+        "Run the shared Phase 3 bitmap/cpumask tail projection proof from zigux/tests",
+    );
+    phase3_bitmap_cpumask_tail_projection_step.dependOn(&phase3_bitmap_cpumask_tail_projection.step);
+
     const phase3_bitmap_cpumask_slice_step = b.step(
         "phase3-bitmap-cpumask",
-        "Run the shared Phase 3 bitmap/cpumask starter packet and dump from zigux/tests",
+        "Run the shared Phase 3 bitmap/cpumask starter packet, dump, and tail projection proof from zigux/tests",
     );
     phase3_bitmap_cpumask_slice_step.dependOn(&phase3_bitmap_cpumask_starter_packet.step);
     phase3_bitmap_cpumask_slice_step.dependOn(&phase3_bitmap_cpumask_dump.step);
+    phase3_bitmap_cpumask_slice_step.dependOn(&phase3_bitmap_cpumask_tail_projection.step);
 
     const phase3_policy_step = b.step(
         "phase3-policy-starter-packet",
