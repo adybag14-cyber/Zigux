@@ -35,6 +35,10 @@ REQUIRED_MARKERS = [
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
     "does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet",
     "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
+    "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+    "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
     "`bcm2835_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` on current `master`",
     "`gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`",
     "`hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
@@ -81,9 +85,13 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 - the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet.
 - The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head HVC build routes explicit as adjacent continuity evidence rather than treating them as a cross-driver replay roster.
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so keep that targetless-unregister failure-mode evidence explicit beside the narrower three-proof inventory instead of silently collapsing it into the shared proof-backed roster.
 - `bcm2835_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` on current `master`
 - `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`
 - `hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory.
 - `dw_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` on current `master`
 """
 
@@ -153,8 +161,9 @@ def run_self_test() -> None:
             REQUIRED_MARKERS[9],
             REQUIRED_MARKERS[14],
             REQUIRED_MARKERS[20],
-            REQUIRED_MARKERS[21],
-            REQUIRED_MARKERS[25],
+            REQUIRED_MARKERS[23],
+            REQUIRED_MARKERS[24],
+            REQUIRED_MARKERS[27],
         )
         for index, marker in enumerate(required_self_test_markers, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
@@ -180,7 +189,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=13")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=14")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
