@@ -4,7 +4,7 @@
   "mode": "bounded config bridge",
   "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
   "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-  "case_count": 14,
+  "case_count": 15,
   "cases": [
     "sample",
     "escaped_strings",
@@ -19,6 +19,7 @@
     "empty_config_symbol_names",
     "malformed_unset_comment_tokens",
     "last_state_transitions",
+    "duplicate_assignments",
     "duplicate_malformed_quoted_assignment"
   ],
   "input_packet": [
@@ -35,6 +36,7 @@
     "empty_config_symbol_names.config",
     "malformed_unset_comment_tokens.config",
     "last_state_transitions.config",
+    "duplicate_assignments.config",
     "duplicate_malformed_quoted_assignment.config"
   ],
   "expected_packet": [
@@ -51,6 +53,7 @@
     "empty_config_symbol_names_expected.json",
     "malformed_unset_comment_tokens_expected.json",
     "last_state_transitions_expected.json",
+    "duplicate_assignments_expected.json",
     "duplicate_malformed_quoted_assignment_expected.json"
   ],
   "helper_local_anchors": [
