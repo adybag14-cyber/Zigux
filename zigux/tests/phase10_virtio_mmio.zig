@@ -167,7 +167,10 @@ test "phase10 virtio mmio keeps config-write plan freshness bounded to staged re
 
     device.bumpConfigGeneration();
     freshness = device.configWritePlanFreshnessSummary();
-    try std.testing.expect(!freshness.plan_present);
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(!freshness.plan_matches_generation);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.stale_generation, freshness.availability);
+    try std.testing.expectEqual(plan.config_generation, freshness.planned_generation);
     try std.testing.expectEqual(@as(u32, 1), freshness.current_generation);
     try std.testing.expect(!freshness.available_for_disposition);
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
@@ -176,21 +179,16 @@ test "phase10 virtio mmio keeps config-write plan freshness bounded to staged re
 test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {
     var device = try virtio_mmio.VirtioMmioLab.init(97, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
-    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
     device.bumpConfigGeneration();
-
-    device.pending_config_write = .{
-        .anchor = virtio_mmio.anchor_path,
-        .relative_offset = 4,
-        .absolute_offset = virtio_mmio.mmio_window_bytes + 4,
-        .planned_value = 0x0203_0409,
-        .config_generation = 0,
-        .within_config_window = true,
-    };
 
     const freshness = device.configWritePlanFreshnessSummary();
     try std.testing.expect(freshness.plan_present);
     try std.testing.expect(!freshness.plan_matches_generation);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.stale_generation, freshness.availability);
+    try std.testing.expectEqual(plan.relative_offset, freshness.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, freshness.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, freshness.planned_value);
     try std.testing.expectEqual(@as(u32, 0), freshness.planned_generation);
     try std.testing.expectEqual(@as(u32, 1), freshness.current_generation);
     try std.testing.expect(!freshness.available_for_disposition);
