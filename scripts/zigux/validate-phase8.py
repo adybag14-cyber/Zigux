@@ -170,6 +170,41 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd",
         "Run the phase 8 exec-cmd review witness tests.",
     ),
+    Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
+        "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
+        '"zigux/tests/README.md"',
+        '"scripts/zigux/README.md"',
+        "resolveReadyBufferFdAtAttempt",
+        "resolveReadyBufferFdLookupReturnAtAttempt",
+        "summarizePollExecutionResultFromWaitResult",
+        "summarizeBufferFdLookup",
+        "summarizeBufferWindowLookup",
+    ),
+    VERIFY_ROUTING_GAP_TEST: (
+        "phase 8 verify routing witness records the current CPU-index verifier closure",
+        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
+        "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
+        "phase 8 verify routing witness records the current direct-readback libbpf survey packet",
+    ),
+    Path("zigux/tests/phase8_file_path_handle_bridge.zig"): (
+        "phase 8 file-path handle bridge",
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    ),
+    Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"): (
+        "phase8_file_path_handle_bridge.zig",
+        "phase8_file_path_handle_bridge",
+        "Run the phase 8 file-path-handle bridge tests.",
+    ),
+    VERIFY_ROUTING_GAP_BUILD: (
+        "phase8_verify_routing_gap.zig",
+        "phase8_verify_routing_gap",
+        "Run the phase 8 verify routing witness tests.",
+    ),
+    Path("zigux/tests/phase8_build.zig"): (
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+        "phase8_perf_buffer_poll",
+        "phase8_file_path_handle_bridge",
+    ),
     CPU_MASK_SEGMENT: (
         "pub fn parseCpuMaskString(",
         "pub fn summarizePossibleCpusFromReader(",
