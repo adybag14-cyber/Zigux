@@ -129,8 +129,8 @@ REQUIRED_SNIPPETS = {
         "try std.testing.expectEqual(expected.len, perf_cases.len);",
     ],
     CHECKSUM_PERF_PATH: [
-        '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },',
-        '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },',
+        '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea5 },',
+        '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3461 },',
         'std.debug.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
         "if (slowdown_pct > case.max_slowdown_pct) {",
     ],
@@ -207,8 +207,8 @@ SELF_TEST_CASES = [
     ),
     (
         CHECKSUM_PERF_PATH,
-        '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },',
-        '.{ .label = "1501", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },',
+        '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3461 },',
+        '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3462 },',
     ),
     (
         HEXDUMP_VECTORS_PATH,
@@ -235,7 +235,6 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
-
 def validate(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -246,17 +245,14 @@ def validate(repo_root: Path) -> None:
                 )
 
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
-
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         write(root / rel_path, "\n".join(snippets) + "\n")
-
 
 
 def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -278,7 +274,6 @@ def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
         write(path, original)
 
 
-
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -288,7 +283,6 @@ def run_self_test() -> None:
             expect_failure(root, rel_path, old, new)
     print("PHASE6_PERF_THRESHOLD_MARKERS_SELF_TEST=pass")
     print(f"PHASE6_PERF_THRESHOLD_MARKERS_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
-
 
 
 def parse_args() -> argparse.Namespace:
@@ -305,7 +299,6 @@ def parse_args() -> argparse.Namespace:
         help="run built-in self-test instead of validating a repository",
     )
     return parser.parse_args()
-
 
 
 def main() -> int:
