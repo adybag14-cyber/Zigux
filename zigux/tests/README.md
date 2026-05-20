@@ -23,6 +23,7 @@ Purpose
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_host_tools_smoke.zig`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/README.md`
 
@@ -32,7 +33,7 @@ Purpose
   * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 1 reminder keep the restored closure note, the closure-validator and shipped checker packet, the shared tests-root smoke route, the manifest-backed owner map, the broader-companion wording for the validator-first, parity, bench-replay, and helper-replay family, and the historical-gap wording for the missing Phase 1 Makefile routes aligned without widening back into the older full closure stack?
+- Does the bounded Phase 1 reminder keep the restored closure note, the workflow-backed closure-validator and shipped checker packet, the shared tests-root smoke route, the manifest-backed owner map, the broader-companion wording for the validator-first, parity, bench-replay, and helper-replay family, and the historical-gap wording for the missing Phase 1 Makefile routes aligned without widening back into the older full closure stack?
 
 ## Phase 2 review packet
 
