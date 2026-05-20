@@ -115,6 +115,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 2
     + len(SURFACE_PATHS)
     + len(REQUIRED_MAKEFILE_LINES)
+    + len(REQUIRED_MAKEFILE_LINES)
     + len(DISALLOWED_MAKEFILE_LINES)
 )
 
@@ -377,6 +378,17 @@ def run_self_test() -> int:
             )
             issues = collect_issues(root)
             assert ("MISSING_MAKEFILE_LINES", marker) in issues
+            checks_run += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_LINES", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in DISALLOWED_MAKEFILE_LINES:
