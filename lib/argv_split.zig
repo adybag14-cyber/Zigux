@@ -54,9 +54,13 @@ pub fn countArgc(text: []const u8) usize {
     return count;
 }
 
+pub const count_argc = countArgc;
+
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
     return argvSplitWithArgc(allocator, text, null);
 }
+
+pub const argv_split = argvSplit;
 
 pub fn argvSplitWithArgc(
     allocator: std.mem.Allocator,
@@ -103,9 +107,13 @@ pub fn argvSplitWithArgc(
     };
 }
 
+pub const argv_split_with_argc = argvSplitWithArgc;
+
 pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
     result.deinit(allocator);
 }
+
+pub const argv_free = argvFree;
 
 fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
@@ -693,6 +701,26 @@ test "argvSplitWithArgc keeps caller argc unchanged when allocation fails before
         argvSplitWithArgc(fba.allocator(), "alpha beta", &argc),
     );
     try std.testing.expectEqual(std.math.maxInt(usize), argc);
+}
+
+test "argv_split aliases preserve helper-local count, split, and free behavior" {
+    try std.testing.expectEqual(@as(usize, 2), count_argc("alpha beta"));
+
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split_with_argc(std.testing.allocator, "alpha beta", &argc);
+    defer argv_free(std.testing.allocator, &split);
+
+    try std.testing.expectEqual(@as(usize, 2), argc);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("alpha", std.mem.span(split.cArgv()[0].?));
+    try std.testing.expectEqualStrings("beta", std.mem.span(split.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[2]);
+
+    var blank = try argv_split(std.testing.allocator, " \t\n");
+    defer argv_free(std.testing.allocator, &blank);
+    try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), blank.cArgv()[0]);
 }
 
 test "argvSplit reports overflow before sizing the null-terminated argv vector" {
