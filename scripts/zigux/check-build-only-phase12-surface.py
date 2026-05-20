@@ -80,6 +80,11 @@ RAW_GITHUB_COVERAGE_MARKER = (
     "the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed "
     "shared support bundle are distinct evidence states in this runtime"
 )
+MAKEFILE_FALLBACK_MARKERS = [
+    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+    "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))",
+    "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
+]
 
 REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
@@ -112,6 +117,7 @@ REQUIRED_MARKERS = {
     SCRIPTS_README_PATH: SCRIPTS_README_MARKERS,
     TESTS_README_PATH: TESTS_README_MARKERS,
     MAKEFILE_PATH: [
+        *MAKEFILE_FALLBACK_MARKERS,
         "phase12-smoke:",
         "phase12-test:",
         "phase12: phase12-smoke phase12-test",
