@@ -13,6 +13,7 @@ NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
+    '("ARTIFACT_DIFF_HELPER_SELF_TEST_CHECK", ["scripts/zigux/artifact_diff.py", "--self-test"], "ARTIFACT_DIFF_SELF_TEST=pass"),',
     '("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),',
     '("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", ["scripts/zigux/check-artifact-diff-contract.py", "--self-test"], "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),',
     '("ARTIFACT_DIFF_CONTRACT_CHECK", ["scripts/zigux/check-artifact-diff-contract.py"], "ARTIFACT_DIFF_CONTRACT=pass"),',
@@ -38,6 +39,7 @@ EXPECTED_WORKFLOW_REPLAY_MARKERS = [
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "validator_marker_round_trip",
+    "validator_helper_marker_drift",
     "validator_marker_drift",
     "repo_reality_handoff_round_trip",
     "repo_reality_handoff_drift",
@@ -158,6 +160,15 @@ def run_self_test() -> int:
         if mode != "validator_present" or markers != EXPECTED_VALIDATOR_REPLAY_MARKERS:
             raise AssertionError("validator_marker_round_trip")
         covered_cases.append("validator_marker_round_trip")
+
+        make_validator_fixture(root)
+        write(root / VALIDATOR_REL, "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS[1:]) + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("validator_helper_marker_drift")
+        else:
+            raise AssertionError("expected validator_helper_marker_drift to fail closed")
 
         make_validator_fixture(root)
         write(root / VALIDATOR_REL, EXPECTED_VALIDATOR_REPLAY_MARKERS[0] + "\n")
