@@ -48,6 +48,15 @@ Keep that kretprobe packet framed as the approved in-memory handler and teardown
 * the focused test pair keeps outstanding-instance exit rejection, recovered duration `60`, `entry_stamp_ns = -1` reset, and post-exit `recordMissedInstance()` rejection explicit
 * keep `register_kretprobe`, `unregister_kretprobe`, `pt_regs or regs_return_value`, and loadable module wiring out of scope
 
+Current `master` also keeps the bounded non-runtime trace-events packet visible through the direct formatting companion `samples/zigux/trace_events_string_formatting_sample.zig` together with the shared Phase 5 reminder packet.
+
+Keep that trace-events packet framed as the approved selected-string plus `iter=%d` formatting idiom for the Phase 5 anchor:
+
+* `samples/zigux/trace_events_string_formatting_sample.zig` stays the direct sample-root proof for the bounded formatting companion rather than a returned full trace-events port or a fifth sample
+* `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit for the same narrow trace-events posture
+* `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` stay broader public-tree-backed companion or historical-support evidence until a fresh authenticated reread returns them directly again
+* keep Phase 9 runtime trace-events files out of this non-runtime Phase 5 proof packet
+
 Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.
 
 ## Phase 9 runtime pilot family
