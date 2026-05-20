@@ -12,9 +12,8 @@ class ValidationError(RuntimeError):
     """Raised when an expected Phase 6 hexdump marker is missing."""
 
 
-CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
+CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 LIB_PATH = Path("lib/hexdump.zig")
-SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_hexdump.zig")
 PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 PERF_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
@@ -25,11 +24,21 @@ ROUTE_PATH = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
 REQUIRED_SNIPPETS = {
     CATALOG_PATH: [
-        "- helper: `lib/hexdump.zig`",
-        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- Linux-style packet review route: `make -C zigux phase6-hexdump-review`",
+        "- roadmap anchor: `lib/hexdump.c`",
+        "- Zig helper: `lib/hexdump.zig`",
+        "- focused helper replay: `zigux/tests/phase6_hexdump.zig`",
+        "- dedicated slowdown replay: `zigux/tests/phase6_hexdump_perf.zig`",
         "- exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`",
-        "- direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
+        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`",
+        "- `make -C zigux phase6-hexdump-review`",
+        "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
+        "- `make -C zigux phase6-hexdump-perf-matrix-test`",
+        "- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
+        "- `make -C zigux phase6-hexdump-test`",
+        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
+        "- `make -C zigux phase6-hexdump-perf`",
     ],
     LIB_PATH: [
         'pub const hex_asc = "0123456789abcdef";',
@@ -44,14 +53,6 @@ REQUIRED_SNIPPETS = {
         'test "hex2bin and bin2hex snake-case aliases stay aligned" {',
         'test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {',
         'test "hexDumpLineLength mirrors formatter normalization" {',
-    ],
-    SLICE_PATH: [
-        "`PHASE6_STATUS=parked_reviewable`",
-        "`PHASE6_SLICE=hexdump-leaf-helper`",
-        "`scripts/zigux/check-phase6-hexdump-packet.py`",
-        "`make -C zigux phase6-hexdump-review`",
-        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
-        "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 hexdump helper packet replays the serialized parity matrix" {',
@@ -112,6 +113,7 @@ REQUIRED_SNIPPETS = {
         'MAKEFILE = Path("zigux/Makefile")',
         'BUILD_FILE = Path("zigux/tests/phase6_build.zig")',
         'PERF_MATRIX_FILE = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")',
+        'CATALOG_FILE = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")',
         '"$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",',
         '"PHASE6_HEXDUMP_ROUTE=pass"',
     ],
@@ -120,8 +122,13 @@ REQUIRED_SNIPPETS = {
 SELF_TEST_CASES = [
     (
         CATALOG_PATH,
-        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-proof.py`",
+        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-proof.py`",
+    ),
+    (
+        CATALOG_PATH,
+        "- `make -C zigux phase6-hexdump-review`",
+        "- `make -C zigux phase6-hexdump-proof`",
     ),
     (
         LIB_PATH,
@@ -132,11 +139,6 @@ SELF_TEST_CASES = [
         LIB_PATH,
         'test "hexDumpLineLength mirrors formatter normalization" {',
         'test "hexDumpLength mirrors formatter normalization" {',
-    ),
-    (
-        SLICE_PATH,
-        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
-        "the landed nibble-helper parity surface",
     ),
     (
         HELPER_TEST_PATH,
