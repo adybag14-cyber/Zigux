@@ -80,6 +80,55 @@ EXPECTED_ABSENT = [
     "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
 ]
 
+EXPECTED_REQUIRED_PATHS = [
+    "Documentation/zigux/phase12-virtio-scsi-slice.md",
+    "Documentation/zigux/phase12-virtio-scsi-survey.md",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json",
+    "zigux/tests/phase12_virtio_scsi_manifest.json",
+    "zigux/tests/phase12_virtio_scsi_survey.zig",
+    "scripts/zigux/check-phase12-virtio-scsi-packet.py",
+    "zigux/tests/phase12_build.zig",
+    "zigux/Makefile",
+]
+
+EXPECTED_SUMMARY_FLAGS = {
+    "preexisting_virtio_scsi_zig_present": False,
+    "preexisting_phase12_direct_test_present": False,
+    "preexisting_phase12_syntax_lab_present": False,
+    "preexisting_phase12_repeated_replan_gate_present": False,
+    "preexisting_phase12_repeated_rollback_gate_present": False,
+    "preexisting_phase12_support_packet_present": False,
+    "preexisting_phase12_support_manifest_present": True,
+    "preexisting_phase12_packet_checker_present": True,
+    "preexisting_phase12_slice_note_present": True,
+    "preexisting_phase12_build_present": True,
+    "preexisting_phase12_make_targets_present": True,
+    "preexisting_phase12_survey_note_present": True,
+    "preexisting_phase12_fallback_catalog_present": True,
+    "preexisting_phase12_survey_gate_present": True,
+}
+
+EXPECTED_ROADMAP_GAP_STATUSES = {
+    "dma_safe_abstractions": "rollback_evidence_only_live_starter_missing",
+    "queueing_correctness": "rollback_evidence_present_no_live_queue_planner",
+    "throughput_and_recovery_parity": "rollback_evidence_present_no_runtime_recovery_replay",
+    "segmented_rollout": "survey_packet_and_fallback_present_driver_local_replay_missing",
+}
+
+EXPECTED_GAP_STATUSES = {
+    "phase12-virtio-scsi-driver-starter": "missing_on_master",
+    "phase12-virtio-scsi-direct-replay": "missing_on_master",
+    "phase12-virtio-scsi-syntax-lab": "missing_on_master",
+    "phase12-virtio-scsi-repeated-replan-gate": "missing_on_master",
+    "phase12-virtio-scsi-repeated-rollback-gate": "missing_on_master",
+    "phase12-build-gate": "shared_support_bundle_present",
+    "phase12-make-target": "shared_make_targets_present",
+    "phase12-virtio-scsi-survey-gate": "rollback_evidence_present",
+    "phase12-virtio-scsi-survey-note": "rollback_evidence_present",
+    "phase12-virtio-scsi-runtime-request-flow": "blocked_on_driver_return_dma_scsi_host_runtime",
+}
+
 
 def repo_root() -> Path:
     resolved = Path(__file__).resolve()
@@ -122,10 +171,27 @@ def check(root: Path) -> list[str]:
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
     survey_manifest = json.loads(read_text(root / SURVEY_MANIFEST_PATH))
 
+    if fixture_manifest.get("lane_key") != "P12-L13":
+        errors.append("fixture manifest lane_key drift")
+    if fixture_manifest.get("phase") != "Phase 12":
+        errors.append("fixture manifest phase drift")
+    if fixture_manifest.get("surveyed_commit") != "unresolved_on_master":
+        errors.append("fixture manifest surveyed_commit drift")
     if fixture_manifest.get("verified_on") != "2026-05-20":
         errors.append("fixture manifest verified_on drift")
+    if fixture_manifest.get("anchor") != "drivers/scsi/virtio_scsi.c":
+        errors.append("fixture manifest anchor drift")
+    if fixture_manifest.get("fixture_kind") != "rollback_evidence_presence_manifest":
+        errors.append("fixture manifest fixture_kind drift")
+    if fixture_manifest.get("source_manifest") != SURVEY_MANIFEST_PATH:
+        errors.append("fixture manifest source_manifest drift")
+    if fixture_manifest.get("required_paths") != EXPECTED_REQUIRED_PATHS:
+        errors.append("fixture manifest required_paths drift")
     if fixture_manifest.get("expected_absent_paths") != EXPECTED_ABSENT:
         errors.append("fixture manifest expected_absent_paths drift")
+    notes = fixture_manifest.get("notes")
+    if not isinstance(notes, list) or len(notes) != 2:
+        errors.append("fixture manifest notes drift")
     for rel_path in fixture_manifest.get("required_paths", []):
         if not (root / rel_path).exists():
             errors.append(f"fixture required path missing: {rel_path}")
@@ -133,17 +199,41 @@ def check(root: Path) -> list[str]:
         if (root / rel_path).exists():
             errors.append(f"expected absent path unexpectedly present: {rel_path}")
 
-    summary = survey_manifest.get("survey_summary", {})
+    if survey_manifest.get("lane_key") != "P12-L13":
+        errors.append("survey manifest lane_key drift")
+    if survey_manifest.get("phase") != "Phase 12":
+        errors.append("survey manifest phase drift")
+    if survey_manifest.get("surveyed_commit") != "unresolved_on_master":
+        errors.append("survey manifest surveyed_commit drift")
     if survey_manifest.get("verified_on") != "2026-05-20":
         errors.append("survey manifest verified_on drift")
-    if summary.get("preexisting_virtio_scsi_zig_present") is not False:
-        errors.append("survey manifest still claims driver starter present")
-    if summary.get("preexisting_phase12_direct_test_present") is not False:
-        errors.append("survey manifest still claims direct replay present")
-    if summary.get("preexisting_phase12_repeated_rollback_gate_present") is not False:
-        errors.append("survey manifest still claims repeated rollback gate present")
-    if summary.get("preexisting_phase12_survey_gate_present") is not True:
-        errors.append("survey manifest lost survey gate presence")
+    if survey_manifest.get("anchor") != "drivers/scsi/virtio_scsi.c":
+        errors.append("survey manifest anchor drift")
+    if survey_manifest.get("roadmap_destinations") != [
+        "drivers/scsi/virtio_scsi.zig",
+        "zigux/tests/",
+    ]:
+        errors.append("survey manifest roadmap_destinations drift")
+
+    summary = survey_manifest.get("survey_summary", {})
+    for key, expected in EXPECTED_SUMMARY_FLAGS.items():
+        if summary.get(key) is not expected:
+            errors.append(f"survey manifest summary drift: {key}")
+
+    roadmap_gap_check = survey_manifest.get("roadmap_gap_check", {})
+    for key, expected_status in EXPECTED_ROADMAP_GAP_STATUSES.items():
+        gap_info = roadmap_gap_check.get(key, {})
+        if gap_info.get("status") != expected_status:
+            errors.append(f"survey manifest roadmap gap drift: {key}")
+
+    gap_statuses = {
+        gap.get("id"): gap.get("status")
+        for gap in survey_manifest.get("gaps", [])
+        if isinstance(gap, dict)
+    }
+    for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
+        if gap_statuses.get(gap_id) != expected_status:
+            errors.append(f"survey manifest gap drift: {gap_id}")
 
     return errors
 
