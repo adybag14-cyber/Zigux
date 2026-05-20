@@ -9,6 +9,24 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 NOTE_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
 
+ROLLBACK_THRESHOLD_MARKER = (
+    "- manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` "
+    "keeps this freeze-in-C packet fail-closed until the same review packet carries "
+    "the required reopen evidence instead of a lighter status-review claim."
+)
+REQUIRED_EVIDENCE_HEADING = "- required evidence before any status review:"
+REQUIRED_EVIDENCE_MARKERS = [
+    "- `Architecture Council` reopen record linked from the active review packet",
+    "- parity scorecard evidence and benchmark notes attached to the same review packet",
+    "- validation replay command and evidence archive path recorded beside the latest blocker disposition",
+]
+RETURN_TO_BLOCKED_HEADING = "- automatic return-to-blocked triggers:"
+RETURN_TO_BLOCKED_MARKERS = [
+    "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record",
+    "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+    "- freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the missing-companion warning, or the rollback owner",
+]
+
 
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
@@ -28,12 +46,15 @@ REQUIRED_MARKERS = [
     "executable packet companions still missing through current contents-path readback:",
     "`zigux/tests/phase14_rcu_tree_manifest.json`",
     "`zigux/tests/phase14_rcu_tree_survey.zig`",
+    "dedicated rollback guard surface:",
     "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
     "`phase14-rcu-tree-rollback-threshold-guardrail`",
+    ROLLBACK_THRESHOLD_MARKER,
     "rollback owner: `Repo Tooling Pod`",
-    "`Architecture Council` reopen record",
-    "parity scorecard evidence and benchmark notes",
-    "validation replay command and evidence archive path",
+    REQUIRED_EVIDENCE_HEADING,
+    *REQUIRED_EVIDENCE_MARKERS,
+    RETURN_TO_BLOCKED_HEADING,
+    *RETURN_TO_BLOCKED_MARKERS,
 ]
 
 FORBIDDEN_MARKERS = [
@@ -82,12 +103,13 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 ## Rollback guardrail
-- manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
+""" + ROLLBACK_THRESHOLD_MARKER + """
+- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, missing-companion wording, rollback owner, and required reopen evidence.
 - rollback owner: `Repo Tooling Pod`
-- required evidence before any status review:
-  - `Architecture Council` reopen record linked from the active review packet
-  - parity scorecard evidence and benchmark notes attached to the same review packet
-  - validation replay command and evidence archive path recorded beside the latest blocker disposition
+""" + REQUIRED_EVIDENCE_HEADING + """
+""" + "\n".join(f"  {marker}" for marker in REQUIRED_EVIDENCE_MARKERS) + """
+""" + RETURN_TO_BLOCKED_HEADING + """
+""" + "\n".join(f"  {marker}" for marker in RETURN_TO_BLOCKED_MARKERS) + """
 """
 
 
@@ -108,12 +130,27 @@ def run_self_test() -> int:
             ),
             (
                 "remove-checker",
-                "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
-                "missing_marker:`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
+                "- dedicated rollback guard surface:\n  - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`\n",
+                "missing_marker:dedicated rollback guard surface:",
+            ),
+            (
+                "remove-threshold-guardrail",
+                ROLLBACK_THRESHOLD_MARKER,
+                f"missing_marker:{ROLLBACK_THRESHOLD_MARKER}",
+            ),
+            (
+                "remove-required-evidence-heading",
+                REQUIRED_EVIDENCE_HEADING,
+                f"missing_marker:{REQUIRED_EVIDENCE_HEADING}",
+            ),
+            (
+                "remove-return-to-blocked-trigger",
+                RETURN_TO_BLOCKED_MARKERS[0],
+                f"missing_marker:{RETURN_TO_BLOCKED_MARKERS[0]}",
             ),
         ]
         for _, marker, expected in cases:
-            write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker + "\n", "", 1))
+            write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker, "", 1))
             failures = validate(base)
             if expected not in failures:
                 raise SystemExit(f"expected {expected!r}, got {failures!r}")
@@ -124,7 +161,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
 
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=4")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
