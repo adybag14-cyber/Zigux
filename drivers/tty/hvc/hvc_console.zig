@@ -714,7 +714,7 @@ test "phase11 hvc console keeps failed hvc_install cleanup ownership reviewable"
 
     try std.testing.expect(summary.index_lookup_found);
     try std.testing.expect(summary.kref_acquired_from_lookup);
-    try std.testing.expect(summary.driver_dataBound);
+    try std.testing.expect(summary.driver_data_bound);
     try std.testing.expect(!summary.tty_port_install_succeeded);
     try std.testing.expect(summary.tty_port_put_on_failure);
     try std.testing.expect(!summary.install_reference_retained);
