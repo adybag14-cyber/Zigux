@@ -34,6 +34,21 @@ pub fn build(b: *std.Build) void {
         virtio_net_transmit_recycle_module,
     );
 
+    const virtio_net_receive_refill_replay_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_receive_refill_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_receive_refill_replay_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_receive_refill_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_receive_refill_replay_root_module.addImport(
+        "virtio_net_receive_refill_replay",
+        virtio_net_receive_refill_replay_module,
+    );
+
     const virtio_net_post_reset_replay_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/net/virtio_net_post_reset_replay.zig"),
         .target = target,
@@ -80,6 +95,14 @@ pub fn build(b: *std.Build) void {
         phase12_virtio_net_transmit_recycle_tests,
     );
 
+    const phase12_virtio_net_receive_refill_replay_tests = b.addTest(.{
+        .name = "phase12-virtio-net-receive-refill-replay-tests",
+        .root_module = virtio_net_receive_refill_replay_root_module,
+    });
+    const run_virtio_net_receive_refill_replay_tests = b.addRunArtifact(
+        phase12_virtio_net_receive_refill_replay_tests,
+    );
+
     const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
         .name = "phase12-virtio-net-post-reset-replay-tests",
         .root_module = virtio_net_post_reset_replay_root_module,
@@ -98,19 +121,21 @@ pub fn build(b: *std.Build) void {
 
     const smoke_step = b.step(
         "smoke",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity smoke tests",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity smoke tests",
     );
     smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
 
     const test_step = b.step(
         "test",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity tests",
     );
     test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
 }
