@@ -15,22 +15,80 @@ const BenchResult = struct {
     sink: u8,
 };
 
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
+
 fn validatePerfMatrix() !void {
-    try std.testing.expect(fixtures.perf_cases.len > 0);
-    try std.testing.expectEqual(fixtures.perf_payload.len, fixtures.perf_payload_buf_size);
+    const expected_payload_fingerprint: u64 = 0xcfb1_4153_5702_a392;
+    const expected = [_]struct {
+        label: []const u8,
+        padding: bool,
+        variant_name: []const u8,
+        iterations: usize,
+        max_encode_slowdown_pct: u64,
+        max_decode_slowdown_pct: u64,
+    }{
+        .{ .label = "STD_PAD", .padding = true, .variant_name = "std", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "STD_NO_PAD", .padding = false, .variant_name = "std", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_PAD", .padding = true, .variant_name = "urlsafe", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_NO_PAD", .padding = false, .variant_name = "urlsafe", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_PAD", .padding = true, .variant_name = "imap", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_NO_PAD", .padding = false, .variant_name = "imap", .iterations = 12_000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    };
+
+    if (fixtures.perf_cases.len != expected.len) {
+        return error.Base64PerfMatrixMismatch;
+    }
+    if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size) {
+        return error.Base64PerfMatrixMismatch;
+    }
+    if (perfPayloadFingerprint(fixtures.perf_payload) != expected_payload_fingerprint) {
+        return error.Base64PerfMatrixMismatch;
+    }
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.perf_cases[idx];
+        if (!std.mem.eql(u8, want.label, actual.label)) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (want.padding != actual.padding) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, want.variant_name, actual.variant_name)) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (want.iterations != actual.iterations) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (want.max_encode_slowdown_pct != actual.max_encode_slowdown_pct) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (want.max_decode_slowdown_pct != actual.max_decode_slowdown_pct) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, fixtures.perf_payload, actual.payload)) {
+            return error.Base64PerfMatrixMismatch;
+        }
+    }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
-        try std.testing.expectEqualStrings(fixtures.perf_payload, case.payload);
-        try std.testing.expect(case.iterations > 0);
-        try std.testing.expect(case.max_encode_slowdown_pct > 0);
-        try std.testing.expect(case.max_decode_slowdown_pct > 0);
-        try std.testing.expect(
-            std.mem.eql(u8, case.variant_name, "std") or
-                std.mem.eql(u8, case.variant_name, "urlsafe") or
-                std.mem.eql(u8, case.variant_name, "imap"),
-        );
+        if (case.payload.len == 0 or case.iterations == 0) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (case.max_encode_slowdown_pct == 0 or case.max_decode_slowdown_pct == 0) {
+            return error.Base64PerfMatrixMismatch;
+        }
+
         for (fixtures.perf_cases[idx + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+            if (std.mem.eql(u8, case.label, other.label)) {
+                return error.Base64PerfMatrixMismatch;
+            }
         }
     }
 }
