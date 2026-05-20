@@ -92,6 +92,10 @@ REQUIRED_SNIPPETS = {
     LOWER_BOUND_TEST_PATH: [
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
         'test "phase 6 bsearch descending raw c abi mutable wrappers keep duplicate-span write-through aligned" {',
+        "const mutable_lower = bsearch.bsearchLowerBoundMutable(",
+        "try std.testing.expectEqual(@intFromPtr(&mutable_duplicates[3]), @intFromPtr(typed_mutable_lower));",
+        "const missing_lower = bsearch.bsearchLowerBoundMutable(",
+        "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));",
         "try expectRange(descending_duplicates[0..], 20, .{ .lower = 6, .upper = 6 }, compare);",
     ],
     BUDGET_TEST_PATH: [
@@ -144,8 +148,13 @@ SELF_TEST_CASES = [
     ),
     (
         LOWER_BOUND_TEST_PATH,
-        'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
-        'test "phase 6 bsearch raw c abi bounds keep insertion points aligned" {',
+        "const mutable_lower = bsearch.bsearchLowerBoundMutable(",
+        "const mutable_alias = bsearch.bsearchLowerBoundMutable(",
+    ),
+    (
+        LOWER_BOUND_TEST_PATH,
+        "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));",
+        "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[5]), @intFromPtr(typed_missing_lower));",
     ),
     (
         BUDGET_TEST_PATH,
