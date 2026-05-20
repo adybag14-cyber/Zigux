@@ -91,7 +91,7 @@
       "status": "shared_support_bundle_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "Current master still carries the shared Phase 12 build route, but it wires only the virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests."
+      "why_now": "Current master still carries the shared Phase 12 build route, but it wires only the virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity tests."
     },
     {
       "id": "phase12-make-target",
