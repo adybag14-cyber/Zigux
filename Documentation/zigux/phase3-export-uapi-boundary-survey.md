@@ -17,6 +17,7 @@ This note records the current export shim, curated binding, and starter UAPI bou
 - `PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h`
 - `PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
 - `PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig`
+- `PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py`
 - `PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
@@ -45,12 +46,14 @@ Current `master` still shows one packet-local compile-wiring gap: the shared tes
 
 The dedicated replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig` remains the truthful compile gate until the shared tests-root route receives the same header-family wiring.
 
+The shared Phase 3 validator runner at `scripts/zigux/run-phase3-checks.py` keeps this dedicated export/UAPI survey replay inside the existing `phase3-validate` packet even while the shared tests-root compile wiring remains intentionally blocked on the header_family_binding follow-through.
+
 Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet plus the one shared-route wiring follow-through above, not a missing export/UAPI companion inside the packet itself.
 
 This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, the live curated binding companions, and the shared tests-root compile-gap explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.
 
 ## Scope
 
-This survey stays packet-local to the shipped starter export shim, the curated `zigux/bindings/version.zig` and `zigux/bindings/dev_t.zig` companions, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the shared tests-root route in `zigux/tests/build.zig`, the bounded catalog helper at `scripts/zigux/phase3_catalog.py`, the dedicated catalog-selftest guard at `scripts/zigux/check-phase3-catalog-selftest.py`, the shared manifest-backed inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, the returned Linux-header governance note at `Documentation/zigux/phase3-linux-zigux-header-governance.md`, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
+This survey stays packet-local to the shipped starter export shim, the curated `zigux/bindings/version.zig` and `zigux/bindings/dev_t.zig` companions, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the shared tests-root route in `zigux/tests/build.zig`, the shared Phase 3 validator runner at `scripts/zigux/run-phase3-checks.py`, the bounded catalog helper at `scripts/zigux/phase3_catalog.py`, the dedicated catalog-selftest guard at `scripts/zigux/check-phase3-catalog-selftest.py`, the shared manifest-backed inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, the returned Linux-header governance note at `Documentation/zigux/phase3-linux-zigux-header-governance.md`, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
 
 It does not claim a larger UAPI family or broader export/UAPI-only replay routes than the current starter packet actually ships.
