@@ -22,6 +22,7 @@ TOOLCHAIN_CHECKER_REL = Path("scripts/zigux/check-zig-toolchain.py")
 PINNING_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pinning.py")
 PIN_SCOPE_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py")
 KBUILD_CHECKER_REL = Path("scripts/zigux/check-phase2-kbuild-routes.py")
+KCONFIG_BRIDGE_CHECKER_REL = Path("scripts/zigux/check-kconfig-bridge.py")
 KCONFIG_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-kconfig-selftest-alignment.py")
 TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
 CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
@@ -64,6 +65,7 @@ REQUIRED_FILES = (
     PINNING_CHECKER_REL,
     PIN_SCOPE_CHECKER_REL,
     KBUILD_CHECKER_REL,
+    KCONFIG_BRIDGE_CHECKER_REL,
     KCONFIG_ALIGNMENT_REL,
     TESTS_ALIGNMENT_REL,
     CROSS_CHECKER_REL,
@@ -97,13 +99,20 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_CLOSURE_MARKERS = (
+    "`scripts/zigux/check-kconfig-bridge.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
+    "`scripts/zigux/kconfig/conf_bridge.zig`",
+    "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/fixdep.zig`",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
@@ -115,6 +124,10 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
+    "`python3 scripts/zigux/check-kconfig-bridge.py`",
+    "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py --self-test`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py`",
     "`python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test`",
@@ -156,6 +169,12 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
@@ -183,6 +202,12 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
     "phase2-kconfig:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
@@ -232,16 +257,29 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
 EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
 )
-EXPECTED_MANIFEST_BRIDGE_HELPERS = ("scripts/zigux/genksyms.zig",)
+EXPECTED_MANIFEST_BRIDGE_HELPERS = (
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+    "scripts/zigux/genksyms.zig",
+)
 FORBIDDEN_MANIFEST_GAPS = (
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase2-cross.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+    "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+    "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/genksyms.zig",
     "zigux/tests/fixtures/genksyms_bridge/cases.json",
@@ -551,13 +589,20 @@ def build_self_test_root(root: Path) -> None:
 
 ## Current Closure Packet
 
+- `scripts/zigux/check-kconfig-bridge.py`
+- `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `scripts/zigux/check-phase2-tool-manifest.py`
 - `scripts/zigux/check-phase2-artifact-tools-manifest.py`
 - `scripts/zigux/check-genksyms-bridge.py`
 - `scripts/zigux/check-phase2-fixdep-gate.py`
 - `scripts/zigux/check-fixdep-diff.py`
+- `scripts/zigux/kconfig/conf_bridge.zig`
+- `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/genksyms.zig`
 - `scripts/zigux/fixdep.zig`
+- `zigux/tests/fixtures/kconfig_bridge/cases.json`
+- `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
@@ -578,6 +623,10 @@ The current closure-side packet keeps the fixdep governance and parity checker p
 ## Closure Validation
 
 - `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
+- `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
+- `python3 scripts/zigux/check-kconfig-bridge.py`
+- `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `python3 scripts/zigux/check-phase2-tool-manifest.py --self-test`
 - `python3 scripts/zigux/check-phase2-tool-manifest.py`
 - `python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test`
@@ -644,11 +693,7 @@ The current closure-side packet keeps the fixdep governance and parity checker p
                 "scripts/zigux/check-fixdep-diff.py",
             ],
             "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
-            "bridge_helpers": [
-                "scripts/zigux/kconfig/conf_bridge.zig",
-                "scripts/zigux/kconfig/confdata_bridge.zig",
-                "scripts/zigux/genksyms.zig",
-            ],
+            "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "policy": ["scripts/zigux/zig-toolchain-policy.json"],
             "make_wrappers": [
                 "zigux/Makefile",
@@ -687,6 +732,7 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, PINNING_CHECKER_REL), "present\n")
     write_text(resolve(root, PIN_SCOPE_CHECKER_REL), "present\n")
     write_text(resolve(root, KBUILD_CHECKER_REL), "present\n")
+    write_text(resolve(root, KCONFIG_BRIDGE_CHECKER_REL), "present\n")
     write_text(resolve(root, KCONFIG_ALIGNMENT_REL), "present\n")
     write_text(resolve(root, TESTS_ALIGNMENT_REL), "present\n")
     write_text(resolve(root, CROSS_CHECKER_REL), "present\n")
@@ -788,6 +834,14 @@ def run_self_test() -> int:
         payload["present_surfaces"]["fixdep_support"] = []
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("MISSING_MANIFEST_SURFACE", "fixdep_support:scripts/zigux/check-phase2-fixdep-gate.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["bridge_helpers"] = ["scripts/zigux/genksyms.zig"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_MANIFEST_SURFACE", "bridge_helpers:scripts/zigux/kconfig/conf_bridge.zig") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
