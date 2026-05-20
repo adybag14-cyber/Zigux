@@ -62,13 +62,15 @@ Keep `samples/zigux/runtime_bitmap.zig` explicit as the bounded two-word in-memo
 
 Current `master` still ships no standalone Phase 5 sample-root files here for:
 
-* `*string*`
+* `*kasprintf*`
+* `*strarray*`
 * `*cmdline*`
 * `*argv*`
 * `*rbtree*`
-* `*kasprintf*`
-* `*strarray*`
 * `*bitmap*`
 * `*printf*`
 * `*vsprintf*`
-* `*format*`
+
+Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet or a fifth Phase 5 sample.
+
+Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.
