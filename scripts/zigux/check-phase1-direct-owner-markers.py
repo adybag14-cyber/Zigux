@@ -20,6 +20,7 @@ SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 PHASE1_CLOSURE_VALIDATOR_REL = Path("scripts/zigux/validate-phase1-closure.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 
 REQUIRED_FILES = (
     LANE_NOTE_REL,
@@ -31,6 +32,7 @@ REQUIRED_FILES = (
     PHASE1_CLOSURE_VALIDATOR_REL,
     SHARED_REMINDER_CHECKER_REL,
     MANIFEST_REL,
+    BITMAP_HELPER_REL,
 )
 
 EXPECTED_PHASE = "Phase 1"
@@ -78,6 +80,11 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "helpers reopen only for their existing helper-local anchors or already-committed "
     "shared fixture keys."
 )
+EXPECTED_BITMAP_REQUIRED_ANCHORS = [
+    'test "bitmap or keeps caller-selected bit window" {',
+    'test "bitmap or across a multiword tail still lets callers clamp the last word" {',
+    'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
+]
 EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
     "direct-anchor drift inside the current helper-local packet or committed shared "
@@ -170,7 +177,7 @@ REQUIRED_EXACT_LINES = {
         "phase1_direct_packet": "  * current direct-readback Phase 1 reminder packet:",
         "phase1_historical_warning": "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
         "phase1_bench_checker_present": "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-        "phase1_makefile_readback": "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
+        "phase1_makefile_readback": "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
         "phase1_followthrough_alignment": "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
     },
     SCRIPTS_README_REL: {
@@ -180,6 +187,11 @@ REQUIRED_EXACT_LINES = {
         "phase1_historical_warning": "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` reminder evidence",
         "phase1_bench_checker_present": "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
         "phase1_direct_anchor_tie_breakers": "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
+    },
+    BITMAP_HELPER_REL: {
+        "bitmap_or_window_anchor": 'test "bitmap or keeps caller-selected bit window" {',
+        "bitmap_or_multiword_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word" {',
+        "bitmap_weighted_or_xor_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
     },
 }
 
@@ -347,6 +359,7 @@ def run_self_test() -> int:
             ("missing_phase1_closure_file", PHASE1_CLOSURE_REL, None, "missing_file"),
             ("missing_phase1_closure_validator_file", PHASE1_CLOSURE_VALIDATOR_REL, None, "missing_file"),
             ("missing_shared_reminder_checker_file", SHARED_REMINDER_CHECKER_REL, None, "missing_file"),
+            ("missing_bitmap_helper_file", BITMAP_HELPER_REL, None, "missing_file"),
         ]
     )
     for name, relative_path, needle, operation in cases:
@@ -386,7 +399,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override the repository root for validation")
+    parser.add_argument("--root", help="override repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
     args = parser.parse_args()
     if args.self_test:
