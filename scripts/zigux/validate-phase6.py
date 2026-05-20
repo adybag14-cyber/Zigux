@@ -71,6 +71,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-hexdump-test",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
 ]
 
 REQUIRED_MAKEFILE_SNIPPETS = [
@@ -103,7 +104,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 15
 
 
 class ValidationError(RuntimeError):
@@ -281,6 +282,12 @@ def run_self_test() -> None:
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-checksum-perf-matrix-test")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-perf")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
