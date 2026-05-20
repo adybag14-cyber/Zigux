@@ -14,6 +14,7 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 TESTS_README = Path("zigux/tests/README.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 
 EXPECTED_COORDINATION_OWNERS = [
     "ABI and Runtime Team",
@@ -27,7 +28,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 23
+EXPECTED_SELF_TEST_CASES = 24
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -87,6 +88,12 @@ TESTS_README_MARKERS = (
     "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
     "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
+)
+
+SCRIPTS_README_MARKERS = (
+    "`scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`",
+    "`Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, and `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain the current reminder-surface companions for that active Phase 4 rollback-readiness and perf-governance packet",
+    "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
 )
 
 
@@ -202,8 +209,17 @@ def validate_root(root: Path) -> list[str]:
     checklist_path = root / REVIEW_CHECKLIST
     note_path = root / NOTE
     tests_readme_path = root / TESTS_README
+    scripts_readme_path = root / SCRIPTS_README
 
-    for path in (manifest_path, survey_path, matrix_path, checklist_path, note_path, tests_readme_path):
+    for path in (
+        manifest_path,
+        survey_path,
+        matrix_path,
+        checklist_path,
+        note_path,
+        tests_readme_path,
+        scripts_readme_path,
+    ):
         if not path.is_file():
             missing.append(f"file:{path.relative_to(root).as_posix()}")
 
@@ -229,6 +245,7 @@ def validate_root(root: Path) -> list[str]:
     require_markers(read_text(checklist_path), REVIEW_CHECKLIST_MARKERS, "review_checklist_marker", missing)
     require_markers(read_text(note_path), NOTE_MARKERS, "note_marker", missing)
     require_markers(read_text(tests_readme_path), TESTS_README_MARKERS, "tests_readme_marker", missing)
+    require_markers(read_text(scripts_readme_path), SCRIPTS_README_MARKERS, "scripts_readme_marker", missing)
 
     return missing
 
@@ -369,6 +386,13 @@ Current direct-readback dedicated local-only perf companion members: `zigux/test
 current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone
 """,
     )
+    write_text(
+        root / SCRIPTS_README,
+        """`scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`
+`Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, and `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain the current reminder-surface companions for that active Phase 4 rollback-readiness and perf-governance packet
+keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture
+""",
+    )
 
 
 def expect_failure(root: Path, expected_prefix: str) -> bool:
@@ -411,6 +435,7 @@ def run_self_test() -> int:
             (TESTS_README, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`", "tests_readme_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`"),
             (TESTS_README, "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`", "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey_drift.zig`", "tests_readme_marker:Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`"),
             (TESTS_README, "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone", "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-validation-matrix.md` instead of reconstructing the broader packet from older route names alone", "tests_readme_marker:current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone"),
+            (SCRIPTS_README, "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture", "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Shared Subsystems Pod remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture", "scripts_readme_marker:keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture"),
         )
 
         for rel, old, new, expected_prefix in variants:
