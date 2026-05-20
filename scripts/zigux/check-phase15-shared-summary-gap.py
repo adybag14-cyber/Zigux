@@ -49,6 +49,7 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
@@ -218,6 +219,20 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected stale-marker failure: {failures}")
+
+        missing_tests_checker_root = root / "missing_tests_checker"
+        _seed_repo(missing_tests_checker_root)
+        _write(
+            missing_tests_checker_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace("- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n", ""),
+        )
+        failures = collect_failures(missing_tests_checker_root)
+        expected = [
+            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`",
+            "gap note missing required marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-tests-checker failure: {failures}")
 
         handoff_root = root / "handoff"
         _seed_repo(handoff_root)
