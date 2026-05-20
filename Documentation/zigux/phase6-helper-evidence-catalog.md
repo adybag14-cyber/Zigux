@@ -2,7 +2,7 @@
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `9ca34d1`
+- surveyed head: `current-master-readback-2026-05-20`
 - lane scope: shared helper-evidence rows and machine-readable manifest only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
@@ -25,8 +25,6 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 
 Fresh direct GitHub contents reads on current `master` still return missing for several shared-note and helper-local packet members that older Phase 6 reminder surfaces have treated as shipped evidence, including:
 
-- `Documentation/zigux/phase6-hexdump-slice.md`
-- `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
 - `zigux/tests/phase6_base64_c_parity.zig`
 - `zigux/tests/phase6_base64_c_casegen.zig`
@@ -38,9 +36,9 @@ Fresh direct GitHub contents reads on current `master` still return missing for 
 
 Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, but that broader perf note is now aligned again on the currently readable bsearch, checksum, and hexdump measurement packet. Keep that broader perf note as a public-tree-backed shared companion rather than as direct authenticated shared-packet proof in this runtime.
 
-Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`.
+Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.
 
-The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `9ca34d1`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.
+The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `current-master-readback-2026-05-20`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.
 
 The broader shared perf survey is publicly readable again and now matches the current directly readable helper-local packet for `bsearch`, `checksum`, and `hexdump`. Treat the remaining shared perf-note risk as ordinary future truthfulness drift rather than a current helper-local measurement gap, and keep the directly readable helper-evidence packet above as the authenticated source of truth in this runtime.
 
@@ -90,9 +88,10 @@ The broader shared perf survey is publicly readable again and now matches the cu
 - exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - committed fixture surface: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`
+- route checker: `scripts/zigux/check-phase6-hexdump-route.py`
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders, while the slice note and perf refresh note still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, `scripts/zigux/check-phase6-hexdump-route.py`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `Documentation/zigux/phase6-hexdump-slice.md`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders
 
 ## Roadmap perf-gap readback
 
@@ -101,7 +100,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` still centralizes six fixture-owned encode and decode cases across standard, URL-safe, and IMAP variants.
 - `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget.
 - `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed payload threshold matrix (`64B`, `1501B`) and the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`) still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`; the shared replay packet exposes that packet through `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf-matrix-test`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-perf`.
-- `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`.
+- `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`, and the restored rationale pair `Documentation/zigux/phase6-hexdump-slice.md` plus `Documentation/zigux/phase6-hexdump-perf-refresh.md` now makes that grouped-threshold packet reviewable again through the shared route guards.
 - the remaining roadmap-aligned measurement risk is ordinary future drift between this catalog, `Documentation/zigux/phase6-perf-gate-survey.md`, the helper-local fixtures and perf harnesses, and the shared build or wrapper routes rather than a current helper-local replay gap.
 
 ## Current shared replay inventory
