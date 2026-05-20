@@ -119,6 +119,14 @@ test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted 
     try std.testing.expectEqualStrings("", nul_bounded.remaining);
 }
 
+test "phase 7 cmdline companion replays bare leading-equals ownership" {
+    const parsed = cmdline.nextArg("=ttyS0 tail");
+    try std.testing.expectEqualStrings("=ttyS0", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.rest);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
 test "nextArg keeps empty input borrowed from the caller slice" {
     const empty = [_]u8{ 0, 'x' };
     const parsed = cmdline.nextArg(&empty);
