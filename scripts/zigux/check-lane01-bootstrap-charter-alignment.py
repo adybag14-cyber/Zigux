@@ -14,8 +14,9 @@ README_MARKERS = (
     "Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.",
     "The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.",
     "`Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.",
+    "`Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.",
     "`Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.",
-    "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
+    "`Documentation/zigux/phase15-freeze-map-governance.md` is the governance companion that records the current Phase 15 review and blocker posture behind that freeze map.",
     "[Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)",
     "[Freeze Governance Companion](../Documentation/zigux/phase15-freeze-map-governance.md)",
 )
@@ -70,8 +71,9 @@ Rules
 
 Active product surfaces
 - `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.
+- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.
 - `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.
-- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.
+- `Documentation/zigux/phase15-freeze-map-governance.md` is the governance companion that records the current Phase 15 review and blocker posture behind that freeze map.
 
 Start here
 - [Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)
@@ -157,17 +159,38 @@ def run_self_test() -> int:
         _write(
             root / README_PATH,
             _sample_readme().replace(
-                "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.\n",
+                "- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.\n",
                 "",
                 1,
             ),
         )
         missing = collect_missing_markers(root)
         expected = [
-            "readme:`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet."
+            "readme:`Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work."
         ]
         if missing != expected:
-            raise AssertionError(f"unexpected missing markers for README guard case: {missing}")
+            raise AssertionError(
+                f"unexpected missing markers for README review-checklist case: {missing}"
+            )
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "- `Documentation/zigux/phase15-freeze-map-governance.md` is the governance companion that records the current Phase 15 review and blocker posture behind that freeze map.\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "readme:`Documentation/zigux/phase15-freeze-map-governance.md` is the governance companion that records the current Phase 15 review and blocker posture behind that freeze map."
+        ]
+        if missing != expected:
+            raise AssertionError(
+                f"unexpected missing markers for README governance companion case: {missing}"
+            )
         _write(root / README_PATH, _sample_readme())
         case_count += 1
 
