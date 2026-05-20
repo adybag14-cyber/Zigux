@@ -22,6 +22,9 @@ PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoin
 BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")
 BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")
+CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER = Path(
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"
+)
 HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
@@ -36,6 +39,7 @@ REQUIRED_FILES = [
     BASE64_CORPUS_CHECKER,
     BSEARCH_CORPUS_CHECKER,
     CHECKSUM_CORPUS_CHECKER,
+    CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
     HEXDUMP_PACKET_CHECKER,
     HEXDUMP_ROUTE_CHECKER,
 ]
@@ -104,7 +108,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 16
 
 
 class ValidationError(RuntimeError):
@@ -185,6 +189,7 @@ def validate(root: Path) -> None:
     run_checker(root, BASE64_CORPUS_CHECKER, "--repo-root")
     run_checker(root, BSEARCH_CORPUS_CHECKER, "--repo-root")
     run_checker(root, CHECKSUM_CORPUS_CHECKER, "--repo-root")
+    run_checker(root, CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")
 
@@ -240,6 +245,7 @@ def scaffold_repo(root: Path) -> None:
         BASE64_CORPUS_CHECKER,
         BSEARCH_CORPUS_CHECKER,
         CHECKSUM_CORPUS_CHECKER,
+        CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER,
         HEXDUMP_PACKET_CHECKER,
         HEXDUMP_ROUTE_CHECKER,
     ]:
@@ -315,6 +321,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         (root / CHECKSUM_CORPUS_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
