@@ -59,6 +59,9 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+        'test "nextArg keeps empty input borrowed from the caller slice" {',
+        'test "nextArg stays inside the first NUL for bare and key value tokens" {',
+        'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
         'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
         'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
         'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
@@ -82,7 +85,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -289,6 +292,36 @@ def run_self_test() -> None:
             "missing_companion_leading_whitespace_boundary_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        empty_input_marker = 'test "nextArg keeps empty input borrowed from the caller slice" {'
+        companion_path.write_text(companion_text.replace(empty_input_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_empty_input_borrow_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {empty_input_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        first_nul_marker = 'test "nextArg stays inside the first NUL for bare and key value tokens" {'
+        companion_path.write_text(companion_text.replace(first_nul_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_first_nul_boundary_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {first_nul_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        borrowed_suffix_marker = 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'
+        companion_path.write_text(companion_text.replace(borrowed_suffix_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_borrowed_suffix_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {borrowed_suffix_marker}",
         )
         write_fixture_root(tmp_root)
 
