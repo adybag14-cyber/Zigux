@@ -345,3 +345,26 @@ test "zallocValue zeroes nested extern padding bytes after earlier dirty frees" 
     try std.testing.expect(value != null);
     try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
 }
+
+test "zallocValue zeroes extern union storage after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Payload = extern union {
+        bytes: [8]u8,
+        checksum: u64,
+        ptr: ?*const u8,
+    };
+    const zero_bytes = [_]u8{0} ** @sizeOf(Payload);
+
+    var sentinel: u8 = 0xaa;
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.ptr = &sentinel;
+    @memset(std.mem.asBytes(value.?), 0xaa);
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
+}
