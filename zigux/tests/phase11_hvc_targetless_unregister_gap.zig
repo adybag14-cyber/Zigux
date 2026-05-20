@@ -25,6 +25,12 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");
     try expectContains(driver, ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,");
     try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
+    try expectContains(driver, "const targetless_sanitized = summarizeTargetlessNotifierEdge(.{");
+    try expectContains(driver, "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);");
+    try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");
+    try expectContains(driver, "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);");
+    try expectContains(driver, "test \"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\" {");
+    try expectContains(driver, "try std.testing.expect(!summary.unregister_requested);");
 
     const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");
     defer std.testing.allocator.free(boundary);
