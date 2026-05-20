@@ -18,6 +18,7 @@ REQUIRED_MARKERS = {
         'PHASE3_CATALOG_PHASE = "Phase 3"',
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
         'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
@@ -111,6 +112,16 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
+            "expected missing catalog linux-zigux header-governance note marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/phase3_abi.zig")',
+            "expected missing catalog shared abi core replay marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
             "expected missing catalog export-uapi self-test route marker was not reported",
         ),
@@ -123,11 +134,6 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
             "expected missing catalog xarray-slot slice marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("zigux/tests/phase3_abi.zig")',
-            "expected missing catalog shared abi core replay marker was not reported",
         ),
         (
             CATALOG_PATH,
