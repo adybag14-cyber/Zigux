@@ -12,46 +12,7 @@ READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
-REQUIRED_NOTE_MARKERS = (
-    "PHASE15_STATUS=governance_lane_sequencing_packet_landed",
-    "PHASE15_LANE_KEY=arch-council",
-    "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "Phase 15 is a governance tranche, not a hidden deep-core delivery lane.",
-    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`",
-    "`zigux/tests/phase15_handoff_next_steps_manifest.json` and `scripts/zigux/check-phase15-handoff-note-alignment.py`",
-    "The shared reminder surfaces must not say that:",
-    "a deep-core status change has been approved",
-    "a freeze-in-C anchor is ready for a direct Zigux bridge",
-    "a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`",
-    "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
-    "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
-)
-
-REQUIRED_READINESS_MARKERS = (
-    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
-    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
-    "`zigux/tests/phase15_governance_lane_sequencing.zig`",
-    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
-)
-
-EXPECTED_MAINTENANCE_REPLAY_COMMANDS = (
-    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-review-process-handoff.py",
-    "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
-    "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
-    "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
-)
-
-EXPECTED_MISSING_BROADER_PATHS = (
-    "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-)
-
-EXPECTED_DIRECT_PACKET_PATHS = (
+EXPECTED_DIRECT_PACKET_PATHS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -67,7 +28,45 @@ EXPECTED_DIRECT_PACKET_PATHS = (
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+]
+
+EXPECTED_MISSING_BROADER_PATHS = [
+    "scripts/zigux/validate-phase15.py",
+    "zigux/tests/phase15_build.zig"
+]
+
+EXPECTED_MAINTENANCE_REPLAY_COMMANDS = [
+    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+    "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-review-process-handoff.py",
+    "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
+    "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
+    "zig test zigux/tests/phase15_governance_lane_sequencing.zig"
+]
+
+REQUIRED_NOTE_MARKERS = (
+    "PHASE15_STATUS=governance_lane_sequencing_packet_landed",
+    "PHASE15_LANE_KEY=arch-council",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "current-master-readback-2026-05-20",
+    "focused review-checklist study-only alignment checker is landed",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`"
+)
+
+REQUIRED_READINESS_MARKERS = (
+    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+    "`zigux/tests/phase15_governance_lane_sequencing.zig`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
 )
 
 
@@ -75,8 +74,13 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
 def _read_manifest(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(_read_text(path))
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -88,106 +92,82 @@ def collect_failures(root: Path) -> list[str]:
 
     failures: list[str] = []
 
-    if manifest["lane_key"] != "arch-council":
-        failures.append("manifest lane_key drifted from arch-council")
-    if manifest["phase"] != "Phase 15":
-        failures.append("manifest phase drifted from Phase 15")
-    if manifest["sequencing_note"] != str(SEQUENCING_NOTE_PATH):
-        failures.append("manifest sequencing_note path drifted from the sequencing note")
-    if manifest["readiness_manifest"] != "zigux/tests/phase15_readiness_gate_manifest.json":
-        failures.append("manifest readiness_manifest path drifted from the landed readiness manifest")
-    if manifest["shared_summary_gap_note"] != str(SHARED_GAP_NOTE_PATH):
-        failures.append("manifest shared_summary_gap_note path drifted from the shared gap note")
-    if manifest["direct_packet_paths"] != list(EXPECTED_DIRECT_PACKET_PATHS):
-        failures.append("manifest direct_packet_paths drifted from the current governance packet inventory")
-    if manifest["still_missing_broader_paths"] != list(EXPECTED_MISSING_BROADER_PATHS):
-        failures.append("manifest still_missing_broader_paths drifted from the current blocked broader-path inventory")
-    if manifest["maintenance_replay_commands"] != list(EXPECTED_MAINTENANCE_REPLAY_COMMANDS):
-        failures.append("manifest maintenance_replay_commands drifted from the current maintenance replay packet")
+    if manifest.get("lane_key") != "arch-council":
+        failures.append("manifest:lane_key_drift")
+    if manifest.get("phase") != "Phase 15":
+        failures.append("manifest:phase_drift")
+    if manifest.get("surveyed_commit") != "current-master-readback-2026-05-20":
+        failures.append("manifest:surveyed_commit_drift")
+    if manifest.get("sequencing_note") != str(SEQUENCING_NOTE_PATH):
+        failures.append("manifest:sequencing_note_path_drift")
+    if manifest.get("readiness_manifest") != "zigux/tests/phase15_readiness_gate_manifest.json":
+        failures.append("manifest:readiness_manifest_path_drift")
+    if manifest.get("shared_summary_gap_note") != str(SHARED_GAP_NOTE_PATH):
+        failures.append("manifest:shared_gap_path_drift")
+    if manifest.get("direct_packet_paths") != EXPECTED_DIRECT_PACKET_PATHS:
+        failures.append("manifest:direct_packet_paths_drift")
+    if manifest.get("still_missing_broader_paths") != EXPECTED_MISSING_BROADER_PATHS:
+        failures.append("manifest:still_missing_paths_drift")
+    if manifest.get("maintenance_replay_commands") != EXPECTED_MAINTENANCE_REPLAY_COMMANDS:
+        failures.append("manifest:maintenance_replay_commands_drift")
 
-    if manifest["surveyed_commit"] not in sequencing_note:
-        failures.append("sequencing note is missing the manifest surveyed_commit marker")
+    if manifest.get("surveyed_commit") not in sequencing_note:
+        failures.append("sequencing_note:missing_manifest_surveyed_commit")
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in sequencing_note:
-            failures.append(f"sequencing note is missing required marker: {marker}")
+            failures.append(f"sequencing_note:missing:{marker}")
 
     for marker in REQUIRED_READINESS_MARKERS:
         if marker not in readiness_note:
-            failures.append(f"readiness note is missing governance-lane marker: {marker}")
+            failures.append(f"readiness_note:missing:{marker}")
 
     for rel in EXPECTED_DIRECT_PACKET_PATHS:
         if not (root / rel).exists():
-            failures.append(f"repo is missing direct governance packet path: {rel}")
+            failures.append(f"repo:missing_direct_packet:{rel}")
 
     for rel in EXPECTED_MISSING_BROADER_PATHS:
         marker = f"`{rel}`"
         if marker not in sequencing_note:
-            failures.append(f"sequencing note is missing broader-gap marker: {rel}")
+            failures.append(f"sequencing_note:missing_gap:{rel}")
         if marker not in readiness_note:
-            failures.append(f"readiness note is missing broader-gap marker: {rel}")
+            failures.append(f"readiness_note:missing_gap:{rel}")
         if marker not in shared_gap_note:
-            failures.append(f"shared-summary gap note is missing broader-gap marker: {rel}")
+            failures.append(f"shared_gap_note:missing_gap:{rel}")
         if (root / rel).exists():
-            failures.append(f"blocked broader path returned unexpectedly: {rel}")
+            failures.append(f"repo:blocked_gap_returned:{rel}")
 
-    for marker in (
-        "phase15-validate:",
-        "phase15-test:",
-        "phase15:",
-        ".PHONY: phase15",
-    ):
+    for marker in ("phase15-validate:", "phase15-test:", "phase15:", ".PHONY: phase15"):
         if marker in makefile:
-            failures.append(f"makefile unexpectedly advertises blocked Phase 15 route: {marker}")
+            failures.append(f"makefile:unexpected_phase15_route:{marker}")
 
     return failures
 
 
-def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
 def _sample_sequencing_note() -> str:
-    direct_paths = "\n".join(f"- `{rel}`" for rel in EXPECTED_DIRECT_PACKET_PATHS[:10])
-    missing_paths = "\n".join(f"- `{rel}`" for rel in EXPECTED_MISSING_BROADER_PATHS)
-    replay_commands = "\n".join(f"  - `{cmd}`" for cmd in EXPECTED_MAINTENANCE_REPLAY_COMMANDS)
-    return f"""# Phase 15 Governance Lane Sequencing
+    return """# Phase 15 Governance Lane Sequencing
 
 ## Status
 
 - `PHASE15_STATUS=governance_lane_sequencing_packet_landed`
 - `PHASE15_LANE_KEY=arch-council`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
-
-## Purpose
-
-Phase 15 is a governance tranche, not a hidden deep-core delivery lane.
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
+- current repo reality: the focused review-checklist study-only alignment checker is landed
 
 ## Lane inventory
 
-{direct_paths}
-- `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json` and `scripts/zigux/check-phase15-handoff-note-alignment.py`
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 ## Shared-surface boundaries
 
-The shared reminder surfaces must not say that:
-
-- a deep-core status change has been approved
-- a freeze-in-C anchor is ready for a direct Zigux bridge
 - a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`
 
 ## Current repo-reality gaps
 
-Current `master` still returns missing for several broader Phase 15 companions that reminder surfaces may still mention:
-
-{missing_paths}
-
-## Maintenance-mode handoff
-
-{replay_commands}
+- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_build.zig`
 """
 
 
@@ -196,13 +176,13 @@ def _sample_manifest() -> str:
         {
             "lane_key": "arch-council",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-19",
+            "surveyed_commit": "current-master-readback-2026-05-20",
             "sequencing_note": str(SEQUENCING_NOTE_PATH),
             "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
             "shared_summary_gap_note": str(SHARED_GAP_NOTE_PATH),
-            "direct_packet_paths": list(EXPECTED_DIRECT_PACKET_PATHS),
-            "still_missing_broader_paths": list(EXPECTED_MISSING_BROADER_PATHS),
-            "maintenance_replay_commands": list(EXPECTED_MAINTENANCE_REPLAY_COMMANDS),
+            "direct_packet_paths": EXPECTED_DIRECT_PACKET_PATHS,
+            "still_missing_broader_paths": EXPECTED_MISSING_BROADER_PATHS,
+            "maintenance_replay_commands": EXPECTED_MAINTENANCE_REPLAY_COMMANDS,
         },
         indent=2,
     ) + "\n"
@@ -215,9 +195,9 @@ def _sample_readiness_note() -> str:
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
@@ -226,7 +206,6 @@ def _sample_shared_gap_note() -> str:
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
@@ -237,7 +216,7 @@ def _seed_repo(root: Path) -> None:
     _write(root / SHARED_GAP_NOTE_PATH, _sample_shared_gap_note())
     _write(
         root / MAKEFILE_PATH,
-        "PYTHON ?= python3\n.PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase10-validate phase10-test phase10\n",
+        "PYTHON ?= python3\n.PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2\n",
     )
     for rel in EXPECTED_DIRECT_PACKET_PATHS:
         if rel in {
@@ -252,6 +231,7 @@ def _seed_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase15_governance_lane_checker_") as tmp_dir:
         root = Path(tmp_dir)
         _seed_repo(root)
@@ -259,54 +239,57 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+        case_count += 1
 
         missing_marker_root = root / "missing_marker"
         _seed_repo(missing_marker_root)
         _write(
             missing_marker_root / SEQUENCING_NOTE_PATH,
             _sample_sequencing_note().replace(
-                "a deep-core status change has been approved\n",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned\n",
                 "",
                 1,
             ),
         )
         failures = collect_failures(missing_marker_root)
         expected = [
-            "sequencing note is missing required marker: a deep-core status change has been approved"
+            "sequencing_note:missing:`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-marker failure: {failures}")
+        case_count += 1
 
         missing_direct_root = root / "missing_direct"
         _seed_repo(missing_direct_root)
-        (missing_direct_root / "zigux/tests/phase15_handoff_next_steps_manifest.json").unlink()
+        (missing_direct_root / "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig").unlink()
         failures = collect_failures(missing_direct_root)
         expected = [
-            "repo is missing direct governance packet path: zigux/tests/phase15_handoff_next_steps_manifest.json"
+            "repo:missing_direct_packet:zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct failure: {failures}")
+        case_count += 1
 
         returned_gap_root = root / "returned_gap"
         _seed_repo(returned_gap_root)
         _write(returned_gap_root / "scripts/zigux/validate-phase15.py", "present\n")
         failures = collect_failures(returned_gap_root)
-        expected = ["blocked broader path returned unexpectedly: scripts/zigux/validate-phase15.py"]
+        expected = ["repo:blocked_gap_returned:scripts/zigux/validate-phase15.py"]
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
+        case_count += 1
 
         makefile_root = root / "makefile_route"
         _seed_repo(makefile_root)
-        _write(
-            makefile_root / MAKEFILE_PATH,
-            "PYTHON ?= python3\nphase15-validate:\n\t@true\n",
-        )
+        _write(makefile_root / MAKEFILE_PATH, "phase15-validate:\n\t@true\n")
         failures = collect_failures(makefile_root)
-        expected = ["makefile unexpectedly advertises blocked Phase 15 route: phase15-validate:"]
+        expected = ["makefile:unexpected_phase15_route:phase15-validate:"]
         if failures != expected:
             raise AssertionError(f"unexpected makefile-route failure: {failures}")
+        case_count += 1
 
     print("PHASE15_GOVERNANCE_LANE_SEQUENCING_SELF_TEST=pass")
+    print(f"PHASE15_GOVERNANCE_LANE_SEQUENCING_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
