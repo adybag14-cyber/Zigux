@@ -10,6 +10,17 @@ import sys
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
+PUSH_TRIGGER = "push:"
+PUSH_MASTER_BRANCH = "branches: [ master ]"
+PULL_REQUEST_TRIGGER = "pull_request:"
+WORKFLOW_DISPATCH_TRIGGER = "workflow_dispatch:"
+CONCURRENCY_BLOCK = "concurrency:"
+CONCURRENCY_GROUP = (
+    "group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) "
+    "|| format('{0}-{1}', github.workflow, github.ref) }}"
+)
+CONCURRENCY_CANCEL = "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}"
+JOBS_BLOCK = "jobs:"
 CHECKOUT_STEP = "- name: Checkout"
 SETUP_STEP = "- name: Setup pinned Zig toolchain"
 TOOLCHAIN_SELF_TEST_STEP = "- name: Self-test current Zig toolchain checker"
@@ -32,8 +43,6 @@ PHASE7_MAKE_WRAPPER_SELF_TEST_STEP = "- name: Self-test current Phase 7 make-wra
 PHASE7_MAKE_WRAPPER_CHECK_STEP = "- name: Check current Phase 7 make-wrapper selftest alignment packet"
 PHASE9_FREEZE_MAP_SELF_TEST_STEP = "- name: Self-test current Phase 9 freeze-map study-boundaries checker"
 PHASE9_FREEZE_MAP_CHECK_STEP = "- name: Check current Phase 9 freeze-map study-boundaries packet"
-PHASE11_BUILD_INVENTORY_SELF_TEST_STEP = "- name: Self-test current Phase 11 build inventory checker"
-PHASE11_BUILD_INVENTORY_CHECK_STEP = "- name: Check current Phase 11 build inventory packet"
 THIRD_PARTY_PATH = "- 'third_party/**'"
 SCRIPTS_PATH = "- 'scripts/zigux/**'"
 TOOLS_PATH = "- 'tools/lib/*.zig'"
@@ -58,6 +67,7 @@ LOCAL_ARCHIVE_MARKERS = (
     'if [ ! -f "$repo_archive_path" ]; then',
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
+    'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
     "if try_local_archive; then",
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if try_download "$ZIGUX_ZIG_URL"; then',
@@ -75,7 +85,6 @@ RETAINED_STEP_PAIRS = (
     (PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP, PHASE2_ARTIFACT_TOOLS_CHECK_STEP),
     (PHASE7_MAKE_WRAPPER_SELF_TEST_STEP, PHASE7_MAKE_WRAPPER_CHECK_STEP),
     (PHASE9_FREEZE_MAP_SELF_TEST_STEP, PHASE9_FREEZE_MAP_CHECK_STEP),
-    (PHASE11_BUILD_INVENTORY_SELF_TEST_STEP, PHASE11_BUILD_INVENTORY_CHECK_STEP),
 )
 
 
@@ -116,12 +125,31 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
         )
 
 
+def require_sequence(text: str, markers: tuple[str, ...], label: str) -> None:
+    search_start = 0
+    for marker in markers:
+        index = text.find(marker, search_start)
+        if index == -1:
+            raise SystemExit(
+                f"lane05 local-first archive checker missing ordered markers for {label}"
+            )
+        search_start = index + len(marker)
+
+
 def check_workflow(text: str) -> None:
     for marker in POLICY_MARKERS:
         require_marker(text, marker, "workflow policy marker")
     for marker in LOCAL_ARCHIVE_MARKERS:
         require_marker(text, marker, "workflow local-first marker")
 
+    require_marker(text, PUSH_TRIGGER, "workflow push trigger")
+    require_marker(text, PUSH_MASTER_BRANCH, "workflow master push branch line")
+    require_marker(text, PULL_REQUEST_TRIGGER, "workflow pull_request trigger")
+    require_marker(text, WORKFLOW_DISPATCH_TRIGGER, "workflow dispatch trigger")
+    require_marker(text, CONCURRENCY_BLOCK, "workflow concurrency block")
+    require_marker(text, CONCURRENCY_GROUP, "workflow exact-head concurrency group")
+    require_marker(text, CONCURRENCY_CANCEL, "workflow master concurrency cancel policy")
+    require_marker(text, JOBS_BLOCK, "workflow jobs block")
     require_marker(text, CHECKOUT_STEP, "workflow checkout step name")
     require_marker(text, SETUP_STEP, "workflow setup step name")
     require_marker(text, TOOLCHAIN_SELF_TEST_STEP, "workflow toolchain self-test step name")
@@ -144,6 +172,13 @@ def check_workflow(text: str) -> None:
         require_marker(text, self_test_step, "retained bootstrap step")
         require_marker(text, check_step, "retained bootstrap step")
 
+    require_exact_count(text, PUSH_TRIGGER, 1, "workflow trigger")
+    require_exact_line_count(text, PUSH_MASTER_BRANCH, 1, "workflow master push branch line")
+    require_exact_count(text, PULL_REQUEST_TRIGGER, 1, "workflow trigger")
+    require_exact_count(text, WORKFLOW_DISPATCH_TRIGGER, 1, "workflow trigger")
+    require_exact_count(text, CONCURRENCY_BLOCK, 1, "workflow block")
+    require_exact_line_count(text, CONCURRENCY_GROUP, 1, "workflow concurrency line")
+    require_exact_line_count(text, CONCURRENCY_CANCEL, 1, "workflow concurrency line")
     require_exact_count(text, SETUP_STEP, 1, "workflow step name")
     require_exact_count(text, TOOLCHAIN_SELF_TEST_STEP, 1, "workflow step name")
     require_exact_count(text, POLICY_STEP, 1, "workflow step name")
@@ -163,11 +198,23 @@ def check_workflow(text: str) -> None:
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
     require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
+    require_exact_count(
+        text,
+        'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+        2,
+        "workflow extracted zig revalidation command",
+    )
+    require_exact_line_count(text, '"$zig_path" version', 1, "workflow final zig version line")
 
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_exact_count(text, self_test_step, 1, "retained bootstrap step")
         require_exact_count(text, check_step, 1, "retained bootstrap step")
 
+    require_order(text, PUSH_TRIGGER, PUSH_MASTER_BRANCH, "workflow trigger order")
+    require_order(text, PUSH_MASTER_BRANCH, PULL_REQUEST_TRIGGER, "workflow trigger order")
+    require_order(text, PULL_REQUEST_TRIGGER, WORKFLOW_DISPATCH_TRIGGER, "workflow trigger order")
+    require_order(text, WORKFLOW_DISPATCH_TRIGGER, CONCURRENCY_BLOCK, "workflow block order")
+    require_order(text, CONCURRENCY_BLOCK, JOBS_BLOCK, "workflow block order")
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
     require_order(text, TOOLCHAIN_SELF_TEST_STEP, POLICY_STEP, "workflow step order")
@@ -183,6 +230,12 @@ def check_workflow(text: str) -> None:
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_order(text, self_test_step, check_step, "retained bootstrap step order")
 
+    require_order(
+        text,
+        CONCURRENCY_GROUP,
+        CONCURRENCY_CANCEL,
+        "workflow concurrency order",
+    )
     require_order(
         text,
         'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -226,11 +279,36 @@ def check_workflow(text: str) -> None:
         "try_local_archive() {",
         "workflow local-first helper order",
     )
+    require_sequence(
+        text,
+        (
+            'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+            'tar -xJf "$repo_archive_path" -C .zig-toolchain',
+            'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+        ),
+        "workflow local archive validation sequence",
+    )
     require_order(
         text,
         "try_local_archive() {",
         "try_download() {",
         "workflow helper definition order",
+    )
+    require_sequence(
+        text,
+        (
+            'if curl -L --fail "$url" -o "$archive_path"; then',
+            'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+            'tar -xJf "$archive_path" -C .zig-toolchain',
+            'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+        ),
+        "workflow downloaded archive validation sequence",
+    )
+    require_order(
+        text,
+        'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+        '"$zig_path" version',
+        "workflow final version-after-revalidation order",
     )
     require_order(
         text,
@@ -260,6 +338,14 @@ def check_workflow(text: str) -> None:
 
 def run_self_test() -> int:
     good_workflow = """name: zigux-bootstrap
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   bootstrap:
     steps:
@@ -289,10 +375,22 @@ jobs:
             fi
             if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
               tar -xJf "$repo_archive_path" -C .zig-toolchain
+              zig_path="$extract_root/zig"
+              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
+                return 0
+              fi
             fi
           }
           try_download() {
-            return 0
+            if curl -L --fail "$url" -o "$archive_path"; then
+              if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+                tar -xJf "$archive_path" -C .zig-toolchain
+                zig_path="$extract_root/zig"
+                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
+                  return 0
+                fi
+              fi
+            fi
           }
           download_success=0
           if try_local_archive; then
@@ -303,6 +401,7 @@ jobs:
           if try_download "$ZIGUX_ZIG_URL"; then
             download_success=1
           fi
+          "$zig_path" version
           echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
@@ -340,13 +439,105 @@ jobs:
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
       - name: Check current Phase 7 make-wrapper selftest alignment packet
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
 """
     check_workflow(good_workflow)
     case_count = 1
+
+    missing_push_trigger = good_workflow.replace(
+        "  push:\n    branches: [ master ]\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_push_trigger)
+    except SystemExit as exc:
+        assert "workflow push trigger" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing push trigger failure")
+
+    missing_push_branch = good_workflow.replace(
+        "    branches: [ master ]\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_push_branch)
+    except SystemExit as exc:
+        assert "workflow master push branch line" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing master push branch failure")
+
+    missing_concurrency_group = good_workflow.replace(
+        f"  {CONCURRENCY_GROUP}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_concurrency_group)
+    except SystemExit as exc:
+        assert "workflow exact-head concurrency group" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing concurrency group failure")
+
+    missing_concurrency_cancel = good_workflow.replace(
+        f"  {CONCURRENCY_CANCEL}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_concurrency_cancel)
+    except SystemExit as exc:
+        assert "workflow master concurrency cancel policy" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing concurrency cancel failure")
+
+    missing_local_zig_revalidation = good_workflow.replace(
+        '                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_local_zig_revalidation)
+    except SystemExit as exc:
+        assert "workflow extracted zig revalidation command" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing local revalidation failure")
+
+    missing_downloaded_zig_revalidation = good_workflow.replace(
+        '                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then\n',
+        "",
+        1,
+    )
+    missing_downloaded_zig_revalidation = missing_downloaded_zig_revalidation.replace(
+        '                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_downloaded_zig_revalidation)
+    except SystemExit as exc:
+        assert "workflow extracted zig revalidation command" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing downloaded revalidation failure")
+
+    missing_final_version = good_workflow.replace(
+        '          "$zig_path" version\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_final_version)
+    except SystemExit as exc:
+        assert "workflow final zig version line" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing final version failure")
 
     missing_policy_load = good_workflow.replace(
         '          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))\n',
@@ -468,20 +659,6 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing retained step failure")
-
-    missing_build_inventory_step = good_workflow.replace(
-        f"      {PHASE11_BUILD_INVENTORY_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_build_inventory_step)
-    except SystemExit as exc:
-        assert PHASE11_BUILD_INVENTORY_SELF_TEST_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing Phase 11 build inventory self-test failure")
 
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
