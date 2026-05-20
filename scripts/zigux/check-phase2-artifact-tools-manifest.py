@@ -39,6 +39,16 @@ def read_manifest(path: Path) -> dict:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def find_duplicate_strings(entries: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for entry in entries:
+        if entry in seen and entry not in duplicates:
+            duplicates.append(entry)
+        seen.add(entry)
+    return duplicates
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
@@ -52,15 +62,31 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("MISSING_TOOLING", "tooling"))
     else:
         for key, expected in REQUIRED_TOOLING.items():
-            if tooling.get(key) != expected:
+            entries = tooling.get(key)
+            if not isinstance(entries, list):
+                issues.append(("INVALID_TOOLING_LIST", key))
+                continue
+            non_string_entries = [repr(entry) for entry in entries if not isinstance(entry, str)]
+            for entry in non_string_entries:
+                issues.append(("INVALID_TOOLING_ENTRY", f"{key}:{entry}"))
+            string_entries = [entry for entry in entries if isinstance(entry, str)]
+            for entry in find_duplicate_strings(string_entries):
+                issues.append(("DUPLICATE_TOOLING_ENTRY", f"{key}:{entry}"))
+            if non_string_entries or string_entries != expected:
                 issues.append(("TOOLING_MISMATCH", key))
 
     notes = manifest.get("notes")
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
     else:
+        non_string_notes = [repr(note) for note in notes if not isinstance(note, str)]
+        for note in non_string_notes:
+            issues.append(("INVALID_NOTE_ENTRY", note))
+        string_notes = [note for note in notes if isinstance(note, str)]
+        for marker in find_duplicate_strings(string_notes):
+            issues.append(("DUPLICATE_NOTE_ENTRY", marker))
         for marker in REQUIRED_NOTE_MARKERS:
-            if marker not in notes:
+            if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
 
     return issues
@@ -87,13 +113,26 @@ def write_manifest(path: Path, manifest: dict) -> None:
 def build_self_test_manifest() -> dict:
     return {
         **REQUIRED_TOP_LEVEL,
-        "tooling": dict(REQUIRED_TOOLING),
+        "tooling": {key: list(entries) for key, entries in REQUIRED_TOOLING.items()},
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
 
 
 def run_self_test() -> int:
-    expected_case_count = 1 + len(REQUIRED_TOP_LEVEL) + len(REQUIRED_TOOLING) + 1 + len(REQUIRED_NOTE_MARKERS) + 1
+    expected_case_count = (
+        1
+        + len(REQUIRED_TOP_LEVEL)
+        + 1
+        + len(REQUIRED_TOOLING)
+        + sum(len(entries) for entries in REQUIRED_TOOLING.values())
+        + len(REQUIRED_TOOLING)
+        + len(REQUIRED_TOOLING)
+        + 1
+        + len(REQUIRED_NOTE_MARKERS)
+        + 1
+        + 1
+        + 1
+    )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -110,11 +149,40 @@ def run_self_test() -> int:
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
-        for key in REQUIRED_TOOLING:
+        manifest = build_self_test_manifest()
+        manifest["tooling"] = "broken"
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_TOOLING", "tooling") in collect_issues(root)
+        checks_run += 1
+
+        for key, expected in REQUIRED_TOOLING.items():
             manifest = build_self_test_manifest()
-            manifest["tooling"][key] = []
+            manifest["tooling"][key] = "broken"
             write_manifest(manifest_path, manifest)
-            assert ("TOOLING_MISMATCH", key) in collect_issues(root)
+            assert ("INVALID_TOOLING_LIST", key) in collect_issues(root)
+            checks_run += 1
+
+            for entry in expected:
+                manifest = build_self_test_manifest()
+                manifest["tooling"][key].remove(entry)
+                write_manifest(manifest_path, manifest)
+                assert ("TOOLING_MISMATCH", key) in collect_issues(root)
+                checks_run += 1
+
+            manifest = build_self_test_manifest()
+            manifest["tooling"][key].append(expected[0])
+            write_manifest(manifest_path, manifest)
+            issues = collect_issues(root)
+            assert ("DUPLICATE_TOOLING_ENTRY", f"{key}:{expected[0]}") in issues
+            assert ("TOOLING_MISMATCH", key) in issues
+            checks_run += 1
+
+            manifest = build_self_test_manifest()
+            manifest["tooling"][key].append(123)
+            write_manifest(manifest_path, manifest)
+            issues = collect_issues(root)
+            assert ("INVALID_TOOLING_ENTRY", f"{key}:123") in issues
+            assert ("TOOLING_MISMATCH", key) in issues
             checks_run += 1
 
         manifest = build_self_test_manifest()
@@ -129,6 +197,18 @@ def run_self_test() -> int:
             write_manifest(manifest_path, manifest)
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
+        write_manifest(manifest_path, manifest)
+        assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append(123)
+        write_manifest(manifest_path, manifest)
+        assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
+        checks_run += 1
 
         manifest_path.unlink()
         try:
