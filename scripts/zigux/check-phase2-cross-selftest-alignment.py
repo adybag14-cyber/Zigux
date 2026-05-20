@@ -56,9 +56,20 @@ CHECKER_OUTPUT_MARKERS = (
     'print("PHASE2_DIRECT_CROSS_ROUTE=fail")',
     'print("PHASE2_DIRECT_CROSS_ROUTE=pass")',
     'print(f"PHASE2_DIRECT_CROSS_ROUTE_TARGET_COUNT={len(cross_targets)}")',
-    'print(f"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT={len(load_archive_target_scope(args.root.resolve()))}")',
     'print("PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST=pass")',
     'print(f"PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST_CASE_COUNT={checks_run}")',
+)
+
+CHECKER_OUTPUT_SUBSTRING_MARKERS = (
+    '"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT="',
+    'f"{len(load_archive_target_scope(args.root.resolve()))}"',
+)
+
+CHECKER_ARCHIVE_SCOPE_OUTPUT_BLOCK_LINES = (
+    "print(",
+    '    "PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT="',
+    '    f"{len(load_archive_target_scope(args.root.resolve()))}"',
+    ")",
 )
 
 CHECKER_ISSUE_CODE_LINES = (
@@ -199,6 +210,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             )
         )
         issues.extend(
+            collect_missing_markers(
+                checker_text,
+                CHECKER_OUTPUT_SUBSTRING_MARKERS,
+                "MISSING_CHECKER_OUTPUT_SUBSTRINGS",
+            )
+        )
+        issues.extend(
             collect_exact_line_issues(
                 checker_text,
                 CHECKER_ISSUE_CODE_LINES,
@@ -247,7 +265,16 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
     write_text(
         resolve_path(root, PHASE2_CROSS_CHECKER),
-        "\n".join((*CHECKER_OUTPUT_MARKERS, *CHECKER_ISSUE_CODE_LINES)) + "\n",
+        "\n".join(
+            (
+                *CHECKER_OUTPUT_MARKERS[:3],
+                *CHECKER_ARCHIVE_SCOPE_OUTPUT_BLOCK_LINES,
+                *CHECKER_OUTPUT_MARKERS[3:],
+                *CHECKER_OUTPUT_SUBSTRING_MARKERS,
+                *CHECKER_ISSUE_CODE_LINES,
+            )
+        )
+        + "\n",
     )
     write_text(resolve_path(root, TARGETS_MANIFEST), "\n".join(TARGETS_MANIFEST_MARKERS) + "\n")
 
@@ -288,6 +315,7 @@ def run_self_test() -> int:
         presence_cases = (
             (SCRIPTS_README, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
             (TESTS_README, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
+            (PHASE2_CROSS_CHECKER, CHECKER_OUTPUT_SUBSTRING_MARKERS, "MISSING_CHECKER_OUTPUT_SUBSTRINGS"),
             (TARGETS_MANIFEST, TARGETS_MANIFEST_MARKERS, "MISSING_TARGETS_MANIFEST_MARKERS"),
         )
 
@@ -409,7 +437,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(CHECKER_ISSUE_CODE_LINES) + len(TARGETS_MANIFEST_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(CHECKER_OUTPUT_SUBSTRING_MARKERS) + len(CHECKER_ISSUE_CODE_LINES) + len(TARGETS_MANIFEST_MARKERS)}"
     )
     print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
