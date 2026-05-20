@@ -114,3 +114,34 @@ test "runtime bitmap sample rejects exited top-bit source copies without disturb
     try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(1));
     try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(0, 1));
 }
+
+test "runtime bitmap sample rejects cold top-bit source copies without disturbing the target sample leg" {
+    const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;
+
+    var cold_source = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.cold, cold_source.stage());
+
+    var target = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try target.initWithSetBits(&.{0});
+
+    const target_before = target.summary();
+    try std.testing.expectEqual(@as(u32, 0), target_before.first_set);
+    try std.testing.expectEqual(@as(u32, 1), target_before.weight);
+
+    try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&cold_source));
+
+    const target_after = target.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, target.stage());
+    try std.testing.expectEqual(target_before.first_set, target_after.first_set);
+    try std.testing.expectEqual(target_before.first_zero, target_after.first_zero);
+    try std.testing.expectEqual(target_before.weight, target_after.weight);
+    try std.testing.expectEqual(target_before.nbits, target_after.nbits);
+    try std.testing.expectEqual(target_before.init_runs, target_after.init_runs);
+    try std.testing.expectEqual(target_before.selftest_runs, target_after.selftest_runs);
+    try std.testing.expectEqual(target_before.exit_runs, target_after.exit_runs);
+    try std.testing.expect(target.isSet(0));
+    try std.testing.expect(!target.isSet(top_bit));
+    try std.testing.expectEqual(@as(?u32, 0), target.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(1));
+    try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(0, 1));
+}
