@@ -27,8 +27,10 @@ VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
 ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")
+READY_BUFFER_ATTEMPT_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig")
 READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig")
 READY_BUFFER_WINDOW_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig")
+TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 
@@ -58,8 +60,10 @@ REQUIRED_FILES = (
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+    READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
     READY_BUFFER_FD_VERIFY_SEGMENT,
     READY_BUFFER_WINDOW_VERIFY_SEGMENT,
+    TYPE_NAMES_VERIFY_SEGMENT,
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
@@ -105,8 +109,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/type_names_verify.zig`",
         "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
         "standalone timer or clockevent helper behavior",
@@ -206,6 +212,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "resolveNextOnlineCpuRouteCpuIndex",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     ),
+    READY_BUFFER_ATTEMPT_VERIFY_SEGMENT: (
+        "phase8 ready-buffer attempt helper entrypoints stay explicit",
+        "resolveReadyBufferAttemptLookupReturn",
+        "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
+    ),
     READY_BUFFER_FD_VERIFY_SEGMENT: (
         "phase8 ready-buffer fd verifier keeps lookup-return wrappers explicit",
         "resolveReadyBufferFdAtAttempt",
@@ -215,6 +226,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8 ready-buffer window verifier keeps mapped-size and lookup-return wrappers explicit",
         "summarizeBufferWindowMappedSize",
         "summarizeBufferWindowLookupReturn",
+    ),
+    TYPE_NAMES_VERIFY_SEGMENT: (
+        "phase8 libbpf type-name helper entrypoints stay explicit",
+        "libbpfBpfMapTypeStr",
+        "formatLibbpfBpfProgType",
     ),
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"): (
         "file_path_handle_bridge",
@@ -352,8 +368,10 @@ def _passing_fixture(root: Path) -> None:
     _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
     for helper in (
         ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+        READY_BUFFER_ATTEMPT_VERIFY_SEGMENT,
         READY_BUFFER_FD_VERIFY_SEGMENT,
         READY_BUFFER_WINDOW_VERIFY_SEGMENT,
+        TYPE_NAMES_VERIFY_SEGMENT,
     ):
         _write(root / helper, "\n".join(FILE_MARKERS[helper]) + "\n")
 
@@ -500,6 +518,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing online-cpu routing verify file to be reported")
         _write(online_cpu_verify, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_VERIFY_SEGMENT]) + "\n")
 
+        ready_buffer_attempt_verify = root / READY_BUFFER_ATTEMPT_VERIFY_SEGMENT
+        ready_buffer_attempt_verify.unlink()
+        missing_ready_buffer_attempt_verify = validate_root(root)
+        if READY_BUFFER_ATTEMPT_VERIFY_SEGMENT.as_posix() not in missing_ready_buffer_attempt_verify.missing_files:
+            raise AssertionError("expected missing ready-buffer attempt verify file to be reported")
+        _write(ready_buffer_attempt_verify, "\n".join(FILE_MARKERS[READY_BUFFER_ATTEMPT_VERIFY_SEGMENT]) + "\n")
+
         ready_buffer_fd_verify = root / READY_BUFFER_FD_VERIFY_SEGMENT
         ready_buffer_fd_verify.unlink()
         missing_ready_buffer_fd_verify = validate_root(root)
@@ -513,6 +538,13 @@ def run_self_test() -> int:
         if READY_BUFFER_WINDOW_VERIFY_SEGMENT.as_posix() not in missing_ready_buffer_window_verify.missing_files:
             raise AssertionError("expected missing ready-buffer window verify file to be reported")
         _write(ready_buffer_window_verify, "\n".join(FILE_MARKERS[READY_BUFFER_WINDOW_VERIFY_SEGMENT]) + "\n")
+
+        type_names_verify = root / TYPE_NAMES_VERIFY_SEGMENT
+        type_names_verify.unlink()
+        missing_type_names_verify = validate_root(root)
+        if TYPE_NAMES_VERIFY_SEGMENT.as_posix() not in missing_type_names_verify.missing_files:
+            raise AssertionError("expected missing type-name verify file to be reported")
+        _write(type_names_verify, "\n".join(FILE_MARKERS[TYPE_NAMES_VERIFY_SEGMENT]) + "\n")
 
         missing_helper = root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
         missing_helper.unlink()
@@ -546,7 +578,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
