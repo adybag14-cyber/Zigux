@@ -57,7 +57,7 @@ TEST_ROOT_MODULES = {
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "current authenticated contents readback keeps the bounded HVC current-head",
-    "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
+    "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note,",
     "current authenticated contents readback still does not rematerialize",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
     "`scripts/zigux/check-phase11-build-inventory.py`",
