@@ -140,6 +140,11 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+        ("--self-test",),
+        ("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),
+    ),
+    (
         Path("scripts/zigux/check-phase3-selftest-surface.py"),
         ("--self-test",),
         (
@@ -234,7 +239,9 @@ def _populate_repo(root: Path) -> None:
     for rel_path, _args, output_markers in SELFTEST_COMMANDS:
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
-        _write_synthetic_script(path, output_markers[0], output_markers[1])
+        pass_marker = output_markers[0] if output_markers else None
+        count_marker = output_markers[1] if len(output_markers) > 1 else None
+        _write_synthetic_script(path, pass_marker, count_marker)
 
 
 def _expect_missing(root: Path, index: int, message: str) -> int:
@@ -281,7 +288,8 @@ def run_self_test() -> int:
             (13, "expected abi-header-family survey script omission was not reported"),
             (14, "expected policy-unsafe survey script omission was not reported"),
             (15, "expected low-level-wrapper script omission was not reported"),
-            (16, "expected missing trailing script was not reported"),
+            (16, "expected linux-zigux header governance validator omission was not reported"),
+            (17, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
@@ -420,10 +428,22 @@ def run_self_test() -> int:
             print("expected missing policy-unsafe count marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_governance_pass_path = root / SELFTEST_COMMANDS[16][0]
+        _write_synthetic_script(
+            missing_governance_pass_path,
+            None,
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing governance pass marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 12}"
+        f"{len(missing_cases) + 13}"
     )
     return 0
 
