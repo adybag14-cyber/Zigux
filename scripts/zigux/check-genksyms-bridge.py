@@ -13,15 +13,71 @@ GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 
-EXPECTED_FIXTURES = (
-    "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+CASE_FIXTURES = (
+    {
+        "name": "minimal",
+        "args": [],
+        "expected_file": "minimal_expected.json",
+    },
+    {
+        "name": "debug_reference_types",
+        "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
+        "expected_file": "debug_reference_types_expected.json",
+    },
+    {
+        "name": "long_options",
+        "args": [
+            "--debug",
+            "--dump",
+            "--reference=foo.symref",
+            "--dump-types",
+            "types.symtypes",
+            "--preserve",
+        ],
+        "expected_file": "long_options_expected.json",
+    },
+    {
+        "name": "abbreviated_long_options",
+        "args": [
+            "--deb",
+            "--warn",
+            "--qui",
+            "--ref=foo.symref",
+            "--dump-t",
+            "types.symtypes",
+            "--pres",
+        ],
+        "expected_file": "abbreviated_long_options_expected.json",
+    },
+    {
+        "name": "quiet_overrides_warning",
+        "args": ["--warnings", "--quiet", "--reference", "bar.symref"],
+        "expected_file": "quiet_overrides_warning_expected.json",
+    },
+    {
+        "name": "explicit_option_terminator",
+        "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
+        "expected_file": "explicit_option_terminator_expected.json",
+    },
+    {
+        "name": "positional_passthrough",
+        "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "expected_file": "positional_passthrough_expected.json",
+    },
+    {
+        "name": "lone_dash_passthrough",
+        "args": ["-", "-d"],
+        "expected_file": "lone_dash_passthrough_expected.json",
+    },
+)
+
+EXPECTED_FIXTURES = tuple(
+    f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
+    for case in CASE_FIXTURES
+)
+EXPECTED_CASE_KEYS = tuple(
+    (case["name"], case["expected_file"])
+    for case in CASE_FIXTURES
 )
 
 HELP_USAGE = (
@@ -52,6 +108,16 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/genksyms.zig",
 )
 
+LONG_OPTION_SPECS = (
+    ("debug", "debug", False),
+    ("dump", "dump", False),
+    ("dump-types", "dump-types", True),
+    ("preserve", "preserve", False),
+    ("quiet", "quiet", False),
+    ("reference", "reference", True),
+    ("warnings", "warnings", False),
+)
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -65,6 +131,22 @@ def write_text(root: Path, rel: str, content: str) -> None:
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def resolve_long_option(name: str) -> tuple[str, bool]:
+    exact_match: tuple[str, bool] | None = None
+    prefix_matches: list[tuple[str, bool]] = []
+    for spec_name, canonical_name, takes_argument in LONG_OPTION_SPECS:
+        if name == spec_name:
+            exact_match = (canonical_name, takes_argument)
+            break
+        if spec_name.startswith(name):
+            prefix_matches.append((canonical_name, takes_argument))
+    if exact_match is not None:
+        return exact_match
+    if len(prefix_matches) == 1:
+        return prefix_matches[0]
+    raise ValueError(f"unsupported fixture arg: --{name}")
 
 
 def parse_args(argv: list[str]) -> dict[str, object]:
@@ -111,35 +193,33 @@ def parse_args(argv: list[str]) -> dict[str, object]:
             idx += 1
             dump_types_file = argv[idx]
             rendered.extend((arg, argv[idx]))
-        elif arg == "--debug":
-            debug_level += 1
-            rendered.append(arg)
-        elif arg == "--dump":
-            dump_defs = True
-            rendered.append(arg)
-        elif arg == "--preserve":
-            preserve = True
-            rendered.append(arg)
-        elif arg == "--warnings":
-            warnings = True
-            rendered.append(arg)
-        elif arg == "--quiet":
-            warnings = False
-            rendered.append(arg)
-        elif arg.startswith("--reference="):
-            reference_files.append(arg.split("=", 1)[1])
-            rendered.append(arg)
-        elif arg == "--reference":
-            idx += 1
-            reference_files.append(argv[idx])
-            rendered.extend((arg, argv[idx]))
-        elif arg.startswith("--dump-types="):
-            dump_types_file = arg.split("=", 1)[1]
-            rendered.append(arg)
-        elif arg == "--dump-types":
-            idx += 1
-            dump_types_file = argv[idx]
-            rendered.extend((arg, argv[idx]))
+        elif arg.startswith("--"):
+            option, separator, inline_value = arg[2:].partition("=")
+            canonical_name, takes_argument = resolve_long_option(option)
+            if takes_argument:
+                if separator:
+                    value = inline_value
+                    rendered.append(arg)
+                else:
+                    idx += 1
+                    value = argv[idx]
+                    rendered.extend((arg, argv[idx]))
+                if canonical_name == "reference":
+                    reference_files.append(value)
+                else:
+                    dump_types_file = value
+            else:
+                rendered.append(arg)
+                if canonical_name == "debug":
+                    debug_level += 1
+                elif canonical_name == "dump":
+                    dump_defs = True
+                elif canonical_name == "preserve":
+                    preserve = True
+                elif canonical_name == "warnings":
+                    warnings = True
+                elif canonical_name == "quiet":
+                    warnings = False
         else:
             raise ValueError(f"unsupported fixture arg: {arg}")
         idx += 1
@@ -198,6 +278,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("HELP_FIXTURE_MISMATCH", HELP_FIXTURE))
 
     cases = json.loads(read_text(root, CASES_FIXTURE))
+    actual_case_keys = tuple((case["name"], case["expected_file"]) for case in cases)
+    if actual_case_keys != EXPECTED_CASE_KEYS:
+        issues.append(("CASE_ROSTER_MISMATCH", CASES_FIXTURE))
+
     for case in cases:
         expected_rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
         expected_payload = json.loads(read_text(root, expected_rel))
@@ -246,63 +330,10 @@ def build_self_test_root(root: Path) -> None:
         'const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
-    write_text(
-        root,
-        CASES_FIXTURE,
-        json.dumps(
-            [
-                {"name": "minimal", "args": [], "expected_file": "minimal_expected.json"},
-                {
-                    "name": "debug_reference_types",
-                    "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
-                    "expected_file": "debug_reference_types_expected.json",
-                },
-                {
-                    "name": "long_options",
-                    "args": ["--debug", "--dump", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
-                    "expected_file": "long_options_expected.json",
-                },
-                {
-                    "name": "abbreviated_long_options",
-                    "args": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
-                    "expected_file": "abbreviated_long_options_expected.json",
-                },
-                {
-                    "name": "quiet_overrides_warning",
-                    "args": ["--warnings", "--quiet", "--reference", "bar.symref"],
-                    "expected_file": "quiet_overrides_warning_expected.json",
-                },
-                {
-                    "name": "explicit_option_terminator",
-                    "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
-                    "expected_file": "explicit_option_terminator_expected.json",
-                },
-                {
-                    "name": "positional_passthrough",
-                    "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
-                    "expected_file": "positional_passthrough_expected.json",
-                },
-                {
-                    "name": "lone_dash_passthrough",
-                    "args": ["-", "-d"],
-                    "expected_file": "lone_dash_passthrough_expected.json",
-                },
-            ],
-            indent=2,
-        )
-        + "\n",
-    )
-    for rel, argv in {
-        "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json": [],
-        "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
-        "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json": ["--debug", "--dump", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
-        "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
-        "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json": ["--warnings", "--quiet", "--reference", "bar.symref"],
-        "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json": ["-d", "leftover.c", "--", "--leftover", "positional"],
-        "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
-        "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json": ["-", "-d"],
-    }.items():
-        write_text(root, rel, json.dumps(parse_args(argv), indent=2) + "\n")
+    write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
+    for case in CASE_FIXTURES:
+        rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
+        write_text(root, rel, json.dumps(parse_args(case["args"]), indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -320,6 +351,15 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, MAKEFILE, "phase2-genksyms:\n")
         assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            CASES_FIXTURE,
+            json.dumps(list(CASE_FIXTURES[:5]), indent=2) + "\n",
+        )
+        assert ("CASE_ROSTER_MISMATCH", CASES_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -377,6 +417,7 @@ def run_self_test() -> int:
 
     print("GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={checks}")
+    print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
     return 0
 
 
@@ -396,6 +437,7 @@ def main() -> int:
     case_count = len(json.loads(read_text(args.root.resolve(), CASES_FIXTURE)))
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
+    print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
     print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + 5}")
     return 0
 
