@@ -247,4 +247,5 @@ phase14-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
 
 phase7-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py
