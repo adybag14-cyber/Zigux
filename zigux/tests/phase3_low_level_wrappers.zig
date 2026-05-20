@@ -124,6 +124,31 @@ test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo ex
     try std.testing.expectEqual(@as(?atomic.Ordering, .monotonic), atomic.weakestAllowedFailureOrder(.seq_cst));
 }
 
+test "phase3 low-level wrappers keep additive and bitwise atomic updates explicit before MMIO publish" {
+    var state: u8 = 0x30;
+
+    try std.testing.expectEqual(@as(u8, 0x30), try atomic.fetchAdd(u8, &state, 0x05, .release));
+    try std.testing.expectEqual(@as(u8, 0x35), state);
+
+    try std.testing.expectEqual(@as(u8, 0x35), try atomic.fetchOr(u8, &state, 0xC0, .acq_rel));
+    try std.testing.expectEqual(@as(u8, 0xF5), state);
+
+    try std.testing.expectEqual(@as(u8, 0xF5), try atomic.fetchAnd(u8, &state, 0xD5, .acquire));
+    try std.testing.expectEqual(@as(u8, 0xD5), state);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.fetchAdd(u8, &state, 0x01, .unordered));
+    try std.testing.expectEqual(@as(u8, 0xD5), state);
+
+    var register: u8 = 0;
+    const register_ptr: *volatile u8 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u8 = @ptrCast(&register);
+
+    barrier.release();
+    mmio.write(u8, register_ptr, state);
+    barrier.acquire();
+    try std.testing.expectEqual(@as(u8, 0xD5), mmio.read(u8, const_register_ptr));
+}
+
 test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {
     var register: u16 = 0x55AA;
     const register_ptr: *volatile u16 = @ptrCast(&register);
