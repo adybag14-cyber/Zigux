@@ -253,6 +253,28 @@ test "starter packet keeps bitmap and cpumask all-clear bounded windows aligned"
     try testing.expect(!bitmap_view.testBit(bitmap, nbits - 1));
 }
 
+test "starter packet keeps bitmap and cpumask empty-sentinel windows aligned" {
+    const bitmap = bitmap_view.viewFromWords(&.{}, 0);
+    const cpumask = cpumask_view.viewFromWords(&.{}, 0);
+    const bitmap_summary = bitmap_view.summarize(bitmap);
+    const cpumask_summary = cpumask_view.summarize(cpumask);
+
+    try testing.expect(bitmap_view.isValid(bitmap));
+    try testing.expect(cpumask_view.isValid(cpumask));
+    try testing.expectEqual(bitmap_summary.first_set, cpumask_summary.first_set);
+    try testing.expectEqual(bitmap_summary.first_zero, cpumask_summary.first_zero);
+    try testing.expectEqual(bitmap_summary.weight, cpumask_summary.weight);
+    try testing.expectEqual(bitmap_view.firstSet(bitmap), cpumask_view.firstCpu(cpumask));
+    try testing.expectEqual(bitmap_view.firstZero(bitmap), cpumask_view.firstAbsentCpu(cpumask));
+    try testing.expectEqual(bitmap_view.weight(bitmap), cpumask_view.weight(cpumask));
+    try testing.expectEqual(bitmap_view.testBit(bitmap, 0), cpumask_view.cpuIsSet(cpumask, 0));
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.weight);
+    try testing.expect(!bitmap_view.testBit(bitmap, 0));
+    try testing.expect(!cpumask_view.cpuIsSet(cpumask, 0));
+}
+
 test "starter packet keeps bitmap and cpumask exact-word windows aligned" {
     var backing = [_]usize{
         ~@as(usize, 0),
