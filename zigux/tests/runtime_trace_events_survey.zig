@@ -104,6 +104,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     );
     defer std.testing.allocator.free(workflow_file);
 
+    const phase9_build_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase9_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase9_build_file);
+
     const sample_file = try cwd.readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_trace_events.zig",
@@ -239,6 +247,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
     try expectContains(survey_note, "direct family-local `zigux/tests/runtime_*` witness");
     try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, survey, and top-bit targets");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(survey_note, "Do not invent `validate-phase9.py`");
@@ -270,6 +279,17 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig");
     try expectContains(workflow_file, "zig test zigux/tests/runtime_trace_events_survey.zig");
+
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-atomic64-diff-tests\"");
+    try expectContains(phase9_build_file, "runtime_atomic64_diff.zig");
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-bitmap-sample-tests\"");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap.zig");
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-bitmap-survey-tests\"");
+    try expectContains(phase9_build_file, "runtime_bitmap_survey.zig");
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_top_bit_contract.zig");
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build_file, "runtime_trace_events") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build_file, "runtime_loader_allocator_init_flow") == null);
 
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
