@@ -5,6 +5,7 @@
   "lane_scope": "shared helper-evidence rows and machine-readable manifest only",
   "current_direct_readback_companions": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -15,7 +16,6 @@
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
   "public_tree_backed_shared_companions": [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md"
   ],
   "roadmap_anchors": [
@@ -77,7 +77,8 @@
           "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-bsearch-test",
           "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
-          "make -C zigux phase6-bsearch-perf"
+          "make -C zigux phase6-bsearch-perf",
+          "make -C zigux phase6-perf"
         ]
       }
     },
