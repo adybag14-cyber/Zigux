@@ -345,9 +345,15 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
     "pub fn matchString(haystack: []const []const u8, needle: []const u8) ?usize {",
     "pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn strchr(buf: []const u8, needle: u8) ?usize {",
+    "pub fn strrchr(buf: []const u8, needle: u8) ?usize {",
+    "pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {",
     "pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {",
+    "pub fn strnlen(buf: []const u8, count: usize) usize {",
     "pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {",
     "pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {",
+    "pub fn strchrNul(buf: []const u8, needle: u8) usize {",
+    "pub fn strchrnul(buf: []const u8, needle: u8) usize {",
 ]
 
 EXPECTED_STRING_PACKET = {
@@ -976,6 +982,13 @@ def run_self_test() -> int:
         (
             "bad_string_review_field",
             lambda root: mutate_manifest_packet(root, "tools/lib/string.zig", "basename_review_anchor", "drift"),
+        ),
+        (
+            "missing_string_source_symbol",
+            lambda root: write_text(
+                root / STRING_HELPER_REL,
+                replace_once(load_text(root, STRING_HELPER_REL), EXPECTED_STRING_SOURCE_SYMBOLS[6] + "\n", ""),
+            ),
         ),
         (
             "missing_string_source_anchor",
