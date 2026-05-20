@@ -18,6 +18,9 @@ COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current
 VERIFY_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 DRIVER_PATH = Path("drivers/tty/hvc/hvc_console.zig")
+TARGETLESS_WITNESS_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+)
 EXPORT_PROOF_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_proof.zig")
 EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
 HV_OPS_PROOF_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_proof.zig")
@@ -112,6 +115,7 @@ MATRIX_MARKERS = (
     "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
     "the current matrix packet now stays aligned with the smaller",
     "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
     "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -126,6 +130,14 @@ MATRIX_MARKERS = (
     "keep the proof inventory exact",
     "keep helper-local failure-mode edges reviewable through",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+)
+
+TARGETLESS_WITNESS_CHECKER_MARKERS = (
+    "\"\"\"Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet.\"\"\"",
+    "\"Documentation/zigux/phase11-hvc-console-validation-matrix.md\",",
+    "\"scripts/zigux/validate-phase11.py\",",
+    "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"",
+    "print(\"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass\")",
 )
 
 DRIVER_MARKERS = (
@@ -257,6 +269,12 @@ def run_check(root: Path) -> None:
     require_markers(root, COMPANION_PATH, "companion", COMPANION_MARKERS)
     require_markers(root, VERIFY_PATH, "verify", VERIFY_MARKERS)
     require_markers(root, MATRIX_PATH, "matrix", MATRIX_MARKERS)
+    require_markers(
+        root,
+        TARGETLESS_WITNESS_CHECKER_PATH,
+        "targetless witness checker",
+        TARGETLESS_WITNESS_CHECKER_MARKERS,
+    )
     require_markers(root, DRIVER_PATH, "driver", DRIVER_MARKERS)
     require_markers(root, EXPORT_PROOF_PATH, "export proof", EXPORT_PROOF_MARKERS)
     require_markers(root, EXPORT_BUILD_PATH, "export build", EXPORT_BUILD_MARKERS)
@@ -291,7 +309,20 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
-    for rel in (SURVEY_PATH, COMPANION_PATH, VERIFY_PATH, MATRIX_PATH, DRIVER_PATH, EXPORT_PROOF_PATH, EXPORT_BUILD_PATH, HV_OPS_PROOF_PATH, HV_OPS_BUILD_PATH, PROOF_PATH, BUILD_PATH):
+    for rel in (
+        SURVEY_PATH,
+        COMPANION_PATH,
+        VERIFY_PATH,
+        MATRIX_PATH,
+        DRIVER_PATH,
+        TARGETLESS_WITNESS_CHECKER_PATH,
+        EXPORT_PROOF_PATH,
+        EXPORT_BUILD_PATH,
+        HV_OPS_PROOF_PATH,
+        HV_OPS_BUILD_PATH,
+        PROOF_PATH,
+        BUILD_PATH,
+    ):
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
 
     write(
@@ -377,6 +408,7 @@ def build_fixture(root: Path) -> None:
                 "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
                 "the current matrix packet now stays aligned with the smaller authenticated-readback companion stack rather than the older starter-depth public-readback packet",
                 "`scripts/zigux/check-phase11-build-inventory.py`",
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
                 "`zigux/tests/fixtures/phase11_build_inventory.json`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -390,6 +422,20 @@ def build_fixture(root: Path) -> None:
                 "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
                 "keep the proof inventory exact and keep helper-local failure-mode edges reviewable through the boundary note",
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / TARGETLESS_WITNESS_CHECKER_PATH,
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                '"""Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet."""',
+                '"Documentation/zigux/phase11-hvc-console-validation-matrix.md",',
+                '"scripts/zigux/validate-phase11.py",',
+                '"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit"',
+                'print("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass")',
                 "",
             ]
         ),
@@ -459,12 +505,14 @@ def run_self_test() -> int:
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution."),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
+            (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
             (MATRIX_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
             (MATRIX_PATH, "the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` plus `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` witness shard now rereads the live starter and the boundary note together"),
             (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
+            (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\""),
             (DRIVER_PATH, "targetless_unregister_request_sanitized: bool,"),
             (DRIVER_PATH, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {'),
@@ -488,7 +536,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=23")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=25")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
