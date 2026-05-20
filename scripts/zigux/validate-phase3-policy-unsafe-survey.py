@@ -40,6 +40,7 @@ REQUIRED_MARKERS = {
         "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
         "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
         "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-helper-local-policy-slice-or-the-directly-coupled-low-level-wrapper-survey-drifts-again",
         "the live proof surface has split into a helper-local policy slice plus a directly coupled low-level-wrapper packet",
         "`zigux/helpers/unsafe_policy.zig` is now the helper-local unsafe-scope decoder",
@@ -188,6 +189,10 @@ EXPECTED_DUMP_LINES = (
 
 SELF_TEST_CASES = (
     (NOTE_PATH, "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py"),
+    (
+        NOTE_PATH,
+        "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
     (
         NOTE_PATH,
         "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-helper-local-policy-slice-or-the-directly-coupled-low-level-wrapper-survey-drifts-again",
