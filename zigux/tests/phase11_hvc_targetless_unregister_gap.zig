@@ -41,4 +41,20 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
     try expectContains(companion, "standalone targetless-unregister witness");
     try expectContains(companion, "separate failure-mode replay");
+
+    const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");
+    defer std.testing.allocator.free(survey);
+
+    try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
+    try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
+    try expectContains(survey, "standalone targetless-unregister witness pair likewise stays");
+    try expectContains(survey, "without promoting itself into the shared three-entry build inventory");
+
+    const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");
+    defer std.testing.allocator.free(matrix);
+
+    try expectContains(matrix, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
+    try expectContains(matrix, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
+    try expectContains(matrix, "witness shard now rereads the live starter and the boundary note together");
+    try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");
 }
