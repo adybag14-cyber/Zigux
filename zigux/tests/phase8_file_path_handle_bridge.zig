@@ -124,7 +124,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\",\n \"status\": \"starter_landed\"",
+        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
@@ -132,7 +132,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\",\n \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
@@ -140,7 +140,11 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
-        "\"slug\": \"file-path-and-handle-bridge\",\n \"status\": \"deferred_high_risk\"",
+        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+    );
+    try expectContains(
+        manifest,
+        "bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths",
     );
     try expectContains(
         manifest,
