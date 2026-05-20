@@ -65,15 +65,16 @@ That keeps one helper-local tagged-value starter packet, one xarray-slot lane cl
 
 This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet.
 
-The earlier shared reminder follow-up is now closed across the docs root, review checklist, and tests root on current `master`:
+The earlier shared reminder follow-up is now closed across the review checklist, tests root, validator-support note, and shared reminder gap note on current `master`:
 
-- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase3-validator-support-surface.md`
 - `Documentation/zigux/phase3-shared-reminder-gap.md`
 
-Those surfaces now keep the bounded three-slice posture explicit while this helper-local note also keeps the landed `xarray_slot_view` starter packet visible inside the existing `err_ptr` / `xarray` lane. Any future follow-up from this helper-local slice should stay limited to `err_ptr` / `xa_value` / `xarray_slot_view` packet truthfulness or separate scripts-root inventory drift, not treat the closed shared-reminder cleanup as evidence that the wider validator or export-boundary routes already ship on `master`.
+`Documentation/zigux/README.md` is the remaining same-lane follow-up: the current docs-root Phase 3 reminder still reads narrower than the returned validator-support, `err_ptr` / `xarray`, `xarray_slot`, and shared catalog companion surfaces that the aligned reminder notes already keep explicit.
+
+Until that docs-root refresh lands, this helper-local note should treat the shared-reminder cleanup as still in progress rather than fully closed across every reminder surface. Any future follow-up from this helper-local slice should stay limited to that still-narrow docs-root reminder, to `err_ptr` / `xa_value` / `xarray_slot_view` packet truthfulness, or to separate scripts-root inventory drift; it should not treat the already-aligned review-checklist and tests-root reminders as evidence that the wider validator or export-boundary routes already ship on `master`.
 
 ## Scope
 
