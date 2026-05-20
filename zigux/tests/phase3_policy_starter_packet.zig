@@ -110,6 +110,63 @@ test "policy starter packet keeps narrow-surface decoding aligned" {
     }
 }
 
+test "policy starter packet keeps narrow byte and denial symmetry explicit" {
+    const cases = [_]struct {
+        unsafe_scope: u8,
+        reserved: u8,
+        expected: ?abi.UnsafeScope,
+        typed_only: bool,
+        volatile_mmio: bool,
+        raw_pointer_bridge: bool,
+    }{
+        .{ .unsafe_scope = 0, .reserved = 0, .expected = .none, .typed_only = true, .volatile_mmio = false, .raw_pointer_bridge = false },
+        .{ .unsafe_scope = 1, .reserved = 0, .expected = .volatile_mmio, .typed_only = false, .volatile_mmio = true, .raw_pointer_bridge = false },
+        .{ .unsafe_scope = 2, .reserved = 0, .expected = .raw_pointer_bridge, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = true },
+        .{ .unsafe_scope = 9, .reserved = 0, .expected = null, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = false },
+        .{ .unsafe_scope = 2, .reserved = 1, .expected = null, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = false },
+    };
+
+    for (cases) |case| {
+        try testing.expectEqual(case.expected, unsafe_policy.scopeFromInteropPolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.expected, narrow_surface.scopeFromInteropPolicyBytes(case.unsafe_scope, case.reserved));
+
+        try testing.expectEqual(case.typed_only, unsafe_policy.permitsNoUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.typed_only, narrow_surface.permitsNoUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+
+        try testing.expectEqual(case.volatile_mmio, unsafe_policy.permitsVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.volatile_mmio, narrow_surface.permitsVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.volatile_mmio, narrow_surface.allowsVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved));
+
+        try testing.expectEqual(case.raw_pointer_bridge, unsafe_policy.permitsRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.raw_pointer_bridge, narrow_surface.permitsRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.raw_pointer_bridge, narrow_surface.allowsRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved));
+
+        if (case.typed_only) {
+            try unsafe_policy.requireNoUnsafePolicyBytes(case.unsafe_scope, case.reserved);
+            try narrow_surface.requireNoUnsafePolicyBytes(case.unsafe_scope, case.reserved);
+        } else {
+            try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireNoUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+            try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireNoUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+        }
+
+        if (case.volatile_mmio) {
+            try unsafe_policy.requireVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved);
+            try narrow_surface.requireVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved);
+        } else {
+            try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved));
+            try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireVolatileMmioPolicyBytes(case.unsafe_scope, case.reserved));
+        }
+
+        if (case.raw_pointer_bridge) {
+            try unsafe_policy.requireRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved);
+            try narrow_surface.requireRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved);
+        } else {
+            try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.requireRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved));
+            try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgePolicyBytes(case.unsafe_scope, case.reserved));
+        }
+    }
+}
+
 test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {
     const cases = [_]struct {
         policy: abi.InteropPolicy,
