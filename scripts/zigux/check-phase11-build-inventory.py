@@ -33,6 +33,7 @@ EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
@@ -95,6 +96,8 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
 )
 
@@ -127,6 +130,10 @@ REQUIRED_WORKFLOW_PHASE11_STEPS = (
         "Run current Phase 11 HVC cleanup packet proof",
         "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     ),
+    (
+        "Run current Phase 11 HVC targetless-unregister gap witness",
+        "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    ),
 )
 
 REQUIRED_MAKEFILE_ROUTE_MARKERS = (
@@ -135,6 +142,7 @@ REQUIRED_MAKEFILE_ROUTE_MARKERS = (
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 
@@ -404,25 +412,25 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import("std");
+FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-cleanup-packet-proof",
+        .name = \"phase11-hvc-cleanup-packet-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
@@ -437,6 +445,8 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - current-head HVC continuity packet rather than a whole-Phase-11 replay roster
 """
 
@@ -460,13 +470,16 @@ jobs:
         run: zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
       - name: Run current Phase 11 HVC cleanup packet proof
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+      - name: Run current Phase 11 HVC targetless-unregister gap witness
+        run: zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
 
@@ -567,6 +580,19 @@ def run_self_test() -> int:
         expect_failure(missing_hv_ops_workflow_step, "Run current Phase 11 HVC hv_ops layout proof")
         case_count += 1
 
+        missing_targetless_workflow_step = tmpdir / "missing_targetless_workflow_step"
+        shutil.copytree(fixture, missing_targetless_workflow_step, dirs_exist_ok=True)
+        write(
+            missing_targetless_workflow_step / WORKFLOW_PATH,
+            read_text(missing_targetless_workflow_step / WORKFLOW_PATH).replace(
+                "      - name: Run current Phase 11 HVC targetless-unregister gap witness\n        run: zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_targetless_workflow_step, "Run current Phase 11 HVC targetless-unregister gap witness")
+        case_count += 1
+
         missing_makefile_marker = tmpdir / "missing_makefile_marker"
         shutil.copytree(fixture, missing_makefile_marker, dirs_exist_ok=True)
         write(
@@ -627,7 +653,6 @@ def run_self_test() -> int:
             missing_matrix_marker,
             "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
         )
-        case_count += 1
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
         print(f"PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
