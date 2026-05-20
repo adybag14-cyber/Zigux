@@ -123,6 +123,8 @@ test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape be
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), module.count());
+    try std.testing.expectEqual(@as(?u8, null), module.peekByte());
+    try std.testing.expectEqual(@as(?u8, null), module.skipByte());
 
     try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
     try std.testing.expectEqual(@as(usize, 27), module.available());
