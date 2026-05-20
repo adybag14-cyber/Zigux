@@ -50,9 +50,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - roadmap anchor: `lib/hexdump.c`
 - landed Zig helper: `lib/hexdump.zig`
 - focused helper replay: `zigux/tests/phase6_hexdump.zig`
-- helper-evidence row: `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
-- exact missing direct companions from authenticated 2026-05-20 readback: `Documentation/zigux/phase6-hexdump-slice.md` and `Documentation/zigux/phase6-hexdump-perf-refresh.md`
-- current posture: the helper, focused replay, perf replay, perf-matrix preflight, fixture surface, and packet checker are directly readable again, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence
+- helper-evidence row: `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
+- current posture: direct helper readback is restored across the helper, focused replay, perf replay, perf-matrix preflight, fixture surface, checker, slice note, and perf-refresh rationale note
 
 ## Shared parity boundary
 
