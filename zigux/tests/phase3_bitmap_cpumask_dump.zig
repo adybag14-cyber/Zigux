@@ -29,7 +29,7 @@ fn writeCase(
     trailing_comma: bool,
 ) !void {
     try writer.print(
-        "    {\n" ++
+        "    {{\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"nbits\": {},\n" ++
@@ -109,8 +109,17 @@ pub fn main(init: std.process.Init) !void {
     const cpumask_drifted_clear_projected = binding.asBitmap(cpumask_drifted_clear);
     const cpumask_drifted_clear_projected_summary = bitmap_view.summarize(cpumask_drifted_clear_projected);
 
+    var cpumask_drifted_full_words = [_]usize{
+        ~@as(usize, 0),
+        bitmap_view.lastWordMask(bitmap_view.bits_per_word + 11),
+    };
+    var cpumask_drifted_full = cpumask_view.viewFromWords(cpumask_drifted_full_words[0..], bitmap_view.bits_per_word + 11);
+    cpumask_drifted_full.nr_cpu_ids = bitmap_view.bits_per_word + 10;
+    const cpumask_drifted_full_projected = binding.asBitmap(cpumask_drifted_full);
+    const cpumask_drifted_full_projected_summary = bitmap_view.summarize(cpumask_drifted_full_projected);
+
     try writer.print(
-        "{\n" ++
+        "{{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"bitmap_view_abi_version\": {},\n" ++
             "  \"cpumask_view_abi_version\": {},\n" ++
@@ -248,9 +257,25 @@ pub fn main(init: std.process.Init) !void {
         bitmap_view.testBit(cpumask_full_projected, bitmap_view.bits_per_word + 10),
         bitmap_view.bits_per_word + 11,
         bitmap_view.testBit(cpumask_full_projected, bitmap_view.bits_per_word + 11),
+        true,
+    );
+    try writeCase(
+        writer,
+        "cpumask_drifted_full_tail_masked_projected_bitmap",
+        "bitmap",
+        cpumask_drifted_full_projected.nbits,
+        null,
+        cpumask_drifted_full_projected.word_count,
+        cpumask_drifted_full_projected_summary.first_set,
+        cpumask_drifted_full_projected_summary.first_zero,
+        cpumask_drifted_full_projected_summary.weight,
+        bitmap_view.bits_per_word + 10,
+        bitmap_view.testBit(cpumask_drifted_full_projected, bitmap_view.bits_per_word + 10),
+        bitmap_view.bits_per_word + 11,
+        bitmap_view.testBit(cpumask_drifted_full_projected, bitmap_view.bits_per_word + 11),
         false,
     );
 
-    try writer.writeAll("  ]\n}\n");
+    try writer.writeAll("  ]\n}}\n");
     try stdout_writer.interface.flush();
 }
