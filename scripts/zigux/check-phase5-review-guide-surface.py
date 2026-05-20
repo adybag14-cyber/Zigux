@@ -64,6 +64,7 @@ DOCS_ROOT_MARKERS = (
     "keep the current four-anchor non-runtime sample packet explicit from the docs root instead of letting the shared contributor reminder drift away from the live sample-root, scripts-root, guide, sequencing, checklist, and tests-root packet.",
     "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
     "keep the current `kobject` ownership-and-lifetime split explicit too:",
+    "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
 )
 
 APPROVED_IDIOM_MARKERS = (
@@ -102,6 +103,7 @@ SAMPLE_ROOT_MARKERS = (
     "Current `master` still keeps the roadmap-backed `kobject` packet visible through public current-`master` readback for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig`, even though authenticated contents reread for those same paths still flakes in this runtime.",
     "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet or a fifth Phase 5 sample.",
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
+    "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
 )
 
 FORBIDDEN_GUIDE_TEXT = (
@@ -213,7 +215,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 7
+    expected_case_count = 9
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -254,6 +256,25 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected review-checklist failure: {failures}")
         checks_run += 1
 
+        missing_docs_root_marker_root = root / "missing_docs_root_marker"
+        _seed(missing_docs_root_marker_root)
+        _write(
+            missing_docs_root_marker_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_marker_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root failure: {failures}")
+        checks_run += 1
+
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
         _seed(missing_sample_root_marker_root)
         _write(
@@ -264,6 +285,25 @@ def run_self_test() -> int:
         expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_bitmap_marker_root = root / "missing_sample_root_bitmap_marker"
+        _seed(missing_sample_root_bitmap_marker_root)
+        _write(
+            missing_sample_root_bitmap_marker_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_bitmap_marker_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
         checks_run += 1
 
         missing_direct_path_root = root / "missing_direct_path"
