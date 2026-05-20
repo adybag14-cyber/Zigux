@@ -203,6 +203,47 @@ def summarize_packet(root: Path) -> int:
     return 0
 
 
+def run_checker(root: Path, *, target: str | None, zig: str | None) -> int:
+    missing = require_files(root)
+    if missing:
+        return emit_required_file_issues(missing)
+
+    try:
+        issues = validate_fixture(root)
+    except RuntimeError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
+
+    if issues:
+        print("PHASE2_CROSS=fail")
+        print("PHASE2_CROSS_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE2_CROSS_ISSUES_END")
+        return 1
+
+    if target:
+        resolved_zig = resolve_zig(zig)
+        if resolved_zig is None:
+            print("PHASE2_CROSS=fail")
+            print("PHASE2_CROSS_NOTE=zig not found on PATH")
+            return 1
+        try:
+            return run_cross_compile(root, target, resolved_zig)
+        except RuntimeError as exc:
+            print("PHASE2_CROSS=fail")
+            print(f"PHASE2_CROSS_NOTE={exc}")
+            return 1
+
+    try:
+        return summarize_packet(root)
+    except RuntimeError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_dir():
@@ -270,6 +311,13 @@ def capture_packet_summary(root: Path) -> tuple[int, str]:
     return result, stdout.getvalue()
 
 
+def capture_run_checker(root: Path, *, target: str | None = None, zig: str | None = None) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = run_checker(root, target=target, zig=zig)
+    return result, stdout.getvalue()
+
+
 def assert_runtime_error_contains(callback, expected_fragment: str) -> None:
     try:
         callback()
@@ -277,6 +325,32 @@ def assert_runtime_error_contains(callback, expected_fragment: str) -> None:
         assert expected_fragment in str(exc), str(exc)
         return
     raise AssertionError(f"expected RuntimeError containing: {expected_fragment}")
+
+
+def assert_run_checker_note_contains(
+    root: Path,
+    *,
+    target: str | None = None,
+    zig: str | None = None,
+    expected_fragment: str,
+) -> None:
+    result, output = capture_run_checker(root, target=target, zig=zig)
+    assert result == 1
+    assert "PHASE2_CROSS=fail" in output
+    assert f"PHASE2_CROSS_NOTE={expected_fragment}" in output, output
+
+
+def assert_run_checker_output_contains(
+    root: Path,
+    *,
+    target: str | None = None,
+    zig: str | None = None,
+    expected_fragment: str,
+) -> None:
+    result, output = capture_run_checker(root, target=target, zig=zig)
+    assert result == 1
+    assert "PHASE2_CROSS=fail" in output
+    assert expected_fragment in output, output
 
 
 def run_self_test() -> int:
@@ -494,22 +568,42 @@ def run_self_test() -> int:
         (root / FIXTURE_REL).write_text("{\n", encoding="utf-8")
         assert_runtime_error_contains(lambda: validate_fixture(root), "fixture is not valid json:")
         case_count += 1
+        assert_run_checker_note_contains(
+            root,
+            expected_fragment="fixture is not valid json:",
+        )
+        case_count += 1
 
         build_self_test_root(root)
         write_fixture(root, ["not", "an", "object"])
         assert_runtime_error_contains(lambda: validate_fixture(root), "fixture is not a JSON object:")
+        case_count += 1
+        assert_run_checker_note_contains(
+            root,
+            expected_fragment="fixture is not a JSON object:",
+        )
         case_count += 1
 
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
         assert_runtime_error_contains(lambda: validate_fixture(root), "required file missing:")
         case_count += 1
+        assert_run_checker_output_contains(
+            root,
+            expected_fragment="PHASE2_CROSS_MISSING_FILES_START",
+        )
+        case_count += 1
 
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
         (root / FIXTURE_REL).mkdir(parents=True)
         assert_runtime_error_contains(lambda: validate_fixture(root), "required file unreadable:")
+        assert_run_checker_output_contains(
+            root,
+            expected_fragment="PHASE2_CROSS_NON_FILE_PATHS_START",
+        )
         (root / FIXTURE_REL).rmdir()
+        case_count += 1
         case_count += 1
 
         build_self_test_root(root)
@@ -532,6 +626,13 @@ def run_self_test() -> int:
         result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
         assert result == 1
         assert "PHASE2_CROSS_NOTE=fixture zig_test_files is invalid" in output
+        case_count += 1
+        assert_run_checker_output_contains(
+            root,
+            target=EXPECTED_TARGETS[0],
+            zig="/bin/true",
+            expected_fragment="PHASE2_CROSS_ISSUES_START",
+        )
         case_count += 1
 
         build_self_test_root(root)
@@ -593,6 +694,11 @@ def run_self_test() -> int:
         missing = require_files(root)
         assert ("required_file_missing", "scripts/zigux/fixdep.zig") in missing
         case_count += 1
+        assert_run_checker_output_contains(
+            root,
+            expected_fragment="scripts/zigux/fixdep.zig",
+        )
+        case_count += 1
 
         build_self_test_root(root)
         (root / FIXTURE_REL).unlink()
@@ -606,6 +712,15 @@ def run_self_test() -> int:
         (root / "scripts/zigux/fixdep.zig").mkdir(parents=True)
         issues = require_files(root)
         assert ("required_path_not_file", "scripts/zigux/fixdep.zig") in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        assert_run_checker_note_contains(
+            root,
+            target=EXPECTED_TARGETS[0],
+            zig=None,
+            expected_fragment="zig not found on PATH",
+        )
         case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
@@ -626,44 +741,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    missing = require_files(args.root)
-    if missing:
-        return emit_required_file_issues(missing)
-
-    try:
-        issues = validate_fixture(args.root)
-    except RuntimeError as exc:
-        print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE={exc}")
-        return 1
-
-    if issues:
-        print("PHASE2_CROSS=fail")
-        print("PHASE2_CROSS_ISSUES_START")
-        for issue in issues:
-            print(issue)
-        print("PHASE2_CROSS_ISSUES_END")
-        return 1
-
-    if args.target:
-        zig = resolve_zig(args.zig)
-        if zig is None:
-            print("PHASE2_CROSS=fail")
-            print("PHASE2_CROSS_NOTE=zig not found on PATH")
-            return 1
-        try:
-            return run_cross_compile(args.root, args.target, zig)
-        except RuntimeError as exc:
-            print("PHASE2_CROSS=fail")
-            print(f"PHASE2_CROSS_NOTE={exc}")
-            return 1
-
-    try:
-        return summarize_packet(args.root)
-    except RuntimeError as exc:
-        print("PHASE2_CROSS=fail")
-        print(f"PHASE2_CROSS_NOTE={exc}")
-        return 1
+    return run_checker(args.root, target=args.target, zig=args.zig)
 
 
 if __name__ == "__main__":
