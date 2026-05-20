@@ -163,3 +163,47 @@ test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init 
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.firstCached(&root));
     try std.testing.expectEqual(@as(?*rbtree.Node, null), root.root.node);
 }
+
+test "phase 7 rbtree companion replays postorder aliases and null-stop handling" {
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var order: [entries.len]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.firstPostorder(&root);
+    while (current) |node| : (current = rbtree.nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2 }, order[0..count]);
+    try std.testing.expectEqual(rbtree.firstPostorder(&root), rbtree.rb_first_postorder(&root));
+
+    const first_postorder = rbtree.firstPostorder(&root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(rbtree.nextPostorder(first_postorder), rbtree.rb_next_postorder(rbtree.rb_first_postorder(&root)));
+    try std.testing.expect(rbtree.nextPostorder(null) == null);
+    try std.testing.expect(rbtree.rb_next_postorder(null) == null);
+}
