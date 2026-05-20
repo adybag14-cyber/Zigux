@@ -10,6 +10,8 @@ from pathlib import Path
 
 BUILD_PATH = Path("zigux/tests/build.zig")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
+MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_BUILD_MARKERS = (
     "fn addPhase3DevTStarterPacket(",
@@ -87,8 +89,21 @@ REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
 )
 
+REQUIRED_MAKEFILE_MARKERS = (
+    "phase3-export-uapi-layout-test:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-dump",
+)
+
+REQUIRED_WORKFLOW_MARKERS = (
+    "- name: Run current Phase 3 shared tests-root packet",
+    "- name: Run current Phase 3 ABI dump replay",
+)
+
 SAMPLE_BUILD_TEXT = "\n".join(REQUIRED_BUILD_MARKERS) + "\n"
 SAMPLE_DRIVER_TEXT = "\n".join(REQUIRED_DRIVER_MARKERS) + "\n"
+SAMPLE_MAKEFILE_TEXT = "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n"
+SAMPLE_WORKFLOW_TEXT = "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n"
 
 SELF_TEST_CASES = (
     (BUILD_PATH, 'root_module.addImport("export_shim", export_shim);'),
@@ -126,6 +141,22 @@ SELF_TEST_CASES = (
         SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     ),
+    (
+        MAKEFILE_PATH,
+        "phase3-export-uapi-layout-test:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 shared tests-root packet",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 ABI dump replay",
+    ),
 )
 
 
@@ -138,37 +169,35 @@ def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _validate_markers(repo_root: Path, relative_path: Path, markers: tuple[str, ...]) -> list[str]:
+    issues: list[str] = []
+    path = repo_root / relative_path
+    try:
+        text = _read_text(path)
+    except FileNotFoundError:
+        issues.append(f"missing repo file: {relative_path.as_posix()}")
+        return issues
+
+    for marker in markers:
+        if marker not in text:
+            issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
-
-    build_path = repo_root / BUILD_PATH
-    try:
-        build_text = _read_text(build_path)
-    except FileNotFoundError:
-        issues.append(f"missing repo file: {BUILD_PATH.as_posix()}")
-    else:
-        for marker in REQUIRED_BUILD_MARKERS:
-            if marker not in build_text:
-                issues.append(f"missing {BUILD_PATH.as_posix()} marker: {marker}")
-
-    driver_path = repo_root / SELFTEST_DRIVER_PATH
-    try:
-        driver_text = _read_text(driver_path)
-    except FileNotFoundError:
-        issues.append(f"missing repo file: {SELFTEST_DRIVER_PATH.as_posix()}")
-    else:
-        for marker in REQUIRED_DRIVER_MARKERS:
-            if marker not in driver_text:
-                issues.append(
-                    f"missing {SELFTEST_DRIVER_PATH.as_posix()} marker: {marker}"
-                )
-
+    issues.extend(_validate_markers(repo_root, BUILD_PATH, REQUIRED_BUILD_MARKERS))
+    issues.extend(_validate_markers(repo_root, SELFTEST_DRIVER_PATH, REQUIRED_DRIVER_MARKERS))
+    issues.extend(_validate_markers(repo_root, MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS))
+    issues.extend(_validate_markers(repo_root, WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS))
     return issues
 
 
 def _populate_repo(root: Path) -> None:
     _write_text(root / BUILD_PATH, SAMPLE_BUILD_TEXT)
     _write_text(root / SELFTEST_DRIVER_PATH, SAMPLE_DRIVER_TEXT)
+    _write_text(root / MAKEFILE_PATH, SAMPLE_MAKEFILE_TEXT)
+    _write_text(root / WORKFLOW_PATH, SAMPLE_WORKFLOW_TEXT)
 
 
 def run_self_test() -> int:
@@ -224,6 +253,8 @@ def main() -> int:
 
     print(f"validated {args.repo_root / BUILD_PATH}")
     print(f"validated {args.repo_root / SELFTEST_DRIVER_PATH}")
+    print(f"validated {args.repo_root / MAKEFILE_PATH}")
+    print(f"validated {args.repo_root / WORKFLOW_PATH}")
     return 0
 
 
