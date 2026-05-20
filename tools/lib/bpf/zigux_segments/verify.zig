@@ -294,3 +294,99 @@ test "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd 
         ),
     );
 }
+
+test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_fds = [_]?i32{ null, 9, null, 21 };
+
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        try perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &short_fds, 1),
+    );
+
+    const missing_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 8192),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &missing_window, 1),
+    );
+
+    const overflow_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = @as(usize, std.math.maxInt(i32)) + 1 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &overflow_windows, 0),
+    );
+}
