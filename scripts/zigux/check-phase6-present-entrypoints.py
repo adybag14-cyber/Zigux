@@ -37,6 +37,7 @@ EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS = [
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
 EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
 EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
 EXPECTED_CHECKSUM_RERUN_ROUTES = [
@@ -71,7 +72,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
 SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 10
 
 
 class ValidationError(RuntimeError):
@@ -139,6 +140,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 bsearch perf replay mismatch")
 
     checksum = next(helper for helper in helpers if helper.get("key") == "checksum")
+    if checksum.get("checker_surfaces") != [EXPECTED_CHECKSUM_CHECKER]:
+        raise ValidationError("phase6 checksum checker surface mismatch")
     checksum_perf = checksum.get("current_perf_evidence")
     if not isinstance(checksum_perf, dict):
         raise ValidationError("phase6 checksum perf evidence missing")
@@ -188,6 +191,7 @@ def scaffold_repo(root: Path) -> None:
                     },
                     {
                         "key": "checksum",
+                        "checker_surfaces": [EXPECTED_CHECKSUM_CHECKER],
                         "current_perf_evidence": {
                             "payload_case_labels": EXPECTED_CHECKSUM_PAYLOAD_CASES,
                             "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_FAST_PATH_CASES,
@@ -232,8 +236,9 @@ def run_self_test() -> None:
             (root / MAKEFILE_PATH, "phase6-checksum-perf:"),
             (root / MANIFEST_PATH, '"public_tree_backed_shared_companions"'),
             (root / MANIFEST_PATH, '"Documentation/zigux/README.md",'),
-            (root / MANIFEST_PATH, '"ipv4_fast_path_case_labels"'),
+            (root / MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"'),
             (root / MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"'),
+            (root / MANIFEST_PATH, '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
