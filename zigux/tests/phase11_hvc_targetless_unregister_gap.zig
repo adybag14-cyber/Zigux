@@ -31,6 +31,8 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
 
     try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");
     try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");
+    try expectContains(boundary, "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.");
+    try expectContains(boundary, "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit");
 
     const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");
     defer std.testing.allocator.free(companion);
@@ -38,4 +40,5 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
     try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
     try expectContains(companion, "standalone targetless-unregister witness");
+    try expectContains(companion, "separate failure-mode replay");
 }
