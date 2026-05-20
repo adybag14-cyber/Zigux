@@ -77,6 +77,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {',
         'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {',
         'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {',
+        'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
@@ -144,7 +145,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -284,6 +285,11 @@ def run_self_test() -> None:
         tests_marker = 'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {'
         tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_file_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_no_entry_marker = 'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_no_entry_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_parse_no_entry_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_no_entry_marker}")
         write_fixture_root(tmp_root)
 
         tests_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {'
