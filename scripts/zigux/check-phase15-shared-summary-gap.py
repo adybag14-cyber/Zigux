@@ -35,6 +35,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
 )
@@ -56,6 +57,7 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
@@ -199,6 +201,16 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected focused-checker failure: {failures}")
 
+        study_only_checker_root = root / "study_only_checker"
+        _seed_repo(study_only_checker_root)
+        (study_only_checker_root / "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py").unlink()
+        failures = collect_failures(study_only_checker_root)
+        expected = [
+            "expected materialized focused companion missing: scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected study-only-checker failure: {failures}")
+
         missing_status_root = root / "missing_status"
         _seed_repo(missing_status_root)
         _write(
@@ -254,6 +266,26 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected stale-marker failure: {failures}")
+
+        missing_study_only_checker_root = root / "missing_study_only_checker_marker"
+        _seed_repo(missing_study_only_checker_root)
+        _write(
+            missing_study_only_checker_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n", "", 2
+            ).replace(
+                "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_study_only_checker_root)
+        expected = [
+            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+            "gap note missing required marker: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-study-only-checker failure: {failures}")
 
         missing_tests_checker_root = root / "missing_tests_checker"
         _seed_repo(missing_tests_checker_root)
