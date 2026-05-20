@@ -110,6 +110,9 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try std.testing.expectEqual(@as(usize, 5), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
+    try expectContains(manifest.maintenance_handoff.next_future_target, "public-master materialized adjacent evidence");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "direct contents-readback evidence");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "adjacent repo-reality gap evidence");
 
     const rcu_survey = manifest.deep_core_blocker_survey[2];
     try expectContains(rcu_survey.repo_reality, "Documentation/zigux/phase14-rcu-tree-survey.md");
@@ -134,7 +137,7 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(build_gap.why_now, "current GitHub contents path still returns not-found");
 }
 
-test "phase 15 freeze-map governance doc records the refreshed lane-owner posture honestly" {
+test "phase 15 freeze-map governance doc records the refreshed mixed-readback posture honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -144,12 +147,14 @@ test "phase 15 freeze-map governance doc records the refreshed lane-owner postur
     try expectContains(governance_note, "current-master-readback-2026-05-20");
     try expectContains(governance_note, "still returning not-found for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`");
     try expectContains(governance_note, "direct contents readback now resolving `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
-    try expectContains(governance_note, "keeps the lane-owner replay out of the gap bucket");
-    try expectContains(governance_note, "validator-first and dedicated-build companions remain adjacent repo-reality-gap vocabulary");
-    try expectContains(governance_note, "phase15-shared-lane-owner-readback");
-    try expectContains(governance_note, "phase15-shared-validator-route-readback");
-    try expectContains(governance_note, "phase15-shared-build-route-readback");
-    try expectContains(governance_note, "phase15-shared-wrapper-route-readback");
+    try expectContains(governance_note, "lane-owner, validator-first, and dedicated-build companions in the adjacent-evidence bucket");
+    try expectContains(governance_note, "validator-first and dedicated-build companions stay public-master materialized adjacent evidence");
+    try expectContains(governance_note, "only the wrapper routes remain adjacent gap vocabulary");
+    try expectContains(governance_note, "materialized_in_contents_readback `phase15-shared-lane-owner-readback`");
+    try expectContains(governance_note, "materialized_on_public_master `phase15-shared-validator-route-readback`");
+    try expectContains(governance_note, "materialized_on_public_master `phase15-shared-build-route-readback`");
+    try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-wrapper-route-readback`");
+    try expectContains(governance_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
