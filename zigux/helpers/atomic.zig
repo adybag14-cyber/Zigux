@@ -141,6 +141,18 @@ pub fn fetchAdd(
     return @atomicRmw(T, ptr, .Add, operand, order);
 }
 
+pub fn fetchSub(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .Sub, operand, order);
+}
+
 pub fn fetchNand(
     comptime T: type,
     ptr: *T,
@@ -163,6 +175,18 @@ pub fn fetchOr(
         return error.InvalidRmwOrdering;
     }
     return @atomicRmw(T, ptr, .Or, operand, order);
+}
+
+pub fn fetchXor(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .Xor, operand, order);
 }
 
 pub fn fetchAnd(
@@ -325,6 +349,19 @@ test "phase3 atomic helper keeps fetch-add updates explicit" {
     try std.testing.expectEqual(@as(u16, 25), value);
 }
 
+test "phase3 atomic helper keeps fetch-sub updates explicit" {
+    var value: u16 = 25;
+
+    try std.testing.expectEqual(@as(u16, 25), try fetchSub(u16, &value, 5, .release));
+    try std.testing.expectEqual(@as(u16, 20), value);
+
+    try std.testing.expectEqual(@as(u16, 20), try fetchSub(u16, &value, 3, .seq_cst));
+    try std.testing.expectEqual(@as(u16, 17), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchSub(u16, &value, 2, .unordered));
+    try std.testing.expectEqual(@as(u16, 17), value);
+}
+
 test "phase3 atomic helper keeps fetch-nand updates explicit" {
     var value: u8 = 0b1111_0000;
 
@@ -348,6 +385,19 @@ test "phase3 atomic helper keeps fetch-or bit publication explicit" {
 
     try std.testing.expectError(error.InvalidRmwOrdering, fetchOr(u16, &value, 0x0001, .unordered));
     try std.testing.expectEqual(@as(u16, 0x811C), value);
+}
+
+test "phase3 atomic helper keeps fetch-xor toggles explicit" {
+    var value: u16 = 0x00F3;
+
+    try std.testing.expectEqual(@as(u16, 0x00F3), try fetchXor(u16, &value, 0x00FF, .acquire));
+    try std.testing.expectEqual(@as(u16, 0x000C), value);
+
+    try std.testing.expectEqual(@as(u16, 0x000C), try fetchXor(u16, &value, 0x0F00, .seq_cst));
+    try std.testing.expectEqual(@as(u16, 0x0F0C), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchXor(u16, &value, 0x000F, .unordered));
+    try std.testing.expectEqual(@as(u16, 0x0F0C), value);
 }
 
 test "phase3 atomic helper keeps fetch-and bit clearing explicit" {
