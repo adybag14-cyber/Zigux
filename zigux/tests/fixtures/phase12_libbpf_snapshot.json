@@ -34,13 +34,13 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-20T18:58:55Z",
+    "checked_at_utc": "2026-05-20T19:01:00Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
-      "blob_sha": "167af95adbdaa4f7d696755e7a7ee7713a46014f",
-      "modified_at_utc": "2026-05-18T19:54:50Z",
-      "self_test_case_count": 18
+      "blob_sha": "f053b309655901f6f42f05cc734b8ca52689dfdf",
+      "modified_at_utc": "2026-05-20T19:01:00Z",
+      "self_test_case_count": 24
     },
     "current_note_blobs": [
       {
