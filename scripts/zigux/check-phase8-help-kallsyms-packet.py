@@ -7,7 +7,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
+def _default_root() -> Path:
+    resolved = Path(__file__).resolve()
+    if len(resolved.parents) >= 4:
+        return resolved.parents[3]
+    return resolved.parent
+
+
+ROOT = _default_root()
 HELP_SLICE = Path("Documentation/zigux/phase8-help-slice.md")
 KALLSYMS_SLICE = Path("Documentation/zigux/phase8-kallsyms-slice.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
@@ -52,6 +59,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8-help-kallsyms-test:",
         "zigux/tests/phase8_help_kallsyms_only_build.zig",
         "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test",
+    ),
+    TESTS_README: (
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
     ),
     HELP_KALLSYMS_BUILD: (
         "phase8_help.zig",
@@ -154,6 +166,20 @@ def run_self_test() -> int:
             raise AssertionError("expected missing help slice marker to be reported")
         help_slice.write_text(original_help_slice, encoding="utf-8")
 
+        tests_readme = root / TESTS_README
+        original_tests_readme = _read(tests_readme)
+        tests_readme.write_text(
+            original_tests_readme.replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`", "", 1),
+            encoding="utf-8",
+        )
+        missing_tests_readme_marker = validate_root(root)
+        expected_tests_readme_marker = (
+            "zigux/tests/README.md:`zigux/tests/phase8_help_kallsyms_only_build.zig`"
+        )
+        if expected_tests_readme_marker not in missing_tests_readme_marker.missing_markers:
+            raise AssertionError("expected missing tests README marker to be reported")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
         help_test = root / HELP_TEST
         original_help_test = _read(help_test)
         help_test.write_text(
@@ -221,7 +247,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
