@@ -397,7 +397,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         note_path = root / NOTE_REL
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
