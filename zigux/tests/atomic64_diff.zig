@@ -824,7 +824,7 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
     try expectRuntimeCaseGroupCardinality(
         "const inc_not_zero_cases = [_]IncNotZeroCase{",
         "const dec_if_positive_cases = [_]DecIfPositiveCase{",
-        3,
+        2,
     );
     try expectRuntimeCaseGroupCardinality(
         "const dec_if_positive_cases = [_]DecIfPositiveCase{",
