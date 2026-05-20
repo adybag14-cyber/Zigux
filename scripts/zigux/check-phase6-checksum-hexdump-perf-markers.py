@@ -50,6 +50,7 @@ REQUIRED_CHECKSUM_CHECKER_SURFACES = [
 REQUIRED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
 ]
+EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
 EXPECTED_CHECKSUM_CASES = {
     "64B": {"iterations": 200000, "max_slowdown_pct": 150},
     "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
@@ -62,7 +63,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -204,6 +205,8 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("checksum current_perf_evidence missing")
     if not isinstance(hexdump_perf, dict):
         raise ValidationError("hexdump current_perf_evidence missing")
+    if hexdump.get("perf_matrix_preflight") != EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT:
+        raise ValidationError("hexdump perf_matrix_preflight drifted")
 
     validate_case_matrix(
         "checksum",
@@ -307,6 +310,7 @@ def scaffold_repo(root: Path) -> None:
                     },
                     {
                         "key": "hexdump",
+                        "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT,
                         "current_perf_evidence": {
                             "cases": [
                                 {
@@ -498,6 +502,18 @@ def run_self_test() -> None:
                 '"IPV4_64B"',
             ),
             "checksum ipv4_fast_path_case_labels drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig"',
+                '"perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf.zig"',
+            ),
+            "hexdump perf_matrix_preflight drifted",
         )
         cases_run += 1
         scaffold_repo(root)
