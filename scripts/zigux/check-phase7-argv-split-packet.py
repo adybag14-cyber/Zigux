@@ -29,6 +29,7 @@ REQUIRED_MARKERS = {
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.",
         "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
         "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space",
+        "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -59,6 +60,7 @@ REQUIRED_MARKERS = {
         "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"",
         "fixture-backed helper-local survey-manifest-checker truthfulness packet",
         "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
+        "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins",
         "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
         "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership",
     ],
@@ -71,6 +73,8 @@ REQUIRED_MARKERS = {
         "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
         "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");",
+        "try expectContains(slice_note, \"leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins\");",
+        "try expectStringSliceContains(manifest.ownership_focus, \"leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins\");",
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "pub const ArgvSplitVector = struct {",
@@ -88,7 +92,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 33
 
 
 def read_text(path: Path) -> str:
@@ -167,6 +171,12 @@ def run_self_test() -> None:
         expect_missing_marker("missing_slice_first_nul_blank_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
         write_fixture_root(tmp_root)
 
+        slice_text = read_text(slice_path)
+        slice_marker = "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins"
+        slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_leading_nul_blank_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest_text = read_text(manifest_path)
         manifest_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""
@@ -178,6 +188,12 @@ def run_self_test() -> None:
         manifest_marker = "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL"
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_first_nul_blank_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
+        write_fixture_root(tmp_root)
+
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_leading_nul_blank_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
 
         manifest_text = read_text(manifest_path)
@@ -227,6 +243,18 @@ def run_self_test() -> None:
         survey_marker = "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = "try expectContains(slice_note, \"leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins\");"
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_slice_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = "try expectStringSliceContains(manifest.ownership_focus, \"leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins\");"
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_manifest_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         fixture_text = read_text(fixture_path)
