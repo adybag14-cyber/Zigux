@@ -22,6 +22,9 @@ LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
+SHARED_TESTS_HEADER_FAMILY_IMPORT = (
+    'root_module.addImport("header_family_binding", header_family_binding);'
+)
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
@@ -81,6 +84,7 @@ REQUIRED_MARKERS = {
         '"wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further"',
     ),
     TESTS_BUILD_PATH: (
+        "fn addPhase3ExportUapiLayout(",
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
         '"phase3-export-uapi-layout"',
         'root_module.addImport("export_shim", export_shim);',
@@ -116,6 +120,17 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def _phase3_export_uapi_layout_block(build_text: str) -> str:
+    start = "fn addPhase3ExportUapiLayout("
+    end = "fn addPhase3LowLevelWrappers("
+    if start not in build_text:
+        return ""
+    tail = build_text.split(start, 1)[1]
+    if end not in tail:
+        return tail
+    return tail.split(end, 1)[0]
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path, markers in REQUIRED_MARKERS.items():
@@ -128,6 +143,16 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    build_block = _phase3_export_uapi_layout_block(_read(repo_root / TESTS_BUILD_PATH))
+    if not build_block:
+        issues.append(
+            "could not isolate addPhase3ExportUapiLayout block in zigux/tests/build.zig"
+        )
+    elif SHARED_TESTS_HEADER_FAMILY_IMPORT in build_block:
+        issues.append(
+            "shared tests-root export/UAPI layout gap has closed in zigux/tests/build.zig; refresh the packet-local survey and manifest markers"
+        )
     return issues
 
 
@@ -144,6 +169,31 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
     if expected not in issues:
         print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
         print(message)
+        return 1
+    return 0
+
+
+def _expect_closed_shared_tests_gap(root: Path) -> int:
+    _populate_repo(root)
+    target = root / TESTS_BUILD_PATH
+    target.writeText if False else None
+    target.write_text(
+        _read(target).replace(
+            'root_module.addImport("export_shim", export_shim);',
+            'root_module.addImport("export_shim", export_shim);\n'
+            f"    {SHARED_TESTS_HEADER_FAMILY_IMPORT}",
+            1,
+        ),
+        encoding="utf-8",
+    )
+    issues = validate_repo(root)
+    expected = (
+        "shared tests-root export/UAPI layout gap has closed in zigux/tests/build.zig; "
+        "refresh the packet-local survey and manifest markers"
+    )
+    if expected not in issues:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print("expected closed shared tests-root gap marker was not reported")
         return 1
     return 0
 
@@ -217,8 +267,11 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
+        if _expect_closed_shared_tests_gap(root) != 0:
+            return 1
+
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
+    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={2 + len(marker_cases)}")
     return 0
 
 
