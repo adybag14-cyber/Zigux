@@ -17,7 +17,7 @@ Adjacent notifier evidence stays in scope for release-surface truthfulness, but 
 
 Keep the current owner map explicit:
 
-- `libfs` still owns the roadmap-backed `fs/libfs.c` anchor through `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `zigux/tests/phase13_libfs_addressability.zig` and the shared `zigux/tests/phase13_build.zig` route stay recorded as repo-reality gaps on current `master`
+- `libfs` still owns the roadmap-backed `fs/libfs.c` anchor through `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs_addressability.zig`, and the shared `zigux/tests/phase13_build.zig` route stay recorded as repo-reality gaps on current `master`
 - `devres` owns the currently readable DMA-boundary, planner, survey, and scatterlist helper packet through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay recorded as repo-reality gaps on current `master`
 - `landlock/ruleset` owns the ruleset ownership, slice, survey, and focused manifest-backed replay
 - `landlock/syscalls` owns the syscall governance, slice, survey, helper starter, and direct replay packet through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`, while the shared `zigux/tests/phase13_build.zig` route and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`
@@ -42,7 +42,7 @@ Keep these shared reminder surfaces aligned when broad Phase 13 wording changes:
 - `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
-The shared reminder packet is largely aligned on current `master`, but one broader scripts-root follow-through intentionally remains parked outside this lane step: `scripts/zigux/README.md` still needs to keep `zigux/tests/phase13_libfs_addressability.zig` and the shared `zigux/tests/phase13_build.zig` route explicit as repo-reality gaps beside the shipped `Documentation/zigux/phase13-libfs-slice.md` and `Documentation/zigux/phase13-libfs-survey.md` packet.
+The shared reminder packet is largely aligned on current `master`, but one broader scripts-root follow-through intentionally remains parked outside this lane step: `scripts/zigux/README.md` still needs to keep `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs_addressability.zig`, and the shared `zigux/tests/phase13_build.zig` route explicit as repo-reality gaps beside the shipped `Documentation/zigux/phase13-libfs-slice.md` packet.
 
 shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
@@ -62,7 +62,7 @@ do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zig
 
 This note does not widen Phase 13 into:
 
-- a direct filesystem parity claim beyond the roadmap-owned `libfs` anchor while its addressability and shared build-route companions still remain repo-reality gaps on current `master`
+- a direct filesystem parity claim beyond the roadmap-owned `libfs` anchor while its survey, addressability, and shared build-route companions still remain repo-reality gaps on current `master`
 - a separate shared replay step for notifier evidence
 - broader security policy ownership outside the landed Landlock notes
 - a claim that the Phase 13 packet is closed or frozen
