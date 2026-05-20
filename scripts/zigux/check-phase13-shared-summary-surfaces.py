@@ -62,6 +62,8 @@ REQUIRED_MARKERS = {
         "and keep validator-first, deeper `devres` replay, direct Landlock syscall replay, adjacent notifier-chain and notifier-header companions `zigux/helpers/notifier_chain_view.zig` and `include/zigux/notifier_abi.h`, and notifier-priority surfaces framed as repo-reality gaps until current `master` rematerializes them?",
     ],
     "scripts/zigux/README.md": [
+        "`Documentation/zigux/phase13-shared-summary-guard-gap.md`",
+        "`Documentation/zigux/phase13-notifier-summary-gap.md`",
         "keep `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned shared-summary and adjacent notifier evidence on current `master` instead of leaving them in the repo-reality-gap list",
         "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep the route names recorded as repo-reality gaps instead of promoting the returned file into a shipped shared build handle",
         "current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/helpers/notifier_chain_view.zig`, and `include/zigux/notifier_abi.h`, so treat those validator-first, build, helper, header, and notifier-route companions as repo-reality gaps rather than direct scripts-root evidence",
@@ -225,6 +227,38 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/review-checklist.md:keep adjacent notifier evidence explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`;",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        scripts_readme_path = tempdir / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                "`Documentation/zigux/phase13-shared-summary-guard-gap.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:scripts/zigux/README.md:`Documentation/zigux/phase13-shared-summary-guard-gap.md`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        scripts_readme_path = tempdir / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                "`Documentation/zigux/phase13-notifier-summary-gap.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:scripts/zigux/README.md:`Documentation/zigux/phase13-notifier-summary-gap.md`",
         )
         checks_run += 1
 
