@@ -43,7 +43,7 @@ The bridge packet now carries explicit review-only coverage for:
   * queue submission routing through `queue_work_on()` and `__queue_work()`
   * delayed-work timer expiry and delayed requeue governance
   * flush and drain color progression
-  * cancellation completion handoff through `__cancel_work_sync()`, `disable_work()`, and `__flush_work()``
+  * cancellation completion handoff through `__cancel_work_sync()`, `disable_work()`, and `__flush_work()`
   * rescuer mayday handoff
   * hotplug topology rebinding
   * scheduler-visible worker-state transitions around `wq_worker_running()` and `wq_worker_sleeping()`
