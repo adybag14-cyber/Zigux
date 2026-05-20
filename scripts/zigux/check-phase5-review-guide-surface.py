@@ -95,7 +95,7 @@ TESTS_ROOT_MARKERS = (
 
 LANE_SEQUENCING_MARKERS = (
     "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
-    "Keep shared contributor guidance honest about that mixed tree-visible-versus-authenticated-readback split instead of repeating older split-readback wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
+    "Keep shared contributor guidance honest about that mixed direct-versus-public-tree-backed split instead of repeating older kobject-reread-needed wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
 )
 
 SAMPLE_ROOT_MARKERS = (
@@ -232,7 +232,7 @@ def run_self_test() -> int:
         failures = collect_failures(missing_approved_marker_root)
         expected = [f"{APPROVED_IDIOM_PATH}:missing_text:{APPROVED_IDIOM_MARKERS[0]}"]
         if failures != expected:
-            raise AssertionError(f"unexpected approved-idiom failure: {failures}")
+            raise AssertionError(f"unexpected approved-idiom failure: {failures}") from exc
         checks_run += 1
 
         missing_review_checklist_marker_root = root / "missing_review_checklist_marker"
