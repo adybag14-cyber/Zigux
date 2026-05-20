@@ -5,6 +5,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
+- `PHASE12_LANE_KEY=P12-L16`
 - scope: Phase 12 roadmap comparison, shared survey truthfulness, the parked libbpf verify-shard plus snapshot companions, and the boundary between the still-present direct helper-first segment footing and the still-unadopted shared replay packet
 - product boundary:
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
