@@ -456,6 +456,7 @@ def run_self_test() -> int:
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`"),
+            (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution."),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (MATRIX_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`"),
@@ -486,7 +487,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=22")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=23")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
