@@ -204,6 +204,28 @@ pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, 
     return weightedXor(dst, src1, src2, nbits);
 }
 
+pub fn complement(dst: []Word, src: []const Word, nbits: usize) void {
+    assertBitmapLen(dst, nbits);
+    assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return;
+    }
+
+    const lim = nbits / bits_per_long;
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        dst[idx] = ~src[idx];
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        dst[idx] = ~src[idx] & lastWordMask(nbits);
+    }
+}
+
+pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
+    complement(dst, src, nbits);
+}
+
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
@@ -618,7 +640,7 @@ test "bitmap zero-bit logical helpers stay explicit" {
     try std.testing.expect(empty(lhs[0..0], 0));
     try std.testing.expect(full(lhs[0..0], 0));
     try std.testing.expectEqual(@as(usize, 0), weight(lhs[0..0], 0));
-    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(equal(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
 
@@ -763,10 +785,30 @@ test "bitmap weighted or and xor clamp counts to the declared tail window" {
     try std.testing.expectEqual(@as(usize, 2), weight(&direct_xor, nbits));
 }
 
+test "bitmap complement clamps partial tails and leaves zero-sized caller views untouched" {
+    const nbits = bits_per_long + 5;
+    const src = [_]Word{
+        0b1010,
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 7) | (@as(Word, 1) << 10),
+    };
+    var direct = [_]Word{ 0, 0 };
+    var alias = [_]Word{ 0, 0 };
+
+    complement(&direct, &src, nbits);
+    bitmap_complement(&alias, &src, nbits);
+    try std.testing.expectEqualSlices(Word, &direct, &alias);
+    try std.testing.expectEqual(~@as(Word, 0b1010), direct[0]);
+    try std.testing.expectEqual((~src[1]) & lastWordMask(nbits), direct[1]);
+
+    var zero_src = [_]Word{~@as(Word, 0)};
+    var zero_dst = [_]Word{0x1357};
+    bitmap_complement(zero_dst[0..0], zero_src[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0x1357), zero_dst[0]);
+}
+
 test "bitmap scnprintf collapses contiguous ranges" {
     var map = [_]Word{ 0, 0 };
     setRange(&map, 1, 3);
-    setRange(&map, 7, 1);
     setRange(&map, 10, 2);
 
     var buffer: [64]u8 = undefined;
