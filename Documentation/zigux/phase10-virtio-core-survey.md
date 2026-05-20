@@ -8,7 +8,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
 - surveyed packet commit recorded by the live core manifest: `c11221dc7a68d7511ae1c69d64b3f08528287ed8`
-- surveyed inspected `master` head: mixed readback on `2026-05-19` using direct connector reads for this note, public current-`master` blob readback for the restored core packet surfaces, and connector-visible `404` failures on some exact-path contents reads that remain unreliable in this environment
+- surveyed inspected `master` head: mixed readback on `2026-05-20` using direct connector reads for this note, public current-`master` blob readback that reconfirmed `Documentation/zigux/phase10-virtio-core-slice.md` and `zigux/tests/phase10_virtio_core_survey.zig` beside the restored core packet surfaces, and connector-visible `404` failures on some exact-path contents reads that remain unreliable in this environment
 - scope: compare the Phase 10 core lane's current repo-visible evidence against the roadmap's lab-driver target and the bootstrap ledger's tranche discipline, then keep this survey aligned with the current core packet without widening into ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `drivers/virtio/virtio.zig`
@@ -90,5 +90,5 @@ No attached-Zig replay was available in this run because there is still no writa
 
 Keep the follow-through inside the same core packet only:
 
-- keep future rereads explicit about the mixed-source readback requirement while `zigux/tests/phase10_virtio_core_manifest.json` and `zigux/tests/phase10_virtio_core_survey.zig` still `404` through direct contents reads from this environment, and only reopen a code or note edit if a fresh current-`master` reread finds one new same-packet drift
+- keep future rereads explicit about the mixed-source readback requirement while `zigux/tests/phase10_virtio_core_manifest.json` and `zigux/tests/phase10_virtio_core_survey.zig` still `404` through direct contents reads from this environment, and treat the next same-lane truthfulness follow-through as the shared Phase 10 tests-root wording that still phrases `Documentation/zigux/phase10-virtio-core-slice.md` as needing a future reread even though this run reconfirmed the public current-`master` fallback
 - if a writable checkout becomes available, rerun the narrowest honest replay with `zig build phase10-virtio-core-survey-tests --build-file zigux/tests/phase10_build.zig` before widening any further
