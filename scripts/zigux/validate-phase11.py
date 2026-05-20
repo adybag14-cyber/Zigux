@@ -464,7 +464,7 @@ def run_self_test() -> int:
             )
 
         build_sampleRepo = build_sample_repo
-        buildSampleRepo(root)
+        build_sampleRepo(root)
         build_fake_zig(
             fake_zig,
             fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
