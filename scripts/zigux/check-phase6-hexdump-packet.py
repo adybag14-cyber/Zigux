@@ -13,11 +13,14 @@ class ValidationError(RuntimeError):
 
 
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
+PERF_REFRESH_PATH = Path("Documentation/zigux/phase6-hexdump-perf-refresh.md")
 LIB_PATH = Path("lib/hexdump.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_hexdump.zig")
 PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 PERF_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
 FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 ROUTE_PATH = Path("scripts/zigux/check-phase6-hexdump-route.py")
@@ -39,6 +42,26 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-hexdump-test`",
         "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
         "- `make -C zigux phase6-hexdump-perf`",
+    ],
+    SLICE_PATH: [
+        "`PHASE6_STATUS=parked_reviewable`",
+        "`PHASE6_SLICE=hexdump-leaf-helper`",
+        "`Documentation/zigux/phase6-hexdump-perf-refresh.md`",
+        "`scripts/zigux/check-phase6-hexdump-packet.py`",
+        "`zigux/tests/phase6_build.zig`",
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
+        "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
+        "`zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet",
+        "`make -C zigux phase6-hexdump-review`",
+    ],
+    PERF_REFRESH_PATH: [
+        "# Phase 6 Hexdump Perf Refresh Evidence",
+        "* owner lane: `P6-Y09`",
+        "`Documentation/zigux/phase6-hexdump-slice.md` plus `scripts/zigux/check-phase6-hexdump-packet.py`",
+        "`16B-plain`: `max_slowdown_pct = 175` remained sufficient, with the successful replay recording `slowdown_pct = 139`",
+        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 518`",
+        "`zigux/tests/phase6_helper_parity_manifest.json` records the same helper-local hexdump replay and threshold cases",
+        "This note now serves as the bounded rationale for why the grouped ASCII formatter case keeps a higher ceiling than the plain formatter case",
     ],
     LIB_PATH: [
         'pub const hex_asc = "0123456789abcdef";',
@@ -89,6 +112,21 @@ REQUIRED_SNIPPETS = {
         '.name = "ascii rowsize-16 group-8 line length",',
         '.label = "16B-ascii-g8",',
     ],
+    MANIFEST_PATH: [
+        '"key": "hexdump"',
+        '"roadmap_anchor": "lib/hexdump.c"',
+        '"zig_helper": "lib/hexdump.zig"',
+        '"focused_helper_replay": "zigux/tests/phase6_hexdump.zig"',
+        '"dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig"',
+        '"perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig"',
+        '"Documentation/zigux/phase6-hexdump-slice.md"',
+        '"Documentation/zigux/phase6-hexdump-perf-refresh.md"',
+        '"label": "16B-plain-g1"',
+        '"label": "32B-ascii-g2"',
+        '"label": "16B-ascii-g4"',
+        '"label": "16B-ascii-g8"',
+        '"max_slowdown_pct": 600',
+    ],
     BUILD_PATH: [
         'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
         "hexdump_test_step.dependOn(&run_hexdump_tests.step);",
@@ -106,7 +144,7 @@ REQUIRED_SNIPPETS = {
         "phase6-hexdump-test:",
         "$(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
         "phase6-hexdump-perf:",
-        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
     ROUTE_PATH: [
         '"""Guard the current Phase 6 hexdump review route."""',
@@ -126,9 +164,24 @@ SELF_TEST_CASES = [
         "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-proof.py`",
     ),
     (
-        CATALOG_PATH,
-        "- `make -C zigux phase6-hexdump-review`",
-        "- `make -C zigux phase6-hexdump-proof`",
+        SLICE_PATH,
+        "`PHASE6_STATUS=parked_reviewable`",
+        "`PHASE6_STATUS=parked`",
+    ),
+    (
+        SLICE_PATH,
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
+        "the landed `hexAsc*` helper parity surface",
+    ),
+    (
+        PERF_REFRESH_PATH,
+        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 518`",
+        "`32B-ascii-g2`: the grouped ASCII formatter replay needed a wider ceiling, with the successful replay recording `slowdown_pct = 418`",
+    ),
+    (
+        PERF_REFRESH_PATH,
+        "This note now serves as the bounded rationale for why the grouped ASCII formatter case keeps a higher ceiling than the plain formatter case",
+        "This note now serves as bounded rationale for grouped ASCII ceilings",
     ),
     (
         LIB_PATH,
@@ -161,14 +214,19 @@ SELF_TEST_CASES = [
         '.name = "ascii rowsize-16 group-16 line length",',
     ),
     (
+        MANIFEST_PATH,
+        '"Documentation/zigux/phase6-hexdump-perf-refresh.md"',
+        '"Documentation/zigux/phase6-hexdump-perf-proof.md"',
+    ),
+    (
         BUILD_PATH,
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-profile", "Run Phase 6 hexdump helper perf gate");',
     ),
     (
         MAKEFILE_PATH,
-        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig --summary all",
-        "$(ZIG) build phase6-hexdump-profile --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "$(ZIG) build phase6-hexdump-profile --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ),
     (
         ROUTE_PATH,
