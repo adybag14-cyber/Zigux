@@ -20,6 +20,9 @@ REQUIRED_MARKERS = (
     "`scripts/zigux/check-phase1-bench.py`",
     "`scripts/zigux/check-phase1-shared-reminder-packet.py`",
     "`zigux/tests/README.md`",
+    "`zigux/tests/build.zig`",
+    "`zigux/tests/phase1_host_tools_smoke.zig`",
+    "`.github/workflows/zigux-bootstrap.yml`",
     "`zigux/tests/fixtures/phase1_helper_manifest.json`",
     "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "current closed-helper reminder packet",
@@ -36,22 +39,23 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def _line_containing(text: str, marker: str) -> str | None:
-    for line in text.splitlines():
-        if marker in line:
-            return line
-    return None
+def _lines_containing(text: str, marker: str) -> list[str]:
+    return [line for line in text.splitlines() if marker in line]
 
 
 def collect_failures(root: Path) -> list[str]:
     checklist = _read(root / REVIEW_CHECKLIST_PATH)
     failures: list[str] = []
 
-    phase1_line = _line_containing(checklist, PHASE1_PROMPT)
-    if phase1_line is None:
+    phase1_lines = _lines_containing(checklist, PHASE1_PROMPT)
+    if not phase1_lines:
         failures.append(f"phase1_prompt:missing:{PHASE1_PROMPT}")
         return failures
+    if len(phase1_lines) != 1:
+        failures.append(f"phase1_prompt:expected_once:actual={len(phase1_lines)}:{PHASE1_PROMPT}")
+        return failures
 
+    phase1_line = phase1_lines[0]
     for marker in REQUIRED_MARKERS:
         if marker not in phase1_line:
             failures.append(f"phase1_marker:missing:{marker}")
@@ -63,7 +67,7 @@ def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
 ## Validation
-  * if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?
+  * if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?
 """
 
 
@@ -85,6 +89,14 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected prompt failure: {failures}")
         case_count += 1
 
+        duplicate_prompt = _sample_review_checklist() + _sample_review_checklist()
+        _write(root / REVIEW_CHECKLIST_PATH, duplicate_prompt)
+        failures = collect_failures(root)
+        expected = [f"phase1_prompt:expected_once:actual=2:{PHASE1_PROMPT}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected duplicate prompt failure: {failures}")
+        case_count += 1
+
         _write(
             root / REVIEW_CHECKLIST_PATH,
             _sample_review_checklist().replace("`scripts/zigux/check-phase1-direct-owner-markers.py`", "", 1),
@@ -103,6 +115,36 @@ def run_self_test() -> int:
         expected = ["phase1_marker:missing:`scripts/zigux/check-phase1-shared-reminder-packet.py`"]
         if failures != expected:
             raise AssertionError(f"unexpected shared-reminder marker failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("`zigux/tests/build.zig`", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["phase1_marker:missing:`zigux/tests/build.zig`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected tests-build marker failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("`zigux/tests/phase1_host_tools_smoke.zig`", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["phase1_marker:missing:`zigux/tests/phase1_host_tools_smoke.zig`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected host-tools-smoke marker failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("`.github/workflows/zigux-bootstrap.yml`", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["phase1_marker:missing:`.github/workflows/zigux-bootstrap.yml`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected workflow marker failure: {failures}")
         case_count += 1
 
         _write(
