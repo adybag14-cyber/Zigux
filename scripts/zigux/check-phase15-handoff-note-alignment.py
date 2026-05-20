@@ -92,6 +92,10 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in handoff_note:
             failures.append(f"handoff note is missing pending-next-step marker: {marker}")
 
+    for marker in manifest["missing_route_markers"]:
+        if marker not in handoff_note:
+            failures.append(f"handoff note is missing missing-route marker: {marker}")
+
     for marker in REQUIRED_BOUNDARY_MARKERS:
         if marker not in handoff_note:
             failures.append(f"handoff note is missing boundary marker: {marker}")
@@ -193,6 +197,9 @@ def _sample_manifest() -> str:
                 "reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here",
                 "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves",
             ],
+            "missing_route_markers": [
+                "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+            ],
         },
         indent=2,
     ) + "\n"
@@ -247,6 +254,7 @@ The roadmap-required Phase 15 governance features are already materialized on cu
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
+- no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`
 
 These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.
 
@@ -478,6 +486,28 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-freeze-path failure: {failures}")
+
+        missing_route_marker_root = root / "missing_route_marker"
+        _write(
+            missing_route_marker_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`\n",
+                "",
+                1,
+            ),
+        )
+        _write(missing_route_marker_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_route_marker_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(missing_route_marker_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_route_marker_root)
+        expected = [
+            "handoff note is missing missing-route marker: no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-route-marker failure: {failures}")
 
         retired_gap_root = root / "retired_gap"
         _write(retired_gap_root / HANDOFF_NOTE_PATH, _sample_handoff_note() + "\n- no dedicated handoff-specific Zig replay is directly materialized on current `master`\n")
