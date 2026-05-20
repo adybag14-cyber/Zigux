@@ -77,3 +77,40 @@ test "runtime bitmap sample keeps top-bit lifecycle mutation explicit in the dir
     try std.testing.expect(!module.isSet(top_bit - 1));
     try std.testing.expectEqual(@as(u32, 1), try module.countSetBitsInRange(top_bit, 1));
 }
+
+test "runtime bitmap sample rejects exited top-bit source copies without disturbing the target sample leg" {
+    const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;
+
+    var exited_source = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try exited_source.initWithSetBits(&.{top_bit});
+    try exited_source.exit();
+
+    const exited_source_summary = exited_source.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.exited, exited_source.stage());
+    try std.testing.expectEqual(@as(u32, top_bit), exited_source_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), exited_source_summary.weight);
+
+    var target = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try target.initWithSetBits(&.{0});
+
+    const target_before = target.summary();
+    try std.testing.expectEqual(@as(u32, 0), target_before.first_set);
+    try std.testing.expectEqual(@as(u32, 1), target_before.weight);
+
+    try std.testing.expectError(error.InvalidSourceLifecycle, target.copyFrom(&exited_source));
+
+    const target_after = target.summary();
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, target.stage());
+    try std.testing.expectEqual(target_before.first_set, target_after.first_set);
+    try std.testing.expectEqual(target_before.first_zero, target_after.first_zero);
+    try std.testing.expectEqual(target_before.weight, target_after.weight);
+    try std.testing.expectEqual(target_before.nbits, target_after.nbits);
+    try std.testing.expectEqual(target_before.init_runs, target_after.init_runs);
+    try std.testing.expectEqual(target_before.selftest_runs, target_after.selftest_runs);
+    try std.testing.expectEqual(target_before.exit_runs, target_after.exit_runs);
+    try std.testing.expect(target.isSet(0));
+    try std.testing.expect(!target.isSet(top_bit));
+    try std.testing.expectEqual(@as(?u32, 0), target.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(1));
+    try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(0, 1));
+}
