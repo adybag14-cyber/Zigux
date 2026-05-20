@@ -33,6 +33,7 @@ EXPECTED_DIRECT_COMPANIONS = [
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
