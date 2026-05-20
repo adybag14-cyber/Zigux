@@ -15,6 +15,7 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - shared helper-evidence row:
   - `Documentation/zigux/phase6-helper-evidence-catalog.md`
   - `zigux/tests/phase6_helper_evidence_manifest.json`
+  - `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Why this slice exists
 
@@ -32,7 +33,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - local scratch validation in this run used a dedicated `zig build test` replay wired only to `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 2. keep the base64 slice note aligned with the shared helper-evidence packet
-- `Documentation/zigux/phase6-helper-evidence-catalog.md` and `zigux/tests/phase6_helper_evidence_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay, while the older direct C parity companions, including the missing `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` fixture companion, remain a fresh-read follow-up rather than current shipped direct evidence
+- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay, while the older direct C parity companions, including the missing `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` fixture companion, remain a fresh-read follow-up rather than current shipped direct evidence
 
 ## Current parity surface
 
