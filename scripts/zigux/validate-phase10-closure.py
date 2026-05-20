@@ -37,6 +37,11 @@ CLOSURE_DOC_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
     "fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`",
@@ -563,6 +568,12 @@ def run_self_test() -> int:
 
         closure_doc = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_doc = closure_doc.read_text(encoding="utf-8")
+        closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_missing.json", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_manifest.json", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "phase10-closure-self-test")
+        cases += 1
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_mmio_survey.zig", "zigux/tests/phase10_virtio_mmio_survey_missing.zig", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_mmio_survey.zig", "phase10-closure-self-test")
         cases += 1
