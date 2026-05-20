@@ -59,7 +59,7 @@ The current shared tests-root closure route is narrow on purpose:
 
 That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator keeps the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
 
-The current bootstrap workflow also replays the adjacent Phase 1 route-summary guard beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests and replays the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`.
+The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
 
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`
