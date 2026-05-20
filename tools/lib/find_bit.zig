@@ -899,3 +899,23 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
+
+test "clump8 alias no-op paths leave caller byte untouched" {
+    const empty = [_]Word{0};
+    var clump: u8 = 0x3c;
+
+    try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &empty, 0));
+    try std.testing.expectEqual(@as(u8, 0x3c), clump);
+
+    clump = 0x5a;
+    try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &empty, 0));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+
+    clump = 0x7e;
+    try std.testing.expectEqual(@as(usize, 8), find_next_clump8(&clump, &empty, 8, 8));
+    try std.testing.expectEqual(@as(u8, 0x7e), clump);
+
+    clump = 0x19;
+    try std.testing.expectEqual(@as(usize, 8), _find_next_clump8(&clump, &empty, 8, 12));
+    try std.testing.expectEqual(@as(u8, 0x19), clump);
+}
