@@ -494,6 +494,9 @@ jobs:
       - name: Run current Phase 11 HVC cleanup packet proof
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
 
+      - name: Run current Phase 11 HVC targetless-unregister gap witness
+        run: zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
+
       - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
