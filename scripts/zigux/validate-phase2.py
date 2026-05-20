@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 60
+EXPECTED_SELF_TEST_CASE_COUNT = 62
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -150,20 +150,30 @@ def collect_checker_inventory() -> tuple[list[Path], list[tuple[str, str]]]:
     return valid_checkers, issues
 
 
+def probe_required_file(path: Path) -> None:
+    with path.open("rb") as handle:
+        handle.read(0)
+
+
 def collect_required_path_issue(
     root: Path,
     path: Path,
     *,
     missing_code: str,
     non_file_code: str,
+    unreadable_code: str,
 ) -> list[tuple[str, str]]:
     resolved = resolve_path(root, path)
     rel_path = path.relative_to(ROOT).as_posix()
-    if resolved.is_file():
-        return []
-    if resolved.exists():
-        return [(non_file_code, rel_path)]
-    return [(missing_code, rel_path)]
+    if not resolved.is_file():
+        if resolved.exists():
+            return [(non_file_code, rel_path)]
+        return [(missing_code, rel_path)]
+    try:
+        probe_required_file(resolved)
+    except OSError:
+        return [(unreadable_code, rel_path)]
+    return []
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -221,6 +231,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 path,
                 missing_code="MISSING_REQUIRED_FILE",
                 non_file_code="REQUIRED_FILE_NOT_FILE",
+                unreadable_code="REQUIRED_FILE_UNREADABLE",
             )
         )
     for path in valid_checkers:
@@ -230,6 +241,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 path,
                 missing_code="MISSING_CHECKER",
                 non_file_code="CHECKER_NOT_FILE",
+                unreadable_code="CHECKER_UNREADABLE",
             )
         )
 
@@ -489,6 +501,33 @@ def run_self_test() -> int:
             assert ("CHECKER_NOT_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             non_file.rmdir()
             checks_run += 1
+
+        original_probe_required_file = globals()["probe_required_file"]
+        try:
+            build_self_test_root(root)
+
+            def fail_closure_doc_probe(path: Path) -> None:
+                if path == resolve_path(root, CLOSURE_DOC):
+                    raise OSError("simulated unreadable file")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_closure_doc_probe
+            assert ("REQUIRED_FILE_UNREADABLE", CLOSURE_DOC.relative_to(ROOT).as_posix()) in collect_issues(root)
+            checks_run += 1
+
+            build_self_test_root(root)
+
+            def fail_checker_probe(path: Path) -> None:
+                checker_path = resolve_path(root, CHECKERS[0])
+                if path == checker_path:
+                    raise OSError("simulated unreadable file")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_checker_probe
+            assert ("CHECKER_UNREADABLE", CHECKERS[0].relative_to(ROOT).as_posix()) in collect_issues(root)
+            checks_run += 1
+        finally:
+            globals()["probe_required_file"] = original_probe_required_file
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_VALIDATION_SELF_TEST=pass")
