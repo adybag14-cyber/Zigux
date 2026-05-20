@@ -94,6 +94,7 @@ REQUIRED_MARKERS = {
         'test "header-family binding keeps the bounded relay surface explicit" {',
         'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim encodes starter dev_t numbers without widening the boundary" {',
+        'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
     ),
     LAYOUT_BUILD_PATH: (
         'const header_family_binding = b.createModule(.{',
@@ -189,6 +190,11 @@ def run_self_test() -> int:
             LAYOUT_BUILD_PATH,
             'root_module.addImport("header_family_binding", header_family_binding);',
             "expected missing dedicated layout build header-family import marker was not reported",
+        ),
+        (
+            LAYOUT_TEST_PATH,
+            'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
+            "expected missing focused layout range replay marker was not reported",
         ),
         (
             EXPORT_SHIM_PATH,
