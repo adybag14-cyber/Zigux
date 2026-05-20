@@ -117,3 +117,48 @@ test "lane10 zero-shape replay keeps zero-capacity caller views inert and reusab
     try std.testing.expectEqualStrings("ok", buffer[0..reused_print]);
     try std.testing.expectEqual(@as(u8, 0), buffer[reused_print]);
 }
+
+test "lane10 zero-shape replay keeps single-byte caller views terminator-only and reusable" {
+    var buffer = [_]u8{0xaa} ** 32;
+
+    const tiny_unknown = str_error_r.strErrorR(4096, buffer[0..1]);
+    try std.testing.expectEqual(@as(usize, 0), tiny_unknown.len);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    for (buffer[1..]) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    buffer[0] = 0xaa;
+    const tiny_known = str_error_r.strErrorR(0, buffer[0..1]);
+    try std.testing.expectEqual(@as(usize, 0), tiny_known.len);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    for (buffer[1..]) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    buffer[0] = 0xaa;
+    const tiny_padded = vsprintf.scnprintfPad(buffer[0..1], 1, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), tiny_padded);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    for (buffer[1..]) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    buffer[0] = 0xaa;
+    const tiny_print = vsprintf.scnprintf(buffer[0..1], "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), tiny_print);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    for (buffer[1..]) |value| {
+        try std.testing.expectEqual(@as(u8, 0xaa), value);
+    }
+
+    const rendered_error = str_error_r.strErrorR(22, &buffer);
+    try std.testing.expectEqualStrings("Invalid argument", rendered_error);
+    try std.testing.expectEqual(@intFromPtr(&buffer[0]), @intFromPtr(rendered_error.ptr));
+    try std.testing.expectEqual(@as(u8, 0), buffer[rendered_error.len]);
+
+    const reused_print = vsprintf.vscnprintf(&buffer, "{s}", .{"ok"});
+    try std.testing.expectEqual(@as(usize, 2), reused_print);
+    try std.testing.expectEqualStrings("ok", buffer[0..reused_print]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[reused_print]);
+}
