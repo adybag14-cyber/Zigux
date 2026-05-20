@@ -15,6 +15,7 @@ RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is dir
 REQUIRED_BOUNDARY_MARKERS = (
     "keep the four freeze-in-C anchors parked",
     "keep the two roadmap study-only anchors parked",
+    "treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
     "do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged",
 )
 REQUIRED_FREEZE_IN_C_PATHS = (
@@ -237,6 +238,7 @@ def _sample_handoff_note() -> str:
 
 - keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
+- treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence
 - do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged
 
 ## Roadmap-backed open handoff gaps
@@ -281,6 +283,28 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+
+        missing_gap_boundary_root = root / "missing_gap_boundary"
+        _write(
+            missing_gap_boundary_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence\n",
+                "",
+                1,
+            ),
+        )
+        _write(missing_gap_boundary_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_gap_boundary_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(missing_gap_boundary_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_gap_boundary_root)
+        expected = [
+            "handoff note is missing boundary marker: treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-gap-boundary failure: {failures}")
 
         manifest_identity_drift_root = root / "manifest_identity_drift"
         _write(manifest_identity_drift_root / HANDOFF_NOTE_PATH, _sample_handoff_note())
