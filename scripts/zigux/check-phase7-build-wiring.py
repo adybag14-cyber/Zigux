@@ -2,29 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
+CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md")
+MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
-
-BUILD_MARKERS = [
-    '"../../lib/string_helpers.zig"',
-    '"../../lib/cmdline.zig"',
-    '"../../lib/argv_split.zig"',
-    '"../../lib/rbtree.zig"',
-    '"phase7-string-helpers-test"',
-    '"phase7-string-helpers-survey"',
-    '"phase7-string-helpers-sample-boundary"',
-    '"phase7-cmdline-test"',
-    '"phase7-cmdline-survey"',
-    '"phase7-argv-split-test"',
-    '"phase7-argv-split-survey"',
-    '"phase7-rbtree-test"',
-    '"phase7-rbtree-survey"',
-    'b.step("test", "Run Phase 7 runtime helper tests")',
-]
 
 MAKEFILE_MARKERS = [
     "phase7-validate:",
@@ -46,10 +32,22 @@ FORBIDDEN_MAKEFILE_MARKERS = [
     "phase7:",
 ]
 
-REQUIRED_FILES = (VALIDATOR_PATH, BUILD_PATH, MAKEFILE_PATH)
+CATALOG_REQUIRED_SNIPPETS = [
+    "## Current replay inventory",
+    "- `make -C zigux phase7-validate`",
+    "## Current repo-reality gaps",
+    "- `zigux/tests/phase7_build.zig`",
+]
+
+MANIFEST_REQUIRED_GAPS = [
+    "lib/rbtree.zig",
+    "zigux/tests/phase7_build.zig",
+]
+
+REQUIRED_FILES = (VALIDATOR_PATH, CATALOG_PATH, MANIFEST_PATH, MAKEFILE_PATH)
 REQUIRED_PRESENT_MARKERS = {
-    BUILD_PATH: BUILD_MARKERS,
     MAKEFILE_PATH: MAKEFILE_MARKERS,
+    CATALOG_PATH: CATALOG_REQUIRED_SNIPPETS,
 }
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: FORBIDDEN_MAKEFILE_MARKERS,
@@ -57,26 +55,36 @@ FORBIDDEN_MARKERS = {
 
 FIXTURE_TEXTS = {
     VALIDATOR_PATH: "#!/usr/bin/env python3\nprint('PHASE7_VALIDATE=pass')\n",
-    BUILD_PATH: "\n".join(
+    CATALOG_PATH: "\n".join(
         [
-            'const std = @import("std");',
-            'pub fn build(b: *std.Build) void {',
-            '    _ = b.step("phase7-string-helpers-test", "Run the Phase 7 string helpers tests");',
-            '    _ = b.step("phase7-string-helpers-survey", "Run the Phase 7 string helpers survey replay");',
-            '    _ = b.step("phase7-string-helpers-sample-boundary", "Run the Phase 7 string helpers sample-boundary replay");',
-            '    _ = b.step("phase7-cmdline-test", "Run the Phase 7 cmdline helper tests");',
-            '    _ = b.step("phase7-cmdline-survey", "Run the Phase 7 cmdline survey replay");',
-            '    _ = b.step("phase7-argv-split-test", "Run the Phase 7 argv split helper tests");',
-            '    _ = b.step("phase7-argv-split-survey", "Run the Phase 7 argv split survey replay");',
-            '    _ = b.step("phase7-rbtree-test", "Run the Phase 7 rbtree helper tests");',
-            '    _ = b.step("phase7-rbtree-survey", "Run the Phase 7 rbtree survey replay");',
-            '    _ = b.step("test", "Run Phase 7 runtime helper tests");',
-            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/string_helpers.zig") });',
-            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/cmdline.zig") });',
-            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/argv_split.zig") });',
-            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/rbtree.zig") });',
-            '}',
+            "- packet: `phase7-leaf-library-evidence`",
+            "- phase: `Phase 7`",
+            "- lane scope: shared leaf-library evidence rows and validation foothold only",
+            "",
+            "## Current replay inventory",
+            "- `make -C zigux phase7-validate`",
+            "",
+            "## Current repo-reality gaps",
+            "- `lib/rbtree.zig`",
+            "- `zigux/tests/phase7_build.zig`",
         ]
+    )
+    + "\n",
+    MANIFEST_PATH: json.dumps(
+        {
+            "packet": "phase7-leaf-library-evidence",
+            "phase": "Phase 7",
+            "lane_scope": "shared leaf-library evidence rows and validation foothold only",
+            "current_repo_reality_gaps": MANIFEST_REQUIRED_GAPS,
+            "current_replay_inventory": [
+                "python3 scripts/zigux/check-phase7-shared-surface.py",
+                "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
+                "python3 scripts/zigux/validate-phase7.py",
+                "python3 scripts/zigux/validate-phase7.py --self-test",
+                "make -C zigux phase7-validate",
+            ],
+        },
+        indent=2,
     )
     + "\n",
     MAKEFILE_PATH: "\n".join(
@@ -104,6 +112,14 @@ def _read_text(root: Path, rel: Path) -> str:
     return (root / rel).read_text(encoding="utf-8")
 
 
+def _read_manifest_gaps(root: Path) -> list[str]:
+    data = json.loads(_read_text(root, MANIFEST_PATH))
+    gaps = data.get("current_repo_reality_gaps")
+    if not isinstance(gaps, list):
+        raise ValueError("current_repo_reality_gaps missing")
+    return [item for item in gaps if isinstance(item, str)]
+
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files: list[str] = []
     missing_markers: list[str] = []
@@ -116,11 +132,23 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     if missing_files:
         return missing_files, missing_markers, unexpected_markers
 
+    if (root / BUILD_PATH).exists():
+        unexpected_markers.append(f"{BUILD_PATH}: unexpected rematerialized parked build file")
+
     for rel, markers in REQUIRED_PRESENT_MARKERS.items():
         text = _read_text(root, rel)
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{rel}: {marker}")
+
+    try:
+        manifest_gaps = _read_manifest_gaps(root)
+    except (json.JSONDecodeError, ValueError):
+        missing_markers.append(f"{MANIFEST_PATH}: current_repo_reality_gaps")
+    else:
+        for gap in MANIFEST_REQUIRED_GAPS:
+            if gap not in manifest_gaps:
+                missing_markers.append(f"{MANIFEST_PATH}: {gap}")
 
     for rel, markers in FORBIDDEN_MARKERS.items():
         text = _read_text(root, rel)
@@ -155,46 +183,10 @@ def run_self_test() -> None:
     missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
     marker_cases = [
         (
-            "missing_string_helpers_helper_path",
-            BUILD_PATH,
-            '"../../lib/string_helpers.zig"',
-            '"../../lib/string_helpers_missing.zig"',
-        ),
-        (
-            "missing_cmdline_helper_path",
-            BUILD_PATH,
-            '"../../lib/cmdline.zig"',
-            '"../../lib/cmdline_missing.zig"',
-        ),
-        (
-            "missing_argv_split_helper_path",
-            BUILD_PATH,
-            '"../../lib/argv_split.zig"',
-            '"../../lib/argv_split_missing.zig"',
-        ),
-        (
-            "missing_rbtree_helper_path",
-            BUILD_PATH,
-            '"../../lib/rbtree.zig"',
-            '"../../lib/rbtree_missing.zig"',
-        ),
-        (
-            "missing_cmdline_survey_marker",
-            BUILD_PATH,
-            '"phase7-cmdline-survey"',
-            '"phase7-cmdline-replay"',
-        ),
-        (
-            "missing_rbtree_test_marker",
-            BUILD_PATH,
-            '"phase7-rbtree-test"',
-            '"phase7-rbtree-replay"',
-        ),
-        (
-            "missing_bundle_test_marker",
-            BUILD_PATH,
-            'b.step("test", "Run Phase 7 runtime helper tests")',
-            'b.step("phase7", "Run Phase 7 runtime helper tests")',
+            "missing_catalog_build_gap_marker",
+            CATALOG_PATH,
+            "- `zigux/tests/phase7_build.zig`",
+            "- `zigux/tests/phase7_build_missing.zig`",
         ),
         (
             "missing_phase7_validate_route",
@@ -213,6 +205,12 @@ def run_self_test() -> None:
             MAKEFILE_PATH,
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
             "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py\n",
+        ),
+        (
+            "missing_manifest_build_gap",
+            MANIFEST_PATH,
+            "zigux/tests/phase7_build.zig",
+            "zigux/tests/phase7_build_missing.zig",
         ),
     ]
     unexpected_marker_cases = [
@@ -244,19 +242,29 @@ def run_self_test() -> None:
             assert validate(root) == ([], [], expected), case
             _write_fixture_root(root)
 
+        build_path = root / BUILD_PATH
+        build_path.parent.mkdir(parents=True, exist_ok=True)
+        build_path.write_text("const std = @import(\"std\");\n", encoding="utf-8")
+        assert validate(root) == (
+            [],
+            [],
+            [f"{BUILD_PATH}: unexpected rematerialized parked build file"],
+        ), "unexpected_build_file_returned"
+
     print("PHASE7_BUILD_WIRING=pass")
     print(
         "PHASE7_BUILD_WIRING_CASE_COUNT=%d"
-        % (len(missing_file_cases) + len(marker_cases) + len(unexpected_marker_cases))
+        % (len(missing_file_cases) + len(marker_cases) + len(unexpected_marker_cases) + 1)
     )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the shipped Phase 7 build graph keeps its helper dependency "
-            "paths in phase7_build.zig while Makefile wrappers stay bounded to "
-            "phase7-validate and broader shared test wrappers remain parked."
+            "Check that the shipped Phase 7 validation foothold stays aligned with "
+            "the current parked-build posture by keeping `phase7-validate` present, "
+            "helper-local wrapper routes absent, and the missing `phase7_build.zig` "
+            "path recorded as an explicit repo-reality gap."
         )
     )
     parser.add_argument(
@@ -299,11 +307,14 @@ def main() -> int:
     print(f"PHASE7_BUILD_WIRING_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE7_BUILD_WIRING_PRESENT_MARKER_COUNT=%d"
-        % sum(len(markers) for markers in REQUIRED_PRESENT_MARKERS.values())
+        % (
+            sum(len(markers) for markers in REQUIRED_PRESENT_MARKERS.values())
+            + len(MANIFEST_REQUIRED_GAPS)
+        )
     )
     print(
         "PHASE7_BUILD_WIRING_FORBIDDEN_MARKER_COUNT=%d"
-        % sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
+        % (sum(len(markers) for markers in FORBIDDEN_MARKERS.values()) + 1)
     )
     return 0
 
