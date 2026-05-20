@@ -10,6 +10,8 @@ The planner stays intentionally narrow:
 - records whether a successful planned coherent allocation retains detach-time cleanup ownership on success
 - turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`
 - records whether that planned coherent free consumes the retained release record and releases the allocation from devres
+- records that the planned coherent free destroys the release record before freeing the allocation
+- records whether a missing release record still frees the allocation while surfacing a warn-on-release-miss outcome
 - records whether a failed allocation frees the release record and avoids retaining detach-time cleanup ownership
 - records whether zero-sized requests free the release record and avoid retaining detach-time cleanup ownership
 - keeps `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, and `sg_*` lifecycle ownership out of scope
@@ -22,7 +24,7 @@ The helper packet now consists of:
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
 
 Fixture governance stays helper-local:
-- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, zero-sized-request, missing-release-record, and detach-cleanup fixture coverage for `planManagedReleaseRecordLifetime(...)`, `planManagedDmamAllocCoherent(...)`, and `planManagedDmamFreeCoherent(...)`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, zero-sized-request, missing-release-record, detach-cleanup, and warn-on-release-miss fixture coverage for `planManagedReleaseRecordLifetime(...)`, `planManagedDmamAllocCoherent(...)`, and `planManagedDmamFreeCoherent(...)`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper and planner replay
 - `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the release-record lifetime or detach-cleanup fixture for this planner packet
 
