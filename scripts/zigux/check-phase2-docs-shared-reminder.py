@@ -163,6 +163,7 @@ SCRIPTS_README_MARKERS = (
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "`scripts/zigux/validate-phase2-closure.py`",
