@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -12,6 +14,7 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
+COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
@@ -19,8 +22,11 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+    "Documentation/zigux/phase10-virtio-core-slice.md",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
+    "drivers/virtio/virtio.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
@@ -34,10 +40,32 @@ REQUIRED_PATHS = (
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
-    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
 )
+
+CORE_TRUE_SUMMARY_KEYS = (
+    "preexisting_phase10_build_present",
+    "preexisting_virtio_core_zig_present",
+    "preexisting_virtio_core_test_present",
+    "preexisting_virtio_core_slice_note_present",
+)
+
+CORE_FALSE_SUMMARY_KEYS = (
+    "preexisting_virtio_driver_id_zig_present",
+    "preexisting_virtio_driver_id_test_present",
+)
+
+CORE_EXPECTED_GAPS = {
+    "phase10-virtio-core-survey-note": "starter_landed",
+    "phase10-core-lab-validation-evidence": "starter_landed",
+    "phase10-core-dual-implementation-bridge": "blocked_on_risky_transport",
+    "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
+}
 
 
 @dataclass(frozen=True)
@@ -90,6 +118,92 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
         issues.append(f"{prefix}:stderr={stderr}")
 
 
+def read_text(root: Path, rel: str) -> str:
+    return (root / rel).read_text(encoding="utf-8")
+
+
+def collect_core_packet_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    try:
+        manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_core_manifest.json"))
+    except json.JSONDecodeError as exc:
+        return [f"phase10_core_packet:manifest_json:{exc.msg}"]
+
+    if manifest.get("lane_key") != "P10-L01":
+        issues.append("phase10_core_packet:manifest_lane_key")
+    if manifest.get("phase") != "Phase 10":
+        issues.append("phase10_core_packet:manifest_phase")
+    if manifest.get("anchor") != "drivers/virtio/virtio.c":
+        issues.append("phase10_core_packet:manifest_anchor")
+
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or COMMIT_RE.fullmatch(surveyed_commit) is None:
+        issues.append("phase10_core_packet:surveyed_commit_format")
+
+    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
+        issues.append("phase10_core_packet:roadmap_destinations")
+
+    summary = manifest.get("survey_summary", {})
+    for key in CORE_TRUE_SUMMARY_KEYS:
+        if summary.get(key) is not True:
+            issues.append(f"phase10_core_packet:summary:{key}")
+    for key in CORE_FALSE_SUMMARY_KEYS:
+        if summary.get(key) is not False:
+            issues.append(f"phase10_core_packet:summary:{key}")
+
+    gap_index = {
+        gap.get("id"): gap
+        for gap in manifest.get("gaps", [])
+        if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+    }
+    for gap_id, expected_status in CORE_EXPECTED_GAPS.items():
+        gap = gap_index.get(gap_id)
+        if gap is None:
+            issues.append(f"phase10_core_packet:gap_missing:{gap_id}")
+            continue
+        if gap.get("status") != expected_status:
+            issues.append(f"phase10_core_packet:gap_status:{gap_id}={gap.get('status')}")
+
+    survey_note = read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md")
+    for marker in (
+        "lane: `P10-L01`",
+        "phase10-core-lab-validation-evidence",
+        "phase10-core-probe-remove-lifecycle",
+        "scripts/zigux/validate-phase10.py",
+    ):
+        if marker not in survey_note:
+            issues.append(f"phase10_core_packet:survey_note:{marker}")
+    if isinstance(surveyed_commit, str) and COMMIT_RE.fullmatch(surveyed_commit) is not None and surveyed_commit not in survey_note:
+        issues.append("phase10_core_packet:survey_note:surveyed_commit_alignment")
+
+    slice_note = read_text(root, "Documentation/zigux/phase10-virtio-core-slice.md")
+    for marker in (
+        "phase10_virtio_core_manifest.json",
+        "phase10_virtio_core_survey.zig",
+        "scripts/zigux/validate-phase10.py",
+        "zigux/tests/phase10_build.zig",
+    ):
+        if marker not in slice_note:
+            issues.append(f"phase10_core_packet:slice_note:{marker}")
+
+    build_text = read_text(root, "zigux/tests/phase10_build.zig")
+    for marker in (
+        "phase10-virtio-core-tests",
+        "phase10-virtio-core-survey-tests",
+        "run_phase10_virtio_core_tests",
+        "run_phase10_virtio_core_survey_tests",
+    ):
+        if marker not in build_text:
+            issues.append(f"phase10_core_packet:build:{marker}")
+
+    makefile_text = read_text(root, "zigux/Makefile")
+    for marker in ("phase10-validate:", "phase10-test:", "phase10:"):
+        if marker not in makefile_text:
+            issues.append(f"phase10_core_packet:makefile:{marker}")
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -99,6 +213,8 @@ def collect_issues(root: Path) -> list[str]:
 
     if issues:
         return issues
+
+    issues.extend(collect_core_packet_issues(root))
 
     for spec in CHECKS:
         completed = run_command(command_for(spec, root), root)
@@ -122,6 +238,7 @@ def run_check(root: Path) -> int:
     print("PHASE10_VALIDATION=pass")
     print(f"PHASE10_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"PHASE10_VALIDATION_CHECK_COUNT={len(CHECKS)}")
+    print("PHASE10_VALIDATION_CORE_PACKET=pass")
     return 0
 
 
@@ -151,10 +268,65 @@ def build_stub_script(path: Path, *, exit_code: int = 0) -> None:
 
 
 def build_sample_repo(root: Path) -> None:
+    sample_manifest = {
+        "lane_key": "P10-L01",
+        "phase": "Phase 10",
+        "surveyed_commit": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+        "anchor": "drivers/virtio/virtio.c",
+        "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
+        "survey_summary": {
+            "preexisting_phase10_build_present": True,
+            "preexisting_virtio_core_zig_present": True,
+            "preexisting_virtio_core_test_present": True,
+            "preexisting_virtio_core_slice_note_present": True,
+            "preexisting_virtio_driver_id_zig_present": False,
+            "preexisting_virtio_driver_id_test_present": False,
+        },
+        "gaps": [
+            {"id": "phase10-virtio-core-survey-note", "status": "starter_landed"},
+            {"id": "phase10-core-lab-validation-evidence", "status": "starter_landed"},
+            {"id": "phase10-core-dual-implementation-bridge", "status": "blocked_on_risky_transport"},
+            {"id": "phase10-core-probe-remove-lifecycle", "status": "blocked_on_risky_transport"},
+        ],
+    }
+
+    sample_text = {
+        "Documentation/zigux/phase10-virtio-core-survey.md": (
+            "# Phase 10 Virtio Core Survey\n"
+            "- lane: `P10-L01`\n"
+            "- surveyed packet commit recorded by the live core manifest: c11221dc7a68d7511ae1c69d64b3f08528287ed8\n"
+            "- scripts/zigux/validate-phase10.py\n"
+            "- phase10-core-lab-validation-evidence\n"
+            "- phase10-core-probe-remove-lifecycle\n"
+        ),
+        "Documentation/zigux/phase10-virtio-core-slice.md": (
+            "# Phase 10 Virtio Core Slice\n"
+            "- phase10_virtio_core_manifest.json\n"
+            "- phase10_virtio_core_survey.zig\n"
+            "- scripts/zigux/validate-phase10.py\n"
+            "- zigux/tests/phase10_build.zig\n"
+        ),
+        "drivers/virtio/virtio.zig": "pub const anchor_path = \"drivers/virtio/virtio.c\";\n",
+        "zigux/Makefile": "phase10-validate:\n\t@true\n\nphase10-test:\n\t@true\n\nphase10:\n\t@true\n",
+        "zigux/tests/phase10_build.zig": (
+            "const run_phase10_virtio_core_tests = 1;\n"
+            "const run_phase10_virtio_core_survey_tests = 1;\n"
+            "const names = .{\"phase10-virtio-core-tests\", \"phase10-virtio-core-survey-tests\"};\n"
+        ),
+        "zigux/tests/phase10_virtio_core.zig": "test \"sample\" {}\n",
+        "zigux/tests/phase10_virtio_core_survey.zig": "test \"sample survey\" {}\n",
+    }
+
     for rel in REQUIRED_PATHS:
         path = root / rel
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
+            continue
+        if rel == "zigux/tests/phase10_virtio_core_manifest.json":
+            write_text(path, json.dumps(sample_manifest, indent=2) + "\n")
+            continue
+        if rel in sample_text:
+            write_text(path, sample_text[rel])
             continue
         write_text(path, f"sample:{rel}\n")
 
@@ -192,8 +364,46 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit"] = "master"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:surveyed_commit_format" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:surveyed_commit_format_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
+        survey_text = survey_path.read_text(encoding="utf-8").replace(
+            "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            1,
+        )
+        survey_path.write_text(survey_text, encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:survey_note:surveyed_commit_alignment" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:surveyed_commit_alignment_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_path = root / "zigux/tests/phase10_build.zig"
+        build_path.writeText = build_path.write_text
+        build_path.write_text("const only_core = 1;\n", encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:build:phase10-virtio-core-survey-tests" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:core_build_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=3")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
