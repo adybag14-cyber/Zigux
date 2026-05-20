@@ -2,6 +2,8 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_dmam_alloc_coherent_planning: bool,
+    provides_release_record_lifetime_planning: bool,
+    provides_dmam_free_coherent_cleanup_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
 };
@@ -83,6 +85,8 @@ pub const DevresHelperLab = struct {
             .name = "devres_helper_lab",
             .anchor = "lib/devres.c",
             .provides_dmam_alloc_coherent_planning = true,
+            .provides_release_record_lifetime_planning = true,
+            .provides_dmam_free_coherent_cleanup_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
         };
@@ -126,6 +130,8 @@ test "descriptor stays helper-local" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_dmam_alloc_coherent_planning);
+    try std.testing.expect(descriptor.provides_release_record_lifetime_planning);
+    try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
