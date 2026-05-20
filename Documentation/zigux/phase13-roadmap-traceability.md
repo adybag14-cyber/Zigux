@@ -1,6 +1,6 @@
 # Phase 13 Roadmap Traceability
 
-This note keeps the roadmap-to-repo owner map truthful for the active Phase 13 shared-helper packet on current `master`.
+This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.
 
 It is a traceability document only. It does not create a new helper lane, a new replay route, or a tranche-closure claim.
 
