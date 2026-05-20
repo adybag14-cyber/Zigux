@@ -166,6 +166,23 @@ pub const ReinitBoundaryReplay = struct {
     second_replay_final_sequence: [fifo_capacity]u8,
 };
 
+pub const PartialEnqueueReplay = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    queue_len_before_extra: usize,
+    available_before_extra: usize,
+    requested_extra_len: usize,
+    copied_extra_len: usize,
+    dropped_extra_len: usize,
+    queue_len_after_extra: usize,
+    available_after_extra: usize,
+    visible_span_after_extra: VisibleSpanSummary,
+    writable_span_after_extra: WritableSpanSummary,
+    occupancy_after_extra: OccupancySummary,
+    snapshot_len: usize,
+    snapshot_after_extra: [fifo_capacity]u8,
+};
+
 pub const sample_review_focus = [_]SampleFocus{
     .bounded_fifo_order,
     .wraparound_requeue,
@@ -554,6 +571,41 @@ pub const BytestreamFifoSample = struct {
         };
     }
 
+    pub fn runPartialEnqueueBoundaryReplay(self: *BytestreamFifoSample) !PartialEnqueueReplay {
+        if (self.sample_stage != .initialized) return error.InvalidLifecycleTransition;
+        const stage_before = self.sample_stage;
+        self.reset();
+
+        var fill: u8 = 0;
+        while (fill < 30) : (fill += 1) {
+            _ = self.pushByte(fill);
+        }
+        const queue_len_before_extra = self.len;
+        const available_before_extra = self.available();
+        const extra_values = [_]u8{ 30, 31, 32, 33 };
+        const copied_extra_len = self.enqueueSlice(extra_values[0..]);
+
+        var snapshot: [fifo_capacity]u8 = [_]u8{0} ** fifo_capacity;
+        const snapshot_len = self.snapshotInto(snapshot[0..]);
+
+        return .{
+            .stage_before_replay = stage_before,
+            .stage_after_replay = self.sample_stage,
+            .queue_len_before_extra = queue_len_before_extra,
+            .available_before_extra = available_before_extra,
+            .requested_extra_len = extra_values.len,
+            .copied_extra_len = copied_extra_len,
+            .dropped_extra_len = extra_values.len - copied_extra_len,
+            .queue_len_after_extra = self.len,
+            .available_after_extra = self.available(),
+            .visible_span_after_extra = self.visibleSpanSummary(),
+            .writable_span_after_extra = self.writableSpanSummary(),
+            .occupancy_after_extra = self.occupancySummary(),
+            .snapshot_len = snapshot_len,
+            .snapshot_after_extra = snapshot,
+        };
+    }
+
     pub fn runAnchorReplay(self: *BytestreamFifoSample) !ReplaySummary {
         if (self.sample_stage != .initialized) return error.InvalidLifecycleTransition;
         self.reset();
@@ -748,6 +800,7 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
     try std.testing.expectEqual(@as(?u8, null), sample.skipByte());
     try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPartialEnqueueBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
     const cold_occupancy = sample.occupancySummary();
     try std.testing.expectEqual(@as(usize, 0), cold_occupancy.queue_len);
@@ -802,6 +855,41 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(@as(usize, 8), partial_drain_writable.first_window_len);
     try std.testing.expectEqual(@as(usize, 0), partial_drain_writable.second_window_len);
     try std.testing.expect(!partial_drain_writable.wraps);
+
+    const partial_enqueue = try sample.runPartialEnqueueBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_after_replay);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_len_before_extra);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.available_before_extra);
+    try std.testing.expectEqual(@as(usize, 4), partial_enqueue.requested_extra_len);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.copied_extra_len);
+    try std.testing.expectEqual(@as(usize, 2), partial_enqueue.dropped_extra_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.queue_len_after_extra);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.available_after_extra);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.snapshot_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.head_index);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.tail_index);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.visible_span_after_extra.total_visible);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.visible_span_after_extra.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.visible_span_after_extra.second_window_len);
+    try std.testing.expect(!partial_enqueue.visible_span_after_extra.wraps);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.writable_count);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.writable_span_after_extra.second_window_len);
+    try std.testing.expect(!partial_enqueue.writable_span_after_extra.wraps);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.occupancy_after_extra.queue_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue.occupancy_after_extra.used);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue.occupancy_after_extra.available);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.empty);
+    try std.testing.expect(partial_enqueue.occupancy_after_extra.full);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.wrapped);
+    try std.testing.expect(!partial_enqueue.occupancy_after_extra.wrapped_window);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3, 4, 5, 6, 7 }, partial_enqueue.snapshot_after_extra[0..8]);
+    try std.testing.expectEqualSlices(u8, &.{ 24, 25, 26, 27, 28, 29, 30, 31 }, partial_enqueue.snapshot_after_extra[24..32]);
+    try std.testing.expectEqual(@as(?u8, 0), sample.peekByte());
+    try std.testing.expect(!sample.pushByte(255));
 
     sample.reset();
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
