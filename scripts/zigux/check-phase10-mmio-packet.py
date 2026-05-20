@@ -131,6 +131,7 @@ VERIFY_MARKERS = [
     "pub fn hasFreshConfigWritePlan(summary: ConfigWritePlanFreshnessSummary) bool {",
     'test "phase10 virtio mmio verify keeps probe wrapper transitions explicit" {',
     'test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {',
+    'test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {',
     'test "phase10 virtio mmio verify keeps config-write plan freshness below config application" {',
     'test "phase10 virtio mmio verify keeps interrupt-ack disposition below IRQ-delivery claims" {',
     'test "phase10 virtio mmio verify counts changed config bytes without mutating staged data" {',
@@ -154,7 +155,7 @@ SURVEY_GATE_MARKERS = [
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(build_file, "phase10_virtio_mmio_survey_module");',
-    'try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");',
+    'try expectContains(build_file, "\\"phase10-virtio-mmio-survey-tests\\"");',
     'try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");',
     'test "phase10 virtio mmio survey note keeps risky transport work blocked" {',
     'try expectContains(survey_note, "transport-backed queue setup or queue reset execution");',
@@ -270,6 +271,7 @@ def run_self_test() -> int:
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub fn interruptAckDispositionSummary(", "pub fn interruptAckDispositionMissing(", "helper:pub fn interruptAckDispositionSummary(")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeConfigWritePlanFreshness(device: *const virtio_mmio.VirtioMmioLab) ConfigWritePlanFreshnessSummary {", "pub fn summarizeConfigWritePlanFreshnessMissing(device: *const virtio_mmio.VirtioMmioLab) ConfigWritePlanFreshnessSummary {", "verify_helper:pub fn summarizeConfigWritePlanFreshness(device: *const virtio_mmio.VirtioMmioLab) ConfigWritePlanFreshnessSummary {")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeInterruptAckDisposition(", "pub fn summarizeInterruptAckMissing(", "verify_helper:pub fn summarizeInterruptAckDisposition(")
+        expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", 'test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {', 'test "phase10 virtio mmio verify keeps feature negotiation drift" {', 'verify_helper:test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {', 'test "phase10 virtio mmio config-generation drift" {', 'helper_tests:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write plan drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {')
@@ -280,7 +282,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
