@@ -59,7 +59,7 @@ Keep the current lane split explicit:
   `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
   `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
-  `scripts/zigux/README.md`, and `zigux/tests/README.md`
+  `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/Makefile`
 - shared header-boundary follow-through stays adjacent to
   `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`; do not
   fold that public-surface packet into the HVC archival lane or into
@@ -84,6 +84,7 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -102,6 +103,11 @@ Authenticated contents reads still clip
 fallback rereads rematerialized both driver-local matrix notes, so keep all
 four driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
+
+Current rereads in this run also keep `zigux/Makefile` and the returned
+`make -C zigux phase11-validate` route explicit as the shared build gate for the
+broader contributor-facing reminder family, while `make -C zigux phase11` and
+`make -C zigux phase11-contract` still remain missing on current `master`.
 
 Keep the returned gpio, bcm2835, and DesignWare validation matrices explicit as
 shared matrix-boundary evidence while preserving bcm2835 and DesignWare deeper
@@ -163,9 +169,10 @@ Use this note to keep the bounded work order honest:
 7. When contributor-facing summaries reopen, keep them aligned with the
    returned four-matrix shared packet, the narrower HVC current-head continuity
    packet plus its cleanup companion, current-head checker, shared build
-   inventory, and proof-backed adjunct stack instead of reviving broader bcm2835
-   or DesignWare owner-packet claims, shared-contract surfaces, or overstating
-   the HVC archival stack.
+   inventory, proof-backed adjunct stack, and the returned `zigux/Makefile`
+   surface plus `make -C zigux phase11-validate` build gate instead of reviving
+   broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
+   or overstating the HVC archival stack.
 8. Keep the next bounded shared follow-through inside the smallest
    reminder-surface truthfulness repair unless a later reread restores or
    removes another Phase 11 packet surface.
