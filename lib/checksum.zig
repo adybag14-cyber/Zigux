@@ -111,14 +111,20 @@ pub fn ipComputeCsum(bytes: []const u8) u16 {
     return compute(bytes);
 }
 
-pub fn ipFastCsum(header: []const u8) u16 {
+pub fn ipFastCsumIhl(header: []const u8, ihl_words: usize) u16 {
     std.debug.assert((header.len & 3) == 0);
+    std.debug.assert(header.len == ihl_words * 4);
     var sum: u64 = 0;
     var index: usize = 0;
     while (index < header.len) : (index += 4) {
         sum += readBigEndianU32(header[index .. index + 4]);
     }
     return fold(normalizeWide(sum));
+}
+
+pub fn ipFastCsum(header: []const u8) u16 {
+    std.debug.assert((header.len & 3) == 0);
+    return ipFastCsumIhl(header, header.len >> 2);
 }
 
 fn normalize(sum: u32) u32 {
@@ -499,5 +505,9 @@ test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
         .{ .name = "header with maximum IPv4 IHL stays on the aligned fast path", .header = &max_ihl_ipv4 },
     };
 
-    for (headers) |case| try std.testing.expectEqual(compute(case.header), ipFastCsum(case.header));
+    for (headers) |case| {
+        const ihl_words: usize = case.header[0] & 0x0f;
+        try std.testing.expectEqual(compute(case.header), ipFastCsum(case.header));
+        try std.testing.expectEqual(ipFastCsum(case.header), ipFastCsumIhl(case.header, ihl_words));
+    }
 }
