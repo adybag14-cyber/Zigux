@@ -202,6 +202,7 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(direct_anchor_note, "`scripts/zigux/validate-phase7.py`");
     try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig`");
     try expectContains(direct_anchor_note, "`zigux/Makefile`");
+    try expectContains(direct_anchor_note, "`.github/workflows/zigux-bootstrap.yml`");
     try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.");
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion or roadmap-path surfaces:");
     try expectContains(direct_anchor_note, "`lib/rbtree.zig`");
@@ -209,7 +210,9 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(direct_anchor_note, "`zigux/Makefile` now returns shared `phase7-validate`");
     try expectContains(direct_anchor_note, "`phase7-rbtree-test:`");
-    try expectContains(direct_anchor_note, "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, and the directly readable shared build and validator evidence");
+    try expectContains(direct_anchor_note, "still lacks dedicated Phase 7 runtime-helper steps");
+    try expectContains(direct_anchor_note, "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper");
+    try expectContains(direct_anchor_note, "shared build, validator, and workflow evidence");
     try expectContains(direct_anchor_note, "`string_helpers` remains the Phase 7 fully landed sibling packet");
     try expectContains(direct_anchor_note, "`cmdline` and `argv_split` keep their own helper-local packet ownership");
     try expectContains(direct_anchor_note, "Do not widen this note into dedicated make-wrapper or workflow-recovery claims until a fresh same-lane reread proves one more concrete rbtree companion surface");
