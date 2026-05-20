@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 string helper review packet against helper, manifest, and lane-note drift."""
+"""Guard the Phase 1 string helper review packet against helper, manifest, fixture, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 STRING_HELPER_REL = Path("tools/lib/string.zig")
 STRING_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+STRING_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 STRING_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
 EXPECTED_STRING_SOURCE_SYMBOLS = [
@@ -244,6 +245,25 @@ EXPECTED_STRING_PACKET = {
     ),
 }
 
+EXPECTED_STRING_FIXTURE_VALUES = {
+    "strtobool_y": True,
+    "strtobool_on": True,
+    "strtobool_zero": False,
+    "strtobool_off": False,
+    "strtobool_invalid": 184,
+    "strlcpy_len": 5,
+    "strlcpy_buffer": "hel",
+    "skip_spaces": "hello",
+    "trim_spaces": "hi",
+    "remove_spaces": "abc",
+    "replace_char": "a_b",
+    "replace_char_end": 3,
+    "replace_char_cstr_end": 2,
+    "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+    "memchr_inv_index": 4,
+    "memchr_inv_none": True,
+}
+
 EXPECTED_STRING_LANE_MARKERS = [
     (
         "lane_direct_owner",
@@ -316,7 +336,12 @@ def iter_anchor_strings(expected: object) -> list[str]:
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
-    for relative_path in (STRING_HELPER_REL, STRING_MANIFEST_REL, STRING_LANE_NOTE_REL):
+    for relative_path in (
+        STRING_HELPER_REL,
+        STRING_MANIFEST_REL,
+        STRING_FIXTURE_REL,
+        STRING_LANE_NOTE_REL,
+    ):
         if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
@@ -325,8 +350,11 @@ def collect_failures(root: Path) -> list[str]:
     helper_text = load_text(root, STRING_HELPER_REL)
     lane_text = load_text(root, STRING_LANE_NOTE_REL)
     manifest = load_json(root, STRING_MANIFEST_REL)
+    fixture = load_json(root, STRING_FIXTURE_REL)
     if not isinstance(manifest, dict):
         return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+    if not isinstance(fixture, dict):
+        return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
 
     for symbol in EXPECTED_STRING_SOURCE_SYMBOLS:
         failures.extend(
@@ -378,6 +406,18 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
+    string_fixture = fixture.get("string")
+    if not isinstance(string_fixture, dict):
+        return ["string_fixture:expected=dict:actual=missing"]
+    for key, expected in EXPECTED_STRING_FIXTURE_VALUES.items():
+        failures.extend(
+            require_exact_value(
+                f"string_fixture:{key}",
+                string_fixture.get(key),
+                expected,
+            )
+        )
+
     return failures
 
 
@@ -399,6 +439,10 @@ def sample_manifest() -> str:
         )
         + "\n"
     )
+
+
+def sample_fixture() -> str:
+    return json.dumps({"string": EXPECTED_STRING_FIXTURE_VALUES}, indent=2) + "\n"
 
 
 def sample_lane_note() -> str:
@@ -426,22 +470,27 @@ def build_sample_repo(root: Path) -> None:
         "\n".join(helper_lines) + "\n",
     )
     write_file(root, STRING_MANIFEST_REL, sample_manifest())
+    write_file(root, STRING_FIXTURE_REL, sample_fixture())
     write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
 
 
-def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
-    manifest_path = root / STRING_MANIFEST_REL
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    current = manifest
+def mutate_json_path(root: Path, relative_path: Path, path: tuple[str, ...]) -> None:
+    json_path = root / relative_path
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    current = data
     for key in path[:-1]:
         current = current[key]
     final_key = path[-1]
     value = current[final_key]
     if isinstance(value, list):
         current[final_key] = value[1:]
+    elif isinstance(value, bool):
+        current[final_key] = not value
+    elif isinstance(value, int):
+        current[final_key] = value + 1
     else:
         current[final_key] = f"{value} drift"
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    json_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -493,7 +542,16 @@ def run_self_test() -> int:
         )
         for key in EXPECTED_STRING_PACKET
     )
+    mutation_specs.extend(
+        (
+            f"fixture_{key}",
+            ("fixture", ("string", key)),
+            "fixture",
+        )
+        for key in EXPECTED_STRING_FIXTURE_VALUES
+    )
     mutation_specs.append(("manifest_missing_file", ("missing_file", STRING_MANIFEST_REL), "missing_file"))
+    mutation_specs.append(("fixture_missing_file", ("missing_file", STRING_FIXTURE_REL), "missing_file"))
     mutation_specs.append(("lane_note_missing_file", ("missing_file", STRING_LANE_NOTE_REL), "missing_file"))
 
     for name, target, kind in mutation_specs:
@@ -539,7 +597,9 @@ def run_self_test() -> int:
                     text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
                 path.write_text(text, encoding="utf-8")
             elif isinstance(target, tuple) and target[0] == "manifest":
-                mutate_manifest(root, target[1])
+                mutate_json_path(root, STRING_MANIFEST_REL, target[1])
+            elif isinstance(target, tuple) and target[0] == "fixture":
+                mutate_json_path(root, STRING_FIXTURE_REL, target[1])
             else:
                 (root / target[1]).unlink()
 
