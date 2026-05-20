@@ -82,14 +82,18 @@ HEADER_FAMILY_NOTE_GAP_MARKER = (
 HEADER_FAMILY_NEXT_STEP_GAP_MARKER = (
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
 )
-HEADER_FAMILY_REMINDER_MARKER = (
-    "Phase 3 header-family reminder - "
-    "`scripts/zigux/validate-phase3-abi-header-family-survey.py`, "
-    "`Documentation/zigux/phase3-abi-header-family-survey.md`, and "
-    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` still return missing on current "
-    "`master`, while `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` "
-    "remain the directly readable header-family anchors that keep the starter packet reviewable "
-    "from the scripts root"
+HEADER_FAMILY_RETURNED_SURFACES_MARKER = (
+    "`scripts/zigux/validate-phase3-abi-header-family-survey.py` and "
+    "`Documentation/zigux/phase3-abi-header-family-survey.md` are directly readable on current "
+    "`master`, so keep the bounded header-family survey follow-through explicit beside the "
+    "export/UAPI layout replay and shared ABI inventory instead of leaving those two surfaces "
+    "in repo-reality-gap wording"
+)
+HEADER_FAMILY_NEXT_STEP_REMINDER_MARKER = (
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` still returns missing on current "
+    "`master`, so keep the broader header-family next-step follow-through framed as the "
+    "remaining same-family gap rather than implying that the shipped survey follow-through is "
+    "still missing"
 )
 
 REQUIRED_FILES = (
@@ -215,7 +219,8 @@ REQUIRED_MARKERS = (
     HEADER_FAMILY_VALIDATOR_GAP_MARKER,
     HEADER_FAMILY_NOTE_GAP_MARKER,
     HEADER_FAMILY_NEXT_STEP_GAP_MARKER,
-    HEADER_FAMILY_REMINDER_MARKER,
+    HEADER_FAMILY_RETURNED_SURFACES_MARKER,
+    HEADER_FAMILY_NEXT_STEP_REMINDER_MARKER,
 )
 
 README_MARKER_CASES = (
@@ -272,8 +277,12 @@ README_MARKER_CASES = (
         "expected missing header-family next-step gap README marker was not reported",
     ),
     (
-        HEADER_FAMILY_REMINDER_MARKER,
-        "expected missing header-family reminder README marker was not reported",
+        HEADER_FAMILY_RETURNED_SURFACES_MARKER,
+        "expected missing header-family returned-surfaces README marker was not reported",
+    ),
+    (
+        HEADER_FAMILY_NEXT_STEP_REMINDER_MARKER,
+        "expected missing header-family next-step reminder README marker was not reported",
     ),
 )
 
