@@ -69,6 +69,10 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "Linux-style aliases mirror the primary find helpers, including andnot"',
 ]
 
+EXPECTED_SOURCE_ONLY_ANCHORS = [
+    'test "clump8 past-end scans return without reading bitmap words"',
+]
+
 EXPECTED_LANE_LINES = [
     "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`",
     "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
@@ -176,6 +180,11 @@ def collect_failures(root: Path) -> list[str]:
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
         failures.extend(require_exact_occurrence(helper_text, f"helper_anchor:{anchor}", anchor))
 
+    for anchor in EXPECTED_SOURCE_ONLY_ANCHORS:
+        failures.extend(
+            require_exact_occurrence(helper_text, f"helper_source_only_anchor:{anchor}", anchor)
+        )
+
     for lane_line in EXPECTED_LANE_LINES:
         failures.extend(require_exact_occurrence(lane_text, f"lane_line:{lane_line}", lane_line))
     failures.extend(require_exact_occurrence(lane_text, "lane_paragraph", EXPECTED_LANE_PARAGRAPH))
@@ -206,7 +215,7 @@ def write_text(root: Path, relative_path: Path, text: str) -> None:
 
 
 def build_sample_repo(root: Path) -> None:
-    helper_lines = EXPECTED_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS
+    helper_lines = EXPECTED_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS + EXPECTED_SOURCE_ONLY_ANCHORS
     write_text(root, HELPER_REL, "\n".join(helper_lines) + "\n")
     write_text(
         root,
