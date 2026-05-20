@@ -152,6 +152,73 @@ EXPECTED_RBTREE_REVIEW_ANCHORS = {
     "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; the ordered Linux-style alias proof, dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors until another committed cached-root field lands.",
 }
 
+EXPECTED_FIND_BIT_REVIEW_ANCHORS = {
+    "helper_test_anchors": [
+        'test "find first and next set bits across words, with andnot gaps explicit"',
+        'test "find zero bits respects the declared bit count"',
+        'test "find and bit returns the first shared set bit"',
+        'test "underscore entry points reuse the public helper behavior"',
+        'test "single-word next scans honor start masks"',
+        'test "single-word first scans clamp to the declared bit window"',
+        'test "single-word next scans clamp partial windows before returning nbits"',
+        'test "word-boundary next scans start fresh on the next word"',
+        'test "zero-bit windows return without reading bitmap words"',
+        'test "zero-sized scans ignore populated backing words"',
+        'test "next scans past nbits return without reading bitmap words"',
+        'test "tail mask ignores set bits beyond nbits"',
+        'test "tail mask ignores zero bits beyond nbits"',
+        'test "tail mask ignores shared bits beyond nbits"',
+        'test "tail-word next set scans skip earlier in-range matches before clamping"',
+        'test "clump8 scans align to the containing byte and return its value"',
+        'test "clump8 scans keep tail bytes reachable from partial final words"',
+        'test "clump8 scans mask tail bits beyond nbits"',
+        'test "clump8 scans leave the caller byte untouched when no set bit remains"',
+        'test "clump8 zero-bit and past-end windows leave the caller byte untouched"',
+        'test "getValue8 reads aligned bytes from bitmap words"',
+        'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        'test "find last bit scans backward across words"',
+        'test "find last bit ignores storage beyond an exact word boundary"',
+        'test "find last bit clamps tail words to nbits"',
+        'test "find last bit returns nbits when no set bits remain"',
+        'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+        'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+        'test "Linux-style aliases mirror the primary find helpers, including andnot"',
+    ],
+    "same_word_start_masks": 'test "single-word next scans honor start masks"',
+    "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
+    "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
+    "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
+    "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers, including andnot"',
+    "andnot_scan_entrypoints": [
+        "findFirstAndNotBit",
+        "find_first_andnot_bit",
+        "_find_first_andnot_bit",
+        "findNextAndNotBit",
+        "find_next_andnot_bit",
+        "_find_next_andnot_bit",
+    ],
+    "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
+    "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
+    "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+    "tail_clamp_fixture_keys": [
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last",
+    ],
+    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
+    "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families.",
+}
+
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -301,6 +368,13 @@ def collect_failures(root: Path) -> list[str]:
 
     failures.extend(
         require_expected_mapping(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig",
+            review_anchors.get("tools/lib/find_bit.zig"),
+            EXPECTED_FIND_BIT_REVIEW_ANCHORS,
+        )
+    )
+    failures.extend(
+        require_expected_mapping(
             f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig",
             review_anchors.get("tools/lib/rbtree.zig"),
             EXPECTED_RBTREE_REVIEW_ANCHORS,
@@ -319,12 +393,13 @@ def write_text(path: Path, text: str) -> None:
 
 
 def make_checker_stub(path: Path, ok: bool = True) -> None:
+    marker = "stub:ok" if ok else "stub:failure"
     body = (
         "#!/usr/bin/env python3\n"
         "import sys\n"
         "if '--root' in sys.argv:\n"
         "    pass\n"
-        f"print({'\'stub:ok\'' if ok else '\'stub:failure\''})\n"
+        f"print({marker!r})\n"
         f"raise SystemExit({0 if ok else 1})\n"
     )
     write_text(path, body)
@@ -368,7 +443,7 @@ def make_fixture_tree(root: Path) -> None:
                 },
                 "review_anchors": {
                     "tools/lib/bitmap.zig": {},
-                    "tools/lib/find_bit.zig": {},
+                    "tools/lib/find_bit.zig": EXPECTED_FIND_BIT_REVIEW_ANCHORS,
                     "tools/lib/rbtree.zig": EXPECTED_RBTREE_REVIEW_ANCHORS,
                     "tools/lib/string.zig": {},
                 },
@@ -416,6 +491,47 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / MANIFEST_REL,
                 json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n",
+            ),
+        ),
+        (
+            "missing_find_bit_andnot_contract",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/find_bit.zig": {
+                                key: value
+                                for key, value in json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/find_bit.zig"].items()
+                                if key != "andnot_scan_entrypoint_contract"
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "stale_find_bit_review_summary",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/find_bit.zig": {
+                                **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/find_bit.zig"],
+                                "review_packet_summary": "older find_bit review summary",
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
             ),
         ),
         (
