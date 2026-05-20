@@ -14,12 +14,14 @@ const Governance = struct {
     last_closed_followup: []const u8,
     blocked_gap: []const u8,
     lane_reopen_scope: []const u8,
+    why_now: []const u8,
 };
 
 const MaintenanceHandoff = struct {
     current_lane_posture: []const u8,
     replay_before_trusting: []const []const u8,
     replay_vocabulary_only_until_paths_return: bool,
+    reopen_conditions: []const []const u8,
     next_future_target: []const u8,
 };
 
@@ -76,11 +78,15 @@ test "phase14 ring-buffer manifest tracks the returned two-route study packet" {
     try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
     try std.testing.expectEqualStrings("same_packet_truthfulness_repairs_only", manifest.study_only_governance.lane_reopen_scope);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "shared Phase 14 build shard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "ring-buffer-local replay evidence") != null);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(false, manifest.maintenance_handoff.replay_vocabulary_only_until_paths_return);
     try std.testing.expectEqual(@as(usize, 2), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqualStrings("zig test zigux/tests/phase14_ring_buffer_survey.zig", manifest.maintenance_handoff.replay_before_trusting[0]);
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase14_build.zig --summary all", manifest.maintenance_handoff.replay_before_trusting[1]);
+    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "replay-route wording") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "public-raw-backed ring-buffer-local evidence") != null);
     try std.testing.expect(hasGap(manifest, "phase14-build-gate-current-master-gap", "restored_via_public_raw_readback"));
     try std.testing.expect(hasGap(manifest, "phase14-make-target", "resolved_as_drift_retired"));
@@ -89,7 +95,7 @@ test "phase14 ring-buffer manifest tracks the returned two-route study packet" {
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence"));
 }
 
-test "phase14 ring-buffer survey note keeps the narrowed returned-route posture explicit" {
+test "phase14 ring-buffer survey note keeps the exact compile-route posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -103,6 +109,11 @@ test "phase14 ring-buffer survey note keeps the narrowed returned-route posture 
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_STATUS=study_only") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "current ring-buffer packet replay vocabulary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "dedicated ring-buffer survey replay, backed by current public raw-file readback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared Phase 14 build bundle replay, backed by current public raw-file readback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "missing dedicated `make -C zigux phase14` route") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "keep those two routes as ring-buffer-local replay vocabulary only") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
