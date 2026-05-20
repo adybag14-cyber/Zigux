@@ -28,7 +28,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 24
+EXPECTED_SELF_TEST_CASES = 28
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -149,6 +149,8 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("dedicated_linux_style_survey_wrapper",), "make -C zigux phase4-perf-baseline-survey"),
         (("validation_entrypoint",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
         (("bootstrap_ci_posture",), EXPECTED_BOOTSTRAP_CI_POSTURE),
+        (("atomic64", "gate_owner"), "ABI and Runtime Team"),
+        (("atomic64", "gate_rollback_owner"), "ABI and Runtime Team"),
         (("atomic64", "benchmark_command"), "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"),
         (("atomic64", "linux_style_wrapper"), "make -C zigux phase4-perf-baseline-survey"),
         (("atomic64", "acceptable_limit_status"), "approved_local_only"),
@@ -170,6 +172,8 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("atomic64", "evidence", 1, "runs", 1, "iterations"), 4),
         (("atomic64", "evidence", 1, "runs", 1, "checksum"), 9210681150676220922),
         (("atomic64", "evidence", 1, "runs", 1, "final_counter"), 130322557735600376),
+        (("bitmap", "gate_owner"), "Shared Subsystems Pod"),
+        (("bitmap", "gate_rollback_owner"), "Shared Subsystems Pod"),
         (("bitmap", "benchmark_command"), "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"),
         (("bitmap", "linux_style_wrapper"), "make -C zigux phase4-perf-baseline-survey"),
         (("bitmap", "acceptable_limit_status"), "approved_local_only"),
@@ -276,6 +280,8 @@ def build_fixture_tree(root: Path) -> None:
   \"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\",
   \"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\",
   \"atomic64\": {
+    \"gate_owner\": \"ABI and Runtime Team\",
+    \"gate_rollback_owner\": \"ABI and Runtime Team\",
     \"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\",
     \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
     \"acceptable_limit_status\": \"approved_local_only\",
@@ -303,6 +309,8 @@ def build_fixture_tree(root: Path) -> None:
     ]
   },
   \"bitmap\": {
+    \"gate_owner\": \"Shared Subsystems Pod\",
+    \"gate_rollback_owner\": \"Shared Subsystems Pod\",
     \"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\",
     \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
     \"acceptable_limit_status\": \"approved_local_only\",
@@ -425,6 +433,10 @@ def run_self_test() -> int:
             (MANIFEST, '"dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey"', '"dedicated_linux_style_survey_wrapper": "make -C zigux phase4-local-baseline-survey"', "manifest_json:dedicated_linux_style_survey_wrapper:"),
             (MANIFEST, '"validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"', '"validation_entrypoint": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', "manifest_json:validation_entrypoint:"),
             (MANIFEST, '"bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"', '"bootstrap_ci_posture": "approved_for_shared_phase4_test_and_bootstrap_workflow"', "manifest_json:bootstrap_ci_posture:"),
+            (MANIFEST, '"gate_owner": "ABI and Runtime Team"', '"gate_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_owner:"),
+            (MANIFEST, '"gate_rollback_owner": "ABI and Runtime Team"', '"gate_rollback_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_rollback_owner:"),
+            (MANIFEST, '"gate_owner": "Shared Subsystems Pod"', '"gate_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_owner:"),
+            (MANIFEST, '"gate_rollback_owner": "Shared Subsystems Pod"', '"gate_rollback_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_rollback_owner:"),
             (MANIFEST, '"sample_count_note": "seven monotonic samples"', '"sample_count_note": "six monotonic samples"', "manifest_json:atomic64.evidence.0.sample_count_note:"),
             (MANIFEST, '"id": "phase4-perf-baseline-bitmap-command-evidence"', '"id": "phase4-perf-baseline-bitmap-run-evidence"', "manifest_json:bitmap.evidence.1.id:"),
             (MANIFEST, '"id": "phase4-perf-baseline-shared-promotion-decision"', '"id": "phase4-perf-baseline-shared-promotion-record"', "manifest_json:promotion_decision.id:"),
@@ -462,7 +474,6 @@ def run_self_test() -> int:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("broken manifest JSON case did not fail closed")
             return 1
-        cases += 1
 
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
