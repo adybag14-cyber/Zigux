@@ -45,11 +45,11 @@ Keep the current bounded simple-driver packet explicit through the shared remind
 
 Keep `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-validation-matrix-gap-survey.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the shared Phase 11 tests-root reminder packet, and keep the coupled shared guard set explicit through `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, and `scripts/zigux/check-phase11-build-inventory.py`.
 
-Keep the returned matrix-backed packet explicit through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` so the tests-root reminder matches the current all-four-driver-matrix packet instead of the older partial-matrix story.
+Keep the returned matrix-backed packet explicit through `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` so the tests-root reminder matches the current all-four-driver-matrix packet instead of the older partial-matrix story.
 
 Keep the returned DesignWare owner packet explicit through `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`.
 
-Keep the narrower HVC current-head continuity packet explicit through `drivers/tty/hvc/hvc_console.zig`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, and `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` so the tests-root reminder keeps the proof-backed adjunct packet visible without implying a whole-Phase-11 replay roster.
+Keep the narrower HVC current-head continuity packet explicit through `drivers/tty/hvc/hvc_console.zig`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, and `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` so the tests-root reminder keeps the proof-backed adjunct packet visible without implying a whole-Phase-11 replay roster.
 
 Keep the adjacent shared header-boundary proof shard explicit through `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`, `drivers/tty/hvc/hvc_console.h`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`, and `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` so the shared tests-root note does not collapse that packet into either the HVC continuity lane or the driver-local watchdog lanes.
 
@@ -84,8 +84,6 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
@@ -121,9 +119,9 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
-- `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
 Keep the two gap-note companions and the shipped shared-summary plus tests-root checker pair explicit in that shared surface list so the tests-root reminder matches the already-landed Phase 13 reminder and guard packet.
@@ -149,7 +147,6 @@ Keep the current bounded Phase 14 study-only packet explicit through these share
 - `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
 - `scripts/zigux/validate-phase14.py`
 - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
 - `zigux/Makefile`
 - `kernel/workqueue_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
