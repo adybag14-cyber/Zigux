@@ -332,6 +332,20 @@ def run_self_test() -> int:
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
             note_text
+            + "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_note_owner_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        note_path = root / NOTE_REL
+        note_text = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            note_text
             + "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 closure packet and before current Phase 3 interop packet`\n",
             encoding="utf-8",
         )
@@ -383,7 +397,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         note_path = root / NOTE_REL
         note_text = note_path.read_text(encoding="utf-8")
         note_path.write_text(
@@ -394,6 +408,24 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "note:expected=1:actual=2" not in failures:
             print("self-test:duplicate_forbidden_historical_snippets_note_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Check current Phase 1 closure packet\n"
+            + "        run: python3 scripts/zigux/validate-phase1-closure.py\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 1 closure packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_closure_step_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 1 closure packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_closure_run_not_detected")
             return 1
         case_count += 1
 
@@ -430,6 +462,24 @@ def run_self_test() -> int:
             return 1
         if "workflow_run:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
             print("self-test:duplicate_lane_check_run_not_detected")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text
+            + "      - name: Check current Phase 4 artifact-diff validator replay packet\n"
+            + "        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py\n",
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 4 artifact-diff validator replay packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_validator_step_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 4 artifact-diff validator replay packet:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_validator_run_not_detected")
             return 1
         case_count += 1
 
