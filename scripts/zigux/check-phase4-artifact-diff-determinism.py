@@ -31,7 +31,7 @@ CURRENT_DIRECT_PACKET = (
     "scripts/zigux/check-artifact-diff-contract.py",
 )
 
-MISSING_BROADER_COMPANIONS = (
+AUTH_MISSING_BROADER_COMPANIONS = (
     "Documentation/zigux/artifact-diff.md",
     "scripts/zigux/validate-phase4.py",
 )
@@ -42,12 +42,11 @@ EXPECTED_SELF_TEST_CASES = (
     "survey_packet_drift",
     "review_checklist_drift",
     "note_marker_drift",
-    "helper_mode_drift",
-    "helper_alias_drift",
-    "helper_catalog_drift",
-    "contract_checker_missing",
-    "broader_companion_return",
     "repo_warning_drift",
+    "helper_mode_drift",
+    "helper_catalog_drift",
+    "contract_catalog_drift",
+    "direct_packet_missing",
 )
 
 SURVEY_MARKERS = (
@@ -55,29 +54,33 @@ SURVEY_MARKERS = (
     "current direct-readback helper-and-contract packet:",
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
     "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=21`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=23`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=28`",
+    ".github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps",
 )
 
 NOTE_MARKERS = (
     "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
-    "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
-    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`",
+    "Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`, but public raw fallback rereads now return those files on current `master`, matching the broader review packet's recovered note-and-checker companions.",
+    "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.",
+    "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
     "shared Phase 4 rollback-ownership and lab-matrix packet",
-    "`scripts/zigux/check-phase4-repo-reality-warning.py`",
-    "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
-    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and bitmap-diff companions",
+    "`scripts/zigux/check-phase4-repo-reality-warning.py` and `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
+    "keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+    "keep the repo-reality warning explicit for the broader Phase 4 validator, build, and bitmap-diff companions still needing raw-fallback proof or fresh authenticated blob capture",
     "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
 )
 
 REPO_WARNING_MARKERS = (
     "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
-    "\"scripts/zigux/validate-phase4.py\"",
+    "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
+    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
 )
 
 HELPER_EXPECTED_MODE_CHOICES = ("text", "json", "bytes")
@@ -104,6 +107,90 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "legacy_sha256_alias",
     "invalid_mode_rejected",
     "extra_positional_rejected",
+)
+
+CONTRACT_HELPER_SELF_TEST_CASES = (
+    "text_pass",
+    "text_mismatch",
+    "json_pass",
+    "json_mismatch",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "bytes_pass",
+    "bytes_drift",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "legacy_sha256_alias",
+    "invalid_mode_rejected",
+)
+
+CONTRACT_BASE_CASES = (
+    "helper_self_test",
+    "cli_help_output",
+    "cli_missing_required_args",
+    "cli_missing_actual_operand",
+    "cli_invalid_mode",
+    "text_pass",
+    "text_mismatch",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "json_pass",
+    "json_mismatch",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "sha256_pass",
+    "sha256_missing_expected",
+    "sha256_missing_actual",
+    "sha256_missing_both",
+    "sha256_drift",
+)
+
+CONTRACT_REPEAT_CASES = (
+    "helper_self_test_repeat",
+    "cli_help_output_repeat",
+    "text_pass_repeat",
+    "json_mismatch_repeat",
+    "sha256_drift_repeat",
+)
+
+CONTRACT_SELF_TEST_CASES = (
+    "catalog_shape",
+    "review_note_marker_round_trip",
+    "review_note_owner_marker_drift",
+    "review_note_marker_drift",
+    "cli_help_round_trip",
+    "cli_help_line_drift",
+    "cli_missing_argument_parser_round_trip",
+    "cli_missing_argument_parser_stderr_drift",
+    "cli_invalid_mode_parser_round_trip",
+    "cli_invalid_mode_parser_stderr_drift",
+    "helper_summary_round_trip",
+    "contract_summary_round_trip",
+    "helper_summary_status_drift",
+    "helper_summary_count_drift",
+    "helper_summary_duplicate_case_drift",
+    "helper_summary_case_order_drift",
+    "contract_summary_status_drift",
+    "contract_summary_base_count_drift",
+    "contract_summary_base_case_order_drift",
+    "contract_summary_repeat_count_drift",
+    "contract_summary_repeat_case_order_drift",
+    "contract_summary_case_count_drift",
+    "contract_summary_duplicate_case_drift",
+    "contract_summary_case_order_drift",
 )
 
 
@@ -138,56 +225,71 @@ def require_paths_listed(text: str, paths: tuple[str, ...], label: str) -> None:
         raise RuntimeError(f"{label} is missing required path markers: {missing}")
 
 
-def extract_literal_assignment(text: str, name: str):
+def extract_literal_assignment(text: str, name: str, label: str):
     try:
         module = ast.parse(text)
     except SyntaxError as exc:
-        raise RuntimeError(f"{DIRECT_HELPER.as_posix()} is not valid Python: {exc}") from exc
+        raise RuntimeError(f"{label} is not valid Python: {exc}") from exc
     for node in module.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == name:
                     return ast.literal_eval(node.value)
-    raise RuntimeError(f"{DIRECT_HELPER.as_posix()} is missing `{name}`")
+    raise RuntimeError(f"{label} is missing `{name}`")
 
 
 def require_current_helper_contract(text: str) -> None:
-    mode_choices = tuple(extract_literal_assignment(text, "MODE_CHOICES"))
+    mode_choices = tuple(extract_literal_assignment(text, "MODE_CHOICES", DIRECT_HELPER.as_posix()))
     if mode_choices != HELPER_EXPECTED_MODE_CHOICES:
         raise RuntimeError(
             f"{DIRECT_HELPER.as_posix()} must keep MODE_CHOICES={HELPER_EXPECTED_MODE_CHOICES}, saw {mode_choices}"
         )
 
-    legacy_aliases = extract_literal_assignment(text, "LEGACY_MODE_ALIASES")
+    legacy_aliases = extract_literal_assignment(text, "LEGACY_MODE_ALIASES", DIRECT_HELPER.as_posix())
     if legacy_aliases != HELPER_EXPECTED_LEGACY_MODE_ALIASES:
         raise RuntimeError(
             f"{DIRECT_HELPER.as_posix()} must keep LEGACY_MODE_ALIASES={HELPER_EXPECTED_LEGACY_MODE_ALIASES}, saw {legacy_aliases}"
         )
 
-    self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES"))
+    self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", DIRECT_HELPER.as_posix()))
     if self_test_cases != HELPER_EXPECTED_SELF_TEST_CASES:
         raise RuntimeError(
             f"{DIRECT_HELPER.as_posix()} must keep the current 21-case self-test catalog"
         )
 
 
+def require_current_contract_checker(text: str) -> None:
+    helper_cases = tuple(extract_literal_assignment(text, "HELPER_SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
+    if helper_cases != CONTRACT_HELPER_SELF_TEST_CASES:
+        raise RuntimeError(
+            f"{CONTRACT_CHECKER.as_posix()} must keep the current 20-case helper replay catalog"
+        )
+
+    base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
+    if base_cases != CONTRACT_BASE_CASES:
+        raise RuntimeError(
+            f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case base contract catalog"
+        )
+
+    repeat_cases = tuple(extract_literal_assignment(text, "REPEAT_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
+    if repeat_cases != CONTRACT_REPEAT_CASES:
+        raise RuntimeError(
+            f"{CONTRACT_CHECKER.as_posix()} must keep the current 5-case repeat contract catalog"
+        )
+
+    self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
+    if self_test_cases != CONTRACT_SELF_TEST_CASES:
+        raise RuntimeError(
+            f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case self-test catalog"
+        )
+
+
 def require_current_repo_reality(root: Path) -> None:
-    missing_direct = [
-        path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()
-    ]
+    missing_direct = [path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()]
     if missing_direct:
         raise RuntimeError(
             "current direct-readback packet is missing required members: "
             f"{missing_direct}"
-        )
-
-    present_broader = [
-        path for path in MISSING_BROADER_COMPANIONS if (root / Path(path)).exists()
-    ]
-    if present_broader:
-        raise RuntimeError(
-            "broader artifact-diff companions returned and this checker must be narrowed: "
-            f"{present_broader}"
         )
 
 
@@ -197,14 +299,16 @@ def check(root: Path) -> None:
     review_checklist = read(root, REVIEW_CHECKLIST)
     repo_warning = read(root, REPO_WARNING)
     helper_text = read(root, DIRECT_HELPER)
+    contract_text = read(root, CONTRACT_CHECKER)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, CURRENT_DIRECT_PACKET, SURVEY.as_posix())
-    require_paths_listed(survey, MISSING_BROADER_COMPANIONS, SURVEY.as_posix())
+    require_paths_listed(survey, AUTH_MISSING_BROADER_COMPANIONS, SURVEY.as_posix())
     require_markers(note, NOTE_MARKERS, PHASE4_NOTE.as_posix())
     require_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, REVIEW_CHECKLIST.as_posix())
     require_markers(repo_warning, REPO_WARNING_MARKERS, REPO_WARNING.as_posix())
     require_current_helper_contract(helper_text)
+    require_current_contract_checker(contract_text)
     require_current_repo_reality(root)
 
 
@@ -226,6 +330,23 @@ def helper_fixture_text() -> str:
     ) + "\n"
 
 
+def contract_fixture_text() -> str:
+    def block(name: str, values: tuple[str, ...]) -> list[str]:
+        return [
+            f"{name} = [",
+            *[f'    "{value}",' for value in values],
+            "]",
+            "",
+        ]
+
+    lines: list[str] = []
+    lines.extend(block("HELPER_SELF_TEST_CASES", CONTRACT_HELPER_SELF_TEST_CASES))
+    lines.extend(block("BASE_CONTRACT_CASES", CONTRACT_BASE_CASES))
+    lines.extend(block("REPEAT_CONTRACT_CASES", CONTRACT_REPEAT_CASES))
+    lines.extend(block("SELF_TEST_CASES", CONTRACT_SELF_TEST_CASES))
+    return "\n".join(lines)
+
+
 def fixture_root(root: Path) -> None:
     write(
         root / SURVEY,
@@ -233,7 +354,7 @@ def fixture_root(root: Path) -> None:
             [
                 *SURVEY_MARKERS,
                 bullet_paths(CURRENT_DIRECT_PACKET),
-                bullet_paths(MISSING_BROADER_COMPANIONS),
+                bullet_paths(AUTH_MISSING_BROADER_COMPANIONS),
             ]
         )
         + "\n",
@@ -243,8 +364,8 @@ def fixture_root(root: Path) -> None:
     write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
     write(root / VALIDATOR_REPLAYS, "# validator replay placeholder\n")
-    write(root / CONTRACT_CHECKER, "# contract checker placeholder\n")
     write(root / DIRECT_HELPER, helper_fixture_text())
+    write(root / CONTRACT_CHECKER, contract_fixture_text())
     write(root / SELF_PATH, "# current checker\n")
 
 
@@ -266,7 +387,7 @@ def self_test() -> None:
         covered.append("round_trip")
 
         fixture_root(root)
-        write(root / SURVEY, read(root, SURVEY).replace("helper-and-contract packet", "helper packet", 1))
+        write(root / SURVEY, read(root, SURVEY).replace("current direct-readback helper-and-contract packet", "current helper-and-contract packet", 1))
         covered.append(expect_failure(root, "survey_marker_drift"))
 
         fixture_root(root)
@@ -282,28 +403,24 @@ def self_test() -> None:
         covered.append(expect_failure(root, "note_marker_drift"))
 
         fixture_root(root)
+        write(root / REPO_WARNING, read(root, REPO_WARNING).replace("scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/not-the-right-checker.py", 1))
+        covered.append(expect_failure(root, "repo_warning_drift"))
+
+        fixture_root(root)
         write(root / DIRECT_HELPER, read(root, DIRECT_HELPER).replace('MODE_CHOICES = ("text", "json", "bytes")', 'MODE_CHOICES = ("text", "json")', 1))
         covered.append(expect_failure(root, "helper_mode_drift"))
 
         fixture_root(root)
-        write(root / DIRECT_HELPER, read(root, DIRECT_HELPER).replace('LEGACY_MODE_ALIASES = {"sha256": "bytes"}', 'LEGACY_MODE_ALIASES = {"sha256": "text"}', 1))
-        covered.append(expect_failure(root, "helper_alias_drift"))
-
-        fixture_root(root)
-        write(root / DIRECT_HELPER, read(root, DIRECT_HELPER).replace('    "invalid_mode_rejected",\n', "", 1))
+        write(root / DIRECT_HELPER, read(root, DIRECT_HELPER).replace('    "extra_positional_rejected",\n', "", 1))
         covered.append(expect_failure(root, "helper_catalog_drift"))
 
         fixture_root(root)
-        (root / CONTRACT_CHECKER).unlink()
-        covered.append(expect_failure(root, "contract_checker_missing"))
+        write(root / CONTRACT_CHECKER, read(root, CONTRACT_CHECKER).replace('    "sha256_drift",\n', "", 1))
+        covered.append(expect_failure(root, "contract_catalog_drift"))
 
         fixture_root(root)
-        write(root / Path("Documentation/zigux/artifact-diff.md"), "# returned broader note\n")
-        covered.append(expect_failure(root, "broader_companion_return"))
-
-        fixture_root(root)
-        write(root / REPO_WARNING, read(root, REPO_WARNING).replace("\"scripts/zigux/validate-phase4.py\"", "\"scripts/zigux/not-the-right-file.py\"", 1))
-        covered.append(expect_failure(root, "repo_warning_drift"))
+        (root / VALIDATOR_REPLAYS).unlink()
+        covered.append(expect_failure(root, "direct_packet_missing"))
 
     if tuple(covered) != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
@@ -333,8 +450,8 @@ def main() -> int:
         f"{len(CURRENT_DIRECT_PACKET)}"
     )
     print(
-        "PHASE4_ARTIFACT_DIFF_DETERMINISM_MISSING_BROADER_COMPANIONS="
-        f"{len(MISSING_BROADER_COMPANIONS)}"
+        "PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS="
+        f"{len(AUTH_MISSING_BROADER_COMPANIONS)}"
     )
     return 0
 
