@@ -1,34 +1,20 @@
 const std = @import("std");
 
-const missing_bitmap_family_files = [_][]const u8{
+const present_bitmap_family_files = [_][]const u8{
+    "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+    "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+    "zigux/tests/runtime_bitmap_survey.zig",
+    "zigux/tests/phase9_build.zig",
     "samples/zigux/runtime_bitmap.zig",
-    "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+};
+
+const missing_bitmap_family_files = [_][]const u8{
+    "samples/zigux/runtime_bitmap_loader.zig",
     "zigux/tests/runtime_bitmap_module.zig",
     "zigux/tests/runtime_bitmap_diff.zig",
     "zigux/tests/runtime_bitmap_manifest.json",
 };
-
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
-
-fn expectMissing(path: []const u8) !void {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const payload = std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        path,
-        std.testing.allocator,
-        .limited(8 * 1024),
-    ) catch |err| switch (err) {
-        error.FileNotFound => return,
-        else => return err,
-    };
-    defer std.testing.allocator.free(payload);
-    return error.UnexpectedVisibleBitmapFamilyFile;
-}
 
 fn readRepoFileAlloc(path: []const u8, max_bytes: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
@@ -41,7 +27,32 @@ fn readRepoFileAlloc(path: []const u8, max_bytes: usize) ![]u8 {
     );
 }
 
-test "phase 9 runtime bitmap survey gate matches the partial bitmap reminder packet" {
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectPresent(path: []const u8) !void {
+    const payload = try readRepoFileAlloc(path, 64 * 1024);
+    defer std.testing.allocator.free(payload);
+}
+
+fn expectMissing(path: []const u8) !void {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    _ = std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(8 * 1024),
+    ) catch |err| switch (err) {
+        error.FileNotFound => return,
+        else => return err,
+    };
+    return error.UnexpectedVisibleBitmapFamilyFile;
+}
+
+test "phase9 runtime bitmap survey gate matches the partial bitmap reminder packet" {
     const survey_note = try readRepoFileAlloc(
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
         32 * 1024,
@@ -54,54 +65,63 @@ test "phase 9 runtime bitmap survey gate matches the partial bitmap reminder pac
     );
     defer std.testing.allocator.free(module_slice_note);
 
-    const sample_root_readme = try readRepoFileAlloc(
-        "samples/zigux/README.md",
-        64 * 1024,
-    );
-    defer std.testing.allocator.free(sample_root_readme);
-
     const phase9_build = try readRepoFileAlloc(
         "zigux/tests/phase9_build.zig",
         32 * 1024,
     );
     defer std.testing.allocator.free(phase9_build);
 
+    const sample_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_bitmap.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(sample_file);
+
+    const top_bit_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(top_bit_file);
+
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
     try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-20 do materialize");
-    try expectContains(survey_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
-    try expectContains(survey_note, "the same trusted read path still returns missing for");
+    try expectContains(survey_note, "`samples/zigux/runtime_bitmap.zig`");
+    try expectContains(survey_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_bitmap_loader.zig`");
+    try expectContains(survey_note, "`zigux/tests/runtime_bitmap_module.zig`");
+    try expectContains(survey_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(survey_note, "`partial_packet_without_loadable_runtime_substrate`");
-    try expectContains(survey_note, "`zigux/tests/runtime_atomic64_diff.zig`");
-    try expectContains(survey_note, "bounded reminder-bundle handles only");
-    try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
     try expectContains(module_slice_note, "## Current visible slice");
     try expectContains(module_slice_note, "## Repo-reality gaps inside the bitmap family");
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap.zig`");
-    try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_diff.zig`");
+    try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
+    try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_manifest.json`");
-    try expectContains(module_slice_note, "false proof that the broader shared runtime-loader substrate returned too");
-    try expectContains(module_slice_note, "`partial_packet_without_loadable_runtime_substrate`");
+    try expectContains(module_slice_note, "broader shared runtime-loader substrate");
 
-    try expectContains(sample_root_readme, "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
-    try expectContains(sample_root_readme, "* `*bitmap*`");
-    try expectContains(sample_root_readme, "`samples/zigux/runtime_bitmap.zig`");
-    try expectContains(sample_root_readme, "or as evidence that a fifth approved Phase 5 sample family landed here");
-
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-loader-shared-tests\"") == null);
+    try expectContains(phase9_build, "\"../../samples/zigux/runtime_bitmap.zig\"");
+    try expectContains(phase9_build, "\"../../samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
 
+    try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
+    try expectContains(sample_file, ".top_bit_contract,");
+    try expectContains(sample_file, "pub fn reviewContract() ReviewContract");
+    try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
+    try expectContains(top_bit_file, "runtime bitmap sample keeps the highest valid bit explicit");
+    try expectContains(top_bit_file, "runtime bitmap sample keeps top-bit lifecycle mutation explicit");
+
+    inline for (present_bitmap_family_files) |path| {
+        try expectPresent(path);
+    }
     inline for (missing_bitmap_family_files) |path| {
         try expectMissing(path);
     }
