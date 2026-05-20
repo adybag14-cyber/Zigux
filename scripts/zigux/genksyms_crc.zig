@@ -344,6 +344,29 @@ test "runGenksymsCrc skips a NUL-prefixed visible continuation after an exact-bu
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"bc\"") == null);
 }
 
+test "runGenksymsCrc skips a NUL-prefixed EOF continuation after an exact-buffer split" {
+    var exact_then_nul_tail = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 3);
+    defer exact_then_nul_tail.deinit(std.testing.allocator);
+    try exact_then_nul_tail.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_then_nul_tail.append(std.testing.allocator, 0);
+    try exact_then_nul_tail.append(std.testing.allocator, 'b');
+    try exact_then_nul_tail.append(std.testing.allocator, 'c');
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_then_nul_tail.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_nul_tail.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const skipped_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("bc")});
+    defer std.testing.allocator.free(skipped_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, skipped_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 1);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"bc\"") == null);
+}
+
 test "runGenksymsCrc preserves leading low control bytes in a visible split continuation" {
     var split_then_visible_controls = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 8);
     defer split_then_visible_controls.deinit(std.testing.allocator);
@@ -467,7 +490,7 @@ test "runGenksymsCrc preserves leading carriage returns while trimming trailing 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) == null);
     try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 3);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\rb\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\rb\\r") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\rb\\r\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
 }
