@@ -19,7 +19,7 @@ fn expectMissingPath(path: []const u8) !void {
     try std.testing.expectError(error.FileNotFound, readRepoFile(path));
 }
 
-test "phase 8 exec-cmd review witness keeps the surviving shared tooling routes explicit" {
+test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
     try expectExistingPath(".github/workflows/zigux-bootstrap.yml");
     try expectExistingPath("Documentation/zigux/README.md");
     try expectExistingPath("Documentation/zigux/review-checklist.md");
@@ -82,8 +82,6 @@ test "phase 8 exec-cmd review witness records current focused replay and missing
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase8_exec_cmd.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase 8 exec-cmd review witness") != null);
 
-    // Current `master` still carries the shared reminder file, but these older
-    // exec-cmd packet members are absent and should not be treated as live proof.
     try expectMissingPath("tools/lib/subcmd/exec-cmd.zig");
     try expectMissingPath("Documentation/zigux/phase8-exec-cmd-slice.md");
     try expectMissingPath("Documentation/zigux/phase8-tooling-lane-sequencing.md");
