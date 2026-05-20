@@ -26,7 +26,7 @@ PHASE2_NOTES_MARKERS = (
     "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit",
     "`scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, and the `zigux/tests/fixtures/genksyms_bridge/` fixture roster keep the bounded genksyms bridge helper packet explicit beside the reminder guards, and `make -C zigux phase2-genksyms` keeps its wrapper route inside the same returned make-wrapper packet.",
     "The rematerialized make-wrapper packet is directly readable on current `master` through `make -C zigux phase2-toolchain`",
-    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, or returned fixdep packet on current `master`.",
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, or returned fixdep packet on current `master`.",
     "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness",
 )
 
@@ -82,7 +82,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
+    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
 
 REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
@@ -110,7 +110,7 @@ SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
     "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
-    "keep those installer, tool-manifest, direct cross-route, and genksyms bridge surfaces explicit beside the shipped toolchain and kbuild reminder packet",
+    "keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
 
 SCRIPTS_README_FORBIDDEN_MARKERS = (
