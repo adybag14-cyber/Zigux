@@ -89,6 +89,69 @@ EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [
     "tools/lib/string.zig",
 ]
 
+EXPECTED_RBTREE_REVIEW_ANCHORS = {
+    "phase1_helper_replay_anchor": 'test "phase1 host-tools smoke exercises live helper behavior"',
+    "parity_fixture_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "match_iterator_serials",
+        "next_match_terminal_null",
+    ],
+    "cached_leftmost_fixture_keys": [
+        "cached_leftmost_return_serials",
+    ],
+    "shared_replay_summary": "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master",
+    "traversal_replay_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+    ],
+    "duplicate_search_replay_keys": [
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "match_iterator_serials",
+        "next_match_terminal_null",
+    ],
+    "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture",
+    "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    "duplicate_search_anchors": [
+        'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+        'test "rbtree nextMatch walks the duplicate range in order"',
+        'test "rbtree matchIterator walks the duplicate range in order"',
+    ],
+    "cached_root_followup_anchors": [
+        'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+        'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+        'test "rbtree cached root keeps the leftmost pointer in sync"',
+        'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+        'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+        'test "rbtree eraseCached returns null for a singleton cached tree"',
+        'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+        'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+    ],
+    "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",
+    "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; until another committed cached-root field lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors.",
+}
+
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -145,6 +208,16 @@ def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
 
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
+
+
+def require_expected_mapping(prefix: str, actual: object, expected: dict[str, object]) -> list[str]:
+    if not isinstance(actual, dict):
+        return [f"{prefix}:expected=dict:actual={type(actual).__name__}"]
+
+    failures: list[str] = []
+    for key, expected_value in expected.items():
+        failures.extend(require_exact_value(f"{prefix}.{key}", actual.get(key), expected_value))
+    return failures
 
 
 def run_checker(root: Path, script_rel: Path, label: str) -> list[str]:
@@ -224,6 +297,14 @@ def collect_failures(root: Path) -> list[str]:
         if not isinstance(review_anchors.get(helper), dict):
             failures.append(f"{MANIFEST_REL.as_posix()}:review_anchors.{helper}:expected=dict")
 
+    failures.extend(
+        require_expected_mapping(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig",
+            review_anchors.get("tools/lib/rbtree.zig"),
+            EXPECTED_RBTREE_REVIEW_ANCHORS,
+        )
+    )
+
     for script_rel, label in DELEGATED_CHECKERS:
         failures.extend(run_checker(root, script_rel, label))
 
@@ -286,7 +367,7 @@ def make_fixture_tree(root: Path) -> None:
                 "review_anchors": {
                     "tools/lib/bitmap.zig": {},
                     "tools/lib/find_bit.zig": {},
-                    "tools/lib/rbtree.zig": {},
+                    "tools/lib/rbtree.zig": EXPECTED_RBTREE_REVIEW_ANCHORS,
                     "tools/lib/string.zig": {},
                 },
             },
@@ -331,6 +412,47 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / MANIFEST_REL,
                 json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n",
+            ),
+        ),
+        (
+            "missing_rbtree_cached_root_alias_anchor",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/rbtree.zig": {
+                                key: value
+                                for key, value in json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/rbtree.zig"].items()
+                                if key != "cached_root_alias_anchor"
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "stale_rbtree_shared_replay_summary",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/rbtree.zig": {
+                                **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/rbtree.zig"],
+                                "shared_replay_summary": "older rbtree replay summary",
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
             ),
         ),
         (
