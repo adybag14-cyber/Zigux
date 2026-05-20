@@ -61,6 +61,9 @@ That route keeps a minimal shared import-and-wire smoke check alive for the curr
 
 The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
 
+Even with that self-test-only posture, the surviving `find_bit` bench guard is still explicit on current `master`: `scripts/zigux/check-phase1-bench.py` hard-codes `PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000` and `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000`, and it still requires the paired exact checksum keys `PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM` and `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` whenever the broader expectations packet returns.
+
+- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
