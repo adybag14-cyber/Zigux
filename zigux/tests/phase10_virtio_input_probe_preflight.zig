@@ -21,9 +21,19 @@ test "phase10 virtio input probe preflight helper keeps blocker tags and ready t
 
     _ = try device.fillEventBuffers();
     summary = probe_preflight.summarize(&device);
-    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.capability_setup_ready);
+    try std.testing.expect(!summary.multitouch_slots_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.device_not_ready, summary.blocker.?);
+    try std.testing.expectEqualStrings("device_not_ready", probe_preflight.blockerTag(summary.blocker.?));
+    try std.testing.expect(!summary.ready_for_probe_handoff);
 
     try device.markReady();
+    summary = probe_preflight.summarize(&device);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.capability_setup_incomplete, summary.blocker.?);
+
     try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
     try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
         .minimum = 0,
