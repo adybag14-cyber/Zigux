@@ -10,6 +10,7 @@ from pathlib import Path
 
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -28,6 +29,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "hexdump keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`",
     "- `make -C zigux phase6-checksum-perf`",
     "- `make -C zigux phase6-hexdump-perf`",
+]
+
+REQUIRED_SURVEY_SNIPPETS = [
+    "`1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`",
+    "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`",
+    "`16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`",
+    "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
 REQUIRED_MAKEFILE_SNIPPETS = [
@@ -63,7 +71,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 22
 
 
 class ValidationError(RuntimeError):
@@ -239,6 +247,7 @@ def validate_parity_manifest(path: Path) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / SURVEY_PATH, REQUIRED_SURVEY_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
@@ -252,6 +261,7 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
+    write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(
         root / EVIDENCE_MANIFEST_PATH,
@@ -394,6 +404,30 @@ def run_self_test() -> None:
                 "zigux/tests/phase6_hexdump.zig",
             ),
             "phase6_hexdump",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`",
+                "`1501B` at `iterations = 16_000` with `max_slowdown_pct = 150`",
+            ),
+            "1501B",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
+                "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 650`",
+            ),
+            "16B-ascii-g8",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -588,11 +622,33 @@ def run_self_test() -> None:
             "unexpected packet id",
         )
         cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`",
+                "`IPV4_60B` with `iterations = 200_000` and `max_slowdown_pct = 100`",
+            ),
+            "IPV4_60B",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`",
+                "`16B-plain-g1` at `reps = 20_000` with `max_slowdown_pct = 175`",
+            ),
+            "16B-plain-g1",
+        )
+        cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
-            raise AssertionError(
-                f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}"
-            )
+            raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
 
     print("PHASE6_CHECKSUM_HEXDUMP_PERF_MARKERS_SELF_TEST=pass")
     print(f"PHASE6_CHECKSUM_HEXDUMP_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
