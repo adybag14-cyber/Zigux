@@ -30,6 +30,7 @@ ATTACHED_TOOLCHAIN_GUIDANCE_PATH = "Documentation/zigux/phase14-attached-toolcha
 CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 WORKQUEUE_SLICE_PATH = "Documentation/zigux/phase14-workqueue-bridge-slice.md"
 WORKQUEUE_SURVEY_PATH = "Documentation/zigux/phase14-workqueue-bridge-survey.md"
+RING_BUFFER_SURVEY_PATH = "Documentation/zigux/phase14-ring-buffer-survey.md"
 SKBUFF_SURVEY_PATH = "Documentation/zigux/phase14-skbuff-bridge-survey.md"
 RCU_TREE_SURVEY_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
@@ -48,6 +49,7 @@ WORKQUEUE_BRIDGE_PATH = "kernel/workqueue_bridge.zig"
 WORKQUEUE_BRIDGE_TEST_PATH = "zigux/tests/phase14_workqueue_bridge.zig"
 WORKQUEUE_REVIEWABILITY_PATH = "zigux/tests/phase14_workqueue_reviewability.zig"
 WORKQUEUE_MANIFEST_PATH = "zigux/tests/phase14_workqueue_bridge_manifest.json"
+RING_BUFFER_MANIFEST_PATH = "zigux/tests/phase14_ring_buffer_manifest.json"
 VALIDATOR_PATH = "scripts/zigux/validate-phase14.py"
 
 REQUIRED_FILES = [
@@ -61,6 +63,7 @@ REQUIRED_FILES = [
     CORE_BOUNDARY_TRACEABILITY_PATH,
     WORKQUEUE_SLICE_PATH,
     WORKQUEUE_SURVEY_PATH,
+    RING_BUFFER_SURVEY_PATH,
     SKBUFF_SURVEY_PATH,
     RCU_TREE_SURVEY_PATH,
     STUDY_ONLY_ACCOUNTING_PATH,
@@ -77,6 +80,7 @@ REQUIRED_FILES = [
     WORKQUEUE_BRIDGE_TEST_PATH,
     WORKQUEUE_REVIEWABILITY_PATH,
     WORKQUEUE_MANIFEST_PATH,
+    RING_BUFFER_MANIFEST_PATH,
     VALIDATOR_PATH,
 ]
 
@@ -132,6 +136,12 @@ REQUIRED_MARKERS = {
         "`PHASE14_ANCHOR=kernel/workqueue.c`",
         "`PHASE14_BLOCKER=phase14-workqueue-live-execution-blocker`",
         "`zig test zigux/tests/phase14_workqueue_reviewability.zig`",
+    ],
+    RING_BUFFER_SURVEY_PATH: [
+        "`PHASE14_STATUS=study_only`",
+        "`phase14-ring-buffer-maintenance-handoff`",
+        "`phase14-ring-buffer-tracefs-reader-serialization-followup`",
+        "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
     ],
     SKBUFF_SURVEY_PATH: [
         "`PHASE14_LANE_KEY=P14-L11`",
@@ -230,6 +240,12 @@ REQUIRED_MARKERS = {
         "\"zig test zigux/tests/phase14_workqueue_reviewability.zig\"",
         "\"phase14-workqueue-live-execution-blocker\"",
     ],
+    RING_BUFFER_MANIFEST_PATH: [
+        "\"lane_key\": \"P14-L08\"",
+        "\"current_lane_posture\": \"maintenance_mode\"",
+        "\"phase14-ring-buffer-maintenance-handoff\"",
+        "\"zig test zigux/tests/phase14_ring_buffer_survey.zig\"",
+    ],
     VALIDATOR_PATH: [
         "PHASE14_VALIDATION=pass",
         "PHASE14_VALIDATOR_SELF_TEST=pass",
@@ -276,6 +292,7 @@ def fixture_text(rel_path: str) -> str:
         CORE_BOUNDARY_TRACEABILITY_PATH: "# Phase 14 Core Boundary Traceability",
         WORKQUEUE_SLICE_PATH: "# Phase 14 Workqueue Bridge Slice",
         WORKQUEUE_SURVEY_PATH: "# Phase 14 Workqueue Bridge Survey",
+        RING_BUFFER_SURVEY_PATH: "# Phase 14 Ring Buffer Survey",
         SKBUFF_SURVEY_PATH: "# Phase 14 Skbuff Bridge Survey",
         RCU_TREE_SURVEY_PATH: "# Phase 14 RCU Tree Survey",
         STUDY_ONLY_ACCOUNTING_PATH: "# Phase 15 Study-Only Anchor Accounting",
@@ -328,12 +345,14 @@ def run_self_test() -> int:
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
             RELEASE_BOUNDARY_CHECKER_PATH,
+            RING_BUFFER_SURVEY_PATH,
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
             WORKFLOW_PATH,
             WORKQUEUE_MANIFEST_PATH,
+            RING_BUFFER_MANIFEST_PATH,
         ]
         for rel_path in missing_file_cases:
             write_fixture_tree(base)
@@ -346,6 +365,7 @@ def run_self_test() -> int:
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][0]),
             (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][0]),
+            (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
@@ -353,6 +373,7 @@ def run_self_test() -> int:
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, REQUIRED_MARKERS[RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
+            (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][5]),
@@ -375,8 +396,9 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the release-boundary "
-            "exact-count guard, the dedicated rollback-threshold sequencing checker, the "
-            "dedicated RCU rollback guardrail, and the returned workqueue reviewability shard."
+            "exact-count guard, the ring-buffer study-only packet, the dedicated "
+            "rollback-threshold sequencing checker, the dedicated RCU rollback "
+            "guardrail, and the returned workqueue reviewability shard."
         )
     )
     parser.add_argument(
