@@ -187,7 +187,7 @@ VALIDATOR_SUPPORT_MARKERS = (
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and it also directly serves `scripts/zigux/phase3_catalog.py` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support, export/UAPI header-family survey, or shared replay packet has returned.",
     "`zigux/tests/README.md` now keeps the returned packet-local export/UAPI survey note and validator explicit beside the starter, helper, xarray-slot, policy, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root reminders together while keeping scripts-root inventory work separate.",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root, tests-root, and scripts-root summaries while keeping any later scripts-root inventory follow-through separate, and it keeps the returned header-family survey follow-through explicit as a same-family companion.",
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
 )
 
@@ -554,7 +554,7 @@ def run_self_test() -> int:
         ),
         (
             VALIDATOR_SUPPORT_PATH,
-            "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root reminders together while keeping scripts-root inventory work separate.",
+            "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root, tests-root, and scripts-root summaries while keeping any later scripts-root inventory follow-through separate, and it keeps the returned header-family survey follow-through explicit as a same-family companion.",
             "validator-support note",
         ),
         (
@@ -574,7 +574,7 @@ def run_self_test() -> int:
         ),
         (
             SCRIPTS_README_PATH,
-            "zigux/tests/phase3_xarray-slot-starter-packet.zig",
+            "zigux/tests/phase3_xarray_slot_starter_packet.zig",
             "scripts README",
         ),
         (
