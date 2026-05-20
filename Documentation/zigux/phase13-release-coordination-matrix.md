@@ -81,9 +81,9 @@ When shared Phase 13 wording changes:
 
 ## Next Coordinated Step
 
-The last docs-root `devres` wording repair is now landed, so keep the broader shared Phase 13 packet parked unless a fresh reread opens another reminder-surface drift.
+The recent release-facing Phase 13 libfs reminder repairs are now landed, so keep the broader shared packet parked unless a fresh reread opens another reminder-surface drift.
 
-- keep `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned around the narrower current-`master` `devres` packet, including the pure `dmam_alloc_coherent()` planner note plus manifest-backed replay and the helper-first scatterlist build shard, now that the docs root no longer treats `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
+- keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `Documentation/zigux/phase13-notifier-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `zigux/tests/README.md` aligned around the shipped `libfs` slice-plus-tests packet and the still-missing `Documentation/zigux/phase13-libfs-survey.md` gap, now that the release-facing note no longer overstates that missing survey as materialized current-`master` evidence
 - keep the shipped tests-root alignment companion plus the focused adjacent notifier packet explicit when broader contributor-facing reminder surfaces refresh
 - keep the missing Phase 13 route family and the adjacent notifier follow-through parked as separate same-lane or helper-local work, while keeping the shipped Landlock syscalls governance-plus-slice-plus-starter packet explicit and the still-missing syscall survey-and-replay companions parked as separate repo-reality gaps
 
