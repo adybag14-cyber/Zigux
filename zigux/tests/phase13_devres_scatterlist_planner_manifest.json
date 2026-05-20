@@ -1,0 +1,59 @@
+{
+  "lane_key": "P13-L08",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-20",
+  "anchor": "lib/devres.c",
+  "packet": "phase13-devres-scatterlist-planner",
+  "status": "starter_landed",
+  "owned_surfaces": [
+    "lib/devres_scatterlist.zig",
+    "Documentation/zigux/phase13-devres-scatterlist-planner.md",
+    "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
+    "zigux/tests/phase13_devres_scatterlist.zig"
+  ],
+  "fixture_governance": {
+    "scatterlist_lifetime_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "release_match_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "owner_map": "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
+    "adjacent_boundary_evidence_only": [
+      "zigux/tests/phase13_devres_dma_coherent.zig"
+    ]
+  },
+  "adjacent_evidence": [
+    "lib/devres_scatterlist.zig",
+    "Documentation/zigux/phase13-devres-scatterlist-planner.md",
+    "zigux/tests/phase13_devres_scatterlist.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig"
+  ],
+  "required_markers": [
+    "pure scatterlist lifetime planning surface",
+    "planManagedScatterlistMap",
+    "scatterlistReleaseMatches",
+    "planManagedScatterlistUnmap",
+    "retains detach-time unmap ownership on success",
+    "failed mapping frees the release record",
+    "exact original-entry and mapped-entry matching",
+    "sg_alloc_table()",
+    "sg_free_table()",
+    "sg_dma_address()",
+    "sg_dma_len()",
+    "dma_map_sg()",
+    "dma_unmap_sg()",
+    "dma_map_sgtable()",
+    "sg_table"
+  ],
+  "blocked_boundaries": [
+    {
+      "id": "phase13-devres-live-scatterlist-ownership",
+      "status": "blocked_on_scatterlist_state"
+    },
+    {
+      "id": "phase13-devres-live-sg-table-lifecycle",
+      "status": "blocked_on_sg_table_lifecycle"
+    },
+    {
+      "id": "phase13-devres-generic-dma-map-family",
+      "status": "blocked_on_dma_mapping_state"
+    }
+  ]
+}
