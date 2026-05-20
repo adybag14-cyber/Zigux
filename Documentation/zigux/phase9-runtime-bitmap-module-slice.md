@@ -7,7 +7,7 @@ This document tracks the current bounded runtime bitmap slice.
 - `PHASE9_SLICE=runtime-bitmap-partial-slice`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-partial-return`
-- scope: partial runtime bitmap reminder packet, restored direct sample proof, restored top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim
+- scope: partial runtime bitmap reminder packet, direct sample proof, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim
 
 ## Current visible slice
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
@@ -32,7 +32,7 @@ This document tracks the current bounded runtime bitmap slice.
 
 The runtime bitmap lane still needs a family-local note that keeps the visible reminder packet explicit without turning it into false proof that the broader shared runtime-loader substrate returned too.
 
-The current visible packet is no longer the docs-plus-survey reminder stack alone: the direct bitmap sample and focused top-bit companion are directly readable again alongside the survey note, module-slice note, survey gate, and bounded build bundle. The shared `zigux/tests/phase9_build.zig` bundle now reruns only the direct sample, survey gate, and top-bit companion and still does not prove that the broader runtime bitmap loader packet returned.
+The current visible packet includes the direct bitmap sample and focused top-bit companion alongside the survey note, module-slice note, survey gate, and bounded build bundle. The shared `zigux/tests/phase9_build.zig` bundle now reruns only the direct sample, survey gate, and top-bit companion and still does not prove that the broader runtime bitmap loader packet returned.
 
 The shared runtime substrate is still absent, and the loader, module, diff, and manifest legs are still absent on the trusted read path, so this slice must stay bitmap-local and keep that wider blocked handoff explicit.
 
@@ -51,4 +51,4 @@ Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as rerun hand
 
 ## Next Bounded Step
 
-Keep the next same-lane surface inside the sample-side runtime bitmap family, starting with `samples/zigux/runtime_bitmap_loader.zig`, and widen only when a coherent loader-side packet is directly readable again.
+Advance the next same-lane surface inside the sample-side runtime bitmap family, starting with `samples/zigux/runtime_bitmap_loader.zig`, and widen only when a coherent loader-side packet is directly readable again.
