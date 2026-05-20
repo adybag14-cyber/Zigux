@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+DOCS_README_PATH = "Documentation/zigux/README.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
@@ -69,6 +70,11 @@ STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS = [
     "any future status-bucket change for either anchor must update the freeze map, the Phase 15 governance note, the parity scorecard, and this study-only accounting note together",
 ]
 
+DOCS_README_REQUIRED_MARKERS = [
+    "Phase 9 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md` - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` - `Documentation/zigux/review-checklist.md` - `Documentation/zigux/README.md` - `scripts/zigux/README.md` - `samples/zigux/README.md` - `zigux/tests/README.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - `scripts/zigux/check-phase9-freeze-map-study-boundaries.py` keep the shared Phase 9 reminder packet honest by routing any study-only freeze-map summary back through the dedicated accounting note instead of treating `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-substrate readiness evidence.",
+    "keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues, and any shared reminder surface that summarizes them must route back through those two owner notes.",
+]
+
 REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?",
 ]
@@ -107,6 +113,7 @@ def validate(root: Path) -> list[str]:
         FREEZE_MAP_PATH,
         STUDY_ONLY_ACCOUNTING_PATH,
         REVIEW_CHECKLIST_PATH,
+        DOCS_README_PATH,
         LANE_SEQUENCING_PATH,
         SCRIPTS_README_PATH,
         SAMPLES_README_PATH,
@@ -128,6 +135,11 @@ def validate(root: Path) -> list[str]:
             failures.append(f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
 
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    docs_readme = read_text(root, DOCS_README_PATH)
+    for marker in DOCS_README_REQUIRED_MARKERS:
+        if marker not in docs_readme:
+            failures.append(f"missing_marker:{DOCS_README_PATH}:{marker}")
+
     for marker in REVIEW_CHECKLIST_REQUIRED_MARKERS:
         if marker not in review_checklist:
             failures.append(f"missing_marker:{REVIEW_CHECKLIST_PATH}:{marker}")
@@ -192,6 +204,14 @@ def build_study_only_accounting_fixture_text() -> str:
 """
 
 
+def build_docs_readme_fixture_text() -> str:
+    return """# Zigux Documentation
+
+- Phase 9 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md` - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` - `Documentation/zigux/review-checklist.md` - `Documentation/zigux/README.md` - `scripts/zigux/README.md` - `samples/zigux/README.md` - `zigux/tests/README.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - `scripts/zigux/check-phase9-freeze-map-study-boundaries.py` keep the shared Phase 9 reminder packet honest by routing any study-only freeze-map summary back through the dedicated accounting note instead of treating `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-substrate readiness evidence.
+- keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues, and any shared reminder surface that summarizes them must route back through those two owner notes.
+"""
+
+
 def build_review_checklist_fixture_text() -> str:
     return """# Zigux Review Checklist
 
@@ -235,6 +255,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / FREEZE_MAP_PATH, build_freeze_map_fixture_text())
     write_text(base / STUDY_ONLY_ACCOUNTING_PATH, build_study_only_accounting_fixture_text())
     write_text(base / REVIEW_CHECKLIST_PATH, build_review_checklist_fixture_text())
+    write_text(base / DOCS_README_PATH, build_docs_readme_fixture_text())
     write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text())
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
@@ -270,6 +291,14 @@ def run_self_test() -> int:
                 continue
             write_text(base / STUDY_ONLY_ACCOUNTING_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
+
+        for marker in DOCS_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_docs_readme_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / DOCS_README_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{DOCS_README_PATH}:{marker}")
 
         for marker in REVIEW_CHECKLIST_REQUIRED_MARKERS:
             seed_fixture_tree(base)
@@ -315,6 +344,7 @@ def run_self_test() -> int:
             FREEZE_MAP_PATH,
             STUDY_ONLY_ACCOUNTING_PATH,
             REVIEW_CHECKLIST_PATH,
+            DOCS_README_PATH,
             LANE_SEQUENCING_PATH,
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
@@ -329,6 +359,7 @@ def run_self_test() -> int:
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES_SELF_TEST=pass")
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_DOCS_README_STUDY_BOUNDARY_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_STUDY_BOUNDARY_MARKER_COUNT={len(REVIEW_CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
@@ -360,6 +391,7 @@ def main() -> int:
 
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_DOCS_README_STUDY_BOUNDARY_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_STUDY_BOUNDARY_MARKER_COUNT={len(REVIEW_CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
