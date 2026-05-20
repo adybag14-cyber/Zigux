@@ -77,7 +77,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 50
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -138,6 +138,22 @@ def collect_duplicate_checker_issues() -> list[tuple[str, str]]:
     return issues
 
 
+def collect_required_path_issue(
+    root: Path,
+    path: Path,
+    *,
+    missing_code: str,
+    non_file_code: str,
+) -> list[tuple[str, str]]:
+    resolved = resolve_path(root, path)
+    rel_path = path.relative_to(ROOT).as_posix()
+    if resolved.is_file():
+        return []
+    if resolved.exists():
+        return [(non_file_code, rel_path)]
+    return [(missing_code, rel_path)]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     scripts_readme_text = read_text(root, SCRIPTS_README)
@@ -186,11 +202,23 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
 
     for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
-        if not resolve_path(root, path).exists():
-            issues.append(("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()))
+        issues.extend(
+            collect_required_path_issue(
+                root,
+                path,
+                missing_code="MISSING_REQUIRED_FILE",
+                non_file_code="REQUIRED_FILE_NOT_FILE",
+            )
+        )
     for path in CHECKERS:
-        if not resolve_path(root, path).exists():
-            issues.append(("MISSING_CHECKER", path.relative_to(ROOT).as_posix()))
+        issues.extend(
+            collect_required_path_issue(
+                root,
+                path,
+                missing_code="MISSING_CHECKER",
+                non_file_code="CHECKER_NOT_FILE",
+            )
+        )
 
     return issues
 
@@ -360,10 +388,26 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             checks_run += 1
 
+            build_self_test_root(root)
+            non_file = resolve_path(root, path)
+            non_file.unlink()
+            non_file.mkdir()
+            assert ("REQUIRED_FILE_NOT_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
+            non_file.rmdir()
+            checks_run += 1
+
         for path in CHECKERS:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert ("MISSING_CHECKER", path.relative_to(ROOT).as_posix()) in collect_issues(root)
+            checks_run += 1
+
+            build_self_test_root(root)
+            non_file = resolve_path(root, path)
+            non_file.unlink()
+            non_file.mkdir()
+            assert ("CHECKER_NOT_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
+            non_file.rmdir()
             checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
