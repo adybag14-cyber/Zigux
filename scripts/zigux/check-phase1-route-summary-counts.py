@@ -53,6 +53,7 @@ EXACT_LINE_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
         "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
         "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
     ),
 }
