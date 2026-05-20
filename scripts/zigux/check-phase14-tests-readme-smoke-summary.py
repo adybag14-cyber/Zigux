@@ -65,6 +65,7 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
     "`Documentation/zigux/phase14-productization-gap-survey.md`",
     "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`",
+    "`scripts/zigux/check-phase14-shared-smoke-route.py`",
     "`scripts/zigux/validate-phase14.py`",
     "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
     "`kernel/workqueue_bridge.zig`",
@@ -191,7 +192,9 @@ def write_fixture_tree(root: Path) -> None:
     )
     write_text(
         root / ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
-        "# Phase 14 Attached Toolchain Guidance Gap\n" + "\n".join(REQUIRED_ATTACHED_TOOLCHAIN_MARKERS) + "\n",
+        "# Phase 14 Attached Toolchain Guidance Gap\n"
+        + "\n".join(REQUIRED_ATTACHED_TOOLCHAIN_MARKERS)
+        + "\n",
     )
     write_text(
         root / TESTS_ROOT_README_PATH,
@@ -221,7 +224,10 @@ def write_fixture_tree(root: Path) -> None:
         root / REVIEW_CHECKLIST_PATH,
         "# Zigux Review Checklist\n" + "\n".join(REQUIRED_CHECKLIST_MARKERS) + "\n",
     )
-    write_text(root / SHARED_SMOKE_ROUTE_CHECKER_PATH, "# route checker\n" + "\n".join(REQUIRED_ROUTE_CHECKER_MARKERS) + "\n")
+    write_text(
+        root / SHARED_SMOKE_ROUTE_CHECKER_PATH,
+        "# route checker\n" + "\n".join(REQUIRED_ROUTE_CHECKER_MARKERS) + "\n",
+    )
     write_text(root / VALIDATOR_PATH, "# validator placeholder\n")
     write_text(root / RELEASE_BOUNDARY_CHECKER_PATH, "# release-boundary checker placeholder\n")
     write_text(root / TESTS_README_CHECKER_PATH, "# tests-readme checker placeholder\n")
@@ -280,7 +286,20 @@ def run_self_test() -> int:
         tests_path = base / TESTS_ROOT_README_PATH
         tests_path.write_text(
             tests_path.read_text(encoding="utf-8").replace(
-                REQUIRED_TESTS_ROOT_MARKERS[4],
+                REQUIRED_TESTS_ROOT_MARKERS[3],
+                "`scripts/zigux/check-phase14-shared-smoke-route-legacy.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase14 tests-root README missing required markers")
+        cases += 1
+
+        write_fixture_tree(base)
+        tests_path = base / TESTS_ROOT_README_PATH
+        tests_path.write_text(
+            tests_path.read_text(encoding="utf-8").replace(
+                REQUIRED_TESTS_ROOT_MARKERS[5],
                 "`scripts/zigux/check-phase14-release-boundary-drift.py`",
                 1,
             ),
