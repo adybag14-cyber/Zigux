@@ -35,6 +35,10 @@ coupled continuity remains parked under `P11-L16`.
   - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- current authenticated contents readback also keeps
+  `Documentation/zigux/phase11-hvc-console-teardown-note.md` directly readable
+  as the roadmap-facing teardown and failure-mode reminder surface for the
+  current starter
 - current authenticated contents readback still does not rematerialize
   `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`,
@@ -42,8 +46,7 @@ coupled continuity remains parked under `P11-L16`.
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
-  `Documentation/zigux/phase11-hvc-console-slice.md`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`, or
+  `Documentation/zigux/phase11-hvc-console-slice.md`, or
   `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that older
   starter-depth packet framed as archival or repo-reality-gap vocabulary until
   a future reread proves those deeper anchors returned
@@ -81,14 +84,17 @@ matches that narrower current-head packet rather than the older starter-depth
 packet. The standalone targetless-unregister witness pair likewise stays
 explicit as a separate failure-mode replay that rereads the current starter
 against the verify-helper boundary note without promoting itself into the shared
-three-entry build inventory.
+three-entry build inventory. The returned teardown note likewise stays directly
+readable as the roadmap-facing teardown reminder beside this smaller current-head
+packet without reviving the older manifest, dedicated survey checker, or replay
+stack.
 
 ## Still-Bounded Gaps
 
 Keep the deeper verify helper, sysrq helper, focused survey replay, manifest,
-teardown note, slice, and dedicated survey checker framed as archival or
-repo-reality-gap vocabulary until a future reread proves they returned beside
-the smaller companion packet.
+slice, and dedicated survey checker framed as archival or repo-reality-gap
+vocabulary until a future reread proves they returned beside the smaller
+companion packet.
 
 Keep `zigux/Makefile` explicit only as the returned file; it still does not
 prove a dedicated `make -C zigux phase11-hvc-survey` route.
@@ -100,26 +106,27 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 
 The archival lane recorded a broader HVC starter-depth packet.
 Current authenticated contents reads now keep the direct starter, the
-companion, the boundary note, the matrix, the build-inventory checker,
-cleanup-current-head checker, the shared inventory, the proof-backed adjunct
-stack, and the standalone targetless-unregister witness pair explicitly
-reviewable on `master`.
+companion, the boundary note, the matrix, the returned teardown reminder, the
+build-inventory checker, cleanup-current-head checker, the shared inventory,
+the proof-backed adjunct stack, and the standalone targetless-unregister
+witness pair explicitly reviewable on `master`.
 
 This survey therefore keeps the current-head packet honest without reviving the
-older manifest, teardown-note, survey-checker, helper, or replay anchors as if
-they had all returned.
+older manifest, survey-checker, helper, or replay anchors as if they had all
+returned.
 
 ## Bounded Meaning
 
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the companion reminder
-stack, the build-inventory checker, the proof-backed adjunct replays, and the
-standalone targetless-unregister witness pair listed above.
+stack, the returned teardown reminder, the build-inventory checker, the
+proof-backed adjunct replays, and the standalone targetless-unregister witness
+pair listed above.
 
 It does not claim live tty-driver registration, notifier callback execution,
 khvcd polling execution, live sysrq dispatch, host-backed cleanup, or
 hardware-validated teardown parity.
 
 If a future reread rematerializes the deeper HVC helper, replay, manifest, or
-checker anchors, refresh this survey, the validation matrix, and the coupled
-current-head checker together in one bounded pass.
+checker anchors, refresh this survey, the validation matrix, the teardown note,
+and the coupled current-head checker together in one bounded pass.
