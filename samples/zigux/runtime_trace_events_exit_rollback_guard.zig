@@ -174,3 +174,115 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     const exited_after_rejected_ops = module.summary();
     try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);
 }
+
+test "phase9 trace-events sample keeps initialized failed-exit rollback explicit before selftest replay" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+    try module.registerFunctionThread();
+
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.main_iterations);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.total_events);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_failed_exit.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_unregister_label);
+
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+
+    const after_failed_exit = module.summary();
+    try expectSummaryStable(before_failed_exit, after_failed_exit);
+
+    try module.unregisterFunctionThread();
+
+    const before_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, before_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 0), before_selftest.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_selftest.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_selftest.unregister_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftest.exit_runs);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_selftest.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings("foo_bar_unreg", before_selftest.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 6), selftest.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), selftest.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), selftest.total_events);
+    try std.testing.expect(selftest.conditional_paths_checked);
+    try std.testing.expect(selftest.registration_paths_checked);
+
+    const after_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, after_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 0), after_selftest.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.main_iterations);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 6), after_selftest.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), after_selftest.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), after_selftest.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), after_selftest.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), after_selftest.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), after_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 2), after_selftest.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), after_selftest.unregister_transitions);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), after_selftest.exit_runs);
+    try std.testing.expectEqual(@as(i32, 0), after_selftest.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), after_selftest.last_fn_count);
+    try std.testing.expect(after_selftest.saw_vararg_payload);
+    try std.testing.expect(after_selftest.saw_rel_loc_payload);
+    try std.testing.expect(after_selftest.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", after_selftest.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings("event-sample-fn", after_selftest.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
+    try std.testing.expectEqualStrings("foo_bar_reg", after_selftest.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings("foo_bar_unreg", after_selftest.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings("hello", after_selftest.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", after_selftest.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 0), after_selftest.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(after_selftest.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("HELLO", after_selftest.last_main_template_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Some times print", after_selftest.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", after_selftest.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("I have to be different", after_selftest.last_main_template_print_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Hello __rel_loc", after_selftest.last_main_relative_location_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Look at me", after_selftest.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("Look at me too", after_selftest.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("iter=%d", after_selftest.last_format_template orelse return error.ExpectedMainPayload);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(after_selftest.registration_depth, after_exit.registration_depth);
+    try std.testing.expectEqual(after_selftest.main_iterations, after_exit.main_iterations);
+    try std.testing.expectEqual(after_selftest.fn_iterations, after_exit.fn_iterations);
+    try std.testing.expectEqual(after_selftest.main_thread_events, after_exit.main_thread_events);
+    try std.testing.expectEqual(after_selftest.fn_thread_events, after_exit.fn_thread_events);
+    try std.testing.expectEqual(after_selftest.total_events, after_exit.total_events);
+    try std.testing.expectEqual(after_selftest.last_main_emitted_events, after_exit.last_main_emitted_events);
+    try std.testing.expectEqual(after_selftest.last_fn_emitted_events, after_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(after_selftest.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(after_selftest.register_transitions, after_exit.register_transitions);
+    try std.testing.expectEqual(after_selftest.unregister_transitions, after_exit.unregister_transitions);
+    try std.testing.expectEqual(after_selftest.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(after_selftest.selftest_runs, after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(after_selftest.last_main_count, after_exit.last_main_count);
+    try std.testing.expectEqual(after_selftest.last_fn_count, after_exit.last_fn_count);
+    try std.testing.expectEqual(after_selftest.saw_vararg_payload, after_exit.saw_vararg_payload);
+    try std.testing.expectEqual(after_selftest.saw_rel_loc_payload, after_exit.saw_rel_loc_payload);
+    try std.testing.expectEqual(after_selftest.saw_conditional_path, after_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings(after_selftest.main_thread_label orelse return error.ExpectedMainThreadLabel, after_exit.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings(after_selftest.function_thread_label orelse return error.ExpectedFunctionThreadLabel, after_exit.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
+    try std.testing.expectEqualStrings(after_selftest.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings(after_selftest.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+}
