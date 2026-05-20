@@ -75,7 +75,7 @@ So this slice must keep saying plainly that the broader shared runtime-loader pa
 1. Keep the trace-events family tied to `samples/trace_events/trace-events-sample.c` and the Phase 9 runtime-pilot roadmap only.
 2. Keep the surviving four-file sample family explicit as current sample-local pilot-module proof.
 3. Keep `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` paired with this slice as family-local review witnesses.
-4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `.github/workflows/zigux-bootstrap.yml`, and the narrow adjacent `zigux/tests/phase9_build.zig` shard as neighboring shared reminder or build surfaces rather than re-owned here.
+4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `.github/workflows/zigux-bootstrap.yml`, and the adjacent bounded `zigux/tests/phase9_build.zig` build bundle as neighboring shared reminder or build surfaces rather than re-owned here.
 5. Keep `zigux/tests/phase9_build.zig` framed as a bounded shared Phase 9 build bundle rather than trace-events packet proof or a returned shared runtime-loader build route.
 6. Do not treat the broader shared runtime-loader packet as returned evidence.
 7. Do not invent `validate-phase9.py`, a trace-events-only validator, or a loader-backed runtime-substrate claim that current `master` does not expose.
