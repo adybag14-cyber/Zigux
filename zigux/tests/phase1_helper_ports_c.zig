@@ -259,6 +259,16 @@ test "lane10 helper ports keep exact-fit and fresh-rezero contracts" {
     try std.testing.expectEqual(@as(u8, 0), generated_exact[generated_rendered.len]);
     try std.testing.expectEqual(@intFromPtr(&generated_exact[0]), @intFromPtr(generated_rendered.ptr));
 
+    var growth_storage = [_]u8{0xaa} ** 64;
+    const truncated_permission = str_error_r.strErrorR(13, growth_storage[0..6]);
+    try std.testing.expectEqualStrings("Permi", truncated_permission);
+    try std.testing.expectEqual(@as(u8, 0), growth_storage[5]);
+
+    const exact_permission = str_error_r.strErrorR(13, growth_storage[0..18]);
+    try std.testing.expectEqualStrings("Permission denied", exact_permission);
+    try std.testing.expectEqual(@as(u8, 0), growth_storage[exact_permission.len]);
+    try std.testing.expectEqual(@intFromPtr(&growth_storage[0]), @intFromPtr(exact_permission.ptr));
+
     slab.kmalloc_nr_allocated = 0;
     const first_array = slab.kmallocArray(4, 1, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
