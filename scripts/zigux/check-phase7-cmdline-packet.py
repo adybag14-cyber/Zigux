@@ -50,6 +50,7 @@ REQUIRED_MARKERS = {
         "pub fn nextArg",
         "pub const next_arg = nextArg;",
         "pub fn memparse",
+        "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
@@ -78,6 +79,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
         'const checker = try readRepoFile(allocator, checker_path);',
+        'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -85,7 +87,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -223,6 +225,19 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        helper_text = read_text(helper_path)
+        helper_whitespace_marker = 'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {'
+        helper_path.write_text(
+            helper_text.replace(helper_whitespace_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_whitespace_only_sentinel_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_whitespace_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
         manifest_text = read_text(manifest_path)
         manifest_marker = '"scripts/zigux/check-phase7-cmdline-packet.py"'
@@ -260,6 +275,16 @@ def run_self_test() -> None:
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_checker_reader",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_helper_whitespace_only_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
         )
