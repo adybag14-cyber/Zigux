@@ -79,7 +79,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
         'const checker = try readRepoFile(allocator, checker_path);',
-        'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -87,7 +87,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
@@ -142,6 +142,7 @@ def run_self_test() -> None:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
+        cases_run = 0
 
         companion_path = tmp_root / "zigux" / "tests" / "phase7_cmdline.zig"
         companion_path.unlink()
@@ -150,6 +151,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_cmdline.zig",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
@@ -164,6 +166,7 @@ def run_self_test() -> None:
             tmp_root,
             f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         sequencing_text = read_text(sequencing_path)
@@ -177,6 +180,7 @@ def run_self_test() -> None:
             tmp_root,
             f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_samples_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
@@ -188,6 +192,7 @@ def run_self_test() -> None:
             tmp_root,
             f"Documentation/zigux/phase7-cmdline-slice.md: {slice_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-cmdline-packet.py"
@@ -199,6 +204,7 @@ def run_self_test() -> None:
             tmp_root,
             f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "cmdline.zig"
@@ -210,6 +216,7 @@ def run_self_test() -> None:
             tmp_root,
             f"lib/cmdline.zig: {helper_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
@@ -223,8 +230,10 @@ def run_self_test() -> None:
             tmp_root,
             f"lib/cmdline.zig: {helper_alias_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
         helper_text = read_text(helper_path)
         helper_whitespace_marker = 'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {'
         helper_path.write_text(
@@ -236,9 +245,9 @@ def run_self_test() -> None:
             tmp_root,
             f"lib/cmdline.zig: {helper_whitespace_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
         manifest_text = read_text(manifest_path)
         manifest_marker = '"scripts/zigux/check-phase7-cmdline-packet.py"'
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
@@ -247,6 +256,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_text = read_text(manifest_path)
@@ -257,6 +267,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_text = read_text(manifest_path)
@@ -267,6 +278,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_survey.zig"
@@ -278,16 +290,19 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
+        companion_text = read_text(companion_path)
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_helper_whitespace_only_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -298,6 +313,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -308,6 +324,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -318,6 +335,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -328,6 +346,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -338,6 +357,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -348,6 +368,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -358,6 +379,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {empty_input_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -368,6 +390,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {first_nul_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -378,6 +401,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {borrowed_suffix_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -388,6 +412,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {quoted_empty_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -398,6 +423,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {quoted_bare_grouping_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
@@ -408,6 +434,7 @@ def run_self_test() -> None:
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {quoted_equals_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
@@ -419,10 +446,13 @@ def run_self_test() -> None:
             tmp_root,
             f"samples/zigux/README.md: {samples_marker}",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
+        assert cases_run == SELF_TEST_CASE_COUNT, cases_run
+
     print("PHASE7_CMDLINE_PACKET_SELF_TEST=pass")
-    print(f"PHASE7_CMDLINE_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    print(f"PHASE7_CMDLINE_PACKET_SELF_TEST_CASE_COUNT={cases_run}")
 
 
 def parse_args() -> argparse.Namespace:
