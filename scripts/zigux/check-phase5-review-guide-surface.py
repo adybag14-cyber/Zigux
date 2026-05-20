@@ -76,29 +76,26 @@ APPROVED_IDIOM_MARKERS = (
 
 REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet,",
+    "keep `samples/zigux/trace_events_string_formatting_sample.zig` framed only as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample,",
     "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording,",
     "keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` explicit as current direct reminder or packet evidence, keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence until a fresh reread proves direct authenticated proof for those two routes again,",
-    "keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, and broad `*format*` sample claims out of the Phase 5 packet?",
 )
 
 SCRIPTS_ROOT_MARKERS = (
     "Phase 5 flow - the current scripts-root sample packet stays reviewable through the shipped guide-surface guard, the restored direct bytestream sample-plus-tests packet, the restored direct non-runtime kretprobe packet, the narrower trace-events formatting companion, and the split-readback kobject reminder packet instead of flattening all four roadmap anchors into sample-root-only proof, guide-only prose, or a blanket missing-sample story",
     "`python3 scripts/zigux/check-phase5-review-guide-surface.py --self-test` replays the shipped shared Phase 5 scripts-root reminder guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording",
     "keep the kobject split explicit too: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are current direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again",
-    "do not treat standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` sample claims as landed Phase 5 proof on current `master`",
 )
 
 TESTS_ROOT_MARKERS = (
     "Keep the current bounded Phase 5 tests-root reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, and `zigux/tests/README.md`.",
     "Keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording instead of treating the Phase 5 tests-root packet as docs-only guidance.",
     "Keep the current kobject split explicit too: `zigux/tests/phase5_kobject_example.zig` and `zigux/tests/phase5_kobject_example_manifest.json` are direct tests-root packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again.",
-    "Keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, and broad `*format*` sample claims out of this non-runtime Phase 5 tests-root packet.",
 )
 
 LANE_SEQUENCING_MARKERS = (
     "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
     "Keep shared contributor guidance honest about that mixed tree-visible-versus-authenticated-readback split instead of repeating older split-readback wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
-    "there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`",
 )
 
 SAMPLE_ROOT_MARKERS = (
@@ -238,6 +235,25 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected approved-idiom failure: {failures}")
         checks_run += 1
 
+        missing_review_checklist_marker_root = root / "missing_review_checklist_marker"
+        _seed(missing_review_checklist_marker_root)
+        _write(
+            missing_review_checklist_marker_root / REVIEW_CHECKLIST_PATH,
+            _placeholder_text(
+                REVIEW_CHECKLIST_PATH,
+                (
+                    REVIEW_CHECKLIST_MARKERS[0],
+                    REVIEW_CHECKLIST_MARKERS[2],
+                    REVIEW_CHECKLIST_MARKERS[3],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_review_checklist_marker_root)
+        expected = [f"{REVIEW_CHECKLIST_PATH}:missing_text:{REVIEW_CHECKLIST_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected review-checklist failure: {failures}")
+        checks_run += 1
+
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
         _seed(missing_sample_root_marker_root)
         _write(
@@ -248,24 +264,6 @@ def run_self_test() -> int:
         expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
-        checks_run += 1
-
-        missing_lane_rbtree_marker_root = root / "missing_lane_rbtree_marker"
-        _seed(missing_lane_rbtree_marker_root)
-        _write(
-            missing_lane_rbtree_marker_root / LANE_SEQUENCING_PATH,
-            _placeholder_text(
-                LANE_SEQUENCING_PATH,
-                (
-                    LANE_SEQUENCING_MARKERS[0],
-                    LANE_SEQUENCING_MARKERS[1],
-                ),
-            ),
-        )
-        failures = collect_failures(missing_lane_rbtree_marker_root)
-        expected = [f"{LANE_SEQUENCING_PATH}:missing_text:{LANE_SEQUENCING_MARKERS[2]}"]
-        if failures != expected:
-            raise AssertionError(f"unexpected lane-sequencing failure: {failures}")
         checks_run += 1
 
         missing_direct_path_root = root / "missing_direct_path"
