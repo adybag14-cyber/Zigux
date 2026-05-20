@@ -57,16 +57,32 @@ class CheckSpec:
 
 CHECKS = (
     CheckSpec(
+        "phase11-build-inventory-self-test",
+        ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
+    ),
+    CheckSpec(
         "phase11-build-inventory",
         ("python", "scripts/zigux/check-phase11-build-inventory.py"),
+    ),
+    CheckSpec(
+        "phase11-matrix-gap-survey-self-test",
+        ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
     ),
     CheckSpec(
         "phase11-matrix-gap-survey",
         ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
     ),
     CheckSpec(
+        "phase11-validation-matrix-gap-survey-self-test",
+        ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
+    ),
+    CheckSpec(
         "phase11-validation-matrix-gap-survey",
         ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
+    ),
+    CheckSpec(
+        "phase11-hvc-cleanup-current-head-self-test",
+        ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
     ),
     CheckSpec(
         "phase11-hvc-cleanup-current-head",
@@ -259,10 +275,22 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_build_inventory_self_test_script = root / "scripts/zigux/check-phase11-build-inventory.py"
+        build_stub_script(failing_build_inventory_self_test_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_build_inventory_self_test_failure = "live_failed:phase11-build-inventory-self-test:exit=1"
+        if expected_build_inventory_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:build_inventory_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_build_inventory_script = root / "scripts/zigux/check-phase11-build-inventory.py"
         build_stub_script(failing_build_inventory_script, exit_code=1)
         issues = collect_issues(root)
-        expected_build_inventory_failure = "live_failed:phase11-build-inventory:exit=1"
+        expected_build_inventory_failure = "live_failed:phase11-build-inventory-self-test:exit=1"
         if expected_build_inventory_failure not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:build_inventory_failure_not_detected:"
@@ -271,10 +299,22 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_matrix_gap_self_test_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
+        build_stub_script(failing_matrix_gap_self_test_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_matrix_gap_self_test_failure = "live_failed:phase11-matrix-gap-survey-self-test:exit=1"
+        if expected_matrix_gap_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:matrix_gap_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_matrix_gap_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
         build_stub_script(failing_matrix_gap_script, exit_code=1)
         issues = collect_issues(root)
-        expected_matrix_gap_failure = "live_failed:phase11-matrix-gap-survey:exit=1"
+        expected_matrix_gap_failure = "live_failed:phase11-matrix-gap-survey-self-test:exit=1"
         if expected_matrix_gap_failure not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:matrix_gap_failure_not_detected:"
@@ -283,10 +323,22 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_validation_matrix_gap_self_test_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
+        build_stub_script(failing_validation_matrix_gap_self_test_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_validation_matrix_gap_self_test_failure = "live_failed:phase11-validation-matrix-gap-survey-self-test:exit=1"
+        if expected_validation_matrix_gap_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:validation_matrix_gap_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
         build_stub_script(failing_script, exit_code=1)
         issues = collect_issues(root)
-        expected_failure = "live_failed:phase11-validation-matrix-gap-survey:exit=1"
+        expected_failure = "live_failed:phase11-validation-matrix-gap-survey-self-test:exit=1"
         if expected_failure not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:subcommand_failure_not_detected:"
@@ -295,10 +347,22 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        failing_hvc_cleanup_self_test_script = root / "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
+        build_stub_script(failing_hvc_cleanup_self_test_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_hvc_cleanup_self_test_failure = "live_failed:phase11-hvc-cleanup-current-head-self-test:exit=1"
+        if expected_hvc_cleanup_self_test_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:hvc_cleanup_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_hvc_cleanup_script = root / "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
         build_stub_script(failing_hvc_cleanup_script, exit_code=1)
         issues = collect_issues(root)
-        expected_hvc_cleanup_failure = "live_failed:phase11-hvc-cleanup-current-head:exit=1"
+        expected_hvc_cleanup_failure = "live_failed:phase11-hvc-cleanup-current-head-self-test:exit=1"
         if expected_hvc_cleanup_failure not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:hvc_cleanup_failure_not_detected:"
@@ -329,7 +393,8 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         build_fake_zig(
             fake_zig,
             fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
@@ -383,7 +448,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
