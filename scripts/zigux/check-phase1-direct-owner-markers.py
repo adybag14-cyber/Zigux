@@ -92,9 +92,9 @@ EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
     "direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, "
     "zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), "
-    "underscore-alias, Linux-style alias, or tail-word skip anchors, or committed "
-    "tail-clamped replay drift; do not reopen older saved validator cues or "
-    "neighboring helper families."
+    "underscore-alias, Linux-style alias coverage including the shipped andnot scan "
+    "entry points, or tail-word skip anchors, or committed tail-clamped replay drift; "
+    "do not reopen older saved validator cues or neighboring helper families."
 )
 EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the already-landed shared-replay promotion for "
