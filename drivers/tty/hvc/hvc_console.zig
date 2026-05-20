@@ -42,7 +42,7 @@ pub fn summarizeCrLfWrite(request: CrLfWriteRequest) CrLfWriteSummary {
     return .{
         .payload_len = request.payload_len,
         .inserts_carriage_return = request.newline_seen and !request.already_crlf,
-        .preserves_existing_crlf = request.already_crlf,
+        .preserves_existing_crlf = request.newline_seen and request.already_crlf,
         .can_sleep = request.can_sleep,
     };
 }
@@ -604,6 +604,34 @@ test "phase11 hvc console keeps CRLF framing summary reviewable" {
     try std.testing.expect(summary.inserts_carriage_return);
     try std.testing.expect(!summary.preserves_existing_crlf);
     try std.testing.expect(summary.can_sleep);
+}
+
+test "phase11 hvc console keeps existing CRLF framing distinct from bare LF insertion" {
+    const summary = summarizeCrLfWrite(.{
+        .payload_len = 4,
+        .newline_seen = true,
+        .already_crlf = true,
+        .can_sleep = true,
+    });
+
+    try std.testing.expectEqual(@as(usize, 4), summary.payload_len);
+    try std.testing.expect(!summary.inserts_carriage_return);
+    try std.testing.expect(summary.preserves_existing_crlf);
+    try std.testing.expect(summary.can_sleep);
+}
+
+test "phase11 hvc console keeps non-newline writes out of CRLF preservation claims" {
+    const summary = summarizeCrLfWrite(.{
+        .payload_len = 3,
+        .newline_seen = false,
+        .already_crlf = true,
+        .can_sleep = false,
+    });
+
+    try std.testing.expectEqual(@as(usize, 3), summary.payload_len);
+    try std.testing.expect(!summary.inserts_carriage_return);
+    try std.testing.expect(!summary.preserves_existing_crlf);
+    try std.testing.expect(!summary.can_sleep);
 }
 
 test "phase11 hvc console keeps flush intent summary reviewable" {
