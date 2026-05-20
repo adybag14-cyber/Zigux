@@ -142,20 +142,20 @@ HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
     'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
-    'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
     'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {',
+    'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {',
     'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());',
     'test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {',
 ]
 
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {',
+    'test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {',
     'try expectContains(survey_note, "interrupt-ack disposition review");',
     'try expectContains(survey_note, "staged config-write planning");',
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(build_file, "phase10_virtio_mmio_survey_module");',
-    'try expectContains(build_file, "\\"phase10-virtio-mmio-survey-tests\\"");',
+    'try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");',
     'try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");',
     'test "phase10 virtio mmio survey note keeps risky transport work blocked" {',
     'try expectContains(survey_note, "transport-backed queue setup or queue reset execution");',
@@ -229,7 +229,7 @@ def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expecte
     if missing_files:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_files:{','.join(missing_files)}")
     if expected not in missing_markers:
-        actual = ','.join(missing_markers) if missing_markers else 'none'
+        actual = ",".join(missing_markers) if missing_markers else "none"
         raise SystemExit(f"phase10-mmio-packet-self-test:expected={expected}:actual={actual}")
     path.write_text(original, encoding="utf-8")
 
@@ -242,7 +242,7 @@ def expect_missing_file(root: Path, rel_path: str) -> None:
     if missing_markers:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_markers:{','.join(missing_markers)}")
     if rel_path not in missing_files:
-        actual = ','.join(missing_files) if missing_files else 'none'
+        actual = ",".join(missing_files) if missing_files else "none"
         raise SystemExit(f"phase10-mmio-packet-self-test:expected={rel_path}:actual={actual}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(original, encoding="utf-8")
@@ -274,16 +274,17 @@ def run_self_test() -> int:
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeInterruptAckDisposition(", "pub fn summarizeInterruptAckMissing(", "verify_helper:pub fn summarizeInterruptAckDisposition(")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", 'test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {', 'test "phase10 virtio mmio verify keeps feature negotiation drift" {', 'verify_helper:test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {', 'test "phase10 virtio mmio config-generation drift" {', 'helper_tests:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {', 'test "phase10 virtio mmio keeps config-generation drift" {', 'helper_tests:test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write plan drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());', 'try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);', 'helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "interrupt-ack disposition review");', 'try expectContains(survey_note, "interrupt-ack drift");', 'survey_gate:try expectContains(survey_note, "interrupt-ack disposition review");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "staged config-write planning");', 'try expectContains(survey_note, "staged config-write drift");', 'survey_gate:try expectContains(survey_note, "staged config-write planning");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {', 'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {', 'survey_gate:test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "run_phase10_virtio_mmio_survey_tests.step", "run_phase10_virtio_mmio_survey_drift.step", "build_file:run_phase10_virtio_mmio_survey_tests.step")
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
