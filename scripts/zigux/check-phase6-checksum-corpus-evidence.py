@@ -15,6 +15,7 @@ class ValidationError(RuntimeError):
 SLICE_PATH = Path("Documentation/zigux/phase6-checksum-slice.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
+HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 LIB_PATH = Path("lib/checksum.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_checksum.zig")
 PERF_TEST_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
@@ -36,6 +37,7 @@ REQUIRED_SNIPPETS = {
         "- focused helper replay: `zigux/tests/phase6_checksum.zig`",
         "- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`",
         "- committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
         "- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed payload threshold matrix (`64B`, `1501B`) and the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`) still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
         "- `make -C zigux phase6-checksum-perf`",
@@ -47,6 +49,10 @@ REQUIRED_SNIPPETS = {
         '"focused_helper_replay": "zigux/tests/phase6_checksum.zig"',
         '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"',
         '"zigux/tests/fixtures/phase6_checksum_vectors.zig"',
+        '"still_missing_direct_companions": [',
+        '"zigux/tests/phase6_checksum_c_parity.zig"',
+        '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
+        '"scripts/zigux/check-phase6-checksum-c-parity.py"',
         '"payload_case_labels": [',
         '"64B"',
         '"1501B"',
@@ -55,6 +61,15 @@ REQUIRED_SNIPPETS = {
         '"IPV4_24B"',
         '"IPV4_60B"',
         '"zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig"',
+        '"make -C zigux phase6-checksum-perf"',
+        '"make -C zigux phase6-perf"',
+    ],
+    HELPER_PARITY_MANIFEST_PATH: [
+        '"key": "checksum"',
+        '"still_missing_direct_companions": [',
+        '"zigux/tests/phase6_checksum_c_parity.zig"',
+        '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
+        '"scripts/zigux/check-phase6-checksum-c-parity.py"',
         '"make -C zigux phase6-checksum-perf"',
         '"make -C zigux phase6-perf"',
     ],
@@ -126,9 +141,24 @@ SELF_TEST_CASES = [
         "- dedicated slowdown replay: `zigux/tests/phase6_checksum_perf_matrix.zig`",
     ),
     (
+        CATALOG_PATH,
+        "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+        "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig` and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    ),
+    (
         HELPER_EVIDENCE_MANIFEST_PATH,
         '"IPV4_60B"',
         '"IPV4_48B"',
+    ),
+    (
+        HELPER_EVIDENCE_MANIFEST_PATH,
+        '"scripts/zigux/check-phase6-checksum-c-parity.py"',
+        '"scripts/zigux/check-phase6-checksum-c-proof.py"',
+    ),
+    (
+        HELPER_PARITY_MANIFEST_PATH,
+        '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
+        '"zigux/tests/fixtures/phase6_checksum_c_vector_harness.c"',
     ),
     (
         LIB_PATH,
