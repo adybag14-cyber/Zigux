@@ -95,6 +95,6 @@ This survey does not claim:
 ## Next bounded step
 Leave this lane parked unless a fresh same-packet reread finds a new exact trace-events-local drift to close.
 
-The strongest next safe step is now directly coupled to the landed sample-local packet: update `zigux/tests/phase5_trace_events_sample.zig` so the focused replay gate mirrors the callback-boundary `checked_focus` surface that current public `master` already shows in `samples/zigux/trace_events_sample.zig` through `runCallbackBoundaryRecoveryReplay()` and `TraceEventsReferenceSample.reviewContract().focus`.
+Current public `master` already shows the previously suggested `checked_focus` follow-through in `zigux/tests/phase5_trace_events_sample.zig`, so there is no outstanding focused-tests replay repair to schedule from this note.
 
-Keep that follow-through inside the focused tests-root packet only. Do not widen it into shared Phase 5 reminder docs, the formatting-only companion lane, or the separate Phase 9 runtime trace-events family.
+If this packet reopens, keep the next step to one same-packet survey note, manifest, focused replay, or shared reminder alignment that reflects the already-landed `checked_focus` contract without widening into shared Phase 5 guide work, the formatting-only companion lane, or the separate Phase 9 runtime trace-events family.
