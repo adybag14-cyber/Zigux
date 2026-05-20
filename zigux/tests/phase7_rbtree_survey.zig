@@ -182,9 +182,12 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads");
     try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");
     try expectContains(manifest.next_bounded_step, "public-fallback provenance");
-    try expectContains(manifest.next_bounded_step, "slice-backed direct-helper packet");
-    try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig`");
-    try expectContains(manifest.next_bounded_step, "`zigux/tests/fixtures/phase7_rbtree.json`");
+    try expectContains(manifest.next_bounded_step, "`kernel-leaf-libraries`");
+    try expectContains(manifest.next_bounded_step, "`zigux/tests/phase7_rbtree_survey.zig`");
+    try expectContains(manifest.next_bounded_step, "shared non-owner build evidence");
+    try expectContains(manifest.next_bounded_step, "without widening beyond the rbtree packet");
+    try expectNotContains(manifest.next_bounded_step, "`lib/rbtree.zig`");
+    try expectNotContains(manifest.next_bounded_step, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectNotContains(manifest.next_bounded_step, "`zigux/tests/phase7_build.zig`");
     try expectNotContains(manifest.next_bounded_step, "`scripts/zigux/validate-phase7.py`");
 
