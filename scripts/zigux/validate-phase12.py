@@ -175,7 +175,7 @@ REQUIRED_MARKERS = {
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
         "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
-        "The readable build file currently wires `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` through the shared `smoke` and `test` steps, so that checker-plus-workflow-plus-scripts-plus-Makefile-plus-build-file set stays direct support evidence only rather than proof for the larger `virtio_scsi` rollback-lab or driver-local NVMe packet.",
+        "The readable build file currently wires `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` through the shared `smoke` and `test` steps, and the readable Makefile now exposes `phase12-smoke`, `phase12-test`, and `phase12` even though `phase12-validate` is still missing, so that checker-plus-validator-plus-workflow-plus-scripts-plus-Makefile-plus-build-file set stays direct support evidence only rather than proof for the larger starter-present `virtio_net`, rollback-lab `virtio_scsi`, or driver-local NVMe packet.",
     ],
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: [
         "Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard for the current helper footing, and while keeping the older `tools/lib/bpf/zigux_segments/manifest.json` story explicit only as historical packet context rather than a directly readable current-master helper artifact.",
@@ -204,13 +204,6 @@ REQUIRED_MARKERS = {
         "still does not claim live DMA-safe request submission",
         "rollback-only split machine-checkable",
         "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
-    ],
-    VIRTIO_NET_SURVEY_PATH: [
-        "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
-        "lane owner: `P12-L04`",
-        "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes; `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints",
-        "the shared Phase 12 build route includes the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity replays, and current `zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12`",
-        "the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity",
     ],
     VIRTIO_NET_PACKET_CHECKER_PATH: [
         "PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass",
@@ -382,11 +375,13 @@ FIXTURE_TEXT = {
     ),
     RELEASE_CLOSURE_CHECKLIST_PATH: marker_fixture(
         "# Phase 12 Release Closure Checklist",
-        REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH],
+        REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH]
+        + list(EXACT_COUNT_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH].keys()),
     ),
     RELEASE_COORDINATION_MATRIX_PATH: marker_fixture(
         "# Phase 12 Release Coordination Matrix",
-        REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH],
+        REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH]
+        + list(EXACT_COUNT_MARKERS[RELEASE_COORDINATION_MATRIX_PATH].keys()),
     ),
     RAW_GITHUB_COVERAGE_PATH: marker_fixture(
         "# Phase 12 Raw GitHub Coverage Survey",
@@ -523,7 +518,7 @@ def run_self_test() -> int:
             expect_failure(
                 base,
                 "wrong_count:"
-                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}",
+                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}"
             )
 
         forbidden_cases = [
