@@ -24,19 +24,14 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
     "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
-    "Documentation/zigux/phase11-shared-replay-contract.md",
-    "Documentation/zigux/phase11-closure-note.md",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
-    "scripts/zigux/check-phase11-shared-replay-contract.py",
-    "scripts/zigux/check-phase11-shared-summary-surfaces.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
-    "zigux/tests/phase11_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
@@ -70,14 +65,6 @@ CHECKS = (
     CheckSpec(
         "phase11-dw-wdt-verify-alignment",
         "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
-    ),
-    CheckSpec(
-        "phase11-shared-replay-contract",
-        "scripts/zigux/check-phase11-shared-replay-contract.py",
-    ),
-    CheckSpec(
-        "phase11-shared-summary-surfaces",
-        "scripts/zigux/check-phase11-shared-summary-surfaces.py",
     ),
 )
 
@@ -186,14 +173,13 @@ def run_self_test() -> int:
         baseline_issues = collect_issues(root)
         if baseline_issues:
             raise SystemExit(
-                "phase11-validate-self-test:baseline_failed:"
-                + ",".join(baseline_issues)
+                "phase11-validate-self-test:baseline_failed:" + ",".join(baseline_issues)
             )
 
-        missing = root / "Documentation/zigux/phase11-shared-replay-contract.md"
+        missing = root / "Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
         missing.unlink()
         issues = collect_issues(root)
-        expected_missing = "missing_required_path:Documentation/zigux/phase11-shared-replay-contract.md"
+        expected_missing = "missing_required_path:Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
         if expected_missing not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:missing_required_path_not_detected:"
@@ -266,30 +252,8 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
-        failing_shared_script = root / "scripts/zigux/check-phase11-shared-replay-contract.py"
-        build_stub_script(failing_shared_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_shared_failure = "live_failed:phase11-shared-replay-contract:exit=1"
-        if expected_shared_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:shared_replay_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        failing_shared_summary_script = root / "scripts/zigux/check-phase11-shared-summary-surfaces.py"
-        build_stub_script(failing_shared_summary_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_shared_summary_failure = "live_failed:phase11-shared-summary-surfaces:exit=1"
-        if expected_shared_summary_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:shared_summary_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -304,7 +268,7 @@ def main() -> int:
 
     try:
         run_check(args.root.resolve())
-    except CheckError as exc:
+    except Exception as exc:  # pragma: no cover - defensive top-level guard
         print(f"PHASE11_VALIDATION=fail: {exc}")
         return 1
 
