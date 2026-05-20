@@ -79,6 +79,15 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") != null);
 }
 
+test "phase 8 exec-cmd review witness keeps the later workqueue study boundary explicit" {
+    try expectExistingPath("Documentation/zigux/review-checklist.md");
+
+    const checklist = try readRepoFile("Documentation/zigux/review-checklist.md");
+    defer std.testing.allocator.free(checklist);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "runtime-substrate or bridge-readiness evidence") != null);
+}
+
 test "phase 8 exec-cmd review witness records current focused replay and missing packet members" {
     try expectExistingPath("zigux/tests/phase8_exec_cmd.zig");
     try expectExistingPath("zigux/tests/phase8_exec_cmd_only_build.zig");
