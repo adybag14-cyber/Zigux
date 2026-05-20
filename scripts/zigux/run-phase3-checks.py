@@ -62,6 +62,14 @@ CHECK_COMMANDS = (
         ("validated scripts/zigux/README.md",),
     ),
     (
+        Path("scripts/zigux/check-phase3-wrapper-templates.py"),
+        (),
+        (
+            "validated scripts/zigux/generate-phase3-check-wrappers.py",
+            "PHASE3_WRAPPER_TEMPLATES_CHECK=pass",
+        ),
+    ),
+    (
         Path("scripts/zigux/check-phase3-catalog-selftest.py"),
         (),
         (
@@ -131,14 +139,15 @@ SELF_TEST_MISSING_CASES = (
     (6, "expected shared ABI checker omission was not reported"),
     (7, "expected shared-tests-routes script omission was not reported"),
     (8, "expected readme-tooling script omission was not reported"),
-    (9, "expected catalog-selftest script omission was not reported"),
-    (10, "expected validator-support script omission was not reported"),
-    (11, "expected export-uapi survey script omission was not reported"),
-    (12, "expected abi-header-family survey script omission was not reported"),
-    (13, "expected policy-unsafe survey script omission was not reported"),
-    (14, "expected low-level-wrapper script omission was not reported"),
-    (15, "expected linux-zigux header-governance script omission was not reported"),
-    (16, "expected selftest-surface script omission was not reported"),
+    (9, "expected wrapper-template script omission was not reported"),
+    (10, "expected catalog-selftest script omission was not reported"),
+    (11, "expected validator-support script omission was not reported"),
+    (12, "expected export-uapi survey script omission was not reported"),
+    (13, "expected abi-header-family survey script omission was not reported"),
+    (14, "expected policy-unsafe survey script omission was not reported"),
+    (15, "expected low-level-wrapper script omission was not reported"),
+    (16, "expected linux-zigux header-governance script omission was not reported"),
+    (17, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -283,29 +292,40 @@ def run_self_test() -> int:
             print("expected missing readme-inventory output marker to fail the runner")
             return 1
 
-        header_family_path = root / CHECK_COMMANDS[12][0]
+        wrapper_templates_path = root / CHECK_COMMANDS[9][0]
+        populate_repo()
+        _write_synthetic_script(
+            wrapper_templates_path,
+            (CHECK_COMMANDS[9][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing wrapper-template pass marker to fail the runner")
+            return 1
+
+        header_family_path = root / CHECK_COMMANDS[13][0]
         populate_repo()
         _write_synthetic_script(
             header_family_path,
-            (CHECK_COMMANDS[12][2][0],),
+            (CHECK_COMMANDS[13][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing abi-header-family pass marker to fail the runner")
             return 1
 
-        low_level_wrapper_path = root / CHECK_COMMANDS[14][0]
+        low_level_wrapper_path = root / CHECK_COMMANDS[15][0]
         populate_repo()
         _write_synthetic_script(
             low_level_wrapper_path,
-            (CHECK_COMMANDS[14][2][0],),
+            (CHECK_COMMANDS[15][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing low-level-wrapper pass marker to fail the runner")
             return 1
 
-        linux_zigux_header_path = root / CHECK_COMMANDS[15][0]
+        linux_zigux_header_path = root / CHECK_COMMANDS[16][0]
         populate_repo()
         _write_synthetic_script(linux_zigux_header_path, ())
         if run_packet(root) != 1:
@@ -316,7 +336,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 8}"
+            f"{len(SELF_TEST_MISSING_CASES) + 9}"
         )
         return 0
 
