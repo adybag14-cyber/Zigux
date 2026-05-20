@@ -17,9 +17,11 @@ EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
 )
 
 HELP_USAGE = (
@@ -251,7 +253,7 @@ def build_self_test_root(root: Path) -> None:
             [
                 {"name": "minimal", "args": [], "expected_file": "minimal_expected.json"},
                 {
-                    "name": "debug_reference_types", 
+                    "name": "debug_reference_types",
                     "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
                     "expected_file": "debug_reference_types_expected.json",
                 },
@@ -261,9 +263,19 @@ def build_self_test_root(root: Path) -> None:
                     "expected_file": "long_options_expected.json",
                 },
                 {
+                    "name": "abbreviated_long_options",
+                    "args": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
+                    "expected_file": "abbreviated_long_options_expected.json",
+                },
+                {
                     "name": "quiet_overrides_warning",
                     "args": ["--warnings", "--quiet", "--reference", "bar.symref"],
                     "expected_file": "quiet_overrides_warning_expected.json",
+                },
+                {
+                    "name": "explicit_option_terminator",
+                    "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
+                    "expected_file": "explicit_option_terminator_expected.json",
                 },
                 {
                     "name": "positional_passthrough",
@@ -271,9 +283,9 @@ def build_self_test_root(root: Path) -> None:
                     "expected_file": "positional_passthrough_expected.json",
                 },
                 {
-                    "name": "explicit_option_terminator",
-                    "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
-                    "expected_file": "explicit_option_terminator_expected.json",
+                    "name": "lone_dash_passthrough",
+                    "args": ["-", "-d"],
+                    "expected_file": "lone_dash_passthrough_expected.json",
                 },
             ],
             indent=2,
@@ -284,9 +296,11 @@ def build_self_test_root(root: Path) -> None:
         "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json": [],
         "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
         "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json": ["--debug", "--dump", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
+        "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
         "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json": ["--warnings", "--quiet", "--reference", "bar.symref"],
-        "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
         "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json": ["-d", "leftover.c", "--", "--leftover", "positional"],
+        "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json": ["-", "-d"],
     }.items():
         write_text(root, rel, json.dumps(parse_args(argv), indent=2) + "\n")
 
@@ -327,11 +341,11 @@ def run_self_test() -> int:
                     ],
                     "options": {
                         "debug_level": 1,
-                        "warnings": True,
-                        "dump_defs": False,
-                        "preserve": False,
+                        "warnings": true,
+                        "dump_defs": false,
+                        "preserve": false,
                         "reference_files": ["foo.symref"],
-                        "dump_types_file": None,
+                        "dump_types_file": null,
                     },
                 },
                 indent=2,
