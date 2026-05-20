@@ -96,8 +96,6 @@ SURVEY_MARKERS = (
 
 MAKEFILE_MARKERS = (
     "phase8-validate:",
-    "scripts/zigux/check-phase8-libbpf-segment-gate.py --self-test",
-    "scripts/zigux/check-phase8-libbpf-segment-gate.py",
     "phase8-libbpf-segments-test:",
     "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
 )
@@ -209,15 +207,13 @@ FIXTURE_TEXT = {
         (
             "phase8-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-libbpf-segment-gate.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-libbpf-segment-gate.py",
             "",
             "phase8-libbpf-segments-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
             "",
         )
     ),
-    BUILD_PATH: "\n".join(
+    BUILD_PATH": "\n".join(
         (
             'const std = @import("std");',
             "",
@@ -368,7 +364,6 @@ def run_self_test() -> int:
 
         survey_path = tmp_root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.writeText = None
         survey_path.write_text(original_survey.replace(count_marker(12), count_marker(11), 1), encoding="utf-8")
         expect_missing_marker("survey_count_marker", tmp_root, f"{SURVEY_PATH}:{count_marker(12)}")
         survey_path.write_text(original_survey, encoding="utf-8")
@@ -392,16 +387,16 @@ def run_self_test() -> int:
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             original_makefile.replace(
-                "scripts/zigux/check-phase8-libbpf-segment-gate.py --self-test",
-                "scripts/zigux/check-phase8-libbpf-segment-self.py --self-test",
+                "phase8-libbpf-segments-test:",
+                "phase8-libbpf-test:",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "makefile_checker_self_test_hook",
+            "makefile_focused_route",
             tmp_root,
-            "zigux/Makefile:scripts/zigux/check-phase8-libbpf-segment-gate.py --self-test",
+            "zigux/Makefile:phase8-libbpf-segments-test:",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
