@@ -10,6 +10,7 @@ DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
 PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 
 DOCS_README_MARKERS = (
     "Phase 2 notes",
@@ -176,6 +177,18 @@ SCRIPTS_README_FORBIDDEN_MARKERS = (
     "`zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-validate`, and `make -C zigux phase2` stay framed as repo-reality gaps",
 )
 
+TESTS_README_MARKERS = (
+    "## Phase 2 review packet",
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?",
+)
+
+TESTS_README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+
 
 def read_text(path: Path) -> str:
     try:
@@ -214,6 +227,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     phase2_notes_text = read_text(resolve_path(root, PHASE2_NOTES))
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
+    tests_readme_text = read_text(resolve_path(root, TESTS_README))
     issues.extend(
         collect_missing_markers(
             docs_readme_text,
@@ -284,6 +298,20 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "FORBIDDEN_SCRIPTS_README_MARKERS",
         )
     )
+    issues.extend(
+        collect_missing_markers(
+            tests_readme_text,
+            TESTS_README_MARKERS,
+            "MISSING_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            tests_readme_text,
+            TESTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_TESTS_README_MARKERS",
+        )
+    )
     return issues
 
 
@@ -310,6 +338,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, PHASE2_NOTES), "\n".join(PHASE2_NOTES_MARKERS) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -332,7 +361,9 @@ def run_self_test() -> int:
         + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(SCRIPTS_README_FORBIDDEN_MARKERS)
-        + 4
+        + len(TESTS_README_MARKERS)
+        + len(TESTS_README_FORBIDDEN_MARKERS)
+        + 5
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_") as tmp_dir:
         root = Path(tmp_dir)
@@ -420,7 +451,23 @@ def run_self_test() -> int:
             assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
 
-        for rel_path in (DOCS_README, PHASE2_NOTES, REVIEW_CHECKLIST, SCRIPTS_README):
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_TESTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in TESTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for rel_path in (DOCS_README, PHASE2_NOTES, REVIEW_CHECKLIST, SCRIPTS_README, TESTS_README):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             try:
@@ -440,7 +487,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the shared Phase 2 notes, checklist, docs-root, and scripts-root reminder packet aligned to current repo reality."
+        description="Keep the shared Phase 2 notes, checklist, docs-root, scripts-root, and tests-root reminder packet aligned to current repo reality."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run the built-in contract self-test")
@@ -456,7 +503,7 @@ def main() -> int:
     print("PHASE2_DOCS_SHARED_REMINDER=pass")
     print(
         "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
-        f"{len(DOCS_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+        f"{len(DOCS_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_EXACT_COUNT_MARKER_COUNT="
@@ -464,7 +511,7 @@ def main() -> int:
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
-        f"{len(DOCS_README_FORBIDDEN_MARKERS) + len(PHASE2_NOTES_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS)}"
+        f"{len(DOCS_README_FORBIDDEN_MARKERS) + len(PHASE2_NOTES_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS) + len(TESTS_README_FORBIDDEN_MARKERS)}"
     )
     return 0
 
