@@ -111,6 +111,12 @@ EXPECTED_CASES = [
         "expected": "missing_long_dump_types_argument_expected.json",
     },
     {
+        "name": "abbreviated_long_version_before_missing_long_dump_types_argument",
+        "argv": ["--ver", "--dump-types"],
+        "mode": "process_json",
+        "expected": "version_before_missing_long_dump_types_argument_expected.json",
+    },
+    {
         "name": "empty_inline_abbreviated_long_dump_types_argument",
         "argv": ["--dump-t="],
         "mode": "process_json",
@@ -409,6 +415,11 @@ EXPECTED_OUTPUTS = {
         "stderr": "option '--dump-types' requires an argument\n",
         "exit_code": 1,
     },
+    "version_before_missing_long_dump_types_argument_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\noption '--dump-types' requires an argument\n",
+        "exit_code": 1,
+    },
     "missing_short_dump_types_argument_expected.json": {
         "stdout": "",
         "stderr": "option requires an argument -- 'T'\n",
@@ -498,6 +509,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge preserves abbreviated long version side effects before later parse failures"',
     'test "genksyms bridge preserves long version side effects before later short parse failures"',
     'test "genksyms bridge preserves abbreviated long version side effects before later short parse failures"',
+    'test "genksyms bridge preserves abbreviated long version side effects before missing long dump-types arguments"',
     'test "genksyms bridge preserves abbreviated long version side effects before missing short option arguments"',
     'test "genksyms bridge preserves long version side effects before unexpected long option arguments"',
     'test "genksyms bridge renders unexpected long option argument like the fixture"',
@@ -519,7 +531,7 @@ EXPECTED_HARNESS_MARKERS = [
     "execv(tool_path, child_argv);",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -731,7 +743,18 @@ def run_self_test() -> int:
         checks_run += 1
 
         assert validate_runtime_observation(
-            EXPECTED_CASES[14],
+            EXPECTED_CASES[10],
+            {
+                "stdout": "",
+                "stderr": "genksyms version 2.5.60\noption '--dump-types' requires an argument\n",
+                "exit_code": 1,
+            },
+            "runtime:abbreviated-long-version-missing-long-dump-types-argument",
+        ) == []
+        checks_run += 1
+
+        assert validate_runtime_observation(
+            EXPECTED_CASES[15],
             {
                 "stdout": "",
                 "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n",
@@ -742,7 +765,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         assert validate_runtime_observation(
-            EXPECTED_CASES[17],
+            EXPECTED_CASES[18],
             {
                 "stdout": "",
                 "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n",
@@ -753,7 +776,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         assert validate_runtime_observation(
-            EXPECTED_CASES[21],
+            EXPECTED_CASES[22],
             {
                 "stdout": "",
                 "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n",
@@ -764,7 +787,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         assert validate_runtime_observation(
-            EXPECTED_CASES[26],
+            EXPECTED_CASES[27],
             {
                 "stdout": "",
                 "stderr": EXPECTED_OUTPUTS["version_before_long_help_expected.json"]["stderr"],
@@ -775,7 +798,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         assert validate_runtime_observation(
-            EXPECTED_CASES[27],
+            EXPECTED_CASES[28],
             {
                 "stdout": "",
                 "stderr": EXPECTED_OUTPUTS["version_before_short_help_expected.json"]["stderr"],
@@ -811,7 +834,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
-        (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
+        (root / GENKSYMS_TOOL_REL).writeText(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
         assert any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in collect_issues(root))
         checks_run += 1
 
