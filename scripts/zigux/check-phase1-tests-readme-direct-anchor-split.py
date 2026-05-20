@@ -147,7 +147,7 @@ def run_self_test() -> int:
         ("missing_broader_companion_warning", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[18])),
         ("missing_direct_anchor_split", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[19])),
         ("duplicate_direct_anchor_split", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[19])),
-        ("duplicate_reviewer_prompt", lambda root: mutate_duplicateMarker(root, REQUIRED_MARKERS[21])),
+        ("duplicate_reviewer_prompt", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[21])),
         ("forbidden_workflow_gate_heading", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[0])),
         ("forbidden_shared_reminder_selftest", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[1])),
         ("forbidden_shared_reminder_live_check", lambda root: mutate_append_forbidden_fragment(root, FORBIDDEN_FRAGMENTS[2])),
