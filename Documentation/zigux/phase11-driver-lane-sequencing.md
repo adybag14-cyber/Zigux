@@ -84,6 +84,7 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -104,9 +105,10 @@ fallback rereads rematerialized both driver-local matrix notes, so keep all
 four driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
 
-Current rereads in this run also keep `zigux/Makefile` and the returned
-`make -C zigux phase11-validate` route explicit as the shared build gate for the
-broader contributor-facing reminder family, while `make -C zigux phase11` and
+Current rereads in this run also keep `scripts/zigux/validate-phase11.py`,
+`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route
+explicit as the shared validation-and-build gate for the broader
+contributor-facing reminder family, while `make -C zigux phase11` and
 `make -C zigux phase11-contract` still remain missing on current `master`.
 
 Keep the returned gpio, bcm2835, and DesignWare validation matrices explicit as
@@ -135,7 +137,8 @@ Use this note to keep the bounded work order honest:
    `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
    `scripts/zigux/check-phase11-matrix-gap-survey.py`,
    `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
-   `scripts/zigux/check-phase11-build-inventory.py`, and the HVC current-head
+   `scripts/zigux/check-phase11-build-inventory.py`, the returned shared
+   validator `scripts/zigux/validate-phase11.py`, and the HVC current-head
    continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
    inventory anchor, and proof-backed adjunct stack; keep it explicit that the
@@ -169,7 +172,8 @@ Use this note to keep the bounded work order honest:
 7. When contributor-facing summaries reopen, keep them aligned with the
    returned four-matrix shared packet, the narrower HVC current-head continuity
    packet plus its cleanup companion, current-head checker, shared build
-   inventory, proof-backed adjunct stack, and the returned `zigux/Makefile`
+   inventory, proof-backed adjunct stack, the returned shared validator
+   `scripts/zigux/validate-phase11.py`, and the returned `zigux/Makefile`
    surface plus `make -C zigux phase11-validate` build gate instead of reviving
    broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
    or overstating the HVC archival stack.
