@@ -49,7 +49,6 @@ MARKERS = {
         'kind, payload = validate_expectations(expectations)',
         'assert kind == "pass", (kind, payload)',
         'kind, payload = load_runtime_expectations(EXPECTATIONS)',
-        'print(f"EXPECTATIONS_PATH={payload}")',
         'print(f"PHASE1_BENCH_ZIG={zig}")',
         'print("PHASE1_BENCH_CHECK=pass")',
         'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
@@ -317,6 +316,13 @@ EXPECTED_ASSERT_BLOCKS = {
             'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
         ),
         (
+            'if kind == "missing_expectations_file":',
+            'print("PHASE1_BENCH_CHECK=fail")',
+            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+            'print(f"EXPECTATIONS_PATH={payload}")',
+            "return 1",
+        ),
+        (
             'if kind == "expectations_json_error":',
             "exc = payload",
             "assert isinstance(exc, json.JSONDecodeError)",
@@ -431,10 +437,12 @@ def collect_issues(root: Path) -> list[str]:
             if count != 0:
                 issues.append(f"{relative_path}:forbidden:{fragment}:actual={count}")
 
+        stripped_lines = [line.strip() for line in text.splitlines()]
         for expected_block in EXPECTED_ASSERT_BLOCKS.get(relative_path, ()):
             first_line = expected_block[0]
-            if text.count(first_line) != 1:
-                issues.append(f"{relative_path}:marker_count:{first_line}:expected=1:actual={text.count(first_line)}")
+            first_line_count = sum(1 for line in stripped_lines if line == first_line)
+            if first_line_count != 1:
+                issues.append(f"{relative_path}:marker_count:{first_line}:expected=1:actual={first_line_count}")
                 continue
             actual_block = extract_assert_block(text, first_line, len(expected_block))
             if actual_block != list(expected_block):
