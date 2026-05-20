@@ -21,14 +21,16 @@ Fresh authenticated GitHub reread in this slot directly returned:
 - `zigux/tests/phase7_rbtree_manifest.json`
 - `scripts/zigux/check-phase7-rbtree-parity.py`
 
-Fresh authenticated GitHub reread in this slot also directly returned these shared non-owner surfaces:
+Fresh current-master reread in this slot also confirmed these shared non-owner surfaces:
 
 - `scripts/zigux/check-phase7-build-wiring.py`
 - `scripts/zigux/validate-phase7.py`
 - `zigux/tests/phase7_build.zig`
 - `zigux/Makefile`
 
-Fresh authenticated GitHub reread in this slot still returned 404 for these dedicated companion or roadmap-path surfaces:
+`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.
+
+Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion or roadmap-path surfaces:
 
 - `lib/rbtree.zig`
 - `zigux/tests/fixtures/phase7_rbtree.json`
