@@ -497,12 +497,12 @@ pub const VirtioInputLab = struct {
             .status_queue_unconfigured
         else if (self.queued_event_buffer_count == 0)
             .event_buffers_unfilled
+        else if (!self.ready)
+            .device_not_ready
         else if (!registration.capability_setup_ready)
             .capability_setup_incomplete
         else if (!registration.multitouch_slots_ready)
             .multitouch_slots_unplanned
-        else if (!self.ready)
-            .device_not_ready
         else
             null;
 
