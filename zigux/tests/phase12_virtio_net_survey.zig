@@ -198,7 +198,15 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try expectContains(makefile, "phase12: phase12-smoke phase12-test");
 }
 
-test "phase12 virtio net survey gate keeps throughput and transmit helper markers explicit" {
+test "phase12 virtio net survey gate keeps split helper markers explicit" {
+    const queue_resume_helper = try readFileAlloc("drivers/net/virtio_net_queue_resume.zig", 16 * 1024);
+    defer std.testing.allocator.free(queue_resume_helper);
+    const queue_resume_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_queue_resume.zig", 16 * 1024);
+    defer std.testing.allocator.free(queue_resume_replay);
+    const post_reset_helper = try readFileAlloc("drivers/net/virtio_net_post_reset_replay.zig", 16 * 1024);
+    defer std.testing.allocator.free(post_reset_helper);
+    const post_reset_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_post_reset_replay.zig", 16 * 1024);
+    defer std.testing.allocator.free(post_reset_replay);
     const throughput_helper = try readFileAlloc("drivers/net/virtio_net_throughput_parity.zig", 16 * 1024);
     defer std.testing.allocator.free(throughput_helper);
     const throughput_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_throughput_parity.zig", 16 * 1024);
@@ -207,6 +215,25 @@ test "phase12 virtio net survey gate keeps throughput and transmit helper marker
     defer std.testing.allocator.free(transmit_helper);
     const transmit_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_transmit_recycle.zig", 16 * 1024);
     defer std.testing.allocator.free(transmit_replay);
+
+    try expectContains(queue_resume_helper, "pub const QueueResumeBlocker = enum");
+    try expectContains(queue_resume_helper, ".control_queue_restore");
+    try expectContains(queue_resume_helper, ".refill_replay");
+    try expectContains(queue_resume_helper, ".transmit_recycle");
+    try expectContains(queue_resume_helper, ".probe_snapshot_replay");
+    try expectContains(queue_resume_replay, "phase12 virtio net queue resume stays lab-only and fail-closed");
+    try expectContains(queue_resume_replay, "QueueResumeBlocker.probe_snapshot_replay");
+    try expectContains(queue_resume_replay, "QueueResumeBlocker.none");
+
+    try expectContains(post_reset_helper, "pub const PostResetReplayBlocker = enum");
+    try expectContains(post_reset_helper, "pub const PostResetReplayCheckpoint = enum");
+    try expectContains(post_reset_helper, ".after_control_queue_restore");
+    try expectContains(post_reset_helper, ".after_receive_refill_replay");
+    try expectContains(post_reset_helper, ".after_transmit_recycle");
+    try expectContains(post_reset_helper, ".after_probe_snapshot_replay");
+    try expectContains(post_reset_replay, "phase12 virtio net post reset replay stays lab-only and fail-closed");
+    try expectContains(post_reset_replay, "PostResetReplayCheckpoint.after_probe_snapshot_replay");
+    try expectContains(post_reset_replay, "PostResetReplayCheckpoint.queues_may_resume");
 
     try expectContains(throughput_helper, "pub const default_wake_threshold: u16 = 2;");
     try expectContains(throughput_helper, "pub const ThroughputParityStatus = enum");
