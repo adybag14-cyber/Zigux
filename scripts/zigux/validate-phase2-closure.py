@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -15,6 +16,8 @@ DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+MAKEFILE_PATH = ROOT / "zigux" / "Makefile"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
 EXPECTED_TOOLCHAIN_BOOTSTRAP_DOC = "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
@@ -50,6 +53,30 @@ EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
 
 EXPECTED_BOOTSTRAP_GAP_MARKERS = (
     "workflow install path remains historical on this branch until `scripts/zigux/install-zig.py` is restored",
+)
+
+EXPECTED_WORKFLOW_MARKERS = (
+    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: python3 scripts/zigux/validate-phase2.py",
+)
+
+EXPECTED_MAKEFILE_MARKERS = (
+    "phase2-toolchain:",
+    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "phase2-validate: phase2-tools phase2-kconfig",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "phase2-cross: phase2-toolchain",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+    "phase2: phase2-validate phase2-cross",
 )
 
 EXPECTED_PRESENT_FILES = [
@@ -114,7 +141,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 92
+EXPECTED_SELF_TEST_CASE_COUNT = 128
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -157,10 +184,14 @@ def collect_marker_count_issues(
     *,
     missing_code: str,
     duplicate_code: str,
+    exact_line: bool = False,
 ) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in markers:
-        count = text.count(marker)
+        if exact_line:
+            count = sum(1 for line in text.splitlines() if line.strip() == marker)
+        else:
+            count = text.count(marker)
         if count == 0:
             issues.append((missing_code, marker))
         elif count != 1:
@@ -225,6 +256,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(root, TESTS_README)
     review_checklist_text = read_text(root, REVIEW_CHECKLIST)
     scripts_readme_text = read_text(root, SCRIPTS_README)
+    workflow_text = read_text(root, WORKFLOW_PATH)
+    makefile_text = read_text(root, MAKEFILE_PATH)
     manifest = read_manifest(root)
 
     issues.extend(
@@ -257,6 +290,24 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             EXPECTED_BOOTSTRAP_GAP_MARKERS,
             missing_code="MISSING_BOOTSTRAP_GAP_MARKERS",
             duplicate_code="DUPLICATE_BOOTSTRAP_GAP_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            workflow_text,
+            EXPECTED_WORKFLOW_MARKERS,
+            missing_code="MISSING_WORKFLOW_MARKERS",
+            duplicate_code="DUPLICATE_WORKFLOW_MARKERS",
+            exact_line=True,
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            makefile_text,
+            EXPECTED_MAKEFILE_MARKERS,
+            missing_code="MISSING_MAKEFILE_MARKERS",
+            duplicate_code="DUPLICATE_MAKEFILE_MARKERS",
+            exact_line=True,
         )
     )
     issues.extend(
@@ -468,6 +519,8 @@ def build_self_test_root(root: Path) -> None:
         BOOTSTRAP_NOTES,
         "\n".join((*EXPECTED_BOOTSTRAP_NOTES_MARKERS, *EXPECTED_BOOTSTRAP_GAP_MARKERS)) + "\n",
     )
+    write_text(root, WORKFLOW_PATH, "\n".join(EXPECTED_WORKFLOW_MARKERS) + "\n")
+    write_text(root, MAKEFILE_PATH, "\n".join(EXPECTED_MAKEFILE_MARKERS) + "\n")
     for path in (DOCS_ROOT_README, TESTS_README, REVIEW_CHECKLIST):
         write_text(root, path, "\n".join(EXPECTED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root, SCRIPTS_README, "\n".join(EXPECTED_SCRIPTS_README_MARKERS) + "\n")
@@ -493,6 +546,27 @@ def duplicate_once(text: str, marker: str) -> str:
     return text.replace(marker, f"{marker}\n{marker}", 1)
 
 
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            if replacement:
+                lines[index] = replacement
+            else:
+                del lines[index]
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def assert_system_exit_contains(callback, expected_fragment: str) -> None:
     try:
         callback()
@@ -510,66 +584,96 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, markers, missing_code, duplicate_code in (
+        for path, markers, missing_code, duplicate_code, exact_line in (
             (
                 CLOSURE_DOC,
                 EXPECTED_DOC_MARKERS,
                 "MISSING_CLOSURE_DOC_MARKERS",
                 "DUPLICATE_CLOSURE_DOC_MARKERS",
+                False,
             ),
             (
                 CLOSURE_DOC,
                 EXPECTED_CLOSURE_GAP_MARKERS,
                 "MISSING_CLOSURE_GAP_MARKERS",
                 "DUPLICATE_CLOSURE_GAP_MARKERS",
+                False,
             ),
             (
                 BOOTSTRAP_NOTES,
                 EXPECTED_BOOTSTRAP_NOTES_MARKERS,
                 "MISSING_BOOTSTRAP_NOTES_MARKERS",
                 "DUPLICATE_BOOTSTRAP_NOTES_MARKERS",
+                False,
             ),
             (
                 BOOTSTRAP_NOTES,
                 EXPECTED_BOOTSTRAP_GAP_MARKERS,
                 "MISSING_BOOTSTRAP_GAP_MARKERS",
                 "DUPLICATE_BOOTSTRAP_GAP_MARKERS",
+                False,
+            ),
+            (
+                WORKFLOW_PATH,
+                EXPECTED_WORKFLOW_MARKERS,
+                "MISSING_WORKFLOW_MARKERS",
+                "DUPLICATE_WORKFLOW_MARKERS",
+                True,
+            ),
+            (
+                MAKEFILE_PATH,
+                EXPECTED_MAKEFILE_MARKERS,
+                "MISSING_MAKEFILE_MARKERS",
+                "DUPLICATE_MAKEFILE_MARKERS",
+                True,
             ),
             (
                 DOCS_ROOT_README,
                 EXPECTED_DOCS_ROOT_MARKERS,
                 "MISSING_DOCS_ROOT_MARKERS",
                 "DUPLICATE_DOCS_ROOT_MARKERS",
+                False,
             ),
             (
                 TESTS_README,
                 EXPECTED_TESTS_README_MARKERS,
                 "MISSING_TESTS_README_MARKERS",
                 "DUPLICATE_TESTS_README_MARKERS",
+                False,
             ),
             (
                 REVIEW_CHECKLIST,
                 EXPECTED_REVIEW_CHECKLIST_MARKERS,
                 "MISSING_REVIEW_CHECKLIST_MARKERS",
                 "DUPLICATE_REVIEW_CHECKLIST_MARKERS",
+                False,
             ),
             (
                 SCRIPTS_README,
                 EXPECTED_SCRIPTS_README_MARKERS,
                 "MISSING_SCRIPTS_README_MARKERS",
                 "DUPLICATE_SCRIPTS_README_MARKERS",
+                False,
             ),
         ):
             for marker in markers:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
-                resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                source = resolved.read_text(encoding="utf-8")
+                if exact_line:
+                    resolved.write_text(replace_exact_line(source, marker), encoding="utf-8")
+                else:
+                    resolved.write_text(replace_once(source, marker), encoding="utf-8")
                 assert (missing_code, marker) in collect_issues(root)
                 checks_run += 1
 
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
-                resolved.write_text(duplicate_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                source = resolved.read_text(encoding="utf-8")
+                if exact_line:
+                    resolved.write_text(duplicate_exact_line(source, marker), encoding="utf-8")
+                else:
+                    resolved.write_text(duplicate_once(source, marker), encoding="utf-8")
                 assert (duplicate_code, f"{marker}:count=2") in collect_issues(root)
                 checks_run += 1
 
