@@ -250,7 +250,10 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
     try expectContains(survey_note, "direct family-local `zigux/tests/runtime_*` witness");
     try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
-    try expectContains(survey_note, "rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, survey, and top-bit targets");
+    try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");
+    try expectContains(survey_note, "`phase9-runtime-loader-allocator-init-flow-tests`");
+    try expectContains(survey_note, "`phase9-runtime-trace-events-loader-substrate-drift-tests`");
+    try expectContains(survey_note, "`phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(survey_note, "Do not invent `validate-phase9.py`");
@@ -291,8 +294,12 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(phase9_build_file, "runtime_bitmap_survey.zig");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_top_bit_contract.zig");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build_file, "runtime_trace_events") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build_file, "runtime_loader_allocator_init_flow") == null);
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-loader-shared-tests\"");
+    try expectContains(phase9_build_file, "runtime_loader_allocator_init_flow.zig");
+    try expectContains(phase9_build_file, "runtime_trace_events_loader_substrate_drift.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events_loader.zig");
 
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
@@ -347,6 +354,15 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());");
     try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());");
     try expectContains(exit_guard_file, "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);");
+    try expectContains(exit_guard_file, "phase9 trace-events sample keeps initialized failed-exit rollback explicit before selftest replay");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_unregister_label);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.initialized, before_selftest.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_selftest.register_transitions);");
+    try expectContains(exit_guard_file, "const selftest = try module.runSelftest();");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, after_selftest.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), after_selftest.register_transitions);");
 
     try expectContains(reentry_file, "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages");
     try expectContains(reentry_file, "const initialized_registered_before_duplicate = module.summary();");
