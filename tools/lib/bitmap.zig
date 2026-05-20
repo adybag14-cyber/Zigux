@@ -618,7 +618,7 @@ test "bitmap zero-bit logical helpers stay explicit" {
     try std.testing.expect(empty(lhs[0..0], 0));
     try std.testing.expect(full(lhs[0..0], 0));
     try std.testing.expectEqual(@as(usize, 0), weight(lhs[0..0], 0));
-    try std.testing.expectEqual(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
 
@@ -795,6 +795,7 @@ test "bitmap scnprintf keeps contiguous ranges merged across word boundaries" {
 test "bitmap scnprintf truncates and keeps a terminator slot" {
     var map = [_]Word{0};
     setRange(&map, 1, 3);
+    setRange(&map, 7, 1);
 
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const len = scnprintf(&map, 8, &buffer);
@@ -853,7 +854,7 @@ test "bitmap Linux-style aliases mirror copy logical range and format helpers" {
     try std.testing.expectEqualSlices(Word, &direct, &alias);
 
     try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));
-    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), bitmap_intersects(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), bitmap_intersects(&rhs, &lhs, nbits));
     try std.testing.expectEqual(subset(&rhs, &lhs, nbits), bitmap_subset(&rhs, &lhs, nbits));
 
     var direct_range = [_]Word{ 0, 0 };
