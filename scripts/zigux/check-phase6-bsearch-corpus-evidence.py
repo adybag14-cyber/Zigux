@@ -83,7 +83,7 @@ REQUIRED_SNIPPETS = {
         "avg_compare_calls",
         "max_compare_calls",
         "max_compare_budget",
-        "try std.testing.expect(worst_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);",
     ],
     LOWER_BOUND_TEST_PATH: [
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
