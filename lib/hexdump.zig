@@ -448,10 +448,13 @@ test "bin2hexUpper emits uppercase bulk output and alias stays aligned" {
 
 test "bin2hexUpper preserves destination on bounds errors" {
     const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
-    var tiny = [_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 };
+    var tiny_direct = [_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 };
+    var tiny_alias = [_]u8{ 0x22, 0x33, 0x44, 0x55, 0x66 };
 
-    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexUpper(tiny[0..], &sample));
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 }, &tiny);
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexUpper(tiny_direct[0..], &sample));
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2HexUpper(tiny_alias[0..], &sample));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 }, &tiny_direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x22, 0x33, 0x44, 0x55, 0x66 }, &tiny_alias);
 }
 
 test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {
