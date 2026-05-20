@@ -57,6 +57,7 @@
         "test \"bitmap or keeps caller-selected bit window\"",
         "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
         "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
+        "test \"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
         "test \"bitmap scnprintf keeps contiguous ranges merged across word boundaries\"",
         "test \"bitmap scnprintf truncates and keeps a terminator slot\"",
@@ -74,6 +75,7 @@
       "or_window_anchor": "test \"bitmap or keeps caller-selected bit window\"",
       "or_multiword_tail_anchor": "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
       "weighted_tail_count_anchor": "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
+      "complement_tail_anchor": "test \"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.",
       "parity_fixture_keys": [
