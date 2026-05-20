@@ -14,8 +14,8 @@
       "scripts/zigux/check-phase2-artifact-tools-manifest.py"
     ],
     "supported_modes": [
-      "json",
       "text",
+      "json",
       "bytes"
     ]
   },
