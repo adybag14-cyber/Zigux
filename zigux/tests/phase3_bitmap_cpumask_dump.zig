@@ -29,7 +29,7 @@ fn writeCase(
     trailing_comma: bool,
 ) !void {
     try writer.print(
-        "    {\n" ++
+        "    {{\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"nbits\": {},\n" ++
@@ -96,7 +96,7 @@ pub fn main(init: std.process.Init) !void {
     const cpumask_full_summary = cpumask_view.summarize(cpumask_full);
 
     try writer.print(
-        "{\n" ++
+        "{{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"bitmap_view_abi_version\": {},\n" ++
             "  \"cpumask_view_abi_version\": {},\n" ++
