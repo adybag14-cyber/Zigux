@@ -43,6 +43,8 @@ Direct current-`master` rereads in this run show that `Documentation/zigux/phase
 
 At the same time, fresh direct readback now keeps the broader docs-root reminder aligned with that narrower packet. `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `zigux/tests/README.md` now keep `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` explicit as shipped current-`master` `devres` evidence, while the still-missing `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` remain separate repo-reality gaps rather than shipped evidence. `scripts/zigux/README.md` stays inside the same shared handle, but it is now the remaining broader reminder drift: the scripts-root Phase 13 section already names the shipped `Documentation/zigux/phase13-libfs-slice.md` packet, yet it still does not keep `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` explicit as repo-reality gaps.
 
+Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary and tests-readme guards instead of carrying it in the repo-reality-gap bucket.
+
 Current `master` also keeps the helper-local packet split visible from the release surface:
 
 - `libfs` stays roadmap-owned, and current `master` does materialize the helper-first slice and tests-root packet through `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` remain separate repo-reality gaps
@@ -65,6 +67,7 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/validate-phase13-release.py`
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companions, and missing shared build route surfaces remain explicit repo-reality gaps.
 
@@ -74,7 +77,6 @@ Direct current-`master` readback in this run still returned missing for:
 
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `zigux/tests/phase13_libfs_addressability.zig`
-- `scripts/zigux/validate-phase13-release.py`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
@@ -122,6 +124,7 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
