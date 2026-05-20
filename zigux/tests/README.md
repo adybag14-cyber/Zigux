@@ -110,7 +110,7 @@ current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-g
 keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 2 reminder keep the current direct-readback toolchain, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
+- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
 
 ## Phase 5 sample packet
 
@@ -233,7 +233,6 @@ Keep the current bounded Phase 14 study-only packet explicit through these share
 - `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
 - `scripts/zigux/validate-phase14.py`
 - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
 - `zigux/Makefile`
 - `kernel/workqueue_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
