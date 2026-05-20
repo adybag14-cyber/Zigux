@@ -36,18 +36,50 @@ EXPECTED_BITMAP_HELPER_ANCHORS = [
 EXPECTED_BITMAP_PACKET = {
     "first_word_boundary_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
     "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "fill_tail_clamp_anchor": 'test "bitmap full empty and weight ignore out-of-range tail bits"',
+    "predicate_tail_mask_anchor": 'test "bitmap tail-masked helpers ignore out-of-range differences"',
+    "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+    "review_packet_summary": (
+        "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
+        "scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current "
+        "master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw "
+        "copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend "
+        "handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit "
+        "coverage, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight "
+        "masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, "
+        "weighted tail-count clamping, terminator-only and zero-length caller-view formatting, "
+        "empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator "
+        "optional-reset coverage."
+    ),
+    "parity_fixture_keys": [
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values",
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len",
+    ],
+    "partial_xor_review_fields": [
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+    ],
     "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     "scnprintf_truncation_anchor": 'test "bitmap scnprintf truncates and keeps a terminator slot"',
     "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+    "copy_zero_and_aligned_anchors": [
+        'test "bitmap copy and extend handles zero and aligned counts"',
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    ],
     "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
     "or_window_anchor": 'test "bitmap or keeps caller-selected bit window"',
     "or_multiword_tail_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word"',
     "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
     "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
-    "partial_xor_review_fields": [
-        "partial_xor_nbits",
-        "partial_xor_masked_values",
-    ],
     "next_safe_step_note": (
         "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
         "direct-anchor drift inside the current helper-local packet or committed shared "
