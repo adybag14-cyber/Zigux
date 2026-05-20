@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that the bootstrap workflow still replays the shared Phase 10 route."""
+"""Check that the bootstrap workflow and shared Phase 10 make route still replay the shared Phase 10 route."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import sys
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 CLOSURE_NOTE_PATH = Path("Documentation/zigux/phase10-closure-evidence.md")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 SELF_TEST_STEP = "Self-test current Phase 10 bootstrap route checker"
 SELF_TEST_CMD = "python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test"
@@ -23,6 +24,10 @@ SELF_TEST_RUN_LINE = f"run: {SELF_TEST_CMD}\n"
 CHECK_RUN_LINE = f"run: {CHECK_CMD}\n"
 VALIDATE_RUN_LINE = f"run: {VALIDATE_CMD}\n"
 TEST_RUN_LINE = f"run: {TEST_CMD}\n"
+MAKE_VALIDATE_TARGET = "phase10-validate:\n"
+MAKE_VALIDATE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py\n"
+MAKE_CLOSURE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py\n"
+MAKE_TEST_TARGET = "phase10-test:\n"
 NOTE_SCRIPT_MARKER = "`scripts/zigux/check-phase10-bootstrap-route.py`"
 NOTE_ROUTE_PHRASE = (
     "fails closed if the bootstrap workflow drops `make -C zigux "
@@ -58,6 +63,16 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
         )
 
 
+def section_between(text: str, start: str, end: str, label: str) -> str:
+    start_index = text.find(start)
+    if start_index == -1:
+        raise SystemExit(f"phase10 bootstrap route checker missing {label} start: {start}")
+    end_index = text.find(end, start_index)
+    if end_index == -1:
+        raise SystemExit(f"phase10 bootstrap route checker missing {label} end: {end}")
+    return text[start_index:end_index]
+
+
 def check_workflow(text: str) -> None:
     require_marker(text, SELF_TEST_STEP, "workflow self-test step name")
     require_marker(text, SELF_TEST_CMD, "workflow self-test command")
@@ -77,6 +92,15 @@ def check_workflow(text: str) -> None:
     require_order(text, SELF_TEST_RUN_LINE, CHECK_RUN_LINE, "workflow command order")
     require_order(text, CHECK_RUN_LINE, VALIDATE_RUN_LINE, "workflow command order")
     require_order(text, VALIDATE_RUN_LINE, TEST_RUN_LINE, "workflow command order")
+
+
+def check_makefile(text: str) -> None:
+    section = section_between(text, MAKE_VALIDATE_TARGET, MAKE_TEST_TARGET, "phase10 make route")
+    require_marker(section, MAKE_VALIDATE_CMD, "phase10 make validate command")
+    require_marker(section, MAKE_CLOSURE_CMD, "phase10 make closure command")
+    require_exact_count(section, MAKE_VALIDATE_CMD, 1, "phase10 make route command")
+    require_exact_count(section, MAKE_CLOSURE_CMD, 1, "phase10 make route command")
+    require_order(section, MAKE_VALIDATE_CMD, MAKE_CLOSURE_CMD, "phase10 make route order")
 
 
 def check_note(text: str) -> None:
@@ -101,10 +125,25 @@ jobs:
       - name: Run Phase 10 helper tests
         run: make -C zigux phase10-test
 """
+    good_makefile = """phase10-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
+
+phase10-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+"""
     good_note = """# Phase 10 Closure Evidence
 The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.
 """
     check_workflow(good_workflow)
+    check_makefile(good_makefile)
     check_note(good_note)
 
     bad_workflow_missing_self_test = good_workflow.replace(
@@ -157,6 +196,30 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
     else:
         raise AssertionError("expected reordered workflow failure")
 
+    bad_makefile_missing_validate = good_makefile.replace(
+        MAKE_VALIDATE_CMD,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_validate)
+    except SystemExit as exc:
+        assert "phase10 make validate command" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 validate route failure")
+
+    bad_makefile_reordered = good_makefile.replace(
+        f"{MAKE_VALIDATE_CMD}{MAKE_CLOSURE_CMD}",
+        f"{MAKE_CLOSURE_CMD}{MAKE_VALIDATE_CMD}",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_reordered)
+    except SystemExit as exc:
+        assert "phase10 make route order" in str(exc)
+    else:
+        raise AssertionError("expected reordered phase10 make route failure")
+
     bad_note_missing_script = good_note.replace(
         NOTE_SCRIPT_MARKER,
         "`scripts/zigux/check-phase10-other.py`",
@@ -178,7 +241,7 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
         raise AssertionError("expected missing note route phrase failure")
 
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -197,12 +260,19 @@ def main() -> int:
         default=CLOSURE_NOTE_PATH,
         help="path to Documentation/zigux/phase10-closure-evidence.md",
     )
+    parser.add_argument(
+        "--makefile",
+        type=Path,
+        default=MAKEFILE_PATH,
+        help="path to zigux/Makefile",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     check_workflow(args.workflow.read_text(encoding="utf-8"))
+    check_makefile(args.makefile.read_text(encoding="utf-8"))
     check_note(args.closure_note.read_text(encoding="utf-8"))
     print("PHASE10_BOOTSTRAP_ROUTE_CHECK=pass")
     return 0
