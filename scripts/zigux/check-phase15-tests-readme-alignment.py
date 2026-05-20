@@ -7,7 +7,6 @@ from pathlib import Path
 
 TESTS_README_PATH = Path("zigux/tests/README.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
-SELF_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/freeze-map.md",
@@ -37,12 +36,12 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 BROADER_GAP_PATHS = (
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 REQUIRED_MARKERS = (
@@ -51,7 +50,8 @@ REQUIRED_MARKERS = (
     "Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
     "Keep the directly readable tests-root Phase 15 governance packet explicit through",
     "Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
-    "Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.",
+    "Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
+    "Current `master` still does not materialize `scripts/zigux/validate-phase15.py` or `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build-route companions framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.",
     "without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?",
 )
@@ -107,13 +107,15 @@ Keep the directly readable tests-root Phase 15 governance packet explicit throug
 
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
-Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.
+Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
+
+Current `master` still does not materialize `scripts/zigux/validate-phase15.py` or `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build-route companions framed as repo-reality gaps rather than shipped tests-root evidence.
 {broader}
 
 Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned readiness and handoff survey packet members, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, build-level, and lane-owner-alignment surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
+- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned readiness and handoff survey packet members, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, and build-level surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
 """
 
 
@@ -170,18 +172,22 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected missing-handoff-manifest failure: {failures}")
 
-        missing_gap_root = root / "missing_gap"
-        _seed(missing_gap_root)
+        missing_lane_owner_root = root / "missing_lane_owner_marker"
+        _seed(missing_lane_owner_root)
         _write(
-            missing_gap_root / TESTS_README_PATH,
-            _sample_readme().replace("`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`", "", 1),
+            missing_lane_owner_root / TESTS_README_PATH,
+            _sample_readme().replace(
+                "Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.\n\n",
+                "",
+                1,
+            ),
         )
-        failures = collect_failures(missing_gap_root)
+        failures = collect_failures(missing_lane_owner_root)
         expected = [
-            "tests_readme:missing:Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.",
+            "tests_readme:missing:Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-gap failure: {failures}")
+            raise AssertionError(f"unexpected missing-lane-owner failure: {failures}")
 
         returned_gap_root = root / "returned_gap"
         _seed(returned_gap_root)
