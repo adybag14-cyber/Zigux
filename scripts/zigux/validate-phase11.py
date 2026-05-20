@@ -295,8 +295,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        build_sample_repo(root)
         build_fake_zig(fake_zig)
         failing_build_inventory_self_test_script = root / "scripts/zigux/check-phase11-build-inventory.py"
         build_stub_script(failing_build_inventory_self_test_script, self_test_exit_code=1)
@@ -465,7 +464,7 @@ def run_self_test() -> int:
             )
 
         build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        buildSampleRepo(root)
         build_fake_zig(
             fake_zig,
             fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
