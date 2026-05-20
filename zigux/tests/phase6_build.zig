@@ -192,6 +192,9 @@ pub fn build(b: *std.Build) void {
 
     const base64_test_step = b.step("phase6-base64-test", "Run Phase 6 base64 helper tests");
     base64_test_step.dependOn(&run_base64_tests.step);
+    const base64_review_step = b.step("phase6-base64-review", "Run Phase 6 base64 helper review preflight");
+    base64_review_step.dependOn(&run_base64_tests.step);
+    base64_review_step.dependOn(&run_base64_perf.step);
 
     const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");
     bsearch_test_step.dependOn(&run_bsearch_tests.step);
