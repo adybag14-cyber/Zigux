@@ -11,10 +11,12 @@ const SurveySummary = struct {
     preexisting_phase12_virtio_net_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
     preexisting_virtio_net_queue_resume_zig_present: bool,
+    preexisting_virtio_net_receive_refill_replay_zig_present: bool,
     preexisting_virtio_net_transmit_recycle_zig_present: bool,
     preexisting_virtio_net_post_reset_replay_zig_present: bool,
     preexisting_virtio_net_throughput_parity_zig_present: bool,
     preexisting_phase12_virtio_net_queue_resume_present: bool,
+    preexisting_phase12_virtio_net_receive_refill_replay_present: bool,
     preexisting_phase12_virtio_net_transmit_recycle_present: bool,
     preexisting_phase12_virtio_net_post_reset_replay_present: bool,
     preexisting_phase12_virtio_net_throughput_parity_present: bool,
@@ -84,7 +86,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase12 virtio net survey manifest tracks the shared-build quartet and throughput-review boundary truthfully" {
+test "phase12 virtio net survey manifest tracks the shared-build quintet and throughput-review boundary truthfully" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -102,6 +104,7 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet and thr
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_queue_resume_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_receive_refill_replay_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_transmit_recycle_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_post_reset_replay_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_throughput_parity_zig_present);
@@ -110,12 +113,12 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet and thr
     try std.testing.expect(!manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
     try std.testing.expectEqualStrings(
-        "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
+        "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
         manifest.roadmap_gap_check.queueing_correctness.status,
     );
     try expectContains(
         manifest.roadmap_gap_check.queueing_correctness.current_surface,
-        "returned Phase 12 make entrypoints now keep the queue-resume, transmit-recycle, post-reset replay, and throughput-parity quartet",
+        "returned Phase 12 make entrypoints now keep the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity quintet",
     );
     try std.testing.expectEqualStrings(
         "throughput_parity_helper_present_review_only_runtime_completion_missing",
@@ -126,25 +129,31 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet and thr
         "review-only throughput-ratio checks without claiming live transport execution or measured throughput evidence",
     );
     try std.testing.expectEqualStrings(
-        "split_helper_packet_direct_replays_present_shared_route_complete",
+        "split_helper_packet_direct_replays_present_shared_route_quintet_complete",
         manifest.roadmap_gap_check.segmented_rollout.status,
     );
     try expectContains(
         manifest.roadmap_gap_check.segmented_rollout.current_surface,
-        "shared Phase 12 smoke and test routes are present on current master for the full queue-resume, transmit-recycle, post-reset replay, and throughput-parity quartet",
+        "shared Phase 12 smoke and test routes are present on current master for the full queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity quintet",
     );
 
     var saw_build_gate = false;
+    var saw_receive_refill = false;
     var saw_runtime_block = false;
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
             saw_build_gate = true;
             try std.testing.expectEqualStrings(
-                "shared_build_present_with_queue_resume_transmit_recycle_post_reset_and_throughput_replays",
+                "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays",
                 gap.status,
             );
+            try expectContains(gap.why_now, "virtio_net_receive_refill_replay");
             try expectContains(gap.why_now, "virtio_net_post_reset_replay");
             try expectContains(gap.why_now, "virtio_net_throughput_parity");
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-receive-refill-replay-followup")) {
+            saw_receive_refill = true;
+            try expectContains(gap.why_now, "descriptor repost requirements");
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-throughput-parity-followup")) {
             try expectContains(gap.why_now, "review-only throughput-ratio summary");
@@ -157,23 +166,26 @@ test "phase12 virtio net survey manifest tracks the shared-build quartet and thr
         }
     }
     try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_receive_refill);
     try std.testing.expect(saw_runtime_block);
 }
 
-test "phase12 virtio net survey note reflects the quartet and preserved non-goals" {
+test "phase12 virtio net survey note reflects the quintet and preserved non-goals" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 20 * 1024);
     defer std.testing.allocator.free(survey_note);
 
-    try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quartet-throughput-review-only");
+    try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");
     try expectContains(survey_note, "lane owner: `P12-L04`");
     try expectContains(survey_note, "6c941cb561420120b8e1d5a07e8a44e1c918a5f2");
+    try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
+    try expectContains(survey_note, "summarizeReceiveRefillReplay()");
     try expectContains(survey_note, "summarizeThroughputParity()");
     try expectContains(survey_note, "review-only throughput-ratio checks");
     try expectContains(survey_note, "not measured transport throughput evidence");
     try expectContains(survey_note, "current `master` does not carry the older monolithic `drivers/net/virtio_net.zig` starter");
-    try expectContains(survey_note, "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes");
-    try expectContains(survey_note, "the shared Phase 12 build route reruns that quartet");
+    try expectContains(survey_note, "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, and `virtio_net_throughput_parity` replays reachable through the shared Phase 12 smoke and test routes");
+    try expectContains(survey_note, "the shared Phase 12 build route reruns that quintet");
     try expectContains(survey_note, "still does not claim live DMA-safe receive ownership");
     try expectContains(survey_note, "performance-risk wording refresh");
 }
@@ -183,10 +195,12 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_queue_resume.zig"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net_receive_refill_replay.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_post_reset_replay.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_throughput_parity.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_queue_resume.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_receive_refill_replay.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_post_reset_replay.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_throughput_parity.zig"));
@@ -198,10 +212,12 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     const build_zig = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
     defer std.testing.allocator.free(build_zig);
     try expectContains(build_zig, "phase12_virtio_net_queue_resume.zig");
+    try expectContains(build_zig, "phase12_virtio_net_receive_refill_replay.zig");
     try expectContains(build_zig, "phase12_virtio_net_transmit_recycle.zig");
     try expectContains(build_zig, "phase12_virtio_net_post_reset_replay.zig");
     try expectContains(build_zig, "phase12_virtio_net_throughput_parity.zig");
     try expectContains(build_zig, "phase12-virtio-net-queue-resume-tests");
+    try expectContains(build_zig, "phase12-virtio-net-receive-refill-replay-tests");
     try expectContains(build_zig, "phase12-virtio-net-transmit-recycle-tests");
     try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");
     try expectContains(build_zig, "phase12-virtio-net-throughput-parity-tests");
@@ -218,6 +234,10 @@ test "phase12 virtio net survey gate keeps split helper markers explicit" {
     defer std.testing.allocator.free(queue_resume_helper);
     const queue_resume_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_queue_resume.zig", 16 * 1024);
     defer std.testing.allocator.free(queue_resume_replay);
+    const receive_refill_helper = try readFileAlloc("drivers/net/virtio_net_receive_refill_replay.zig", 16 * 1024);
+    defer std.testing.allocator.free(receive_refill_helper);
+    const receive_refill_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_receive_refill_replay.zig", 16 * 1024);
+    defer std.testing.allocator.free(receive_refill_replay);
     const post_reset_helper = try readFileAlloc("drivers/net/virtio_net_post_reset_replay.zig", 16 * 1024);
     defer std.testing.allocator.free(post_reset_helper);
     const post_reset_replay = try readFileAlloc("zigux/tests/phase12_virtio_net_post_reset_replay.zig", 16 * 1024);
@@ -239,6 +259,15 @@ test "phase12 virtio net survey gate keeps split helper markers explicit" {
     try expectContains(queue_resume_replay, "phase12 virtio net queue resume stays lab-only and fail-closed");
     try expectContains(queue_resume_replay, "QueueResumeBlocker.probe_snapshot_replay");
     try expectContains(queue_resume_replay, "QueueResumeBlocker.none");
+
+    try expectContains(receive_refill_helper, "pub const ReceiveRefillReplayBlocker = enum");
+    try expectContains(receive_refill_helper, ".control_queue_restore");
+    try expectContains(receive_refill_helper, ".queue_pair_restore");
+    try expectContains(receive_refill_helper, ".refill_budget_restore");
+    try expectContains(receive_refill_helper, ".descriptor_repost");
+    try expectContains(receive_refill_replay, "phase12 virtio net receive refill replay stays lab-only and fail-closed");
+    try expectContains(receive_refill_replay, "ReceiveRefillReplayBlocker.descriptor_repost");
+    try expectContains(receive_refill_replay, "ReceiveRefillReplayBlocker.none");
 
     try expectContains(post_reset_helper, "pub const PostResetReplayBlocker = enum");
     try expectContains(post_reset_helper, "pub const PostResetReplayCheckpoint = enum");
