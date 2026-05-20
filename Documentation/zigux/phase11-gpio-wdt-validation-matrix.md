@@ -5,7 +5,7 @@ Zigux Phase 11 simple-driver packet.
 
 ## Status
 
-- `PHASE11_GPIO_WDT_STATUS=driver_and_docs_packet_truthful`
+- `PHASE11_GPIO_WDT_STATUS=driver_docs_and_proof_packet_truthful`
 - lane: `P11-L04`
 - reviewed against live `master`
 - scope: keep the current gpio watchdog teardown and failure-mode packet honest
@@ -18,13 +18,15 @@ Zigux Phase 11 simple-driver packet.
 The directly readable gpio watchdog matrix packet on current `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-Current direct contents reads in this run do not rematerialize
+Current direct contents reads in this run do not rematerialize the older wider
+replay and route surfaces
 `zigux/tests/phase11_gpio_wdt.zig`,
 `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`,
 `zigux/tests/phase11_gpio_wdt_manifest.json`,
@@ -35,19 +37,21 @@ replay and route surfaces as current direct-readback packet members.
 
 ## Current Direct-Readback Matrix
 
-Treat the current gpio watchdog matrix packet as the driver-plus-docs packet
-below:
+Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof
+packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver plus the paired module slice, teardown note, and
-remove-handoff note keep the bounded `descriptorRequestSummary()`,
-`timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
+The returned driver, focused register-device glue proof, plus the paired module
+slice, teardown note, and remove-handoff note keep the bounded
+`descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
+`platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `nowayoutPolicySummary()`, `registrationHandoffSummary()`,
 `registrationPlanSummary()`, `registerDeviceCallSummary()`,
@@ -61,6 +65,10 @@ checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
   reboot-glue handoff, nowayout policy, registration, register-device failure,
   and teardown checkpoint names directly readable without claiming live side
   effects.
+- direct proof anchor: `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+  keeps the first bounded `devm_watchdog_register_device()` request surface and
+  its paired failure summary explicitly reviewable without claiming live
+  watchdog-core registration.
 - teardown handoff: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
   keeps the bounded stop-request split, reboot-glue transition, and
   register-device failure cues explicit without claiming live remove-hook or
@@ -73,24 +81,24 @@ checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
   keeps the bounded checkpoint names explicit without claiming live GPIO,
   `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution, or
   watchdog-core side effects.
-- matrix posture: this matrix records only those returned driver and
-  documentation surfaces and does not treat absent replay, manifest, survey
-  gate, shared-contract, or build-route files as current-head evidence.
+- matrix posture: this matrix records only those returned driver, proof, and
+  documentation surfaces and does not treat absent wider replay, manifest,
+  survey gate, shared-contract, or build-route files as current-head evidence.
 
 ## Review Guardrails
 
 - Treat this matrix as current direct-readback truthfulness only, not as proof
   of live platform behavior or hardware-backed validation.
-- Keep teardown and failure-mode parity bounded to the returned driver and
-  directly coupled docs packet until future rereads restore focused replay or
-  build-route surfaces.
+- Keep teardown and failure-mode parity bounded to the returned driver, direct
+  proof, and directly coupled docs packet until future rereads restore the
+  wider replay or build-route surfaces.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
   `watchdog_stop_on_reboot()` execution,
   `devm_watchdog_register_device()` execution, platform-driver registration,
   watchdog-core registration, live platform cleanup callbacks, live remove-hook
   execution, reboot-backed teardown execution, or hardware-validated parity.
-- If a future reread restores any gpio replay, manifest, survey gate, or
+- If a future reread restores any wider gpio replay, manifest, survey gate, or
   shared-route file, refresh this matrix together with the reopened companion
   surface in one bounded pass.
 
