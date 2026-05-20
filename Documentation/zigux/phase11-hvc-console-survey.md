@@ -26,6 +26,7 @@ coupled continuity remains parked under `P11-L16`.
   - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+  - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
   - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -65,6 +66,7 @@ current-head packet below:
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -78,10 +80,11 @@ current-head packet below:
 The shared build-inventory checker plus shared build inventory still record
 three proof-backed build tests and no dedicated survey replay entries, which
 matches that narrower current-head packet rather than the older starter-depth
-packet. The standalone targetless-unregister witness pair likewise stays
-explicit as a separate failure-mode replay that rereads the current starter
-against the verify-helper boundary note without promoting itself into the shared
-three-entry build inventory.
+packet. The dedicated targetless-unregister witness checker and the standalone
+targetless-unregister witness pair likewise stay explicit as separate
+failure-mode coverage that rereads the current starter against the verify-helper
+boundary note without promoting the witness into the shared three-entry build
+inventory.
 
 ## Still-Bounded Gaps
 
@@ -101,9 +104,9 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 The archival lane recorded a broader HVC starter-depth packet.
 Current authenticated contents reads now keep the direct starter, the
 companion, the boundary note, the matrix, the build-inventory checker,
-cleanup-current-head checker, the shared inventory, the proof-backed adjunct
-stack, and the standalone targetless-unregister witness pair explicitly
-reviewable on `master`.
+cleanup-current-head checker, the dedicated targetless-unregister witness
+checker, the shared inventory, the proof-backed adjunct stack, and the
+standalone targetless-unregister witness pair explicitly reviewable on `master`.
 
 This survey therefore keeps the current-head packet honest without reviving the
 older teardown note, manifest, survey-checker, helper, or replay anchors as if
@@ -113,8 +116,9 @@ they had all returned.
 
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the companion reminder
-stack, the build-inventory checker, the proof-backed adjunct replays, and the
-standalone targetless-unregister witness pair listed above.
+stack, the build-inventory checker, the cleanup-current-head checker, the
+dedicated targetless-unregister witness checker, the proof-backed adjunct
+replays, and the standalone targetless-unregister witness pair listed above.
 
 It does not claim live tty-driver registration, notifier callback execution,
 khvcd polling execution, live sysrq dispatch, host-backed cleanup, or
