@@ -13,6 +13,24 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 MANIFEST_PATH = "zigux/tests/phase10_virtio_ring_manifest.json"
 EXPECTED_FREEZE_BOUNDARY_OWNER = "P10-L11"
+EXPECTED_MANIFEST_FIELDS = {
+    "freeze_status_change_claimed": False,
+    "risky_transport_posture": "blocked_on_risky_transport",
+    "allowed_evidence_kinds": [
+        "driver_local_lab_slices",
+        "survey_manifests",
+        "shared_validation_gates",
+    ],
+    "forbidden_transport_claims": [
+        "queue_setup_reset_paths",
+        "irq_parity",
+        "dma_paths",
+        "input_registration_lifecycle",
+        "probe_remove_lifecycle",
+    ],
+    "architecture_council_reopen_required": True,
+    "architecture_council_reopen_attached": False,
+}
 EXPECTED_GAP_METADATA = {
     "phase10-virtio-ring-survey-gate": {
         "kind": "validation",
@@ -93,6 +111,7 @@ REQUIRED_MARKERS = {
         'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
         'test "phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity" {',
         'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
+        'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {',
     ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
@@ -196,6 +215,11 @@ def validate_manifest_fields(root: Path) -> list[str]:
     manifest_path = root / MANIFEST_PATH
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     problems: list[str] = []
+
+    for field_name, expected_value in EXPECTED_MANIFEST_FIELDS.items():
+        actual_value = manifest.get(field_name)
+        if actual_value != expected_value:
+            problems.append(f"{MANIFEST_PATH}:{field_name}:{actual_value}")
 
     freeze_boundary_owner = manifest.get("freeze_boundary_owner_lane")
     if freeze_boundary_owner != EXPECTED_FREEZE_BOUNDARY_OWNER:
@@ -413,6 +437,7 @@ def run_self_test() -> int:
             ("drivers/virtio/virtio_ring_verify.zig", 'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {'),
             ("drivers/virtio/virtio_ring_publish_readiness.zig", "pub fn summarizePublishReadiness("),
             ("drivers/virtio/virtio_ring_publish_readiness.zig", 'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {'),
+            ("drivers/virtio/virtio_ring_publish_readiness.zig", 'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {'),
             ("zigux/tests/phase10_build.zig", '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),'),
             ("zigux/tests/phase10_build.zig", '.name = "phase10-virtio-ring-publish-readiness-tests",'),
             ("zigux/tests/phase10_build.zig", '.name = "phase10-virtio-ring-notification-data-readiness-tests",'),
