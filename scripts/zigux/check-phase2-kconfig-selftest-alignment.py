@@ -153,7 +153,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(BRIDGE_CHECKER_LINE_MARKERS)
     + 3
     + 6
-    + 5
+    + 6
 )
 
 
@@ -197,6 +197,36 @@ def build_conf_manifest_payload(conf_cases: list[dict[str, object]]) -> dict[str
         ],
         "allconfig_override_packet": [case["expected"] for case in conf_cases if "allconfig" in case],
         "randconfig_env_packet": [case["expected"] for case in conf_cases if case["mode"] == "randconfig"],
+        "helper_local_anchors": [
+            "conf bridge mode surface stays aligned with conf.c long options",
+            "conf bridge emits olddefconfig argv and env",
+            "conf bridge emits syncconfig auto files",
+            "conf bridge emits syncconfig nosilentupdate when present",
+            "conf bridge omits empty syncconfig nosilentupdate",
+            "conf bridge emits silent flag before mode flag",
+            "conf bridge emits alldefconfig argv and env",
+            "conf bridge emits explicit empty allconfig override for allmodconfig",
+            "conf bridge emits randconfig tunables when present",
+            "conf bridge emits explicit randconfig allconfig override when present",
+            "conf bridge omits randconfig allconfig sentinel without explicit override",
+            "conf bridge emits yes2modconfig argv and env",
+            "conf bridge emits defconfig mode argument before kconfig",
+            "conf bridge emits savedefconfig mode argument before kconfig",
+            "conf bridge escapes low control bytes in JSON strings",
+            "mode argument validation rejects bridge option shaped defconfig payload",
+            "mode argument validation accepts defconfig path that only starts with silent",
+            "mode argument validation still accepts ordinary path text with equals",
+            "bridge options parser accepts explicit allconfig override for allmodconfig",
+            "bridge options parser accepts syncconfig nosilentupdate",
+            "bridge options parser keeps empty syncconfig nosilentupdate unset",
+            "bridge options parser accepts generic silent flag",
+            "bridge options parser accepts silent alongside randconfig options",
+            "bridge options parser rejects duplicate silent flag",
+            "bridge options parser rejects duplicate randconfig probability",
+            "bridge options parser rejects unexpected options for mode",
+            "bridge options parser keeps empty randconfig tunables unset",
+            "bridge options parser rejects duplicate mode specific options",
+        ],
     }
 
 
@@ -562,6 +592,18 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert any(
             code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("silent_request_packet:")
+            for code, value in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONF_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = ["broken helper anchor"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(
+            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:")
             for code, value in issues
         )
         checks_run += 1
