@@ -2,16 +2,16 @@
 
 This note keeps the teardown-facing checkpoint for the bounded Phase 11
 `gpio_wdt` packet truthful on current `master`. It stays inside the
-simple-drivers lane and records only the returned driver-plus-docs surfaces that
-already describe the host-free teardown and stop-policy packet.
+simple-drivers lane and records the returned driver-plus-docs-plus-proof
+surfaces that already describe the host-free teardown and stop-policy packet.
 
 ## Status
 
-- `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_and_docs_packet`
-- teardown evidence remains bounded to the returned gpio driver and coupled docs
-  packet
-- remaining follow-through is still focused replay or manifest recovery, live
-  GPIO descriptor lookup, platform-driver registration, watchdog-core
+- `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`
+- teardown evidence remains bounded to the returned gpio driver, direct proof,
+  and coupled docs packet
+- remaining follow-through is still wider focused replay or manifest recovery,
+  live GPIO descriptor lookup, platform-driver registration, watchdog-core
   registration, live platform cleanup callbacks, reboot-backed teardown
   execution, and hardware-backed validation
 
@@ -20,14 +20,15 @@ already describe the host-free teardown and stop-policy packet.
 The current teardown-facing GPIO packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-These returned driver and documentation surfaces keep the teardown packet
-readable without promoting absent replay, survey, manifest, or shared-build
-files into current-head evidence.
+These returned driver, direct proof, and documentation surfaces keep the
+teardown packet readable without promoting absent wider replay, survey,
+manifest, or shared-build files into current-head evidence.
 
 ## What The Landed Teardown Packet Covers
 
@@ -39,6 +40,10 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `registerDeviceFailureSummary()` and the teardown-facing failure-mode cues
   that stay reviewable without claiming live remove-hook or reboot-backed
   shutdown execution
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig` as the direct
+  proof surface that keeps the first bounded register-device request and the
+  paired failure summary tied to the reboot-glue boundary without claiming live
+  watchdog-core registration
 - `timeoutPropertyCheckpointSummary()` and
   `platformDrvdataCheckpointSummary()` as the ordering anchors that still feed
   the bounded register-device and teardown summaries
@@ -61,9 +66,10 @@ behavior.
 
 ## Bounded Meaning
 
-This note records the returned teardown summaries only. It does not claim live
-GPIO descriptor acquisition, `platform_set_drvdata()` execution,
-`watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution,
+This note records the returned teardown summaries and direct proof only. It does
+not claim live GPIO descriptor acquisition, `platform_set_drvdata()`
+execution, `watchdog_set_drvdata()` execution,
+`watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration, live
 reboot-hook registration, live platform cleanup callbacks, live remove-hook
 execution, or hardware-validated teardown parity. Those remain later same-lane
