@@ -23,7 +23,11 @@ Keep the contributor-facing shared handle aligned through:
 2. `scripts/zigux/README.md`
 3. `zigux/tests/README.md`
 
+Keep `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned with that stable handle as supporting shared reminder surfaces.
+
 Keep `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` aligned as supporting shared reminder surfaces rather than as the stable contributor-facing handle itself.
+
+Keep `Documentation/zigux/phase13-release-notes-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md` aligned as broader same-lane reminder surfaces rather than as the stable contributor-facing handle itself.
 
 stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
