@@ -110,6 +110,8 @@ pub const NotifierBlock = notifier_abi.NotifierBlock;
 pub const ListHead = notifier_abi.ListHead;
 pub const HListHead = notifier_abi.HListHead;
 pub const HListNode = notifier_abi.HListNode;
+pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;
+pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return notifier_abi.chainHasNonincreasingPriority(head);
@@ -146,6 +148,14 @@ pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityInc
     }
 
     return null;
+}
+
+pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
+    return notifier_abi.firstBrokenBacklink(head);
+}
+
+pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
+    return notifier_abi.firstBrokenPrevLink(head);
 }
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
@@ -399,6 +409,20 @@ test "abi binding notifier and list layouts stay aligned with the dedicated noti
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
     try std.testing.expectEqual(@sizeOf(notifier_abi.HListNode), @sizeOf(HListNode));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListBackLinkBreak));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListBackLinkBreak, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListBackLinkBreak, "expected_prev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ListBackLinkBreak, "actual_prev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(ListBackLinkBreak));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.ListBackLinkBreak), @sizeOf(ListBackLinkBreak));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListPrevLinkBreak, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListPrevLinkBreak, "expected_pprev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(HListPrevLinkBreak, "actual_pprev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.HListPrevLinkBreak), @sizeOf(HListPrevLinkBreak));
 }
 
 test "abi binding notifier helper matches the dedicated notifier binding" {
@@ -485,6 +509,7 @@ test "abi binding keeps first priority increase and list relays explicit" {
         notifier_abi.listHasConsistentBacklinks(&list_head),
         listHasConsistentBacklinks(&list_head),
     );
+    try std.testing.expectEqual(@as(?ListBackLinkBreak, null), firstBrokenBacklink(&list_head));
 
     const hlist_head = HListHead{ .first = 0 };
     try std.testing.expect(hlistHasConsistentPrevLinks(&hlist_head));
@@ -492,4 +517,43 @@ test "abi binding keeps first priority increase and list relays explicit" {
         notifier_abi.hlistHasConsistentPrevLinks(&hlist_head),
         hlistHasConsistentPrevLinks(&hlist_head),
     );
+    try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(&hlist_head));
+}
+
+test "abi binding detailed list break relays stay aligned with notifier bindings" {
+    var list_head = ListHead{ .next = 0, .prev = 0 };
+    var list_first = ListHead{ .next = 0, .prev = 0 };
+    var list_second = ListHead{ .next = 0, .prev = 0 };
+
+    list_head.next = @intFromPtr(&list_first);
+    list_head.prev = @intFromPtr(&list_second);
+    list_first.next = @intFromPtr(&list_second);
+    list_first.prev = @intFromPtr(&list_head);
+    list_second.next = @intFromPtr(&list_head);
+    list_second.prev = @intFromPtr(&list_head);
+
+    const list_break = firstBrokenBacklink(&list_head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), list_break.current_index);
+    try std.testing.expectEqual(@intFromPtr(&list_first), list_break.expected_prev);
+    try std.testing.expectEqual(@intFromPtr(&list_head), list_break.actual_prev);
+    try std.testing.expectEqual(notifier_abi.firstBrokenBacklink(&list_head).?, list_break);
+
+    var hlist_head = HListHead{ .first = 0 };
+    var hlist_first = HListNode{ .next = 0, .pprev = 0 };
+    var hlist_second = HListNode{ .next = 0, .pprev = 0 };
+
+    hlist_head.first = @intFromPtr(&hlist_first);
+    hlist_first.next = @intFromPtr(&hlist_second);
+    hlist_first.pprev = @intFromPtr(&hlist_head.first);
+    hlist_second.next = 0;
+    hlist_second.pprev = @intFromPtr(&hlist_head.first);
+
+    const prev_break = firstBrokenPrevLink(&hlist_head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), prev_break.current_index);
+    try std.testing.expectEqual(@intFromPtr(&hlist_first.next), prev_break.expected_pprev);
+    try std.testing.expectEqual(@intFromPtr(&hlist_head.first), prev_break.actual_pprev);
+    try std.testing.expectEqual(notifier_abi.firstBrokenPrevLink(&hlist_head).?, prev_break);
+
+    try std.testing.expectEqual(@as(?ListBackLinkBreak, null), firstBrokenBacklink(null));
+    try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(null));
 }
