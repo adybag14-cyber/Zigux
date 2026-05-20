@@ -105,6 +105,10 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: make -C zigux phase4-test",
     "- name: Self-test current Phase 4 artifact-diff helper",
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "- name: Self-test current Phase 4 artifact-diff contract checker",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "- name: Check current Phase 4 artifact-diff contract packet",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
     "- name: Self-test current Phase 4 artifact-diff determinism checker",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "- name: Check current Phase 4 artifact-diff determinism packet",
@@ -119,6 +123,8 @@ REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
     "run: make -C zigux phase4-test",
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
@@ -207,6 +213,8 @@ SELFTEST_CASES = [
     "missing_workflow_validate_route",
     "missing_workflow_test_route",
     "missing_workflow_artifact_diff_helper_selftest",
+    "missing_workflow_artifact_diff_contract_selftest",
+    "missing_workflow_artifact_diff_contract_check",
     "missing_workflow_artifact_diff_determinism_selftest",
     "missing_workflow_artifact_diff_determinism_check",
     "missing_workflow_artifact_diff_validator_replays_selftest",
@@ -284,6 +292,10 @@ SELFTEST_WORKFLOW = """jobs:
         run: make -C zigux phase4-test
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
+      - name: Self-test current Phase 4 artifact-diff contract checker
+        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
+      - name: Check current Phase 4 artifact-diff contract packet
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
       - name: Self-test current Phase 4 artifact-diff determinism checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
       - name: Check current Phase 4 artifact-diff determinism packet
@@ -764,6 +776,30 @@ def run_selftest() -> None:
         )
         expect_failure("missing workflow artifact-diff helper self-test", run_check)
         covered_cases.append("missing_workflow_artifact_diff_helper_selftest")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 4 artifact-diff contract checker\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff contract self-test", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_contract_selftest")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Check current Phase 4 artifact-diff contract packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff contract check", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_contract_check")
 
         write_baseline()
         workflow.write_text(
