@@ -61,6 +61,11 @@ TEXT_MARKERS = {
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
     ],
+    PHASE12_BUILD_PATH: [
+        "phase12_virtio_net_receive_refill_replay.zig",
+        "phase12-virtio-net-receive-refill-replay-tests",
+        "receive-refill replay",
+    ],
     MAKEFILE_PATH: [
         "phase12-smoke:",
         "phase12-test:",
