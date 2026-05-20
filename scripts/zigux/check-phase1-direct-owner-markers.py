@@ -110,6 +110,27 @@ EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "across the string review packet and this lane note unless dedicated shared sysfs "
     "fixture keys land; do not reopen missing closure-side validator names by default."
 )
+EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR = (
+    'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"'
+)
+EXPECTED_RBTREE_LOW_LEVEL_ALIAS_ANCHOR = (
+    'test "rbtree low-level Linux-style aliases mirror node-state helpers"'
+)
+EXPECTED_RBTREE_PHASE1_HELPER_REPLAY_ANCHOR = (
+    'test "phase1 host-tools smoke exercises live helper behavior"'
+)
+EXPECTED_RBTREE_CACHED_LEFTMOST_FIXTURE_KEYS = ["cached_leftmost_return_serials"]
+EXPECTED_RBTREE_DUPLICATE_SEARCH_REPLAY_KEYS = [
+    "find_found_key",
+    "find_missing",
+    "find_first_serial",
+    "next_match_serials",
+    "match_iterator_serials",
+    "next_match_terminal_null",
+]
+EXPECTED_RBTREE_CACHED_ROOT_ALIAS_ANCHOR = (
+    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"'
+)
 
 REQUIRED_EXACT_LINES = {
     PHASE1_CLOSURE_REL: {
@@ -175,6 +196,12 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/bitmap.zig", "next_safe_step_note"): EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"): EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/rbtree.zig", "ordered_alias_anchor"): EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR,
+    ("review_anchors", "tools/lib/rbtree.zig", "low_level_alias_anchor"): EXPECTED_RBTREE_LOW_LEVEL_ALIAS_ANCHOR,
+    ("review_anchors", "tools/lib/rbtree.zig", "phase1_helper_replay_anchor"): EXPECTED_RBTREE_PHASE1_HELPER_REPLAY_ANCHOR,
+    ("review_anchors", "tools/lib/rbtree.zig", "cached_leftmost_fixture_keys"): EXPECTED_RBTREE_CACHED_LEFTMOST_FIXTURE_KEYS,
+    ("review_anchors", "tools/lib/rbtree.zig", "duplicate_search_replay_keys"): EXPECTED_RBTREE_DUPLICATE_SEARCH_REPLAY_KEYS,
+    ("review_anchors", "tools/lib/rbtree.zig", "cached_root_alias_anchor"): EXPECTED_RBTREE_CACHED_ROOT_ALIAS_ANCHOR,
     ("review_anchors", "tools/lib/string.zig", "next_safe_step_note"): EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
 }
 
@@ -263,6 +290,12 @@ def sample_manifest() -> str:
                     },
                     "tools/lib/rbtree.zig": {
                         "next_safe_step_note": EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+                        "ordered_alias_anchor": EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR,
+                        "low_level_alias_anchor": EXPECTED_RBTREE_LOW_LEVEL_ALIAS_ANCHOR,
+                        "phase1_helper_replay_anchor": EXPECTED_RBTREE_PHASE1_HELPER_REPLAY_ANCHOR,
+                        "cached_leftmost_fixture_keys": EXPECTED_RBTREE_CACHED_LEFTMOST_FIXTURE_KEYS,
+                        "duplicate_search_replay_keys": EXPECTED_RBTREE_DUPLICATE_SEARCH_REPLAY_KEYS,
+                        "cached_root_alias_anchor": EXPECTED_RBTREE_CACHED_ROOT_ALIAS_ANCHOR,
                     },
                     "tools/lib/string.zig": {
                         "next_safe_step_note": EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
