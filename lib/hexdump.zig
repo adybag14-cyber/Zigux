@@ -415,6 +415,24 @@ test "hex2bin and bin2hex snake-case aliases stay aligned" {
     try std.testing.expectEqualStrings("0af15c", alias_written);
 }
 
+test "bin2hex emits lowercase bulk output and preserves destination on bounds errors" {
+    const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
+    var encoded: [8]u8 = [_]u8{0xaa} ** 8;
+
+    const written = try bin2hex(encoded[0..], &sample);
+    try std.testing.expectEqual(@as(usize, 6), written.len);
+    try std.testing.expectEqualStrings("0af15c", written);
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded[written.len]);
+
+    var tiny_direct = [_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 };
+    var tiny_alias = [_]u8{ 0x22, 0x33, 0x44, 0x55, 0x66 };
+
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hex(tiny_direct[0..], &sample));
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2Hex(tiny_alias[0..], &sample));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 }, &tiny_direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x22, 0x33, 0x44, 0x55, 0x66 }, &tiny_alias);
+}
+
 test "bin2hexUpper emits uppercase bulk output and alias stays aligned" {
     const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
     var direct_buf: [8]u8 = [_]u8{0xaa} ** 8;
