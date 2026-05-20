@@ -14,6 +14,7 @@
   "fixture_governance": {
     "release_record_lifetime_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "detach_cleanup_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "zero_sized_request_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "owner_map": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "zigux/tests/phase13_devres_dma_coherent.zig"
@@ -35,6 +36,7 @@
     "planReleaseCall",
     "detach-time cleanup ownership on success",
     "failed allocation frees the release record",
+    "zero-sized requests free the release record",
     "release_record_consumed",
     "releases_from_devres",
     "dma_map_*",
