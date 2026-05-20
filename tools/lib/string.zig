@@ -309,13 +309,18 @@ pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
     return sysfsStreq(lhs, rhs);
 }
 
-pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {
-    for (haystack, 0..) |candidate, idx| {
+pub fn __sysfs_match_string(haystack: []const []const u8, count: usize, needle: []const u8) ?usize {
+    const limit = @min(count, haystack.len);
+    for (haystack[0..limit], 0..) |candidate, idx| {
         if (sysfsStreq(candidate, needle)) {
             return idx;
         }
     }
     return null;
+}
+
+pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {
+    return __sysfs_match_string(haystack, haystack.len, needle);
 }
 
 pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {
@@ -553,6 +558,8 @@ test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence" {
 test "sysfsMatchString finds newline-aware matches and preserves first-match order" {
     const haystack = [_][]const u8{ "off", "auto\n", "auto", "on" };
     try std.testing.expectEqual(@as(?usize, 1), sysfsMatchString(haystack[0..], "auto"));
+    try std.testing.expectEqual(@as(?usize, 1), __sysfs_match_string(haystack[0..], 3, "auto"));
+    try std.testing.expectEqual(@as(?usize, null), __sysfs_match_string(haystack[0..], 1, "auto"));
     try std.testing.expectEqual(@as(?usize, null), sysfsMatchString(haystack[0..], "missing"));
 }
 
@@ -560,6 +567,7 @@ test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists" {
     const haystack = [_][]const u8{ "a\n", "b" };
     const empty = [_][]const u8{};
     try std.testing.expectEqual(@as(?usize, 0), sysfs_match_string(haystack[0..], "a"));
+    try std.testing.expectEqual(@as(?usize, 1), __sysfs_match_string(haystack[0..], 99, "b"));
     try std.testing.expectEqual(@as(?usize, null), sysfs_match_string(empty[0..], "a"));
 }
 
