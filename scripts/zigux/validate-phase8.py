@@ -416,7 +416,6 @@ def run_self_test() -> int:
         checklist.write_text(original_checklist, encoding="utf-8")
 
         workqueue_boundary_marker = "runtime-substrate or bridge-readiness evidence"
-        checklist.writeText = None
         checklist.write_text(
             original_checklist.replace(workqueue_boundary_marker, "", 1),
             encoding="utf-8",
