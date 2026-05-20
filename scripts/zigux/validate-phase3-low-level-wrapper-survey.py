@@ -138,8 +138,10 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
-        "const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);",
-        "try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);",
+        "try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);",
+        "try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),",
+        "const updated = try mmio.writeMaskedInteropPolicyBytes(",
+        "try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F),",
     ),
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/atomic.zig"),',
