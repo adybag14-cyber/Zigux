@@ -43,8 +43,15 @@ pub const ConfigWriteDispositionSummary = struct {
     has_changes: bool,
 };
 
+pub const ConfigWritePlanAvailability = enum {
+    unavailable,
+    fresh,
+    stale_generation,
+};
+
 pub const ConfigWritePlanFreshnessSummary = struct {
     anchor: []const u8,
+    availability: ConfigWritePlanAvailability,
     plan_present: bool,
     plan_matches_generation: bool,
     relative_offset: u32,
@@ -210,8 +217,15 @@ pub const VirtioMmioLab = struct {
     pub fn configWritePlanFreshnessSummary(self: *const Self) ConfigWritePlanFreshnessSummary {
         if (self.pending_config_write) |plan| {
             const plan_matches_generation = plan.config_generation == self.config_generation;
+            const availability: ConfigWritePlanAvailability = if (!plan.within_config_window)
+                .unavailable
+            else if (plan_matches_generation)
+                .fresh
+            else
+                .stale_generation;
             return .{
                 .anchor = plan.anchor,
+                .availability = availability,
                 .plan_present = true,
                 .plan_matches_generation = plan_matches_generation,
                 .relative_offset = plan.relative_offset,
@@ -220,12 +234,13 @@ pub const VirtioMmioLab = struct {
                 .planned_generation = plan.config_generation,
                 .current_generation = self.config_generation,
                 .within_config_window = plan.within_config_window,
-                .available_for_disposition = plan_matches_generation and plan.within_config_window,
+                .available_for_disposition = availability == .fresh,
             };
         }
 
         return .{
             .anchor = anchor_path,
+            .availability = .unavailable,
             .plan_present = false,
             .plan_matches_generation = false,
             .relative_offset = 0,
@@ -524,6 +539,7 @@ test "phase10 virtio mmio config-write plan freshness keeps staged availability 
 
     const absent = device.configWritePlanFreshnessSummary();
     try std.testing.expectEqualStrings(anchor_path, absent.anchor);
+    try std.testing.expectEqual(ConfigWritePlanAvailability.unavailable, absent.availability);
     try std.testing.expect(!absent.plan_present);
     try std.testing.expect(!absent.plan_matches_generation);
     try std.testing.expectEqual(@as(u32, 0), absent.current_generation);
@@ -532,6 +548,7 @@ test "phase10 virtio mmio config-write plan freshness keeps staged availability 
     const plan = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0203_0407);
     const fresh = device.configWritePlanFreshnessSummary();
     try std.testing.expectEqualStrings(anchor_path, fresh.anchor);
+    try std.testing.expectEqual(ConfigWritePlanAvailability.fresh, fresh.availability);
     try std.testing.expect(fresh.plan_present);
     try std.testing.expect(fresh.plan_matches_generation);
     try std.testing.expectEqual(plan.relative_offset, fresh.relative_offset);
@@ -544,6 +561,7 @@ test "phase10 virtio mmio config-write plan freshness keeps staged availability 
 
     device.bumpConfigGeneration();
     const cleared = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqual(ConfigWritePlanAvailability.unavailable, cleared.availability);
     try std.testing.expect(!cleared.plan_present);
     try std.testing.expect(!cleared.plan_matches_generation);
     try std.testing.expectEqual(@as(u32, 1), cleared.current_generation);
@@ -558,6 +576,7 @@ test "phase10 virtio mmio config-write plan freshness keeps staged availability 
         .within_config_window = true,
     };
     const stale = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqual(ConfigWritePlanAvailability.stale_generation, stale.availability);
     try std.testing.expect(stale.plan_present);
     try std.testing.expect(!stale.plan_matches_generation);
     try std.testing.expectEqual(@as(u32, 0), stale.planned_generation);
