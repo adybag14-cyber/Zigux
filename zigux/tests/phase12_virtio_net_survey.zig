@@ -86,6 +86,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 test "phase12 virtio net survey manifest tracks the shared-build quintet and throughput-review boundary truthfully" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -211,6 +215,12 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
 
     const build_zig = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
     defer std.testing.allocator.free(build_zig);
+    try std.testing.expectEqual(@as(usize, 10), std.mem.count(u8, build_zig, "b.createModule(.{"));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_zig, ".addImport("));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_zig, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_zig, "b.addRunArtifact("));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_zig, "smoke_step.dependOn("));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_zig, "test_step.dependOn("));
     try expectContains(build_zig, "phase12_virtio_net_queue_resume.zig");
     try expectContains(build_zig, "phase12_virtio_net_receive_refill_replay.zig");
     try expectContains(build_zig, "phase12_virtio_net_transmit_recycle.zig");
@@ -221,12 +231,16 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try expectContains(build_zig, "phase12-virtio-net-transmit-recycle-tests");
     try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");
     try expectContains(build_zig, "phase12-virtio-net-throughput-parity-tests");
+    try expectNotContains(build_zig, "phase12_virtio_net.zig");
+    try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");
 
     const makefile = try readFileAlloc("zigux/Makefile", 32 * 1024);
     defer std.testing.allocator.free(makefile);
     try expectContains(makefile, "phase12-smoke:");
     try expectContains(makefile, "phase12-test:");
     try expectContains(makefile, "phase12: phase12-smoke phase12-test");
+    try expectNotContains(makefile, "phase12-validate:");
+    try expectNotContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");
 }
 
 test "phase12 virtio net survey gate keeps split helper markers explicit" {
