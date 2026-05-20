@@ -8,7 +8,7 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
 - role: keep the current Phase 15 governance packet honest now that both the broader governance notes, the focused review-process replay companion, the focused review-process build-file replay, the focused tests-root alignment companion, the dedicated handoff manifest, the focused handoff-specific Zig replay, and the focused handoff-note checker are materialized, while the remaining work stays narrowed to shared-summary truthfulness rather than stale missing-path carryover or implied approval
 
 ## Why this note exists
@@ -17,7 +17,7 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the previously parked focused review-process replay companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
-This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-19 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the stay-in-C lane-owner companion, the focused review-process build-file replay, the focused tests-root alignment guard, and the focused handoff-note checker, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
+This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-20 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the stay-in-C lane-owner companion, the focused review-process build-file replay, the focused tests-root alignment guard, and the focused handoff-note checker, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
 
 ## Materialized Phase 15 governance assets
 
