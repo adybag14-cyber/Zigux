@@ -75,6 +75,8 @@ REQUIRED_MARKERS = {
         "struct zigux_export_status {",
         "struct zigux_interop_policy {",
         "struct zigux_notifier_block {",
+        "typedef struct zigux_list_backlink_break {",
+        "typedef struct zigux_hlist_prev_link_break {",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline zigux_boundary_header zigux_compatible_header(",
         "static inline int zigux_abi_version_is_current(uint16_t abi_version)",
@@ -89,7 +91,9 @@ REQUIRED_MARKERS = {
         "static inline int zigux_export_status_ok(struct zigux_export_status status)",
         "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
         "static inline int zigux_notifier_first_chain_priority_increase(",
+        "static inline int zigux_list_first_broken_backlink(",
         "static inline int zigux_list_has_consistent_backlinks(",
+        "static inline int zigux_hlist_first_broken_prev_link(",
         "static inline int zigux_hlist_has_consistent_prev_links(",
     ),
     LINUX_ZIGUX_HEADER: (
@@ -167,9 +171,13 @@ REQUIRED_MARKERS = {
         "ok = 1,",
         "stop = 2,",
         "pub const NotifierBlock = extern struct {",
+        "pub const ListBackLinkBreak = extern struct {",
+        "pub const HListPrevLinkBreak = extern struct {",
         "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
         "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {",
+        "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
     BINDING_ABI: (
@@ -199,6 +207,8 @@ REQUIRED_MARKERS = {
         "pub const InteropPolicy = extern struct {",
         "pub const NotifierResult = notifier_abi.NotifierResult;",
         "pub const NotifierBlock = notifier_abi.NotifierBlock;",
+        "pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;",
+        "pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;",
         "pub fn defaultHeader(flags: u16) BoundaryHeader {",
         "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
         "pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {",
@@ -213,7 +223,9 @@ REQUIRED_MARKERS = {
         "pub fn statusIsOk(status: ExportStatus) bool {",
         "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
         "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
+        "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
     EXPORT_SHIM: (
@@ -246,6 +258,7 @@ REQUIRED_MARKERS = {
         'test "phase3 abi keeps export shim compatibility and status helpers reviewable" {',
         'test "phase3 abi keeps version and dev_t relays explicit" {',
         'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {',
+        'test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {',
     ),
     TESTS_BUILD: (
         "const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);",
@@ -266,8 +279,8 @@ REQUIRED_MARKERS = {
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
         '@offsetOf(abi.NotifierBlock, \"priority\"),',
-        '"  \\\"abi_version\\\": {},\\\\n"',
-        '"  \\\"notifier\\\": {{\\\\n"',
+        '"  \\\"abi_version\\\": {},\\n"',
+        '"  \\\"notifier\\\": {{\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
@@ -298,11 +311,14 @@ SELF_TEST_CASES = (
     (ABI_SLICE_NOTE, "zigux/bindings/header_family.zig"),
     (ABI_SLICE_NOTE, "Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     (ABI_SLICE_NOTE, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    (ABI_HEADER, "static inline int zigux_list_first_broken_backlink("),
     (BINDING_HEADER_FAMILY, "pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {"),
     (BINDING_ABI, "pub const NotifierResult = notifier_abi.NotifierResult;"),
-    (BINDING_ABI, "pub const ABI_VERSION: u16 = 1;"),
+    (BINDING_ABI, "pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;"),
+    (BINDING_NOTIFIER, "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {"),
     (EXPORT_SHIM, "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {"),
     (ABI_TEST, 'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {'),
+    (ABI_TEST, 'test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {'),
     (ABI_DUMP, "abi.NOTIFIER_DONE,"),
     (PHASE3_CATALOG, 'Path("zigux/bindings/header_family.zig")'),
     (MANIFEST_PATH, '"status": "shared_abi_and_header_family_binding_surface_present"'),
@@ -313,6 +329,11 @@ SEMANTIC_SELF_TEST_CASES = (
         BINDING_ABI,
         "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
         "missing ABI binding helper for ABI header inline helper: zigux_compatible_header -> compatibleHeader",
+    ),
+    (
+        BINDING_ABI,
+        "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
+        "missing ABI binding helper for ABI header inline helper: zigux_list_first_broken_backlink -> firstBrokenBacklink",
     ),
     (
         EXPORT_SHIM,
@@ -349,7 +370,9 @@ REQUIRED_HEADER_BINDING_HELPERS = {
     "zigux_export_status_ok": "statusIsOk",
     "zigux_notifier_chain_has_nonincreasing_priority": "chainHasNonincreasingPriority",
     "zigux_notifier_first_chain_priority_increase": "firstChainPriorityIncrease",
+    "zigux_list_first_broken_backlink": "firstBrokenBacklink",
     "zigux_list_has_consistent_backlinks": "listHasConsistentBacklinks",
+    "zigux_hlist_first_broken_prev_link": "firstBrokenPrevLink",
     "zigux_hlist_has_consistent_prev_links": "hlistHasConsistentPrevLinks",
 }
 
@@ -545,10 +568,20 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in (
             "pub const NotifierResult = notifier_abi.NotifierResult;",
             "pub const NotifierBlock = notifier_abi.NotifierBlock;",
+            "pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;",
+            "pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;",
         ):
             if marker not in binding_text:
                 issues.append(f"missing {BINDING_ABI.as_posix()} marker: {marker}")
-        for marker in ("done = 0,", "ok = 1,", "stop = 2,"):
+        for marker in (
+            "done = 0,",
+            "ok = 1,",
+            "stop = 2,",
+            "pub const ListBackLinkBreak = extern struct {",
+            "pub const HListPrevLinkBreak = extern struct {",
+            "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
+            "pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
+        ):
             if marker not in notifier_text:
                 issues.append(f"missing {BINDING_NOTIFIER.as_posix()} marker: {marker}")
 
