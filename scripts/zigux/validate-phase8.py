@@ -23,7 +23,11 @@ LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.m
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
+PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
+ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")
+READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig")
+READY_BUFFER_WINDOW_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 
@@ -49,7 +53,11 @@ REQUIRED_FILES = (
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     VERIFY_SEGMENT,
+    PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
+    ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+    READY_BUFFER_FD_VERIFY_SEGMENT,
+    READY_BUFFER_WINDOW_VERIFY_SEGMENT,
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
@@ -86,7 +94,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     LIBBPF_SEGMENT_SURVEY: (
         "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
         "standalone timer or clockevent helper behavior",
@@ -159,6 +171,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "Run the phase 8 verify routing witness tests.",
     ),
     Path("zigux/tests/phase8_build.zig"): (
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
         "phase8_perf_buffer_poll",
         "phase8_file_path_handle_bridge",
     ),
@@ -178,6 +191,21 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+    ),
+    ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
+        "phase8 online-cpu routing verifier keeps cpu-index wrappers explicit",
+        "resolveNextOnlineCpuRouteCpuIndex",
+        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
+    ),
+    READY_BUFFER_FD_VERIFY_SEGMENT: (
+        "phase8 ready-buffer fd verifier keeps lookup-return wrappers explicit",
+        "resolveReadyBufferFdAtAttempt",
+        "resolveReadyBufferFdLookupReturnAtAttempt",
+    ),
+    READY_BUFFER_WINDOW_VERIFY_SEGMENT: (
+        "phase8 ready-buffer window verifier keeps mapped-size and lookup-return wrappers explicit",
+        "summarizeBufferWindowMappedSize",
+        "summarizeBufferWindowLookupReturn",
     ),
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"): (
         "file_path_handle_bridge",
@@ -312,6 +340,13 @@ def _passing_fixture(root: Path) -> None:
         _write(root / relative_path, "\n".join(markers) + "\n")
     _write(root / TESTS_ALIGNMENT_CHECKER, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
+    _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
+    for helper in (
+        ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
+        READY_BUFFER_FD_VERIFY_SEGMENT,
+        READY_BUFFER_WINDOW_VERIFY_SEGMENT,
+    ):
+        _write(root / helper, "\n".join(FILE_MARKERS[helper]) + "\n")
 
 
 def run_self_test() -> int:
@@ -392,8 +427,7 @@ def run_self_test() -> int:
         )
         missing_survey_marker = validate_root(root)
         expected_survey_marker = (
-            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
-            + unique_survey_marker
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:" + unique_survey_marker
         )
         if expected_survey_marker not in missing_survey_marker.missing_markers:
             raise AssertionError("expected missing survey routing marker to be reported")
@@ -406,12 +440,46 @@ def run_self_test() -> int:
         )
         missing_timer_boundary_marker = validate_root(root)
         expected_timer_boundary_marker = (
-            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
-            + timer_boundary_marker
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:" + timer_boundary_marker
         )
         if expected_timer_boundary_marker not in missing_timer_boundary_marker.missing_markers:
             raise AssertionError("expected missing timer/clockevent survey marker to be reported")
         survey.write_text(original_survey, encoding="utf-8")
+
+        build_file = root / "zigux/tests/phase8_build.zig"
+        original_build_file = _read(build_file)
+        build_file.write_text(
+            original_build_file.replace("../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig", "", 1),
+            encoding="utf-8",
+        )
+        missing_ready_window_marker = validate_root(root)
+        expected_ready_window_marker = (
+            "zigux/tests/phase8_build.zig:../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig"
+        )
+        if expected_ready_window_marker not in missing_ready_window_marker.missing_markers:
+            raise AssertionError("expected missing ready-buffer window build marker to be reported")
+        build_file.write_text(original_build_file, encoding="utf-8")
+
+        online_cpu_verify = root / ONLINE_CPU_ROUTING_VERIFY_SEGMENT
+        online_cpu_verify.unlink()
+        missing_online_cpu_verify = validate_root(root)
+        if ONLINE_CPU_ROUTING_VERIFY_SEGMENT.as_posix() not in missing_online_cpu_verify.missing_files:
+            raise AssertionError("expected missing online-cpu routing verify file to be reported")
+        _write(online_cpu_verify, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_VERIFY_SEGMENT]) + "\n")
+
+        ready_buffer_fd_verify = root / READY_BUFFER_FD_VERIFY_SEGMENT
+        ready_buffer_fd_verify.unlink()
+        missing_ready_buffer_fd_verify = validate_root(root)
+        if READY_BUFFER_FD_VERIFY_SEGMENT.as_posix() not in missing_ready_buffer_fd_verify.missing_files:
+            raise AssertionError("expected missing ready-buffer fd verify file to be reported")
+        _write(ready_buffer_fd_verify, "\n".join(FILE_MARKERS[READY_BUFFER_FD_VERIFY_SEGMENT]) + "\n")
+
+        ready_buffer_window_verify = root / READY_BUFFER_WINDOW_VERIFY_SEGMENT
+        ready_buffer_window_verify.unlink()
+        missing_ready_buffer_window_verify = validate_root(root)
+        if READY_BUFFER_WINDOW_VERIFY_SEGMENT.as_posix() not in missing_ready_buffer_window_verify.missing_files:
+            raise AssertionError("expected missing ready-buffer window verify file to be reported")
+        _write(ready_buffer_window_verify, "\n".join(FILE_MARKERS[READY_BUFFER_WINDOW_VERIFY_SEGMENT]) + "\n")
 
         missing_helper = root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
         missing_helper.unlink()
@@ -433,25 +501,19 @@ def run_self_test() -> int:
         verify_build = root / VERIFY_ROUTING_GAP_BUILD
         verify_build.unlink()
         missing_verify_build = validate_root(root)
-        if "zigux/tests/phase8_verify_routing_gap_only_build.zig" not in missing_verify_build.missing_files:
+        if VERIFY_ROUTING_GAP_BUILD.as_posix() not in missing_verify_build.missing_files:
             raise AssertionError("expected missing verify-routing build shard to be reported")
-        _write(
-            verify_build,
-            "\n".join(FILE_MARKERS[VERIFY_ROUTING_GAP_BUILD]) + "\n",
-        )
+        _write(verify_build, "\n".join(FILE_MARKERS[VERIFY_ROUTING_GAP_BUILD]) + "\n")
 
         online_cpu_routing = root / ONLINE_CPU_ROUTING_SEGMENT
         online_cpu_routing.unlink()
         missing_online_cpu_routing = validate_root(root)
-        if "tools/lib/bpf/zigux_segments/online_cpu_routing.zig" not in missing_online_cpu_routing.missing_files:
+        if ONLINE_CPU_ROUTING_SEGMENT.as_posix() not in missing_online_cpu_routing.missing_files:
             raise AssertionError("expected missing online-cpu routing helper file to be reported")
-        _write(
-            online_cpu_routing,
-            "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n",
-        )
+        _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
