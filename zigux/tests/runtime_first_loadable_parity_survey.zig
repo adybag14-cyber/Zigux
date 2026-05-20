@@ -30,6 +30,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L02`");
+    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-20-first-loadable-parity-partial-readback`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
     try expectContains(parity_note, "`zigux/tests/runtime_atomic64_module.zig`");
