@@ -43,6 +43,7 @@ The bridge packet now carries explicit review-only coverage for:
   * queue submission routing through `queue_work_on()` and `__queue_work()`
   * delayed-work timer expiry and delayed requeue governance
   * flush and drain color progression
+  * cancellation completion handoff through `__cancel_work_sync()`, `disable_work()`, and `__flush_work()``
   * rescuer mayday handoff
   * hotplug topology rebinding
   * scheduler-visible worker-state transitions around `wq_worker_running()` and `wq_worker_sleeping()`
@@ -56,6 +57,7 @@ Keep the following facts aligned across the bridge packet, manifest, reviewabili
   * the workqueue packet remains in blocked maintenance
   * the current slice id remains `phase14-workqueue-scheduler-visible-worker-state-refinement`
   * `zigux/tests/phase14_workqueue_reviewability.zig` remains the bridge-local reviewability surface
+  * the explicit cancel-path handoff keeps cancellation completion review-only and in C
   * `Documentation/zigux/review-checklist.md` continues to route reviewers back through the same blocked-maintenance workqueue packet instead of implying a live wrapper or execution claim
   * the live blocker remains `phase14-workqueue-live-execution-blocker`
   * the next broader same-lane step is still a packet-local reread, not a live execution port
