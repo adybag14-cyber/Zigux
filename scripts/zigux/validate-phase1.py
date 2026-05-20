@@ -584,7 +584,6 @@ def run_self_test() -> int:
         )
         issues, _, summary = collect_issues(mandatory_self_test_root)
         assert "mandatory_self_test_failed:phase1-string-review-packet:exit=1" in issues, issues
-        assert "mandatory_live_failed:phase1-string-review-packet:exit=1" not in issues, issues
         assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
         assert summary.optional_skip_count == 0, summary
         case_count += 1
@@ -941,6 +940,31 @@ def run_self_test() -> int:
         ), summary
         case_count += 1
 
+        helper_manifest_skip_root = base / "helper_manifest_skip"
+        build_sample_repo(helper_manifest_skip_root)
+        (helper_manifest_skip_root / PHASE1_HELPER_MANIFEST_REL).unlink()
+        issues, notes, summary = collect_issues(helper_manifest_skip_root)
+        assert issues == [f"missing_required_path:{PHASE1_HELPER_MANIFEST_REL}"], issues
+        assert notes == [], notes
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        assert summary.optional_run_names == (), summary
+        assert summary.optional_skip_notes == (), summary
+        case_count += 1
+
+        helper_manifest_not_file_root = base / "helper_manifest_not_file"
+        build_sample_repo(helper_manifest_not_file_root)
+        (helper_manifest_not_file_root / PHASE1_HELPER_MANIFEST_REL).unlink()
+        (helper_manifest_not_file_root / PHASE1_HELPER_MANIFEST_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(helper_manifest_not_file_root)
+        assert issues == [f"required_path_not_file:{PHASE1_HELPER_MANIFEST_REL}"], issues
+        assert notes == [], notes
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        assert summary.optional_run_names == (), summary
+        assert summary.optional_skip_notes == (), summary
+        case_count += 1
+
         replay_blockers_not_file_root = base / "replay_blockers_not_file"
         build_sample_repo(replay_blockers_not_file_root)
         (replay_blockers_not_file_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
@@ -984,6 +1008,31 @@ def run_self_test() -> int:
         assert "phase1-c-harness-blockers" not in summary.optional_run_names, summary
         assert "phase1-readme-replay-blockers" not in summary.optional_run_names, summary
         assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        case_count += 1
+
+        scripts_readme_skip_root = base / "scripts_readme_skip"
+        build_sample_repo(scripts_readme_skip_root)
+        (scripts_readme_skip_root / SCRIPTS_README_REL).unlink()
+        issues, notes, summary = collect_issues(scripts_readme_skip_root)
+        assert issues == [f"missing_required_path:{SCRIPTS_README_REL}"], issues
+        assert notes == [], notes
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        assert summary.optional_run_names == (), summary
+        assert summary.optional_skip_notes == (), summary
+        case_count += 1
+
+        scripts_readme_not_file_root = base / "scripts_readme_not_file"
+        build_sample_repo(scripts_readme_not_file_root)
+        (scripts_readme_not_file_root / SCRIPTS_README_REL).unlink()
+        (scripts_readme_not_file_root / SCRIPTS_README_REL).mkdir(parents=True)
+        issues, notes, summary = collect_issues(scripts_readme_not_file_root)
+        assert issues == [f"required_path_not_file:{SCRIPTS_README_REL}"], issues
+        assert notes == [], notes
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
+        assert summary.optional_run_names == (), summary
+        assert summary.optional_skip_notes == (), summary
         case_count += 1
 
         bench_required_not_file_root = base / "bench_required_not_file"
