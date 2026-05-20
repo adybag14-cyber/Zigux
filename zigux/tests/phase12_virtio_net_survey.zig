@@ -213,7 +213,7 @@ test "phase12 virtio net survey gate keeps throughput and transmit helper marker
     try expectContains(throughput_helper, ".needs_post_reset_probe_replay");
     try expectContains(throughput_helper, ".parity_gate_ready");
     try expectContains(throughput_replay, "phase12 throughput parity gate passes once queue restore refill recycle and replay align");
-    try expectContains(throughput_replay, "phase12 throughput parity gate keeps transmit recycle explicit when restore stops after refill");
+    try expectContains(throughput_replay, "phase12 throughput parity gate keeps receive refill explicit after control queue restore even when transmit never stopped");
 
     try expectContains(transmit_helper, "pub const default_wake_threshold: u16 = 2;");
     try expectContains(transmit_helper, "pub const RecycleDisposition = enum");
