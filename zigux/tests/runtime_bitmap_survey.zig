@@ -31,6 +31,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn expectPresent(path: []const u8) !void {
     const payload = try readRepoFileAlloc(path, 64 * 1024);
     defer std.testing.allocator.free(payload);
@@ -92,6 +96,7 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_manifest.json`");
+    try expectContains(survey_note, "live body now reruns the restored direct sample, survey, and top-bit proofs");
     try expectContains(survey_note, "`partial_packet_without_loadable_runtime_substrate`");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
@@ -101,16 +106,24 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_manifest.json`");
+    try expectContains(module_slice_note, "bundle now reruns only the direct sample, survey gate, and top-bit companion");
     try expectContains(module_slice_note, "broader shared runtime-loader substrate");
 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"../../samples/zigux/runtime_bitmap.zig\"");
+    try expectContains(phase9_build, "\"runtime_bitmap_survey.zig\"");
     try expectContains(phase9_build, "\"../../samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
+    try expectContains(phase9_build, "\"Run the Phase 9 runtime bitmap sample, survey, and top-bit tests.\"");
+    try expectNotContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
+    try expectNotContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
+    try expectNotContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
+    try expectNotContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
+    try expectNotContains(phase9_build, "\"runtime_bitmap_module.zig\"");
+    try expectNotContains(phase9_build, "\"runtime_bitmap_diff.zig\"");
+    try expectNotContains(phase9_build, "\"../../samples/zigux/runtime_bitmap_loader.zig\"");
+    try expectNotContains(phase9_build, "\"runtime_loader_allocator_init_flow.zig\"");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
     try expectContains(sample_file, ".top_bit_contract,");
