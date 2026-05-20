@@ -33,6 +33,7 @@ EXPECTED_DIRECT_COMPANIONS = [
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
@@ -97,7 +98,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 16
 
 
 class ValidationError(RuntimeError):
@@ -310,6 +311,8 @@ def run_self_test() -> None:
         expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
         cases_run += 1
