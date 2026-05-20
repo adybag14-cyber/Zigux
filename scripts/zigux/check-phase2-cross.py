@@ -23,9 +23,10 @@ MAKEFILE_LINES = (
 
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
+SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -81,6 +82,11 @@ def load_archive_target_scope(root: Path) -> list[str]:
         if target in seen_targets:
             raise SystemExit(
                 f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        if target not in SUPPORTED_CROSS_TARGETS:
+            raise SystemExit(
+                "unsupported archive_target_scope targets in required file: "
+                + target
             )
         normalized.append(target)
         seen_targets.add(target)
@@ -140,6 +146,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_CROSS_TARGET", target))
         seen_targets.add(target)
 
+        if target not in SUPPORTED_CROSS_TARGETS:
+            issues.append(("UNSUPPORTED_CROSS_TARGET", target))
         if route != ROUTE:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
         if not isinstance(review_status, str) or not review_status.strip():
@@ -149,6 +157,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             continue
         if validation_mode == "archive_required":
             archive_required_targets.add(target)
+
+    if seen_targets != set(SUPPORTED_CROSS_TARGETS):
+        issues.append(("CROSS_TARGET_SET_MISMATCH", ",".join(sorted(seen_targets))))
 
     if archive_required_targets != set(archive_target_scope):
         issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(archive_required_targets))))
@@ -267,6 +278,35 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["aarch64-linux"] = "4" * 64
+        policy["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        fixture_path = resolve_path(root, FIXTURE)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = ["aarch64-linux"]
+        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
+        fixture["cross_targets"][1]["validation_mode"] = "archive_required"
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["riscv64-linux"] = "5" * 64
+        policy["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "unsupported archive_target_scope targets" in str(exc)
+        else:
+            raise AssertionError("unsupported archive_target_scope targets did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["aarch64-linux"]
@@ -312,6 +352,24 @@ def run_self_test() -> int:
         fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"] = fixture["cross_targets"][:1]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("CROSS_TARGET_SET_MISMATCH", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["target"] = "riscv64-linux"
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("UNSUPPORTED_CROSS_TARGET", "riscv64-linux") in issues
+        assert ("CROSS_TARGET_SET_MISMATCH", "riscv64-linux,x86_64-linux") in issues
         checks_run += 1
 
         for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
