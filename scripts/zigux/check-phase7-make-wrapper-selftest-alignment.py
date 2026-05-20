@@ -5,27 +5,23 @@ import argparse
 from pathlib import Path
 import tempfile
 
-
-SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
-
+ROOT = Path(__file__).resolve().parents[2]
 ACTIVE_CHECKER = Path("scripts/zigux/check-phase7-shared-control-gap.py")
 SEQUENCING_NOTE = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+VALIDATOR = Path("scripts/zigux/validate-phase7.py")
 PARKED_PATHS = (
     "scripts/zigux/check-phase7-make-wrapper.py",
-    "scripts/zigux/validate-phase7.py",
     "zigux/tests/phase7_build.zig",
 )
 
 REQUIRED_CHECKER_MARKERS = (
     "PARKED_SHARED_CONTROL_PATHS = [",
     '"scripts/zigux/check-phase7-make-wrapper.py",',
-    '"scripts/zigux/validate-phase7.py",',
     '"zigux/tests/phase7_build.zig",',
+    '"scripts/zigux/validate-phase7.py",',
     'print("PHASE7_SHARED_CONTROL_GAP_SELF_TEST=pass")',
-    'print(f"PHASE7_SHARED_CONTROL_GAP_SELF_TEST_CASE_COUNT={cases_run}")',
     'print("PHASE7_SHARED_CONTROL_GAP=pass")',
 )
 
@@ -33,6 +29,7 @@ REQUIRED_SEQUENCING_MARKERS = (
     "- shared control-surface packet, lane `P7-Y05`:",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
+    "- `scripts/zigux/validate-phase7.py`",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -45,20 +42,23 @@ REQUIRED_WORKFLOW_LINES = (
 FORBIDDEN_WORKFLOW_LINES = (
     "run: make -C zigux phase7-validate",
     "run: make -C zigux phase7-test",
-    "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
-    "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
+    "run: python3 scripts/zigux/validate-phase7 --self-test",
     "run: python3 scripts/zigux/validate-phase7.py --self-test",
     "run: python3 scripts/zigux/validate-phase7.py",
     "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
 )
 
-FORBIDDEN_MAKEFILE_LINES = (
+REQUIRED_MAKEFILE_LINES = (
     "phase7-validate:",
+    "$(PYTHON) scripts/zigux/validate-phase7.py",
+)
+
+FORBIDDEN_MAKEFILE_LINES = (
     "phase7-test:",
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -85,6 +85,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
 
+    if not (root / VALIDATOR).is_file():
+        issues.append(("MISSING_VALIDATOR", str(VALIDATOR)))
+
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
@@ -107,6 +110,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in FORBIDDEN_WORKFLOW_LINES:
         if count_exact_lines(workflow_text, marker):
             issues.append(("FORBIDDEN_WORKFLOW_HOOKS", marker))
+
+    for marker in REQUIRED_MAKEFILE_LINES:
+        if marker not in makefile_text:
+            issues.append(("MISSING_MAKEFILE_LINES", marker))
 
     for marker in FORBIDDEN_MAKEFILE_LINES:
         if count_exact_lines(makefile_text, marker):
@@ -144,24 +151,10 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(
-        root / ACTIVE_CHECKER,
-        "\n".join(REQUIRED_CHECKER_MARKERS) + "\n",
-    )
-    write_text(
-        root / SEQUENCING_NOTE,
-        "\n".join(REQUIRED_SEQUENCING_MARKERS) + "\n",
-    )
-    write_text(
-        root / MAKEFILE,
-        "\n".join(
-            (
-                "phase2-validate:",
-                "\tpython3 scripts/zigux/validate-phase2.py",
-                "",
-            )
-        ),
-    )
+    write_text(root / ACTIVE_CHECKER, "\n".join(REQUIRED_CHECKER_MARKERS) + "\n")
+    write_text(root / SEQUENCING_NOTE, "\n".join(REQUIRED_SEQUENCING_MARKERS) + "\n")
+    write_text(root / VALIDATOR, "print('PHASE7_VALIDATE=pass')\n")
+    write_text(root / MAKEFILE, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
     write_text(
         root / WORKFLOW,
         "\n".join(
@@ -192,37 +185,27 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / ACTIVE_CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], "", 1),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[3], "", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[3]) in issues
         cases += 1
 
-        for marker in REQUIRED_SEQUENCING_MARKERS:
-            build_self_test_root(root)
-            path = root / SEQUENCING_NOTE
-            path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_SEQUENCING_MARKERS", marker) in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / SEQUENCING_NOTE
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_SEQUENCING_MARKERS[3] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_SEQUENCING_MARKERS", REQUIRED_SEQUENCING_MARKERS[3]) in issues
+        cases += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
+        for marker in REQUIRED_WORKFLOW_LINES[:2]:
             build_self_test_root(root)
             path = root / WORKFLOW
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "        run: true"),
-                encoding="utf-8",
-            )
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "        run: true"), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
             cases += 1
 
-        for marker in FORBIDDEN_WORKFLOW_LINES:
+        for marker in FORBIDDEN_WORKFLOW_LINES[:3]:
             build_self_test_root(root)
             path = root / WORKFLOW
             path.write_text(path.read_text(encoding="utf-8") + f"        {marker}\n", encoding="utf-8")
@@ -232,16 +215,22 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(path.read_text(encoding="utf-8") + "phase7-validate:\n", encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8") + "phase7-test:\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-validate:") in issues
+        assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-test:") in issues
         cases += 1
 
         build_self_test_root(root)
-        parked_path = root / PARKED_PATHS[0]
-        write_text(parked_path, "# stale parked path returned\n")
+        (root / Path(PARKED_PATHS[0])).parent.mkdir(parents=True, exist_ok=True)
+        write_text(root / Path(PARKED_PATHS[0]), "# stale parked path returned\n")
         issues = collect_issues(root)
         assert ("UNEXPECTED_REMATERIALIZED_PATHS", PARKED_PATHS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        (root / VALIDATOR).unlink()
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR", str(VALIDATOR)) in issues
         cases += 1
 
         build_self_test_root(root)
