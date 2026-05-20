@@ -118,6 +118,35 @@ test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers ex
     try std.testing.expectEqual(updated, register);
 }
 
+test "phase3 low-level wrappers keep direct MMIO scope gates explicit" {
+    const mmio_scope = narrow.UnsafeScopeTag.volatile_mmio;
+    const none_scope = narrow.UnsafeScopeTag.none;
+    const raw_scope = narrow.UnsafeScopeTag.raw_pointer_bridge;
+
+    var register: u32 = 0x0102_0304;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScoped(u32, none_scope, const_register_ptr));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScoped(u32, raw_scope, register_ptr, 0xAABB_CCDD));
+    try std.testing.expectEqual(@as(u32, 0x0102_0304), register);
+
+    try std.testing.expectEqual(@as(u32, 0x0102_0304), try mmio.readScoped(u32, mmio_scope, const_register_ptr));
+
+    try mmio.writeScoped(u32, mmio_scope, register_ptr, 0xAABB_CCDD);
+    barrier.release();
+    try std.testing.expectEqual(@as(u32, 0xAABB_CCDD), register);
+
+    try std.testing.expectEqual(@as(u32, 0xAABB_CCDD), try mmio.exchangeScoped(u32, mmio_scope, register_ptr, 0xFFFF_00FF));
+    barrier.acquireRelease();
+    try std.testing.expectEqual(@as(u32, 0xFFFF_00FF), register);
+
+    const updated = try mmio.writeMaskedScoped(u32, mmio_scope, register_ptr, 0x00FF_0F0F, 0x0055_0033);
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0xFF55_00F3), updated);
+    try std.testing.expectEqual(updated, register);
+}
+
 test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {
     var state: u8 = 0b1111_0000;
 
