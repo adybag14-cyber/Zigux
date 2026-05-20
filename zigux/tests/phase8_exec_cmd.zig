@@ -19,7 +19,7 @@ fn expectMissingPath(path: []const u8) !void {
     try std.testing.expectError(error.FileNotFound, readRepoFile(path));
 }
 
-test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
+test "phase 8 exec-cmd review witness keeps the surviving shared tooling routes explicit" {
     try expectExistingPath(".github/workflows/zigux-bootstrap.yml");
     try expectExistingPath("Documentation/zigux/README.md");
     try expectExistingPath("Documentation/zigux/review-checklist.md");
@@ -31,15 +31,15 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const docs_root = try readRepoFile("Documentation/zigux/README.md");
     defer std.testing.allocator.free(docs_root);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 8 notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "tools/lib/subcmd/exec-cmd.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "scripts/zigux/validate-phase8.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "tools/lib/subcmd/exec-cmd.zig") == null);
 
     const checklist = try readRepoFile("Documentation/zigux/review-checklist.md");
     defer std.testing.allocator.free(checklist);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "`zigux/tests/phase8_exec_cmd.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-exec-cmd-test`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the shared Phase 8 userspace-adjacent tooling packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`scripts/zigux/check-phase8-libbpf-segment-gate.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") == null);
 
     const scripts_root = try readRepoFile("scripts/zigux/README.md");
     defer std.testing.allocator.free(scripts_root);
@@ -63,6 +63,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const makefile = try readRepoFile("zigux/Makefile");
     defer std.testing.allocator.free(makefile);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-validate:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-exec-cmd-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-test:") != null);
 
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
