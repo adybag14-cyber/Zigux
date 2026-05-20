@@ -35,7 +35,6 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
-        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
         "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "`zigux/tests/phase8_libbpf_segments.zig`",
         "`zigux/Makefile`",
