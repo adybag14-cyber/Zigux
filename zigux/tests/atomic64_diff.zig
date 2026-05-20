@@ -26,6 +26,14 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn sourceLineCount(source: []const u8) usize {
+    if (source.len == 0) return 0;
+
+    var count: usize = std.mem.count(u8, source, "\n");
+    if (source[source.len - 1] != '\n') count += 1;
+    return count;
+}
+
 fn gitBlobShaHex(source: []const u8) ![40]u8 {
     var header_buf: [64]u8 = undefined;
     const header = try std.fmt.bufPrint(&header_buf, "blob {}\x00", .{source.len});
@@ -205,7 +213,7 @@ test "atomic64 diff wrapper keeps the runtime handoff blob pins exact" {
 }
 
 test "atomic64 diff wrapper keeps the runtime handoff line counts exact" {
-    const runtime_line_count = countOccurrences(runtime_atomic64_diff_source, "\n");
+    const runtime_line_count = sourceLineCount(runtime_atomic64_diff_source);
 
     const live_gate_line_count_marker = try std.fmt.allocPrint(
         std.testing.allocator,
