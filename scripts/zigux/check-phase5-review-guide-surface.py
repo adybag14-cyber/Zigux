@@ -88,6 +88,7 @@ SCRIPTS_ROOT_MARKERS = (
     "Phase 5 flow - the current scripts-root sample packet stays reviewable through the shipped guide-surface guard, the restored direct bytestream sample-plus-tests packet, the restored direct non-runtime kretprobe packet, the narrower trace-events formatting companion, and the split-readback kobject reminder packet instead of flattening all four roadmap anchors into sample-root-only proof, guide-only prose, or a blanket missing-sample story",
     "`python3 scripts/zigux/check-phase5-review-guide-surface.py --self-test` replays the shipped shared Phase 5 scripts-root reminder guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording",
     "keep the kobject split explicit too: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are current direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again",
+    "keep the bytestream build split explicit too: `zigux/tests/phase5_build.zig` remains current public-tree-backed companion evidence for this scripts-root packet until a fresh authenticated reread returns that shared build route directly again",
 )
 
 TESTS_ROOT_MARKERS = (
@@ -219,7 +220,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 12
+    expected_case_count = 13
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -298,6 +299,25 @@ def run_self_test() -> int:
         expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[4]}"]
         if failures != expected:
             raise AssertionError(f"unexpected docs-root attr-group failure: {failures}")
+        checks_run += 1
+
+        missing_scripts_root_bytestream_build_marker_root = root / "missing_scripts_root_bytestream_build_marker"
+        _seed(missing_scripts_root_bytestream_build_marker_root)
+        _write(
+            missing_scripts_root_bytestream_build_marker_root / SCRIPTS_ROOT_PATH,
+            _placeholder_text(
+                SCRIPTS_ROOT_PATH,
+                (
+                    SCRIPTS_ROOT_MARKERS[0],
+                    SCRIPTS_ROOT_MARKERS[1],
+                    SCRIPTS_ROOT_MARKERS[2],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_scripts_root_bytestream_build_marker_root)
+        expected = [f"{SCRIPTS_ROOT_PATH}:missing_text:{SCRIPTS_ROOT_MARKERS[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected scripts-root bytestream-build failure: {failures}")
         checks_run += 1
 
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
