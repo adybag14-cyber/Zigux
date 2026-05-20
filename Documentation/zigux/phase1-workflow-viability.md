@@ -1,0 +1,17 @@
+# Phase 1 Workflow Viability
+
+- `PHASE1_WORKFLOW_STATUS=active`
+- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 workflow-viability guard`
+- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`
+- `PHASE1_WORKFLOW_PHASE1_PRE_BUFFER=Self-test current Phase 1 direct-owner checker,Check current Phase 1 direct-owner markers,Self-test current Phase 1 string review checker,Check current Phase 1 string review packet,Self-test current Phase 1 route summary checker,Check current Phase 1 route summary packet,Self-test current Phase 1 bench checker`
+- `PHASE1_WORKFLOW_PHASE1_TAIL=Self-test current Phase 1 shared reminder checker,Check current Phase 1 shared reminder packet,Self-test current Phase 1 closure validator,Check current Phase 1 closure packet`
+- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 closure packet and before current Phase 3 interop packet`
+- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 closure packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`
+- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Run current Phase 3 policy starter-packet replay,Run current Phase 3 policy dump replay,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 3 ABI dump replay,Run current Phase 1 shared tests-root smoke`
+- `PHASE1_WORKFLOW_PHASE4_TAIL=Self-test current Phase 4 repo-reality warning checker,Check current Phase 4 repo-reality warning packet,Self-test current Phase 4 reversible-delivery pin checker,Check current Phase 4 reversible-delivery pin packet,Self-test current Phase 4 tests README checker,Check current Phase 4 tests README packet,Validate Phase 4 rollback routes,Run Phase 4 rollback tests,Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff contract checker,Check current Phase 4 artifact-diff contract packet,Self-test current Phase 4 artifact-diff determinism checker,Check current Phase 4 artifact-diff determinism packet,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`
+- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zig build test --build-file zigux/tests/build.zig,zig build bench --build-file zigux/tests/build.zig,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench`
+- keep the lane scoped to the current closure-validator-plus-viability packet instead of reviving the older validator-first, parity, or make-route Phase 1 replay family.
+- keep the current Phase 1 direct-owner, string-review, route-summary, and bench front buffer intact before the existing shared-reminder and closure pair.
+- keep the workflow-viability pair immediately after the current Phase 1 closure packet, then preserve the current Phase 3 policy starter and dump replays before the low-level-wrapper block.
+- keep the current Phase 4 repo-reality, reversible-delivery, tests-README, rollback, and artifact-diff checks explicit after the Phase 3 buffer when this packet is replayed.
+- if the workflow moves again, refresh this same three-file packet first instead of widening into unrelated Phase 1 reminder or closure lanes.
