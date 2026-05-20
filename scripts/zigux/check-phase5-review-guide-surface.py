@@ -232,7 +232,7 @@ def run_self_test() -> int:
         failures = collect_failures(missing_approved_marker_root)
         expected = [f"{APPROVED_IDIOM_PATH}:missing_text:{APPROVED_IDIOM_MARKERS[0]}"]
         if failures != expected:
-            raise AssertionError(f"unexpected approved-idiom failure: {failures}") from exc
+            raise AssertionError(f"unexpected approved-idiom failure: {failures}")
         checks_run += 1
 
         missing_review_checklist_marker_root = root / "missing_review_checklist_marker"
