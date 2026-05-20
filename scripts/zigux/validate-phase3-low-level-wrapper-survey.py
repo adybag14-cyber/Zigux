@@ -65,6 +65,7 @@ REQUIRED_MARKERS = {
         "pub fn fetchAnd(",
         "pub fn fetchXor(",
         "pub fn fetchMin(",
+        "pub fn fetchMax(",
     ),
     BARRIER_PATH: (
         "pub fn compiler() void {",
