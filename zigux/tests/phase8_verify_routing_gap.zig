@@ -38,3 +38,28 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\" {");
     try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
 }
+
+test "phase 8 verify routing witness records the current direct-readback libbpf survey packet" {
+    const survey = try readRepoFile("Documentation/zigux/phase8-libbpf-segment-survey.md");
+    defer std.testing.allocator.free(survey);
+
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/verify.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/cpu_mask.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/logging.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/pin_path.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/type_names.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
+    try expectContains(
+        survey,
+        "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
+    );
+    try expectContains(
+        survey,
+        "The remaining repo-reality gap in this note is still authenticated exact-read flakiness around `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and some focused build companions.",
+    );
+    try expectContains(
+        survey,
+        "Current repo-facing reminder surfaces already keep the bridge helper vocabulary, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+    );
+}
