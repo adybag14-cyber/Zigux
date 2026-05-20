@@ -3,6 +3,7 @@
 This bounded `P13-L08` helper-first packet lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig` while keeping live DMA state, scatterlist ownership, and broader devres-group behavior blocked.
 
 The planner stays intentionally narrow:
+- the helper descriptor records the shared release-record lifetime and detach-cleanup planning markers so the packet keeps those already-shipped surfaces explicit instead of leaving them implied by the direct planner entrypoints
 - routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)` so the release-record ownership rule is reviewable as its own shared helper step
 - routes `planManagedDmamFreeCoherent(...)` through one private `planReleaseCall(...)` helper so detach cleanup review stays aligned with the retained release-record path
 - accepts already-decided allocation inputs rather than talking to live hardware state
