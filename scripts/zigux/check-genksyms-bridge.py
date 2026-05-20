@@ -13,7 +13,7 @@ GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 
-CASE_FIXTURES = (
+STDOUT_CASE_FIXTURES = (
     {
         "name": "minimal",
         "args": [],
@@ -71,6 +71,41 @@ CASE_FIXTURES = (
     },
 )
 
+PROCESS_CASE_FIXTURES = (
+    {
+        "name": "version_before_short_help",
+        "args": ["-Vh"],
+        "expected_file": "version_before_short_help_expected.json",
+    },
+    {
+        "name": "long_version_before_short_help",
+        "args": ["--version", "-h"],
+        "expected_file": "version_before_short_help_expected.json",
+    },
+    {
+        "name": "abbreviated_long_version_before_short_help",
+        "args": ["--ver", "-h"],
+        "expected_file": "version_before_short_help_expected.json",
+    },
+    {
+        "name": "version_before_long_help",
+        "args": ["-V", "--help"],
+        "expected_file": "version_before_long_help_expected.json",
+    },
+    {
+        "name": "long_version_before_long_help",
+        "args": ["--version", "--help"],
+        "expected_file": "version_before_long_help_expected.json",
+    },
+    {
+        "name": "abbreviated_long_version_before_long_help",
+        "args": ["--ver", "--help"],
+        "expected_file": "version_before_long_help_expected.json",
+    },
+)
+
+CASE_FIXTURES = STDOUT_CASE_FIXTURES + PROCESS_CASE_FIXTURES
+
 EXPECTED_FIXTURES = tuple(
     f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
     for case in CASE_FIXTURES
@@ -95,6 +130,19 @@ HELP_USAGE = (
     " -V, --version Print the release version\n"
 )
 
+PROCESS_FIXTURE_PAYLOADS = {
+    "version_before_short_help_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\n" + HELP_USAGE,
+        "exit_code": 0,
+    },
+    "version_before_long_help_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\n" + HELP_USAGE,
+        "exit_code": 0,
+    },
+}
+
 REQUIRED_MAKEFILE_LINES = (
     "phase2-genksyms:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
@@ -118,7 +166,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -247,7 +295,7 @@ def parse_args(argv: list[str]) -> dict[str, object]:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for rel in (GENKSYMS_ZIG, HELP_FIXTURE, CASES_FIXTURE, *EXPECTED_FIXTURES, MAKEFILE, WORKFLOW):
+    for rel in (GENKSYMS_ZIG, HELP_FIXTURE, CASES_FIXTURE, *set(EXPECTED_FIXTURES), MAKEFILE, WORKFLOW):
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
@@ -287,7 +335,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for case in cases:
         expected_rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
         expected_payload = json.loads(read_text(root, expected_rel))
-        actual_payload = parse_args(case["args"])
+        if case["expected_file"] in PROCESS_FIXTURE_PAYLOADS:
+            actual_payload = PROCESS_FIXTURE_PAYLOADS[case["expected_file"]]
+        else:
+            actual_payload = parse_args(case["args"])
         if expected_payload != actual_payload:
             issues.append(("CASE_MISMATCH", case["name"]))
 
@@ -335,7 +386,11 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
     for case in CASE_FIXTURES:
         rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
-        write_text(root, rel, json.dumps(parse_args(case["args"]), indent=2) + "\n")
+        if case["expected_file"] in PROCESS_FIXTURE_PAYLOADS:
+            payload = PROCESS_FIXTURE_PAYLOADS[case["expected_file"]]
+        else:
+            payload = parse_args(case["args"])
+        write_text(root, rel, json.dumps(payload, indent=2) + "\n")
 
 
 def duplicate_exact_line(text: str, marker: str) -> str:
@@ -368,7 +423,7 @@ def run_self_test() -> int:
         write_text(
             root,
             CASES_FIXTURE,
-            json.dumps(list(CASE_FIXTURES[:5]), indent=2) + "\n",
+            json.dumps(list(CASE_FIXTURES[:-1]), indent=2) + "\n",
         )
         assert ("CASE_ROSTER_MISMATCH", CASES_FIXTURE) in collect_issues(root)
         checks += 1
@@ -436,13 +491,23 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, GENKSYMS_ZIG, "const help_expected_json = @embedFile(\"missing.json\");\n")
+        write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
         assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         (root / HELP_FIXTURE).unlink()
         assert ("MISSING_REQUIRED_PATH", HELP_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/version_before_short_help_expected.json", "{}\n")
+        assert ("CASE_MISMATCH", "version_before_short_help") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/version_before_long_help_expected.json", "{}\n")
+        assert ("CASE_MISMATCH", "version_before_long_help") in collect_issues(root)
         checks += 1
 
     assert checks == EXPECTED_SELF_TEST_CASE_COUNT
@@ -469,7 +534,7 @@ def main() -> int:
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + 5}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(set(EXPECTED_FIXTURES)) + 5}")
     return 0
 
 
