@@ -91,6 +91,8 @@ This survey does not claim:
 - module registration or unregister wiring parity
 
 ## Next bounded step
-Leave this lane parked unless a fresh same-lane reread finds a new exact shared-surface truthfulness repair to make for the landed Phase 5 trace-events packet.
+Leave this lane parked unless a fresh same-packet reread finds a new exact trace-events-local drift to close.
 
-The best next bounded follow-up is the next smallest one-file shared reminder drift that current `master` actually shows after rereading `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the still-direct formatting companion together.
+The strongest next safe step is now directly coupled to the landed sample-local packet: update `zigux/tests/phase5_trace_events_sample.zig` so the focused replay gate mirrors the callback-boundary `checked_focus` surface that current public `master` already shows in `samples/zigux/trace_events_sample.zig` through `runCallbackBoundaryRecoveryReplay()` and `TraceEventsReferenceSample.reviewContract().focus`.
+
+Keep that follow-through inside the focused tests-root packet only. Do not widen it into shared Phase 5 reminder docs, the formatting-only companion lane, or the separate Phase 9 runtime trace-events family.
