@@ -77,6 +77,17 @@ pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32,
         queries[4 + slot] = values[index] + 1;
         expected_hits[4 + slot] = false;
     }
+
+    const extra_seed_indices = [_]usize{ len / 8, len / 3, (len * 3) / 4, len - 1 };
+    for (extra_seed_indices, 0..) |index, slot| {
+        queries[8 + slot] = values[index];
+        expected_hits[8 + slot] = true;
+    }
+
+    for (extra_seed_indices, 0..) |index, slot| {
+        queries[12 + slot] = values[index] + 1;
+        expected_hits[12 + slot] = false;
+    }
 }
 
 test "phase 6 bsearch vectors stay deterministic, sorted, and duplicate-aware" {
@@ -132,6 +143,14 @@ test "phase 6 bsearch perf seeds stay deterministic" {
     try std.testing.expect(!expected_hits[5]);
     try std.testing.expect(!expected_hits[6]);
     try std.testing.expect(!expected_hits[7]);
+    try std.testing.expect(expected_hits[8]);
+    try std.testing.expect(expected_hits[9]);
+    try std.testing.expect(expected_hits[10]);
+    try std.testing.expect(expected_hits[11]);
+    try std.testing.expect(!expected_hits[12]);
+    try std.testing.expect(!expected_hits[13]);
+    try std.testing.expect(!expected_hits[14]);
+    try std.testing.expect(!expected_hits[15]);
 
     try std.testing.expectEqual(values[0], queries[0]);
     try std.testing.expectEqual(values[values.len / 4], queries[1]);
@@ -141,4 +160,12 @@ test "phase 6 bsearch perf seeds stay deterministic" {
     try std.testing.expectEqual(values[values.len / 4] + 1, queries[5]);
     try std.testing.expectEqual(values[values.len / 2] + 1, queries[6]);
     try std.testing.expectEqual(values[values.len - 1] + 1, queries[7]);
+    try std.testing.expectEqual(values[values.len / 8], queries[8]);
+    try std.testing.expectEqual(values[values.len / 3], queries[9]);
+    try std.testing.expectEqual(values[(values.len * 3) / 4], queries[10]);
+    try std.testing.expectEqual(values[values.len - 1], queries[11]);
+    try std.testing.expectEqual(values[values.len / 8] + 1, queries[12]);
+    try std.testing.expectEqual(values[values.len / 3] + 1, queries[13]);
+    try std.testing.expectEqual(values[(values.len * 3) / 4] + 1, queries[14]);
+    try std.testing.expectEqual(values[values.len - 1] + 1, queries[15]);
 }
