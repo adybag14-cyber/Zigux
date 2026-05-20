@@ -305,6 +305,24 @@ EXPECTED_CASES = [
         "mode": "process_json",
         "expected": "version_before_missing_short_dump_types_argument_expected.json",
     },
+    {
+        "name": "explicit_option_terminator",
+        "argv": ["-d", "leftover.c", "--", "--leftover", "positional"],
+        "mode": "stdout_json",
+        "expected": "explicit_option_terminator_expected.json",
+    },
+    {
+        "name": "positional_passthrough",
+        "argv": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "mode": "stdout_json",
+        "expected": "positional_passthrough_expected.json",
+    },
+    {
+        "name": "lone_dash_passthrough",
+        "argv": ["-", "-d"],
+        "mode": "stdout_json",
+        "expected": "lone_dash_passthrough_expected.json",
+    },
 ]
 
 EXPECTED_OUTPUTS = {
@@ -494,6 +512,68 @@ EXPECTED_OUTPUTS = {
             "dump_types_file": None,
         },
     },
+    "explicit_option_terminator_expected.json": {
+        "tool": "scripts/genksyms/genksyms",
+        "stdin": "cpp-stream",
+        "stdout": "symversions",
+        "argv": [
+            "scripts/genksyms/genksyms",
+            "-d",
+            "leftover.c",
+            "--",
+            "--leftover",
+            "positional"
+        ],
+        "options": {
+            "debug_level": 1,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": False,
+            "reference_files": [],
+            "dump_types_file": None
+        }
+    },
+    "positional_passthrough_expected.json": {
+        "tool": "scripts/genksyms/genksyms",
+        "stdin": "cpp-stream",
+        "stdout": "symversions",
+        "argv": [
+            "scripts/genksyms/genksyms",
+            "-d",
+            "-r",
+            "foo.symref",
+            "leftover.c",
+            "rightover.h"
+        ],
+        "options": {
+            "debug_level": 1,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": False,
+            "reference_files": [
+                "foo.symref"
+            ],
+            "dump_types_file": None
+        }
+    },
+    "lone_dash_passthrough_expected.json": {
+        "tool": "scripts/genksyms/genksyms",
+        "stdin": "cpp-stream",
+        "stdout": "symversions",
+        "argv": [
+            "scripts/genksyms/genksyms",
+            "-d",
+            "-"
+        ],
+        "options": {
+            "debug_level": 1,
+            "warnings": False,
+            "dump_defs": False,
+            "preserve": False,
+            "reference_files": [],
+            "dump_types_file": None
+        }
+    },
 }
 
 EXPECTED_TOOL_TESTS = [
@@ -523,6 +603,8 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge canonicalizes abbreviated dump-types empty inline argument"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
+    'test "genksyms bridge keeps explicit option terminator in original position"',
+    'test "genksyms bridge treats lone dash as positional passthrough"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
 ]
 
@@ -825,7 +907,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        (root / f"{FIXTURE_ROOT_REL}/version_before_long_help_expected.json").write_text("{}\n", encoding="utf-8")
+        (root / f"{FIXTURE_ROOT_REL}/version_before_long_help_expected.json").writeText("{}\n", encoding="utf-8")
         assert any(
             issue.startswith(f"{FIXTURE_ROOT_REL}/version_before_long_help_expected.json:")
             for issue in collect_issues(root)
