@@ -40,7 +40,10 @@ REQUIRED_MARKERS = {
         '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
+        '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     SURVEY_PATH: (
@@ -180,6 +183,26 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-dump --build-file zigux/tests/build.zig"',
             "expected missing catalog abi dump build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+            "expected missing catalog shared export-uapi build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+            "expected missing catalog dedicated export-uapi build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
+            "expected missing catalog shared low-level-wrapper build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
+            "expected missing catalog dedicated low-level-wrapper build route marker was not reported",
         ),
         (
             LOW_LEVEL_WRAPPER_SURVEY_PATH,
