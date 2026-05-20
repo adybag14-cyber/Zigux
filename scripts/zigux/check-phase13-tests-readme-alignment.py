@@ -49,6 +49,7 @@ REQUIRED_SHIPPED_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
     "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-packet.py`",
     "`zigux/tests/phase13_notifier_list_manifest.json`",
@@ -205,7 +206,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 11
+    expected_case_count = 12
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -239,6 +240,16 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert (("MISSING_MARKER", "`scripts/zigux/check-phase13-notifier-packet.py`")) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
+            path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-shared-summary-surfaces.py`", ""),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (("MISSING_MARKER", "`scripts/zigux/check-phase13-shared-summary-surfaces.py`")) in issues
         checks_run += 1
 
         build_self_test_root(root)
