@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
+FIXDEP_DIFF_REL = Path("scripts/zigux/check-fixdep-diff.py")
 FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
@@ -21,6 +22,7 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
     FIXDEP_REL,
+    FIXDEP_DIFF_REL,
     FIXDEP_CASES_REL,
     PHASE2_CLOSURE_REL,
     TESTS_README_REL,
@@ -38,6 +40,15 @@ FIXDEP_REQUIRED_EXACT_LINES = (
     'test "read failure wording matches C perror prefix" {',
     'test "output write failure uses C-style wording" {',
     'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
+)
+
+FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
+    "diff_text(c_actual, c_repeat)",
+    "diff_text(zig_actual, zig_repeat)",
+    "diff_text(c_actual_stderr, c_repeat_stderr)",
+    "diff_text(zig_actual_stderr, zig_repeat_stderr)",
+    'print("FIXDEP_DIFF=pass")',
+    'print("FIXDEP_DETERMINISM=pass")',
 )
 
 REQUIRED_FIXDEP_CASE_NAMES = (
@@ -88,6 +99,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_REQUIRED_EXACT_LINES)
+    + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
+    + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
@@ -170,6 +183,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     fixdep_text = read_text(resolve(root, FIXDEP_REL))
+    fixdep_diff_text = read_text(resolve(root, FIXDEP_DIFF_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     tests_readme_text = read_text(resolve(root, TESTS_README_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
@@ -181,6 +195,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             FIXDEP_REQUIRED_EXACT_LINES,
             "MISSING_FIXDEP_TEST_LINE",
             "DUPLICATE_FIXDEP_TEST_LINE",
+        )
+    )
+    issues.extend(
+        collect_required_exact_lines(
+            fixdep_diff_text,
+            FIXDEP_DIFF_REQUIRED_EXACT_LINES,
+            "MISSING_FIXDEP_DIFF_LINE",
+            "DUPLICATE_FIXDEP_DIFF_LINE",
         )
     )
     issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
@@ -282,6 +304,10 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(
+        resolve(root, FIXDEP_DIFF_REL),
+        "\n".join(FIXDEP_DIFF_REQUIRED_EXACT_LINES) + "\n",
+    )
+    write_text(
         resolve(root, FIXDEP_CASES_REL),
         json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
     )
@@ -361,6 +387,20 @@ def run_self_test() -> int:
             path = resolve(root, FIXDEP_REL)
             path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("DUPLICATE_FIXDEP_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_DIFF_REL)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_FIXDEP_DIFF_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_DIFF_REL)
+            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_FIXDEP_DIFF_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for name in REQUIRED_FIXDEP_CASE_NAMES:
@@ -448,6 +488,7 @@ def main() -> int:
     print("PHASE2_FIXDEP_GATE=pass")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
