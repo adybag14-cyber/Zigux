@@ -87,8 +87,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path");
     try expectContains(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContainsCount(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet", 1);
-    try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
-    try expectContainsCount(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
+    try expectContains(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectNotContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays");
     try expectNotContains(slice_note, "before deciding whether `parse_int_array()` can join the same helper-local packet without widening into file-path or device-managed semantics.");
     try expectNotContains(slice_note, "restored starter packet");
@@ -182,8 +182,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"stringLower\"");
     try expectContains(manifest, "\"string_lower\"");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
-    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`\"");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
