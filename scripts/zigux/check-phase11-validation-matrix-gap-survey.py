@@ -37,6 +37,9 @@ MARKERS = {
         "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
         "does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet",
         "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+        "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
+        "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
+        "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
         "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
         "`scripts/zigux/validate-phase11.py`",
         "`python3 scripts/zigux/validate-phase11.py`",
@@ -44,6 +47,7 @@ MARKERS = {
         "`phase11-hvc-hv-ops-layout-proof-tests`",
         "`phase11-hvc-export-surface-layout-proof-tests`",
         "`phase11-hvc-cleanup-packet-proof`",
+        "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
     ],
 }
 
@@ -239,6 +243,9 @@ def build_self_test_fixture(root: Path) -> None:
 - 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays
 - the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current reread expansion now covers all four driver-local matrix notes plus the existing HVC continuity packet
 - The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, so keep those current-head HVC build routes explicit as adjacent continuity evidence rather than treating them as a cross-driver replay roster.
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so keep that targetless-unregister failure-mode evidence explicit beside the narrower three-proof inventory instead of silently collapsing it into the shared proof-backed roster.
 - Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`, so keep that returned shared validation-and-build gate explicit beside the matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - `scripts/zigux/validate-phase11.py`
 - `python3 scripts/zigux/validate-phase11.py`
@@ -246,6 +253,7 @@ def build_self_test_fixture(root: Path) -> None:
 - `phase11-hvc-hv-ops-layout-proof-tests`
 - `phase11-hvc-export-surface-layout-proof-tests`
 - `phase11-hvc-cleanup-packet-proof`
+- The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory.
 """,
     )
     write(
@@ -311,9 +319,21 @@ def run_self_test() -> None:
             ),
             (
                 "matrix_gap_note",
+                "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
+            ),
+            (
+                "matrix_gap_note",
+                "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+            ),
+            (
+                "matrix_gap_note",
                 "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
             ),
             ("matrix_gap_note", "`python3 scripts/zigux/validate-phase11.py`"),
+            (
+                "matrix_gap_note",
+                "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
+            ),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -388,7 +408,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=15")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=18")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
