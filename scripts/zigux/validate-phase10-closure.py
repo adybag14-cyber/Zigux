@@ -101,6 +101,8 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
 EXPECTED_EXACT_CHECKS = [
@@ -526,6 +528,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase10_virtio_ring_notification_data_readiness.zig", "missing"),
             ("zigux/tests/phase10_virtio_core_reset_queue.zig", "missing"),
             ("zigux/tests/phase10_virtio_input_status_drain.zig", "missing"),
+            ("zigux/tests/phase10_virtio_mmio_survey.zig", "missing"),
         ]
         for path, _ in replay_cases:
             broken = json.loads(json.dumps(original))
