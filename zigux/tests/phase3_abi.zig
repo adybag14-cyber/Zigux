@@ -98,6 +98,58 @@ test "phase3 abi keeps version and dev_t relays explicit" {
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_range.flags);
 }
 
+test "phase3 abi keeps export-shim version validation and dev_t roundtrip relays explicit" {
+    const current = export_shim.currentVersion();
+    const stale_major = export_shim.Version{
+        .abi_major = current.abi_major + 1,
+        .abi_minor = current.abi_minor,
+        .header_family_revision = current.header_family_revision,
+    };
+    const stale_minor = export_shim.Version{
+        .abi_major = current.abi_major,
+        .abi_minor = current.abi_minor + 1,
+        .header_family_revision = current.header_family_revision,
+    };
+    const stale_revision = export_shim.Version{
+        .abi_major = current.abi_major,
+        .abi_minor = current.abi_minor,
+        .header_family_revision = current.header_family_revision + 1,
+    };
+    const valid = export_shim.validateVersion(current);
+    const invalid_major = export_shim.validateVersion(stale_major);
+    const invalid_minor = export_shim.validateVersion(stale_minor);
+    const invalid_revision = export_shim.validateVersion(stale_revision);
+
+    try std.testing.expect(export_shim.versionMatchesCurrent(current));
+    try std.testing.expect(!export_shim.versionMatchesCurrent(stale_major));
+    try std.testing.expect(!export_shim.versionMatchesCurrent(stale_minor));
+    try std.testing.expect(!export_shim.versionMatchesCurrent(stale_revision));
+
+    try std.testing.expect(export_shim.statusIsOk(valid));
+    try std.testing.expect(!export_shim.statusIsOk(invalid_major));
+    try std.testing.expect(!export_shim.statusIsOk(invalid_minor));
+    try std.testing.expect(!export_shim.statusIsOk(invalid_revision));
+    try std.testing.expectEqual(@as(i32, -22), invalid_major.code);
+    try std.testing.expectEqual(@as(i32, -22), invalid_minor.code);
+    try std.testing.expectEqual(@as(i32, -22), invalid_revision.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_major.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_major.flags);
+
+    const fields = export_shim.makeDevTFields(11, 29);
+    const encoded = export_shim.encodeDeviceNumber(fields) orelse return error.TestUnexpectedResult;
+    const decoded = export_shim.decodeDeviceNumber(encoded);
+    const valid_fields = export_shim.validateDeviceFields(fields);
+    const invalid_fields = export_shim.validateDeviceFields(export_shim.makeDevTFields(4_096, 0));
+
+    try std.testing.expectEqual(@as(u32, 11), decoded.major);
+    try std.testing.expectEqual(@as(u32, 29), decoded.minor);
+    try std.testing.expect(export_shim.statusIsOk(valid_fields));
+    try std.testing.expect(!export_shim.statusIsOk(invalid_fields));
+    try std.testing.expectEqual(@as(i32, -22), invalid_fields.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_fields.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_fields.flags);
+}
+
 test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {
     const safe_policy = abi.defaultInteropPolicy();
     const mmio_policy = abi.InteropPolicy{
