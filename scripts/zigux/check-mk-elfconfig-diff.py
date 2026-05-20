@@ -68,6 +68,7 @@ EXPECTED_ZIG_MARKERS = {
     "invalid_class_trailing": 'test "classifies unsupported ELF class with trailing bytes silently" {',
     "not_elf_trailing_direct": 'test "classifies non-ELF input with trailing bytes" {',
     "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
+    "readheader_exact_elf32_failure": 'test "readHeader keeps exact 32-bit ELF bytes when the next read would fail" {',
     "readheader_exact_elf64_failure": 'test "readHeader keeps exact 64-bit ELF bytes when the next read would fail" {',
     "readheader_exact_invalid_class_failure": 'test "readHeader keeps exact invalid-class bytes when the next read would fail" {',
     "readheader_exact_not_elf_failure": 'test "readHeader keeps exact non-ELF bytes when the next read would fail" {',
@@ -100,19 +101,19 @@ int main(int argc, char **argv)
 \tunsigned char ei[EI_NIDENT];
 
 \tif (fread(ei, 1, EI_NIDENT, stdin) != EI_NIDENT) {
-\t\tfprintf(stderr, \"Error: input truncated\\n\");
+\t\tfprintf(stderr, "Error: input truncated\\n");
 \t\treturn 1;
 \t}
 \tif (memcmp(ei, ELFMAG, SELFMAG) != 0) {
-\t\tfprintf(stderr, \"Error: not ELF\\n\");
+\t\tfprintf(stderr, "Error: not ELF\\n");
 \t\treturn 1;
 \t}
 \tswitch (ei[EI_CLASS]) {
 \tcase ELFCLASS32:
-\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS32\\n\");
+\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS32\\n");
 \t\tbreak;
 \tcase ELFCLASS64:
-\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
+\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
 \t\tbreak;
 \tdefault:
 \t\texit(1);
