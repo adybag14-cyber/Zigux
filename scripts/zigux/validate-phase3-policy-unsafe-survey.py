@@ -18,7 +18,9 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 POLICY_STARTER_PACKET_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
-POLICY_STARTER_PACKET_BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
+POLICY_STARTER_PACKET_BUILD_PATH = Path(
+    "zigux/tests/phase3_policy_starter_packet_build.zig"
+)
 POLICY_STARTER_PACKET_MANIFEST_PATH = Path(
     "zigux/tests/phase3_policy_starter_packet_manifest.json"
 )
@@ -156,6 +158,10 @@ REQUIRED_MARKERS = {
         "reserved-invalid",
         "panic={s}",
         "allocator={s}",
+        "init_flow={s}",
+        "explicit_caller={any}",
+        "owned_state={any}",
+        "reset_on_init={any}",
         "unsafe={s}",
         "narrow={s}",
     ),
@@ -210,24 +216,51 @@ SELF_TEST_CASES = (
         NOTE_PATH,
         "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig` keep the directly coupled MMIO-plus-narrow wrapper packet explicit without implying broader Phase 3 completion.",
     ),
-    (POLICY_SLICE_PATH, "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"),
+    (
+        POLICY_SLICE_PATH,
+        "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    ),
     (
         LOW_LEVEL_WRAPPER_PATH,
         "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
     ),
-    (LOW_LEVEL_WRAPPER_PATH, "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`"),
+    (
+        LOW_LEVEL_WRAPPER_PATH,
+        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+    ),
     (LAYOUT_ASSERT_PATH, "pub fn assertNotifierBlockLayout() LayoutError!void {"),
-    (LAYOUT_ASSERT_PATH, "pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {"),
-    (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {"),
-    (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() LayoutError!void {"),
-    (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() LayoutError!void {"),
-    (LAYOUT_ASSERT_PATH, "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {"),
+    (
+        LAYOUT_ASSERT_PATH,
+        "pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {",
+    ),
+    (
+        LAYOUT_ASSERT_PATH,
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {",
+    ),
+    (
+        LAYOUT_ASSERT_PATH,
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() LayoutError!void {",
+    ),
+    (
+        LAYOUT_ASSERT_PATH,
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() LayoutError!void {",
+    ),
+    (
+        LAYOUT_ASSERT_PATH,
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {",
+    ),
     (LAYOUT_ASSERT_PATH, "pub fn assertInteropPolicyModeValues() void {"),
     (PANIC_POLICY_PATH, "pub fn escalationFor(mode: abi.PanicMode) Escalation {"),
     (ALLOCATOR_POLICY_PATH, "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {"),
-    (UNSAFE_POLICY_PATH, "pub fn requiresDedicatedAudit(mode: abi.UnsafeScope) bool {"),
+    (
+        UNSAFE_POLICY_PATH,
+        "pub fn requiresDedicatedAudit(mode: abi.UnsafeScope) bool {",
+    ),
     (UNSAFE_POLICY_PATH, "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {"),
+    (
+        UNSAFE_POLICY_PATH,
+        "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {",
+    ),
     (MMIO_PATH, "pub fn exchangeInteropPolicyBytes("),
     (NARROW_PATH, "pub fn pointerAtInteropPolicyBytes("),
     (
@@ -247,8 +280,14 @@ SELF_TEST_CASES = (
         "PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass",
     ),
     (POLICY_DUMP_PATH, "raw-bridge-warn"),
-    (POLICY_DUMP_BUILD_PATH, '.root_source_file = b.path("../unsafe/narrow.zig"),'),
-    (POLICY_DUMP_CHECK_PATH, "python3 scripts/zigux/check-phase3-policy-dump.py --self-test"),
+    (
+        POLICY_DUMP_BUILD_PATH,
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
+    ),
+    (
+        POLICY_DUMP_CHECK_PATH,
+        "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+    ),
 )
 
 
