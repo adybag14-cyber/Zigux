@@ -190,6 +190,8 @@ FORBIDDEN_MARKERS = {
 DELEGATED_CHECKERS = (
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
+    (BENCH_CHECKER_REL, "phase1-bench"),
+    (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
 )
 
 
@@ -299,7 +301,7 @@ def collect_failures(root: Path) -> list[str]:
 
     failures.extend(
         require_expected_mapping(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig",
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig",
             review_anchors.get("tools/lib/rbtree.zig"),
             EXPECTED_RBTREE_REVIEW_ANCHORS,
         )
@@ -378,6 +380,8 @@ def make_fixture_tree(root: Path) -> None:
 
     make_checker_stub(root / STRING_REVIEW_CHECKER_REL)
     make_checker_stub(root / DIRECT_OWNER_CHECKER_REL)
+    make_checker_stub(root / BENCH_CHECKER_REL)
+    make_checker_stub(root / SHARED_REMINDER_CHECKER_REL)
 
 
 def replace_once(text: str, old: str, new: str) -> str:
@@ -462,6 +466,22 @@ def run_self_test() -> int:
         (
             "failing_direct_owner_checker",
             lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False),
+        ),
+        (
+            "missing_bench_checker",
+            lambda root: (root / BENCH_CHECKER_REL).unlink(),
+        ),
+        (
+            "failing_bench_checker",
+            lambda root: make_checker_stub(root / BENCH_CHECKER_REL, ok=False),
+        ),
+        (
+            "missing_shared_reminder_checker",
+            lambda root: (root / SHARED_REMINDER_CHECKER_REL).unlink(),
+        ),
+        (
+            "failing_shared_reminder_checker",
+            lambda root: make_checker_stub(root / SHARED_REMINDER_CHECKER_REL, ok=False),
         ),
         (
             "forbidden_old_marker",
