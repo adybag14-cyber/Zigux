@@ -495,4 +495,21 @@ test "nvme pci rollback gate keeps admin replay blocked even after queue and DMA
 
     _ = try lab.planIoQueue(16, 64, false);
     _ = try lab.planIoQueue(32, 64, true);
+
+    const blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", blocked.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, blocked.state);
+    try testing.expectEqual(@as(u32, 1), blocked.reset_generation);
+    try testing.expect(!blocked.admin_queue_replayed_after_reset);
+    try testing.expect(blocked.queue_numbering_restarted);
+    try testing.expectEqual(@as(usize, 2), blocked.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 2), blocked.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), blocked.remaining_io_queue_count);
+    try testing.expectEqual(@as(u32, 2), blocked.dropped_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 2), blocked.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 0), blocked.remaining_io_host_dma_pages);
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, blocked.rollback_blocker);
+    try testing.expect(!blocked.queue_count_parity_recovered);
+    try testing.expect(!blocked.host_dma_parity_recovered);
+    try testing.expect(!blocked.can_clear_rollback_gate);
 }
