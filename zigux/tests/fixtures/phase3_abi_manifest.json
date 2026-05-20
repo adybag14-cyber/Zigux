@@ -47,12 +47,11 @@
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig"
   ],
-  "repo_reality_gaps": [
-    "shared tests-root export/UAPI layout route in zigux/tests/build.zig still omits header_family_binding wiring already required by zigux/tests/phase3_export_uapi_layout.zig"
-  ],
-  "next_safe_step": "wire header_family_binding into addPhase3ExportUapiLayout in zigux/tests/build.zig so the shared phase3-export-uapi-layout route matches the dedicated phase3_export_uapi_layout_build.zig replay before widening this packet any further"
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"
 }
