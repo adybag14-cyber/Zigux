@@ -99,10 +99,11 @@ EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
 EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the already-landed shared-replay promotion for "
     "`cached_leftmost_return_serials` aligned across the committed fixture, shared "
-    "replay, and direct cached-root anchors; until another committed cached-root field "
-    "lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
-    "replacement, detach, and reseed behavior stay owned by direct helper-local "
-    "anchors."
+    "replay, and direct cached-root anchors; the ordered Linux-style alias proof, "
+    "dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, "
+    "leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and "
+    "reseed behavior stay owned by direct helper-local anchors until another committed "
+    "cached-root field lands."
 )
 EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
