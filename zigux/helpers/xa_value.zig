@@ -61,6 +61,20 @@ test "highest representable inline value stays below the err_ptr floor" {
     try std.testing.expectEqual(err_ptr.err_floor - 2, raw);
 }
 
+test "highest two tagged xa_values stay contiguous below the pointer gap" {
+    const next_highest_value = safe_inline_limit - 1;
+    const next_highest_raw = try makeValue(next_highest_value);
+    const highest_raw = try makeValue(safe_inline_limit);
+
+    try std.testing.expect(canRepresent(next_highest_value));
+    try std.testing.expect(isValue(next_highest_raw));
+    try std.testing.expectEqual(next_highest_value, toValue(next_highest_raw));
+    try std.testing.expectEqual(err_ptr.err_floor - 4, next_highest_raw);
+    try std.testing.expectEqual(next_highest_raw + 2, highest_raw);
+    try std.testing.expectEqual(err_ptr.err_floor - 1, highest_raw + 1);
+    try std.testing.expect(!err_ptr.isErrValue(next_highest_raw));
+}
+
 test "first rejected inline value aliases the err_ptr floor" {
     const overlapping_value = safe_inline_limit + 1;
     const raw = (overlapping_value << 1) | value_tag_mask;
@@ -68,6 +82,18 @@ test "first rejected inline value aliases the err_ptr floor" {
     try std.testing.expect(!canRepresent(overlapping_value));
     try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(overlapping_value));
     try std.testing.expectEqual(err_ptr.err_floor, raw);
+    try std.testing.expect(err_ptr.isErrValue(raw));
+    try std.testing.expect(!isValue(raw));
+}
+
+test "second rejected inline value skips the first err_ptr raw and lands on the next tagged error" {
+    const overlapping_value = safe_inline_limit + 2;
+    const raw = (overlapping_value << 1) | value_tag_mask;
+
+    try std.testing.expect(!canRepresent(overlapping_value));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(overlapping_value));
+    try std.testing.expectEqual(err_ptr.err_floor + 2, raw);
+    try std.testing.expectEqual(err_ptr.fromErrorCode(-4093), raw);
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
 }
