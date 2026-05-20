@@ -71,10 +71,11 @@ This means the shared owner packet should keep the narrow trace-events family ex
 
 ## Historical boundaries
 
-- the older wider-family reminder-survey trio `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_loader_gap_survey.zig`
+- the older wider-family reminder-survey surfaces still include `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `zigux/tests/runtime_loader_gap_survey.zig`
+- the older `zigux/tests/runtime_loader_gap_manifest.json` remains historical wider-family manifest vocabulary until the trusted direct read path returns it again
 - still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary
 - keep `modules.order`, `modules.builtin`, `Module.symvers`, and module install-root wording framed as blocked wider-family vocabulary too even though the review-first allocator/init-flow packet itself has returned
-- they now count again as current shared-owner evidence for the returned allocator/init-flow packet, but not as proof that those deeper blocked publication surfaces are solved
+- the survey note and survey replay now count again as current mixed-source shared-owner evidence for the returned allocator/init-flow packet, but the older manifest and those deeper blocked publication surfaces still do not
 
 ## Governance rule for this lane
 
