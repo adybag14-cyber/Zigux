@@ -47,6 +47,7 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+  `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
@@ -97,6 +98,7 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
@@ -114,8 +116,9 @@ surfaces that were reread in this run:
 Current rereads in this run rematerialized the gpio watchdog and HVC
 driver-local validation matrices named by the roadmap together with the
 narrower HVC current-head continuity packet plus its cleanup companion,
-current-head checker, build inventory, proof-backed adjunct stack, and the
-standalone targetless-unregister witness pair.
+current-head checker, dedicated targetless-unregister witness checker, build
+inventory, proof-backed adjunct stack, and the standalone
+targetless-unregister witness pair.
 Authenticated contents reads still clip
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` and
 `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master`
@@ -147,8 +150,9 @@ owner-packet follow-through as separate continuity lanes.
 
 HVC still has the smaller current-head continuity packet rather than the deeper
 starter-depth replay or manifest stack, but that smaller packet now includes the
-standalone targetless-unregister witness pair beside the shared three-proof
-inventory. bcm2835, gpio, and DesignWare reminder follow-through still belong
+dedicated targetless-unregister witness checker beside the standalone
+ targetless-unregister witness pair and shared three-proof inventory. bcm2835,
+gpio, and DesignWare reminder follow-through still belong
 to their own lanes.
 
 ## Sequencing Rules
@@ -176,8 +180,9 @@ Use this note to keep the bounded work order honest:
    `drivers/watchdog/dw_wdt_pm.zig`, and
    `drivers/watchdog/dw_wdt_pm_scaffold.zig`, and the HVC current-head
    continuity packet with its cleanup companion,
-   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
-   inventory anchor, proof-backed adjunct stack, and standalone
+   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, shared
+   build inventory anchor, proof-backed adjunct stack, and standalone
    targetless-unregister witness pair; keep it explicit that the bcm2835 and
    DesignWare matrix notes currently return through raw `master` fallback rather
    than this runtime's authenticated contents bridge.
@@ -193,6 +198,7 @@ Use this note to keep the bounded work order honest:
    `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
    `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
    `zigux/tests/fixtures/phase11_build_inventory.json`,
    `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
    `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
@@ -211,9 +217,10 @@ Use this note to keep the bounded work order honest:
 7. When contributor-facing summaries reopen, keep them aligned with the
    returned four-matrix shared packet, the directly readable DesignWare teardown
    checker plus adjacent PM helper pair, the narrower HVC current-head
-   continuity packet plus its cleanup companion, current-head checker, shared
-   build inventory, proof-backed adjunct stack, standalone targetless-unregister
-   witness pair, the returned shared validator
+   continuity packet plus its cleanup companion, current-head checker,
+   dedicated targetless-unregister witness checker, shared build inventory,
+   proof-backed adjunct stack, standalone targetless-unregister witness pair,
+   the returned shared validator
    `scripts/zigux/validate-phase11.py`, and the returned `zigux/Makefile`
    surface plus `make -C zigux phase11-validate` build gate instead of reviving
    broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
