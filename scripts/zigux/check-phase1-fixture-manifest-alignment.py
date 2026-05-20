@@ -12,6 +12,10 @@ FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
 
+EXPECTED_PHASE = "Phase 1"
+EXPECTED_MANIFEST_STATUS = "closed"
+EXPECTED_BLOCKERS_STATUS = "parked"
+
 EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
     "tools/lib/bitmap.zig",
@@ -47,6 +51,13 @@ EXPECTED_DIRECT_HELPERS = [
     "tools/lib/string.zig",
 ]
 
+EXPECTED_ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
+    "helpers reopen only for their existing helper-local anchors or already-committed "
+    "shared fixture keys."
+)
+
 REVIEW_KEY_FIELDS = (
     "parity_fixture_keys",
     "partial_xor_review_fields",
@@ -63,10 +74,14 @@ SELF_TEST_CASES = [
     "missing_blockers_file",
     "fixture_is_directory",
     "manifest_json_error",
+    "fixture_duplicate_key",
+    "manifest_duplicate_key",
+    "blockers_duplicate_key",
     "manifest_helper_count_drift",
     "fixture_section_drift",
     "lane_overlap_drift",
     "blocker_manifest_pointer_drift",
+    "blocker_anti_overlap_rule_drift",
     "missing_review_anchor_fixture_key",
 ]
 
@@ -79,11 +94,30 @@ def expected_sections() -> set[str]:
     return {section_name(helper) for helper in EXPECTED_HELPERS}
 
 
+def reject_duplicate_object_pairs(path: Path):
+    def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        result: dict[str, object] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"json_duplicate_key:{path.as_posix()}:{key}")
+            result[key] = value
+        return result
+
+    return hook
+
+
 def load_json(path: Path) -> tuple[object | None, str | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8")), None
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        return None, f"utf8_decode:{path.as_posix()}:{exc.start + 1}:{exc.reason}"
+
+    try:
+        return json.loads(text, object_pairs_hook=reject_duplicate_object_pairs(path)), None
     except json.JSONDecodeError as exc:
         return None, f"json_decode:{path.as_posix()}:{exc.lineno}:{exc.colno}:{exc.msg}"
+    except ValueError as exc:
+        return None, str(exc)
 
 
 def write_json(path: Path, payload: object) -> None:
@@ -159,6 +193,10 @@ def collect_issues(root: Path) -> list[str]:
     if not isinstance(blockers, dict):
         return [f"blockers_type:{type(blockers).__name__}"]
 
+    if manifest.get("phase") != EXPECTED_PHASE:
+        issues.append(f"manifest_phase:{manifest.get('phase')!r}")
+    if manifest.get("status") != EXPECTED_MANIFEST_STATUS:
+        issues.append(f"manifest_status:{manifest.get('status')!r}")
     if manifest.get("helper_count") != len(EXPECTED_HELPERS):
         issues.append(f"manifest_helper_count:{manifest.get('helper_count')!r}")
 
@@ -195,6 +233,9 @@ def collect_issues(root: Path) -> list[str]:
         if sorted(EXPECTED_HELPERS) != combined:
             issues.append("lane_union")
 
+    if blockers.get("status") != EXPECTED_BLOCKERS_STATUS:
+        issues.append(f"blockers_status:{blockers.get('status')!r}")
+
     blockers_lane = blockers.get("lane_sequencing")
     if not isinstance(blockers_lane, dict):
         return issues + ["blockers_lane_sequencing_type"]
@@ -209,6 +250,8 @@ def collect_issues(root: Path) -> list[str]:
         issues.append("blockers_shared_helpers")
     if blockers_lane.get("direct_anchor_followup_helpers") != EXPECTED_DIRECT_HELPERS:
         issues.append("blockers_direct_helpers")
+    if blockers_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+        issues.append("blockers_anti_overlap_rule")
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
@@ -300,8 +343,8 @@ def build_sample_root(root: Path) -> None:
         "zalloc": {"zeroed": True},
     }
     manifest = {
-        "phase": "Phase 1",
-        "status": "closed",
+        "phase": EXPECTED_PHASE,
+        "status": EXPECTED_MANIFEST_STATUS,
         "helper_count": len(EXPECTED_HELPERS),
         "helpers": EXPECTED_HELPERS,
         "lane_sequencing": {
@@ -392,13 +435,14 @@ def build_sample_root(root: Path) -> None:
         },
     }
     blockers = {
-        "status": "parked",
+        "status": EXPECTED_BLOCKERS_STATUS,
         "lane_sequencing": {
             "manifest": MANIFEST_REL.as_posix(),
             "shared_replay_parked_helper_count": len(EXPECTED_SHARED_HELPERS),
             "shared_replay_parked_helpers": EXPECTED_SHARED_HELPERS,
             "direct_anchor_followup_helper_count": len(EXPECTED_DIRECT_HELPERS),
             "direct_anchor_followup_helpers": EXPECTED_DIRECT_HELPERS,
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
     }
     write_json(root / FIXTURE_REL, fixture)
@@ -409,6 +453,13 @@ def build_sample_root(root: Path) -> None:
 def assert_case(name: str, condition: bool) -> None:
     if not condition:
         raise AssertionError(name)
+
+
+def write_text(path: Path, text: str) -> None:
+    if path.exists() and path.is_dir():
+        shutil.rmtree(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -450,6 +501,36 @@ def run_self_test() -> int:
             ],
         )
         covered.append("manifest_json_error")
+
+        build_sample_root(root)
+        write_text(root / FIXTURE_REL, '{\n  "argv_split": {"argc": 3},\n  "argv_split": {"argc": 4}\n}\n')
+        assert_case(
+            "fixture_duplicate_key",
+            collect_issues(root) == [f"json_duplicate_key:{(root / FIXTURE_REL).as_posix()}:argv_split"],
+        )
+        covered.append("fixture_duplicate_key")
+
+        build_sample_root(root)
+        write_text(
+            root / MANIFEST_REL,
+            '{\n  "phase": "Phase 1",\n  "phase": "Phase 2"\n}\n',
+        )
+        assert_case(
+            "manifest_duplicate_key",
+            collect_issues(root) == [f"json_duplicate_key:{(root / MANIFEST_REL).as_posix()}:phase"],
+        )
+        covered.append("manifest_duplicate_key")
+
+        build_sample_root(root)
+        write_text(
+            root / BLOCKERS_REL,
+            '{\n  "status": "parked",\n  "status": "drifted"\n}\n',
+        )
+        assert_case(
+            "blockers_duplicate_key",
+            collect_issues(root) == [f"json_duplicate_key:{(root / BLOCKERS_REL).as_posix()}:status"],
+        )
+        covered.append("blockers_duplicate_key")
 
         build_sample_root(root)
         manifest = json.loads((root / MANIFEST_REL).read_text(encoding="utf-8"))
@@ -495,6 +576,17 @@ def run_self_test() -> int:
             collect_issues(root) == ["blockers_manifest:'zigux/tests/fixtures/wrong.json'"],
         )
         covered.append("blocker_manifest_pointer_drift")
+
+        build_sample_root(root)
+        blockers = json.loads((root / BLOCKERS_REL).read_text(encoding="utf-8"))
+        assert isinstance(blockers, dict)
+        blockers["lane_sequencing"]["anti_overlap_rule"] = "drifted anti-overlap rule"  # type: ignore[index]
+        write_json(root / BLOCKERS_REL, blockers)
+        assert_case(
+            "blocker_anti_overlap_rule_drift",
+            collect_issues(root) == ["blockers_anti_overlap_rule"],
+        )
+        covered.append("blocker_anti_overlap_rule_drift")
 
         build_sample_root(root)
         manifest = json.loads((root / MANIFEST_REL).read_text(encoding="utf-8"))
