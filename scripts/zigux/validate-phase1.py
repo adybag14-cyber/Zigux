@@ -50,6 +50,8 @@ class CheckSpec:
 class ValidationSummary:
     optional_run_count: int
     optional_skip_count: int
+    optional_run_names: tuple[str, ...]
+    optional_skip_notes: tuple[str, ...]
 
 
 MANDATORY_CHECKS = (
@@ -231,6 +233,8 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
     notes: list[str] = []
     optional_run_count = 0
     optional_skip_count = 0
+    optional_run_names: list[str] = []
+    optional_skip_notes: list[str] = []
     mandatory_self_test_failures: set[str] = set()
 
     for rel in REQUIRED_PATHS:
@@ -244,6 +248,8 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             ValidationSummary(
                 optional_run_count=optional_run_count,
                 optional_skip_count=optional_skip_count,
+                optional_run_names=tuple(optional_run_names),
+                optional_skip_notes=tuple(optional_skip_notes),
             ),
         )
 
@@ -279,10 +285,13 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
         should_run, reason = should_run_optional(spec, root)
         if not should_run:
             optional_skip_count += 1
-            notes.append(f"skipped_optional:{spec.name}:{reason}")
+            skip_note = f"skipped_optional:{spec.name}:{reason}"
+            notes.append(skip_note)
+            optional_skip_notes.append(skip_note)
             continue
 
         optional_run_count += 1
+        optional_run_names.append(spec.name)
         self_test_result = run_command(command_for(spec, root, self_test=True), root)
         if self_test_result.returncode != 0:
             issues.append(f"optional_self_test_failed:{spec.name}:exit={self_test_result.returncode}")
@@ -300,6 +309,8 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
         ValidationSummary(
             optional_run_count=optional_run_count,
             optional_skip_count=optional_skip_count,
+            optional_run_names=tuple(optional_run_names),
+            optional_skip_notes=tuple(optional_skip_notes),
         ),
     )
 
@@ -319,6 +330,10 @@ def run_check(root: Path) -> int:
             print("PHASE1_VALIDATION_NOTES_END")
         print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN_COUNT={summary.optional_run_count}")
         print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP_COUNT={summary.optional_skip_count}")
+        for name in summary.optional_run_names:
+            print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN={name}")
+        for note in summary.optional_skip_notes:
+            print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP={note}")
         return 1
 
     print("PHASE1_VALIDATION=pass")
@@ -327,6 +342,10 @@ def run_check(root: Path) -> int:
     print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_COUNT={len(OPTIONAL_CHECKS)}")
     print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN_COUNT={summary.optional_run_count}")
     print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP_COUNT={summary.optional_skip_count}")
+    for name in summary.optional_run_names:
+        print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN={name}")
+    for note in summary.optional_skip_notes:
+        print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP={note}")
     print(f"PHASE1_VALIDATION_NOTE_COUNT={len(notes)}")
     for note in notes:
         print(f"PHASE1_VALIDATION_NOTE={note}")
@@ -394,6 +413,8 @@ def run_self_test() -> int:
         assert notes == [], notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
         assert summary.optional_skip_count == 0, summary
+        assert summary.optional_run_names == tuple(spec.name for spec in OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_notes == (), summary
         case_count += 1
 
         missing_required_root = base / "missing_required"
@@ -582,6 +603,11 @@ def run_self_test() -> int:
         assert "skipped_optional:phase1-direct-anchor-manifest-gate:missing_script" in notes, notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
         assert summary.optional_skip_count == 1, summary
+        assert "phase1-direct-anchor-manifest-gate" not in summary.optional_run_names, summary
+        assert (
+            summary.optional_skip_notes
+            == ("skipped_optional:phase1-direct-anchor-manifest-gate:missing_script",)
+        ), summary
         case_count += 1
 
         artifact_diff_helper_skip_root = base / "artifact_diff_helper_skip"
@@ -599,6 +625,12 @@ def run_self_test() -> int:
         ), notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 2, summary
         assert summary.optional_skip_count == 2, summary
+        assert "artifact-diff-contract" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
+        assert summary.optional_skip_notes == (
+            f"skipped_optional:artifact-diff-contract:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}",
+            f"skipped_optional:phase1-parity-artifact-packet:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}",
+        ), summary
         case_count += 1
 
         shared_fixture_skip_root = base / "shared_fixture_skip"
@@ -624,6 +656,10 @@ def run_self_test() -> int:
         ), notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 4, summary
         assert summary.optional_skip_count == 4, summary
+        assert "phase1-shared-fixture-gate" not in summary.optional_run_names, summary
+        assert "phase1-shared-replay-roster" not in summary.optional_run_names, summary
+        assert "phase1-fixture-manifest-alignment" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
         case_count += 1
 
         optional_skip_required_path_root = base / "optional_skip_required_path"
@@ -661,6 +697,13 @@ def run_self_test() -> int:
         ), notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 7, summary
         assert summary.optional_skip_count == 7, summary
+        assert "phase1-replay-blockers" not in summary.optional_run_names, summary
+        assert "phase1-parity" not in summary.optional_run_names, summary
+        assert "phase1-shared-replay-roster" not in summary.optional_run_names, summary
+        assert "phase1-fixture-manifest-alignment" not in summary.optional_run_names, summary
+        assert "phase1-c-harness-blockers" not in summary.optional_run_names, summary
+        assert "phase1-readme-replay-blockers" not in summary.optional_run_names, summary
+        assert "phase1-parity-artifact-packet" not in summary.optional_run_names, summary
         case_count += 1
 
     print("PHASE1_VALIDATE_SELF_TEST=pass")
