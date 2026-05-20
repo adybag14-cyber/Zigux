@@ -130,6 +130,57 @@ Keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*ar
 Tests-root reviewer prompt:
 - Does the bounded Phase 5 reminder keep the direct bytestream and non-runtime kretprobe tests-root packet, the bounded trace-events formatting companion, the mixed kobject split, the shipped guide-surface guard, and the no-extra-sample boundary aligned without widening into runtime samples, module registration, or a fifth sample claim?
 
+## Phase 8 review packet
+
+Keep the current bounded Phase 8 tests-root reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, and `zigux/tests/README.md`.
+
+current direct-readback Phase 8 anchors:
+- `scripts/zigux/check-phase8-tests-readme-alignment.py`
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+- `scripts/zigux/validate-phase8.py`
+- `zigux/tests/phase8_exec_cmd.zig`
+- `zigux/tests/phase8_exec_cmd_only_build.zig`
+- `zigux/tests/phase8_perf_buffer_poll.zig`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+
+current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:
+- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
+- `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+- `scripts/zigux/validate-phase8.py`
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- `zigux/tests/phase8_file_path_handle_bridge.zig`
+- `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+- `zigux/tests/phase8_build.zig`
+- `make -C zigux phase8-exec-cmd-test`
+- `make -C zigux phase8-file-path-handle-bridge-test`
+
+repo-reality warning for the broader remaining Phase 8 tooling packet:
+- `Documentation/zigux/phase8-libbpf-segment-survey.md`
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+- `Documentation/zigux/phase8-help-slice.md`
+- `Documentation/zigux/phase8-kallsyms-slice.md`
+- `tools/lib/bpf/zigux_segments/verify.zig`
+- `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
+- `zigux/tests/phase8_help_kallsyms_only_build.zig`
+- `zigux/tests/phase8_libbpf_segments.zig`
+- `zigux/tests/phase8_libbpf_segments_only_build.zig`
+- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+- `zigux/Makefile`
+- `make -C zigux phase8-help-kallsyms-test`
+- `make -C zigux phase8-libbpf-segments-test`
+- `make -C zigux phase8-perf-buffer-poll-test`
+- `make -C zigux phase8-test`
+
+keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
+
+current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set
+
+if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 8 reminder keep the direct-readback checker, validator, exec-cmd, and perf-buffer packet explicit, keep the mixed-source bridge packet and shared build route visible, and keep the public-tree-backed help, kallsyms, perf-buffer-build, and libbpf-segment companions aligned without widening the direct-readback core into a fully authenticated broader tooling claim?
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
@@ -246,7 +297,7 @@ Keep the current bounded Phase 14 study-only packet explicit through these share
 
 Keep the recovered shared smoke note, the directly readable shared-smoke route checker, the returned validator and release-boundary guard, and the directly readable workqueue reviewability shard explicit here so the tests-root reminder matches the same bounded study-only packet already named by the docs root, review checklist, and scripts-root Phase 14 surfaces.
 
-Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent.
+Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent.
 
 Keep `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `net/core/skbuff_bridge.zig` framed as exact-readback gaps rather than shipped tests-root evidence until the same current-`master` read mode returns them again.
 
