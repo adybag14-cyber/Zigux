@@ -137,6 +137,8 @@ REQUIRED_MARKERS = {
         "        run: make -C zigux phase12-smoke",
         "- name: Run current Phase 12 shared test packet",
         "        run: make -C zigux phase12-test",
+        "- name: Run current Phase 12 aggregate route",
+        "        run: make -C zigux phase12",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: RELEASE_COORDINATION_MATRIX_MARKERS,
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [RAW_GITHUB_COVERAGE_MARKER],
