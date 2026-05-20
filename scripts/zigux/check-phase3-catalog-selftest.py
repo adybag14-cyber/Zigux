@@ -22,6 +22,7 @@ REQUIRED_MARKERS = {
         'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+        'Path("zigux/tests/phase3_abi.zig")',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
@@ -108,6 +109,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
             "expected missing catalog xarray-slot slice marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/phase3_abi.zig")',
+            "expected missing catalog shared abi core replay marker was not reported",
         ),
         (
             CATALOG_PATH,
