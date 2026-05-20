@@ -1,6 +1,6 @@
 # Phase 7 Rbtree Direct Anchor Note
 
-Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`: `Documentation/zigux/phase7-rbtree-slice.md` and `scripts/zigux/check-phase7-rbtree-parity.py` now sit beside the already returned `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, survey, and manifest, while the roadmap-path port and dedicated fixture pair still do not publicly materialize there yet and `zigux/tests/phase7_build.zig` now reads back only as shared non-owner build evidence.
+Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`: `Documentation/zigux/phase7-rbtree-slice.md` and `scripts/zigux/check-phase7-rbtree-parity.py` now sit beside the already returned `tools/lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, survey, and manifest, while the roadmap-path port and dedicated fixture pair still do not publicly materialize there yet.
 
 In this slot, the directly readable same-lane truthfulness packet is limited to:
 
@@ -21,13 +21,12 @@ Fresh authenticated GitHub reread in this slot directly returned:
 - `zigux/tests/phase7_rbtree_manifest.json`
 - `scripts/zigux/check-phase7-rbtree-parity.py`
 
-Fresh authenticated GitHub reread in this slot also directly returned this shared non-owner surface:
+Fresh authenticated GitHub reread in this slot also directly returned these shared non-owner surfaces:
 
+- `scripts/zigux/check-phase7-build-wiring.py`
 - `scripts/zigux/validate-phase7.py`
-
-The same reread also directly returned this shared non-owner build surface:
-
 - `zigux/tests/phase7_build.zig`
+- `zigux/Makefile`
 
 Fresh authenticated GitHub reread in this slot still returned 404 for these dedicated companion or roadmap-path surfaces:
 
@@ -35,13 +34,13 @@ Fresh authenticated GitHub reread in this slot still returned 404 for these dedi
 - `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
-Repo-reality warning for the still-missing Phase 7 shared wrapper routes:
+Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper routes:
 
-- `zigux/Makefile` still lacks dedicated `phase7-*` wrapper markers
+- `zigux/Makefile` now returns shared `phase7-validate`, but it still lacks dedicated `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and aggregate `phase7:` wrapper markers
 - `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps
 
-Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, and the directly readable shared validator evidence, while also keeping the now-returned shared build evidence explicit as non-owner context instead of claiming the roadmap-path port or dedicated fixture pair as returned helper-local ownership.
+Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, and the directly readable shared build and validator evidence, while still not claiming the roadmap-path port or dedicated fixture pair as returned helper-local ownership.
 
 - `string_helpers` remains the Phase 7 fully landed sibling packet and should stay explicit rather than being folded into a generic missing-helper story.
 - `cmdline` and `argv_split` keep their own helper-local packet ownership and should stay separate from this rbtree reminder.
-- Do not widen this note into make-wrapper or workflow-recovery claims until a fresh same-lane reread proves one more concrete rbtree companion surface such as `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` has rematerialized on current `master`.
+- Do not widen this note into dedicated make-wrapper or workflow-recovery claims until a fresh same-lane reread proves one more concrete rbtree companion surface such as `lib/rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` has rematerialized on current `master`.
