@@ -19,6 +19,8 @@ PHASE6_BUILD = Path("zigux/tests/phase6_build.zig")
 MAKEFILE = Path("zigux/Makefile")
 SHARED_SURFACE_CHECKER = Path("scripts/zigux/check-phase6-shared-surface.py")
 PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoints.py")
+BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")
+BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
@@ -30,6 +32,8 @@ REQUIRED_FILES = [
     MAKEFILE,
     SHARED_SURFACE_CHECKER,
     PRESENT_ENTRYPOINTS_CHECKER,
+    BASE64_CORPUS_CHECKER,
+    BSEARCH_CORPUS_CHECKER,
     HEXDUMP_PACKET_CHECKER,
     HEXDUMP_ROUTE_CHECKER,
 ]
@@ -97,7 +101,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 9
 
 
 class ValidationError(RuntimeError):
@@ -175,6 +179,8 @@ def validate(root: Path) -> None:
 
     run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")
     run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")
+    run_checker(root, BASE64_CORPUS_CHECKER, "--repo-root")
+    run_checker(root, BSEARCH_CORPUS_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")
 
@@ -224,7 +230,14 @@ def scaffold_repo(root: Path) -> None:
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-    for checker in [SHARED_SURFACE_CHECKER, PRESENT_ENTRYPOINTS_CHECKER, HEXDUMP_PACKET_CHECKER, HEXDUMP_ROUTE_CHECKER]:
+    for checker in [
+        SHARED_SURFACE_CHECKER,
+        PRESENT_ENTRYPOINTS_CHECKER,
+        BASE64_CORPUS_CHECKER,
+        BSEARCH_CORPUS_CHECKER,
+        HEXDUMP_PACKET_CHECKER,
+        HEXDUMP_ROUTE_CHECKER,
+    ]:
         write(root / checker, "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 
 
@@ -271,6 +284,14 @@ def run_self_test() -> None:
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"] = []
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / BASE64_CORPUS_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        (root / BSEARCH_CORPUS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
