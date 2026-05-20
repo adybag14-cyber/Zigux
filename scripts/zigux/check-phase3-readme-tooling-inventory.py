@@ -38,6 +38,12 @@ HEADER_FAMILY_VALIDATOR_FILE = Path(
 HEADER_FAMILY_NOTE_FILE = Path(
     "Documentation/zigux/phase3-abi-header-family-survey.md"
 )
+EXPORT_UAPI_SURVEY_NOTE_FILE = Path(
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+)
+EXPORT_UAPI_SURVEY_VALIDATOR_FILE = Path(
+    "scripts/zigux/validate-phase3-export-uapi-survey.py"
+)
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
@@ -62,6 +68,8 @@ EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER = (
     "zigux/tests/phase3_export_uapi_layout_build.zig"
 )
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
+EXPORT_UAPI_SURVEY_NOTE_MARKER = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+EXPORT_UAPI_SURVEY_VALIDATOR_MARKER = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_TOOL_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
@@ -103,6 +111,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    EXPORT_UAPI_SURVEY_NOTE_FILE,
     Path("include/linux/zigux.h"),
     Path("include/zigux/dev_t.h"),
     Path("include/zigux/abi.h"),
@@ -122,6 +131,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
     LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
+    EXPORT_UAPI_SURVEY_VALIDATOR_FILE,
     BINDING_FILE,
     Path("zigux/bindings/version.zig"),
     Path("zigux/bindings/abi.zig"),
@@ -173,8 +183,10 @@ REQUIRED_MARKERS = (
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
     "include/zigux/abi.h",
@@ -255,6 +267,8 @@ README_MARKER_CASES = (
         "expected missing export-uapi-layout build-route README marker was not reported",
     ),
     (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
+    (EXPORT_UAPI_SURVEY_NOTE_MARKER, "expected missing export-uapi survey note README marker was not reported"),
+    (EXPORT_UAPI_SURVEY_VALIDATOR_MARKER, "expected missing export-uapi survey validator README marker was not reported"),
     (CATALOG_SELFTEST_GAP_MARKER, "expected missing catalog-selftest guard README marker was not reported"),
     (CATALOG_TOOL_MARKER, "expected missing catalog tool README marker was not reported"),
     (WRAPPER_GENERATION_GAP_MARKER, "expected missing wrapper-generation gap README marker was not reported"),
@@ -314,6 +328,8 @@ FILE_CASES = (
     (EXPORT_UAPI_LAYOUT_REPLAY_FILE, "expected missing export-uapi-layout replay file was not reported"),
     (EXPORT_UAPI_LAYOUT_BUILD_FILE, "expected missing export-uapi-layout build file was not reported"),
     (WORKFLOW_FILE, "expected missing workflow file was not reported"),
+    (EXPORT_UAPI_SURVEY_NOTE_FILE, "expected missing export-uapi survey note file was not reported"),
+    (EXPORT_UAPI_SURVEY_VALIDATOR_FILE, "expected missing export-uapi survey validator file was not reported"),
     (POLICY_STARTER_BUILD_FILE, "expected missing starter build file was not reported"),
     (XARRAY_SLOT_HELPER_FILE, "expected missing xarray-slot helper file was not reported"),
     (XARRAY_SLOT_STARTER_FILE, "expected missing xarray-slot starter file was not reported"),
