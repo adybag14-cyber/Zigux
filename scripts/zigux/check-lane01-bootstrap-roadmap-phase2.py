@@ -35,41 +35,68 @@ DESTINATION_BULLETS = (
 )
 WHY_LABEL = "Why ZAR matters here:"
 WHY_BULLET = (
-    "- ZAR's insistence on freshness checks, pinned validation, parity gates, "
+    "- ZAR’s insistence on freshness checks, pinned validation, parity gates, "
     "and CI-after-push discipline should become default Zigux behavior."
 )
 PREVIOUS_HEADING = "## Phase 1: Alpha Host-Side Helpers"
 NEXT_HEADING = "## Phase 3: ABI and Interop Substrate"
+PHASE2_PACKET_MARKERS = (
+    HEADING,
+    INTRO_LABEL,
+    INTRO_BULLET,
+    TARGETS_LABEL,
+    *TARGET_BULLETS,
+    FEATURES_LABEL,
+    *FEATURE_BULLETS,
+    DESTINATIONS_LABEL,
+    *DESTINATION_BULLETS,
+    WHY_LABEL,
+    WHY_BULLET,
+)
+
+
+def _read_roadmap(root: Path) -> str:
+    return (root / ROADMAP_PATH).read_text(encoding="utf-8")
+
+
+def _phase2_block(root: Path) -> str:
+    roadmap = _read_roadmap(root)
+    current_index = roadmap.find(HEADING)
+    next_index = roadmap.find(NEXT_HEADING)
+    if current_index == -1 or next_index == -1:
+        return ""
+    return roadmap[current_index:next_index]
 
 
 def collect_missing_markers(root: Path) -> list[str]:
-    roadmap = (root / ROADMAP_PATH).read_text(encoding="utf-8")
+    roadmap = _read_roadmap(root)
     missing: list[str] = []
-    required_markers = (
-        HEADING,
-        INTRO_LABEL,
-        INTRO_BULLET,
-        TARGETS_LABEL,
-        *TARGET_BULLETS,
-        FEATURES_LABEL,
-        *FEATURE_BULLETS,
-        DESTINATIONS_LABEL,
-        *DESTINATION_BULLETS,
-        WHY_LABEL,
-        WHY_BULLET,
-    )
-    for marker in required_markers:
+    for marker in PHASE2_PACKET_MARKERS:
         if marker not in roadmap:
             missing.append(marker)
     return missing
 
 
 def has_expected_heading_order(root: Path) -> bool:
-    roadmap = (root / ROADMAP_PATH).read_text(encoding="utf-8")
+    roadmap = _read_roadmap(root)
     previous_index = roadmap.find(PREVIOUS_HEADING)
     current_index = roadmap.find(HEADING)
     next_index = roadmap.find(NEXT_HEADING)
     return previous_index < current_index < next_index
+
+
+def has_expected_packet_order(root: Path) -> bool:
+    block = _phase2_block(root)
+    if not block:
+        return False
+
+    last_index = -1
+    for marker in PHASE2_PACKET_MARKERS:
+        marker_index = block.find(marker)
+        if marker_index == -1 or marker_index <= last_index:
+            return False
+        last_index = marker_index
+    return True
 
 
 def _write(path: Path, text: str) -> None:
@@ -111,7 +138,7 @@ Recommended Zigux destinations:
 - `zigux/Makefile`
 
 Why ZAR matters here:
-- ZAR's insistence on freshness checks, pinned validation, parity gates, and CI-after-push discipline should become default Zigux behavior.
+- ZAR’s insistence on freshness checks, pinned validation, parity gates, and CI-after-push discipline should become default Zigux behavior.
 
 ## Phase 3: ABI and Interop Substrate
 
@@ -130,6 +157,8 @@ def run_self_test() -> int:
             raise AssertionError("baseline Lane 01 Phase 2 roadmap fixture should pass")
         if not has_expected_heading_order(root):
             raise AssertionError("baseline Lane 01 Phase 2 heading order should pass")
+        if not has_expected_packet_order(root):
+            raise AssertionError("baseline Lane 01 Phase 2 packet order should pass")
         case_count += 1
 
         _write(root / ROADMAP_PATH, _sample_roadmap().replace(f"{HEADING}\n\n", "", 1))
@@ -189,6 +218,21 @@ def run_self_test() -> int:
             raise AssertionError("reordered-heading fixture should keep all markers present")
         if has_expected_heading_order(root):
             raise AssertionError("reordered-heading fixture should fail heading order")
+        _write(root / ROADMAP_PATH, _sample_roadmap())
+        case_count += 1
+
+        _write(
+            root / ROADMAP_PATH,
+            _sample_roadmap().replace(
+                f"{DESTINATIONS_LABEL}\n{DESTINATION_BULLETS[0]}\n{DESTINATION_BULLETS[1]}\n{DESTINATION_BULLETS[2]}\n{DESTINATION_BULLETS[3]}\n{DESTINATION_BULLETS[4]}\n\n{WHY_LABEL}",
+                f"{WHY_LABEL}\n{WHY_BULLET}\n\n{DESTINATIONS_LABEL}\n{DESTINATION_BULLETS[0]}\n{DESTINATION_BULLETS[1]}\n{DESTINATION_BULLETS[2]}\n{DESTINATION_BULLETS[3]}\n{DESTINATION_BULLETS[4]}",
+                1,
+            ),
+        )
+        if collect_missing_markers(root):
+            raise AssertionError("reordered-packet fixture should keep all markers present")
+        if has_expected_packet_order(root):
+            raise AssertionError("reordered-packet fixture should fail packet order")
         case_count += 1
 
     print("LANE01_BOOTSTRAP_ROADMAP_PHASE2_SELF_TEST=pass")
@@ -224,6 +268,10 @@ def main() -> int:
 
     if not has_expected_heading_order(args.root):
         print("ERROR: unexpected heading order for Phase 1, Phase 2, and Phase 3")
+        return 1
+
+    if not has_expected_packet_order(args.root):
+        print("ERROR: unexpected marker order inside the Phase 2 roadmap packet")
         return 1
 
     print("LANE01_BOOTSTRAP_ROADMAP_PHASE2=pass")
