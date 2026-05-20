@@ -150,6 +150,8 @@ ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runt
 
 MODULE_SLICE_PHASE_BOUNDARY_HEADING = "Keep earlier-phase references in their own lanes:"
 MODULE_SLICE_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited sample-local lifecycle tracking"
+MODULE_SLICE_PHASE9_BUILD_SHARD_MARKER = "Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a narrow `phase9-runtime-atomic64-diff` build shard rooted in `runtime_atomic64_diff.zig` rather than a broader shared runtime-loader or trace-events build packet."
+MODULE_SLICE_BITMAP_LOADER_COMPANION_MARKER = "Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family."
 MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references"
 MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
 
@@ -215,6 +217,8 @@ MODULE_SLICE_REQUIRED_MARKERS = [
     SELFTEST_HOOK_MARKER,
     MODULE_SLICE_LIFECYCLE_MARKER,
     ABSENT_SHARED_LOADER_MARKER,
+    MODULE_SLICE_PHASE9_BUILD_SHARD_MARKER,
+    MODULE_SLICE_BITMAP_LOADER_COMPANION_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
