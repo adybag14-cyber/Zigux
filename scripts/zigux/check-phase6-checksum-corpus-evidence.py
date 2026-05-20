@@ -49,6 +49,8 @@ REQUIRED_SNIPPETS = {
         '"focused_helper_replay": "zigux/tests/phase6_checksum.zig"',
         '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"',
         '"zigux/tests/fixtures/phase6_checksum_vectors.zig"',
+        '"checker_surfaces": [',
+        '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"',
         '"still_missing_direct_companions": [',
         '"zigux/tests/phase6_checksum_c_parity.zig"',
         '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
@@ -149,6 +151,11 @@ SELF_TEST_CASES = [
         HELPER_EVIDENCE_MANIFEST_PATH,
         '"IPV4_60B"',
         '"IPV4_48B"',
+    ),
+    (
+        HELPER_EVIDENCE_MANIFEST_PATH,
+        '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"',
+        '"scripts/zigux/check-phase6-checksum-corpus-proof.py"',
     ),
     (
         HELPER_EVIDENCE_MANIFEST_PATH,
