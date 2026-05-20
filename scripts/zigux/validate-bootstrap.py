@@ -95,17 +95,18 @@ WORKFLOW_SUBSTRING_MARKERS = (
     'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"',
     'extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"',
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
-    'try_local_archive() {',
+    'rm -f "$archive_path" "$mirror_file"\n          rm -rf "$extract_root"\n          try_local_archive() {',
     'if [ ! -f "$repo_archive_path" ]; then',
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
+    'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then\n                return 0\n              fi\n            fi\n            rm -rf "$extract_root"\n            return 1',
     'try_download() {',
-    'download_success=0',
-    'if try_local_archive; then',
+    'rm -f "$archive_path"\n              rm -rf "$extract_root"\n            fi\n            return 1',
+    'download_success=0\n          if try_local_archive; then\n            download_success=1',
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'while IFS= read -r mirror_url; do',
-    'if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then',
-    'if try_download "$ZIGUX_ZIG_URL"; then',
+    'if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then\n                download_success=1\n                break\n              fi',
+    'if [ "$download_success" -ne 1 ]; then\n            if try_download "$ZIGUX_ZIG_URL"; then\n              download_success=1\n            fi\n          fi',
     'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org',
     'echo "$extract_root" >> "$GITHUB_PATH"',
     '"$zig_path" version',
@@ -517,9 +518,9 @@ def run_self_test() -> int:
         assert any(code == "INVALID_POLICY_JSON" for code, _ in collect_issues(root))
         checks_run += 1
         duplicate_payloads = [
-            ('{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ('3' * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_policy_keys=['phase']")),
-            ('{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ('3' * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_upgrade_policy_keys=['channel_minimum_lockstep']")),
-            ('{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ('3' * 64) + '","x86_64-linux":"' + ('4' * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_archive_sha256_keys=['x86_64-linux']")),
+            ('{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_policy_keys=['phase']")),
+            ('{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_upgrade_policy_keys=['channel_minimum_lockstep']")),
+            ('{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '","x86_64-linux":"' + ("4" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n', ("INVALID_POLICY", "duplicate_archive_sha256_keys=['x86_64-linux']")),
         ]
         for payload_text, expected_issue in duplicate_payloads:
             build_self_test_root(root)
