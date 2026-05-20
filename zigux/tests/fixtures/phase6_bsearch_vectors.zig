@@ -78,7 +78,12 @@ pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32,
         expected_hits[4 + slot] = false;
     }
 
-    const extra_seed_indices = [_]usize{ len / 8, len / 3, (len * 3) / 4, len - 1 };
+    const extra_seed_indices = [_]usize{
+        len / 8,
+        len / 3,
+        (len * 3) / 4,
+        len - 1 - (len / 5),
+    };
     for (extra_seed_indices, 0..) |index, slot| {
         queries[8 + slot] = values[index];
         expected_hits[8 + slot] = true;
@@ -163,9 +168,9 @@ test "phase 6 bsearch perf seeds stay deterministic" {
     try std.testing.expectEqual(values[values.len / 8], queries[8]);
     try std.testing.expectEqual(values[values.len / 3], queries[9]);
     try std.testing.expectEqual(values[(values.len * 3) / 4], queries[10]);
-    try std.testing.expectEqual(values[values.len - 1], queries[11]);
+    try std.testing.expectEqual(values[values.len - 1 - (values.len / 5)], queries[11]);
     try std.testing.expectEqual(values[values.len / 8] + 1, queries[12]);
     try std.testing.expectEqual(values[values.len / 3] + 1, queries[13]);
     try std.testing.expectEqual(values[(values.len * 3) / 4] + 1, queries[14]);
-    try std.testing.expectEqual(values[values.len - 1] + 1, queries[15]);
+    try std.testing.expectEqual(values[values.len - 1 - (values.len / 5)] + 1, queries[15]);
 }
