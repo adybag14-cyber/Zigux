@@ -429,6 +429,10 @@ def main() -> int:
         return 1
 
     print("PHASE7_STRING_HELPERS_PACKET=pass")
+    print(f"PHASE7_STRING_HELPERS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print("PHASE7_STRING_HELPERS_PACKET_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print("PHASE7_STRING_HELPERS_PACKET_COUNTED_MARKER_COUNT=" f"{sum(len(markers) for markers in COUNTED_MARKERS.values())}")
+    print("PHASE7_STRING_HELPERS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
     return 0
 
 
