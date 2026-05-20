@@ -62,13 +62,14 @@ The landed workqueue packet is strong enough to keep the following review-only a
   * delayed timer handoff back into `__queue_work()`
   * delayed requeue governance
   * flush and drain color progression
+  * cancellation completion handoff through `__cancel_work_sync()`, `disable_work()`, and `__flush_work()`
   * rescuer mayday coordination
   * scheduler-visible worker-state transitions
   * hotplug topology rebinding
 
 Those two boundary-map-only entrypoint groups are the current roadmap-backed bridge foothold. The rest of the packet stays review-only so Phase 14 can keep `kernel/workqueue.c` honest as a boundary-study target without implying live worker execution or wrapper ownership.
 
-The newer bridge-local concurrency audit also keeps the manager, forward-progress, inactive-list, reentrancy, callback-window, and idle-sleep checkpoints explicit as stay-in-C evidence rather than as a live wrapper claim.
+The newer bridge-local concurrency audit plus the explicit cancel-path handoff keep the manager, forward-progress, inactive-list, reentrancy, callback-window, idle-sleep, and cancellation-completion seams explicit as stay-in-C evidence rather than as a live wrapper claim.
 
 The packet is still blocked from claiming:
 
