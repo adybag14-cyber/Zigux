@@ -84,7 +84,7 @@
     {
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
-      "expected": "empty peek and skip return null, empty enqueue copies 0 bytes, overflow push is rejected at the 32-byte capacity, skip-at-capacity returns 0, and reset restores an empty queue with pop-after-reset null"
+      "expected": "empty peek and skip return null, empty enqueue copies 0 bytes, partial enqueueSlice truncation with only two slots left copies exactly {30,31} and drops the trailing two requested bytes, overflow push is rejected at the 32-byte capacity, skip-at-capacity returns 0, and reset restores an empty queue with pop-after-reset null"
     },
     {
       "id": "short-drain-prefix",
