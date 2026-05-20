@@ -59,7 +59,9 @@ Keep the current lane split explicit:
   `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
   `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
-  `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/Makefile`
+  `scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
+  `zigux/tests/README.md`, and `zigux/Makefile` plus the returned
+  `make -C zigux phase11-validate` route
 - shared header-boundary follow-through stays adjacent to
   `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`; do not
   fold that public-surface packet into the HVC archival lane or into
