@@ -5,7 +5,7 @@ This note restores the dedicated ownership and boundary-note companion for `incl
 ## Scope
 
 - `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`
-- `PHASE3_ZIGUX_H_BLOB_SHA=dab8c0c9b6758aefbe334f26b96427842145ed1b`
+- `PHASE3_ZIGUX_H_BLOB_SHA=cf5b5a54f3d9df5376f78036f4cdd72d5e2eeece`
 - `PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only`
 - `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
 - `PHASE3_ZIGUX_H_EXPORT_UAPI_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md`
