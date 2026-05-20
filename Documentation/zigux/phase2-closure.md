@@ -130,6 +130,6 @@ The current closure packet is intentionally narrow and replayable, and it now na
 
 ## Next Step
 
-The next bounded same-lane follow-through is to compare `scripts/zigux/check-phase2-toolchain-pinning.py` against the current Phase 2 tool manifest and shipped `phase2-fixdep` wrapper so the toolchain-pinning checker stays exact beside the now-restored closure-side fixdep packet, before widening Phase 2 follow-through beyond the parked closure packet.
+The next bounded same-lane follow-through is to keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again. If current `master` reopens the shared backlog first, start with one smallest truthfulness repair in `Documentation/zigux/README.md`, `zigux/tests/README.md`, or the directly coupled shared checker that proves the drift, and keep fixdep-, genksyms-, and kconfig-local follow-through in their dedicated lanes instead of sending this shared packet back through the already-covered toolchain-pinning-versus-`phase2-fixdep` comparison.
 
-- `PHASE2_NEXT_SAFE_STEP=compare scripts/zigux/check-phase2-toolchain-pinning.py against the current Phase 2 tool manifest and shipped phase2-fixdep wrapper so the checker stays exact beside the restored closure-side fixdep packet before widening Phase 2 follow-through beyond the parked closure packet`
+- `PHASE2_NEXT_SAFE_STEP=keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again; if the shared backlog reopens first, start with one smallest truthfulness repair in Documentation/zigux/README.md, zigux/tests/README.md, or the directly coupled shared checker that proves the drift, and keep fixdep-, genksyms-, and kconfig-local follow-through in their dedicated lanes`
