@@ -168,17 +168,20 @@ test "phase10 virtio mmio verify keeps config-write plan freshness below config 
     try std.testing.expect(!summary.plan_present);
     try std.testing.expect(!hasFreshConfigWritePlan(summary));
 
-    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
     summary = summarizeConfigWritePlanFreshness(&device);
     try std.testing.expect(summary.plan_present);
     try std.testing.expect(summary.plan_matches_generation);
-    try std.testing.expectEqual(@as(u32, 4), summary.relative_offset);
-    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), summary.absolute_offset);
+    try std.testing.expectEqual(plan.relative_offset, summary.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, summary.absolute_offset);
     try std.testing.expect(hasFreshConfigWritePlan(summary));
 
     device.bumpConfigGeneration();
     summary = summarizeConfigWritePlanFreshness(&device);
-    try std.testing.expect(!summary.plan_present);
+    try std.testing.expect(summary.plan_present);
+    try std.testing.expect(!summary.plan_matches_generation);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.stale_generation, summary.availability);
+    try std.testing.expectEqual(plan.config_generation, summary.planned_generation);
     try std.testing.expectEqual(@as(u32, 1), summary.current_generation);
     try std.testing.expect(!hasFreshConfigWritePlan(summary));
 }
@@ -186,23 +189,17 @@ test "phase10 virtio mmio verify keeps config-write plan freshness below config 
 test "phase10 virtio mmio verify keeps stale config-write freshness visible but unavailable" {
     var device = try virtio_mmio.VirtioMmioLab.init(87, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
-    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
     device.bumpConfigGeneration();
-
-    device.pending_config_write = .{
-        .anchor = virtio_mmio.anchor_path,
-        .relative_offset = 4,
-        .absolute_offset = virtio_mmio.mmio_window_bytes + 4,
-        .planned_value = 0x0203_0409,
-        .config_generation = 0,
-        .within_config_window = true,
-    };
 
     const summary = summarizeConfigWritePlanFreshness(&device);
     try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
     try std.testing.expect(summary.plan_present);
     try std.testing.expect(!summary.plan_matches_generation);
     try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.stale_generation, summary.availability);
+    try std.testing.expectEqual(plan.relative_offset, summary.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, summary.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, summary.planned_value);
     try std.testing.expectEqual(@as(u32, 0), summary.planned_generation);
     try std.testing.expectEqual(@as(u32, 1), summary.current_generation);
     try std.testing.expect(!hasFreshConfigWritePlan(summary));
