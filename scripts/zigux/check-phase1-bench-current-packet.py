@@ -392,22 +392,30 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def extract_assert_block(text: str, first_line: str, line_count: int) -> list[str]:
-    block: list[str] = []
+def extract_assert_section(text: str, first_line: str) -> list[str]:
+    section: list[str] = []
     capturing = False
     for raw_line in text.splitlines():
         line = raw_line.strip()
         if not capturing:
             if line == first_line:
                 capturing = True
-                block.append(line)
+                section.append(line)
             continue
         if not line:
-            return block
-        block.append(line)
-        if len(block) == line_count:
-            return block
-    return block
+            return section
+        section.append(line)
+    return section
+
+
+def section_contains_expected_lines(section: list[str], expected_lines: tuple[str, ...]) -> bool:
+    expected_index = 0
+    for line in section:
+        if expected_index == len(expected_lines):
+            return True
+        if line == expected_lines[expected_index]:
+            expected_index += 1
+    return expected_index == len(expected_lines)
 
 
 def collect_issues(root: Path) -> list[str]:
@@ -444,9 +452,9 @@ def collect_issues(root: Path) -> list[str]:
             if first_line_count != 1:
                 issues.append(f"{relative_path}:marker_count:{first_line}:expected=1:actual={first_line_count}")
                 continue
-            actual_block = extract_assert_block(text, first_line, len(expected_block))
-            if actual_block != list(expected_block):
-                issues.append(f"{relative_path}:assert_block:{first_line}:{actual_block!r}")
+            actual_section = extract_assert_section(text, first_line)
+            if not section_contains_expected_lines(actual_section, expected_block):
+                issues.append(f"{relative_path}:assert_block:{first_line}:{actual_section!r}")
 
     return issues
 
@@ -459,7 +467,7 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
 
 def build_sample_file(relative_path: str) -> str:
     lines = list(MARKERS[relative_path])
-    for block in EXPECTED_ASSERT_BLOCKS.get(relative_path, ()): 
+    for block in EXPECTED_ASSERT_BLOCKS.get(relative_path, ()):
         lines.extend(block)
         lines.append("")
     return "\n".join(lines).rstrip("\n") + "\n"
@@ -485,15 +493,10 @@ def mutate_duplicate(root: Path, relative_path: str, marker: str) -> None:
 def mutate_assert_block_reorder(root: Path, relative_path: str, first_line: str) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
-    expected_block = next(
-        block
-        for block in EXPECTED_ASSERT_BLOCKS[relative_path]
-        if block[0] == first_line
-    )
-    actual_block = extract_assert_block(text, first_line, len(expected_block))
-    reordered = list(actual_block)
+    actual_section = extract_assert_section(text, first_line)
+    reordered = list(actual_section)
     reordered[1], reordered[2] = reordered[2], reordered[1]
-    original = "\n".join(actual_block)
+    original = "\n".join(actual_section)
     updated = "\n".join(reordered)
     path.write_text(text.replace(original, updated, 1), encoding="utf-8")
     return reordered
@@ -504,17 +507,34 @@ def mutate_assert_block_remove_line(
 ) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
-    expected_block = next(
-        block
-        for block in EXPECTED_ASSERT_BLOCKS[relative_path]
-        if block[0] == first_line
-    )
-    actual_block = extract_assert_block(text, first_line, len(expected_block))
-    trimmed = actual_block[:line_index] + actual_block[line_index + 1 :]
-    original = "\n".join(actual_block)
+    actual_section = extract_assert_section(text, first_line)
+    trimmed = actual_section[:line_index] + actual_section[line_index + 1 :]
+    original = "\n".join(actual_section)
     updated = "\n".join(trimmed)
     path.write_text(text.replace(original, updated, 1), encoding="utf-8")
     return trimmed
+
+
+def mutate_assert_section_insert_after(
+    root: Path,
+    relative_path: str,
+    first_line: str,
+    anchor_line: str,
+    inserted_lines: tuple[str, ...],
+) -> list[str]:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    actual_section = extract_assert_section(text, first_line)
+    anchor_index = actual_section.index(anchor_line)
+    updated_section = (
+        actual_section[: anchor_index + 1]
+        + list(inserted_lines)
+        + actual_section[anchor_index + 1 :]
+    )
+    original = "\n".join(actual_section)
+    updated = "\n".join(updated_section)
+    path.write_text(text.replace(original, updated, 1), encoding="utf-8")
+    return updated_section
 
 
 def expected_issue(
@@ -546,6 +566,50 @@ def run_self_test() -> int:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
             for issue in issues:
                 print(issue)
+            return 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-master-packet-interleaved-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        mutate_assert_section_insert_after(
+            root,
+            BENCH_CHECKER_REL,
+            "for key, value, expected_kind in (",
+            "for key, value, expected_kind in (",
+            (
+                '("PHASE1_BENCH_STRING_CHECKSUM", "5", "missing_string_exact_checksums"),',
+                '("PHASE1_BENCH_HWEIGHT_CHECKSUM", "6", "missing_hweight_exact_checksums"),',
+                '("PHASE1_BENCH_LIST_SORT_CHECKSUM", "7", "missing_list_sort_exact_checksums"),',
+                "):",
+            ),
+        )
+        issues = collect_issues(root)
+        if issues:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=interleaved_expected_kind_section")
+            print(f"actual={issues!r}")
+            return 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-master-packet-multiline-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        mutate_assert_section_insert_after(
+            root,
+            BENCH_CHECKER_REL,
+            "status_mismatch_output = ok_output.replace(",
+            "status_mismatch_output = ok_output.replace(",
+            (
+                '"PHASE1_BENCH=pass",',
+                '"PHASE1_BENCH=fail",',
+                "1,",
+                ")",
+            ),
+        )
+        issues = collect_issues(root)
+        if issues:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=multiline_status_replace_section")
+            print(f"actual={issues!r}")
             return 1
 
     cases: list[tuple[str, str, str | None, str, int | None]] = []
@@ -613,7 +677,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 1}")
+    print(f"PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 3}")
     return 0
 
 
