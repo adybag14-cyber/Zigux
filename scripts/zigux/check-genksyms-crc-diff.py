@@ -101,9 +101,31 @@ def canonicalize_json_file(path: Path, label: str) -> str:
         raise SystemExit(f"{label} invalid json: {path}: {exc.msg}") from exc
 
 
+def summarize_mismatch(left: str, right: str) -> str:
+    shared_prefix = 0
+    for shared_prefix, (left_char, right_char) in enumerate(zip(left, right)):
+        if left_char != right_char:
+            return (
+                f"first differing byte {shared_prefix}: "
+                f"left={left_char!r} right={right_char!r}; "
+                f"left_len={len(left)} right_len={len(right)}"
+            )
+
+    shared_prefix = min(len(left), len(right))
+    if len(left) != len(right):
+        return (
+            f"shared prefix length {shared_prefix}; "
+            f"left_len={len(left)} right_len={len(right)}"
+        )
+    return f"left_len={len(left)} right_len={len(right)}"
+
+
 def compare_json(label: str, left: Path, right: Path) -> None:
-    if canonicalize_json_file(left, label) != canonicalize_json_file(right, label):
-        raise SystemExit(f"{label} mismatch: {left} != {right}")
+    left_canonical = canonicalize_json_file(left, label)
+    right_canonical = canonicalize_json_file(right, label)
+    if left_canonical != right_canonical:
+        detail = summarize_mismatch(left_canonical, right_canonical)
+        raise SystemExit(f"{label} mismatch: {left} != {right} ({detail})")
 
 
 def compile_run_c(root: Path, tmp_dir: Path, harness: Path, inputs: Path, actual: Path, compiler: str) -> None:
@@ -314,6 +336,7 @@ def run_self_test() -> int:
         equivalent = tmp_dir / "equivalent.json"
         mismatch = tmp_dir / "mismatch.json"
         reordered = tmp_dir / "reordered.json"
+        prefix_mismatch = tmp_dir / "prefix_mismatch.json"
         left_invalid = tmp_dir / "left_invalid.json"
         invalid = tmp_dir / "invalid.json"
         left.write_text(
@@ -329,17 +352,38 @@ def run_self_test() -> int:
             '{"cases":[{"crc_hex":"0x8cdc1683","input":"x"},{"crc_hex":"0x1451dab1","input":"int"}]}\n',
             encoding="utf-8",
         )
+        prefix_mismatch.write_text(
+            '{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}\n',
+            encoding="utf-8",
+        )
         left_invalid.write_text('{"cases":[', encoding="utf-8")
         invalid.write_text('{"cases":[', encoding="utf-8")
+        if summarize_mismatch("abc", "ab") != "shared prefix length 2; left_len=3 right_len=2":
+            raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
         compare_json("selftest-equal", left, equivalent)
         expect_system_exit_contains(
             lambda: compare_json("selftest-left-invalid-json", left_invalid, equivalent),
             "selftest-left-invalid-json invalid json",
         )
-        expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-mismatch", left, mismatch),
+            "selftest-mismatch mismatch",
+        )
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-mismatch", left, mismatch),
+            "first differing byte",
+        )
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-mismatch", left, mismatch),
+            "left_len=",
+        )
         expect_system_exit_contains(
             lambda: compare_json("selftest-order-sensitive", left, reordered),
             "selftest-order-sensitive mismatch",
+        )
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-prefix-sensitive", left, prefix_mismatch),
+            "first differing byte",
         )
         expect_system_exit_contains(
             lambda: compare_json("selftest-invalid-json", left, invalid),
@@ -347,7 +391,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=29")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
