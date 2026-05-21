@@ -3,7 +3,7 @@
 This survey records the broader helper-parity companion for the bounded Phase 6 leaf-helper packet on `master`.
 
 - surveyed head: `current-master-readback-2026-05-21`
-- lane scope: public-tree-backed helper parity rows only
+- lane scope: directly readable helper parity rows and shared companion notes only
 - direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_parity_manifest.json`
 - returned helper-evidence manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
@@ -41,7 +41,7 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - roadmap anchor: `lib/checksum.c`
 - landed Zig helper: `lib/checksum.zig`
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
-- helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`
+- helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`
 - current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work
 
 ### hexdump
@@ -54,8 +54,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 
 ## Shared parity boundary
 
-Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.
+Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.
 
-Authenticated follow-up readback on 2026-05-21 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` again, but this parity lane keeps that survey classified as a broader public-tree-backed companion until the neighboring shared helper-evidence and reminder surfaces stop describing it as fallback-only packet evidence.
+Authenticated follow-up readback on 2026-05-21 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` again, so broader reminder surfaces can keep that survey inside the directly readable shared packet instead of treating it as fallback-only evidence.
 
 Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.
