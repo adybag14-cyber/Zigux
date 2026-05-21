@@ -425,7 +425,7 @@ def make_fixture(root: Path) -> None:
                 f"const driver = try readRepoFile(\"{DRIVER_PATH}\");",
                 f"const boundary = try readRepoFile(\"{VERIFY_BOUNDARY_PATH}\");",
                 "try expectContains(driver, \"targetless_no_unregister_edge: bool,\");",
-                "try expectContains(driver, \\".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\\");",
+                "try expectContains(driver, \".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable\");",
                 "try expectContains(matrix, \"keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet\");",
@@ -493,7 +493,7 @@ def run_self_test() -> int:
 
         make_fixture(temp_dir)
         matrix = temp_dir / VALIDATION_MATRIX_PATH
-        matrix.writeText("# matrix\n", encoding="utf-8")
+        matrix.write_text("# matrix\n", encoding="utf-8")
         try:
             validate(temp_dir)
         except ValidationError:
