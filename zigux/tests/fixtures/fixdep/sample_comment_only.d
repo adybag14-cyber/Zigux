@@ -2,4 +2,6 @@
 # still no targets
 # rustc tail keeps going \
 still comment with include/generated/autoconf.h sample2.so shared\#config.h \
-and shared\:config.h sample.rlib sample.rmeta stay invisible too
+and shared\:config.h sample.rlib sample.rmeta stay invisible too \
+plus escaped\ space-config.h sample_dependency_continuation_dep.so shared\#config.h \
+and include/generated/autoconf.h sample_comment_continuation_dep.so still stay invisible
