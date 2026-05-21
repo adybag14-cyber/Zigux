@@ -215,3 +215,56 @@ test "hweight helpers satisfy inclusion-exclusion for overlapping masks" {
     try std.testing.expectEqual(hweightLong(lhs_long) + hweightLong(rhs_long), hweightLong(lhs_long ^ rhs_long) + (2 * hweightLong(lhs_long & rhs_long)));
     try std.testing.expectEqual(hweight_long(lhs_long) + hweight_long(rhs_long), hweight_long(lhs_long ^ rhs_long) + (2 * hweight_long(lhs_long & rhs_long)));
 }
+
+test "hweight helpers match the sum of their byte lanes" {
+    const samples16 = [_]u32{ 0x0000, 0x00ff, 0x1234, 0xa55a, 0xffff };
+    for (samples16) |value| {
+        const byte_sum =
+            swHweight8(value & 0xff) +
+            swHweight8((value >> 8) & 0xff);
+        try std.testing.expectEqual(byte_sum, swHweight16(value));
+        try std.testing.expectEqual(byte_sum, __sw_hweight16(value));
+    }
+
+    const samples32 = [_]u32{ 0x0000_0000, 0x0000_00ff, 0x1234_5678, 0xa55a_c33c, 0xffff_ffff };
+    for (samples32) |value| {
+        var byte_sum: u32 = 0;
+        inline for (0..4) |byte_idx| {
+            byte_sum += swHweight8((value >> @as(u5, @intCast(byte_idx * 8))) & 0xff);
+        }
+        try std.testing.expectEqual(byte_sum, swHweight32(value));
+        try std.testing.expectEqual(byte_sum, __sw_hweight32(value));
+    }
+
+    const samples64 = [_]u64{
+        0x0000_0000_0000_0000,
+        0x0000_0000_0000_00ff,
+        0x0123_4567_89ab_cdef,
+        0xa55a_c33c_5aa5_3cc3,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (samples64) |value| {
+        var byte_sum: u64 = 0;
+        inline for (0..8) |byte_idx| {
+            byte_sum += swHweight8(@intCast((value >> @as(u6, @intCast(byte_idx * 8))) & 0xff));
+        }
+        try std.testing.expectEqual(byte_sum, swHweight64(value));
+        try std.testing.expectEqual(byte_sum, __sw_hweight64(value));
+    }
+
+    const samples_long = [_]usize{
+        0x0,
+        0xff,
+        0x1234,
+        if (@sizeOf(usize) == 4) 0xa55a_c33c else 0x0123_4567_89ab_cdef,
+        if (@sizeOf(usize) == 4) 0xffff_ffff else 0xffff_ffff_ffff_ffff,
+    };
+    for (samples_long) |value| {
+        var byte_sum: usize = 0;
+        inline for (0..@sizeOf(usize)) |byte_idx| {
+            byte_sum += swHweight8(@intCast((value >> @as(std.math.Log2Int(usize), @intCast(byte_idx * 8))) & 0xff));
+        }
+        try std.testing.expectEqual(byte_sum, hweightLong(value));
+        try std.testing.expectEqual(byte_sum, hweight_long(value));
+    }
+}
