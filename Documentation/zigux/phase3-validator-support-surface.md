@@ -84,6 +84,15 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 - `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
+- `zigux/tests/phase3_policy_dump.zig`
+- `zigux/tests/phase3_policy_dump_build.zig`
+- `zigux/tests/fixtures/phase3_policy_dump_expected.txt`
+- `scripts/zigux/check-phase3-policy-dump.py`
+- `python3 scripts/zigux/check-phase3-policy-dump.py --self-test`
+- `python3 scripts/zigux/check-phase3-policy-dump.py`
+- `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
+
+Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.
 
 ## Adjacent export/UAPI layout replay present on `master`
 
