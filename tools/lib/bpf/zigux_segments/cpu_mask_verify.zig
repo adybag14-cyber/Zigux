@@ -7,6 +7,8 @@ const ReaderContext = struct {
     cursor: usize = 0,
 };
 
+const InjectedReadError = error{InjectedReadFailure};
+
 fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
     const typed_context: *ReaderContext = @ptrCast(@alignCast(context.?));
     if (typed_context.cursor >= typed_context.input.len) return null;
@@ -27,6 +29,12 @@ fn readZeroCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
 fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
     _ = context;
     return buffer.len + 1;
+}
+
+fn readInjectedCpuMaskError(context: ?*anyopaque, buffer: []u8) InjectedReadError!?usize {
+    _ = context;
+    _ = buffer;
+    return error.InjectedReadFailure;
 }
 
 test "phase8 cpu-mask helper entrypoints stay explicit" {
@@ -115,6 +123,53 @@ test "phase8 cpu-mask helpers keep reader-backed summaries and auto-count output
     try std.testing.expectEqual(
         @as(usize, 3),
         try cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], auto_reader, 0),
+    );
+}
+
+test "phase8 cpu-mask helpers keep delimiter-heavy reader inputs and injected read errors explicit" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var direct = try cpu_mask.parseCpuMaskString(allocator, ",,\n\t0,\r\n2-3\n");
+    defer direct.deinit(allocator);
+    try std.testing.expectEqualSlices(bool, &[_]bool{ true, false, true, true }, direct.values);
+
+    var scratch: [2]u8 = undefined;
+    var chunked_context = ReaderContext{ .input = ",,\n\t0,\r\n2-3\n" };
+    const chunked_reader = cpu_mask.ChunkReader{
+        .context = &chunked_context,
+        .readFn = readCpuMaskChunks,
+    };
+    var chunked = try cpu_mask.parseCpuMaskFromReader(allocator, scratch[0..], chunked_reader);
+    defer chunked.deinit(allocator);
+    try std.testing.expectEqualSlices(bool, direct.values, chunked.values);
+
+    var summary_context = ReaderContext{ .input = ",,\n\t0,\r\n2-3\n" };
+    const summary_reader = cpu_mask.ChunkReader{
+        .context = &summary_context,
+        .readFn = readCpuMaskChunks,
+    };
+    const summary = try cpu_mask.summarizePossibleCpusFromReader(allocator, scratch[0..], summary_reader);
+    try std.testing.expectEqual(@as(usize, 4), summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 3), summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 3), summary.highest_cpu_index);
+
+    const failing_reader = cpu_mask.ChunkReader{
+        .context = null,
+        .readFn = readInjectedCpuMaskError,
+    };
+    try std.testing.expectError(
+        error.InjectedReadFailure,
+        cpu_mask.parseCpuMaskFromReader(allocator, scratch[0..], failing_reader),
+    );
+    try std.testing.expectError(
+        error.InjectedReadFailure,
+        cpu_mask.summarizePossibleCpusFromReader(allocator, scratch[0..], failing_reader),
+    );
+    try std.testing.expectError(
+        error.InjectedReadFailure,
+        cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], failing_reader, 1),
     );
 }
 
