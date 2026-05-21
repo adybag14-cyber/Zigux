@@ -35,6 +35,9 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
@@ -57,6 +60,8 @@ REQUIRED_MARKERS = (
     "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.",
     "Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
     "Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.",
+    "Current `master` does materialize `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep that focused lane-sequencing manifest-plus-replay pair in the directly readable governance packet instead of leaving the Architecture Council maintenance route undercounted.",
+    "Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, so keep that machine-readable parity scorecard companion explicit beside `zigux/tests/phase15_parity_scorecard.zig` in the directly readable governance packet instead of carrying the scorecard as replay-only evidence.",
     "Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.",
     "Current `master` still does not materialize `scripts/zigux/validate-phase15.py` or `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build-route companions framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.",
@@ -117,6 +122,10 @@ Current `master` does materialize `zigux/tests/phase15_architecture_council_revi
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.
+
+Current `master` does materialize `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep that focused lane-sequencing manifest-plus-replay pair in the directly readable governance packet instead of leaving the Architecture Council maintenance route undercounted.
+
+Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, so keep that machine-readable parity scorecard companion explicit beside `zigux/tests/phase15_parity_scorecard.zig` in the directly readable governance packet instead of carrying the scorecard as replay-only evidence.
 
 Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
@@ -244,6 +253,40 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-handoff-replay failure: {failures}")
+
+        missing_lane_sequencing_packet_root = root / "missing_lane_sequencing_packet_marker"
+        _seed(missing_lane_sequencing_packet_root)
+        _write(
+            missing_lane_sequencing_packet_root / TESTS_README_PATH,
+            _sample_readme().replace(
+                "Current `master` does materialize `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep that focused lane-sequencing manifest-plus-replay pair in the directly readable governance packet instead of leaving the Architecture Council maintenance route undercounted.\n\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_lane_sequencing_packet_root)
+        expected = [
+            "tests_readme:missing:Current `master` does materialize `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep that focused lane-sequencing manifest-plus-replay pair in the directly readable governance packet instead of leaving the Architecture Council maintenance route undercounted.",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-lane-sequencing-packet failure: {failures}")
+
+        missing_parity_scorecard_json_root = root / "missing_parity_scorecard_json_marker"
+        _seed(missing_parity_scorecard_json_root)
+        _write(
+            missing_parity_scorecard_json_root / TESTS_README_PATH,
+            _sample_readme().replace(
+                "Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, so keep that machine-readable parity scorecard companion explicit beside `zigux/tests/phase15_parity_scorecard.zig` in the directly readable governance packet instead of carrying the scorecard as replay-only evidence.\n\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_parity_scorecard_json_root)
+        expected = [
+            "tests_readme:missing:Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, so keep that machine-readable parity scorecard companion explicit beside `zigux/tests/phase15_parity_scorecard.zig` in the directly readable governance packet instead of carrying the scorecard as replay-only evidence.",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-parity-scorecard-json failure: {failures}")
 
         missing_lane_owner_root = root / "missing_lane_owner_marker"
         _seed(missing_lane_owner_root)
