@@ -10,7 +10,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, and the focused build-file replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
+- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused tests-root alignment guard, the focused Zig replay, and the focused build-file replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 
 ## Purpose
 
@@ -103,6 +103,7 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the shared review-checklist summary for `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` aligned with `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, and this note without implying that the study-only anchors have entered freeze-in-C status review
+- `scripts/zigux/check-phase15-tests-readme-alignment.py` keeps the shared tests-root Phase 15 governance reminder aligned with the live governance packet and `Documentation/zigux/phase15-shared-summary-gap.md` without implying that the broader validator-first or build-route companions are already landed
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests, defaults that record to dated-master-readback provenance, and requires an explicit exception note before exact-head provenance is used
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
@@ -124,6 +125,7 @@ If a future lane reopens it, prefer one of these equally bounded follow-ups:
 - keep the shared study-only anchor summary in `Documentation/zigux/review-checklist.md` aligned with `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` before widening into broader Phase 15 prose
 - keep `Documentation/zigux/phase15-architecture-council-decision-record-template.md` aligned with this note before widening into broader Phase 15 prose
 - keep the dedicated review-process manifest, the focused Zig replay, the focused build-file replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
+- keep the shared tests-root Phase 15 governance reminder aligned with this note and `Documentation/zigux/phase15-shared-summary-gap.md` before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
 - if the broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
 
