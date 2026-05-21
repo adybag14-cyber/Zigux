@@ -47,6 +47,93 @@ pub const __sw_hweight32 = swHweight32;
 pub const __sw_hweight64 = swHweight64;
 pub const hweight_long = hweightLong;
 
+fn expectToggleDelta8(value: u32) !void {
+    var bit: usize = 0;
+    while (bit < 8) : (bit += 1) {
+        const shift: std.math.Log2Int(u32) = @intCast(bit);
+        const mask: u32 = @as(u32, 1) << shift;
+        const masked = value & 0xff;
+        const toggled = masked ^ mask;
+        const before = swHweight8(masked);
+        const after = swHweight8(toggled);
+        if ((masked & mask) == 0) {
+            try std.testing.expectEqual(before + 1, after);
+        } else {
+            try std.testing.expectEqual(after + 1, before);
+        }
+        try std.testing.expectEqual(after, __sw_hweight8(toggled));
+    }
+}
+
+fn expectToggleDelta16(value: u32) !void {
+    var bit: usize = 0;
+    while (bit < 16) : (bit += 1) {
+        const shift: std.math.Log2Int(u32) = @intCast(bit);
+        const mask: u32 = @as(u32, 1) << shift;
+        const masked = value & 0xffff;
+        const toggled = masked ^ mask;
+        const before = swHweight16(masked);
+        const after = swHweight16(toggled);
+        if ((masked & mask) == 0) {
+            try std.testing.expectEqual(before + 1, after);
+        } else {
+            try std.testing.expectEqual(after + 1, before);
+        }
+        try std.testing.expectEqual(after, __sw_hweight16(toggled));
+    }
+}
+
+fn expectToggleDelta32(value: u32) !void {
+    var bit: usize = 0;
+    while (bit < 32) : (bit += 1) {
+        const shift: std.math.Log2Int(u32) = @intCast(bit);
+        const mask: u32 = @as(u32, 1) << shift;
+        const toggled = value ^ mask;
+        const before = swHweight32(value);
+        const after = swHweight32(toggled);
+        if ((value & mask) == 0) {
+            try std.testing.expectEqual(before + 1, after);
+        } else {
+            try std.testing.expectEqual(after + 1, before);
+        }
+        try std.testing.expectEqual(after, __sw_hweight32(toggled));
+    }
+}
+
+fn expectToggleDelta64(value: u64) !void {
+    var bit: usize = 0;
+    while (bit < 64) : (bit += 1) {
+        const shift: std.math.Log2Int(u64) = @intCast(bit);
+        const mask: u64 = @as(u64, 1) << shift;
+        const toggled = value ^ mask;
+        const before = swHweight64(value);
+        const after = swHweight64(toggled);
+        if ((value & mask) == 0) {
+            try std.testing.expectEqual(before + 1, after);
+        } else {
+            try std.testing.expectEqual(after + 1, before);
+        }
+        try std.testing.expectEqual(after, __sw_hweight64(toggled));
+    }
+}
+
+fn expectToggleDeltaLong(value: usize) !void {
+    var bit: usize = 0;
+    while (bit < @bitSizeOf(usize)) : (bit += 1) {
+        const shift: std.math.Log2Int(usize) = @intCast(bit);
+        const mask: usize = @as(usize, 1) << shift;
+        const toggled = value ^ mask;
+        const before = hweightLong(value);
+        const after = hweightLong(toggled);
+        if ((value & mask) == 0) {
+            try std.testing.expectEqual(before + 1, after);
+        } else {
+            try std.testing.expectEqual(after + 1, before);
+        }
+        try std.testing.expectEqual(after, hweight_long(toggled));
+    }
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -91,4 +178,22 @@ test "hweight helpers stay additive for disjoint masks" {
     const high_long: usize = if (@sizeOf(usize) == 4) 0xa800_0000 else 0xa800_0000_0000_0000;
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
+}
+
+test "hweight helpers change by exactly one when a single in-width bit toggles" {
+    try expectToggleDelta8(0x00);
+    try expectToggleDelta8(0xa5);
+    try expectToggleDelta8(0xff);
+    try expectToggleDelta16(0x0000);
+    try expectToggleDelta16(0x9345);
+    try expectToggleDelta16(0xffff);
+    try expectToggleDelta32(0x0000_0000);
+    try expectToggleDelta32(0x89ab_cdef);
+    try expectToggleDelta32(0xffff_ffff);
+    try expectToggleDelta64(0x0000_0000_0000_0000);
+    try expectToggleDelta64(0x0123_4567_89ab_cdef);
+    try expectToggleDelta64(0xffff_ffff_ffff_ffff);
+    try expectToggleDeltaLong(0);
+    try expectToggleDeltaLong(if (@sizeOf(usize) == 4) 0x89ab_cdef else 0x0123_4567_89ab_cdef);
+    try expectToggleDeltaLong(std.math.maxInt(usize));
 }
