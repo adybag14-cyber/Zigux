@@ -108,6 +108,7 @@ LANE_SEQUENCING_MARKERS = (
 
 SAMPLE_ROOT_MARKERS = (
     "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are direct authenticated reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again.",
+    "Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.zig` as a bounded kobject companion. Keep that file framed as reviewability help for the current `foo`/`baz`/`bar` attribute-group contract, `0664` modes, unnamed-group cue, and NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.",
     "Current `master` still ships no standalone Phase 5 sample-root files here for:\n\n* `*string*`\n* `*kasprintf*`\n* `*strarray*`\n* `*cmdline*`\n* `*argv*`\n* `*rbtree*`\n* `*bitmap*`\n* `*printf*`\n* `*vsprintf*`",
     "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet or a fifth Phase 5 sample.",
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
@@ -224,7 +225,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 18
+    expected_case_count = 19
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -409,12 +410,44 @@ def run_self_test() -> int:
         _seed(missing_sample_root_marker_root)
         _write(
             missing_sample_root_marker_root / SAMPLE_ROOT_PATH,
-            _placeholder_text(SAMPLE_ROOT_PATH, SAMPLE_ROOT_MARKERS[1:]),
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
         )
         failures = collect_failures(missing_sample_root_marker_root)
         expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_attr_group_marker_root = root / "missing_sample_root_attr_group_marker"
+        _seed(missing_sample_root_attr_group_marker_root)
+        _write(
+            missing_sample_root_attr_group_marker_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_attr_group_marker_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root attr-group failure: {failures}")
         checks_run += 1
 
         missing_sample_root_boundary_root = root / "missing_sample_root_boundary"
@@ -425,15 +458,16 @@ def run_self_test() -> int:
                 SAMPLE_ROOT_PATH,
                 (
                     SAMPLE_ROOT_MARKERS[0],
-                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[1],
                     SAMPLE_ROOT_MARKERS[3],
                     SAMPLE_ROOT_MARKERS[4],
                     SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
                 ),
             ),
         )
         failures = collect_failures(missing_sample_root_boundary_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[1]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[2]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root boundary failure: {failures}")
         checks_run += 1
@@ -449,12 +483,13 @@ def run_self_test() -> int:
                     SAMPLE_ROOT_MARKERS[1],
                     SAMPLE_ROOT_MARKERS[2],
                     SAMPLE_ROOT_MARKERS[3],
-                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[6],
                 ),
             ),
         )
         failures = collect_failures(missing_sample_root_bitmap_marker_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[4]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[5]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
         checks_run += 1
@@ -471,11 +506,12 @@ def run_self_test() -> int:
                     SAMPLE_ROOT_MARKERS[2],
                     SAMPLE_ROOT_MARKERS[3],
                     SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
                 ),
             ),
         )
         failures = collect_failures(missing_sample_root_runtime_bitmap_packet_root)
-        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[5]}"]
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[6]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root runtime-bitmap-packet failure: {failures}")
         checks_run += 1
