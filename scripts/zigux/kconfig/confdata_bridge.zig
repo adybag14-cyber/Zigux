@@ -195,9 +195,10 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                 } else {
                     set_count -= 1;
                 }
+                const owned_unset_value = try allocator.dupe(u8, "n");
                 allocator.free(existing.value);
                 existing.kind = .unset;
-                existing.value = try allocator.dupe(u8, "n");
+                existing.value = owned_unset_value;
             } else {
                 const owned_name = try allocator.dupe(u8, name);
                 var ownership_transferred = false;
@@ -1006,10 +1007,29 @@ fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     defer deinitSummary(allocator, &summary);
 }
 
+fn parseConfigDuplicateUnsetAllocationFailureHarness(allocator: std.mem.Allocator) !void {
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA="stable"
+        \\# CONFIG_ALPHA is not set
+        \\# CONFIG_ALPHA is not set
+        \\CONFIG_BETA=7
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+}
+
 test "confdata bridge releases appended entry ownership on index-allocation failure" {
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         parseConfigAllocationFailureHarness,
+        .{},
+    );
+}
+
+test "confdata bridge preserves duplicate unset ownership on allocation failure" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        parseConfigDuplicateUnsetAllocationFailureHarness,
         .{},
     );
 }
