@@ -5,6 +5,8 @@ const RepoEvidence = struct {
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
     phase15_tests_readme_checker_present: bool,
+    phase15_review_checklist_study_only_alignment_checker_present: bool,
+    phase15_handoff_note_checker_present: bool,
     phase15_governance_lane_manifest_present: bool,
     phase15_governance_lane_replay_present: bool,
     phase15_handoff_manifest_present: bool,
@@ -54,30 +56,38 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 30), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 32), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/freeze-map.md",
         manifest.direct_packet_paths[0],
     );
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "scripts/zigux/check-phase15-handoff-note-alignment.py",
         manifest.direct_packet_paths[16],
     );
     try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        manifest.direct_packet_paths[18],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         manifest.direct_packet_paths[20],
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        manifest.direct_packet_paths[22],
+    );
+    try std.testing.expectEqualStrings(
         "zigux/tests/phase15_handoff_next_steps.zig",
-        manifest.direct_packet_paths[27],
+        manifest.direct_packet_paths[29],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-        manifest.direct_packet_paths[28],
+        manifest.direct_packet_paths[30],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_readiness_gate_manifest.json",
-        manifest.direct_packet_paths[29],
+        manifest.direct_packet_paths[31],
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.still_missing_broader_paths.len);
     try std.testing.expectEqualStrings(
@@ -92,6 +102,8 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
     try std.testing.expect(!manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_tests_readme_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_review_checklist_study_only_alignment_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_handoff_note_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_replay_present);
     try std.testing.expect(manifest.repo_evidence.phase15_handoff_manifest_present);
@@ -134,6 +146,8 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-process-handoff.py`");
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`");
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-shared-summary-gap.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
     try expectContains(readiness_note, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`");
