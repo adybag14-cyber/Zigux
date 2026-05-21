@@ -157,9 +157,23 @@ test "phase12 nvme pci survey note keeps the roadmap gap and shared-build bounda
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not wire the NVMe direct replay into the shared `phase12-smoke` or `phase12` routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "IO queue reservation sizing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery reservation replay preflight") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PRP metadata budgeting") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live DMA mapping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+}
+
+test "phase12 nvme pci slice note keeps the bounded recovery-preflight packet explicit" {
+    const slice_note = try readFileAlloc("Documentation/zigux/phase12-nvme-pci-slice.md", 8 * 1024);
+    defer std.testing.allocator.free(slice_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "IO queue reservation sizing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "recovery reservation replay preflight") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP metadata budgeting") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "dropped-backlog retirement review") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "rollback-gate review") != null);
 }
 
 test "phase12 nvme pci survey gate keeps present packet files explicit" {
