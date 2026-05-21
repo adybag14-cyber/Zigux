@@ -5,7 +5,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 ## Status
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=P15-L01`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
@@ -21,6 +21,8 @@ This survey keeps those two truths together:
 
 - the governance packet is materially landed and reviewable
 - the missing validator, build, and workflow companions still block any claim that the broader Phase 15 replay route is fully ready
+
+This refresh closes the readiness lane-identity drift too. Reviewers can now read the packet against the current 2026-05-20 governance reread and the bounded `P15-L04` lane instead of reconciling stale lane labels by hand.
 
 ## Current directly readable readiness packet
 
