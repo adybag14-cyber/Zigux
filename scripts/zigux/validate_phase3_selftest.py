@@ -153,6 +153,14 @@ SELFTEST_COMMANDS = (
         ("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),
     ),
     (
+        Path("scripts/zigux/generate-phase3-check-wrappers.py"),
+        ("--self-test",),
+        (
+            "PHASE3_WRAPPER_SELF_TEST=pass",
+            "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
         Path("scripts/zigux/check-phase3-selftest-surface.py"),
         ("--self-test",),
         (
@@ -298,7 +306,8 @@ def run_self_test() -> int:
             (15, "expected policy-unsafe survey script omission was not reported"),
             (16, "expected low-level-wrapper script omission was not reported"),
             (17, "expected linux-zigux header governance validator omission was not reported"),
-            (18, "expected missing trailing script was not reported"),
+            (18, "expected wrapper-generator script omission was not reported"),
+            (19, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
@@ -339,6 +348,30 @@ def run_self_test() -> int:
         if run_packet(root) != 1:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing wrapper-template count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_generator_pass_path = root / SELFTEST_COMMANDS[18][0]
+        _write_synthetic_script(
+            missing_generator_pass_path,
+            None,
+            "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing wrapper-generator pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_generator_count_path = root / SELFTEST_COMMANDS[18][0]
+        _write_synthetic_script(
+            missing_generator_count_path,
+            "PHASE3_WRAPPER_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing wrapper-generator count marker to fail the packet")
             return 1
 
         _populate_repo(root)
@@ -464,7 +497,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 14}"
+        f"{len(missing_cases) + 16}"
     )
     return 0
 
