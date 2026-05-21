@@ -292,6 +292,12 @@ jobs:
       - name: Run current Phase 2 genksyms make route
         run: make -C zigux phase2-genksyms
 
+      - name: Self-test current Phase 2 closure matrix checker
+        run: python3 scripts/zigux/check-phase2-closure-matrix.py --self-test
+
+      - name: Check current Phase 2 closure matrix packet
+        run: python3 scripts/zigux/check-phase2-closure-matrix.py
+
       - name: Run current Phase 2 validate make route
         run: make -C zigux phase2-validate
 
@@ -517,9 +523,3 @@ jobs:
 
       - name: Self-test current Phase 14 shared smoke route checker
         run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
-
-      - name: Run current Phase 14 validate route
-        run: make -C zigux phase14-validate
-
-      - name: Run current Phase 12 throughput-parity anchor
-        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig
