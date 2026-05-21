@@ -7,6 +7,7 @@ test "phase12 throughput parity gate passes once queue restore refill recycle an
         .queue_pairs_after_restore = 4,
         .receive_buffers_before_reset = 512,
         .receive_buffers_after_restore = 512,
+        .receive_descriptors_reposted = true,
         .recycled_transmit_descriptors = 4,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = true,
@@ -17,8 +18,31 @@ test "phase12 throughput parity gate passes once queue restore refill recycle an
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.parity_gate_ready, summary.status);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+    try std.testing.expect(summary.receive_descriptors_reposted);
     try std.testing.expect(summary.recycle_budget_ready);
     try std.testing.expect(summary.meets_expected_min_ratio);
+    try std.testing.expect(!summary.requires_post_reset_probe_replay);
+}
+
+test "phase12 throughput parity gate keeps descriptor repost explicit after refill counts return" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .receive_descriptors_reposted = false,
+        .recycled_transmit_descriptors = 2,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+        .expected_min_ratio_pct = 100,
+    });
+
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(!summary.receive_descriptors_reposted);
+    try std.testing.expectEqual(@as(u8, 100), summary.refill_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
 }
 
@@ -28,6 +52,7 @@ test "phase12 throughput parity gate blocks stopped transmit queues below the wa
         .queue_pairs_after_restore = 2,
         .receive_buffers_before_reset = 256,
         .receive_buffers_after_restore = 256,
+        .receive_descriptors_reposted = true,
         .recycled_transmit_descriptors = 1,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = true,
@@ -47,6 +72,7 @@ test "phase12 throughput parity gate keeps receive refill explicit after control
         .queue_pairs_after_restore = 2,
         .receive_buffers_before_reset = 256,
         .receive_buffers_after_restore = 256,
+        .receive_descriptors_reposted = false,
         .recycled_transmit_descriptors = 0,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = false,
@@ -68,6 +94,7 @@ test "phase12 throughput parity gate keeps post reset replay explicit after rece
         .queue_pairs_after_restore = 1,
         .receive_buffers_before_reset = 128,
         .receive_buffers_after_restore = 128,
+        .receive_descriptors_reposted = true,
         .recycled_transmit_descriptors = 0,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = false,
