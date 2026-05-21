@@ -32,10 +32,60 @@ EXPECTED_MANIFEST_FIELDS = {
     "architecture_council_reopen_attached": False,
 }
 EXPECTED_GAP_METADATA = {
+    "phase10-build-gate": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_build.zig",
+    },
+    "phase10-virtio-core-lab-starter": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
     "phase10-virtio-ring-survey-gate": {
         "kind": "validation",
         "status": "starter_landed",
         "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
+    },
+    "phase10-virtio-ring-survey-note": {
+        "kind": "documentation",
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
+    },
+    "phase10-virtqueue-shape-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-used-buffer-polling-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-callback-enable-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-callback-delay-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-notify-prepare-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-notification-data-summary-helper": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
+    },
+    "phase10-broken-queue-poll-guard": {
+        "kind": "queue_wrapper",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_ring.zig",
     },
     "phase10-queue-publish-readiness-helper": {
         "kind": "queue_wrapper",
@@ -61,6 +111,11 @@ EXPECTED_GAP_METADATA = {
         "kind": "validation",
         "status": "starter_landed",
         "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
+    },
+    "phase10-virtio-ring-slice-note": {
+        "kind": "documentation",
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
     },
     "phase10-ring-lab-driver-bridge": {
         "kind": "roadmap_gap",
@@ -455,8 +510,6 @@ def run_self_test() -> int:
             ("zigux/tests/phase10_build.zig", '.name = "phase10-virtio-ring-notification-data-readiness-tests",'),
             ("zigux/tests/phase10_build.zig", "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);"),
             ("zigux/tests/phase10_build.zig", "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);"),
-            (MANIFEST_PATH, '"id": "phase10-queue-reset-helper"'),
-            (MANIFEST_PATH, '"id": "phase10-queue-reset-readiness-helper"'),
             ("zigux/tests/phase10_virtio_ring_notification_data_readiness.zig", "const packed_summary = try ring.notificationDataSummary(2);"),
             ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
             ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
@@ -483,9 +536,20 @@ def run_self_test() -> int:
             ('"architecture_council_reopen_required": true', '"architecture_council_reopen_required": false', f"{MANIFEST_PATH}:architecture_council_reopen_required:False"),
             ('"architecture_council_reopen_attached": false', '"architecture_council_reopen_attached": true', f"{MANIFEST_PATH}:architecture_council_reopen_attached:True"),
             (f'"freeze_boundary_owner_lane": "{EXPECTED_FREEZE_BOUNDARY_OWNER}"', '"freeze_boundary_owner_lane": "P10-L12"', f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12"),
+            ('"id": "phase10-build-gate",\n      "status": "starter_landed",\n      "kind": "validation"', '"id": "phase10-build-gate",\n      "status": "starter_landed",\n      "kind": "lab_driver_starter"', f"{MANIFEST_PATH}:gap:phase10-build-gate:kind:lab_driver_starter"),
+            ('"id": "phase10-virtio-core-lab-starter",\n      "status": "starter_landed",\n      "kind": "lab_driver_starter"', '"id": "phase10-virtio-core-lab-starter",\n      "status": "starter_landed",\n      "kind": "validation"', f"{MANIFEST_PATH}:gap:phase10-virtio-core-lab-starter:kind:validation"),
+            ('"id": "phase10-virtio-ring-survey-note",\n      "status": "starter_landed",\n      "kind": "documentation"', '"id": "phase10-virtio-ring-survey-note",\n      "status": "starter_landed",\n      "kind": "validation"', f"{MANIFEST_PATH}:gap:phase10-virtio-ring-survey-note:kind:validation"),
+            ('"id": "phase10-virtqueue-shape-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-virtqueue-shape-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring_shape_wrong.zig"', f"{MANIFEST_PATH}:gap:phase10-virtqueue-shape-helper:zigux_destination:drivers/virtio/virtio_ring_shape_wrong.zig"),
+            ('"id": "phase10-used-buffer-polling-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-used-buffer-polling-helper",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-used-buffer-polling-helper:kind:validation"),
+            ('"id": "phase10-callback-enable-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-callback-enable-helper",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-callback-enable-helper:kind:validation"),
+            ('"id": "phase10-callback-delay-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-callback-delay-helper",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-callback-delay-helper:kind:validation"),
+            ('"id": "phase10-notify-prepare-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-notify-prepare-helper",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-notify-prepare-helper:kind:validation"),
+            ('"id": "phase10-notification-data-summary-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-notification-data-summary-helper",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-notification-data-summary-helper:kind:validation"),
+            ('"id": "phase10-broken-queue-poll-guard",\n      "status": "starter_landed",\n      "kind": "queue_wrapper",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', '"id": "phase10-broken-queue-poll-guard",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring.zig"', f"{MANIFEST_PATH}:gap:phase10-broken-queue-poll-guard:kind:validation"),
             ('"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "queue_wrapper"', '"id": "phase10-queue-publish-readiness-helper",\n      "status": "starter_landed",\n      "kind": "validation"', f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:kind:validation"),
-            ('"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "roadmap_gap"', '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "queue_wrapper"', f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:kind:queue_wrapper"),
             ('"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_verify.zig"', '"id": "phase10-ring-verify-replay",\n      "status": "starter_landed",\n      "kind": "validation",\n      "zigux_destination": "drivers/virtio/virtio_ring_wrong_verify.zig"', f"{MANIFEST_PATH}:gap:phase10-ring-verify-replay:zigux_destination:drivers/virtio/virtio_ring_wrong_verify.zig"),
+            ('"id": "phase10-virtio-ring-slice-note",\n      "status": "starter_landed",\n      "kind": "documentation",\n      "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md"', '"id": "phase10-virtio-ring-slice-note",\n      "status": "starter_landed",\n      "kind": "documentation",\n      "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice-drift.md"', f"{MANIFEST_PATH}:gap:phase10-virtio-ring-slice-note:zigux_destination:Documentation/zigux/phase10-virtio-ring-slice-drift.md"),
+            ('"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "roadmap_gap"', '"id": "phase10-ring-lab-driver-bridge",\n      "status": "blocked_on_risky_transport",\n      "kind": "queue_wrapper"', f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:kind:queue_wrapper"),
         ]
         for old, new, expected in manifest_field_cases:
             expect_manifest_field_drift(root, old, new, expected)
