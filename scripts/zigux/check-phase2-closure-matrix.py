@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import importlib.util
 import tempfile
 from pathlib import Path
@@ -54,24 +55,39 @@ def assert_issue(module, root: Path, expected: tuple[str, str]) -> None:
         raise AssertionError(f"missing expected issue {expected!r}; saw {issues!r}")
 
 
-def run_matrix(module) -> int:
+def seed_validator_self_test_root(module, root: Path) -> None:
+    module.build_self_test_root(root)
+
+
+def seed_materialized_root(module, root: Path, source_root: Path) -> None:
+    paths_to_copy = {VALIDATOR_REL, *module.REQUIRED_FILES}
+    for rel in paths_to_copy:
+        source_path = source_root / rel
+        if not source_path.exists():
+            raise AssertionError(f"source path missing: {source_path}")
+        destination_path = root / rel
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, destination_path)
+
+
+def run_matrix(module, seed_root) -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_") as tmp_dir:
         root = Path(tmp_dir)
-        module.build_self_test_root(root)
+        seed_root(root)
         if module.collect_issues(root) != []:
             raise AssertionError("expected clean baseline self-test root")
         checks_run += 1
 
         for marker in module.REQUIRED_CLOSURE_MARKERS:
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, module.PHASE2_CLOSURE_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert_issue(module, root, ("MISSING_CLOSURE_MARKER", marker))
             checks_run += 1
 
         for marker in module.REQUIRED_WORKFLOW_LINES:
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, module.WORKFLOW_REL)
             path.write_text(
                 replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
@@ -80,27 +96,27 @@ def run_matrix(module) -> int:
             assert_issue(module, root, ("MISSING_WORKFLOW_LINE", marker))
             checks_run += 1
 
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, module.WORKFLOW_REL)
             path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert_issue(module, root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
             checks_run += 1
 
         for marker in module.REQUIRED_MAKEFILE_LINES:
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, module.MAKEFILE_REL)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
             assert_issue(module, root, ("MISSING_MAKEFILE_LINE", marker))
             checks_run += 1
 
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, module.MAKEFILE_REL)
             path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert_issue(module, root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
             checks_run += 1
 
         for rel in module.REQUIRED_FILES:
-            module.build_self_test_root(root)
+            seed_root(root)
             path = module.resolve(root, rel)
             path.unlink()
             assert_issue(module, root, ("MISSING_REQUIRED_FILE", rel.as_posix()))
@@ -171,7 +187,9 @@ def collect_issues(root: Path):
         validator_path = root / VALIDATOR_REL
         validator_path.parent.mkdir(parents=True, exist_ok=True)
         validator_path.write_text(fake_validator, encoding="utf-8")
-        checks_run = run_matrix(load_validator(root))
+        module = load_validator(root)
+        module.build_self_test_root(root)
+        checks_run = run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, root))
 
     print("PHASE2_CLOSURE_MATRIX_SELF_TEST=pass")
     print(f"PHASE2_CLOSURE_MATRIX_SELF_TEST_CASE_COUNT={checks_run}")
@@ -189,7 +207,9 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    checks_run = run_matrix(load_validator(args.root.resolve()))
+    repo_root = args.root.resolve()
+    module = load_validator(repo_root)
+    checks_run = run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, repo_root))
     print("PHASE2_CLOSURE_MATRIX=pass")
     print(f"PHASE2_CLOSURE_MATRIX_CASE_COUNT={checks_run}")
     return 0
