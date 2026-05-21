@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+
+SELF_PATH = Path(__file__).resolve()
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (
+            candidate / "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+        ).exists():
+            return candidate
+    return SELF_PATH.parent
+
+
+ROOT = infer_repo_root()
+
+HEAVY_CONSUMER_LANE_PATH = (
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+)
+LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
+LIBBPF_VERIFY_SHARD_NOTE_PATH = (
+    "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
+)
+RELEASE_COORDINATION_MATRIX_PATH = (
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+)
+BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
+LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
+RELEASE_READINESS_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-release-readiness-packet.py"
+)
+VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
+LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
+)
+
+REQUIRED_FILES = [
+    HEAVY_CONSUMER_LANE_PATH,
+    LIBBPF_SEGMENT_SURVEY_PATH,
+    LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    RELEASE_COORDINATION_MATRIX_PATH,
+    BUILD_ONLY_CHECKER_PATH,
+    LIBBPF_SNAPSHOT_CHECKER_PATH,
+    RELEASE_READINESS_CHECKER_PATH,
+    VALIDATOR_PATH,
+    SCRIPTS_README_PATH,
+    TESTS_README_PATH,
+    LIBBPF_SNAPSHOT_PATH,
+    LIBBPF_SNAPSHOT_DETERMINISM_PATH,
+]
+
+REQUIRED_MARKERS = {
+    HEAVY_CONSUMER_LANE_PATH: [
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "- The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
+    ],
+    LIBBPF_SEGMENT_SURVEY_PATH: [
+        "- scope: Phase 12 roadmap comparison, shared survey truthfulness, the parked libbpf verify-shard plus snapshot companions, and the boundary between the still-present direct helper-first segment footing and the still-unadopted shared replay packet",
+        "- rollback owner and reversible-delivery drill: restore the last truthful survey wording in this note, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` explicit only as reminder-only wrapper vocabulary until `zigux/Makefile` rematerializes it on current `master`; then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12` so the shared Phase 12 release packet stays reviewable without pretending those shared routes already exercise the parked direct `phase12_libbpf_*` replay files directly",
+        "- `scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.",
+        "- current `master` now also ships the validator-side support bundle through `scripts/zigux/check-phase12-libbpf-snapshot.py`, its direct `--self-test` replay, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary because current `zigux/Makefile` still omits that wrapper; that smaller support bundle still complements the smoke-first shared replay order instead of proving that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shared direct replay order.",
+    ],
+    LIBBPF_VERIFY_SHARD_NOTE_PATH: [
+        "- shared survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`",
+        "- shared heavy-consumer anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
+        "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`",
+        "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves",
+    ],
+    RELEASE_COORDINATION_MATRIX_PATH: [
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+        "- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` aligned around the parked reviewability packet.",
+    ],
+    LIBBPF_SNAPSHOT_CHECKER_PATH: [
+        'EXPECTED_SNAPSHOT_TRACKED_PATHS = [',
+        '    "Documentation/zigux/phase12-libbpf-segment-survey.md",',
+        '    "Documentation/zigux/phase12-libbpf-verify-shard-note.md",',
+        '    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",',
+        '    "Documentation/zigux/phase12-release-coordination-matrix.md",',
+        'SELF_TEST_CASE_COUNT = 28',
+    ],
+    SCRIPTS_README_PATH: [
+        "- `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
+        "- `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
+    ],
+    TESTS_README_PATH: [
+        "Keep `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` explicit as the shared heavy-helper anti-overlap companion so the tests-root reminder stays aligned with the same parked libbpf boundary already named by the release-order, closure, readiness, coordination, fallback, and complex-driver notes.",
+        "Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.",
+    ],
+}
+
+EXACT_COUNT_MARKERS = {
+    HEAVY_CONSUMER_LANE_PATH: {
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
+    LIBBPF_VERIFY_SHARD_NOTE_PATH: {
+        "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`": 1,
+    },
+    RELEASE_COORDINATION_MATRIX_PATH: {
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
+}
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+    for rel_path in REQUIRED_FILES:
+        if not (root / rel_path).exists():
+            failures.append(f"missing_file:{rel_path}")
+    if failures:
+        return failures
+
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        text = (root / rel_path).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in EXACT_COUNT_MARKERS.items():
+        text = (root / rel_path).read_text(encoding="utf-8")
+        for marker, expected_count in markers.items():
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                failures.append(
+                    "wrong_count:"
+                    f"{rel_path}:{marker}:expected={expected_count}:actual={actual_count}"
+                )
+
+    return failures
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def marker_fixture(title: str, markers: list[str]) -> str:
+    return f"{title}\n\n" + "\n".join(markers) + "\n"
+
+
+def fixture_text(rel_path: str) -> str:
+    if rel_path in REQUIRED_MARKERS:
+        title = {
+            HEAVY_CONSUMER_LANE_PATH: "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
+            LIBBPF_SEGMENT_SURVEY_PATH: "# Phase 12 Libbpf Segment Survey",
+            LIBBPF_VERIFY_SHARD_NOTE_PATH: "# Phase 12 Libbpf Verify Shard Note",
+            RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+            LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3",
+            SCRIPTS_README_PATH: "# scripts/zigux",
+            TESTS_README_PATH: "# zigux/tests",
+        }.get(rel_path, "# Fixture")
+        return marker_fixture(title, REQUIRED_MARKERS[rel_path])
+    if rel_path.endswith(".json"):
+        return '{\n  "lane_key": "P12-L16"\n}\n'
+    if rel_path.endswith(".py"):
+        return "#!/usr/bin/env python3\n"
+    if rel_path.endswith(".md"):
+        return "# Fixture\n"
+    return "fixture\n"
+
+
+def write_fixture_tree(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+    for rel_path in REQUIRED_FILES:
+        write_text(root / rel_path, fixture_text(rel_path))
+
+
+def expect_failure(root: Path, expected: str) -> None:
+    failures = validate(root)
+    if expected not in failures:
+        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
+
+
+def remove_marker(path: Path, marker: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(marker + "\n", "", 1)
+    if updated == text:
+        updated = text.replace(marker, "", 1)
+    if updated == text:
+        raise SystemExit(f"unable to mutate marker in fixture: {marker}")
+    path.write_text(updated, encoding="utf-8")
+
+
+def run_self_test() -> int:
+    base = Path(tempfile.mkdtemp(prefix="phase12-libbpf-heavy-consumer-"))
+    try:
+        write_fixture_tree(base)
+        failures = validate(base)
+        if failures:
+            raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
+
+        missing_file_cases = REQUIRED_FILES[:]
+        for rel_path in missing_file_cases:
+            write_fixture_tree(base)
+            (base / rel_path).unlink()
+            expect_failure(base, f"missing_file:{rel_path}")
+
+        marker_cases = [
+            (rel_path, marker)
+            for rel_path, markers in REQUIRED_MARKERS.items()
+            for marker in markers
+        ]
+        for rel_path, marker in marker_cases:
+            write_fixture_tree(base)
+            remove_marker(base / rel_path, marker)
+            expect_failure(base, f"missing_marker:{rel_path}:{marker}")
+
+        exact_count_cases = [
+            (rel_path, marker, expected_count)
+            for rel_path, markers in EXACT_COUNT_MARKERS.items()
+            for marker, expected_count in markers.items()
+        ]
+        for rel_path, marker, expected_count in exact_count_cases:
+            write_fixture_tree(base)
+            write_text(
+                base / rel_path,
+                (base / rel_path).read_text(encoding="utf-8") + marker + "\n",
+            )
+            expect_failure(
+                base,
+                "wrong_count:"
+                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}",
+            )
+
+        case_count = (
+            len(missing_file_cases)
+            + len(marker_cases)
+            + len(exact_count_cases)
+        )
+        print("PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass")
+        print(
+            "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST_CASE_COUNT="
+            f"{case_count}"
+        )
+        return 0
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Validate the current bounded Phase 12 libbpf heavy-consumer packet "
+            "across the shared lane note, parked verify-shard note, survey, "
+            "snapshot checker, and shared reminder surfaces."
+        )
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to validate. Defaults to the inferred repository root.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run the fixture-backed self-test.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    failures = validate(args.root)
+    if failures:
+        for failure in failures:
+            print(f"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET=fail:{failure}", file=sys.stderr)
+        return 1
+
+    print("PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET=pass")
+    print(f"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_EXACT_COUNT_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
