@@ -45,7 +45,7 @@ TEXT_MARKERS = {
     ],
     SURVEY_NOTE_PATH: [
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
-        "* `PHASE12_LANE=P12-L13`",
+        "* `PHASE12_LANE=P12-L09`",
         "* verified on: `2026-05-20`",
         "receive-refill replay",
         "rollback-only split machine-checkable",
@@ -184,7 +184,7 @@ def check(root: Path) -> list[str]:
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
     survey_manifest = json.loads(read_text(root / SURVEY_MANIFEST_PATH))
 
-    if fixture_manifest.get("lane_key") != "P12-L13":
+    if fixture_manifest.get("lane_key") != "P12-L09":
         errors.append("fixture manifest lane_key drift")
     if fixture_manifest.get("phase") != "Phase 12":
         errors.append("fixture manifest phase drift")
@@ -212,7 +212,7 @@ def check(root: Path) -> list[str]:
         if (root / rel_path).exists():
             errors.append(f"expected absent path unexpectedly present: {rel_path}")
 
-    if survey_manifest.get("lane_key") != "P12-L13":
+    if survey_manifest.get("lane_key") != "P12-L09":
         errors.append("survey manifest lane_key drift")
     if survey_manifest.get("phase") != "Phase 12":
         errors.append("survey manifest phase drift")
