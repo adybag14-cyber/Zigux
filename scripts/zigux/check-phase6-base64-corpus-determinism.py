@@ -23,7 +23,7 @@ EXPECTED_COUNTS = {
     "variant_cases": 18,
     "standard_decode_cases": 22,
     "invalid_decode_cases": 16,
-    "variant_decode_cases": 12,
+    "variant_decode_cases": 18,
     "perf_cases": 6,
 }
 
@@ -38,7 +38,7 @@ EXPECTED_PERF_LABELS = [
 
 EXPECTED_SLICE_SNIPPETS = [
     "- helper-local corpus checker: `scripts/zigux/check-phase6-base64-corpus-determinism.py`",
-    "- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 12 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`",
+    "- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 18 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`",
     "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
     "- invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs",
 ]
@@ -254,6 +254,7 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 };
 pub const variant_decode_cases = [_]DecodeCase{
     .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
+    .{}, .{}, .{}, .{}, .{}, .{},
 };
 pub const perf_cases = [_]PerfCase{
     .{ .label = "STD_PAD", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
