@@ -92,3 +92,25 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers stay invariant under byte swaps within their width" {
+    const value8: u8 = 0b1001_0110;
+    try std.testing.expectEqual(swHweight8(value8), swHweight8(@byteSwap(value8)));
+    try std.testing.expectEqual(__sw_hweight8(value8), __sw_hweight8(@byteSwap(value8)));
+
+    const value16: u16 = 0x12f0;
+    try std.testing.expectEqual(swHweight16(value16), swHweight16(@byteSwap(value16)));
+    try std.testing.expectEqual(__sw_hweight16(value16), __sw_hweight16(@byteSwap(value16)));
+
+    const value32: u32 = 0x12f0_8005;
+    try std.testing.expectEqual(swHweight32(value32), swHweight32(@byteSwap(value32)));
+    try std.testing.expectEqual(__sw_hweight32(value32), __sw_hweight32(@byteSwap(value32)));
+
+    const value64: u64 = 0x0123_4567_89ab_cdef;
+    try std.testing.expectEqual(swHweight64(value64), swHweight64(@byteSwap(value64)));
+    try std.testing.expectEqual(__sw_hweight64(value64), __sw_hweight64(@byteSwap(value64)));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0x12f0_8005 else 0x0123_4567_89ab_cdef;
+    try std.testing.expectEqual(hweightLong(value_long), hweightLong(@byteSwap(value_long)));
+    try std.testing.expectEqual(hweight_long(value_long), hweight_long(@byteSwap(value_long)));
+}
