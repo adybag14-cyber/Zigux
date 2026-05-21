@@ -54,6 +54,14 @@ EXPECTED_SECTIONS = {
             "return 1",
         ),
         (
+            "kind, payload = load_runtime_expectations(EXPECTATIONS)",
+            'if kind != "pass":',
+            'print("PHASE1_BENCH_CHECK=fail")',
+            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+            "print(payload)",
+            "return 1",
+        ),
+        (
             "kind, payload = load_runtime_bench_source(PHASE1_BENCH)",
             'if kind != "pass":',
             'print("PHASE1_BENCH_CHECK=fail")',
@@ -69,6 +77,14 @@ EXPECTED_SECTIONS = {
             'print(result.stdout.rstrip("\\n"))',
             "if result.stderr:",
             'print(result.stderr.rstrip("\\n"))',
+            "return 1",
+        ),
+        (
+            "kind, payload = validate_output(expectations, result.stdout)",
+            'if kind != "pass":',
+            'print("PHASE1_BENCH_CHECK=fail")',
+            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+            "print(payload)",
             "return 1",
         ),
     ),
@@ -89,15 +105,18 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def extract_section(text: str, first_line: str) -> list[str]:
+def extract_section(text: str, first_line: str, occurrence: int = 1) -> list[str]:
     section: list[str] = []
     capturing = False
+    seen = 0
     for raw_line in text.splitlines():
         line = raw_line.strip()
         if not capturing:
             if line == first_line:
-                capturing = True
-                section.append(line)
+                seen += 1
+                if seen == occurrence:
+                    capturing = True
+                    section.append(line)
             continue
         if not line:
             return section
@@ -105,16 +124,19 @@ def extract_section(text: str, first_line: str) -> list[str]:
     return section
 
 
-def replace_section(text: str, first_line: str, replacement: list[str]) -> str:
+def replace_section(text: str, first_line: str, replacement: list[str], occurrence: int = 1) -> str:
     lines = text.splitlines()
     start_index: int | None = None
     end_index = len(lines)
+    seen = 0
     for index, raw_line in enumerate(lines):
         if raw_line.strip() == first_line:
-            start_index = index
-            break
+            seen += 1
+            if seen == occurrence:
+                start_index = index
+                break
     if start_index is None:
-        raise ValueError(f"section not found: {first_line}")
+        raise ValueError(f"section not found: {first_line}#{occurrence}")
     for index in range(start_index + 1, len(lines)):
         if not lines[index].strip():
             end_index = index
@@ -152,7 +174,7 @@ def collect_issues(root: Path) -> list[str]:
             if count != 1:
                 issues.append(f"{relative_path}:marker_count:{marker}:expected=1:actual={count}")
 
-        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()): 
+        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()):
             if relative_path == WORKFLOW_REL:
                 count = sum(1 for line in lines if line.strip() == fragment)
             else:
@@ -161,17 +183,18 @@ def collect_issues(root: Path) -> list[str]:
                 issues.append(f"{relative_path}:forbidden:{fragment}:actual={count}")
 
         stripped_lines = [line.strip() for line in lines]
-        for expected_section in EXPECTED_SECTIONS.get(relative_path, ()): 
+        for expected_section in EXPECTED_SECTIONS.get(relative_path, ()):
             first_line = expected_section[0]
+            occurrence = 1
             first_line_count = sum(1 for line in stripped_lines if line == first_line)
             if first_line_count != 1:
                 issues.append(
                     f"{relative_path}:marker_count:{first_line}:expected=1:actual={first_line_count}"
                 )
                 continue
-            actual_section = extract_section(text, first_line)
+            actual_section = extract_section(text, first_line, occurrence)
             if not section_contains_expected_lines(actual_section, expected_section):
-                issues.append(f"{relative_path}:section:{first_line}:{actual_section!r}")
+                issues.append(f"{relative_path}:section:{first_line}:{occurrence}:{actual_section!r}")
 
     return issues
 
@@ -224,6 +247,13 @@ def build_bench_checker_file() -> str:
         '    print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))',
         "    return 1",
         "",
+        "kind, payload = load_runtime_expectations(EXPECTATIONS)",
+        'if kind != "pass":',
+        '    print("PHASE1_BENCH_CHECK=fail")',
+        '    print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+        "    print(payload)",
+        "    return 1",
+        "",
         "def load_runtime_bench_source(path: Path) -> tuple[str, object]:",
         "    pass",
         "",
@@ -242,6 +272,13 @@ def build_bench_checker_file() -> str:
         '        print(result.stdout.rstrip("\\n"))',
         "    if result.stderr:",
         '        print(result.stderr.rstrip("\\n"))',
+        "    return 1",
+        "",
+        "kind, payload = validate_output(expectations, result.stdout)",
+        'if kind != "pass":',
+        '    print("PHASE1_BENCH_CHECK=fail")',
+        '    print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+        "    print(payload)",
         "    return 1",
         "",
         "zig = 'zig'",
@@ -285,32 +322,39 @@ def mutate_section_insert_after(
     first_line: str,
     anchor_line: str,
     inserted_lines: tuple[str, ...],
+    occurrence: int = 1,
 ) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
-    actual_section = extract_section(text, first_line)
+    actual_section = extract_section(text, first_line, occurrence)
     anchor_index = actual_section.index(anchor_line)
     updated_section = (
         actual_section[: anchor_index + 1]
         + list(inserted_lines)
         + actual_section[anchor_index + 1 :]
     )
-    path.write_text(replace_section(text, first_line, updated_section), encoding="utf-8")
+    path.write_text(replace_section(text, first_line, updated_section, occurrence), encoding="utf-8")
     return updated_section
 
 
-def mutate_section_remove_line(root: Path, relative_path: str, first_line: str, line_index: int) -> list[str]:
+def mutate_section_remove_line(
+    root: Path,
+    relative_path: str,
+    first_line: str,
+    line_index: int,
+    occurrence: int = 1,
+) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
-    actual_section = extract_section(text, first_line)
+    actual_section = extract_section(text, first_line, occurrence)
     updated_section = actual_section[:line_index] + actual_section[line_index + 1 :]
-    path.write_text(replace_section(text, first_line, updated_section), encoding="utf-8")
+    path.write_text(replace_section(text, first_line, updated_section, occurrence), encoding="utf-8")
     return updated_section
 
 
 def run_self_test() -> int:
     expected_missing_expectations_section = (
-        f'{BENCH_CHECKER_REL}:section:if kind == "missing_expectations_file"::'
+        f'{BENCH_CHECKER_REL}:section:if kind == "missing_expectations_file"::1:'
         + repr(
             [
                 'if kind == "missing_expectations_file":',
@@ -321,7 +365,7 @@ def run_self_test() -> int:
         )
     )
     expected_json_error_section = (
-        f'{BENCH_CHECKER_REL}:section:if kind == "expectations_json_error"::'
+        f'{BENCH_CHECKER_REL}:section:if kind == "expectations_json_error"::1:'
         + repr(
             [
                 'if kind == "expectations_json_error":',
@@ -334,8 +378,20 @@ def run_self_test() -> int:
             ]
         )
     )
+    expected_expectations_generic_section = (
+        f"{BENCH_CHECKER_REL}:section:kind, payload = load_runtime_expectations(EXPECTATIONS):1:"
+        + repr(
+            [
+                "kind, payload = load_runtime_expectations(EXPECTATIONS)",
+                'if kind != "pass":',
+                'print("PHASE1_BENCH_CHECK=fail")',
+                "print(payload)",
+                "return 1",
+            ]
+        )
+    )
     expected_bench_source_section_missing_reason = (
-        f"{BENCH_CHECKER_REL}:section:kind, payload = load_runtime_bench_source(PHASE1_BENCH):"
+        f"{BENCH_CHECKER_REL}:section:kind, payload = load_runtime_bench_source(PHASE1_BENCH):1:"
         + repr(
             [
                 "kind, payload = load_runtime_bench_source(PHASE1_BENCH)",
@@ -347,7 +403,7 @@ def run_self_test() -> int:
         )
     )
     expected_command_exit_section = (
-        f"{BENCH_CHECKER_REL}:section:if result.returncode != 0::"
+        f'{BENCH_CHECKER_REL}:section:if result.returncode != 0::1:'
         + repr(
             [
                 "if result.returncode != 0:",
@@ -356,6 +412,18 @@ def run_self_test() -> int:
                 'print(result.stdout.rstrip("\\n"))',
                 "if result.stderr:",
                 'print(result.stderr.rstrip("\\n"))',
+                "return 1",
+            ]
+        )
+    )
+    expected_output_generic_section = (
+        f"{BENCH_CHECKER_REL}:section:kind, payload = validate_output(expectations, result.stdout):1:"
+        + repr(
+            [
+                "kind, payload = validate_output(expectations, result.stdout)",
+                'if kind != "pass":',
+                'print("PHASE1_BENCH_CHECK=fail")',
+                "print(payload)",
                 "return 1",
             ]
         )
@@ -387,6 +455,23 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-runtime-fail-packets-generic-output-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        mutate_section_insert_after(
+            root,
+            BENCH_CHECKER_REL,
+            "kind, payload = validate_output(expectations, result.stdout)",
+            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+            ('print("note")',),
+        )
+        issues = collect_issues(root)
+        if issues:
+            print("PHASE1_BENCH_RUNTIME_FAIL_PACKETS_SELF_TEST=fail")
+            print("case=output_reason_interleaving_allowed")
+            print(f"actual={issues!r}")
+            return 1
+
     cases = [
         (
             "remove_workflow_selftest",
@@ -394,6 +479,7 @@ def run_self_test() -> int:
             "remove",
             "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
             f"{WORKFLOW_REL}:marker_count:run: python3 scripts/zigux/check-phase1-bench.py --self-test:expected=1:actual=0",
+            None,
         ),
         (
             "duplicate_workflow_selftest",
@@ -401,6 +487,7 @@ def run_self_test() -> int:
             "duplicate",
             "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
             f"{WORKFLOW_REL}:marker_count:run: python3 scripts/zigux/check-phase1-bench.py --self-test:expected=1:actual=2",
+            None,
         ),
         (
             "forbidden_direct_workflow_run",
@@ -408,6 +495,7 @@ def run_self_test() -> int:
             "append",
             "run: python3 scripts/zigux/check-phase1-bench.py",
             f"{WORKFLOW_REL}:forbidden:run: python3 scripts/zigux/check-phase1-bench.py:actual=1",
+            None,
         ),
         (
             "remove_missing_expectations_path",
@@ -415,6 +503,7 @@ def run_self_test() -> int:
             "remove",
             'print(f"EXPECTATIONS_PATH={payload}")',
             expected_missing_expectations_section,
+            None,
         ),
         (
             "remove_json_error_column",
@@ -422,6 +511,15 @@ def run_self_test() -> int:
             "remove",
             'print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))',
             expected_json_error_section,
+            None,
+        ),
+        (
+            "remove_expectations_generic_reason",
+            BENCH_CHECKER_REL,
+            "remove_section_line",
+            "kind, payload = load_runtime_expectations(EXPECTATIONS)",
+            expected_expectations_generic_section,
+            (1, 3),
         ),
         (
             "remove_bench_source_reason",
@@ -429,6 +527,7 @@ def run_self_test() -> int:
             "remove_section_line",
             'kind, payload = load_runtime_bench_source(PHASE1_BENCH)',
             expected_bench_source_section_missing_reason,
+            (1, 3),
         ),
         (
             "remove_bench_command_exit",
@@ -436,10 +535,19 @@ def run_self_test() -> int:
             "remove",
             'print(f"BENCH_COMMAND_EXIT={result.returncode}")',
             expected_command_exit_section,
+            None,
+        ),
+        (
+            "remove_output_generic_reason",
+            BENCH_CHECKER_REL,
+            "remove_section_line",
+            "kind, payload = validate_output(expectations, result.stdout)",
+            expected_output_generic_section,
+            (1, 3),
         ),
     ]
 
-    for label, relative_path, operation, needle, expected in cases:
+    for label, relative_path, operation, needle, expected, extra in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-bench-runtime-fail-packets-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -448,7 +556,9 @@ def run_self_test() -> int:
             elif operation == "duplicate":
                 mutate_duplicate_line(root, relative_path, needle)
             elif operation == "remove_section_line":
-                mutate_section_remove_line(root, relative_path, needle, 3)
+                assert extra is not None
+                occurrence, line_index = extra
+                mutate_section_remove_line(root, relative_path, needle, line_index, occurrence)
             else:
                 mutate_append_line(root, relative_path, needle)
             issues = collect_issues(root)
@@ -468,7 +578,7 @@ def run_self_test() -> int:
             "if result.returncode != 0:",
             3,
         )
-        expected = f'{BENCH_CHECKER_REL}:section:if result.returncode != 0::{actual_section!r}'
+        expected = f'{BENCH_CHECKER_REL}:section:if result.returncode != 0::1:{actual_section!r}'
         issues = collect_issues(root)
         if issues != [expected]:
             print("PHASE1_BENCH_RUNTIME_FAIL_PACKETS_SELF_TEST=fail")
@@ -478,7 +588,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_RUNTIME_FAIL_PACKETS_SELF_TEST=pass")
-    print("PHASE1_BENCH_RUNTIME_FAIL_PACKETS_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_BENCH_RUNTIME_FAIL_PACKETS_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
