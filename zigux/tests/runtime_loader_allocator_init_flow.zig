@@ -204,6 +204,77 @@ test "shared runtime loader keeps selftest-complete trace-events and atomic64 re
     );
 }
 
+test "shared runtime loader keeps rejected release-order transitions fail-closed across loader families" {
+    const bitmap_plan = makeInitializedPlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+    );
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+
+    var bitmap_request = try runtime_loader.prepareRequest(bitmap_plan);
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+
+    try std.testing.expectError(error.InvalidLoaderState, bitmap_request.releaseWithoutSubstrate());
+    try std.testing.expectError(error.InvalidLoaderState, trace_events_request.releaseWithoutSubstrate());
+
+    try expectPreparedRequestStable(bitmap_request, bitmap_plan, .prepared);
+    try expectPreparedRequestStable(trace_events_request, trace_events_plan, .prepared);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(bitmap_request.prepared_plan, bitmap_plan));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.prepared_plan,
+        trace_events_plan,
+    ));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(bitmap_request.plan, bitmap_plan));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(trace_events_request.plan, trace_events_plan));
+
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+
+    try bitmap_request.releaseWithoutSubstrate();
+    try trace_events_request.releaseWithoutSubstrate();
+
+    try expectPreparedRequestStable(
+        bitmap_request,
+        bitmap_pending,
+        .released_without_substrate,
+    );
+    try expectPreparedRequestStable(
+        trace_events_request,
+        trace_events_pending,
+        .released_without_substrate,
+    );
+
+    try std.testing.expectError(error.InvalidLoaderState, bitmap_request.releaseWithoutSubstrate());
+    try std.testing.expectError(error.InvalidLoaderState, trace_events_request.releaseWithoutSubstrate());
+    try std.testing.expectError(error.InvalidLoaderState, bitmap_request.requestRuntimeLoad());
+    try std.testing.expectError(error.InvalidLoaderState, trace_events_request.requestRuntimeLoad());
+
+    try expectPreparedRequestStable(
+        bitmap_request,
+        bitmap_pending,
+        .released_without_substrate,
+    );
+    try expectPreparedRequestStable(
+        trace_events_request,
+        trace_events_pending,
+        .released_without_substrate,
+    );
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(bitmap_request.prepared_plan, bitmap_plan));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.prepared_plan,
+        trace_events_plan,
+    ));
+}
+
 test "shared runtime loader keeps selftest-complete counters from drifting before handoff" {
     const trace_events_plan = makeSelftestCompletePlan(
         "runtime_trace_events",
