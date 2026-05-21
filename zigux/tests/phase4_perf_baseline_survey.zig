@@ -80,3 +80,8 @@ test "phase4 perf baseline survey keeps coordination-owner and evidence-id pins 
     try requireMarker("\"id\": \"phase4-perf-baseline-bitmap-acceptable-limit\"");
     try requireMarker("\"id\": \"phase4-perf-baseline-bitmap-command-evidence\"");
 }
+
+test "phase4 perf baseline survey keeps evidence kinds explicit for both gates and both replay modes" {
+    try requireMarkerCount("\"kind\": \"acceptable_limit\"", 2);
+    try requireMarkerCount("\"kind\": \"threshold_replay\"", 2);
+}
