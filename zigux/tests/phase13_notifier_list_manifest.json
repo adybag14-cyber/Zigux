@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L18",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-18",
+  "surveyed_commit": "master-readback-2026-05-21",
   "anchor": "drivers/tty/hvc/hvc_console.h",
   "roadmap_position": "adjacent notifier/list_head evidence beside the Phase 13 shared-helper anchors",
   "survey_summary": {
@@ -15,6 +15,44 @@
     "current_notifier_packet_checker_present": true,
     "current_phase13_notifier_list_manifest_present": true,
     "current_phase13_notifier_list_reviewability_present": true
+  },
+  "exact_current_evidence": {
+    "zigux/bindings/notifier_abi.zig": {
+      "sha": "7e821f2498147db05b57c538e824cb2d76b84395",
+      "behavior": "Ships the bounded read-only notifier/list/hlist ABI foothold through NotifierBlock, NotifierChainPriorityIncrease, ListHead, HListHead, HListNode, chainHasNonincreasingPriority(), firstChainPriorityIncrease(), listHasConsistentBacklinks(), and hlistHasConsistentPrevLinks(), plus layout and witness tests."
+    },
+    "zigux/helpers/list_view.zig": {
+      "sha": "0d0400bb8f1239fdd0338e21dfc5323f5fda32c9",
+      "behavior": "Ships a read-only circular list_head view with isEmpty(), first(), last(), len(), iterator(), hasConsistentBacklinks(), and firstBrokenBacklink()."
+    },
+    "zigux/helpers/hlist_view.zig": {
+      "sha": "425e7f8788d550ff845849979f84e6bb9242f0d9",
+      "behavior": "Ships a read-only hlist view with isEmpty(), first(), len(), firstPprevMatchesHead(), hasConsistentPrevLinks(), firstBrokenPrevLink(), and tailNextIsNull()."
+    },
+    "include/zigux/abi.h": {
+      "sha": "a7a816e0f2b0810260cf881bbb550675f2373d55",
+      "behavior": "Mirrors the bounded C-side interop packet through zigux_notifier_block, zigux_list_head, zigux_hlist_head, zigux_notifier_first_chain_priority_increase(), zigux_list_has_consistent_backlinks(), and zigux_hlist_has_consistent_prev_links()."
+    },
+    "drivers/tty/hvc/hvc_console.h": {
+      "sha": "57f1542b3e6f1901f444bc2d94b5e438f14eb9b3",
+      "behavior": "Keeps the adjacent HVC notifier declarations visible through notifier_add_irq, notifier_del_irq, notifier_hangup_irq, and the hv_ops notifier callbacks."
+    },
+    "scripts/zigux/check-phase13-notifier-packet.py": {
+      "sha": "d80bdb58fefdb110872efc9de7b92b0354dd420a",
+      "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, HVC declarations, and repo-reality-gap wording."
+    },
+    "zigux/tests/phase13_notifier_list_reviewability.zig": {
+      "sha": "7b62256190263e285cbd8ebc3d5911f91e5f9f41",
+      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, and HVC-header markers visible without widening into the shared Phase 13 build shard."
+    },
+    "scripts/zigux/validate-phase13-release.py": {
+      "sha": "519fb5d7a820d0a705ca4786f886df1e85679554",
+      "behavior": "Keeps the shared Phase 13 release reminder packet aligned while treating the missing notifier-chain helper, dedicated notifier ABI header, and missing shared build-route names as repo-reality gaps."
+    },
+    "zigux/Makefile": {
+      "sha": "2123cbb48f7bb32293c1bb3dead619e6d437923b",
+      "behavior": "The file is present on current master, but it still does not expose make -C zigux phase13-validate or make -C zigux phase13 as shipped adjacent-packet routes."
+    }
   },
   "gaps": [
     {
