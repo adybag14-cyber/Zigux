@@ -45,6 +45,7 @@ BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
+LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 VIRTIO_NET_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-net-packet.py"
 VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packet.py"
 VIRTIO_SCSI_BOUNDARY_CHECKER_PATH = (
@@ -107,6 +108,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
+    LIBBPF_SNAPSHOT_CHECKER_PATH,
     VIRTIO_NET_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
@@ -271,6 +273,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
     ],
     VALIDATOR_PATH: [
+        BUILD_ONLY_CHECKER_PATH,
+        RELEASE_READINESS_CHECKER_PATH,
+        LIBBPF_SNAPSHOT_CHECKER_PATH,
         VIRTIO_NET_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
@@ -422,6 +427,7 @@ FIXTURE_TEXT = {
     ),
     BUILD_ONLY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_NET_PACKET_CHECKER_PATH: "\n".join(
         REQUIRED_MARKERS[VIRTIO_NET_PACKET_CHECKER_PATH]
     )
