@@ -13,6 +13,10 @@ DOCS_CHECKER_PATH = Path("scripts/zigux/check-phase15-docs-readme-alignment.py")
 SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 TESTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
 REVIEW_PROCESS_CHECKER_PATH = Path("scripts/zigux/check-phase15-review-process-handoff.py")
+REVIEW_CHECKLIST_STUDY_ONLY_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
+)
+HANDOFF_NOTE_CHECKER_PATH = Path("scripts/zigux/check-phase15-handoff-note-alignment.py")
 SHARED_SUMMARY_CHECKER_PATH = Path("scripts/zigux/check-phase15-shared-summary-gap.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 HANDOFF_MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
@@ -25,7 +29,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
-    "PHASE15_LANE_KEY=P15-L01",
+    "PHASE15_LANE_KEY=arch-council",
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
@@ -142,6 +146,10 @@ def collect_failures(root: Path) -> list[str]:
         "phase15_validator_script_present": (root / VALIDATOR_PATH).exists(),
         "phase15_docs_readme_checker_present": (root / DOCS_CHECKER_PATH).exists(),
         "phase15_tests_readme_checker_present": (root / TESTS_CHECKER_PATH).exists(),
+        "phase15_review_checklist_study_only_alignment_checker_present": (
+            root / REVIEW_CHECKLIST_STUDY_ONLY_CHECKER_PATH
+        ).exists(),
+        "phase15_handoff_note_checker_present": (root / HANDOFF_NOTE_CHECKER_PATH).exists(),
         "phase15_governance_lane_manifest_present": (root / GOVERNANCE_LANE_MANIFEST_PATH).exists(),
         "phase15_governance_lane_replay_present": (root / GOVERNANCE_LANE_REPLAY_PATH).exists(),
         "phase15_handoff_manifest_present": (root / HANDOFF_MANIFEST_PATH).exists(),
@@ -184,10 +192,10 @@ def _sample_note() -> str:
     return """# Phase 15 Readiness Gate Survey
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=P15-L01`
+- `PHASE15_LANE_KEY=arch-council`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
 
 This note says the governance packet is materially landed and reviewable, while the missing validator, build, and workflow companions still block any claim that the broader Phase 15 replay route is fully ready.
 
@@ -207,6 +215,8 @@ Current directly readable packet:
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
+- `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/README.md`
@@ -242,7 +252,7 @@ def _sample_manifest() -> str:
     return json.dumps(
         {
             "surveyed_commit_mode": "dated_master_readback",
-            "surveyed_commit": "current-master-readback-2026-05-18",
+            "surveyed_commit": "current-master-readback-2026-05-20",
             "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
             "direct_packet_paths": [
                 "Documentation/zigux/freeze-map.md",
@@ -260,6 +270,8 @@ def _sample_manifest() -> str:
                 "scripts/zigux/check-phase15-scripts-readme-alignment.py",
                 "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
+                "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+                "scripts/zigux/check-phase15-handoff-note-alignment.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
                 "scripts/zigux/check-phase15-readiness-gate-packet.py",
                 "zigux/tests/README.md",
@@ -285,6 +297,8 @@ def _sample_manifest() -> str:
                 "phase15_validator_script_present": false,
                 "phase15_docs_readme_checker_present": true,
                 "phase15_tests_readme_checker_present": true,
+                "phase15_review_checklist_study_only_alignment_checker_present": true,
+                "phase15_handoff_note_checker_present": true,
                 "phase15_governance_lane_manifest_present": true,
                 "phase15_governance_lane_replay_present": true,
                 "phase15_handoff_manifest_present": true,
@@ -322,6 +336,8 @@ def _seed_repo(root: Path) -> None:
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
         "scripts/zigux/check-phase15-tests-readme-alignment.py",
         "scripts/zigux/check-phase15-review-process-handoff.py",
+        "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+        "scripts/zigux/check-phase15-handoff-note-alignment.py",
         "scripts/zigux/check-phase15-shared-summary-gap.py",
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "zigux/tests/README.md",
