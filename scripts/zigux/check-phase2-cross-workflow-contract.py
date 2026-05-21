@@ -16,6 +16,7 @@ TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
 ROUTE = "make -C zigux phase2-cross"
+REQUIRED_MAKE_ROUTE = "phase2-cross"
 
 WORKFLOW_MARKERS = (
     '- name: Self-test current Phase 2 cross checker',
@@ -41,7 +42,7 @@ MAKEFILE_LINES = (
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -76,10 +77,15 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def load_archive_target_scope(root: Path) -> list[str]:
+def load_policy(root: Path) -> dict[str, object]:
     payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+    return payload
+
+
+def load_archive_target_scope(root: Path) -> list[str]:
+    payload = load_policy(root)
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
         raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
@@ -105,6 +111,33 @@ def load_archive_target_scope(root: Path) -> list[str]:
     return normalized
 
 
+def load_required_make_routes(root: Path) -> list[str]:
+    payload = load_policy(root)
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+    required_make_routes = upgrade_policy.get("required_make_routes")
+    if not isinstance(required_make_routes, list) or not required_make_routes:
+        raise SystemExit(
+            f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+        )
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in required_make_routes:
+        if not isinstance(value, str) or not value.strip():
+            raise SystemExit(
+                f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        route = value.strip()
+        if route in seen:
+            raise SystemExit(
+                f"duplicate required_make_routes entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        normalized.append(route)
+        seen.add(route)
+    return normalized
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -112,6 +145,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     fixture = read_json(resolve_path(root, FIXTURE))
     archive_target_scope = load_archive_target_scope(root)
+    required_make_routes = load_required_make_routes(root)
 
     for marker in WORKFLOW_MARKERS:
         count = count_exact_lines(workflow_text, marker)
@@ -126,6 +160,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    if REQUIRED_MAKE_ROUTE not in required_make_routes:
+        issues.append(("MISSING_REQUIRED_MAKE_ROUTE", REQUIRED_MAKE_ROUTE))
 
     if not isinstance(fixture, dict):
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
@@ -260,12 +297,6 @@ def build_current_like_root(root: Path) -> None:
     )
 
 
-def remove_marker(text: str, marker: str) -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, "", 1)
-
-
 def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -318,6 +349,31 @@ def run_self_test() -> int:
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[0]), encoding="utf-8")
         assert ("DUPLICATE_MAKEFILE_LINE", f"{MAKEFILE_LINES[0]}:count=2") in collect_issues(root)
         checks_run += 1
+
+        build_current_like_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_REQUIRED_MAKE_ROUTE", REQUIRED_MAKE_ROUTE) in collect_issues(root)
+        checks_run += 1
+
+        build_current_like_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["required_make_routes"] = [
+            "phase2-toolchain",
+            "phase2-cross",
+            "phase2-cross",
+        ]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate required_make_routes entry" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate required make route did not abort")
 
         build_current_like_root(root)
         path = resolve_path(root, FIXTURE)
