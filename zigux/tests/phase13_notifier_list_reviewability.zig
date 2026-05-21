@@ -38,6 +38,8 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "`zigux/tests/phase13_notifier_list_reviewability.zig`");
     try requireContains(survey, "`zigux/helpers/list_view.zig`");
     try requireContains(survey, "`zigux/helpers/hlist_view.zig`");
+    try requireContains(survey, "`include/zigux/abi.h`");
+    try requireContains(survey, "`drivers/tty/hvc/hvc_console.h`");
     try requireContains(survey, "`zigux/helpers/notifier_chain_view.zig`");
     try requireContains(survey, "`scripts/zigux/validate-phase13-release.py`");
     try requireContains(survey, "`make -C zigux phase13-validate`");
@@ -65,7 +67,10 @@ test "phase13 notifier binding keeps the shipped read-only interop foothold expl
     try requireContains(binding, "pub const ListHead = extern struct");
     try requireContains(binding, "pub const HListHead = extern struct");
     try requireContains(binding, "pub fn chainHasNonincreasingPriority");
+    try requireContains(binding, "pub fn firstChainPriorityIncrease");
+    try requireContains(binding, "pub fn firstBrokenBacklink");
     try requireContains(binding, "pub fn listHasConsistentBacklinks");
+    try requireContains(binding, "pub fn firstBrokenPrevLink");
     try requireContains(binding, "pub fn hlistHasConsistentPrevLinks");
 }
 
@@ -90,8 +95,11 @@ test "phase13 exported abi header keeps the C-side list and notifier witnesses e
     try requireContains(abi_header, "struct zigux_notifier_block {");
     try requireContains(abi_header, "struct zigux_list_head {");
     try requireContains(abi_header, "struct zigux_hlist_head {");
+    try requireContains(abi_header, "zigux_notifier_chain_has_nonincreasing_priority");
     try requireContains(abi_header, "zigux_notifier_first_chain_priority_increase");
+    try requireContains(abi_header, "zigux_list_first_broken_backlink");
     try requireContains(abi_header, "zigux_list_has_consistent_backlinks");
+    try requireContains(abi_header, "zigux_hlist_first_broken_prev_link");
     try requireContains(abi_header, "zigux_hlist_has_consistent_prev_links");
 }
 
