@@ -52,6 +52,7 @@ REQUIRED_MARKERS = {
     EXPORT_SHIM_PATH: (
         "pub fn versionMatchesCurrent(candidate: Version) bool {",
         "pub fn validateVersion(candidate: Version) ExportStatus {",
+        "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
         "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
@@ -114,6 +115,7 @@ REQUIRED_MARKERS = {
         'test "header-family binding keeps the bounded relay surface explicit" {',
         'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim encodes starter dev_t numbers without widening the boundary" {',
+        'test "export shim relays starter boundary-header validation through the focused replay" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
     ),
     LAYOUT_BUILD_PATH: (
@@ -233,8 +235,18 @@ def run_self_test() -> int:
         ),
         (
             LAYOUT_TEST_PATH,
+            'test "export shim relays starter boundary-header validation through the focused replay" {',
+            "expected missing focused layout boundary-header replay marker was not reported",
+        ),
+        (
+            LAYOUT_TEST_PATH,
             'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
             "expected missing focused layout range replay marker was not reported",
+        ),
+        (
+            EXPORT_SHIM_PATH,
+            "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
+            "expected missing export shim boundary-header validation relay marker was not reported",
         ),
         (
             EXPORT_SHIM_PATH,
