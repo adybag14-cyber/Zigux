@@ -17,6 +17,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
+BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -55,6 +56,7 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     MAKEFILE_PATH,
     CHECKER_PATH,
+    BUILD_WIRING_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
@@ -68,7 +70,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 class ValidationError(RuntimeError):
@@ -91,9 +93,12 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == normalized_marker)
 
 
-def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") -> None:
+def run_checker(root: Path, checker_path: Path, root_flag: str | None = "--repo-root") -> None:
+    command = [sys.executable, str(root / checker_path)]
+    if root_flag is not None:
+        command.extend([root_flag, str(root)])
     result = subprocess.run(
-        [sys.executable, str(root / checker_path), root_flag, str(root)],
+        command,
         cwd=root,
         text=True,
         capture_output=True,
@@ -134,6 +139,7 @@ def validate(root: Path) -> None:
             raise ValidationError(f"phase7 make route count drift: {marker} ({count} != 1)")
 
     run_checker(root, CHECKER_PATH)
+    run_checker(root, BUILD_WIRING_CHECKER_PATH, None)
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
 
 
@@ -155,6 +161,7 @@ def scaffold_repo(root: Path) -> None:
                 "- `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
                 "- `Documentation/zigux/README.md`",
                 "- `scripts/zigux/check-phase7-shared-surface.py`",
+                "- `scripts/zigux/check-phase7-build-wiring.py`",
                 "- `scripts/zigux/validate-phase7.py`",
                 "- `scripts/zigux/README.md`",
                 "- `zigux/tests/README.md`",
@@ -172,7 +179,6 @@ def scaffold_repo(root: Path) -> None:
                 "",
                 "`kstrdupQuotable()`",
                 "`kstrdupQuotableCmdline()`",
-                "`parseIntArray()`",
             ]
         )
         + "\n",
@@ -194,6 +200,7 @@ def scaffold_repo(root: Path) -> None:
                     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
                     "Documentation/zigux/README.md",
                     "scripts/zigux/check-phase7-shared-surface.py",
+                    "scripts/zigux/check-phase7-build-wiring.py",
                     "scripts/zigux/validate-phase7.py",
                     "scripts/zigux/README.md",
                     "zigux/tests/README.md",
@@ -299,6 +306,13 @@ if __name__ == \"__main__\":
 """,
     )
     write(
+        root / BUILD_WIRING_CHECKER_PATH,
+        """#!/usr/bin/env python3
+from __future__ import annotations
+print(\"PHASE7_BUILD_WIRING=pass\")
+""",
+    )
+    write(
         root / ARGV_SPLIT_PACKET_CHECKER_PATH,
         """#!/usr/bin/env python3
 from __future__ import annotations
@@ -346,6 +360,7 @@ def run_self_test() -> None:
             (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", False),
             (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
             (CHECKER_PATH, "", True),
+            (BUILD_WIRING_CHECKER_PATH, "", True),
             (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
             (DOCS_README_PATH, "Phase 7 notes\n", False),
             (SCRIPTS_README_PATH, "## Phase 7\n", False),
