@@ -114,3 +114,26 @@ test "hweight helpers stay invariant under byte swaps within their width" {
     try std.testing.expectEqual(hweightLong(value_long), hweightLong(@byteSwap(value_long)));
     try std.testing.expectEqual(hweight_long(value_long), hweight_long(@byteSwap(value_long)));
 }
+
+test "hweight helpers scale with repeated byte patterns" {
+    const byte: u8 = 0b1011_0100;
+    const byte_weight = swHweight8(byte);
+    try std.testing.expectEqual(byte_weight, __sw_hweight8(byte));
+
+    const repeated16: u16 = 0xb4b4;
+    try std.testing.expectEqual(byte_weight * 2, swHweight16(repeated16));
+    try std.testing.expectEqual(byte_weight * 2, __sw_hweight16(repeated16));
+
+    const repeated32: u32 = 0xb4b4_b4b4;
+    try std.testing.expectEqual(byte_weight * 4, swHweight32(repeated32));
+    try std.testing.expectEqual(byte_weight * 4, __sw_hweight32(repeated32));
+
+    const repeated64: u64 = 0xb4b4_b4b4_b4b4_b4b4;
+    try std.testing.expectEqual(@as(u64, byte_weight) * 8, swHweight64(repeated64));
+    try std.testing.expectEqual(@as(u64, byte_weight) * 8, __sw_hweight64(repeated64));
+
+    const repeated_long: usize = if (@sizeOf(usize) == 4) repeated32 else repeated64;
+    const lane_count: usize = @sizeOf(usize);
+    try std.testing.expectEqual(@as(usize, byte_weight) * lane_count, hweightLong(repeated_long));
+    try std.testing.expectEqual(@as(usize, byte_weight) * lane_count, hweight_long(repeated_long));
+}
