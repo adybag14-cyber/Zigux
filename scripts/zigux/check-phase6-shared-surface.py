@@ -66,6 +66,7 @@ REQUIRED_DOCS_README_SNIPPETS = [
 ]
 REQUIRED_SCRIPTS_README_SNIPPETS = [
     "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-perf-gate-survey.md`, but authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, so keep the helper-parity catalog inside the current directly readable shared packet and treat the broader perf reminder path as current public-tree-backed companion evidence rather than as direct scripts-root proof",
+    "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-bsearch-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
 ]
 REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
@@ -100,7 +101,7 @@ EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
 ]
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 27
 
 
 class ValidationError(RuntimeError):
@@ -250,6 +251,8 @@ def run_self_test() -> None:
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_DOCS_README_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / SCRIPTS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_SCRIPTS_README_SNIPPETS[0] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / SCRIPTS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_SCRIPTS_README_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
