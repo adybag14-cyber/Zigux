@@ -47,20 +47,22 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-21", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
-    try std.testing.expectEqual(@as(usize, 27), manifest.present_paths.len);
+    try std.testing.expectEqual(@as(usize, 29), manifest.present_paths.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.still_missing_paths.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.required_markers.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.required_markers.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_alignment_markers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_step_markers.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.missing_route_markers.len);
 
+    try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_governance_lane_sequencing_manifest.json");
+    try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps.zig");
@@ -85,11 +87,11 @@ test "phase 15 handoff note treats the focused replay as present and broader com
     const manifest = parsed.value;
 
     try expectContains(handoff_note, "PHASE15_STATUS=handoff_next_steps_survey_landed");
-    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L11");
+    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L12");
     try expectContains(handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(handoff_note, manifest.surveyed_commit);
-    try expectContains(handoff_note, "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
-    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.");
+    try expectContains(handoff_note, "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
+    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.");
     try expectNotContains(handoff_note, "no dedicated handoff-specific Zig replay is directly materialized on current `master`");
 
     for (manifest.present_paths) |path| {
