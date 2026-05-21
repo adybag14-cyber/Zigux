@@ -88,6 +88,9 @@ REQUIRED_MARKERS = {
         '    "Documentation/zigux/phase12-libbpf-verify-shard-note.md",',
         '    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",',
         '    "Documentation/zigux/phase12-release-coordination-matrix.md",',
+        'EXPECTED_DETERMINISM_LANE_KEY = "P12-L17"',
+        'EXPECTED_DETERMINISM_TRACKED_PATHS = [',
+        '    "tools/lib/bpf/zigux_segments/pin_path.zig",',
         'SELF_TEST_CASE_COUNT = 28',
     ],
     SCRIPTS_README_PATH: [
@@ -109,6 +112,10 @@ EXACT_COUNT_MARKERS = {
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
+    LIBBPF_SNAPSHOT_CHECKER_PATH: {
+        'EXPECTED_DETERMINISM_TRACKED_PATHS = [': 1,
+        '    "tools/lib/bpf/zigux_segments/pin_path.zig",': 1,
     },
 }
 
