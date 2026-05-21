@@ -16,7 +16,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
-- adjacent Phase 15 parity-scorecard, review-process, indefinite-C-policy, readiness, handoff, shared-summary, validator, dedicated-build, lane-owner, and make-wrapper surfaces still inform this lane's truthfulness checks, but they remain neighboring packet inputs rather than lane-owned boundary files here
+- adjacent Phase 15 parity-scorecard, review-process, indefinite-C-policy, readiness, handoff, and shared-summary surfaces still inform this lane's truthfulness checks, while the validator-first, dedicated-build, and make-wrapper route names remain gap-tracked reminder vocabulary and the returned lane-owner replay remains adjacent readback evidence rather than a lane-owned boundary file here
 
 ## Why this slice exists
 
@@ -66,7 +66,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
   - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
-- adjacent shared validator, dedicated-build, lane-owner, and make-wrapper companions that still inform this packet's truthfulness checks:
+- adjacent gap-tracked validator-first, dedicated-build, and make-wrapper route names plus the returned lane-owner replay that still inform this packet's truthfulness checks:
   - `scripts/zigux/validate-phase15.py`
   - `zigux/tests/phase15_build.zig`
   - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
