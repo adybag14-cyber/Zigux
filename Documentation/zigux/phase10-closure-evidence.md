@@ -5,7 +5,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_STATUS=active`
 - `PHASE10_TRANCHE=virtio-lab-bundle`
 - `PHASE10_CLOSURE_POSTURE=parked_shared_packet`
-- shared packet: closure evidence stays in the shared virtio reminder surfaces rather than a dedicated lane-local validator
+- shared packet: closure evidence stays in the shared virtio reminder surfaces, with `scripts/zigux/validate-phase10-closure.py` and the shared Phase 10 build route kept explicit as current shared gate evidence
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
