@@ -73,6 +73,7 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 - blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet
 - whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space
 - leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins
+- blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and `cArgv()` views across calls, so blank-result teardown stays repeatable without hidden allocation churn
 - `deinit()`, `argvFree()`, allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet
 - the no-standalone-argv sample boundary stays helper-local only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders
 
