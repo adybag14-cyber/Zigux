@@ -111,6 +111,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(README_PRESENT_MARKERS)
+    + len(README_PRESENT_MARKERS)
     + len(README_WARNING_LINES)
     + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
@@ -140,8 +141,8 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
+def expected_readme_present_count(marker: str) -> int:
+    return 1 + sum(line.count(marker) for line in README_WARNING_LINES)
 
 
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
@@ -161,6 +162,20 @@ def collect_exact_line_issues(
     return issues
 
 
+def collect_occurrence_issues(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        expected_count = expected_readme_present_count(marker)
+        if count < expected_count:
+            issues.append((missing_code, marker))
+        elif count > expected_count:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -174,7 +189,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
+    issues.extend(
+        collect_occurrence_issues(
+            readme_text,
+            README_PRESENT_MARKERS,
+            "MISSING_README_PRESENT_MARKERS",
+            "DUPLICATE_README_PRESENT_MARKERS",
+        )
+    )
     issues.extend(
         collect_exact_line_issues(
             readme_text,
@@ -304,6 +326,15 @@ def run_self_test() -> int:
             readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(marker, "BROKEN_PRESENT_MARKER"), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in README_PRESENT_MARKERS:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(readme_path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            expected_count = expected_readme_present_count(marker) + 1
+            assert ("DUPLICATE_README_PRESENT_MARKERS", f"{marker}:count={expected_count}") in issues
             checks_run += 1
 
         for marker in README_WARNING_LINES:
