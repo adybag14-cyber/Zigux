@@ -17,7 +17,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader device-managed follow-ons stay deliberately out of scope.
 
-This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so the dedicated boundary replay should keep that separation explicit while the expanded starter packet advances through helper-local review surfaces only.
+This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion under the non-runtime `trace_events` anchor. The dedicated boundary replay should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
 
 ## Gates
 
@@ -30,7 +30,7 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 - `zigux/tests/phase7_string_helpers_manifest.json`
 - `scripts/zigux/check-phase7-string-helpers-packet.py`
 
-3. keep the dedicated no-string-sample boundary guard reviewable
+3. keep the dedicated no-standalone-string-helper-sample boundary guard reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 
@@ -95,7 +95,7 @@ The current starter replay keeps these proofs explicit:
 - uppercase and lowercase copying that stops at the exported C-string boundary and truncates to caller-owned destination storage
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
-- the dedicated helper-local checker, survey gate, helper-local manifest packet, and no-sample boundary replay
+- the dedicated helper-local checker, survey gate, helper-local manifest packet, and no-standalone-string-helper-sample boundary replay
 
 The current starter replay also keeps these ownership-focused boundaries explicit:
 
@@ -111,6 +111,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `parseIntArray()` and `parse_int_array()` keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set
 - `stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
+- the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test and keeps the bounded `trace_events_string_formatting_sample.zig` allowance tied to the non-runtime `trace_events` anchor
 
 ## Non-goals
 
