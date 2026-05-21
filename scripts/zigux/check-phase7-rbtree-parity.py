@@ -121,8 +121,11 @@ REQUIRED_MARKERS = {
         'try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");',
         'try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");',
         'try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");',
+        'try expectContains(build_file, "../../lib/rbtree.zig");',
         'try expectContains(manifest.next_bounded_step, "public-fallback provenance");',
         'try expectContains(manifest.next_bounded_step, "shared non-owner build evidence");',
+        'try expectNotContains(manifest.next_bounded_step, "`zigux/tests/phase7_build.zig`");',
+        'try expectNotContains(manifest.next_bounded_step, "`scripts/zigux/validate-phase7.py`");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"',
@@ -147,7 +150,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 59
+SELF_TEST_CASE_COUNT = 62
 
 
 def read_text(path: Path) -> str:
@@ -591,10 +594,40 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        survey_marker = 'try expectContains(build_file, "../../lib/rbtree.zig");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_build_file_import_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         survey_marker = 'try expectContains(manifest.next_bounded_step, "public-fallback provenance");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_next_step_fallback_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectNotContains(manifest.next_bounded_step, "`zigux/tests/phase7_build.zig`");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_next_step_build_file_exclusion_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectNotContains(manifest.next_bounded_step, "`scripts/zigux/validate-phase7.py`");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_next_step_shared_validator_exclusion_marker",
             tmp_root,
             f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
         )
