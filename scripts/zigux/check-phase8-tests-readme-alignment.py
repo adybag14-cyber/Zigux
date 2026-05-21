@@ -42,6 +42,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
