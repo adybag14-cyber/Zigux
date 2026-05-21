@@ -47,7 +47,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-21", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
@@ -85,7 +85,7 @@ test "phase 15 handoff note treats the focused replay as present and broader com
     const manifest = parsed.value;
 
     try expectContains(handoff_note, "PHASE15_STATUS=handoff_next_steps_survey_landed");
-    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L10");
+    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L11");
     try expectContains(handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(handoff_note, manifest.surveyed_commit);
     try expectContains(handoff_note, "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
