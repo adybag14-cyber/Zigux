@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio ring survey note keeps the broader public-readback replay explicit beside the queue-local helper packet" {
+test "phase10 virtio ring survey note keeps the broader replay explicit beside the queue-local helper packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -35,10 +35,11 @@ test "phase10 virtio ring survey note keeps the broader public-readback replay e
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(
         survey_note,
-        "public current-`master` readback rematerializes the broader replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still do not",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
     );
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_ring_survey.zig");
