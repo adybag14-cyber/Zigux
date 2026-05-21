@@ -140,6 +140,28 @@ test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable 
     try std.testing.expectEqual(@as(u32, 0b010), queue_only.ignored_bits);
 }
 
+test "phase10 virtio mmio keeps config-write planning bounded to staged review state" {
+    var device = try virtio_mmio.VirtioMmioLab.init(98, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, plan.anchor);
+    try std.testing.expectEqual(@as(u32, 4), plan.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), plan.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0407), plan.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), plan.config_generation);
+    try std.testing.expect(plan.within_config_window);
+
+    const freshness = device.configWritePlanFreshnessSummary();
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(freshness.plan_matches_generation);
+    try std.testing.expectEqual(plan.relative_offset, freshness.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, freshness.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, freshness.planned_value);
+    try std.testing.expectEqual(plan.config_generation, freshness.planned_generation);
+    try std.testing.expect(freshness.available_for_disposition);
+}
+
 test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {
     var device = try virtio_mmio.VirtioMmioLab.init(96, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
