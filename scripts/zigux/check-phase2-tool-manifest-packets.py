@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 103
+EXPECTED_SELF_TEST_CASE_COUNT = 106
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -697,14 +697,18 @@ def run_self_test() -> int:
         resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1])).unlink()
         assert ("PRESENT_FILE_MISSING_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
         checks_run += 1
+        assert_run_checker_output_contains(root, "PRESENT_FILE_MISSING_ON_BRANCH_START")
+        checks_run += 1
 
         build_self_test_root(root)
         present_dir = resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1]))
         present_dir.unlink()
         present_dir.mkdir()
         assert ("PRESENT_FILE_NOT_FILE_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
-        present_dir.rmdir()
         checks_run += 1
+        assert_run_checker_output_contains(root, "PRESENT_FILE_NOT_FILE_ON_BRANCH_START")
+        checks_run += 1
+        present_dir.rmdir()
 
         build_self_test_root(root)
         write_text(root, Path(EXPECTED_MISSING_FILES[0]), "# restored on branch\n")
@@ -721,6 +725,8 @@ def run_self_test() -> int:
         missing_dir.parent.mkdir(parents=True, exist_ok=True)
         missing_dir.mkdir()
         assert ("MISSING_FILE_NOT_FILE_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+        assert_run_checker_output_contains(root, "MISSING_FILE_NOT_FILE_ON_BRANCH_START")
         checks_run += 1
         missing_dir.rmdir()
 
@@ -878,7 +884,7 @@ def run_self_test() -> int:
             unreadable = resolve_path(root, path)
             unreadable.unlink()
             unreadable.mkdir(parents=True)
-            assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
+            assert_systemExit_contains(lambda: collect_issues(root), "required file unreadable:")
             unreadable.rmdir()
             checks_run += 1
 
@@ -947,9 +953,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the Lane 22 Phase 2 tool manifest packet aligned.")
+    parser = argparse.ArgumentParser(description="Validate the Lane 22 Phase 2 tool-manifest packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     args = parser.parse_args()
 
     if args.self_test:
