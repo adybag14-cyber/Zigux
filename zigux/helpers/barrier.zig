@@ -1,5 +1,37 @@
 const std = @import("std");
 
+pub const Ordering = std.builtin.AtomicOrder;
+pub const FenceError = error{
+    InvalidFenceOrdering,
+};
+
+pub fn fenceOrderAllowed(order: Ordering) bool {
+    return switch (order) {
+        .acquire, .release, .acq_rel, .seq_cst => true,
+        .unordered, .monotonic => false,
+    };
+}
+
+fn acquireImpl() void {
+    var word: u8 = 0;
+    _ = @atomicLoad(u8, &word, .acquire);
+}
+
+fn releaseImpl() void {
+    var word: u8 = 0;
+    @atomicStore(u8, &word, 0, .release);
+}
+
+fn fullImpl() void {
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
+}
+
+fn acquireReleaseImpl() void {
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .acq_rel);
+}
+
 test "phase3 barrier wrappers compile" {
     compiler();
     acquire();
@@ -7,6 +39,23 @@ test "phase3 barrier wrappers compile" {
     full();
     acquireRelease();
     fullFence();
+    try fence(.acquire);
+    try fence(.release);
+    try fence(.acq_rel);
+    try fence(.seq_cst);
+}
+
+test "phase3 barrier wrappers keep fence ordering rules explicit" {
+    try std.testing.expect(fenceOrderAllowed(.acquire));
+    try std.testing.expect(fenceOrderAllowed(.release));
+    try std.testing.expect(fenceOrderAllowed(.acq_rel));
+    try std.testing.expect(fenceOrderAllowed(.seq_cst));
+
+    try std.testing.expect(!fenceOrderAllowed(.unordered));
+    try std.testing.expect(!fenceOrderAllowed(.monotonic));
+
+    try std.testing.expectError(error.InvalidFenceOrdering, fence(.unordered));
+    try std.testing.expectError(error.InvalidFenceOrdering, fence(.monotonic));
 }
 
 test "phase3 barrier wrappers keep compiler fences reviewable" {
@@ -139,27 +188,36 @@ pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
 
+pub fn fence(comptime order: Ordering) FenceError!void {
+    if (comptime !fenceOrderAllowed(order)) {
+        return error.InvalidFenceOrdering;
+    }
+
+    switch (order) {
+        .acquire => acquireImpl(),
+        .release => releaseImpl(),
+        .acq_rel => acquireReleaseImpl(),
+        .seq_cst => fullImpl(),
+        .unordered, .monotonic => unreachable,
+    }
+}
+
 pub fn acquire() void {
-    var word: u8 = 0;
-    _ = @atomicLoad(u8, &word, .acquire);
+    fence(.acquire) catch unreachable;
 }
 
 pub fn release() void {
-    var word: u8 = 0;
-    @atomicStore(u8, &word, 0, .release);
+    fence(.release) catch unreachable;
 }
 
 pub fn full() void {
-    var word: u8 = 0;
-    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
+    fence(.seq_cst) catch unreachable;
 }
 
 pub fn acquireRelease() void {
-    var word: u8 = 0;
-    _ = @atomicRmw(u8, &word, .Xchg, 0, .acq_rel);
+    fence(.acq_rel) catch unreachable;
 }
 
 pub fn fullFence() void {
-    var word: u8 = 0;
-    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
+    fence(.seq_cst) catch unreachable;
 }
