@@ -156,6 +156,7 @@
       "phase10-interrupt-ack-bookkeeping-helper",
       "phase10-lifecycle-guard-bookkeeping-helper",
       "phase10-driver-validation-narrowing-helper",
+      "phase10-core-attribute-summary-helper",
       "phase10-reset-replay-bookkeeping-helper"
     ]
   },
