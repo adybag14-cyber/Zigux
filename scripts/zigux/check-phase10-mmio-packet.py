@@ -185,7 +185,8 @@ SURVEY_GATE_MARKERS = [
     'try expectContains(slice_note, "scripts/zigux/check-phase10-mmio-packet.py");',
     'try expectContains(slice_note, "planning-only config-write observation");',
     "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice",
-    'test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inventory, and risky transport posture explicit" {',
+    'test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {',
+    'try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");',
     'try expectContains(manifest, "\\"lane_key\\": \\\"P10-L11\\\"");',
     'try expectContains(manifest, "\\"risky_transport_posture\\": \\\"blocked_on_risky_transport\\\"");',
     'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-interrupt-ack-disposition-helper\\\"");',
@@ -336,7 +337,8 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey packet keeps the config-write companion and slice note explicit" {', 'test "phase10 virtio mmio survey packet keeps only the config-write companion explicit" {', 'survey_gate:test "phase10 virtio mmio survey packet keeps the config-write companion and slice note explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", "`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion", "`zigux/tests/phase10_virtio_mmio_manifest_missing.json` now rematerializes as the bounded MMIO manifest companion", "survey_gate:`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion", "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md` now materializes as the packet-local slice companion", "survey_gate:`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion")
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inventory, and risky transport posture explicit" {', 'test "phase10 virtio mmio survey gate keeps manifest lane identity explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inventory, and risky transport posture explicit" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {', 'test "phase10 virtio mmio survey gate keeps survey-note lane identity explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");', 'try expectContains(lane_sequencing_note, "MMIO lane `P10-L10` owns the bounded MMIO helper packet");', 'survey_gate:try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"lane_key\\": \\\"P10-L11\\\"");', 'try expectContains(manifest, "\\"lane_key\\": \\\"P10-L10\\\"");', 'survey_gate:try expectContains(manifest, "\\"lane_key\\": \\\"P10-L11\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"risky_transport_posture\\": \\\"blocked_on_risky_transport\\\"");', 'try expectContains(manifest, "\\"risky_transport_posture\\": \\\"missing\\\"");', 'survey_gate:try expectContains(manifest, "\\"risky_transport_posture\\": \\\"blocked_on_risky_transport\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");', 'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");')
@@ -344,7 +346,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=49")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=50")
     return 0
 
 
