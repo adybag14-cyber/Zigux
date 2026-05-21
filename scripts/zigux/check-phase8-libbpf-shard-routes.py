@@ -13,6 +13,8 @@ BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridg
 DOCS_README_PATH = "Documentation/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
@@ -21,6 +23,8 @@ REQUIRED_FILES = (
     DOCS_README_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
+    BRIDGE_TEST_PATH,
+    MANIFEST_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -72,6 +76,19 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
         "phase8-test:",
         "zigux/tests/phase8_build.zig --summary all",
+    ),
+    BRIDGE_TEST_PATH: (
+        "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
+        "\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
+    ),
+    MANIFEST_PATH: (
+        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        "direct procfs reads and descriptor ownership flow",
+        "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
     ),
 }
 
