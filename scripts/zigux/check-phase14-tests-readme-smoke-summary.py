@@ -76,7 +76,6 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "`zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     "`zigux/tests/phase14_skbuff_bridge.zig`",
-    "`zigux/tests/phase14_ring_buffer_survey.zig`",
     "`zigux/tests/phase14_rcu_tree_survey.zig`",
     "`net/core/skbuff_bridge.zig`",
 )
@@ -316,8 +315,8 @@ def run_self_test() -> int:
         tests_path = base / TESTS_ROOT_README_PATH
         tests_path.write_text(
             tests_path.read_text(encoding="utf-8").replace(
-                REQUIRED_TESTS_ROOT_MARKERS[14],
-                "`zigux/tests/phase14_ring_buffer_summary.zig`",
+                REQUIRED_TESTS_ROOT_MARKERS[13],
+                "`zigux/tests/phase14_rcu_tree_summary.zig`",
                 1,
             ),
             encoding="utf-8",
