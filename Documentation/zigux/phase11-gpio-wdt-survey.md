@@ -18,6 +18,7 @@ wording drifted ahead of current contents reads.
   reviewable through:
   - `drivers/watchdog/gpio_wdt.zig`
   - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+  - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
   - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -34,7 +35,8 @@ wording drifted ahead of current contents reads.
   packet framed as archival or repo-reality-gap vocabulary until a future
   reread proves those anchors returned beside the current direct proof file
 - `zigux/Makefile` still exposes no dedicated `make -C zigux phase11-gpio-wdt`
-  route
+  route, but the returned packet now has a dedicated bounded replay route at
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - remaining unported work is still direct focused replay or manifest recovery,
   platform-driver registration reviewability, watchdog-core registration
   reviewability, live remove-hook execution, reboot-backed teardown execution,
@@ -47,16 +49,18 @@ driver-plus-docs-plus-proof packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver, focused register-device glue proof, and companion notes
-keep the bounded `platformDriverIdentitySummary()`,
-`watchdogMetadataSummary()`, `probeSummary()`,
-`descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
+The returned driver, focused register-device glue proof, dedicated bounded
+replay route, and companion notes keep the bounded
+`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
+`probeSummary()`, `descriptorRequestSummary()`,
+`timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `nowayoutPolicySummary()`, `registrationHandoffSummary()`,
@@ -85,8 +89,8 @@ and hardware-backed validation.
 
 Current authenticated contents reads keep a narrower gpio watchdog continuity
 packet directly reviewable on `master` through the returned driver, the focused
-register-device glue proof, and the survey note, module slice, teardown note,
-remove-handoff note, and validation matrix.
+register-device glue proof, the dedicated bounded replay route, and the survey
+note, module slice, teardown note, remove-handoff note, and validation matrix.
 
 That current packet now also keeps the bounded remove-handoff packet explicit
 beside the existing watchdog-drvdata ownership handoff and reboot-glue
