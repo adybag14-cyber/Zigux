@@ -141,6 +141,10 @@ TARGETLESS_WITNESS_CHECKER_MARKERS = (
 )
 
 DRIVER_MARKERS = (
+    "pub const FlushIntentRequest = struct {",
+    "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {",
+    "pub const CloseTeardownRequest = struct {",
+    "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {",
     "pub const RemoveHandoffRequest = struct {",
     "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
     "pub const CleanupHandoffRequest = struct {",
@@ -151,6 +155,8 @@ DRIVER_MARKERS = (
     "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
     "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
+    'test "phase11 hvc console keeps flush intent summary reviewable" {',
+    'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {',
     'test "phase11 hvc console keeps remove handoff summary reviewable" {',
     'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
     'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
@@ -513,6 +519,12 @@ def run_self_test() -> int:
             (MATRIX_PATH, "the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` plus `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` witness shard now rereads the live starter and the boundary note together"),
             (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
             (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\""),
+            (DRIVER_PATH, "pub const FlushIntentRequest = struct {"),
+            (DRIVER_PATH, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {"),
+            (DRIVER_PATH, "pub const CloseTeardownRequest = struct {"),
+            (DRIVER_PATH, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {"),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps flush intent summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {'),
             (DRIVER_PATH, "targetless_unregister_request_sanitized: bool,"),
             (DRIVER_PATH, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {'),
@@ -536,7 +548,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=25")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=31")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
