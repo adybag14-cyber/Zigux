@@ -9,7 +9,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
@@ -85,11 +86,68 @@ READY_TRANSPORT_FOLLOWUPS = {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
 
+EXPECTED_CORE_HELPERS = [
+    "phase10-queue-shape-bookkeeping-helper",
+    "phase10-config-generation-bookkeeping-helper",
+    "phase10-interrupt-ack-bookkeeping-helper",
+    "phase10-lifecycle-guard-bookkeeping-helper",
+    "phase10-driver-validation-narrowing-helper",
+    "phase10-reset-replay-bookkeeping-helper",
+]
+
+EXPECTED_RING_HELPERS = [
+    "phase10-virtqueue-shape-helper",
+    "phase10-used-buffer-polling-helper",
+    "phase10-callback-enable-helper",
+    "phase10-callback-delay-helper",
+    "phase10-notify-prepare-helper",
+    "phase10-notification-data-summary-helper",
+    "phase10-broken-queue-poll-guard",
+    "phase10-queue-publish-readiness-helper",
+    "phase10-queue-reset-helper",
+    "phase10-queue-reset-readiness-helper",
+    "phase10-ring-verify-replay",
+    "phase10-virtio-ring-slice-note",
+]
+
+EXPECTED_INPUT_HELPERS = [
+    "phase10-virtio-input-capability-setup-helper",
+    "phase10-virtio-input-multitouch-slot-helper",
+    "phase10-virtio-input-probe-preflight-helper",
+    "phase10-virtio-input-teardown-observation-helper",
+    "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-queue-callback-preflight-helper",
+    "phase10-virtio-input-status-drain-helper",
+]
+
+EXPECTED_MMIO_HELPERS = [
+    "phase10-virtio-mmio-lab-helper",
+    "phase10-mmio-transport-identity-helper",
+    "phase10-mmio-probe-preflight-helper",
+    "phase10-mmio-selected-queue-readiness-helper",
+    "phase10-mmio-interrupt-ack-disposition-helper",
+    "phase10-mmio-feature-negotiation-summary-helper",
+    "phase10-mmio-config-write-plan-freshness-helper",
+    "phase10-mmio-config-write-disposition-helper",
+]
+
 LANDED_HELPER_FIELDS = {
-    "landed_core_helper_evidence": "zigux/tests/phase10_virtio_core_manifest.json",
-    "landed_ring_helper_evidence": "zigux/tests/phase10_virtio_ring_manifest.json",
-    "landed_input_helper_evidence": "zigux/tests/phase10_virtio_input_manifest.json",
-    "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "landed_core_helper_evidence": {
+        "path": "zigux/tests/phase10_virtio_core_manifest.json",
+        "expected_helpers": EXPECTED_CORE_HELPERS,
+    },
+    "landed_ring_helper_evidence": {
+        "path": "zigux/tests/phase10_virtio_ring_manifest.json",
+        "expected_helpers": EXPECTED_RING_HELPERS,
+    },
+    "landed_input_helper_evidence": {
+        "path": "zigux/tests/phase10_virtio_input_manifest.json",
+        "expected_helpers": EXPECTED_INPUT_HELPERS,
+    },
+    "landed_mmio_helper_evidence": {
+        "path": "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "expected_helpers": EXPECTED_MMIO_HELPERS,
+    },
 }
 
 FOCUSED_HARNESS_REPLAY_FILES = [
@@ -123,7 +181,7 @@ EXPECTED_EXACT_CHECKS = [
     "make -C zigux phase10-validate",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10"
 ]
 
 COMMANDS = [
@@ -226,19 +284,27 @@ def collect_manifest_drift(root: Path) -> list[str]:
         if expected_gap not in blocked:
             drift.append(f"ready_transport_followups:{path}:{expected_gap!r}:not_blocked_on_risky_transport")
 
-    for field, path in LANDED_HELPER_FIELDS.items():
+    for field, packet in LANDED_HELPER_FIELDS.items():
+        path = packet["path"]
+        expected_helpers = packet["expected_helpers"]
         helper_map = closure.get(field, {})
         listed = helper_map.get(path)
         if not isinstance(listed, list) or not listed:
             drift.append(f"{field}:{path}:missing")
             continue
+        for helper_id in expected_helpers:
+            if helper_id not in listed:
+                drift.append(f"{field}:{path}:{helper_id!r}:missing_from_closure")
+        for helper_id in listed:
+            if helper_id not in expected_helpers:
+                drift.append(f"{field}:{path}:{helper_id!r}:unexpected_in_closure")
         manifest = read_json(root, path)
         landed = {
             gap.get("id")
             for gap in manifest.get("gaps", [])
             if gap.get("status") == "starter_landed" and isinstance(gap.get("id"), str)
         }
-        for helper_id in listed:
+        for helper_id in expected_helpers:
             if helper_id not in landed:
                 drift.append(f"{field}:{path}:{helper_id!r}:not_starter_landed")
 
@@ -367,28 +433,16 @@ def write_fixture(root: Path) -> None:
             "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
         },
         "landed_core_helper_evidence": {
-            "zigux/tests/phase10_virtio_core_manifest.json": [
-                "phase10-queue-shape-bookkeeping-helper",
-                "phase10-config-generation-bookkeeping-helper",
-            ]
+            "zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS
         },
         "landed_ring_helper_evidence": {
-            "zigux/tests/phase10_virtio_ring_manifest.json": [
-                "phase10-virtqueue-shape-helper",
-                "phase10-notify-prepare-helper",
-            ]
+            "zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS
         },
         "landed_input_helper_evidence": {
-            "zigux/tests/phase10_virtio_input_manifest.json": [
-                "phase10-virtio-input-capability-setup-helper",
-                "phase10-virtio-input-status-drain-helper",
-            ]
+            "zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS
         },
         "landed_mmio_helper_evidence": {
-            "zigux/tests/phase10_virtio_mmio_manifest.json": [
-                "phase10-mmio-transport-identity-helper",
-                "phase10-mmio-selected-queue-readiness-helper",
-            ]
+            "zigux/tests/phase10_virtio_mmio_manifest.json": EXPECTED_MMIO_HELPERS
         },
         "focused_harness_replays": {
             path: [path.rsplit("/", 1)[-1].replace(".zig", " replay")]
@@ -403,8 +457,7 @@ def write_fixture(root: Path) -> None:
             "P10-L01",
             "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
             [
-                "phase10-queue-shape-bookkeeping-helper",
-                "phase10-config-generation-bookkeeping-helper",
+                *EXPECTED_CORE_HELPERS,
             ],
             ["phase10-core-probe-remove-lifecycle"],
         ),
@@ -415,8 +468,7 @@ def write_fixture(root: Path) -> None:
             "P10-L10",
             "0aa2db32bcb1c7065850ee3f66ec119b071fbf5c",
             [
-                "phase10-virtqueue-shape-helper",
-                "phase10-notify-prepare-helper",
+                *EXPECTED_RING_HELPERS,
             ],
             [],
         ),
@@ -427,8 +479,7 @@ def write_fixture(root: Path) -> None:
             "P10-L22",
             "ee789f026f11a0c5c70ded9a868979cdf4f55393",
             [
-                "phase10-virtio-input-capability-setup-helper",
-                "phase10-virtio-input-status-drain-helper",
+                *EXPECTED_INPUT_HELPERS,
             ],
             ["phase10-virtio-input-registration-lifecycle"],
         ),
@@ -439,8 +490,7 @@ def write_fixture(root: Path) -> None:
             "P10-L11",
             "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
             [
-                "phase10-mmio-transport-identity-helper",
-                "phase10-mmio-selected-queue-readiness-helper",
+                *EXPECTED_MMIO_HELPERS,
             ],
             ["phase10-mmio-lifecycle-and-irq-paths"],
         ),
@@ -559,17 +609,42 @@ def run_self_test() -> int:
         cases += 1
 
         helper_cases = [
-            ("landed_core_helper_evidence", "zigux/tests/phase10_virtio_core_manifest.json", "phase10-interrupt-ack-bookkeeping-helper"),
-            ("landed_ring_helper_evidence", "zigux/tests/phase10_virtio_ring_manifest.json", "phase10-callback-delay-helper"),
-            ("landed_input_helper_evidence", "zigux/tests/phase10_virtio_input_manifest.json", "phase10-virtio-input-queue-callback-preflight-helper"),
+            ("landed_core_helper_evidence", "zigux/tests/phase10_virtio_core_manifest.json", "phase10-core-unexpected-helper"),
+            ("landed_ring_helper_evidence", "zigux/tests/phase10_virtio_ring_manifest.json", "phase10-ring-unexpected-helper"),
+            ("landed_input_helper_evidence", "zigux/tests/phase10_virtio_input_manifest.json", "phase10-input-unexpected-helper"),
         ]
         for field, path, helper_id in helper_cases:
             broken = json.loads(json.dumps(original))
-            broken[field][path] = [broken[field][path][0], helper_id]
+            broken[field][path] = [*broken[field][path], helper_id]
             write_closure(broken)
             expect_contains(
                 collect_manifest_drift(root),
-                f"{field}:{path}:{helper_id!r}:not_starter_landed",
+                f"{field}:{path}:{helper_id!r}:unexpected_in_closure",
+                "phase10-closure-self-test",
+            )
+            cases += 1
+
+        exact_helper_cases = [
+            (
+                "landed_ring_helper_evidence",
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                "phase10-queue-publish-readiness-helper",
+            ),
+            (
+                "landed_mmio_helper_evidence",
+                "zigux/tests/phase10_virtio_mmio_manifest.json",
+                "phase10-mmio-config-write-plan-freshness-helper",
+            ),
+        ]
+        for field, path, helper_id in exact_helper_cases:
+            broken = json.loads(json.dumps(original))
+            broken[field][path] = [
+                item for item in broken[field][path] if item != helper_id
+            ]
+            write_closure(broken)
+            expect_contains(
+                collect_manifest_drift(root),
+                f"{field}:{path}:{helper_id!r}:missing_from_closure",
                 "phase10-closure-self-test",
             )
             cases += 1
