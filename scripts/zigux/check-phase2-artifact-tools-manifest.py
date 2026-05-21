@@ -46,11 +46,13 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 
-def read_manifest(path: Path) -> dict:
+def read_manifest(path: Path) -> tuple[dict | None, tuple[str, str] | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8")), None
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+    except json.JSONDecodeError:
+        return None, ("INVALID_MANIFEST_JSON", path.as_posix())
 
 
 def find_duplicate_strings(entries: list[str]) -> list[str]:
@@ -143,8 +145,12 @@ def load_primary_tool_supported_modes(path: Path) -> list[str]:
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
-    manifest = read_manifest(root / MANIFEST)
+    manifest, manifest_issue = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
+    if manifest_issue is not None:
+        issues.append(manifest_issue)
+        return issues
+    assert manifest is not None
 
     for key, expected in REQUIRED_TOP_LEVEL.items():
         if manifest.get(key) != expected:
@@ -265,6 +271,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + 1
         + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
         + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
     )
@@ -367,6 +374,11 @@ def run_self_test() -> int:
             "INVALID_PRIMARY_TOOL_SOURCE",
             f"{(root / PRIMARY_TOOL).as_posix()}:MODE_CHOICES:expected_string_sequence",
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(manifest_path, "{broken\n")
+        assert ("INVALID_MANIFEST_JSON", manifest_path.as_posix()) in collect_issues(root)
         checks_run += 1
 
         for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
