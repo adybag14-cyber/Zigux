@@ -14,7 +14,7 @@ NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
 
 ROLE_MARKER = (
     "PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for "
-    "already-landed ABI, boundary-header, and starter dev_t review surfaces only"
+    "already-landed ABI, boundary-header compatibility, and starter dev_t review surfaces only"
 )
 REQUIRED_SCOPE_MARKERS = {
     "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h": 1,
@@ -31,6 +31,7 @@ REQUIRED_NOTE_MARKERS = {
     "helper naming churn, alias-only growth, or relay-only expansion without packet-local proof should be treated as reviewability risk rather than Phase 3 closure": 1,
     "if a new boundary family needs its own ownership note, that note should land before or with the new header surface instead of being implied by aggregation here": 1,
     "keep them as thin named relays over the canonical ABI header and the shipped starter UAPI companions rather than moving semantic ownership here": 1,
+    "keep the starter UAPI companions and canonical owner headers as the single source of truth for the underlying status semantics, limits, and field meaning": 1,
 }
 HEADER_INCLUDE_MARKERS = (
     "#include <zigux/abi.h>",
@@ -42,6 +43,7 @@ HEADER_HELPERS = (
     "zigux_uapi_version_has_current_abi_minor",
     "zigux_uapi_version_has_current_header_family_revision",
     "zigux_uapi_version_matches_current",
+    "zigux_uapi_validate_version",
     "zigux_uapi_boundary_header_current",
     "zigux_uapi_boundary_header_compatible",
     "zigux_uapi_boundary_header_has_current_abi_version",
@@ -63,14 +65,19 @@ HEADER_HELPERS = (
     "zigux_boundary_header_canonicalize",
     "zigux_validate_boundary_header",
     "zigux_uapi_dev_t_fields_is_valid",
+    "zigux_uapi_validate_dev_t_fields",
+    "zigux_uapi_validate_dev_t_components",
     "zigux_uapi_dev_t_fields_range_is_valid",
+    "zigux_uapi_validate_dev_t_range",
 )
 NOTE_HELPERS = (
     "`zigux_uapi_version_current()`",
     "`zigux_uapi_version_has_current_*()`",
     "`zigux_uapi_version_matches_current()`",
+    "`zigux_uapi_validate_version()`",
     "`zigux_uapi_boundary_header_current()`",
     "`zigux_uapi_boundary_header_compatible()`",
+    "`zigux_uapi_boundary_header_has_current_abi_version()`",
     "`zigux_uapi_boundary_header_is_canonical()`",
     "`zigux_uapi_boundary_header_is_compatible()`",
     "`zigux_uapi_boundary_header_extends_boundary()`",
@@ -87,7 +94,10 @@ NOTE_HELPERS = (
     "`zigux_boundary_header_requested_extra_bytes()`",
     "`zigux_boundary_header_canonicalize()`",
     "`zigux_uapi_dev_t_fields_is_valid()`",
+    "`zigux_uapi_validate_dev_t_fields()`",
+    "`zigux_uapi_validate_dev_t_components()`",
     "`zigux_uapi_dev_t_fields_range_is_valid()`",
+    "`zigux_uapi_validate_dev_t_range()`",
 )
 
 
@@ -157,6 +167,7 @@ static inline int zigux_uapi_version_has_current_abi_major(void) { return 0; }
 static inline int zigux_uapi_version_has_current_abi_minor(void) { return 0; }
 static inline int zigux_uapi_version_has_current_header_family_revision(void) { return 0; }
 static inline int zigux_uapi_version_matches_current(void) { return 0; }
+static inline int zigux_uapi_validate_version(void) { return 0; }
 static inline int zigux_uapi_boundary_header_current(void) { return 0; }
 static inline int zigux_uapi_boundary_header_compatible(void) { return 0; }
 static inline int zigux_uapi_boundary_header_has_current_abi_version(void) { return 0; }
@@ -178,7 +189,10 @@ static inline int zigux_boundary_header_requested_extra_bytes(void) { return 0; 
 static inline int zigux_boundary_header_canonicalize(void) { return 0; }
 static inline int zigux_validate_boundary_header(void) { return 0; }
 static inline int zigux_uapi_dev_t_fields_is_valid(void) { return 0; }
+static inline int zigux_uapi_validate_dev_t_fields(void) { return 0; }
+static inline int zigux_uapi_validate_dev_t_components(void) { return 0; }
 static inline int zigux_uapi_dev_t_fields_range_is_valid(void) { return 0; }
+static inline int zigux_uapi_validate_dev_t_range(void) { return 0; }
 
 #endif
 """
@@ -199,12 +213,15 @@ growth in this header is only reviewable when the same bounded change keeps the 
 helper naming churn, alias-only growth, or relay-only expansion without packet-local proof should be treated as reviewability risk rather than Phase 3 closure
 if a new boundary family needs its own ownership note, that note should land before or with the new header surface instead of being implied by aggregation here
 keep them as thin named relays over the canonical ABI header and the shipped starter UAPI companions rather than moving semantic ownership here
+keep the starter UAPI companions and canonical owner headers as the single source of truth for the underlying status semantics, limits, and field meaning
 
 `zigux_uapi_version_current()`
 `zigux_uapi_version_has_current_*()`
 `zigux_uapi_version_matches_current()`
+`zigux_uapi_validate_version()`
 `zigux_uapi_boundary_header_current()`
 `zigux_uapi_boundary_header_compatible()`
+`zigux_uapi_boundary_header_has_current_abi_version()`
 `zigux_uapi_boundary_header_is_canonical()`
 `zigux_uapi_boundary_header_is_compatible()`
 `zigux_uapi_boundary_header_extends_boundary()`
@@ -221,7 +238,10 @@ keep them as thin named relays over the canonical ABI header and the shipped sta
 `zigux_boundary_header_requested_extra_bytes()`
 `zigux_boundary_header_canonicalize()`
 `zigux_uapi_dev_t_fields_is_valid()`
+`zigux_uapi_validate_dev_t_fields()`
+`zigux_uapi_validate_dev_t_components()`
 `zigux_uapi_dev_t_fields_range_is_valid()`
+`zigux_uapi_validate_dev_t_range()`
 """
     issues = validate_text(sample_note, sample_header)
     if issues:
@@ -237,10 +257,10 @@ keep them as thin named relays over the canonical ABI header and the shipped sta
         return 1
 
     broken = validate_text(
-        sample_note.replace("`zigux_boundary_header_requested_extra_bytes()`", "", 1),
+        sample_note.replace("`zigux_uapi_validate_dev_t_range()`", "", 1),
         sample_header,
     )
-    expected = "governance note helper marker missing: `zigux_boundary_header_requested_extra_bytes()`"
+    expected = "governance note helper marker missing: `zigux_uapi_validate_dev_t_range()`"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected helper-marker drift was not reported")
@@ -254,11 +274,11 @@ keep them as thin named relays over the canonical ABI header and the shipped sta
         return 1
 
     broken = validate_text(sample_note, sample_header.replace(
-        "static inline int zigux_boundary_header_is_current_abi_version(void) { return 0; }\n",
+        "static inline int zigux_uapi_validate_version(void) { return 0; }\n",
         "",
         1,
     ))
-    expected = "header helper missing: zigux_boundary_header_is_current_abi_version"
+    expected = "header helper missing: zigux_uapi_validate_version"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected header-helper drift was not reported")
