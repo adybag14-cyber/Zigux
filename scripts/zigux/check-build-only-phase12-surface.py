@@ -136,6 +136,7 @@ REQUIRED_MARKERS = {
         RELEASE_READINESS_CHECKER_PATH,
         "make -C zigux phase12-validate",
         "stale reminder vocabulary",
+        "scripts-side support packet",
     ],
     DOCS_ROOT_README_PATH: DOCS_ROOT_MARKERS,
     RELEASE_CLOSURE_CHECKLIST_PATH: RELEASE_CLOSURE_CHECKLIST_MARKERS,
@@ -217,7 +218,7 @@ EXACT_LINE_MARKER_PATHS = {WORKFLOW_PATH}
 
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
-        return marker in text.splitlines()
+        return marker.lstrip() in [line.lstrip() for line in text.splitlines()]
     return marker in text
 
 
@@ -580,12 +581,26 @@ def run_self_test() -> int:
             f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{RAW_GITHUB_COVERAGE_MARKER}",
         )
 
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            "\n".join(f"    {line}" for line in workflow_path.read_text(encoding="utf-8").splitlines())
+            + "\n",
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if failures:
+            raise SystemExit(
+                "indented workflow fixture should still pass but failed: "
+                f"{failures!r}"
+            )
+
         case_count = (
             len(REQUIRED_FILES)
             + len(marker_cases)
             + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
             + len(PHASE12_BUILD_EXACT_COUNTS)
-            + 5
+            + 6
         )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
