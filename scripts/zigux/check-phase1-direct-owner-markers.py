@@ -104,9 +104,8 @@ EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
     "parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, "
     "cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and "
     "or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical "
-    "short-circuit, and Linux-style alias mirror anchors here, and if the separate bitmap "
-    "closure-validator anchor-sync repair is still outstanding, treat that as the only other "
-    "bitmap follow-through."
+    "short-circuit, and Linux-style alias mirror anchors here; do not reopen older closure-side "
+    "or validator-route cue names by default."
 )
 EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor "
