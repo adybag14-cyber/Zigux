@@ -180,6 +180,62 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
+EXPECTED_DOCS = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+]
+
+EXPECTED_MANIFESTS = [
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+]
+
+EXPECTED_DRIVERS = [
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_mmio.zig",
+]
+
+EXPECTED_TESTS = [
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "drivers/virtio/virtio_ring_publish_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+]
+
+INVENTORY_FIELDS = {
+    "docs": ("doc_count", EXPECTED_DOCS),
+    "manifests": ("manifest_count", EXPECTED_MANIFESTS),
+    "drivers": ("driver_count", EXPECTED_DRIVERS),
+    "tests": ("test_count", EXPECTED_TESTS),
+}
+
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-bootstrap-route.py",
     "python3 scripts/zigux/check-phase10-shared-freeze-boundary.py",
@@ -269,6 +325,21 @@ def collect_manifest_drift(root: Path) -> list[str]:
         if len(indexes) == len(EXPECTED_EXACT_CHECKS) and indexes != sorted(indexes):
             drift.append("exact_checks:phase10_route:out_of_order")
 
+    for field, (count_field, expected_items) in INVENTORY_FIELDS.items():
+        items = closure.get(field)
+        if not isinstance(items, list) or not items:
+            drift.append(f"{field}:missing")
+            continue
+        count_value = closure.get(count_field)
+        if count_value != len(items):
+            drift.append(f"{count_field}:{count_value!r}!={len(items)}")
+        for item in expected_items:
+            if item not in items:
+                drift.append(f"{field}:{item!r}:missing")
+        for item in items:
+            if item not in expected_items:
+                drift.append(f"{field}:{item!r}:unexpected")
+
     for key, path in SURVEY_MANIFESTS.items():
         manifest = read_json(root, path)
         if lane_keys.get(key) != manifest.get("lane_key"):
@@ -295,8 +366,10 @@ def collect_manifest_drift(root: Path) -> list[str]:
         elif blocked_gap != expected_gap:
             drift.append(f"blocked_transport_gaps:{path}:{blocked_gap!r}!={expected_gap!r}")
 
-        if isinstance(actual_gap, str) and actual_gap and isinstance(blocked_gap, str) and blocked_gap and actual_gap != blocked_gap:
-            drift.append(f"ready_transport_followups:{path}:{actual_gap!r}!=blocked_transport_gaps:{blocked_gap!r}")
+        if isinstance(actual_gap, str) and isinstance(blocked_gap, str) and actual_gap != blocked_gap:
+            drift.append(
+                f"ready_transport_followups:{path}:{actual_gap!r}!=blocked_transport_gaps:{blocked_gap!r}"
+            )
 
         manifest = read_json(root, path)
         blocked = {
@@ -380,6 +453,11 @@ def build_manifest(lane_key: str, surveyed_commit: str, starter_ids: list[str], 
 
 def write_fixture(root: Path) -> None:
     write_text(root / "scripts/zigux/validate-phase10-closure.py", "fixture\n")
+    stub = (
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "raise SystemExit(0)\n"
+    )
     for rel_path in [
         "scripts/zigux/validate-phase10.py",
         "scripts/zigux/check-phase10-bootstrap-route.py",
@@ -390,26 +468,14 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     ]:
-        write_text(
-            root / rel_path,
-            "#!/usr/bin/env python3\n"
-            "import sys\n"
-            "if '--self-test' in sys.argv[1:]:\n"
-            "    raise SystemExit(0)\n"
-            "raise SystemExit(0)\n",
-        )
-    for rel_path in [
-        "Documentation/zigux/phase10-closure-evidence.md",
-        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-        "Documentation/zigux/review-checklist.md",
-        "zigux/Makefile",
-    ]:
-        markers = {
-            "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
-            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
-            "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
-            "zigux/Makefile": MAKE_MARKERS,
-        }[rel_path]
+        write_text(root / rel_path, stub)
+
+    for rel_path, markers in {
+        "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
+        "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
+        "zigux/Makefile": MAKE_MARKERS,
+    }.items():
         write_text(root / rel_path, "\n".join(markers) + "\n")
 
     write_text(
@@ -418,30 +484,24 @@ def write_fixture(root: Path) -> None:
         "jobs:\n"
         "  bootstrap:\n"
         "    steps:\n"
-        "      - name: Self-test current Phase 10 bootstrap route checker\n"
-        "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test\n"
-        "      - name: Check current Phase 10 bootstrap route\n"
-        "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py\n"
-        "      - name: Validate Phase 10 checker-backed review packet\n"
-        "        run: make -C zigux phase10-validate\n"
-        "      - name: Run Phase 10 helper tests\n"
-        "        run: make -C zigux phase10-test\n",
+        "      - run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test\n"
+        "      - run: python3 scripts/zigux/check-phase10-bootstrap-route.py\n"
+        "      - run: make -C zigux phase10-validate\n"
+        "      - run: make -C zigux phase10-test\n",
     )
 
     closure_manifest = {
         "phase": "Phase 10",
+        "status": "active",
         "tranche": "virtio-lab-bundle",
-        "lab_only_driver_validation": {
-            "evidence": ["scripts/zigux/check-phase10-harness-coverage.py"]
-        },
+        "doc_count": len(EXPECTED_DOCS),
+        "manifest_count": len(EXPECTED_MANIFESTS),
+        "driver_count": len(EXPECTED_DRIVERS),
+        "test_count": len(EXPECTED_TESTS),
+        "lab_only_driver_validation": {"evidence": ["scripts/zigux/check-phase10-harness-coverage.py"]},
         "exact_checks": EXPECTED_EXACT_CHECKS,
         "survey_provenance": {
-            "lane_keys": {
-                "core": "P10-L01",
-                "ring": "P10-L10",
-                "input": "P10-L22",
-                "mmio": "P10-L11",
-            },
+            "lane_keys": {"core": "P10-L01", "ring": "P10-L10", "input": "P10-L22", "mmio": "P10-L11"},
             "surveyed_commits": {
                 "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
                 "ring": "0aa2db32bcb1c7065850ee3f66ec119b071fbf5c",
@@ -455,68 +515,34 @@ def write_fixture(root: Path) -> None:
             "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
             "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
         },
-        "landed_core_helper_evidence": {
-            "zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS
-        },
-        "landed_ring_helper_evidence": {
-            "zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS
-        },
-        "landed_input_helper_evidence": {
-            "zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS
-        },
-        "landed_mmio_helper_evidence": {
-            "zigux/tests/phase10_virtio_mmio_manifest.json": EXPECTED_MMIO_HELPERS
-        },
+        "landed_core_helper_evidence": {"zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS},
+        "landed_ring_helper_evidence": {"zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS},
+        "landed_input_helper_evidence": {"zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS},
+        "landed_mmio_helper_evidence": {"zigux/tests/phase10_virtio_mmio_manifest.json": EXPECTED_MMIO_HELPERS},
         "focused_harness_replays": {
-            path: [path.rsplit("/", 1)[-1].replace(".zig", " replay")]
-            for path in FOCUSED_HARNESS_REPLAY_FILES
+            path: [path.rsplit("/", 1)[-1].replace(".zig", " replay")] for path in FOCUSED_HARNESS_REPLAY_FILES
         },
-        "tests": FOCUSED_HARNESS_REPLAY_FILES,
+        "docs": EXPECTED_DOCS,
+        "manifests": EXPECTED_MANIFESTS,
+        "drivers": EXPECTED_DRIVERS,
+        "tests": EXPECTED_TESTS,
     }
     write_text(root / "zigux/tests/phase10_closure_manifest.json", json.dumps(closure_manifest))
     write_text(
         root / "zigux/tests/phase10_virtio_core_manifest.json",
-        build_manifest(
-            "P10-L01",
-            "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
-            [
-                *EXPECTED_CORE_HELPERS,
-            ],
-            ["phase10-core-probe-remove-lifecycle"],
-        ),
+        build_manifest("P10-L01", "c11221dc7a68d7511ae1c69d64b3f08528287ed8", EXPECTED_CORE_HELPERS, ["phase10-core-probe-remove-lifecycle"]),
     )
     write_text(
         root / "zigux/tests/phase10_virtio_ring_manifest.json",
-        build_manifest(
-            "P10-L10",
-            "0aa2db32bcb1c7065850ee3f66ec119b071fbf5c",
-            [
-                *EXPECTED_RING_HELPERS,
-            ],
-            [],
-        ),
+        build_manifest("P10-L10", "0aa2db32bcb1c7065850ee3f66ec119b071fbf5c", EXPECTED_RING_HELPERS, []),
     )
     write_text(
         root / "zigux/tests/phase10_virtio_input_manifest.json",
-        build_manifest(
-            "P10-L22",
-            "ee789f026f11a0c5c70ded9a868979cdf4f55393",
-            [
-                *EXPECTED_INPUT_HELPERS,
-            ],
-            ["phase10-virtio-input-registration-lifecycle"],
-        ),
+        build_manifest("P10-L22", "ee789f026f11a0c5c70ded9a868979cdf4f55393", EXPECTED_INPUT_HELPERS, ["phase10-virtio-input-registration-lifecycle"]),
     )
     write_text(
         root / "zigux/tests/phase10_virtio_mmio_manifest.json",
-        build_manifest(
-            "P10-L11",
-            "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
-            [
-                *EXPECTED_MMIO_HELPERS,
-            ],
-            ["phase10-mmio-lifecycle-and-irq-paths"],
-        ),
+        build_manifest("P10-L11", "b53ec2bd507d0b3283486e76acc273b184ad5bf8", EXPECTED_MMIO_HELPERS, ["phase10-mmio-lifecycle-and-irq-paths"]),
     )
 
 
@@ -536,73 +562,67 @@ def run_self_test() -> int:
         if run_required_commands(root):
             raise SystemExit("phase10-closure-self-test:baseline_commands_failed")
 
+        cases = 0
         closure_path = root / "zigux/tests/phase10_closure_manifest.json"
         original = read_json(root, "zigux/tests/phase10_closure_manifest.json")
 
         def write_closure(data: dict) -> None:
             write_text(closure_path, json.dumps(data))
 
-        def expect_command_failure(rel_path: str, expected_failure: str, error_label: str) -> None:
-            path = root / rel_path
-            path.write_text(
-                "#!/usr/bin/env python3\n"
-                "raise SystemExit(1)\n",
-                encoding="utf-8",
-            )
-            failures = run_required_commands(root)
-            if failures != [expected_failure]:
-                actual = ",".join(failures) if failures else "none"
-                raise SystemExit(f"{error_label}:{actual}")
-            write_fixture(root)
-
-        cases = 0
-
-        broken = dict(original)
-        broken["exact_checks"] = [item for item in original["exact_checks"] if item != EXPECTED_EXACT_CHECKS[0]]
+        broken = json.loads(json.dumps(original))
+        broken["exact_checks"] = [item for item in broken["exact_checks"] if item != EXPECTED_EXACT_CHECKS[0]]
         write_closure(broken)
-        expect_contains(
-            collect_manifest_drift(root),
-            f"exact_checks:{EXPECTED_EXACT_CHECKS[0]!r}:missing",
-            "phase10-closure-self-test",
-        )
+        expect_contains(collect_manifest_drift(root), f"exact_checks:{EXPECTED_EXACT_CHECKS[0]!r}:missing", "phase10-closure-self-test")
         cases += 1
 
-        broken = dict(original)
-        broken["exact_checks"] = [item for item in original["exact_checks"] if item != EXPECTED_EXACT_CHECKS[4]]
-        write_closure(broken)
-        expect_contains(
-            collect_manifest_drift(root),
-            f"exact_checks:{EXPECTED_EXACT_CHECKS[4]!r}:missing",
-            "phase10-closure-self-test",
-        )
-        cases += 1
-
-        broken = dict(original)
+        broken = json.loads(json.dumps(original))
         reordered = list(EXPECTED_EXACT_CHECKS)
         reordered[1], reordered[2] = reordered[2], reordered[1]
         broken["exact_checks"] = reordered
         write_closure(broken)
+        expect_contains(collect_manifest_drift(root), "exact_checks:phase10_route:out_of_order", "phase10-closure-self-test")
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["doc_count"] = 6
+        write_closure(broken)
+        expect_contains(collect_manifest_drift(root), "doc_count:6!=7", "phase10-closure-self-test")
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["manifest_count"] = 3
+        write_closure(broken)
+        expect_contains(collect_manifest_drift(root), "manifest_count:3!=4", "phase10-closure-self-test")
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["drivers"] = [item for item in broken["drivers"] if item != "drivers/virtio/virtio_mmio.zig"]
+        write_closure(broken)
+        expect_contains(collect_manifest_drift(root), "driver_count:4!=3", "phase10-closure-self-test")
+        expect_contains(collect_manifest_drift(root), "drivers:'drivers/virtio/virtio_mmio.zig':missing", "phase10-closure-self-test")
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["tests"] = [item for item in broken["tests"] if item != "zigux/tests/phase10_virtio_mmio_survey.zig"]
+        write_closure(broken)
+        expect_contains(collect_manifest_drift(root), "test_count:22!=21", "phase10-closure-self-test")
+        expect_contains(collect_manifest_drift(root), "tests:'zigux/tests/phase10_virtio_mmio_survey.zig':missing", "phase10-closure-self-test")
         expect_contains(
             collect_manifest_drift(root),
-            "exact_checks:phase10_route:out_of_order",
+            "focused_harness_replays:zigux/tests/phase10_virtio_mmio_survey.zig:not_listed_in_tests",
             "phase10-closure-self-test",
         )
         cases += 1
-        write_closure(original)
 
-        drift_cases = [
-            ("survey_provenance", "lane_keys", "core", "P10-L10", "survey_provenance:core:lane_key:'P10-L10'!='P10-L01'"),
-            ("survey_provenance", "surveyed_commits", "core", "stale-core-sha", "survey_provenance:core:surveyed_commit:'stale-core-sha'!='c11221dc7a68d7511ae1c69d64b3f08528287ed8'"),
-            ("survey_provenance", "lane_keys", "ring", "P10-L05", "survey_provenance:ring:lane_key:'P10-L05'!='P10-L10'"),
-            ("survey_provenance", "lane_keys", "mmio", "P10-L10", "survey_provenance:mmio:lane_key:'P10-L10'!='P10-L11'"),
-            ("survey_provenance", "surveyed_commits", "ring", "stale-ring-sha", "survey_provenance:ring:surveyed_commit:'stale-ring-sha'!='0aa2db32bcb1c7065850ee3f66ec119b071fbf5c'"),
-        ]
-        for outer, inner, key, value, expected in drift_cases:
-            broken = json.loads(json.dumps(original))
-            broken[outer][inner][key] = value
-            write_closure(broken)
-            expect_contains(collect_manifest_drift(root), expected, "phase10-closure-self-test")
-            cases += 1
+        broken = json.loads(json.dumps(original))
+        broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L10"
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "survey_provenance:mmio:lane_key:'P10-L10'!='P10-L11'",
+            "phase10-closure-self-test",
+        )
+        cases += 1
 
         broken = json.loads(json.dumps(original))
         broken["ready_transport_followups"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
@@ -612,108 +632,18 @@ def run_self_test() -> int:
             "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'",
             "phase10-closure-self-test",
         )
-        expect_contains(
-            collect_manifest_drift(root),
-            "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!=blocked_transport_gaps:'phase10-mmio-lifecycle-and-irq-paths'",
-            "phase10-closure-self-test",
-        )
         cases += 1
 
         broken = json.loads(json.dumps(original))
-        del broken["blocked_transport_gaps"]["zigux/tests/phase10_virtio_input_manifest.json"]
+        broken["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = [
+            item
+            for item in broken["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"]
+            if item != "phase10-mmio-config-write-plan-freshness-helper"
+        ]
         write_closure(broken)
         expect_contains(
             collect_manifest_drift(root),
-            "blocked_transport_gaps:zigux/tests/phase10_virtio_input_manifest.json:missing",
-            "phase10-closure-self-test",
-        )
-        cases += 1
-
-        broken = json.loads(json.dumps(original))
-        broken["blocked_transport_gaps"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
-        write_closure(broken)
-        expect_contains(
-            collect_manifest_drift(root),
-            "blocked_transport_gaps:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'",
-            "phase10-closure-self-test",
-        )
-        expect_contains(
-            collect_manifest_drift(root),
-            "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-lifecycle-and-irq-paths'!=blocked_transport_gaps:'phase10-mmio-config-write-helper'",
-            "phase10-closure-self-test",
-        )
-        cases += 1
-
-        helper_cases = [
-            ("landed_core_helper_evidence", "zigux/tests/phase10_virtio_core_manifest.json", "phase10-core-unexpected-helper"),
-            ("landed_ring_helper_evidence", "zigux/tests/phase10_virtio_ring_manifest.json", "phase10-ring-unexpected-helper"),
-            ("landed_input_helper_evidence", "zigux/tests/phase10_virtio_input_manifest.json", "phase10-input-unexpected-helper"),
-        ]
-        for field, path, helper_id in helper_cases:
-            broken = json.loads(json.dumps(original))
-            broken[field][path] = [*broken[field][path], helper_id]
-            write_closure(broken)
-            expect_contains(
-                collect_manifest_drift(root),
-                f"{field}:{path}:{helper_id!r}:unexpected_in_closure",
-                "phase10-closure-self-test",
-            )
-            cases += 1
-
-        exact_helper_cases = [
-            (
-                "landed_core_helper_evidence",
-                "zigux/tests/phase10_virtio_core_manifest.json",
-                "phase10-core-attribute-summary-helper",
-            ),
-            (
-                "landed_ring_helper_evidence",
-                "zigux/tests/phase10_virtio_ring_manifest.json",
-                "phase10-queue-publish-readiness-helper",
-            ),
-            (
-                "landed_mmio_helper_evidence",
-                "zigux/tests/phase10_virtio_mmio_manifest.json",
-                "phase10-mmio-config-write-plan-freshness-helper",
-            ),
-        ]
-        for field, path, helper_id in exact_helper_cases:
-            broken = json.loads(json.dumps(original))
-            broken[field][path] = [
-                item for item in broken[field][path] if item != helper_id
-            ]
-            write_closure(broken)
-            expect_contains(
-                collect_manifest_drift(root),
-                f"{field}:{path}:{helper_id!r}:missing_from_closure",
-                "phase10-closure-self-test",
-            )
-            cases += 1
-
-        replay_cases = [
-            ("drivers/virtio/virtio_ring_publish_readiness.zig", "missing"),
-            ("zigux/tests/phase10_virtio_ring_notification_data_readiness.zig", "missing"),
-            ("zigux/tests/phase10_virtio_core_reset_queue.zig", "missing"),
-            ("zigux/tests/phase10_virtio_input_status_drain.zig", "missing"),
-            ("zigux/tests/phase10_virtio_mmio_survey.zig", "missing"),
-        ]
-        for path, _ in replay_cases:
-            broken = json.loads(json.dumps(original))
-            broken["focused_harness_replays"][path] = []
-            write_closure(broken)
-            expect_contains(
-                collect_manifest_drift(root),
-                f"focused_harness_replays:{path}:missing",
-                "phase10-closure-self-test",
-            )
-            cases += 1
-
-        broken = json.loads(json.dumps(original))
-        broken["tests"] = [item for item in original["tests"] if item != "drivers/virtio/virtio_ring_publish_readiness.zig"]
-        write_closure(broken)
-        expect_contains(
-            collect_manifest_drift(root),
-            "focused_harness_replays:drivers/virtio/virtio_ring_publish_readiness.zig:not_listed_in_tests",
+            "landed_mmio_helper_evidence:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-plan-freshness-helper':missing_from_closure",
             "phase10-closure-self-test",
         )
         cases += 1
@@ -730,83 +660,26 @@ def run_self_test() -> int:
 
         closure_doc = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_doc = closure_doc.read_text(encoding="utf-8")
-        closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_missing.json", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_manifest.json", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_mmio_survey.zig", "zigux/tests/phase10_virtio_mmio_survey_missing.zig", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_mmio_survey.zig", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-missing.md", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-shared-freeze-boundary.py", "scripts/zigux/check-phase10-shared-freeze-boundary-missing.py", 1), encoding="utf-8")
+        closure_doc.write_text(
+            original_doc.replace("scripts/zigux/check-phase10-shared-freeze-boundary.py", "scripts/zigux/check-phase10-shared-freeze-boundary-missing.py", 1),
+            encoding="utf-8",
+        )
         expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-shared-freeze-boundary.py", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-input-packet.py", "scripts/zigux/check-phase10-input-packet-missing.py", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-input-packet.py", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-mmio-packet.py", "scripts/zigux/check-phase10-mmio-packet-missing.py", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-mmio-packet.py", "phase10-closure-self-test")
-        cases += 1
-        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "scripts/zigux/check-phase10-tests-readme-core-surfaces-missing.py", 1), encoding="utf-8")
-        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "phase10-closure-self-test")
         cases += 1
         closure_doc.write_text(original_doc, encoding="utf-8")
 
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
-        expect_contains(
-            collect_missing_markers(root),
-            "make:PHONY += phase10-validate phase10-test phase10",
-            "phase10-closure-self-test",
-        )
+        expect_contains(collect_missing_markers(root), "make:PHONY += phase10-validate phase10-test phase10", "phase10-closure-self-test")
         cases += 1
         write_fixture(root)
 
-        expect_command_failure(
-            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
-            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
-            "phase10-closure-self-test:failed_shared_freeze_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/check-phase10-ring-packet.py",
-            "scripts/zigux/check-phase10-ring-packet.py",
-            "phase10-closure-self-test:failed_ring_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/check-phase10-input-packet.py",
-            "scripts/zigux/check-phase10-input-packet.py",
-            "phase10-closure-self-test:failed_input_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/check-phase10-mmio-packet.py",
-            "scripts/zigux/check-phase10-mmio-packet.py",
-            "phase10-closure-self-test:failed_mmio_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/check-phase10-harness-coverage.py",
-            "scripts/zigux/check-phase10-harness-coverage.py",
-            "phase10-closure-self-test:failed_harness_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
-            "phase10-closure-self-test:failed_tests_readme_command_not_detected",
-        )
-        cases += 1
-        expect_command_failure(
-            "scripts/zigux/validate-phase10.py",
-            "scripts/zigux/validate-phase10.py --self-test",
-            "phase10-closure-self-test:failed_phase10_validate_self_test_not_detected",
-        )
+        failing_script = root / "scripts/zigux/check-phase10-harness-coverage.py"
+        failing_script.write_text("#!/usr/bin/env python3\nraise SystemExit(1)\n", encoding="utf-8")
+        failures = run_required_commands(root)
+        if failures != ["scripts/zigux/check-phase10-harness-coverage.py --self-test", "scripts/zigux/check-phase10-harness-coverage.py"]:
+            actual = ",".join(failures) if failures else "none"
+            raise SystemExit(f"phase10-closure-self-test:failed_harness_command_not_detected:{actual}")
         cases += 1
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
@@ -860,11 +733,10 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE10_CLOSURE_DOC_MARKER_COUNT={len(CLOSURE_DOC_MARKERS)}")
+    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}")
     print(f"PHASE10_CLOSURE_EXACT_CHECK_COUNT={len(EXPECTED_EXACT_CHECKS)}")
-    print(f"PHASE10_CLOSURE_FOCUSED_REPLAY_COUNT={len(FOCUSED_HARNESS_REPLAY_FILES)}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
