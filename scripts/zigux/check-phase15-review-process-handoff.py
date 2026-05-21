@@ -290,6 +290,7 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
+                "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
                 "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
@@ -480,6 +481,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker
@@ -553,6 +555,7 @@ def run_self_test() -> int:
         _write(root / Path("scripts/zigux/check-phase15-review-process-handoff.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-handoff-note-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/check-phase15-readiness-gate-packet.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-scripts-readme-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
@@ -818,6 +821,19 @@ def run_self_test() -> int:
             "handoff note is missing required marker: `scripts/zigux/check-phase15-handoff-note-alignment.py`"
         ]:
             raise AssertionError(f"unexpected handoff-note-checker failure: {failures}")
+
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- `scripts/zigux/check-phase15-readiness-gate-packet.py`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "handoff note is missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`"
+        ]:
+            raise AssertionError(f"unexpected readiness-gate-checker failure: {failures}")
 
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(
