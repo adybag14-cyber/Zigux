@@ -77,6 +77,30 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
         ),
     );
 
+    var overflowing_tail: [exec_cmd.max_execl_slots - 1]?[]const u8 = undefined;
+    for (overflowing_tail[0 .. overflowing_tail.len - 1]) |*slot| {
+        slot.* = "--bounded";
+    }
+    overflowing_tail[overflowing_tail.len - 1] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        exec_cmd.collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            overflowing_tail[0..],
+        ),
+    );
+    try std.testing.expectError(
+        error.TooManyArguments,
+        exec_cmd.buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
+            "record",
+            overflowing_tail[0..],
+        ),
+    );
+
     var deferred_execl = try exec_cmd.buildDeferredExeclCall(
         std.testing.allocator,
         config,
