@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 106
+EXPECTED_SELF_TEST_CASE_COUNT = 111
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -828,6 +828,8 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH) in collect_issues(root)
         checks_run += 1
+        assert_run_checker_output_contains(root, "CHECKER_STILL_MARKED_MISSING_START")
+        checks_run += 1
 
         for shared_path in EXPECTED_SHARED_PRESENT_FILES:
             build_self_test_root(root)
@@ -836,12 +838,16 @@ def run_self_test() -> int:
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path) in collect_issues(root)
             checks_run += 1
+            assert_run_checker_output_contains(root, "SHARED_TOOL_NOT_MARKED_PRESENT_START")
+            checks_run += 1
 
             build_self_test_root(root)
             bad = json.loads(manifest_json())
             bad["missing_files"] = EXPECTED_MISSING_FILES + [shared_path]
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
+            checks_run += 1
+            assert_run_checker_output_contains(root, "SHARED_TOOL_STILL_MARKED_MISSING_START")
             checks_run += 1
 
         original_probe_required_file = globals()["probe_required_file"]
@@ -896,8 +902,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
         resolve_path(root, MANIFEST).mkdir(parents=True)
-        assert_system_exit_contains(lambda: collect_issues(root), "manifest is unreadable:")
-        resolve_path(root, MANIFEST).rmdir()
+        assert_systemExit_contains(lambda: collect_issues(root), "manifest is unreadable:")
         checks_run += 1
 
         build_self_test_root(root)
