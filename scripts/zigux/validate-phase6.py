@@ -18,6 +18,7 @@ HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.jso
 HELPER_PARITY_MANIFEST = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PHASE6_BUILD = Path("zigux/tests/phase6_build.zig")
 MAKEFILE = Path("zigux/Makefile")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 SHARED_SURFACE_CHECKER = Path("scripts/zigux/check-phase6-shared-surface.py")
 PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoints.py")
 BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")
@@ -53,6 +54,7 @@ REQUIRED_FILES = [
     HELPER_PARITY_MANIFEST,
     PHASE6_BUILD,
     MAKEFILE,
+    WORKFLOW,
     *[checker for checker, _ in CHECKER_INVOCATIONS],
 ]
 
@@ -120,6 +122,11 @@ REQUIRED_BUILD_SNIPPETS = [
     'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
 ]
 
+REQUIRED_WORKFLOW_SNIPPETS = [
+    "- name: Run current Phase 6 shared perf route",
+    "run: make -C zigux phase6-perf",
+]
+
 REQUIRED_CATALOG_SNIPPETS = [
     "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
     "## Roadmap perf-gap readback",
@@ -146,7 +153,7 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 27
 
 
 class ValidationError(RuntimeError):
@@ -232,6 +239,7 @@ def validate(root: Path) -> None:
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(root / PHASE6_BUILD, REQUIRED_BUILD_SNIPPETS)
+    require_snippets(root / WORKFLOW, REQUIRED_WORKFLOW_SNIPPETS)
     require_snippets(root / HELPER_EVIDENCE_CATALOG, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(root / HELPER_PARITY_CATALOG, REQUIRED_PARITY_CATALOG_SNIPPETS)
     require_text_snippets(
@@ -318,6 +326,7 @@ def scaffold_repo(root: Path) -> None:
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
+    write(root / WORKFLOW, "\n".join(REQUIRED_WORKFLOW_SNIPPETS) + "\n")
     for checker, expected_flag in CHECKER_INVOCATIONS:
         write(root / checker, make_checker_stub(expected_flag))
 
@@ -449,6 +458,14 @@ def run_self_test() -> None:
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
+        scaffold_repo(root)
+        write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[0] + "\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
@@ -476,7 +493,7 @@ def main() -> int:
     print(f"PHASE6_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE6_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_BUILD_SNIPPETS) + len(REQUIRED_CATALOG_SNIPPETS) + len(REQUIRED_PARITY_CATALOG_SNIPPETS)}"
+        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_BUILD_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_CATALOG_SNIPPETS) + len(REQUIRED_PARITY_CATALOG_SNIPPETS)}"
     )
     return 0
 
