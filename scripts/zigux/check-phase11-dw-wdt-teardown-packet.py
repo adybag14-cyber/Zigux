@@ -22,7 +22,7 @@ REQUIRED_FILES = {
 ALIGNMENT_NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, live PM execution, or live MMIO validation",
-    "- `drivers/watchdog/dw_wdt_pm.zig` now also keeps bounded suspend and resume handoff summaries explicit across missing-drvdata blocks, running-hardware suspend stop intent, imported-running resume recovery, and timeout-reprogram blocks while still keeping live PM execution out of scope",
+    "- `drivers/watchdog/dw_wdt_pm.zig` now also keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, running-hardware suspend stop intent, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment, the adjacent bounded PM-helper landing, and the current next-step scope fail-closed",
 ]
 
@@ -81,6 +81,14 @@ PM_MARKERS = [
     "PmResumeState.import_running_state_then_restore_hooks,",
     'test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore" {',
     "PmResumeState.blocked_live_mmio_timeout_reprogram,",
+    'test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {',
+    "try std.testing.expectEqual(PmShutdownState.blocked_missing_drvdata, summary.state);",
+    'test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal explicit" {',
+    "try std.testing.expectEqual(PmShutdownState.running_shutdown_requires_stop, summary.state);",
+    'test "phase11 dw_wdt pm shutdown keeps running pretimeout mask explicit" {',
+    "try std.testing.expect(summary.pretimeout_mask_requested);",
+    'test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop" {',
+    'test "phase11 dw_wdt pm shutdown keeps idle no-hook teardown explicit" {',
 ]
 
 EXPECTED_MANIFEST_LANE = "P11-L05"
@@ -254,11 +262,13 @@ def run_self_test() -> None:
         case_count = 1
 
         marker_cases = [
+            ("alignment_note", ALIGNMENT_NOTE_MARKERS[2]),
             ("clock_plan", CLOCK_PLAN_MARKERS[0]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
             ("verify", VERIFY_MARKERS[3]),
-            ("pm", PM_MARKERS[7]),
+            ("pm", PM_MARKERS[8]),
+            ("pm", PM_MARKERS[11]),
         ]
         for index, (label, marker) in enumerate(marker_cases, start=1):
             case_root = root / f"marker_case_{index}"
