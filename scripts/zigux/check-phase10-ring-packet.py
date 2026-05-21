@@ -171,6 +171,8 @@ REQUIRED_MARKERS = {
         "pub fn summarizeResetReadiness(",
         'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
         'test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {',
+        'test "phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt" {',
+        "const cleared = try ring.clearBroken(2);",
         'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
     ],
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
@@ -515,6 +517,8 @@ def run_self_test() -> int:
             ("drivers/virtio/virtio_ring.zig", "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {"),
             ("drivers/virtio/virtio_ring_verify.zig", "pub fn summarizeNotificationState("),
             ("drivers/virtio/virtio_ring_verify.zig", 'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {'),
+            ("drivers/virtio/virtio_ring_verify.zig", 'test "phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt" {'),
+            ("drivers/virtio/virtio_ring_verify.zig", "const cleared = try ring.clearBroken(2);"),
             ("drivers/virtio/virtio_ring_publish_readiness.zig", "pub fn summarizePublishReadiness("),
             ("drivers/virtio/virtio_ring_publish_readiness.zig", 'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {'),
             ("drivers/virtio/virtio_ring_publish_readiness.zig", 'test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {'),
