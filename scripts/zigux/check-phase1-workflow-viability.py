@@ -13,13 +13,17 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
+DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
 CHECKER_REL = Path("scripts/zigux/check-phase1-workflow-viability.py")
 
 REQUIRED_FILE_RELS = (
     WORKFLOW_REL,
+    DOCS_ROOT_REL,
     CLOSURE_NOTE_REL,
     CHECKER_REL,
+    Path("scripts/zigux/check-phase1-direct-owner-markers.py"),
+    Path("scripts/zigux/check-phase1-string-review-packet.py"),
     Path("scripts/zigux/check-phase1-route-summary-counts.py"),
     Path("scripts/zigux/check-phase1-bench.py"),
     Path("scripts/zigux/validate-phase1-closure.py"),
@@ -33,12 +37,24 @@ REQUIRED_FILE_RELS = (
     Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
 )
 
+REQUIRED_DOCS_ROOT_LINES = (
+    "* the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
+    "* `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
+)
+
 REQUIRED_NOTE_LINES = (
     "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
     "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "- `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "- `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "- `PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
+)
+
+PHASE1_PRELUDE_STEPS = (
+    ("Self-test current Phase 1 direct-owner checker", "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test"),
+    ("Check current Phase 1 direct-owner markers", "python3 scripts/zigux/check-phase1-direct-owner-markers.py"),
+    ("Self-test current Phase 1 string review checker", "python3 scripts/zigux/check-phase1-string-review-packet.py --self-test"),
+    ("Check current Phase 1 string review packet", "python3 scripts/zigux/check-phase1-string-review-packet.py"),
 )
 
 PHASE1_TAIL_STEPS = (
@@ -70,7 +86,8 @@ PHASE4_LEAD_STEPS = (
     ("Check current Phase 4 repo-reality warning packet", "python3 scripts/zigux/check-phase4-repo-reality-warning.py"),
 )
 
-REQUIRED_ORDER = tuple(step for step, _ in PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS)
+ALL_REQUIRED_STEPS = PHASE1_PRELUDE_STEPS + PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS
+REQUIRED_ORDER = tuple(step for step, _ in ALL_REQUIRED_STEPS)
 REQUIRED_CHAIN = (
     "Check current Phase 1 closure packet",
     "Self-test current Phase 3 interop packet",
@@ -78,6 +95,10 @@ REQUIRED_CHAIN = (
     "Run current Phase 3 export/UAPI layout replay",
 )
 PHASE1_PACKET_CHAIN = (
+    "Self-test current Phase 1 direct-owner checker",
+    "Check current Phase 1 direct-owner markers",
+    "Self-test current Phase 1 string review checker",
+    "Check current Phase 1 string review packet",
     "Self-test current Phase 1 route summary checker",
     "Check current Phase 1 route summary packet",
     "Self-test current Phase 1 bench checker",
@@ -162,12 +183,16 @@ def collect_failures(root: Path) -> list[str]:
         return failures
 
     workflow_text = load_text(root, WORKFLOW_REL)
+    docs_root_text = load_text(root, DOCS_ROOT_REL)
     note_text = load_text(root, CLOSURE_NOTE_REL)
+
+    for line in REQUIRED_DOCS_ROOT_LINES:
+        failures.extend(require_once(docs_root_text, "docs_root", line))
 
     for line in REQUIRED_NOTE_LINES:
         failures.extend(require_once(note_text, "closure_note", line))
 
-    for step_name, run_command in PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS:
+    for step_name, run_command in ALL_REQUIRED_STEPS:
         failures.extend(require_step_pair(workflow_text, step_name, run_command))
 
     failures.extend(require_order(workflow_text, REQUIRED_ORDER))
@@ -190,11 +215,22 @@ def sample_workflow_text() -> str:
         "    runs-on: ubuntu-latest",
         "    steps:",
     ]
-    for step_name, run_command in PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS:
+    for step_name, run_command in ALL_REQUIRED_STEPS:
         lines.append(f"      - name: {step_name}")
         lines.append(f"        run: {run_command}")
     lines.append("")
     return "\n".join(lines)
+
+
+def sample_docs_root_text() -> str:
+    return "\n".join(
+        [
+            "# Zigux Documentation",
+            "",
+            *REQUIRED_DOCS_ROOT_LINES,
+            "",
+        ]
+    )
 
 
 def sample_closure_note_text() -> str:
@@ -210,9 +246,10 @@ def sample_closure_note_text() -> str:
 
 def write_placeholder_tree(root: Path) -> None:
     write_text(root, WORKFLOW_REL, sample_workflow_text())
+    write_text(root, DOCS_ROOT_REL, sample_docs_root_text())
     write_text(root, CLOSURE_NOTE_REL, sample_closure_note_text())
     for relative_path in REQUIRED_FILE_RELS:
-        if relative_path in (WORKFLOW_REL, CLOSURE_NOTE_REL):
+        if relative_path in (WORKFLOW_REL, DOCS_ROOT_REL, CLOSURE_NOTE_REL):
             continue
         write_text(root, relative_path, "# placeholder\n")
 
@@ -257,6 +294,20 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        broken_root = root / "missing-docs-line"
+        write_sample_root(broken_root)
+        docs_root_text = load_text(broken_root, DOCS_ROOT_REL)
+        write_text(
+            broken_root,
+            DOCS_ROOT_REL,
+            rewrite_once(docs_root_text, REQUIRED_DOCS_ROOT_LINES[1] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if "docs_root:expected=1:actual=0" not in failures:
+            print("self-test:missing_docs_line_not_detected")
+            return 1
+        case_count += 1
+
         broken_root = root / "missing-note-line"
         write_sample_root(broken_root)
         note_text = load_text(broken_root, CLOSURE_NOTE_REL)
@@ -275,20 +326,20 @@ def run_self_test() -> int:
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
         duplicate_block = (
-            "      - name: Self-test current Phase 1 bench checker\n"
-            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+            "      - name: Check current Phase 1 direct-owner markers\n"
+            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py\n"
         )
         write_text(broken_root, WORKFLOW_REL, workflow_text + duplicate_block)
         failures = collect_failures(broken_root)
-        if "workflow_step:Self-test current Phase 1 bench checker:expected=1:actual=2" not in failures:
+        if "workflow_step:Check current Phase 1 direct-owner markers:expected=1:actual=2" not in failures:
             print("self-test:duplicate_step_not_detected")
             return 1
         case_count += 1
 
         broken_root = root / "broken-order"
         write_sample_root(broken_root)
-        reordered = list(PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS)
-        reordered[2], reordered[3] = reordered[3], reordered[2]
+        reordered = list(ALL_REQUIRED_STEPS)
+        reordered[0], reordered[1] = reordered[1], reordered[0]
         lines = [
             "name: zigux-bootstrap",
             "jobs:",
@@ -311,18 +362,18 @@ def run_self_test() -> int:
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
         old = (
-            "      - name: Self-test current Phase 1 bench checker\n"
-            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
-            "      - name: Self-test current Phase 1 shared reminder checker\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n"
+            "      - name: Check current Phase 1 string review packet\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n"
+            "      - name: Self-test current Phase 1 route summary checker\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n"
         )
         new = (
-            "      - name: Self-test current Phase 1 bench checker\n"
-            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+            "      - name: Check current Phase 1 string review packet\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n"
             "      - name: Drifted inserted step\n"
             "        run: python3 drift.py\n"
-            "      - name: Self-test current Phase 1 shared reminder checker\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n"
+            "      - name: Self-test current Phase 1 route summary checker\n"
+            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n"
         )
         write_text(broken_root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
         failures = collect_failures(broken_root)
