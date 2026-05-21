@@ -14,6 +14,7 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
+LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
 SCRIPTS_ROOT_REL = Path("scripts/zigux/README.md")
@@ -23,6 +24,7 @@ CHECKER_REL = Path("scripts/zigux/check-phase1-workflow-viability.py")
 REQUIRED_FILE_RELS = (
     WORKFLOW_REL,
     DOCS_ROOT_REL,
+    LANE_NOTE_REL,
     REVIEW_CHECKLIST_REL,
     CLOSURE_NOTE_REL,
     SCRIPTS_ROOT_REL,
@@ -47,6 +49,11 @@ REQUIRED_FILE_RELS = (
 REQUIRED_DOCS_ROOT_LINES = (
     "* the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
     "* `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
+)
+
+REQUIRED_LANE_NOTE_LINES = (
+    "- current authenticated reads still recover `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md`, so those are the trustworthy reminder surfaces for this lane on current `master`",
+    "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py`",
 )
 
 REQUIRED_REVIEW_CHECKLIST_LINES = (
@@ -205,6 +212,7 @@ def collect_failures(root: Path) -> list[str]:
 
     workflow_text = load_text(root, WORKFLOW_REL)
     docs_root_text = load_text(root, DOCS_ROOT_REL)
+    lane_note_text = load_text(root, LANE_NOTE_REL)
     review_checklist_text = load_text(root, REVIEW_CHECKLIST_REL)
     note_text = load_text(root, CLOSURE_NOTE_REL)
     scripts_root_text = load_text(root, SCRIPTS_ROOT_REL)
@@ -212,6 +220,9 @@ def collect_failures(root: Path) -> list[str]:
 
     for line in REQUIRED_DOCS_ROOT_LINES:
         failures.extend(require_once(docs_root_text, "docs_root", line))
+
+    for line in REQUIRED_LANE_NOTE_LINES:
+        failures.extend(require_once(lane_note_text, "lane_note", line))
 
     for line in REQUIRED_REVIEW_CHECKLIST_LINES:
         failures.extend(require_once(review_checklist_text, "review_checklist", line))
@@ -266,6 +277,17 @@ def sample_docs_root_text() -> str:
     )
 
 
+def sample_lane_note_text() -> str:
+    return "\n".join(
+        [
+            "# Phase 1 Host-Helper Lane Sequencing",
+            "",
+            *REQUIRED_LANE_NOTE_LINES,
+            "",
+        ]
+    )
+
+
 def sample_review_checklist_text() -> str:
     return "\n".join(
         [
@@ -313,6 +335,7 @@ def sample_tests_root_text() -> str:
 def write_placeholder_tree(root: Path) -> None:
     write_text(root, WORKFLOW_REL, sample_workflow_text())
     write_text(root, DOCS_ROOT_REL, sample_docs_root_text())
+    write_text(root, LANE_NOTE_REL, sample_lane_note_text())
     write_text(root, REVIEW_CHECKLIST_REL, sample_review_checklist_text())
     write_text(root, CLOSURE_NOTE_REL, sample_closure_note_text())
     write_text(root, SCRIPTS_ROOT_REL, sample_scripts_root_text())
@@ -321,6 +344,7 @@ def write_placeholder_tree(root: Path) -> None:
         if relative_path in (
             WORKFLOW_REL,
             DOCS_ROOT_REL,
+            LANE_NOTE_REL,
             REVIEW_CHECKLIST_REL,
             CLOSURE_NOTE_REL,
             SCRIPTS_ROOT_REL,
@@ -381,6 +405,20 @@ def run_self_test() -> int:
         failures = collect_failures(broken_root)
         if "docs_root:expected=1:actual=0" not in failures:
             print("self-test:missing_docs_line_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "missing-lane-note-line"
+        write_sample_root(broken_root)
+        lane_note_text = load_text(broken_root, LANE_NOTE_REL)
+        write_text(
+            broken_root,
+            LANE_NOTE_REL,
+            rewrite_once(lane_note_text, REQUIRED_LANE_NOTE_LINES[1] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if "lane_note:expected=1:actual=0" not in failures:
+            print("self-test:missing_lane_note_line_not_detected")
             return 1
         case_count += 1
 
