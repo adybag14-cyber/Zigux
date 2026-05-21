@@ -67,7 +67,10 @@ fn expectInitializedSharedRequestShape(plan: LoadPlan, allocator_handoff: Alloca
     try std.testing.expect(plan.init_flow.readyForRuntimeLoad());
 }
 
-fn expectSelftestCompleteSharedRequestShape(plan: LoadPlan, allocator_handoff: AllocatorHandoff) !void {
+fn expectSelftestCompleteSharedRequestShape(
+    plan: LoadPlan,
+    allocator_handoff: AllocatorHandoff,
+) !void {
     try std.testing.expect(plan.requires_runtime_substrate);
     try std.testing.expect(plan.provides_selftest_hook);
     try std.testing.expectEqual(allocator_handoff, plan.allocator_handoff);
@@ -199,6 +202,31 @@ test "shared runtime loader keeps selftest-complete trace-events and atomic64 re
         atomic64_pending,
         .released_without_substrate,
     );
+}
+
+test "shared runtime loader keeps selftest-complete counters from drifting before handoff" {
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+
+    var request = try runtime_loader.prepareRequest(trace_events_plan);
+
+    request.plan.init_flow.selftest_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, trace_events_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, trace_events_plan));
+
+    request.plan = trace_events_plan;
+    request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, trace_events_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, trace_events_plan));
 }
 
 test "shared runtime loader keeps prepared init-flow counters from drifting before handoff" {
