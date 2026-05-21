@@ -122,6 +122,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
     "run: make -C zigux phase2-genksyms",
+    "run: python3 scripts/zigux/check-phase2-closure-matrix.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-closure-matrix.py",
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-tools",
     "run: make -C zigux phase2-kconfig",
