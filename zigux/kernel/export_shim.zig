@@ -51,6 +51,11 @@ pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     return abi.canonicalizeHeader(header);
 }
 
+pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {
+    if (headerIsCompatible(header)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
 pub fn currentVersion() Version {
     return version.current();
 }
@@ -160,6 +165,43 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
     try testing.expectEqual(future.flags, canonicalized.flags);
     try testing.expect(headerIsCanonical(canonicalized));
     try testing.expect(!extendsBoundary(canonicalized));
+}
+
+test "export shim relays boundary header compatibility through status helpers" {
+    const canonical = canonicalHeader(0x23);
+    const extended = abi.compatibleHeader(header_size + 8, 0x23);
+    const undersized = BoundaryHeader{
+        .size = header_size - 1,
+        .abi_version = abi_version,
+        .flags = 0x23,
+    };
+    const stale = BoundaryHeader{
+        .size = header_size,
+        .abi_version = abi_version + 1,
+        .flags = 0x23,
+    };
+    const ok = validateBoundaryHeader(canonical);
+    const ok_extended = validateBoundaryHeader(extended);
+    const invalid_size = validateBoundaryHeader(undersized);
+    const invalid_version = validateBoundaryHeader(stale);
+
+    try testing.expect(statusIsOk(ok));
+    try testing.expect(statusIsOk(ok_extended));
+    try testing.expect(!statusIsOk(invalid_size));
+    try testing.expect(!statusIsOk(invalid_version));
+
+    try testing.expectEqual(@as(i32, 0), ok.code);
+    try testing.expectEqual(@as(i32, 0), ok_extended.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_size.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_version.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), ok.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), ok_extended.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid_size.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid_version.facility);
+    try testing.expectEqual(@as(u16, 0), ok.flags);
+    try testing.expectEqual(@as(u16, 0), ok_extended.flags);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_size.flags);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_version.flags);
 }
 
 test "export shim relays starter version compatibility through status helpers" {
