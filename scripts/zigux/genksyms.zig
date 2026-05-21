@@ -125,7 +125,21 @@ fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
-    try writer.print("option '{s}' is ambiguous\n", .{option});
+    try writer.print("option '{s}' is ambiguous", .{option});
+    if (std.mem.startsWith(u8, option, "--")) {
+        const prefix = option[2..];
+        var wrote_any = false;
+        for (long_option_specs) |spec| {
+            if (std.mem.startsWith(u8, spec.name, prefix)) {
+                if (!wrote_any) {
+                    try writer.writeAll("; possibilities:");
+                    wrote_any = true;
+                }
+                try writer.print(" '--{s}'", .{spec.name});
+            }
+        }
+    }
+    try writer.writeByte('\n');
 }
 
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
@@ -762,7 +776,21 @@ test "genksyms bridge renders ambiguous long option failure like the fixture" {
 
     try writeAmbiguousOptionError(&output.writer, "--du");
     try testing.expectEqualStrings(
-        "option '--du' is ambiguous\n",
+        "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge appends usage after ambiguous long option failures" {
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+
+    try writeFailureOutput(&output.writer, .{
+        .reason = .{ .ambiguous_option = "--du" },
+        .version_count = 0,
+    });
+    try testing.expectEqualStrings(
+        "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n" ++ usage_text,
         output.written(),
     );
 }
