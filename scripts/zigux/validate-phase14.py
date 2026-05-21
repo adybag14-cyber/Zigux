@@ -118,8 +118,8 @@ REQUIRED_MARKERS = {
         "the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
     ],
     SHARED_SMOKE_GAP_PATH: [
-        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, but that same manifest still advertises `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, and workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow do not expose",
-        "the stale raw-manifest route claims",
+        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, and its live body now matches the narrowed single-gate posture too: `make -C zigux phase14-validate` stays the only shared smoke command, `smoke_shard_commands` stays empty, and the manifest no longer advertises the older `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, or workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow still omit",
+        "the now-aligned raw-manifest posture",
         "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
     ],
     CORE_BOUNDARY_TRACEABILITY_PATH: [
