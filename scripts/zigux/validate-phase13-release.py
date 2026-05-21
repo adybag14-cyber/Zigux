@@ -46,7 +46,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
-        "What remains open inside this shared-subsystems lane is therefore narrower: current direct readback still returns missing for `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig`, and the remaining broader shared reminder drift has contracted to the scripts-root Phase 13 section only.",
+        "What remains open inside this shared-subsystems lane is therefore narrower again: current direct readback still returns missing for `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig`, and the remaining broader shared reminder drift has contracted to one stale tests-root repo-reality-gap sentence that still lists returned `scripts/zigux/validate-phase13-release.py` as missing even though the same Phase 13 tests-root section otherwise keeps that validator explicit as shipped release-discipline support.",
     ],
     "scripts/zigux/README.md": [
         "- Phase 13 flow - the current scripts-root shared-helper packet stays reviewable through the stable contributor-facing handle, the shipped shared-summary guard, the tests-root alignment companion, the shipped helper-local `libfs`, `devres`, and Landlock packet anchors, and the adjacent notifier evidence instead of promoting missing validator-first follow-through or blocked Makefile route names into a shared build handle.",
@@ -72,6 +72,7 @@ FORBIDDEN_MARKERS = {
     ],
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
+        "What remains open inside this shared-subsystems lane is therefore narrower again: current direct readback still returns missing for `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig`, but the remaining broader shared reminder drift has contracted to one stale scripts-root repo-reality-gap sentence that still lists returned `scripts/zigux/validate-phase13-release.py` as missing even though the same Phase 13 scripts-root section otherwise keeps that validator explicit as shipped release-discipline support.",
     ],
     "scripts/zigux/README.md": [
         "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
