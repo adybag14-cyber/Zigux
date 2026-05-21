@@ -99,8 +99,10 @@ fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
-    try expectContains(scorecard_doc, "current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain broader gap vocabulary rather than shipped reminder-route evidence");
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "those validator-first and shared-build routes are now shipped reminder-route evidence on current `master`") == null);
+    try expectContains(scorecard_doc, "validator-first reminder evidence now exists through `python3 scripts/zigux/validate-phase15.py`");
+    try expectContains(scorecard_doc, "shared replay evidence now exists through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
+    try expectContains(scorecard_doc, "current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence");
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`") == null);
 }
 
 fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
