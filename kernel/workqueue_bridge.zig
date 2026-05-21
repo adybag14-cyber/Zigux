@@ -79,6 +79,16 @@ pub const CancelPathHandoff = struct {
     blocked_by: []const u8,
 };
 
+pub const SchedulerVisibleWorkerStateHandoff = struct {
+    running_anchor_symbol: []const u8,
+    sleeping_anchor_symbol: []const u8,
+    ownership: Ownership,
+    observed_fields: []const []const u8,
+    blocked_by: []const u8,
+    current_slice_id: []const u8,
+    next_focus: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -308,6 +318,12 @@ const cancel_path_observed_fields = [_][]const u8{
     "disable_work()",
 };
 
+const scheduler_visible_worker_state_observed_fields = [_][]const u8{
+    "WORKER_NOT_RUNNING",
+    "pool->nr_running",
+    "pool->flags",
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -357,6 +373,18 @@ pub const WorkqueueBridgeLab = struct {
             .ownership = .stay_in_c,
             .observed_fields = cancel_path_observed_fields[0..],
             .blocked_by = "__cancel_work_sync() may preserve disable depth through disable_work() before falling back to __flush_work(), so cancellation completion stays inside the live C pending-bit and completion rules rather than becoming a Zig wrapper claim.",
+        };
+    }
+
+    pub fn schedulerVisibleWorkerStateHandoff() SchedulerVisibleWorkerStateHandoff {
+        return .{
+            .running_anchor_symbol = "wq_worker_running",
+            .sleeping_anchor_symbol = "wq_worker_sleeping",
+            .ownership = .stay_in_c,
+            .observed_fields = scheduler_visible_worker_state_observed_fields[0..],
+            .blocked_by = "wq_worker_running() and wq_worker_sleeping() still coordinate WORKER_NOT_RUNNING, runnable-count updates, worker wakeups, and pool flags under pool->lock, so the scheduler-visible worker-state transition remains explicit stay-in-C evidence rather than a live hook wrapper claim.",
+            .current_slice_id = currentSliceId(),
+            .next_focus = maintenanceHandoff().next_future_target,
         };
     }
 
@@ -482,4 +510,22 @@ test "workqueue bridge cancel-path handoff keeps cancellation completion explici
     try std.testing.expectEqualStrings("disable_work()", cancel_handoff.observed_fields[3]);
     try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "disable depth") != null);
     try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "pending-bit and completion rules") != null);
+}
+
+test "workqueue bridge scheduler-visible worker-state handoff stays explicit and in C" {
+    const scheduler_handoff = WorkqueueBridgeLab.schedulerVisibleWorkerStateHandoff();
+
+    try std.testing.expectEqualStrings("wq_worker_running", scheduler_handoff.running_anchor_symbol);
+    try std.testing.expectEqualStrings("wq_worker_sleeping", scheduler_handoff.sleeping_anchor_symbol);
+    try std.testing.expect(scheduler_handoff.ownership == .stay_in_c);
+    try std.testing.expectEqual(@as(usize, 3), scheduler_handoff.observed_fields.len);
+    try std.testing.expectEqualStrings("WORKER_NOT_RUNNING", scheduler_handoff.observed_fields[0]);
+    try std.testing.expectEqualStrings("pool->nr_running", scheduler_handoff.observed_fields[1]);
+    try std.testing.expectEqualStrings("pool->flags", scheduler_handoff.observed_fields[2]);
+    try std.testing.expectEqualStrings(WorkqueueBridgeLab.currentSliceId(), scheduler_handoff.current_slice_id);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.blocked_by, "wq_worker_running() and wq_worker_sleeping()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.blocked_by, "wakeups") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.blocked_by, "pool->lock") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.next_focus, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.next_focus, "shared reminder surface") != null);
 }
