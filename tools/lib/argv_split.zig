@@ -22,13 +22,13 @@ pub const ArgvSplitResult = struct {
 
 fn skipSpaces(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
 fn skipArg(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and !std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and !std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
@@ -38,7 +38,7 @@ fn countArgc(text: []const u8) usize {
 
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+        if (idx >= text.len or text[idx] == 0) {
             break;
         }
         count += 1;
@@ -63,7 +63,7 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+        if (idx >= text.len or text[idx] == 0) {
             break;
         }
 
@@ -139,4 +139,33 @@ test "argvSplit cleanup resets state and tolerates repeat deinit calls" {
     argv_free(&result);
     try std.testing.expectEqual(@as(usize, 0), result.argc());
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
+
+test "argvSplit stops at the first embedded NUL byte" {
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', ' ', 'b', 'e', 't', 'a', 0, 'g', 'a', 'm', 'm', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+}
+
+test "argvSplit treats a NUL after leading whitespace as end of input" {
+    const source = [_]u8{ ' ', '\t', 0, 'a', 'l', 'p', 'h', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
+
+test "argvSplit truncates the current token at an embedded NUL" {
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', 0, 'b', 'e', 't', 'a', ' ', 'g', 'a', 'm', 'm', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqual(@as(usize, 1), result.argv.len);
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
 }
