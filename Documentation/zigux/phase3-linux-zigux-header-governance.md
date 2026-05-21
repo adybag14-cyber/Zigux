@@ -32,15 +32,16 @@ This note restores the dedicated ownership and boundary-note companion for `incl
 ## Current State
 
 - live `include/linux/zigux.h` aggregates `<zigux/abi.h>` and `<zigux/dev_t.h>` instead of restating canonical struct or `dev_t` ownership locally
-- the current header exports a bounded version relay through `zigux_uapi_version_current()`, the `zigux_uapi_version_has_current_*()` helpers, and `zigux_uapi_version_matches_current()`
-- the current header exports a bounded boundary-header relay through `zigux_uapi_boundary_header_current()`, `zigux_uapi_boundary_header_compatible()`, `zigux_uapi_boundary_header_is_canonical()`, `zigux_uapi_boundary_header_is_compatible()`, `zigux_uapi_boundary_header_extends_boundary()`, `zigux_uapi_boundary_header_requested_extra_bytes()`, `zigux_uapi_boundary_header_canonicalize()`, and the status-tagged `zigux_uapi_validate_boundary_header()` gate
+- the current header exports a bounded version relay through `zigux_uapi_version_current()`, the `zigux_uapi_version_has_current_*()` helpers, `zigux_uapi_version_matches_current()`, and the status-tagged `zigux_uapi_validate_version()` gate
+- the current header exports a bounded boundary-header relay through `zigux_uapi_boundary_header_current()`, `zigux_uapi_boundary_header_compatible()`, `zigux_uapi_boundary_header_has_current_abi_version()`, `zigux_uapi_boundary_header_is_canonical()`, `zigux_uapi_boundary_header_is_compatible()`, `zigux_uapi_boundary_header_extends_boundary()`, `zigux_uapi_boundary_header_requested_extra_bytes()`, `zigux_uapi_boundary_header_canonicalize()`, and the status-tagged `zigux_uapi_validate_boundary_header()` gate
 - the current header also keeps the Linux-facing compatibility aliases `zigux_boundary_header_make()`, `zigux_boundary_header_make_compatible()`, `zigux_boundary_header_is_current_abi_version()`, `zigux_boundary_header_is_compatible_size()`, `zigux_boundary_header_is_canonical_size()`, `zigux_boundary_header_is_compatible()`, `zigux_boundary_header_is_canonical()`, `zigux_boundary_header_extends_boundary()`, `zigux_boundary_header_requested_extra_bytes()`, `zigux_boundary_header_canonicalize()`, and `zigux_validate_boundary_header()` as thin relays rather than second ownership roots
-- the current header keeps starter `dev_t` reviewability narrow through `zigux_uapi_dev_t_fields_is_valid()` and `zigux_uapi_dev_t_fields_range_is_valid()`
+- the current header keeps starter `dev_t` reviewability narrow through `zigux_uapi_dev_t_fields_is_valid()`, the status-tagged `zigux_uapi_validate_dev_t_fields()` and `zigux_uapi_validate_dev_t_components()` relays, `zigux_uapi_dev_t_fields_range_is_valid()`, and the status-tagged `zigux_uapi_validate_dev_t_range()` relay
 
 ## Boundary
 
 - `include/linux/zigux.h` may aggregate already-approved entry points, but it should not become a second source of truth for canonical ABI layout, version ownership, or `dev_t` limits
 - when the Linux-facing relay needs boundary-header helpers, keep them as thin named relays over the canonical ABI header and the shipped starter UAPI companions rather than moving semantic ownership here
+- when the Linux-facing relay needs status-tagged version or `dev_t` validation helpers, keep the starter UAPI companions and canonical owner headers as the single source of truth for the underlying status semantics, limits, and field meaning
 - when the Linux-facing relay needs `dev_t` validation helpers, keep `include/zigux/dev_t.h` as the single source of truth for the underlying limits and field meaning
 - if an already-landed review surface is rehomed into `include/linux/zigux.h`, refresh this note, the shared Phase 3 slice note, and the manifest-backed inventory in the same bounded change so the owner map stays explicit
 - export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly
