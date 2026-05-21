@@ -35,12 +35,15 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
+        'Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
         'Path("zigux/Makefile")',
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi.py"',
+        '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
@@ -174,8 +177,18 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+            "expected missing catalog export-uapi c-header smoke checker marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("zigux/helpers/layout_assert.zig")',
             "expected missing catalog layout-assert helper marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
+            "expected missing catalog export-uapi c-header smoke fixture marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -186,6 +199,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
             "expected missing catalog phase3 abi manifest marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+            "expected missing catalog export-uapi c-header smoke route marker was not reported",
         ),
         (
             CATALOG_PATH,
