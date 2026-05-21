@@ -108,7 +108,13 @@ REQUIRED_MARKERS = {
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
         "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
         "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {",
+        "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn allowsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
         "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {",
+        "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
         "pub fn permitsRawPointerBridgeByte(scope: u8) bool {",
     ),
     NARROW_PATH: (
