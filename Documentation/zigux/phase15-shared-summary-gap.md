@@ -72,6 +72,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
