@@ -46,10 +46,17 @@ PHASE12_LIBBPF_SEGMENT_SURVEY_PATH = (
 PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
+PHASE12_VIRTIO_SCSI_SLICE_PATH = "Documentation/zigux/phase12-virtio-scsi-slice.md"
+PHASE12_VIRTIO_SCSI_SURVEY_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
     "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
 )
+PHASE12_VIRTIO_SCSI_FIXTURE_MANIFEST_PATH = (
+    "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"
+)
+PHASE12_VIRTIO_SCSI_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
+PHASE12_VIRTIO_SCSI_SURVEY_TEST_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
@@ -74,8 +81,13 @@ REQUIRED_FILES = [
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     PHASE12_LIBBPF_SEGMENT_SURVEY_PATH,
     PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    PHASE12_VIRTIO_SCSI_SLICE_PATH,
+    PHASE12_VIRTIO_SCSI_SURVEY_PATH,
     LIBBPF_SNAPSHOT_PATH,
     LIBBPF_SNAPSHOT_DETERMINISM_PATH,
+    PHASE12_VIRTIO_SCSI_FIXTURE_MANIFEST_PATH,
+    PHASE12_VIRTIO_SCSI_MANIFEST_PATH,
+    PHASE12_VIRTIO_SCSI_SURVEY_TEST_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     SCRIPTS_README_PATH,
@@ -353,7 +365,11 @@ def fixture_text(rel_path: str) -> str:
         }:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
-    if rel_path == LIBBPF_SNAPSHOT_PATH:
+    if rel_path in {
+        LIBBPF_SNAPSHOT_PATH,
+        PHASE12_VIRTIO_SCSI_FIXTURE_MANIFEST_PATH,
+        PHASE12_VIRTIO_SCSI_MANIFEST_PATH,
+    }:
         return '{\n  "lane_key": "P12-L16"\n}\n'
     if rel_path == LIBBPF_SNAPSHOT_DETERMINISM_PATH:
         return '{\n  "lane_key": "P12-L16",\n  "kind": "determinism"\n}\n'
@@ -402,30 +418,7 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-        missing_file_cases = [
-            DOCS_README_PATH,
-            FREEZE_MAP_PATH,
-            REVIEW_CHECKLIST_PATH,
-            RELEASE_READINESS_SURVEY_PATH,
-            RELEASE_SEQUENCING_PATH,
-            RELEASE_CLOSURE_CHECKLIST_PATH,
-            RELEASE_COORDINATION_MATRIX_PATH,
-            RAW_GITHUB_COVERAGE_SURVEY_PATH,
-            PHASE12_COMPLEX_DRIVER_LANE_PATH,
-            PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
-            PHASE12_LIBBPF_SEGMENT_SURVEY_PATH,
-            PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
-            LIBBPF_SNAPSHOT_PATH,
-            LIBBPF_SNAPSHOT_DETERMINISM_PATH,
-            BUILD_ONLY_CHECKER_PATH,
-            RELEASE_READINESS_CHECKER_PATH,
-            SCRIPTS_README_PATH,
-            VALIDATOR_PATH,
-            MAKEFILE_PATH,
-            TESTS_README_PATH,
-            PHASE12_BUILD_PATH,
-            WORKFLOW_PATH,
-        ]
+        missing_file_cases = REQUIRED_FILES[:]
         for rel_path in missing_file_cases:
             write_fixture_tree(base)
             (base / rel_path).unlink()
