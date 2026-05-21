@@ -14,6 +14,17 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
 PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
@@ -204,6 +215,24 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
+
+
 def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
     count = text.count(needle)
     return [] if count == 1 else [f"{label}:expected_once:actual_count={count}:{needle}"]
@@ -256,9 +285,19 @@ def collect_failures(root: Path) -> list[str]:
         if count:
             failures.append(f"{ZIGUX_MAKEFILE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
 
-    manifest = json.loads(load_text(root, MANIFEST_REL))
+    try:
+        manifest = load_json_with_duplicate_tracking(load_text(root, MANIFEST_REL))
+    except json.JSONDecodeError as exc:
+        return [f"{MANIFEST_REL.as_posix()}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
+
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [
+            f"{MANIFEST_REL.as_posix()}:duplicate_json_key:{path}"
+            for path in duplicate_manifest_paths
+        ]
 
     failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:phase", manifest.get("phase"), "Phase 1"))
     failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:status", manifest.get("status"), "closed"))
@@ -346,6 +385,12 @@ def mutate_bad_review_value(root: Path, helper: str, key: str) -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
+def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str) -> None:
+    manifest_path = root / MANIFEST_REL
+    text = manifest_path.read_text(encoding="utf-8")
+    manifest_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
+
+
 def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [
         ("baseline", None),
@@ -353,6 +398,8 @@ def run_self_test() -> int:
         ("old_next_step_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["next_step"], "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`", 1))),
         ("forbidden_old_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n")),
         ("bad_helper_count", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n")),
+        ("duplicate_manifest_helper_count", lambda root: insert_duplicate_manifest_line(root, '  "helper_count": 13,', '  "helper_count": 99,')),
+        ("duplicate_manifest_string_strnchr_review_anchor", lambda root: insert_duplicate_manifest_line(root, '      "strnchr_review_anchor": "test \\"strnchr honors count and C-string boundaries\\"",', '      "strnchr_review_anchor": "drifted anchor",')),
         ("missing_find_bit_andnot_contract", lambda root: mutate_remove_review_key(root, "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract")),
         ("stale_find_bit_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "review_packet_summary")),
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
