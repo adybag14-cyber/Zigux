@@ -419,6 +419,25 @@ test "readHeader reports the exact truncated byte count" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
 }
 
+test "readHeader preserves exact non-ELF bytes at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "not_elf_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    }, 0);
+
+    const header = try readHeader(file.handle);
+    try std.testing.expectEqual(@as(usize, ei_nident), header.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    }, header.bytes[0..header.len]);
+}
+
 test "fd-backed empty input exits with stderr at EOF" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
