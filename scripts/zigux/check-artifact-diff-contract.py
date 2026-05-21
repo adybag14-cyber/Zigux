@@ -61,6 +61,8 @@ HELPER_SELF_TEST_CASES = [
     "bytes_missing_actual",
     "bytes_missing_both",
     "legacy_sha256_alias",
+    "missing_mode_value_rejected",
+    "missing_positional_arguments_rejected",
     "invalid_mode_rejected",
     "extra_positional_rejected",
 ]
