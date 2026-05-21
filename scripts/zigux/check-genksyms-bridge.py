@@ -106,6 +106,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
+    "run: make -C zigux phase2-genksyms",
 )
 
 LONG_OPTION_SPECS = (
@@ -391,7 +392,9 @@ def build_self_test_root(root: Path) -> None:
         "      - name: Check current Phase 2 genksyms bridge packet\n"
         "        run: python3 scripts/zigux/check-genksyms-bridge.py\n"
         "      - name: Run current Phase 2 genksyms unit replay\n"
-        "        run: zig test scripts/zigux/genksyms.zig\n",
+        "        run: zig test scripts/zigux/genksyms.zig\n"
+        "      - name: Run current Phase 2 genksyms make route\n"
+        "        run: make -C zigux phase2-genksyms\n",
     )
     write_text(
         root,
@@ -542,9 +545,11 @@ def run_self_test() -> int:
             "        run: python3 scripts/zigux/check-genksyms-bridge.py\n"
             "      - name: Run current Phase 2 genksyms unit replay\n"
             "        run: zig test scripts/zigux/genksyms.zig\n"
-            "        run: zig test scripts/zigux/genksyms.zig\n",
+            "      - name: Run current Phase 2 genksyms make route\n"
+            "        run: make -C zigux phase2-genksyms\n"
+            "        run: make -C zigux phase2-genksyms\n",
         )
-        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[2]}:count=2") in collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
