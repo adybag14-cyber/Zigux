@@ -42,6 +42,8 @@ TYPE_NAMES_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names.zig")
 TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
+LIBBPF_SEGMENTS_TEST = Path("zigux/tests/phase8_libbpf_segments.zig")
+LIBBPF_SEGMENTS_BUILD = Path("zigux/tests/phase8_libbpf_segments_only_build.zig")
 
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -60,6 +62,8 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase8_build.zig"),
     EXEC_CMD_TEST,
     EXEC_CMD_BUILD,
+    LIBBPF_SEGMENTS_TEST,
+    LIBBPF_SEGMENTS_BUILD,
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"),
@@ -163,8 +167,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
         "current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set",
     ),
     EXEC_CMD_TEST: (
@@ -178,6 +185,16 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd.zig",
         "phase8_exec_cmd",
         "Run focused Phase 8 exec-cmd tests",
+    ),
+    LIBBPF_SEGMENTS_TEST: (
+        'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
+    ),
+    LIBBPF_SEGMENTS_BUILD: (
+        'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
+        '"phase8-libbpf-segment-verify-tests"',
+        '"Run focused Phase 8 libbpf segment verify build"',
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
@@ -584,12 +601,64 @@ def run_self_test() -> int:
             raise AssertionError("expected missing workqueue study-boundary marker to be reported")
         checklist.write_text(original_checklist, encoding="utf-8")
 
+        tests_readme = root / "zigux/tests/README.md"
+        original_tests_readme = _read(tests_readme)
+        libbpf_route_marker = "`make -C zigux phase8-libbpf-segments-test`"
+        tests_readme.write_text(
+            original_tests_readme.replace(libbpf_route_marker, "", 1),
+            encoding="utf-8",
+        )
+        missing_libbpf_route_marker = validate_root(root)
+        expected_libbpf_route_marker = f"zigux/tests/README.md:{libbpf_route_marker}"
+        if expected_libbpf_route_marker not in missing_libbpf_route_marker.missing_markers:
+            raise AssertionError("expected missing tests README libbpf route marker to be reported")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
         exec_cmd_test = root / EXEC_CMD_TEST
         exec_cmd_test.unlink()
         missing_exec_cmd = validate_root(root)
         if EXEC_CMD_TEST.as_posix() not in missing_exec_cmd.missing_files:
             raise AssertionError("expected missing exec-cmd witness file to be reported")
         _write(exec_cmd_test, "\n".join(FILE_MARKERS[EXEC_CMD_TEST]) + "\n")
+
+        libbpf_segments_test = root / LIBBPF_SEGMENTS_TEST
+        original_libbpf_segments_test = _read(libbpf_segments_test)
+        libbpf_segments_test.write_text(
+            original_libbpf_segments_test.replace(
+                'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_libbpf_segments_test_marker = validate_root(root)
+        expected_libbpf_segments_test_marker = (
+            "zigux/tests/phase8_libbpf_segments.zig:"
+            'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {'
+        )
+        if expected_libbpf_segments_test_marker not in missing_libbpf_segments_test_marker.missing_markers:
+            raise AssertionError("expected missing libbpf-segments replay marker to be reported")
+        libbpf_segments_test.write_text(original_libbpf_segments_test, encoding="utf-8")
+
+        libbpf_segments_build = root / LIBBPF_SEGMENTS_BUILD
+        original_libbpf_segments_build = _read(libbpf_segments_build)
+        libbpf_segments_build.write_text(
+            original_libbpf_segments_build.replace('"phase8-libbpf-segment-verify-tests"', "", 1),
+            encoding="utf-8",
+        )
+        missing_libbpf_segments_build_marker = validate_root(root)
+        expected_libbpf_segments_build_marker = (
+            'zigux/tests/phase8_libbpf_segments_only_build.zig:"phase8-libbpf-segment-verify-tests"'
+        )
+        if expected_libbpf_segments_build_marker not in missing_libbpf_segments_build_marker.missing_markers:
+            raise AssertionError("expected missing libbpf-segments build marker to be reported")
+        libbpf_segments_build.write_text(original_libbpf_segments_build, encoding="utf-8")
+
+        libbpf_segments_test.unlink()
+        missing_libbpf_segments_test = validate_root(root)
+        if LIBBPF_SEGMENTS_TEST.as_posix() not in missing_libbpf_segments_test.missing_files:
+            raise AssertionError("expected missing libbpf-segments replay file to be reported")
+        _write(libbpf_segments_test, "\n".join(FILE_MARKERS[LIBBPF_SEGMENTS_TEST]) + "\n")
 
         bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
         original_bridge_test = _read(bridge_test)
@@ -860,7 +929,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=37")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
