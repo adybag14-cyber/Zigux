@@ -1,0 +1,35 @@
+{
+  "shared_build_file": "zigux/tests/phase11_dw_wdt_build.zig",
+  "shared_replay_command": "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
+  "shared_step_name": "test",
+  "shared_step_description": "Run the focused Phase 11 DesignWare watchdog scaffold packet",
+  "build_test_names": [
+    "phase11-dw-wdt-registration-scaffold-tests",
+    "phase11-dw-wdt-pm-tests"
+  ],
+  "module_root_source_files": [
+    {
+      "module": "registration_scaffold_module",
+      "path": "phase11_dw_wdt_registration_scaffold.zig"
+    },
+    {
+      "module": "pm_module",
+      "path": "../../drivers/watchdog/dw_wdt_pm.zig"
+    }
+  ],
+  "test_root_modules": [
+    {
+      "test": "phase11-dw-wdt-registration-scaffold-tests",
+      "root_module": "registration_scaffold_module"
+    },
+    {
+      "test": "phase11-dw-wdt-pm-tests",
+      "root_module": "pm_module"
+    }
+  ],
+  "exact_current_checks": [
+    "python3 scripts/zigux/check-phase11-dw-wdt-build-route.py --self-test",
+    "python3 scripts/zigux/check-phase11-dw-wdt-build-route.py",
+    "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig"
+  ]
+}
