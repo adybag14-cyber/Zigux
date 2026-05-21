@@ -64,6 +64,14 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 - No parity scorecard entry or Architecture Council status-change request is attached to this slice on current `master`.
 - Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from this family-local packet.
 
+## Minimum Freeze-Map Review Record
+
+- owner: the direct atomic64 starter packet named by `PHASE9_LANE_KEY=P9-L04`, with this note carrying the same Phase 9 freeze-boundary review record for `P9-L16`
+- phase: `Phase 9`
+- status bucket: review-only direct starter packet plus visible shared-loader reminder packet beside the study-only `kernel/workqueue.c` boundary
+- validation gate summary: `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, `zigux/tests/phase9_build.zig`, and `make -C zigux phase9-runtime-atomic64-test` keep this packet reviewable without claiming live loader parity
+- rollback owner: `lib/atomic64_test.c` remains the product source of truth while any future status change still routes through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and `Documentation/zigux/phase15-freeze-map-governance.md`
+
 ## Non-goals
 
 - No claim that the real runtime substrate is available.
