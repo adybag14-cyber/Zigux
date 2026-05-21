@@ -377,7 +377,7 @@ def self_test() -> None:
         covered.append(expect_failure(root, "helper_catalog_drift"))
 
         fixture_root(root)
-        write(root / CONTRACT_CHECKER, read(root, CONTRACT_CHECKER).replace('    "extra_positional_rejected",\n', "", 1))
+        write(root / CONTRACT_CHECKER, read(root, CONTRACT_CHECKER).replace('    "cli_missing_mode_value",\n', "", 1))
         covered.append(expect_failure(root, "contract_catalog_drift"))
 
         fixture_root(root)
