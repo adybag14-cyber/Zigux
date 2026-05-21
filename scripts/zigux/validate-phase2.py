@@ -206,6 +206,22 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def remove_phony_target(text: str, target: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith(".PHONY:"):
+            continue
+        prefix, suffix = stripped.split(":", 1)
+        targets = [token for token in suffix.strip().split() if token]
+        if target not in targets:
+            raise AssertionError(f".PHONY target not found: {target}")
+        filtered = [token for token in targets if token != target]
+        lines[index] = f"{prefix}: {' '.join(filtered)}"
+        return "\n".join(lines) + "\n"
+    raise AssertionError(".PHONY line not found")
+
+
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
     for line in text.splitlines():
@@ -299,6 +315,7 @@ def run_self_test() -> int:
         + len(REQUIRED_WORKFLOW_LINES)
         + len(DISALLOWED_WORKFLOW_LINES)
         + 1
+        + len(REQUIRED_PHASE2_PHONY_TARGETS)
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
         + (len(REQUIRED_PATHS) - 1)
@@ -334,6 +351,12 @@ def run_self_test() -> int:
         write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), REQUIRED_PHASE2_PHONY_LINE, "# removed"))
         expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
         checks += 1
+
+        for target in sorted(REQUIRED_PHASE2_PHONY_TARGETS):
+            build_self_test_root(root)
+            write_text(root, MAKEFILE, remove_phony_target(read_text(root, MAKEFILE), target))
+            expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
+            checks += 1
 
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
