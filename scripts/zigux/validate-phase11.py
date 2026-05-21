@@ -20,6 +20,10 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
     "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
+    "Documentation/zigux/phase11-dw-wdt-provenance-readback.md",
+    "Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md",
+    "Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md",
     "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-gpio-wdt-survey.md",
     "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
@@ -37,10 +41,15 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "drivers/watchdog/dw_wdt.zig",
+    "drivers/watchdog/dw_wdt_verify.zig",
     "drivers/watchdog/dw_wdt_pm.zig",
     "drivers/watchdog/dw_wdt_pm_scaffold.zig",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
+    "zigux/tests/phase11_dw_wdt_manifest.json",
+    "zigux/tests/phase11_dw_wdt.zig",
+    "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
@@ -304,6 +313,42 @@ def run_self_test() -> int:
         if expected_missing not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:missing_required_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_dw_platform_plan = root / "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
+        missing_dw_platform_plan.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_platform_plan = "missing_required_path:Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
+        if expected_missing_dw_platform_plan not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_platform_plan_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_dw_driver = root / "drivers/watchdog/dw_wdt.zig"
+        missing_dw_driver.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_driver = "missing_required_path:drivers/watchdog/dw_wdt.zig"
+        if expected_missing_dw_driver not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_driver_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_dw_test = root / "zigux/tests/phase11_dw_wdt.zig"
+        missing_dw_test.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_test = "missing_required_path:zigux/tests/phase11_dw_wdt.zig"
+        if expected_missing_dw_test not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_test_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -594,7 +639,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
