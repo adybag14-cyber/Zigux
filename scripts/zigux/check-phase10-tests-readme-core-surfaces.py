@@ -67,7 +67,9 @@ TESTS_ROOT_REQUIRED_MARKERS = (
 
 SCRIPTS_ROOT_REQUIRED_MARKERS = (
     "## Phase 10",
+    "`scripts/zigux/check-phase10-ring-packet.py`",
     "`scripts/zigux/check-phase10-input-packet.py`",
+    "`scripts/zigux/check-phase10-mmio-packet.py`",
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
     "`zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet",
@@ -242,6 +244,30 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected scripts-root marker failure")
 
+    missing_scripts_ring_guard = good_scripts_root.replace(
+        "`scripts/zigux/check-phase10-ring-packet.py`",
+        "`scripts/zigux/check-phase10-ring-packet-missing.py`",
+        1,
+    )
+    try:
+        check_scripts_readme(missing_scripts_ring_guard)
+    except SystemExit as exc:
+        assert "scripts-readme" in str(exc)
+    else:
+        raise AssertionError("expected scripts-root ring-guard marker failure")
+
+    missing_scripts_mmio_guard = good_scripts_root.replace(
+        "`scripts/zigux/check-phase10-mmio-packet.py`",
+        "`scripts/zigux/check-phase10-mmio-packet-missing.py`",
+        1,
+    )
+    try:
+        check_scripts_readme(missing_scripts_mmio_guard)
+    except SystemExit as exc:
+        assert "scripts-readme" in str(exc)
+    else:
+        raise AssertionError("expected scripts-root mmio-guard marker failure")
+
     missing_scripts_validator = good_scripts_root.replace(
         "`scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py`",
         "`scripts/zigux/validate-phase10-closure.py`",
@@ -315,7 +341,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
