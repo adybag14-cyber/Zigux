@@ -39,7 +39,7 @@ fn isStandaloneStringSample(name: []const u8) bool {
     return false;
 }
 
-test "phase 7 string helper boundary keeps the no-string-sample policy lane-local" {
+test "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local" {
     const io = std.testing.io;
     try std.testing.expectError(error.FileNotFound, std.Io.Dir.cwd().access(io, "samples/zigux/string_helpers_sample.zig", .{}));
 
@@ -77,7 +77,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(slice_note);
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
     try expectContains(slice_note, "expanded starter packet");
-    try expectContains(slice_note, "Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet");
+    try expectContains(slice_note, "but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion under the non-runtime `trace_events` anchor");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
@@ -210,12 +211,13 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContainsCount(samples_readme, "* `*kasprintf*`", 1);
     try expectContains(samples_readme, "* `*strarray*`");
     try expectContainsCount(samples_readme, "* `*strarray*`", 1);
+    try expectContains(samples_readme, "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`");
     try expectContains(samples_readme, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
     try expectContains(samples_readme, "Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets");
     try expectContains(samples_readme, "instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, kasprintf, strarray");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
-    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
 }
