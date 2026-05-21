@@ -92,6 +92,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`make -C zigux phase8-help-kallsyms-test`",
     ),
     HELP_KALLSYMS_BUILD: (
         "phase8_help.zig",
@@ -286,6 +287,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing tests README marker to be reported")
         tests_readme.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme.write_text(original_tests_readme.replace("`make -C zigux phase8-help-kallsyms-test`", "", 1), encoding="utf-8")
+        missing_tests_readme_route = validate_root(root)
+        expected_tests_readme_route = "zigux/tests/README.md:`make -C zigux phase8-help-kallsyms-test`"
+        if expected_tests_readme_route not in missing_tests_readme_route.missing_markers:
+            raise AssertionError("expected missing tests README route marker to be reported")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
         help_test = root / HELP_TEST
         original_help_test = _read(help_test)
         help_test.write_text(original_help_test.replace('test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"', "", 1), encoding="utf-8")
@@ -380,7 +388,7 @@ def run_self_test() -> int:
         _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
