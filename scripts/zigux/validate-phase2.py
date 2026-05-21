@@ -111,6 +111,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "run: make -C zigux phase2-cross",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
