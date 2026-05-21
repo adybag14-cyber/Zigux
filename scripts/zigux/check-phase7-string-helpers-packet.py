@@ -79,6 +79,8 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {',
         'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
+        'test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {',
+        'test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
         'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
@@ -100,7 +102,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
@@ -154,7 +156,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 35
+SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -321,204 +323,102 @@ def run_self_test() -> None:
         expect_missing_marker("missing_tests_cmdline_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_replay_marker}")
         write_fixture_root(tmp_root)
 
-        tests_parse_alloc_marker = 'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_parse_alloc_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_parse_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_parse_alloc_marker}")
+        tests_partial_cleanup_marker = 'test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_partial_cleanup_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_partial_cleanup_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_partial_cleanup_marker}")
         write_fixture_root(tmp_root)
 
-        tests_case_boundary_marker = 'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_case_boundary_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_case_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_case_boundary_marker}")
-        write_fixture_root(tmp_root)
-
-        tests_quotable_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_quotable_alloc_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_quotable_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_quotable_alloc_marker}")
-        write_fixture_root(tmp_root)
-
-        tests_replace_alloc_marker = 'test "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_replace_alloc_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_replace_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_replace_alloc_marker}")
-        write_fixture_root(tmp_root)
-
-        tests_memcpy_pad_marker = 'test "phase 7 string helpers starter pads bounded copies without reading past the provided source slice" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_memcpy_pad_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_memcpy_pad_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_memcpy_pad_marker}")
-        write_fixture_root(tmp_root)
-
-        tests_strreplace_marker = 'test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {'
-        tests_path.write_text(read_text(tests_path).replace(tests_strreplace_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_tests_strreplace_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_strreplace_marker}")
+        tests_overflow_marker = 'test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_overflow_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_overflow_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_overflow_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
         manifest_marker = "dedicated helper-local checker-backed packet reviewability"
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_manifest_checker_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+        expect_missing_marker("missing_manifest_checker_reviewability", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
 
-        survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
-        survey_marker = 'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");'
-        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_checker_selftest_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
+        sample_boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
+        sample_boundary_path.write_text(read_text(sample_boundary_path).replace(sample_boundary_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_sample_boundary_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
         write_fixture_root(tmp_root)
 
-        survey_follow_on_marker = 'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
-        survey_path.write_text(read_text(survey_path).replace(survey_follow_on_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_follow_on_marker}")
+        samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_readme_marker = "* `*rbtree*`"
+        samples_readme_path.write_text(read_text(samples_readme_path).replace(samples_readme_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_readme_rbtree_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
         write_fixture_root(tmp_root)
 
-        survey_helper_devm_marker = 'try expectNotContains(helper, "pub fn devmKasprintfStrarray");'
-        survey_path.write_text(read_text(survey_path).replace(survey_helper_devm_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_helper_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_helper_devm_marker}")
-        write_fixture_root(tmp_root)
-
-        survey_helper_devm_alias_marker = 'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");'
-        survey_path.write_text(read_text(survey_path).replace(survey_helper_devm_alias_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_helper_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_helper_devm_alias_marker}")
-        write_fixture_root(tmp_root)
-
-        survey_tests_devm_marker = 'try expectNotContains(helper_tests, "devmKasprintfStrarray");'
-        survey_path.write_text(read_text(survey_path).replace(survey_tests_devm_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_tests_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_tests_devm_marker}")
-        write_fixture_root(tmp_root)
-
-        survey_tests_devm_alias_marker = 'try expectNotContains(helper_tests, "devm_kasprintf_strarray");'
-        survey_path.write_text(read_text(survey_path).replace(survey_tests_devm_alias_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_tests_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_tests_devm_alias_marker}")
-        write_fixture_root(tmp_root)
-
-        survey_manifest_devm_marker = 'try expectNotContains(manifest, "\\\\\"devmKasprintfStrarray\\\\\"");'
-        survey_path.write_text(read_text(survey_path).replace(survey_manifest_devm_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_manifest_devm_marker}")
-        write_fixture_root(tmp_root)
-
-        survey_manifest_devm_alias_marker = 'try expectNotContains(manifest, "\\\\\"devm_kasprintf_strarray\\\\\"");'
-        survey_path.write_text(read_text(survey_path).replace(survey_manifest_devm_alias_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_manifest_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_manifest_devm_alias_marker}")
-        write_fixture_root(tmp_root)
-
-        boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
-        boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
-        boundary_path.write_text(read_text(boundary_path).replace(boundary_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_boundary_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {boundary_marker}")
-        write_fixture_root(tmp_root)
-
-        samples_path = tmp_root / "samples" / "zigux" / "README.md"
-        samples_marker = "* `*cmdline*`"
-        samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_samples_cmdline_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
-        write_fixture_root(tmp_root)
-
-        helper_forbidden = "pub fn devmKasprintfStrarray("
-        helper_path.write_text(read_text(helper_path) + helper_forbidden + "\n", encoding="utf-8")
-        expect_unexpected_marker("unexpected_helper_devm_helper", tmp_root, f"lib/string_helpers.zig: {helper_forbidden}")
-        write_fixture_root(tmp_root)
-
-        tests_forbidden = "devm_kasprintf_strarray"
-        tests_path.write_text(read_text(tests_path) + tests_forbidden + "\n", encoding="utf-8")
-        expect_unexpected_marker("unexpected_tests_devm_helper", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_forbidden}")
-        write_fixture_root(tmp_root)
-
-        manifest_forbidden = '"devmKasprintfStrarray"'
-        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden + "\n", encoding="utf-8")
-        expect_unexpected_marker("unexpected_manifest_devm_helper", tmp_root, f'zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden}')
-        write_fixture_root(tmp_root)
-
-        slice_path.write_text(read_text(slice_path) + DEVM_FOLLOW_ON_MARKER + "\n", encoding="utf-8")
+        sample_boundary_duplicate = DEVM_FOLLOW_ON_MARKER + "\n"
+        sample_boundary_path.write_text(read_text(sample_boundary_path) + sample_boundary_duplicate, encoding="utf-8")
         expect_mismatched_count(
-            "duplicate_slice_devm_follow_on_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-string-helpers-slice.md: expected 1 occurrence(s) of "
-            f"{DEVM_FOLLOW_ON_MARKER!r}, found 2",
-        )
-        write_fixture_root(tmp_root)
-
-        boundary_path.write_text(read_text(boundary_path) + boundary_marker + "\n", encoding="utf-8")
-        expect_mismatched_count(
-            "duplicate_boundary_devm_follow_on_marker",
+            "duplicate_sample_boundary_follow_on_marker",
             tmp_root,
             "zigux/tests/phase7_string_helpers_sample_boundary.zig: expected 1 occurrence(s) of "
-            f"{boundary_marker!r}, found 2",
+            + repr(DEVM_FOLLOW_ON_MARKER)
+            + ", found 2",
         )
         write_fixture_root(tmp_root)
 
-        samples_path.write_text(read_text(samples_path) + "* `*kasprintf*`\n", encoding="utf-8")
-        expect_mismatched_count(
-            "duplicate_samples_kasprintf_boundary_marker",
-            tmp_root,
-            "samples/zigux/README.md: expected 1 occurrence(s) of '* `*kasprintf*`', found 2",
-        )
+        helper_forbidden_marker = "pub fn devmKasprintfStrarray("
+        helper_path.write_text(read_text(helper_path) + helper_forbidden_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_helper_devm_marker", tmp_root, f"lib/string_helpers.zig: {helper_forbidden_marker}")
         write_fixture_root(tmp_root)
 
-        manifest_next_marker = (
-            "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked "
-            "`devm_kasprintf_strarray()` follow-on"
-        )
-        manifest_path.write_text(read_text(manifest_path) + manifest_next_marker + "\n", encoding="utf-8")
-        expect_mismatched_count(
-            "duplicate_manifest_next_step_marker",
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_manifest.json: expected 1 occurrence(s) of "
-            f"{manifest_next_marker!r}, found 2",
-        )
+        tests_forbidden_marker = "devmKasprintfStrarray"
+        tests_path.write_text(read_text(tests_path) + tests_forbidden_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_tests_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_forbidden_marker}")
+        write_fixture_root(tmp_root)
 
-    print("PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass")
-    print(f"PHASE7_STRING_HELPERS_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to validate (default: current repository root)")
-    parser.add_argument("--self-test", action="store_true", help="run built-in self-tests instead of validating the repository")
-    return parser.parse_args()
+        manifest_forbidden_marker = '"devmKasprintfStrarray"'
+        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_marker}")
 
 
 def main() -> int:
-    args = parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT, help="repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="run checker self-test instead of validating the repository")
+    args = parser.parse_args()
+
     if args.self_test:
         run_self_test()
+        print("PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass")
+        print(f"PHASE7_STRING_HELPERS_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
         return 0
 
-    missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(args.repo_root)
+    missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(args.root)
+    if not any((missing_files, missing_markers, mismatched_counts, unexpected_markers)):
+        print("PHASE7_STRING_HELPERS_PACKET=pass")
+        return 0
+
     if missing_files:
-        print("PHASE7_STRING_HELPERS_PACKET=fail")
         print("MISSING_PHASE7_STRING_HELPERS_FILES_START")
-        for item in missing_files:
-            print(item)
+        for rel in missing_files:
+            print(rel)
         print("MISSING_PHASE7_STRING_HELPERS_FILES_END")
-        return 1
 
     if missing_markers:
-        print("PHASE7_STRING_HELPERS_PACKET=fail")
         print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")
-        for item in missing_markers:
-            print(item)
+        for marker in missing_markers:
+            print(marker)
         print("MISSING_PHASE7_STRING_HELPERS_MARKERS_END")
-        return 1
 
     if mismatched_counts:
-        print("PHASE7_STRING_HELPERS_PACKET=fail")
         print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START")
-        for item in mismatched_counts:
-            print(item)
+        for mismatch in mismatched_counts:
+            print(mismatch)
         print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_END")
-        return 1
 
     if unexpected_markers:
-        print("PHASE7_STRING_HELPERS_PACKET=fail")
         print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START")
-        for item in unexpected_markers:
-            print(item)
+        for marker in unexpected_markers:
+            print(marker)
         print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_END")
-        return 1
 
-    print("PHASE7_STRING_HELPERS_PACKET=pass")
-    print(f"PHASE7_STRING_HELPERS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE7_STRING_HELPERS_PACKET_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
-    print("PHASE7_STRING_HELPERS_PACKET_COUNTED_MARKER_COUNT=" f"{sum(len(markers) for markers in COUNTED_MARKERS.values())}")
-    print("PHASE7_STRING_HELPERS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
-    return 0
+    return 1
 
 
 if __name__ == "__main__":
