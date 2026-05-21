@@ -160,6 +160,7 @@ EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS = [
     'test "strrchr finds the last in-range match with C-string semantics"',
     'test "strpbrk finds the first accepted byte with C-string semantics"',
     'test "strspn counts the accepted prefix with C-string semantics"',
+    'test "strcspn counts until the first rejected byte with C-string semantics"',
     'test "strnchr honors count and C-string boundaries"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
@@ -169,8 +170,9 @@ EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY = (
     "the shared Phase 1 replay still does not carry dedicated counted-search or "
     "search-length fixture keys, so strchr() or strrchr() full-length C-string searches, "
     "strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, "
-    "strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() "
-    "or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors"
+    "strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() "
+    "count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior "
+    "remain owned by the helper-local anchors"
 )
 EXPECTED_RBTREE_ORDERED_ALIAS_ANCHOR = (
     'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"'
