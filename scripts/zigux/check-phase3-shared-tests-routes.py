@@ -102,6 +102,8 @@ REQUIRED_WORKFLOW_MARKERS = (
     "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "- name: Check current Phase 3 low-level wrapper survey packet",
     "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "- name: Run current Phase 3 export/UAPI layout replay",
+    "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "- name: Run current Phase 3 low-level wrapper replay",
     "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "- name: Run current Phase 3 shared tests-root packet",
@@ -181,6 +183,14 @@ SELF_TEST_CASES = (
     (
         WORKFLOW_PATH,
         "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 export/UAPI layout replay",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     ),
     (
         WORKFLOW_PATH,
