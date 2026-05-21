@@ -60,6 +60,14 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase2-toolchain-pinning.py",
 )
 
+SCRIPTS_README_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` stay framed as historical packet members rather than shipped current-`master` evidence",
+)
+
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -69,11 +77,28 @@ TESTS_README_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
+TESTS_README_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` stay framed as historical packet members rather than shipped current-`master` evidence",
+)
+
 REVIEW_CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "make -C zigux phase2-kconfig",
+)
+
+REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` stay framed as historical packet members rather than shipped current-`master` evidence",
 )
 
 BRIDGE_CHECKER_LINE_MARKERS = (
@@ -236,7 +261,7 @@ VALID_CASES_PAYLOAD = {
             "kconfig": "Kconfig",
             "config": "out/list.config",
             "arch": "x86_64",
-            "silent": true,
+            "silent": True,
             "expected": "listnewconfig_expected.json",
         },
         {
@@ -245,7 +270,7 @@ VALID_CASES_PAYLOAD = {
             "kconfig": "Kconfig",
             "config": "out/help.config",
             "arch": "riscv64",
-            "silent": true,
+            "silent": True,
             "expected": "helpnewconfig_expected.json",
         },
         {
@@ -262,11 +287,92 @@ VALID_CASES_PAYLOAD = {
             "name": "sample",
             "input": "sample.config",
             "expected": "sample_expected.json"
+        },
+        {
+            "name": "escaped_strings",
+            "input": "escaped_strings.config",
+            "expected": "escaped_strings_expected.json"
+        },
+        {
+            "name": "escaped_control_sequences",
+            "input": "escaped_control_sequences.config",
+            "expected": "escaped_control_sequences_expected.json"
+        },
+        {
+            "name": "trailing_escaped_backslash",
+            "input": "trailing_escaped_backslash.config",
+            "expected": "trailing_escaped_backslash_expected.json"
+        },
+        {
+            "name": "sample_crlf",
+            "input": "sample_crlf.config",
+            "expected": "sample_crlf_expected.json"
+        },
+        {
+            "name": "explicit_n_tristate",
+            "input": "explicit_n_tristate.config",
+            "expected": "explicit_n_tristate_expected.json"
+        },
+        {
+            "name": "final_trailing_carriage_return",
+            "input": "final_trailing_carriage_return.config",
+            "expected": "final_trailing_carriage_return_expected.json"
+        },
+        {
+            "name": "final_unterminated_unset_comment",
+            "input": "final_unterminated_unset_comment.config",
+            "expected": "final_unterminated_unset_comment_expected.json"
+        },
+        {
+            "name": "uppercase_tristate",
+            "input": "uppercase_tristate.config",
+            "expected": "uppercase_tristate_expected.json"
+        },
+        {
+            "name": "non_config_lines",
+            "input": "non_config_lines.config",
+            "expected": "non_config_lines_expected.json"
+        },
+        {
+            "name": "empty_config_symbol_names",
+            "input": "empty_config_symbol_names.config",
+            "expected": "empty_config_symbol_names_expected.json"
+        },
+        {
+            "name": "malformed_unset_comment_tokens",
+            "input": "malformed_unset_comment_tokens.config",
+            "expected": "malformed_unset_comment_tokens_expected.json"
+        },
+        {
+            "name": "last_state_transitions",
+            "input": "last_state_transitions.config",
+            "expected": "last_state_transitions_expected.json"
+        },
+        {
+            "name": "duplicate_assignments",
+            "input": "duplicate_assignments.config",
+            "expected": "duplicate_assignments_expected.json"
+        },
+        {
+            "name": "duplicate_malformed_quoted_assignment",
+            "input": "duplicate_malformed_quoted_assignment.config",
+            "expected": "duplicate_malformed_quoted_assignment_expected.json"
         }
     ]
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 26
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    19
+    + len(SCRIPTS_README_MARKERS)
+    + len(SCRIPTS_README_MARKERS)
+    + len(SCRIPTS_README_FORBIDDEN_MARKERS)
+    + len(TESTS_README_MARKERS)
+    + len(TESTS_README_MARKERS)
+    + len(TESTS_README_FORBIDDEN_MARKERS)
+    + len(REVIEW_CHECKLIST_MARKERS)
+    + len(REVIEW_CHECKLIST_MARKERS)
+    + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
+)
 
 
 def read_text(path: Path) -> str:
@@ -298,6 +404,26 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_exact_marker_issues(
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
 
 
 def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...]:
@@ -394,9 +520,51 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"))
+    issues.extend(
+        collect_exact_marker_issues(
+            scripts_readme_text,
+            SCRIPTS_README_MARKERS,
+            "MISSING_SCRIPTS_README_MARKERS",
+            "DUPLICATE_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            scripts_readme_text,
+            SCRIPTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_marker_issues(
+            tests_readme_text,
+            TESTS_README_MARKERS,
+            "MISSING_TESTS_README_MARKERS",
+            "DUPLICATE_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            tests_readme_text,
+            TESTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_marker_issues(
+            review_checklist_text,
+            REVIEW_CHECKLIST_MARKERS,
+            "MISSING_REVIEW_CHECKLIST_MARKERS",
+            "DUPLICATE_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            review_checklist_text,
+            REVIEW_CHECKLIST_FORBIDDEN_MARKERS,
+            "FORBIDDEN_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
 
     for marker in BRIDGE_CHECKER_LINE_MARKERS:
         count = count_exact_lines(bridge_checker_text, marker)
@@ -608,6 +776,62 @@ def run_self_test() -> int:
         path.write_text(replace_once(path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0], ""), encoding="utf-8")
         assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[0]) in collect_issues(root)
         checks_run += 1
+
+        for marker in SCRIPTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("DUPLICATE_SCRIPTS_README_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
+            assert ("MISSING_TESTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("DUPLICATE_TESTS_README_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
+            assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("DUPLICATE_REVIEW_CHECKLIST_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("FORBIDDEN_REVIEW_CHECKLIST_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
