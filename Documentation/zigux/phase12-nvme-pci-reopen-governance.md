@@ -11,7 +11,7 @@ It is a PMO and coordination artifact only. It does not add a new replay route.
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=nvme-pci-reopen-governance`
 - `PHASE12_LANE=P12-L08`
-- verified on: `2026-05-19`
+- verified on: `2026-05-21`
 - inspected branch: `master`
 - roadmap anchor: `drivers/nvme/host/pci.c`
 - shared PMO companions:
