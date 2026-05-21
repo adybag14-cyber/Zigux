@@ -8,6 +8,7 @@
 - `PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey`
 - `PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey`
 - `PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow`
+- `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`
 - `PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - `PHASE4_KPROBE_OWNER=Validation and Perf Team`
 - `PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team`
@@ -21,6 +22,7 @@ The packet is intentionally narrow:
 - keep the current Linux replay command explicit
 - keep the explicit local lab replay marker explicit
 - keep the dedicated local survey wrapper explicit
+- keep the shared lab-and-CI matrix anchor explicit
 - keep the explicit bootstrap-CI posture explicit while the starter remains absent
 - keep the direct validation entrypoint explicit
 - keep ownership and rollback ownership explicit
@@ -36,7 +38,7 @@ The bounded evidence packet instead remains:
 - `make -C zigux phase4-kprobe-example-survey`
 - `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 
-That packet keeps the current C anchor, replay path, owner, rollback owner, explicit local lab replay marker, dedicated local survey route, explicit bootstrap-CI posture, and direct validation entrypoint measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
+That packet keeps the current C anchor, replay path, owner, rollback owner, explicit local lab replay marker, dedicated local survey route, shared lab-and-CI matrix anchor, explicit bootstrap-CI posture, and direct validation entrypoint measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
 
 The same packet also keeps its reversible-delivery evidence string pinned in the paired manifest so the absent-starter boundary does not fall back to note prose alone.
 The shared validator now fails closed on the manifest-backed kprobe survey packet, so the remaining measurable gap in this packet is the absent Zig starter rather than validator promotion.
