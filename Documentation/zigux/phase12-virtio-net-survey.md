@@ -8,7 +8,7 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_SLICE=virtio-net-survey`
 - lane owner: `P12-L04`
 - scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity review packet truthful without reopening live runtime data-path work
-- verified head: `6c941cb561420120b8e1d5a07e8a44e1c918a5f2`
+- verified head: `c36b21af252cf76160ba5ae9c8f84b2310f4b2e1`
 - repo-truth boundary:
   - `Documentation/zigux/phase12-virtio-net-survey.md`
   - `zigux/tests/phase12_virtio_net_manifest.json`
