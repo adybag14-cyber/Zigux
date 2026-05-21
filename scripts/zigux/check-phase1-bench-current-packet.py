@@ -11,6 +11,7 @@ from pathlib import Path
 DEFAULT_ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 PHASE1_CLOSURE_REL = "Documentation/zigux/phase1-closure.md"
+REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
 TESTS_README_REL = "zigux/tests/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
@@ -18,6 +19,7 @@ BENCH_CHECKER_REL = "scripts/zigux/check-phase1-bench.py"
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
+    REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
     TESTS_README_REL,
     WORKFLOW_REL,
@@ -30,6 +32,9 @@ MARKERS = {
         "- `zigux/tests/phase1_bench.zig`",
         "- `zigux/tests/fixtures/phase1_bench_expectations.json`",
         "- `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    ),
+    REVIEW_CHECKLIST_REL: (
+        "  * if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?",
     ),
     SCRIPTS_README_REL: (
         "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
