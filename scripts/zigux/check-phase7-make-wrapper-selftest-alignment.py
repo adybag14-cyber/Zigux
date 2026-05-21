@@ -53,12 +53,17 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 )
 
+REQUIRED_VALIDATOR_MARKERS = (
+    'MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")',
+    'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")',
+)
+
 FORBIDDEN_MAKEFILE_LINES = (
     "phase7-test:",
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(path: Path) -> str:
@@ -85,8 +90,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
 
-    if not (root / VALIDATOR).is_file():
+    validator_path = root / VALIDATOR
+    if not validator_path.is_file():
         issues.append(("MISSING_VALIDATOR", str(VALIDATOR)))
+    else:
+        validator_text = read_text(validator_path)
+        for marker in REQUIRED_VALIDATOR_MARKERS:
+            if marker not in validator_text:
+                issues.append(("MISSING_VALIDATOR_MARKERS", marker))
 
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
@@ -153,7 +164,17 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
 def build_self_test_root(root: Path) -> None:
     write_text(root / ACTIVE_CHECKER, "\n".join(REQUIRED_CHECKER_MARKERS) + "\n")
     write_text(root / SEQUENCING_NOTE, "\n".join(REQUIRED_SEQUENCING_MARKERS) + "\n")
-    write_text(root / VALIDATOR, "print('PHASE7_VALIDATE=pass')\n")
+    write_text(
+        root / VALIDATOR,
+        "\n".join(
+            (
+                'MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")',
+                'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")',
+                "print('PHASE7_VALIDATE=pass')",
+            )
+        )
+        + "\n",
+    )
     write_text(root / MAKEFILE, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
     write_text(
         root / WORKFLOW,
@@ -218,6 +239,26 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8") + "phase7-test:\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-test:") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        validator_path = root / VALIDATOR
+        validator_path.write_text(
+            validator_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        validator_path = root / VALIDATOR
+        validator_path.write_text(
+            validator_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
         cases += 1
 
         build_self_test_root(root)
