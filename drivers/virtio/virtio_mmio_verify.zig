@@ -4,6 +4,7 @@ const virtio_mmio = @import("virtio_mmio");
 pub const TransportIdentitySummary = virtio_mmio.TransportIdentitySummary;
 pub const ProbePreflightSummary = virtio_mmio.ProbePreflightSummary;
 pub const SelectedQueueReadinessSummary = virtio_mmio.SelectedQueueReadinessSummary;
+pub const ConfigWritePlanSummary = virtio_mmio.ConfigWritePlanSummary;
 pub const ConfigWriteDispositionSummary = virtio_mmio.ConfigWriteDispositionSummary;
 pub const ConfigWritePlanFreshnessSummary = virtio_mmio.ConfigWritePlanFreshnessSummary;
 pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;
@@ -23,6 +24,14 @@ pub fn summarizeSelectedQueueReadiness(device: *const virtio_mmio.VirtioMmioLab)
 
 pub fn summarizeFeatureNegotiation(device: *const virtio_mmio.VirtioMmioLab) FeatureNegotiationSummary {
     return device.featureNegotiationSummary();
+}
+
+pub fn summarizeConfigWritePlan(
+    device: *virtio_mmio.VirtioMmioLab,
+    offset: u32,
+    planned_value: u32,
+) !ConfigWritePlanSummary {
+    return device.planConfigWriteOffset(offset, planned_value);
 }
 
 pub fn summarizeConfigWriteDisposition(device: *const virtio_mmio.VirtioMmioLab) !ConfigWriteDispositionSummary {
@@ -60,6 +69,10 @@ pub fn hasFeatureNegotiationDrift(summary: FeatureNegotiationSummary) bool {
 
 pub fn requiresLegacyGuestPageSize(summary: ProbePreflightSummary) bool {
     return !summary.legacy_guest_page_size_ready;
+}
+
+pub fn configWritePlanWithinWindow(summary: ConfigWritePlanSummary) bool {
+    return summary.within_config_window;
 }
 
 pub fn hasFreshConfigWritePlan(summary: ConfigWritePlanFreshnessSummary) bool {
@@ -157,6 +170,35 @@ test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explici
     try std.testing.expect(summary.driver_features_known);
     try std.testing.expect(!summary.negotiation_possible);
     try std.testing.expectEqual(@as(u6, 0), negotiatedFeatureBitCount(summary));
+}
+
+test "phase10 virtio mmio verify keeps config-write plan wrapper below config application" {
+    var device = try virtio_mmio.VirtioMmioLab.init(89, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    const plan = try summarizeConfigWritePlan(&device, virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, plan.anchor);
+    try std.testing.expectEqual(@as(u32, 4), plan.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), plan.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0407), plan.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), plan.config_generation);
+    try std.testing.expect(configWritePlanWithinWindow(plan));
+
+    var freshness = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(freshness.plan_matches_generation);
+    try std.testing.expectEqual(plan.relative_offset, freshness.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, freshness.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, freshness.planned_value);
+    try std.testing.expectEqual(plan.config_generation, freshness.planned_generation);
+    try std.testing.expect(hasFreshConfigWritePlan(freshness));
+
+    device.bumpConfigGeneration();
+    freshness = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(!freshness.plan_matches_generation);
+    try std.testing.expect(!hasFreshConfigWritePlan(freshness));
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, summarizeConfigWriteDisposition(&device));
 }
 
 test "phase10 virtio mmio verify keeps config-write plan freshness below config application" {
