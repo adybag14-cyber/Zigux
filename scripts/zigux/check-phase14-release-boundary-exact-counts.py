@@ -3,8 +3,8 @@
 
 Fail-closed checker for the current Phase 14 release-boundary count posture.
 
-This guard keeps the release-boundary packet honest around the exact unknown
-compile-shard counts and the currently unreadable executable-layer gap while
+This guard keeps the release-boundary packet honest around the exact manifest-
+backed compile-shard counts and the still-unreadable executable-layer gap while
 cross-reading the shared smoke survey markers that define the returned
 Phase 14 route split and exact-readback gap list.
 """
@@ -21,15 +21,14 @@ MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
 SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 
-UNKNOWN_COUNT_MARKERS = [
-    "- `PHASE14_COMPILE_SHARD_TOTAL=unknown_in_current_contents_readback`",
-    "- `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=unknown_in_current_contents_readback`",
-    "- `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=unknown_in_current_contents_readback`",
+EXACT_COUNT_MARKERS = [
+    "- `PHASE14_COMPILE_SHARD_TOTAL=6`",
+    "- `PHASE14_COMPILE_SHARD_FOCUSED_COUNT=1`",
+    "- `PHASE14_COMPILE_SHARD_FULL_BUNDLE_ONLY_COUNT=5`",
 ]
 
 EXECUTABLE_GAP_MARKERS = [
     "- `zigux/tests/phase14_build.zig`",
-    "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     "- `zigux/tests/phase14_skbuff_bridge.zig`",
     "- `zigux/tests/phase14_rcu_tree_survey.zig`",
@@ -38,6 +37,7 @@ EXECUTABLE_GAP_MARKERS = [
 
 RELEASE_BOUNDARY_TEXT_MARKERS = [
     "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` now returns through the current contents path and keeps the release-facing exact-count posture aligned with the current shared reminder packet",
+    "- `zigux/tests/phase14_end_to_end_smoke_manifest.json` now returns through the current contents path and publishes the exact six-row compile-shard matrix with one `focused_and_full_bundle` shard and five `full_bundle_only` shards",
     "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
     "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
 ]
@@ -99,7 +99,7 @@ def check(root: Path) -> list[str]:
         return errors
 
     release_boundary = read_text(root, RELEASE_BOUNDARY_PATH)
-    require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, UNKNOWN_COUNT_MARKERS)
+    require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, EXACT_COUNT_MARKERS)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, EXECUTABLE_GAP_MARKERS)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, RELEASE_BOUNDARY_TEXT_MARKERS)
 
@@ -113,7 +113,7 @@ def fixture_release_boundary() -> str:
     return "\n".join(
         [
             "# Phase 14 Release Boundary Survey",
-            *UNKNOWN_COUNT_MARKERS,
+            *EXACT_COUNT_MARKERS,
             *RELEASE_BOUNDARY_TEXT_MARKERS,
             "- executable packet members that still do not return through this lane's exact contents readback:",
             *EXECUTABLE_GAP_MARKERS,
@@ -171,10 +171,10 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
-        remove_line(base, RELEASE_BOUNDARY_PATH, UNKNOWN_COUNT_MARKERS[0])
-        if not any(UNKNOWN_COUNT_MARKERS[0] in error for error in check(base)):
+        remove_line(base, RELEASE_BOUNDARY_PATH, EXACT_COUNT_MARKERS[0])
+        if not any(EXACT_COUNT_MARKERS[0] in error for error in check(base)):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected unknown-count drift to fail")
+            print("expected exact-count drift to fail")
             return 1
 
         write_fixture_tree(base)
@@ -185,10 +185,10 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
-        remove_line(base, RELEASE_BOUNDARY_PATH, RELEASE_BOUNDARY_TEXT_MARKERS[0])
-        if not any(RELEASE_BOUNDARY_TEXT_MARKERS[0] in error for error in check(base)):
+        remove_line(base, RELEASE_BOUNDARY_PATH, RELEASE_BOUNDARY_TEXT_MARKERS[1])
+        if not any(RELEASE_BOUNDARY_TEXT_MARKERS[1] in error for error in check(base)):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected shipped-checker drift to fail")
+            print("expected manifest-count marker drift to fail")
             return 1
 
         write_fixture_tree(base)
