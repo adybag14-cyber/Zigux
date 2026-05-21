@@ -149,6 +149,7 @@ route:
   `drivers/tty/hvc/hvc_console.zig`,
   `scripts/zigux/check-phase11-build-inventory.py`,
   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+  `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
