@@ -388,7 +388,7 @@ pub fn build(b: *std.Build) void {
 
     const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
         .name = \"phase12-virtio-net-post-reset-replay-tests\",
-        .root_module = virtio_net_post_RESET_REPLAY_root_module,
+        .root_module = virtio_net_post_reset_replay_root_module,
     });
     const run_virtio_net_post_reset_replay_tests = b.addRunArtifact(
         phase12_virtio_net_post_reset_replay_tests,
