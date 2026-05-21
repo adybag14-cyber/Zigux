@@ -26,6 +26,8 @@ EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-20"
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -36,6 +38,8 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-present-entrypoints.py",
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
@@ -109,7 +113,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -326,7 +330,11 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
         cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-hexdump-slice.md")))
+        cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
         cases_run += 1
