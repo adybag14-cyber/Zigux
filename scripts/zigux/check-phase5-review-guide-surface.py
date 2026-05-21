@@ -258,3 +258,338 @@ def run_self_test() -> int:
 
         missing_approved_marker_root = root / "missing_approved_marker"
         _seed(missing_approved_marker_root)
+        _write(
+            missing_approved_marker_root / APPROVED_IDIOM_PATH,
+            _placeholder_text(APPROVED_IDIOM_PATH, APPROVED_IDIOM_MARKERS[1:]),
+        )
+        failures = collect_failures(missing_approved_marker_root)
+        expected = [f"{APPROVED_IDIOM_PATH}:missing_text:{APPROVED_IDIOM_MARKERS[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected approved-idiom failure: {failures}")
+        checks_run += 1
+
+        missing_review_checklist_marker_root = root / "missing_review_checklist_marker"
+        _seed(missing_review_checklist_marker_root)
+        _write(
+            missing_review_checklist_marker_root / REVIEW_CHECKLIST_PATH,
+            _placeholder_text(
+                REVIEW_CHECKLIST_PATH,
+                (
+                    REVIEW_CHECKLIST_MARKERS[0],
+                    REVIEW_CHECKLIST_MARKERS[2],
+                    REVIEW_CHECKLIST_MARKERS[3],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_review_checklist_marker_root)
+        expected = [f"{REVIEW_CHECKLIST_PATH}:missing_text:{REVIEW_CHECKLIST_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected review-checklist failure: {failures}")
+        checks_run += 1
+
+        missing_docs_root_marker_root = root / "missing_docs_root_marker"
+        _seed(missing_docs_root_marker_root)
+        _write(
+            missing_docs_root_marker_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[4],
+                    DOCS_ROOT_MARKERS[5],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_marker_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root failure: {failures}")
+        checks_run += 1
+
+        missing_docs_root_attr_group_marker_root = root / "missing_docs_root_attr_group_marker"
+        _seed(missing_docs_root_attr_group_marker_root)
+        _write(
+            missing_docs_root_attr_group_marker_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[3],
+                    DOCS_ROOT_MARKERS[5],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_attr_group_marker_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[4]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root attr-group failure: {failures}")
+        checks_run += 1
+
+        missing_docs_root_runtime_boundary_root = root / "missing_docs_root_runtime_boundary"
+        _seed(missing_docs_root_runtime_boundary_root)
+        _write(
+            missing_docs_root_runtime_boundary_root / DOCS_ROOT_PATH,
+            _placeholder_text(
+                DOCS_ROOT_PATH,
+                (
+                    DOCS_ROOT_MARKERS[0],
+                    DOCS_ROOT_MARKERS[1],
+                    DOCS_ROOT_MARKERS[2],
+                    DOCS_ROOT_MARKERS[3],
+                    DOCS_ROOT_MARKERS[4],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_docs_root_runtime_boundary_root)
+        expected = [f"{DOCS_ROOT_PATH}:missing_text:{DOCS_ROOT_MARKERS[5]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected docs-root runtime-boundary failure: {failures}")
+        checks_run += 1
+
+        missing_scripts_root_bytestream_build_marker_root = root / "missing_scripts_root_bytestream_build_marker"
+        _seed(missing_scripts_root_bytestream_build_marker_root)
+        _write(
+            missing_scripts_root_bytestream_build_marker_root / SCRIPTS_ROOT_PATH,
+            _placeholder_text(
+                SCRIPTS_ROOT_PATH,
+                (
+                    SCRIPTS_ROOT_MARKERS[0],
+                    SCRIPTS_ROOT_MARKERS[1],
+                    SCRIPTS_ROOT_MARKERS[2],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_scripts_root_bytestream_build_marker_root)
+        expected = [f"{SCRIPTS_ROOT_PATH}:missing_text:{SCRIPTS_ROOT_MARKERS[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected scripts-root bytestream-build failure: {failures}")
+        checks_run += 1
+
+        missing_tests_root_kobject_marker_root = root / "missing_tests_root_kobject_marker"
+        _seed(missing_tests_root_kobject_marker_root)
+        _write(
+            missing_tests_root_kobject_marker_root / TESTS_ROOT_PATH,
+            _placeholder_text(
+                TESTS_ROOT_PATH,
+                (
+                    TESTS_ROOT_MARKERS[0],
+                    TESTS_ROOT_MARKERS[1],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_tests_root_kobject_marker_root)
+        expected = [f"{TESTS_ROOT_PATH}:missing_text:{TESTS_ROOT_MARKERS[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected tests-root kobject failure: {failures}")
+        checks_run += 1
+
+        missing_lane_sequencing_kobject_build_marker_root = root / "missing_lane_sequencing_kobject_build_marker"
+        _seed(missing_lane_sequencing_kobject_build_marker_root)
+        _write(
+            missing_lane_sequencing_kobject_build_marker_root / LANE_SEQUENCING_PATH,
+            _placeholder_text(
+                LANE_SEQUENCING_PATH,
+                (
+                    LANE_SEQUENCING_MARKERS[0],
+                    LANE_SEQUENCING_MARKERS[1],
+                    LANE_SEQUENCING_MARKERS[3],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_lane_sequencing_kobject_build_marker_root)
+        expected = [f"{LANE_SEQUENCING_PATH}:missing_text:{LANE_SEQUENCING_MARKERS[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected lane-sequencing kobject-build failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_marker_root = root / "missing_sample_root_marker"
+        _seed(missing_sample_root_marker_root)
+        _write(
+            missing_sample_root_marker_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_marker_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_attr_group_marker_root = root / "missing_sample_root_attr_group_marker"
+        _seed(missing_sample_root_attr_group_marker_root)
+        _write(
+            missing_sample_root_attr_group_marker_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_attr_group_marker_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root attr-group failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_boundary_root = root / "missing_sample_root_boundary"
+        _seed(missing_sample_root_boundary_root)
+        _write(
+            missing_sample_root_boundary_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_boundary_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root boundary failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_bitmap_marker_root = root / "missing_sample_root_bitmap_marker"
+        _seed(missing_sample_root_bitmap_marker_root)
+        _write(
+            missing_sample_root_bitmap_marker_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[6],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_bitmap_marker_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[5]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_runtime_bitmap_packet_root = root / "missing_sample_root_runtime_bitmap_packet"
+        _seed(missing_sample_root_runtime_bitmap_packet_root)
+        _write(
+            missing_sample_root_runtime_bitmap_packet_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_runtime_bitmap_packet_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[6]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root runtime-bitmap-packet failure: {failures}")
+        checks_run += 1
+
+        missing_direct_path_root = root / "missing_direct_path"
+        _seed(missing_direct_path_root)
+        (missing_direct_path_root / DIRECT_PACKET_PATHS[8]).unlink()
+        failures = collect_failures(missing_direct_path_root)
+        expected = [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected direct-path failure: {failures}")
+        checks_run += 1
+
+        missing_attr_group_guide_path_root = root / "missing_attr_group_guide_path"
+        _seed(missing_attr_group_guide_path_root)
+        _write(
+            missing_attr_group_guide_path_root / GUIDE_PATH,
+            _placeholder_text(GUIDE_PATH, GUIDE_MARKERS).replace(
+                "`samples/zigux/kobject_example_attr_group_contract.zig`\n\n",
+                "",
+            ),
+        )
+        failures = collect_failures(missing_attr_group_guide_path_root)
+        expected = ["guide:missing_path:samples/zigux/kobject_example_attr_group_contract.zig"]
+        if failures != expected:
+            raise AssertionError(f"unexpected attr-group guide-path failure: {failures}")
+        checks_run += 1
+
+        forbidden_text_root = root / "forbidden_text"
+        _seed(forbidden_text_root)
+        _write(
+            forbidden_text_root / GUIDE_PATH,
+            _placeholder_text(GUIDE_PATH, GUIDE_MARKERS) + FORBIDDEN_GUIDE_TEXT[0] + "\n",
+        )
+        failures = collect_failures(forbidden_text_root)
+        expected = [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected forbidden-text failure: {failures}")
+        checks_run += 1
+
+        missing_scripts_root_file = root / "missing_scripts_root_file"
+        _seed(missing_scripts_root_file)
+        (missing_scripts_root_file / SCRIPTS_ROOT_PATH).unlink()
+        try:
+            collect_failures(missing_scripts_root_file)
+        except SystemExit as exc:
+            if "required file missing" not in str(exc):
+                raise AssertionError(f"unexpected missing-file abort: {exc}") from exc
+        else:
+            raise AssertionError("missing scripts root did not abort")
+        checks_run += 1
+
+    if checks_run != expected_case_count:
+        raise AssertionError(f"expected {expected_case_count} checks, ran {checks_run}")
+    print("PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST=pass")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Verify that the Phase 5 review guide packet stays aligned with the current shared sample surfaces."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        return run_self_test()
+    failures = collect_failures(args.root)
+    if failures:
+        for failure in failures:
+            print(failure)
+        return 1
+    print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_COMPANION_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
