@@ -18,10 +18,12 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"current_phase13_notifier_list_reviewability_present\": true");
     try requireContains(manifest_text, "\"current_list_view_present\": true");
     try requireContains(manifest_text, "\"current_hlist_view_present\": true");
+    try requireContains(manifest_text, "\"current_phase13_release_validator_present\": true");
     try requireContains(manifest_text, "\"current_phase13_build_present\": false");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-list-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-hlist-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-focused-packet-checker\"");
+    try requireContains(manifest_text, "\"id\": \"phase13-notifier-release-validator-companion\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-reviewability-gate\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-chain-helper-gap\"");
     try requireContains(manifest_text, "\"id\": \"phase13-build-route-gap\"");
@@ -37,6 +39,7 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "`zigux/helpers/list_view.zig`");
     try requireContains(survey, "`zigux/helpers/hlist_view.zig`");
     try requireContains(survey, "`zigux/helpers/notifier_chain_view.zig`");
+    try requireContains(survey, "`scripts/zigux/validate-phase13-release.py`");
     try requireContains(survey, "`make -C zigux phase13-validate`");
     try requireContains(survey, "focused checker");
 }
