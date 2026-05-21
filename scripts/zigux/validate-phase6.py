@@ -27,6 +27,7 @@ BASE64_BSEARCH_PERF_MARKERS_CHECKER = Path(
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"
 )
 CHECKSUM_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-checksum-corpus-evidence.py")
+CHECKSUM_C_PARITY_CHECKER = Path("scripts/zigux/check-phase6-checksum-c-parity.py")
 CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER = Path(
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"
 )
@@ -41,6 +42,7 @@ CHECKER_INVOCATIONS = [
     (BSEARCH_CORPUS_CHECKER, "--repo-root"),
     (BASE64_BSEARCH_PERF_MARKERS_CHECKER, "--repo-root"),
     (CHECKSUM_CORPUS_CHECKER, "--repo-root"),
+    (CHECKSUM_C_PARITY_CHECKER, None),
     (CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER, "--repo-root"),
     (HEXDUMP_PACKET_CHECKER, "--repo-root"),
     (HEXDUMP_ROUTE_CHECKER, "--root"),
@@ -185,7 +187,7 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 32
 
 
 class ValidationError(RuntimeError):
@@ -238,8 +240,11 @@ def extract_shared_perf_wrapper_keys(helper_parity_manifest: dict[str, object]) 
     return keys
 
 
-def run_checker(root: Path, checker: Path, flag: str) -> None:
-    result = subprocess.run([sys.executable, str(root / checker), flag, str(root)], capture_output=True, text=True, check=False)
+def run_checker(root: Path, checker: Path, flag: str | None) -> None:
+    cmd = [sys.executable, str(root / checker)]
+    if flag is not None:
+        cmd.extend([flag, str(root)])
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
         raise ValidationError(f"{checker.as_posix()} failed: {detail}")
@@ -298,7 +303,18 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def make_checker_stub(expected_flag: str) -> str:
+def make_checker_stub(expected_flag: str | None) -> str:
+    if expected_flag is None:
+        return "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "import sys",
+                "",
+                "if len(sys.argv) != 1:",
+                "    raise SystemExit(f'unexpected argv length: {len(sys.argv)}')",
+                "",
+            ]
+        )
     return "\n".join(
         [
             "#!/usr/bin/env python3",
@@ -457,6 +473,10 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        (root / CHECKSUM_C_PARITY_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         (root / CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -474,6 +494,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         write(root / SHARED_SURFACE_CHECKER, make_checker_stub("--root"))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / CHECKSUM_C_PARITY_CHECKER, make_checker_stub("--repo-root"))
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
