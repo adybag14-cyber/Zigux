@@ -21,6 +21,8 @@ EXPECTED_PHASE = "Phase 6"
 EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -31,6 +33,8 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-present-entrypoints.py",
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_PARITY_DIRECT_EVIDENCE = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
@@ -48,8 +52,6 @@ EXPECTED_PUBLIC_TREE_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
 ]
 EXPECTED_EVIDENCE_CURRENT_GAPS = [
-    "Documentation/zigux/phase6-hexdump-slice.md",
-    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
@@ -65,8 +67,8 @@ REQUIRED_DOCS_README_SNIPPETS = [
     "`python3 scripts/zigux/check-phase6-shared-surface.py --self-test`, `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test`, `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-perf` replay the bounded current Phase 6 reminder packet without widening it into missing parity companions or helper-local implementation follow-through.",
 ]
 REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
-    "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, so keep that broader perf note as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
-    "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`.",
+    "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, but that broader perf note is now aligned again on the currently readable bsearch, checksum, and hexdump measurement packet. Keep that broader perf note as a public-tree-backed shared companion rather than as direct authenticated shared-packet proof in this runtime.",
+    "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.",
 ]
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
@@ -82,11 +84,11 @@ REQUIRED_VALIDATOR_SNIPPETS = [
     'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
 REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
-    "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_build.zig.",
-    "The remaining direct-readback gaps still returning 404 were Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, scripts/zigux/check-phase6-base64-c-parity.py, zigux/tests/phase6_checksum_c_parity.zig, zigux/tests/fixtures/phase6_checksum_c_harness.c, and scripts/zigux/check-phase6-checksum-c-parity.py.",
+    "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_build.zig.",
+    "The remaining direct-readback gaps still returning 404 were zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, scripts/zigux/check-phase6-base64-c-parity.py, zigux/tests/phase6_checksum_c_parity.zig, zigux/tests/fixtures/phase6_checksum_c_harness.c, and scripts/zigux/check-phase6-checksum-c-parity.py.",
 ]
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
-    "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, zigux/tests/phase6_build.zig, and zigux/Makefile.",
+    "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile.",
 ]
 SELF_TEST_CASE_COUNT = 22
 
@@ -255,7 +257,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
         cases_run += 1
-        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("Documentation/zigux/phase6-hexdump-slice.md")))
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
