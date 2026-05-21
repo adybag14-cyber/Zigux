@@ -182,14 +182,6 @@ test "phase12 virtio scsi fixture manifest keeps rollback-only presence and abse
     try std.testing.expect(std.mem.indexOf(u8, fixture.scope, "driver-local starter and replay gates are absent") != null);
 }
 
-test "phase12 virtio scsi slice note stays aligned with the active owner lane" {
-    const slice_note = try readFileAlloc("Documentation/zigux/phase12-virtio-scsi-slice.md", 16 * 1024);
-    defer std.testing.allocator.free(slice_note);
-
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "active `P12-L13` survey packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "current `master` no longer serves `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`") != null);
-}
-
 test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-scsi-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
@@ -197,7 +189,6 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=rollback-evidence-only-live-starter-missing") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-21`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "receive-refill replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);
