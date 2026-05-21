@@ -51,15 +51,30 @@ fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {
     const ptr = narrow_surface.pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), policy) catch {
         return .{ .read_ok = false, .write_ok = false };
     };
-    const read_ok = ptr.* == 31;
+    const const_ptr = narrow_surface.constPointerAtInteropPolicy(u32, second_addr, policy) catch {
+        return .{ .read_ok = false, .write_ok = false };
+    };
+    const const_slice = narrow_surface.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
+        return .{ .read_ok = false, .write_ok = false };
+    };
+    const read_ok =
+        ptr.* == 31 and
+        const_ptr.* == 47 and
+        const_slice.len == bridge_words.len and
+        const_slice[0] == 31 and
+        const_slice[1] == 47;
 
     narrow_surface.writeValueAtInteropPolicy(u32, second_addr, 73, policy) catch {
         return .{ .read_ok = read_ok, .write_ok = false };
     };
 
+    const written_slice = narrow_surface.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
+        return .{ .read_ok = read_ok, .write_ok = false };
+    };
+
     return .{
         .read_ok = read_ok,
-        .write_ok = bridge_words[1] == 73,
+        .write_ok = bridge_words[1] == 73 and written_slice[1] == 73,
     };
 }
 
