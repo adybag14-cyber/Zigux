@@ -169,7 +169,9 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
     defer std.testing.allocator.free(survey_note);
 
     const required_markers = [_][]const u8{
-        "## Exact checks verified on 2026-05-20",
+        "Fresh repo-first inspection on 2026-05-21 confirmed these same-lane facts:",
+        "## Exact checks verified on 2026-05-21",
+        "Fresh direct sample and tests readback on 2026-05-21 showed this exact packet on current `master`:",
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
         "`zigux/tests/phase5_bytestream_fifo.zig` currently carries five focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries five survey-packet checks",
