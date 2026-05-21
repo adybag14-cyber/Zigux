@@ -134,6 +134,7 @@ REQUIRED_MARKERS = {
     WRAPPER_REPLAY_PATH: (
         'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {',
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
+        'test "phase3 low-level wrappers keep monotonic strong compare-exchange mismatch explicit before MMIO publish" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
         'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {',
         'test "phase3 low-level wrappers keep MMIO single-byte interop-policy shorthands explicit" {',
