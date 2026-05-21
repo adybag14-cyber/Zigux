@@ -29,8 +29,11 @@ STUDY_ONLY_CHECKER_REL = "scripts/zigux/check-phase15-review-checklist-study-onl
 GAP_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
 READINESS_CHECKER_REL = "scripts/zigux/check-phase15-readiness-gate-packet.py"
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
+REVIEW_PROCESS_TEST_REL = "zigux/tests/phase15_architecture_council_review_process.zig"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 REVIEW_PROCESS_BUILD_REL = "zigux/tests/phase15_architecture_council_review_process_build.zig"
+LANE_SEQ_MANIFEST_REL = "zigux/tests/phase15_governance_lane_sequencing_manifest.json"
+LANE_SEQ_TEST_REL = "zigux/tests/phase15_governance_lane_sequencing.zig"
 HANDOFF_MANIFEST_REL = "zigux/tests/phase15_handoff_next_steps_manifest.json"
 HANDOFF_TEST_REL = "zigux/tests/phase15_handoff_next_steps.zig"
 MAKEFILE_REL = "zigux/Makefile"
@@ -64,13 +67,15 @@ REQUIRED_FILES = (
     GAP_CHECKER_REL,
     READINESS_CHECKER_REL,
     READINESS_MANIFEST_REL,
+    REVIEW_PROCESS_TEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
     REVIEW_PROCESS_BUILD_REL,
+    LANE_SEQ_MANIFEST_REL,
+    LANE_SEQ_TEST_REL,
     HANDOFF_MANIFEST_REL,
     HANDOFF_TEST_REL,
     MAKEFILE_REL,
     WORKFLOW_REL,
-    "zigux/tests/phase15_architecture_council_review_process.zig",
     FREEZE_GOVERNANCE_TEST_REL,
     PARITY_SCORECARD_TEST_REL,
     INDEFINITE_C_POLICY_JSON_REL,
@@ -146,8 +151,11 @@ SHARED_GAP_MARKERS = (
     f"`{STUDY_ONLY_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
     f"`{READINESS_MANIFEST_REL}`",
+    f"`{REVIEW_PROCESS_TEST_REL}`",
     f"`{REVIEW_PROCESS_MANIFEST_REL}`",
     f"`{REVIEW_PROCESS_BUILD_REL}`",
+    f"`{LANE_SEQ_MANIFEST_REL}`",
+    f"`{LANE_SEQ_TEST_REL}`",
     f"`{HANDOFF_MANIFEST_REL}`",
     f"`{HANDOFF_TEST_REL}`",
     f"`{LANE_OWNER_ALIGNMENT_REL}`",
@@ -165,9 +173,11 @@ HANDOFF_MARKERS = (
 )
 
 FOCUSED_COMPANION_RELS = (
-    "zigux/tests/phase15_architecture_council_review_process.zig",
+    REVIEW_PROCESS_TEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
     REVIEW_PROCESS_BUILD_REL,
+    LANE_SEQ_MANIFEST_REL,
+    LANE_SEQ_TEST_REL,
     HANDOFF_MANIFEST_REL,
     HANDOFF_TEST_REL,
     HANDOFF_CHECKER_REL,
@@ -322,6 +332,8 @@ def _seed(root: Path) -> None:
         "- `zigux/tests/phase15_architecture_council_review_process.zig`\n"
         "- `zigux/tests/phase15_architecture_council_review_process_manifest.json`\n"
         "- `zigux/tests/phase15_architecture_council_review_process_build.zig`\n"
+        "- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`\n"
+        "- `zigux/tests/phase15_governance_lane_sequencing.zig`\n"
         "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n"
         "- `zigux/tests/phase15_handoff_next_steps.zig`\n"
         "- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n"
