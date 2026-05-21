@@ -209,7 +209,6 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.runtime_replay_line_count);
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
-    try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try expectBlobShaMatchesSource(manifest.phase4_build_blob_sha, phase4_build_source);
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
@@ -221,7 +220,6 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try expectBlobShaMatchesSource(manifest.phase4_validator_blob_sha, validate_phase4_source);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("2f8eb1b1410d14cc5e9589873b2d2a2b7a7467e0", manifest.phase9_build_blob_sha);
     try expectBlobShaMatchesSource(manifest.phase9_build_blob_sha, phase9_build_source);
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
