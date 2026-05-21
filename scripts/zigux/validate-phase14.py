@@ -95,13 +95,17 @@ REQUIRED_MARKERS = {
         "Use this checklist before opening or merging Zigux product work.",
         "if the change touches the shared Phase 14 smoke packet",
         "`scripts/zigux/validate-phase14.py` and `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
-        "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+        "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, and `zigux/tests/phase14_ring_buffer_survey.zig` explicit as the directly readable study-only workqueue-and-ring-buffer companions",
+        "`zigux/Makefile` framed as readable current evidence for the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `make -C zigux phase14-validate` gate while `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
+        "`zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, and `net/core/skbuff_bridge.zig` framed as exact-readback gaps",
     ],
     SMOKE_SURVEY_PATH: [
         "  * rollback owner: `Repo Tooling Pod`",
         "  * status bucket: `study_only`",
         "  * rollback threshold: `0` tolerated same-packet drifts",
         "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`",
+        "  * directly readable ring-buffer survey companion:",
+        "    * `zigux/tests/phase14_ring_buffer_survey.zig`",
         "  * executable packet members still unrecovered through this lane's exact contents path:",
         "    * `zigux/tests/phase14_build.zig`",
         "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
@@ -116,11 +120,13 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py` now returns through the current contents path and keeps the tests-root reminder aligned with the same recovered study-only split without promoting the broader `phase14-smoke`, `phase14-test`, or `phase14` wrappers",
         "the directly readable release-boundary exact-count guard",
         "the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
+        "`zigux/tests/phase14_ring_buffer_survey.zig` now returns through the current contents path as a directly readable ring-buffer survey companion",
     ],
     SHARED_SMOKE_GAP_PATH: [
         "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, and its live body now matches the narrowed single-gate posture too: `make -C zigux phase14-validate` stays the only shared smoke command, `smoke_shard_commands` stays empty, and the manifest no longer advertises the older `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, or workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow still omit",
         "the now-aligned raw-manifest posture",
         "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
+        "`zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again through the current contents path as a ring-buffer-local survey companion",
     ],
     CORE_BOUNDARY_TRACEABILITY_PATH: [
         "`kernel/workqueue.c`: `Study / Boundary Only`",
@@ -130,7 +136,7 @@ REQUIRED_MARKERS = {
     ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
-        "  * `PHASE14_DIRECT_ZIG_TEST=zigux/tests/phase14_workqueue_bridge.zig`",
+        "  * `PHASE14_DIRECT_ZIG_TEST=zigux/tests/phase14_workqueue_reviewability.zig`",
     ],
     WORKQUEUE_SURVEY_PATH: [
         "`PHASE14_ANCHOR=kernel/workqueue.c`",
@@ -363,8 +369,8 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
-            (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][0]),
-            (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][0]),
+            (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][3]),
+            (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][3]),
             (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
@@ -376,7 +382,7 @@ def run_self_test() -> int:
             (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
-            (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][5]),
+            (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][4]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
