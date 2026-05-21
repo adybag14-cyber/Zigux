@@ -77,6 +77,15 @@ REQUIRED_TESTS_ROOT_LINES = (
     "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
 )
 
+PHASE1_TESTS_ROOT_PACKET_LINES = (
+    "- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`",
+    "- `scripts/zigux/check-phase1-bench.py`",
+    "- `zigux/tests/build.zig`",
+    "- `zigux/tests/phase1_host_tools_smoke.zig`",
+    "- `.github/workflows/zigux-bootstrap.yml`",
+    "- `zigux/tests/fixtures/phase1_helper_manifest.json`",
+)
+
 PHASE1_PRELUDE_STEPS = (
     ("Self-test current Phase 1 direct-owner checker", "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test"),
     ("Check current Phase 1 direct-owner markers", "python3 scripts/zigux/check-phase1-direct-owner-markers.py"),
@@ -231,6 +240,9 @@ def collect_failures(root: Path) -> list[str]:
     for line in REQUIRED_TESTS_ROOT_LINES:
         failures.extend(require_once(tests_root_text, "tests_root", line))
 
+    for line in PHASE1_TESTS_ROOT_PACKET_LINES:
+        failures.extend(require_once(tests_root_text, "tests_root_packet", line))
+
     for step_name, run_command in ALL_REQUIRED_STEPS:
         failures.extend(require_step_pair(workflow_text, step_name, run_command))
 
@@ -309,6 +321,8 @@ def sample_tests_root_text() -> str:
     return "\n".join(
         [
             "# zigux/tests",
+            "",
+            *PHASE1_TESTS_ROOT_PACKET_LINES,
             "",
             *REQUIRED_TESTS_ROOT_LINES,
             "",
@@ -470,6 +484,20 @@ def run_self_test() -> int:
         failures = collect_failures(broken_root)
         if "tests_root:expected=1:actual=0" not in failures:
             print("self-test:missing_tests_line_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "missing-tests-packet-line"
+        write_sample_root(broken_root)
+        tests_root_text = load_text(broken_root, TESTS_ROOT_REL)
+        write_text(
+            broken_root,
+            TESTS_ROOT_REL,
+            rewrite_once(tests_root_text, PHASE1_TESTS_ROOT_PACKET_LINES[4] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if "tests_root_packet:expected=1:actual=0" not in failures:
+            print("self-test:missing_tests_packet_line_not_detected")
             return 1
         case_count += 1
 
