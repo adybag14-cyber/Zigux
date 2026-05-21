@@ -334,6 +334,9 @@ jobs:
       - name: Check current Phase 3 interop packet
         run: python3 scripts/zigux/run-phase3-checks.py
 
+      - name: Run current Phase 3 export/UAPI layout replay
+        run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig
+
       - name: Run current Phase 3 policy starter-packet replay
         run: make -C zigux phase3-policy-starter-packet-test
 
