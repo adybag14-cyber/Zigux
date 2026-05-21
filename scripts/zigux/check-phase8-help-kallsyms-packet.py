@@ -62,6 +62,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "shared validation overlap only",
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
+        "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
+        "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
     ),
     TOOLING_LANE_SEQUENCE: (
         "`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only",
@@ -374,6 +376,34 @@ def run_self_test() -> int:
             raise AssertionError("expected missing kallsyms truncation marker to be reported")
         kallsyms_slice.write_text(original_slice, encoding="utf-8")
 
+        kallsyms_slice.write_text(
+            original_slice.replace(
+                "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_raw_fallback_marker = validate_root(root)
+        expected_raw_fallback_marker = "Documentation/zigux/phase8-kallsyms-slice.md:the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content"
+        if expected_raw_fallback_marker not in missing_raw_fallback_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms raw-fallback marker to be reported")
+        kallsyms_slice.write_text(original_slice, encoding="utf-8")
+
+        kallsyms_slice.write_text(
+            original_slice.replace(
+                "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_crlf_marker = validate_root(root)
+        expected_crlf_marker = "Documentation/zigux/phase8-kallsyms-slice.md:the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names"
+        if expected_crlf_marker not in missing_crlf_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms CRLF-contract marker to be reported")
+        kallsyms_slice.write_text(original_slice, encoding="utf-8")
+
         missing_source = root / KALLSYMS_SOURCE
         missing_source.unlink()
         missing_file = validate_root(root)
@@ -409,7 +439,7 @@ def run_self_test() -> int:
         _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=24")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
