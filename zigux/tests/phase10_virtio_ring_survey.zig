@@ -107,7 +107,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_ring_survey.zig\"");
 }
 
-test "phase10 virtio ring slice companions keep the notification-data replay, public-readback companion, and landed survey gate explicit" {
+test "phase10 virtio ring slice companions keep the notification-data replay, direct-readback broader replay, and landed survey gate explicit" {
     const allocator = std.testing.allocator;
 
     const slice_note = try readRepoRelative(
@@ -119,7 +119,7 @@ test "phase10 virtio ring slice companions keep the notification-data replay, pu
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(
         slice_note,
-        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
+        "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
     );
     try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_survey.zig");
@@ -141,7 +141,7 @@ test "phase10 virtio ring freeze-boundary note keeps risky transport work blocke
     try expectContains(freeze_note, "probe or remove lifecycle closure");
     try expectContains(
         freeze_note,
-        "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
+        "direct current-head readback now keeps the broader ring replay `zigux/tests/phase10_virtio_ring.zig` inside the same ring packet as the queue-local helper ladder",
     );
     try expectContains(freeze_note, "zigux/tests/phase10_virtio_ring_survey.zig");
 }
