@@ -46,6 +46,9 @@ REQUIRED_MARKERS = {
         "fn nextSplitArgSpan(",
         "test \"argvSplit treats whitespace before the first NUL as blank input\" {",
         "test \"argvSplit treats a leading NUL as blank input\" {",
+        "test \"blank-input deinit on one caller keeps the shared sentinel views usable for another\" {",
+        "test \"argvFree resets released non-blank results to the shared empty exported views\" {",
+        "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "const argv_split = @import(\"argv_split\");",
@@ -95,7 +98,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 39
 
 
 def read_text(path: Path) -> str:
@@ -325,6 +328,24 @@ def run_self_test() -> None:
         helper_marker = "test \"argvSplit treats a leading NUL as blank input\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_leading_nul_blank_input_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"blank-input deinit on one caller keeps the shared sentinel views usable for another\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_blank_deinit_sentinel_reuse_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"argvFree resets released non-blank results to the shared empty exported views\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_argvfree_reset_to_shared_empty_views_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_non_blank_teardown_isolation_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
