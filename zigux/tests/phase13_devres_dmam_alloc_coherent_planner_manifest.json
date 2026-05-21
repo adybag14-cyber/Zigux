@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-20",
+  "surveyed_commit": "master-readback-2026-05-21",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-dmam-alloc-coherent-planner",
   "status": "starter_landed",
@@ -13,6 +13,7 @@
   ],
   "fixture_governance": {
     "release_record_lifetime_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "release_call_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "detach_cleanup_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "zero_sized_request_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "owner_map": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json",
@@ -29,11 +30,13 @@
   "required_markers": [
     "pure `dmam_alloc_coherent()` planning surface",
     "provides_release_record_lifetime_planning",
+    "provides_release_call_planning",
     "provides_dmam_free_coherent_cleanup_planning",
     "planManagedDmamAllocCoherent",
     "planManagedReleaseRecordLifetime",
+    "ManagedReleaseCallPlan",
+    "planManagedReleaseCall",
     "planManagedDmamFreeCoherent",
-    "planReleaseCall",
     "detach-time cleanup ownership on success",
     "failed allocation frees the release record",
     "zero-sized requests free the release record",
