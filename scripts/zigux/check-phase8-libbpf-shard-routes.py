@@ -37,6 +37,8 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`zigux/tests/phase8_build.zig`",
+        "`zigux/tests/phase8_verify_routing_gap.zig`",
+        "`zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
     ),
     BRIDGE_BOUNDARY_SURVEY_PATH: (
