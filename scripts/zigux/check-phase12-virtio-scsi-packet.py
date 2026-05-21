@@ -53,6 +53,13 @@ TEXT_MARKERS = {
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
+        "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
+        "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
+        "- survey gate: `zigux/tests/phase12_virtio_scsi_survey.zig`",
+        "- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`",
+        "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
+        "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
+        "`make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`",
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
