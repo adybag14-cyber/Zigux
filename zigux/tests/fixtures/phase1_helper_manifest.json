@@ -67,6 +67,7 @@
         "test \"bitmap or keeps caller-selected bit window\"",
         "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
         "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
+        "test \"bitmap weighted and andnot clamp counts to the declared tail window\"",
         "test \"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
         "test \"bitmap scnprintf keeps contiguous ranges merged across word boundaries\"",
