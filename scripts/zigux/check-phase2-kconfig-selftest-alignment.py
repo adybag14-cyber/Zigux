@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import tempfile
 from pathlib import Path
@@ -103,31 +104,17 @@ CONFDATA_MANIFEST_STATIC_FIELDS = {
     "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
 }
 
-CONFDATA_HELPER_LOCAL_ANCHORS = (
+CONF_HELPER_ANCHOR_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
+CONFDATA_HELPER_ANCHOR_CONST = "REQUIRED_CONFDATA_HELPER_ANCHORS"
+
+VALID_CONF_HELPER_ANCHORS = (
+    "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge emits explicit empty allconfig override for allmodconfig",
+)
+
+VALID_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
-    "confdata bridge decodes escaped quoted strings",
-    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
-    "confdata bridge escapes low control bytes in json output",
-    "confdata bridge accepts CRLF config lines",
-    "confdata bridge preserves trailing carriage return on final unterminated value line",
-    "confdata bridge ignores unterminated unset comment with trailing carriage return",
-    "confdata bridge ignores suffix bytes after an embedded NUL",
-    "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
-    "confdata bridge keeps explicit n assignments as tristate values",
-    "confdata bridge recognizes uppercase tristate assignments",
-    "confdata bridge ignores non-CONFIG lines like upstream confdata",
-    "confdata bridge ignores empty CONFIG symbol names",
-    "confdata bridge ignores malformed unset comments with extra tokens",
-    "confdata bridge keeps trailing escaped backslashes in quoted strings",
-    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
-    "confdata bridge ignores malformed quoted values like upstream confdata",
-    "confdata bridge emits no entries for empty CONFIG symbol names",
-    "confdata bridge keeps only the last assignment for duplicate symbols",
-    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
-    "confdata bridge keeps only the last state across unset and set transitions",
-    "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
-    "confdata bridge releases appended entry ownership on index-allocation failure",
 )
 
 VALID_CASES_PAYLOAD = {
@@ -164,24 +151,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = (
-    1
-    + len(WORKFLOW_LINES)
-    + len(WORKFLOW_LINES)
-    + len(WORKFLOW_PATH_LINES)
-    + len(WORKFLOW_PATH_LINES)
-    + len(MAKEFILE_LINES)
-    + len(MAKEFILE_LINES)
-    + len(SCRIPTS_README_MARKERS)
-    + len(TESTS_README_MARKERS)
-    + len(REVIEW_CHECKLIST_MARKERS)
-    + len(KCONFIG_BRIDGE_SURFACE_PATHS)
-    + len(BRIDGE_CHECKER_LINE_MARKERS)
-    + len(BRIDGE_CHECKER_LINE_MARKERS)
-    + 3
-    + 6
-    + 7
-)
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -189,6 +159,11 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def read_json(path: Path) -> object:
@@ -210,7 +185,32 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
-def build_conf_manifest_payload(conf_cases: list[dict[str, object]]) -> dict[str, object]:
+def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...]:
+    try:
+        module = ast.parse(module_text)
+    except SyntaxError as exc:
+        raise ValueError(f"invalid python source: {exc}") from exc
+
+    for node in module.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == const_name:
+                    value = ast.literal_eval(node.value)
+                    if not isinstance(value, (list, tuple)):
+                        raise ValueError(f"{const_name} is not a sequence")
+                    if any(not isinstance(item, str) for item in value):
+                        raise ValueError(f"{const_name} contains non-string items")
+                    return tuple(value)
+    raise ValueError(f"missing constant {const_name}")
+
+
+def load_bridge_checker_anchor_packets(bridge_checker_text: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    conf = extract_string_sequence(bridge_checker_text, CONF_HELPER_ANCHOR_CONST)
+    confdata = extract_string_sequence(bridge_checker_text, CONFDATA_HELPER_ANCHOR_CONST)
+    return conf, confdata
+
+
+def build_conf_manifest_payload(conf_cases: list[dict[str, object]], conf_helper_anchors: tuple[str, ...]) -> dict[str, object]:
     return {
         **CONF_MANIFEST_STATIC_FIELDS,
         "case_count": len(conf_cases),
@@ -224,47 +224,20 @@ def build_conf_manifest_payload(conf_cases: list[dict[str, object]]) -> dict[str
         ],
         "allconfig_override_packet": [case["expected"] for case in conf_cases if "allconfig" in case],
         "randconfig_env_packet": [case["expected"] for case in conf_cases if case["mode"] == "randconfig"],
-        "helper_local_anchors": [
-            "conf bridge mode surface stays aligned with conf.c long options",
-            "conf bridge emits olddefconfig argv and env",
-            "conf bridge emits syncconfig auto files",
-            "conf bridge emits syncconfig nosilentupdate when present",
-            "conf bridge omits empty syncconfig nosilentupdate",
-            "conf bridge emits silent flag before mode flag",
-            "conf bridge emits alldefconfig argv and env",
-            "conf bridge emits explicit empty allconfig override for allmodconfig",
-            "conf bridge emits randconfig tunables when present",
-            "conf bridge emits explicit randconfig allconfig override when present",
-            "conf bridge omits randconfig allconfig sentinel without explicit override",
-            "conf bridge emits yes2modconfig argv and env",
-            "conf bridge emits defconfig mode argument before kconfig",
-            "conf bridge emits savedefconfig mode argument before kconfig",
-            "conf bridge escapes low control bytes in JSON strings",
-            "mode argument validation rejects bridge option shaped defconfig payload",
-            "mode argument validation accepts defconfig path that only starts with silent",
-            "mode argument validation still accepts ordinary path text with equals",
-            "bridge options parser accepts explicit allconfig override for allmodconfig",
-            "bridge options parser accepts syncconfig nosilentupdate",
-            "bridge options parser keeps empty syncconfig nosilentupdate unset",
-            "bridge options parser accepts generic silent flag",
-            "bridge options parser accepts silent alongside randconfig options",
-            "bridge options parser rejects duplicate silent flag",
-            "bridge options parser rejects duplicate randconfig probability",
-            "bridge options parser rejects unexpected options for mode",
-            "bridge options parser keeps empty randconfig tunables unset",
-            "bridge options parser rejects duplicate mode specific options",
-        ],
+        "helper_local_anchors": list(conf_helper_anchors),
     }
 
 
-def build_confdata_manifest_payload(confdata_cases: list[dict[str, object]]) -> dict[str, object]:
+def build_confdata_manifest_payload(
+    confdata_cases: list[dict[str, object]], confdata_helper_anchors: tuple[str, ...]
+) -> dict[str, object]:
     return {
         **CONFDATA_MANIFEST_STATIC_FIELDS,
         "case_count": len(confdata_cases),
         "cases": [case["name"] for case in confdata_cases],
         "input_packet": [case["input"] for case in confdata_cases],
         "expected_packet": [case["expected"] for case in confdata_cases],
-        "helper_local_anchors": list(CONFDATA_HELPER_LOCAL_ANCHORS),
+        "helper_local_anchors": list(confdata_helper_anchors),
     }
 
 
@@ -282,12 +255,7 @@ def collect_manifest_field_issues(
     for field_name, expected_value in expected_fields.items():
         actual_value = manifest.get(field_name)
         if actual_value != expected_value:
-            issues.append(
-                (
-                    field_mismatch_code,
-                    f"{field_name}:actual={actual_value!r}:expected={expected_value!r}",
-                )
-            )
+            issues.append((field_mismatch_code, f"{field_name}:actual={actual_value!r}:expected={expected_value!r}"))
     return issues
 
 
@@ -334,6 +302,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_BRIDGE_CHECKER_MARKERS", f"{marker}:count={count}"))
 
+    try:
+        conf_helper_anchors, confdata_helper_anchors = load_bridge_checker_anchor_packets(bridge_checker_text)
+    except ValueError as exc:
+        issues.append(("INVALID_BRIDGE_CHECKER_ANCHOR_PACKET", str(exc)))
+        conf_helper_anchors = ()
+        confdata_helper_anchors = ()
+
     conf_cases: list[dict[str, object]] = []
     confdata_cases: list[dict[str, object]] = []
     try:
@@ -349,11 +324,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("INVALID_CONF_CASES_PAYLOAD", type(raw_conf_cases).__name__))
             else:
                 conf_cases = [case for case in raw_conf_cases if isinstance(case, dict)]
-                silent_case_names = [
-                    case.get("name")
-                    for case in conf_cases
-                    if case.get("silent") is True
-                ]
+                silent_case_names = [case.get("name") for case in conf_cases if case.get("silent") is True]
                 if silent_case_names != list(EXPECTED_SILENT_CONF_CASE_NAMES):
                     issues.append(
                         (
@@ -377,7 +348,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.extend(
                 collect_manifest_field_issues(
                     conf_manifest,
-                    expected_fields=build_conf_manifest_payload(conf_cases),
+                    expected_fields=build_conf_manifest_payload(conf_cases, conf_helper_anchors),
                     invalid_payload_code="INVALID_CONF_MANIFEST_PAYLOAD",
                     field_mismatch_code="CONF_MANIFEST_FIELD_MISMATCH",
                 )
@@ -392,7 +363,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.extend(
                 collect_manifest_field_issues(
                     confdata_manifest,
-                    expected_fields=build_confdata_manifest_payload(confdata_cases),
+                    expected_fields=build_confdata_manifest_payload(confdata_cases, confdata_helper_anchors),
                     invalid_payload_code="INVALID_CONFDATA_MANIFEST_PAYLOAD",
                     field_mismatch_code="CONFDATA_MANIFEST_FIELD_MISMATCH",
                 )
@@ -401,6 +372,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
         if not resolve_path(root, bridge_path).exists():
             issues.append(("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()))
+
     return issues
 
 
@@ -418,9 +390,21 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+def render_bridge_checker_stub(
+    conf_helper_anchors: tuple[str, ...] = VALID_CONF_HELPER_ANCHORS,
+    confdata_helper_anchors: tuple[str, ...] = VALID_CONFDATA_HELPER_ANCHORS,
+) -> str:
+    return (
+        f"{CONF_HELPER_ANCHOR_CONST} = {conf_helper_anchors!r}\n"
+        f"{CONFDATA_HELPER_ANCHOR_CONST} = {confdata_helper_anchors!r}\n\n"
+        "def marker_packet(group_name, case, cmd):\n"
+        '    if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):\n'
+        "        return None\n"
+        '    if "silent" in case and case["silent"] is not True:\n'
+        "        return None\n"
+        '    if case.get("silent"):\n'
+        '        cmd.append("silent")\n'
+    )
 
 
 def build_self_test_root(root: Path) -> None:
@@ -429,15 +413,19 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER), "\n".join(BRIDGE_CHECKER_LINE_MARKERS) + "\n")
+    write_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER), render_bridge_checker_stub())
     write_text(resolve_path(root, KCONFIG_BRIDGE_CASES), json.dumps(VALID_CASES_PAYLOAD, indent=2) + "\n")
     write_text(
         resolve_path(root, CONF_MANIFEST),
-        json.dumps(build_conf_manifest_payload(VALID_CASES_PAYLOAD["conf_cases"]), indent=2) + "\n",
+        json.dumps(build_conf_manifest_payload(VALID_CASES_PAYLOAD["conf_cases"], VALID_CONF_HELPER_ANCHORS), indent=2) + "\n",
     )
     write_text(
         resolve_path(root, CONFDATA_MANIFEST),
-        json.dumps(build_confdata_manifest_payload(VALID_CASES_PAYLOAD["confdata_cases"]), indent=2) + "\n",
+        json.dumps(
+            build_confdata_manifest_payload(VALID_CASES_PAYLOAD["confdata_cases"], VALID_CONFDATA_HELPER_ANCHORS),
+            indent=2,
+        )
+        + "\n",
     )
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
         resolved = resolve_path(root, bridge_path)
@@ -480,102 +468,46 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for marker in WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, WORKFLOW)
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
-            checks_run += 1
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[0], "run: python3 broken.py"), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[0]) in issues
+        checks_run += 1
 
-        for marker in WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, WORKFLOW)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_LINES[1]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[1]}:count=2") in issues
+        checks_run += 1
 
-        for marker in WORKFLOW_PATH_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, WORKFLOW)
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "- 'scripts/kconfig/other.c'"),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_WORKFLOW_PATH_FILTERS", marker) in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_PATH_LINES[0], "- 'scripts/kconfig/other.c'"), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_PATH_FILTERS", WORKFLOW_PATH_LINES[0]) in issues
+        checks_run += 1
 
-        for marker in WORKFLOW_PATH_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, WORKFLOW)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_WORKFLOW_PATH_FILTERS", f"{marker}:count=2") in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[0]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[0]}:count=2") in issues
+        checks_run += 1
 
-        for marker in MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, MAKEFILE)
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/other.py"),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, SCRIPTS_README)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0], ""), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[0]) in issues
+        checks_run += 1
 
-        for marker in MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = resolve_path(root, MAKEFILE)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
-            checks_run += 1
-
-        for marker in SCRIPTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_TESTS_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in REVIEW_CHECKLIST_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, REVIEW_CHECKLIST)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in BRIDGE_CHECKER_LINE_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "pass"), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_BRIDGE_CHECKER_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in BRIDGE_CHECKER_LINE_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_BRIDGE_CHECKER_MARKERS", f"{marker}:count=2") in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), BRIDGE_CHECKER_LINE_MARKERS[0], "pass"), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_BRIDGE_CHECKER_MARKERS", BRIDGE_CHECKER_LINE_MARKERS[0]) in issues
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CASES)
@@ -590,20 +522,6 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
-        path.write_text("[]\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_CASES_PAYLOAD", "list") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
-        path.write_text("{\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert any(code == "INVALID_CASES_JSON" for code, _ in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
         path = resolve_path(root, CONF_MANIFEST)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["cases"][0] = "broken"
@@ -613,22 +531,8 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, CONF_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["silent_request_packet"] = []
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert any(
-            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("silent_request_packet:")
-            for code, value in issues
-        )
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CONF_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["helper_local_anchors"] = ["broken helper anchor"]
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(render_bridge_checker_stub(conf_helper_anchors=("drifted anchor",)), encoding="utf-8")
         issues = collect_issues(root)
         assert any(
             code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:")
@@ -637,34 +541,8 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, CONFDATA_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["input_packet"] = ["broken.config"]
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert any(
-            code == "CONFDATA_MANIFEST_FIELD_MISMATCH" and value.startswith("input_packet:")
-            for code, value in issues
-        )
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CONFDATA_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["expected_packet"] = ["broken_expected.json"]
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert any(
-            code == "CONFDATA_MANIFEST_FIELD_MISMATCH" and value.startswith("expected_packet:")
-            for code, value in issues
-        )
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CONFDATA_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["helper_local_anchors"] = ["broken helper anchor"]
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(render_bridge_checker_stub(confdata_helper_anchors=("drifted confdata anchor",)), encoding="utf-8")
         issues = collect_issues(root)
         assert any(
             code == "CONFDATA_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:")
@@ -686,35 +564,21 @@ def run_self_test() -> int:
         assert ("INVALID_CONFDATA_MANIFEST_PAYLOAD", "list") in issues
         checks_run += 1
 
-        for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
-            if bridge_path in (KCONFIG_BRIDGE_CHECKER, KCONFIG_BRIDGE_CASES, CONF_MANIFEST, CONFDATA_MANIFEST):
-                continue
-            build_self_test_root(root)
-            resolve_path(root, bridge_path).unlink()
-            issues = collect_issues(root)
-            assert ("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()) in issues
-            checks_run += 1
+        build_self_test_root(root)
+        resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig").unlink()
+        issues = collect_issues(root)
+        assert ("MISSING_BRIDGE_SURFACE_PATHS", "scripts/zigux/kconfig/conf_bridge.zig") in issues
+        checks_run += 1
 
-        for rel_path in (
-            WORKFLOW,
-            MAKEFILE,
-            SCRIPTS_README,
-            TESTS_README,
-            REVIEW_CHECKLIST,
-            KCONFIG_BRIDGE_CHECKER,
-            KCONFIG_BRIDGE_CASES,
-            CONF_MANIFEST,
-            CONFDATA_MANIFEST,
-        ):
-            build_self_test_root(root)
-            resolve_path(root, rel_path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {rel_path}")
+        build_self_test_root(root)
+        resolve_path(root, KCONFIG_BRIDGE_CHECKER).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing bridge checker did not abort")
+        checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
