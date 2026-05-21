@@ -89,46 +89,6 @@ test "phase11 gpio watchdog keeps descriptor-facing ordering reviewable for alwa
     try std.testing.expect(handoff.reaches_registration_line_is_output);
 }
 
-test "phase11 gpio watchdog keeps register-device call glued to reboot boundary" {
-    var lab = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
-    const summary = lab.registerDeviceCallSummary(false);
-
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
-    try std.testing.expectEqualStrings("devm_watchdog_register_device", summary.register_call);
-    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, summary.hw_algo);
-    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, summary.requested_line);
-    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, summary.descriptor_flags);
-    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, summary.start_mode);
-    try std.testing.expect(!summary.reaches_registration_running);
-    try std.testing.expect(!summary.reaches_registration_line_state);
-    try std.testing.expect(!summary.reaches_registration_line_is_output);
-    try std.testing.expect(!summary.nowayout_applied);
-    try std.testing.expectEqual(@as(u32, 250), summary.max_hw_heartbeat_ms);
-    try std.testing.expect(summary.register_device_requested);
-    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
-    try std.testing.expect(summary.blocked_on_platform_registration);
-    try std.testing.expect(summary.blocked_on_reboot_glue);
-}
-
-test "phase11 gpio watchdog keeps always-running registration call reviewable before reboot glue lands" {
-    var lab = try gpio_wdt.GpioWatchdogLab.init(.level, 400, true);
-    const summary = lab.registerDeviceCallSummary(true);
-
-    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, summary.hw_algo);
-    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, summary.requested_line);
-    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.out_low, summary.descriptor_flags);
-    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, summary.start_mode);
-    try std.testing.expect(summary.reaches_registration_running);
-    try std.testing.expect(!summary.reaches_registration_line_state);
-    try std.testing.expect(summary.reaches_registration_line_is_output);
-    try std.testing.expect(summary.nowayout_applied);
-    try std.testing.expectEqual(@as(u32, 400), summary.max_hw_heartbeat_ms);
-    try std.testing.expect(summary.register_device_requested);
-    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
-    try std.testing.expect(summary.blocked_on_platform_registration);
-    try std.testing.expect(summary.blocked_on_reboot_glue);
-}
-
 test "phase11 gpio watchdog keeps watchdog-core setup order explicit before the first register-device request" {
     var prestarted = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, true);
     const prestarted_intent = prestarted.registrationIntentCheckpointSummary(true);
@@ -166,8 +126,89 @@ test "phase11 gpio watchdog keeps watchdog-core setup order explicit before the 
     try std.testing.expect(dormant_intent.blocked_on_platform_registration);
 }
 
+test "phase11 gpio watchdog keeps register-device call glued to reboot boundary" {
+    const lab = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    const summary = lab.registerDeviceCallSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", summary.register_call);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, summary.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, summary.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, summary.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, summary.start_mode);
+    try std.testing.expect(!summary.reaches_registration_running);
+    try std.testing.expect(!summary.reaches_registration_line_state);
+    try std.testing.expect(!summary.reaches_registration_line_is_output);
+    try std.testing.expect(!summary.nowayout_applied);
+    try std.testing.expectEqual(@as(u32, 250), summary.max_hw_heartbeat_ms);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
+    try std.testing.expect(summary.blocked_on_platform_registration);
+    try std.testing.expect(summary.blocked_on_reboot_glue);
+}
+
+test "phase11 gpio watchdog keeps always-running registration call reviewable before reboot glue lands" {
+    const lab = try gpio_wdt.GpioWatchdogLab.init(.level, 400, true);
+    const summary = lab.registerDeviceCallSummary(true);
+
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, summary.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, summary.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.out_low, summary.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, summary.start_mode);
+    try std.testing.expect(summary.reaches_registration_running);
+    try std.testing.expect(!summary.reaches_registration_line_state);
+    try std.testing.expect(summary.reaches_registration_line_is_output);
+    try std.testing.expect(summary.nowayout_applied);
+    try std.testing.expectEqual(@as(u32, 400), summary.max_hw_heartbeat_ms);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
+    try std.testing.expect(summary.blocked_on_platform_registration);
+    try std.testing.expect(summary.blocked_on_reboot_glue);
+}
+
+test "phase11 gpio watchdog keeps teardown checkpoint glued to register-device failure and reboot handoff" {
+    var stoppable = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    _ = try stoppable.start();
+    const stoppable_teardown = stoppable.teardownCheckpointSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", stoppable_teardown.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, stoppable_teardown.hw_algo);
+    try std.testing.expect(!stoppable_teardown.always_running);
+    try std.testing.expect(!stoppable_teardown.nowayout);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", stoppable_teardown.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", stoppable_teardown.watchdog_drvdata_owner_identity);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, stoppable_teardown.stop_disposition);
+    try std.testing.expect(stoppable_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stoppable_teardown.driver_stop_invoked);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", stoppable_teardown.register_device_failure_stage);
+    try std.testing.expect(stoppable_teardown.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(stoppable_teardown.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(stoppable_teardown.teardown_reuses_parent_linkage);
+    try std.testing.expect(stoppable_teardown.blocked_on_live_gpio_lookup);
+    try std.testing.expect(stoppable_teardown.blocked_on_platform_registration);
+    try std.testing.expect(stoppable_teardown.blocked_on_host_shutdown_execution);
+
+    var guarded = try gpio_wdt.GpioWatchdogLab.init(.level, 400, true);
+    _ = try guarded.start();
+    const guarded_teardown = guarded.teardownCheckpointSummary(true);
+
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, guarded_teardown.hw_algo);
+    try std.testing.expect(guarded_teardown.always_running);
+    try std.testing.expect(guarded_teardown.nowayout);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, guarded_teardown.stop_disposition);
+    try std.testing.expect(!guarded_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!guarded_teardown.driver_stop_invoked);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", guarded_teardown.register_device_failure_stage);
+    try std.testing.expect(guarded_teardown.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(guarded_teardown.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(guarded_teardown.teardown_reuses_parent_linkage);
+    try std.testing.expect(guarded_teardown.blocked_on_live_gpio_lookup);
+    try std.testing.expect(guarded_teardown.blocked_on_platform_registration);
+    try std.testing.expect(guarded_teardown.blocked_on_host_shutdown_execution);
+}
+
 test "phase11 gpio watchdog keeps register-device failure summary tied to the same reboot-glue checkpoint" {
-    var lab = try gpio_wdt.GpioWatchdogLab.init(.toggle, gpio_wdt.min_hw_margin_ms, false);
+    const lab = try gpio_wdt.GpioWatchdogLab.init(.toggle, gpio_wdt.min_hw_margin_ms, false);
     const summary = lab.registerDeviceFailureSummary(true);
 
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
