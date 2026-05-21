@@ -42,7 +42,7 @@ Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.z
 
 Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` stay public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly. Keep shared contributor guidance honest about that split-readback packet instead of repeating the older kobject-reread-needed sample-root wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.
 
-Current `master` also keeps the direct non-runtime kretprobe packet visible as current direct sample-root proof through directly readable paired test evidence for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
+Current `master` also keeps the direct non-runtime kretprobe packet visible as current direct sample-root proof through directly readable paired test evidence for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`.
 
 Keep that kretprobe packet framed as the approved in-memory handler and teardown idiom for the Phase 5 anchor:
 
@@ -68,6 +68,7 @@ Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sampl
 
 The surviving direct runtime-module sample packet in this directory is still centered on `samples/zigux/runtime_trace_events.zig`.
 
+Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.
 Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.
 Keep `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` explicit as the failed-exit rollback companion for the selftest-ready proof plus both the initialized no-direct-activity and initialized direct-activity lifecycle proofs in the same packet.
 Keep `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit as the reusable registration-reentry companion, including the initialized direct-activity clean-exit proof without selftest.
