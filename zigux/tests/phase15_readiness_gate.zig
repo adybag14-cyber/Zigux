@@ -134,7 +134,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     const readiness_note = try readRepoFile("Documentation/zigux/phase15-readiness-gate-survey.md", 24 * 1024);
     defer std.testing.allocator.free(readiness_note);
 
-    try expectContains(readiness_note, "PHASE15_LANE_KEY=arch-council");
+    try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L01");
     try expectContains(readiness_note, "PHASE15_SLICE=governance_packet_readiness_truthfulness");
     try expectContains(readiness_note, "current-master-readback-2026-05-20");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
