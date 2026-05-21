@@ -25,7 +25,7 @@ EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -71,12 +71,19 @@ def load_archive_target_scope(root: Path) -> list[str]:
             f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
         )
     normalized: list[str] = []
+    seen_targets: set[str] = set()
     for value in archive_target_scope:
         if not isinstance(value, str) or not value.strip():
             raise SystemExit(
                 f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
             )
-        normalized.append(value.strip())
+        target = value.strip()
+        if target in seen_targets:
+            raise SystemExit(
+                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        normalized.append(target)
+        seen_targets.add(target)
     return normalized
 
 
@@ -300,6 +307,19 @@ def run_self_test() -> int:
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
         checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate archive_target_scope entry" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate archive_target_scope did not abort")
 
         for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
             build_self_test_root(root)
