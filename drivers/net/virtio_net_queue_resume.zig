@@ -17,6 +17,7 @@ pub const QueueResumeRequest = struct {
     control_queue_restored: bool,
     transmit_recycle_ready: bool,
     probe_snapshot_replayed: bool,
+    requires_control_queue_restore: bool = true,
 };
 
 pub const QueueResumeSummary = struct {
@@ -28,6 +29,7 @@ pub const QueueResumeSummary = struct {
     control_queue_restored: bool,
     transmit_recycle_ready: bool,
     probe_snapshot_replayed: bool,
+    requires_control_queue_restore: bool,
     blocker: QueueResumeBlocker,
     resumes_receive_submission: bool,
     resumes_transmit_submission: bool,
@@ -39,7 +41,9 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
 
     const blocker: QueueResumeBlocker = blk: {
         if (request.queues_frozen) break :blk .reset_frozen;
-        if (!request.control_queue_restored) break :blk .control_queue_restore;
+        if (request.requires_control_queue_restore and !request.control_queue_restored) {
+            break :blk .control_queue_restore;
+        }
         if (!request.refill_replay_ready) break :blk .refill_replay;
         if (!request.transmit_recycle_ready) break :blk .transmit_recycle;
         if (!request.probe_snapshot_replayed) break :blk .probe_snapshot_replay;
@@ -56,6 +60,7 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
         .control_queue_restored = request.control_queue_restored,
         .transmit_recycle_ready = request.transmit_recycle_ready,
         .probe_snapshot_replayed = request.probe_snapshot_replayed,
+        .requires_control_queue_restore = request.requires_control_queue_restore,
         .blocker = blocker,
         .resumes_receive_submission = can_resume_queues,
         .resumes_transmit_submission = can_resume_queues,
@@ -91,8 +96,8 @@ test "queue resume stays blocked while reset is frozen" {
     try std.testing.expect(!summary.resumes_transmit_submission);
 }
 
-test "queue resume requires control queue, refill replay, and transmit recycle readiness" {
-    const control = try summarizeQueueResume(.{
+test "queue resume requires control queue restore when the packet says the queue is present" {
+    const summary = try summarizeQueueResume(.{
         .reset_generation = 3,
         .receive_queue_pairs = 4,
         .refill_replay_ready = true,
@@ -100,8 +105,27 @@ test "queue resume requires control queue, refill replay, and transmit recycle r
         .transmit_recycle_ready = true,
         .probe_snapshot_replayed = true,
     });
-    try std.testing.expectEqual(QueueResumeBlocker.control_queue_restore, control.blocker);
+    try std.testing.expectEqual(QueueResumeBlocker.control_queue_restore, summary.blocker);
+    try std.testing.expect(summary.requires_control_queue_restore);
+}
 
+test "queue resume skips control queue restore when the packet says no control queue is present" {
+    const summary = try summarizeQueueResume(.{
+        .reset_generation = 3,
+        .receive_queue_pairs = 4,
+        .refill_replay_ready = true,
+        .control_queue_restored = false,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = true,
+        .requires_control_queue_restore = false,
+    });
+
+    try std.testing.expectEqual(QueueResumeBlocker.none, summary.blocker);
+    try std.testing.expect(!summary.requires_control_queue_restore);
+    try std.testing.expect(summary.can_resume_queues);
+}
+
+test "queue resume still requires refill replay and transmit recycle readiness" {
     const refill = try summarizeQueueResume(.{
         .reset_generation = 3,
         .receive_queue_pairs = 4,
@@ -152,6 +176,7 @@ test "queue resume clears once the bounded replay cues are ready" {
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
     try std.testing.expectEqual(@as(u32, 5), summary.reset_generation);
     try std.testing.expectEqual(@as(u16, 8), summary.receive_queue_pairs);
+    try std.testing.expect(summary.requires_control_queue_restore);
     try std.testing.expectEqual(QueueResumeBlocker.none, summary.blocker);
     try std.testing.expect(summary.probe_snapshot_replayed);
     try std.testing.expect(summary.can_resume_queues);
