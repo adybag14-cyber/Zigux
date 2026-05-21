@@ -114,7 +114,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_WARNING_LINES)
     + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
-    + 2
+    + 3
     + (len(SURFACE_PATHS) - 1)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
@@ -256,12 +256,6 @@ def build_self_test_root(root: Path) -> None:
         write_text(resolve_path(root, path), "present\n")
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
-
-
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -357,6 +351,17 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("missing workflow did not abort")
+
+        build_self_test_root(root)
+        readme_path = resolve_path(root, SCRIPTS_README)
+        readme_path.unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing readme did not abort")
 
         for path in SURFACE_PATHS:
             if path == MAKEFILE:
