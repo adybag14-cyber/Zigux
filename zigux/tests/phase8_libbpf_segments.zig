@@ -10,6 +10,10 @@ fn readRepoFile(path: []const u8) ![]u8 {
     );
 }
 
+fn expectContains(contents: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, contents, needle) != null);
+}
+
 test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {
     const routed_review_witness = try readRepoFile("zigux/tests/phase8_verify_routing_gap.zig");
     defer std.testing.allocator.free(routed_review_witness);
@@ -88,5 +92,59 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
     );
     try std.testing.expect(
         std.mem.indexOf(u8, poll_slice, "broader perf-buffer-online-cpu-routing parity") != null,
+    );
+}
+
+test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {
+    const bridge_review_witness = try readRepoFile("zigux/tests/phase8_file_path_handle_bridge.zig");
+    defer std.testing.allocator.free(bridge_review_witness);
+
+    try expectContains(
+        bridge_review_witness,
+        "phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing",
+    );
+    try expectContains(
+        bridge_review_witness,
+        "phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit",
+    );
+    try expectContains(
+        bridge_review_witness,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    );
+    try expectContains(
+        bridge_review_witness,
+        "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+    );
+    try expectContains(
+        bridge_review_witness,
+        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+    );
+    try expectContains(
+        bridge_review_witness,
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    );
+
+    const tests_readme = try readRepoFile("zigux/tests/README.md");
+    defer std.testing.allocator.free(tests_readme);
+
+    try expectContains(
+        tests_readme,
+        "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:",
+    );
+    try expectContains(
+        tests_readme,
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
+    );
+    try expectContains(
+        tests_readme,
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+    );
+    try expectContains(
+        tests_readme,
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+    );
+    try expectContains(
+        tests_readme,
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
     );
 }
