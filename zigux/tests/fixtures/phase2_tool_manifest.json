@@ -85,6 +85,7 @@
       "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
       "zigux/tests/fixtures/genksyms_bridge/cases.json",
       "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/manifest.json",
       "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
@@ -92,15 +93,24 @@
       "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
-      "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json"
+      "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
+      "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json"
     ]
   },
   "repo_reality_gaps": [],
   "notes": [
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, the standalone invalid-long-option version-side-effect proof, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option version-side-effect proof, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, the standalone invalid-long-option version-side-effect proof, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option version-side-effect proof, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
   ]
 }
