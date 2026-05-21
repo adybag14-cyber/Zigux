@@ -467,6 +467,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "zigux/tests/build.zig",
+    "zigux/tests/README.md",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -478,6 +479,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -499,6 +501,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "make -C zigux phase3-low-level-wrappers-test",
 )
 
 REQUIRED_REPO_REALITY_GAPS: tuple[str, ...] = ()
@@ -792,12 +795,12 @@ def run_self_test() -> int:
             _write(root / populate_path, "\n".join(markers) + "\n")
         _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
         manifest = json.loads(_read(root / MANIFEST_PATH))
-        manifest["packet_files"].remove("zigux/helpers/allocator_policy.zig")
+        manifest["packet_files"].remove("zigux/tests/README.md")
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
         expected_missing_packet_file = (
             "phase3_abi_manifest.json missing packet_files entry: "
-            "zigux/helpers/allocator_policy.zig"
+            "zigux/tests/README.md"
         )
         if expected_missing_packet_file not in issues:
             print("PHASE3_ABI_CHECK_SELF_TEST=fail")
