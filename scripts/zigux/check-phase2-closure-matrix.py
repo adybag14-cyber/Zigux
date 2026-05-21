@@ -21,7 +21,10 @@ def load_validator(root: Path):
     if spec is None or spec.loader is None:
         raise SystemExit(f"unable to load closure validator: {path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    except FileNotFoundError as exc:
+        raise SystemExit(f"unable to load closure validator: {path}") from exc
     return module
 
 
@@ -84,6 +87,13 @@ def run_matrix(module, seed_root) -> int:
             path = module.resolve(root, module.PHASE2_CLOSURE_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert_issue(module, root, ("MISSING_CLOSURE_MARKER", marker))
+            checks_run += 1
+
+        for marker in module.REQUIRED_CLOSURE_MARKERS:
+            seed_root(root)
+            path = module.resolve(root, module.PHASE2_CLOSURE_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert_issue(module, root, ("DUPLICATE_CLOSURE_MARKER", f"{marker}:count=2"))
             checks_run += 1
 
         for marker in module.REQUIRED_WORKFLOW_LINES:
@@ -165,8 +175,11 @@ def collect_issues(root: Path):
     workflow_text = resolve(root, WORKFLOW_REL).read_text(encoding="utf-8")
     makefile_text = resolve(root, MAKEFILE_REL).read_text(encoding="utf-8")
     for marker in REQUIRED_CLOSURE_MARKERS:
-        if marker not in closure_text:
+        count = _count_exact_lines(closure_text, marker)
+        if count == 0:
             issues.append(("MISSING_CLOSURE_MARKER", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_CLOSURE_MARKER", f"{marker}:count={count}"))
     for marker in REQUIRED_WORKFLOW_LINES:
         count = _count_exact_lines(workflow_text, marker)
         if count == 0:
@@ -182,6 +195,7 @@ def collect_issues(root: Path):
     return issues
 """
 
+    checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_selftest_") as tmp_dir:
         root = Path(tmp_dir)
         validator_path = root / VALIDATOR_REL
@@ -189,7 +203,17 @@ def collect_issues(root: Path):
         validator_path.write_text(fake_validator, encoding="utf-8")
         module = load_validator(root)
         module.build_self_test_root(root)
-        checks_run = run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, root))
+        checks_run += run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, root))
+
+        missing_validator_root = root / "missing-validator-root"
+        missing_validator_root.mkdir()
+        try:
+            load_validator(missing_validator_root)
+        except SystemExit as exc:
+            assert "unable to load closure validator" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing validator root did not abort")
 
     print("PHASE2_CLOSURE_MATRIX_SELF_TEST=pass")
     print(f"PHASE2_CLOSURE_MATRIX_SELF_TEST_CASE_COUNT={checks_run}")
