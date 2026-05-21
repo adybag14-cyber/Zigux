@@ -141,6 +141,7 @@ REQUIRED_MARKERS = {
     ],
     TESTS_README_PATH: [
         "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
+        "Keep `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` explicit as the shared heavy-helper anti-overlap companion so the tests-root reminder stays aligned with the same parked libbpf boundary already named by the release-order, closure, readiness, coordination, fallback, and complex-driver notes.",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
