@@ -58,6 +58,7 @@ GUIDE_MARKERS = (
     "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
     "Fresh public current-`master` fallback on 2026-05-19 also keeps the broader non-runtime trace-events sample packet visible",
     "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit:",
+    "The same authenticated route also directly returns the shared build-route companion `zigux/tests/phase5_build.zig` for this packet.",
     "Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events cues carried by `samples/zigux/trace_events_string_formatting_sample.zig` and the shared reminder packet.",
 )
 
@@ -101,6 +102,7 @@ TESTS_ROOT_MARKERS = (
 LANE_SEQUENCING_MARKERS = (
     "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
     "Keep shared contributor guidance honest about that mixed direct-versus-public-tree-backed split instead of repeating older kobject-reread-needed wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof.",
+    "Treat `samples/zigux/kobject_example.zig` as current direct sample-root evidence inside the mixed kobject packet recorded by `Documentation/zigux/phase5-kobject-current-readback-note.md`, while `zigux/tests/phase5_kobject_example_survey.zig` remains the public-tree-backed companion in this runtime and `zigux/tests/phase5_build.zig` stays directly readable as the shared build-route companion.",
     "Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.",
 )
 
@@ -222,7 +224,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 16
+    expected_case_count = 18
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -230,6 +232,27 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+        checks_run += 1
+
+        missing_guide_kobject_build_marker_root = root / "missing_guide_kobject_build_marker"
+        _seed(missing_guide_kobject_build_marker_root)
+        _write(
+            missing_guide_kobject_build_marker_root / GUIDE_PATH,
+            _placeholder_text(
+                GUIDE_PATH,
+                (
+                    GUIDE_MARKERS[0],
+                    GUIDE_MARKERS[1],
+                    GUIDE_MARKERS[2],
+                    GUIDE_MARKERS[3],
+                    GUIDE_MARKERS[5],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_guide_kobject_build_marker_root)
+        expected = [f"{GUIDE_PATH}:missing_text:{GUIDE_MARKERS[4]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected guide kobject-build failure: {failures}")
         checks_run += 1
 
         missing_approved_marker_root = root / "missing_approved_marker"
@@ -361,6 +384,25 @@ def run_self_test() -> int:
         expected = [f"{TESTS_ROOT_PATH}:missing_text:{TESTS_ROOT_MARKERS[2]}"]
         if failures != expected:
             raise AssertionError(f"unexpected tests-root kobject failure: {failures}")
+        checks_run += 1
+
+        missing_lane_sequencing_kobject_build_marker_root = root / "missing_lane_sequencing_kobject_build_marker"
+        _seed(missing_lane_sequencing_kobject_build_marker_root)
+        _write(
+            missing_lane_sequencing_kobject_build_marker_root / LANE_SEQUENCING_PATH,
+            _placeholder_text(
+                LANE_SEQUENCING_PATH,
+                (
+                    LANE_SEQUENCING_MARKERS[0],
+                    LANE_SEQUENCING_MARKERS[1],
+                    LANE_SEQUENCING_MARKERS[3],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_lane_sequencing_kobject_build_marker_root)
+        expected = [f"{LANE_SEQUENCING_PATH}:missing_text:{LANE_SEQUENCING_MARKERS[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected lane-sequencing kobject-build failure: {failures}")
         checks_run += 1
 
         missing_sample_root_marker_root = root / "missing_sample_root_marker"
