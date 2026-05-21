@@ -41,8 +41,8 @@ SLICE_MARKERS = [
     "`Documentation/zigux/phase13-devres-survey.md` now records the current DMA and scatterlist boundary",
     "`lib/devres.zig` and `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` now provide one pure helper-first `dmam_alloc_coherent()` planning surface",
     "`scripts/zigux/check-phase13-devres-packet-alignment.py` stays in the same repo-reality gaps bucket",
-    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only",
-    "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap.",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `scripts/zigux/check-phase13-devres-mmio-packet.py` keep the current packet helper-first and planning-only",
+    "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, the dedicated helper-first scatterlist planner note, manifest, helper, replay, scatterlist build shard, and the dedicated `scripts/zigux/check-phase13-devres-mmio-packet.py` guard, while the broader direct helper packet stays an explicit repo-reality gap.",
 ]
 
 SURVEY_MARKERS = [
@@ -151,7 +151,7 @@ PLANNER_REPLAY_MARKERS = [
 DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
     'test "phase13 devres dma coherent replay anchors the current slice reality" {',
-    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
+    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `scripts/zigux/check-phase13-devres-mmio-packet.py` keep the current packet helper-first and planning-only");',
 ]
 
 HELPER_REQUIRED_MARKERS = [
@@ -298,14 +298,14 @@ def run_self_test() -> int:
                 marker
                 for marker in SLICE_MARKERS
                 if marker
-                != "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap."
+                != "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, the dedicated helper-first scatterlist planner note, manifest, helper, replay, scatterlist build shard, and the dedicated `scripts/zigux/check-phase13-devres-mmio-packet.py` guard, while the broader direct helper packet stays an explicit repo-reality gap."
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "slice:missing_marker:The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap."
+                "slice:missing_marker:The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, the dedicated helper-first scatterlist planner note, manifest, helper, replay, scatterlist build shard, and the dedicated `scripts/zigux/check-phase13-devres-mmio-packet.py` guard, while the broader direct helper packet stays an explicit repo-reality gap."
             ],
             "slice_missing_evidence_summary_failed",
         )
