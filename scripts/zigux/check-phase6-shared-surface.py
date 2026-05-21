@@ -80,6 +80,7 @@ REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, perf-matrix preflight, fixture surface, checker, slice note, and perf-refresh rationale note",
     "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
+    "Authenticated follow-up readback on 2026-05-21 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` again, but this parity lane keeps that survey classified as a broader public-tree-backed companion until the neighboring shared helper-evidence and reminder surfaces stop describing it as fallback-only packet evidence.",
 ]
 REQUIRED_VALIDATOR_SNIPPETS = [
     'HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")',
@@ -89,10 +90,18 @@ REQUIRED_VALIDATOR_SNIPPETS = [
 ]
 REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
     "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_build.zig.",
+    "A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md again, but the broader shared helper-evidence and reminder packet still describes that survey as public-tree-backed companion evidence until its neighboring surfaces are refreshed.",
     "The remaining direct-readback gaps still returning 404 were zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, scripts/zigux/check-phase6-base64-c-parity.py, zigux/tests/phase6_checksum_c_parity.zig, zigux/tests/fixtures/phase6_checksum_c_harness.c, and scripts/zigux/check-phase6-checksum-c-parity.py.",
 ]
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile.",
+]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
 ]
 SELF_TEST_CASE_COUNT = 23
 
@@ -149,7 +158,7 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity direct evidence mismatch")
     if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 helper-parity public companion mismatch")
-    if parity.get("shared_follow_through_gaps") != []:
+    if parity.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper-parity follow-through gaps drift")
 
     require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_README_SNIPPETS)
@@ -203,7 +212,7 @@ def scaffold_repo(root: Path) -> None:
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
                 "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
-                "shared_follow_through_gaps": [],
+                "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
             },
             indent=2,
         )
