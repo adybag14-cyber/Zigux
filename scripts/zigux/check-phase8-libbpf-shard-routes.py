@@ -56,11 +56,13 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/manifest.json`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`zigux/tests/phase8_build.zig`",
         "`zigux/tests/phase8_verify_routing_gap.zig`",
         "`zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig` now keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same stable-output helper packet.",
+        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
         "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, perf-buffer wait-classification, poll-summary, execution-summary, and impossible-summary fail-closed outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
@@ -108,14 +110,14 @@ REQUIRED_MARKERS = {
     ),
     BRIDGE_TEST_PATH: (
         "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
-        "\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
-        "\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
-        "\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"fdinfo-map-info-helpers\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"map-reuse-compatibility\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"file-path-and-handle-bridge\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"deferred_high_risk\\\\\\\", \\\\\\\"kind\\\\\\\": \\\\\\\"resource_boundary\\\\\\\"",
     ),
     BOUNDARY_GUARD_PATH: (
         "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge",
-        "\"slug\\\": \\\"file-path-and-handle-bridge\\\"",
-        "\"kind\\\": \\\"resource_boundary\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"file-path-and-handle-bridge\\\\\\\"",
+        "\\\"kind\\\\\\\": \\\\\\\"resource_boundary\\\\\\\"",
         "planTokenPreparation",
         "isMapReuseCompatible",
     ),
@@ -130,9 +132,9 @@ REQUIRED_MARKERS = {
         '"Run focused Phase 8 libbpf segment verify build"',
     ),
     MANIFEST_PATH: (
-        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
-        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
-        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        '\\"slug\\": \\"fdinfo-map-info-helpers\\", \\"status\\": \\"starter_landed\\"',
+        '\\"slug\\": \\"map-reuse-compatibility\\", \\"status\\": \\"starter_landed\\"',
+        '\\"slug\\": \\"file-path-and-handle-bridge\\", \\"status\\": \\"deferred_high_risk\\", \\"kind\\": \\"resource_boundary\\"',
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
     ),
@@ -207,7 +209,7 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     if marker not in text:
         raise SystemExit(f"self-test-fixture-missing:{rel_path}:{marker}")
 
-    (root / rel_path).write_text(text.replace(marker, "", 1), encoding="utf-8")
+    (root / rel_path).write_text(text.replace(marker, ""), encoding="utf-8")
     result = run_validator(root)
     expected = f"missing-marker:{rel_path}:{marker}"
     output = result.stdout.strip() or result.stderr.strip() or "no_output"
