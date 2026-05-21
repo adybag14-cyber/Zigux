@@ -26,6 +26,7 @@ RELEASE_READINESS_CHECKER_PATH = (
 )
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 DOCS_ROOT_README_PATH = "Documentation/zigux/README.md"
+RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 RELEASE_CLOSURE_CHECKLIST_PATH = (
     "Documentation/zigux/phase12-release-closure-checklist.md"
 )
@@ -76,6 +77,10 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
 DOCS_ROOT_MARKERS = [
     "* keep the degraded-read fallback split explicit here too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.",
 ]
+RELEASE_SEQUENCING_MARKERS = [
+    "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit ahead of the shipped wrapper reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface.",
+]
 RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "- shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
     "- The fallback split stays truthful: one commit-pinned `virtio_scsi` replay catalog, one current-master `nvme_pci` gap-inventory companion, and two shared-tree anchors.",
@@ -117,6 +122,7 @@ REQUIRED_FILES = [
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
     DOCS_ROOT_README_PATH,
+    RELEASE_SEQUENCING_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -146,6 +152,7 @@ REQUIRED_MARKERS = {
         "scripts-side support packet",
     ],
     DOCS_ROOT_README_PATH: DOCS_ROOT_MARKERS,
+    RELEASE_SEQUENCING_PATH: RELEASE_SEQUENCING_MARKERS,
     RELEASE_CLOSURE_CHECKLIST_PATH: RELEASE_CLOSURE_CHECKLIST_MARKERS,
     SCRIPTS_README_PATH: SCRIPTS_README_MARKERS,
     TESTS_README_PATH: TESTS_README_MARKERS,
@@ -381,7 +388,7 @@ pub fn build(b: *std.Build) void {
 
     const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
         .name = \"phase12-virtio-net-post-reset-replay-tests\",
-        .root_module = virtio_net_post_reset_replay_root_module,
+        .root_module = virtio_net_post_RESET_REPLAY_root_module,
     });
     const run_virtio_net_post_reset_replay_tests = b.addRunArtifact(
         phase12_virtio_net_post_reset_replay_tests,
@@ -423,6 +430,7 @@ def fixture_text(rel_path: str) -> str:
         title = {
             VALIDATOR_PATH: "# Phase 12 Support Validator",
             DOCS_ROOT_README_PATH: "# Zigux Documentation",
+            RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
             RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
@@ -551,6 +559,20 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        sequencing_path = base / RELEASE_SEQUENCING_PATH
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
+                RELEASE_SEQUENCING_MARKERS[1], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:"
+            f"{RELEASE_SEQUENCING_PATH}:{RELEASE_SEQUENCING_MARKERS[1]}",
+        )
+
+        write_fixture_tree(base)
         coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
         coordination_matrix_path.write_text(
             coordination_matrix_path.read_text(encoding="utf-8").replace(
@@ -653,7 +675,7 @@ def run_self_test() -> int:
             + len(marker_cases)
             + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
             + len(PHASE12_BUILD_EXACT_COUNTS)
-            + 9
+            + 10
         )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
@@ -666,9 +688,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
-            "returned smoke-and-test wrappers, the docs-root, scripts-root, tests-root, "
-            "and closure-checklist degraded fallback wording, and the split-helper "
-            "virtio_net packet."
+            "returned smoke-and-test wrappers, the docs-root, release-sequencing, "
+            "scripts-root, tests-root, and closure-checklist degraded fallback wording, "
+            "and the split-helper virtio_net packet."
         )
     )
     parser.add_argument(
