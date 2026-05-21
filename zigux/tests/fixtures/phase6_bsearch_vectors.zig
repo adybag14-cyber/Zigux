@@ -50,14 +50,6 @@ pub const perf_cases = [_]PerfCase{
 
 pub const query_count: usize = 16;
 
-pub fn typedQuerySeed(index: usize) u32 {
-    return representative_hit_queries[index % representative_hit_queries.len];
-}
-
-pub fn rawQuerySeed(index: usize) u32 {
-    return representative_miss_queries[index % representative_miss_queries.len];
-}
-
 pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32, expected_hits: []bool) void {
     std.debug.assert(len != 0);
     std.debug.assert(values.len == len);
