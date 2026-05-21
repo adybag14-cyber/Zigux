@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 HELPER_EVIDENCE_CATALOG = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+HELPER_PARITY_CATALOG = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PHASE6_BUILD = Path("zigux/tests/phase6_build.zig")
@@ -47,6 +48,7 @@ CHECKER_INVOCATIONS = [
 
 REQUIRED_FILES = [
     HELPER_EVIDENCE_CATALOG,
+    HELPER_PARITY_CATALOG,
     HELPER_EVIDENCE_MANIFEST,
     HELPER_PARITY_MANIFEST,
     PHASE6_BUILD,
@@ -60,6 +62,7 @@ EXPECTED_PHASE = "Phase 6"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
+EXPECTED_SHARED_PUBLIC_COMPANIONS = ["Documentation/zigux/phase6-perf-gate-survey.md"]
 EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-test",
@@ -118,7 +121,25 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 20
+REQUIRED_PARITY_CATALOG_SNIPPETS = [
+    "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
+    "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
+]
+
+REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
+]
+
+REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
+    "zigux/tests/phase6_bsearch_perf.zig",
+    "zigux/tests/phase6_hexdump_perf_matrix.zig",
+]
+
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -141,6 +162,14 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}")
+
+
+def require_text_snippets(name: str, content: object, snippets: list[str]) -> None:
+    if not isinstance(content, str):
+        raise ValidationError(f"{name} missing")
+    for snippet in snippets:
+        if snippet not in content:
+            raise ValidationError(f"{name} drifted: {snippet}")
 
 
 def extract_shared_perf_wrapper_keys(helper_parity_manifest: dict[str, object]) -> list[str]:
@@ -189,10 +218,25 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 shared replay inventory drift")
     if extract_shared_perf_wrapper_keys(helper_parity_manifest) != EXPECTED_SHARED_PERF_WRAPPER_KEYS:
         raise ValidationError("phase6 shared perf wrapper route drift")
+    if helper_parity_manifest.get("public_tree_backed_shared_companions") != EXPECTED_SHARED_PUBLIC_COMPANIONS:
+        raise ValidationError("phase6 helper parity public companion drift")
+    if helper_parity_manifest.get("shared_follow_through_gaps") != []:
+        raise ValidationError("phase6 helper parity follow-through gap drift")
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(root / PHASE6_BUILD, REQUIRED_BUILD_SNIPPETS)
     require_snippets(root / HELPER_EVIDENCE_CATALOG, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(root / HELPER_PARITY_CATALOG, REQUIRED_PARITY_CATALOG_SNIPPETS)
+    require_text_snippets(
+        "phase6 helper parity coverage note",
+        helper_parity_manifest.get("coverage_verification_note"),
+        REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS,
+    )
+    require_text_snippets(
+        "phase6 helper parity perf note",
+        helper_parity_manifest.get("perf_evidence_readback_note"),
+        REQUIRED_PARITY_PERF_NOTE_SNIPPETS,
+    )
 
     for checker, flag in CHECKER_INVOCATIONS:
         run_checker(root, checker, flag)
@@ -224,6 +268,7 @@ def make_checker_stub(expected_flag: str) -> str:
 
 def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_CATALOG, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
+    write(root / HELPER_PARITY_CATALOG, "\n".join(REQUIRED_PARITY_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_EVIDENCE_PACKET,
         "phase": EXPECTED_PHASE,
@@ -233,6 +278,10 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_PARITY_PACKET,
         "phase": EXPECTED_PHASE,
+        "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
+        "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
+        "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
+        "shared_follow_through_gaps": [],
         "helpers": [
             {
                 "key": "base64",
@@ -365,6 +414,34 @@ def run_self_test() -> None:
         write(root / HEXDUMP_ROUTE_CHECKER, make_checker_stub("--repo-root"))
         expect_failure(lambda: validate(root))
         cases_run += 1
+        scaffold_repo(root)
+        write(root / HELPER_PARITY_CATALOG, read_text(root / HELPER_PARITY_CATALOG).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[1] + "\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["public_tree_backed_shared_companions"] = []
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["shared_follow_through_gaps"] = ["Documentation/zigux/phase6-helper-parity-catalog.md"]
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["coverage_verification_note"] = "coverage drift"
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["perf_evidence_readback_note"] = "perf drift"
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
@@ -390,7 +467,10 @@ def main() -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE6_REQUIRED_MARKER_COUNT={len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_BUILD_SNIPPETS) + len(REQUIRED_CATALOG_SNIPPETS)}")
+    print(
+        "PHASE6_REQUIRED_MARKER_COUNT="
+        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_BUILD_SNIPPETS) + len(REQUIRED_CATALOG_SNIPPETS) + len(REQUIRED_PARITY_CATALOG_SNIPPETS)}"
+    )
     return 0
 
 
