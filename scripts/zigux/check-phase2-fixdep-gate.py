@@ -124,7 +124,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
-    + 7
+    + 9
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -509,6 +509,20 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        path.write_text("{broken\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_FIXDEP_CASES_JSON", path.as_posix()) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        path.write_text("{}\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_FIXDEP_CASES_JSON", path.as_posix()) in issues
         checks_run += 1
 
         for marker in FIXDEP_REQUIRED_EXACT_LINES:
