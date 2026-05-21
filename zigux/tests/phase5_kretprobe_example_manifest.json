@@ -21,6 +21,11 @@
       "expected": "the in-memory sample keeps kernel_clone as the default symbol name while allowing pre-init retargeting"
     },
     {
+      "id": "retargeted-symbol",
+      "kind": "anchor_shape",
+      "expected": "pre-init retargetSymbol(\"do_sys_openat2\") survives init so the bounded sample keeps symbol retargeting explicit without claiming module_param parity"
+    },
+    {
       "id": "skip-kernel-thread",
       "kind": "bounded_handler_path",
       "expected": "runAnchorReplay checks that an entry with no current mm is skipped instead of arming a tracked instance"
