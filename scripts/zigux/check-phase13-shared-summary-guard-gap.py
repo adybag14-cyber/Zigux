@@ -14,10 +14,12 @@ REQUIRED_MARKERS = {
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
         "- companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
-        "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
+        "The remaining follow-up is now narrower than the old missing-checker gap and no longer includes the earlier tests-root release-validator undercount.",
+        "Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift.",
+        "Current `master` already keeps the tests-root README and its dedicated checker aligned around `scripts/zigux/validate-phase13-release.py`",
         "- `Documentation/zigux/phase13-release-notes-survey.md`",
-        "- `scripts/zigux/README.md`",
-        "- `zigux/tests/README.md`",
+        "`scripts/zigux/README.md`",
+        "`zigux/tests/README.md`",
     ],
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
         "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
@@ -28,6 +30,8 @@ FORBIDDEN_MARKERS = (
     "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
     "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.",
+    "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
+    "zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support",
 )
 
 
@@ -93,7 +97,7 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
-                "- `Documentation/zigux/phase13-release-notes-survey.md`\n",
+                "The remaining follow-up is now narrower than the old missing-checker gap and no longer includes the earlier tests-root release-validator undercount.\n",
                 "",
                 1,
             ),
@@ -101,7 +105,25 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:- `Documentation/zigux/phase13-release-notes-survey.md`"
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:The remaining follow-up is now narrower than the old missing-checker gap and no longer includes the earlier tests-root release-validator undercount."
+            in issues
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.writeText = None
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8").replace(
+                "Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift."
             in issues
         )
         checks_run += 1
@@ -110,12 +132,12 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8")
-            + "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`\n",
+            + "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`"
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet."
             in issues
         )
         checks_run += 1
@@ -124,12 +146,12 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8")
-            + "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.\n",
+            + "zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard."
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support"
             in issues
         )
         checks_run += 1
