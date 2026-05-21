@@ -113,6 +113,10 @@ EXPECTED_HELPER_LOCAL_ANCHORS = (
     "genksyms bridge leaves tool-local reference-limit failure message unchanged",
     "genksyms bridge rejects more than sixteen reference files like the C harness",
 )
+REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES = (
+    'test "genksyms bridge preserves version side effect before invalid long option" {',
+    'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
+)
 
 HELP_USAGE = (
     "Usage:\n"
@@ -153,7 +157,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -408,6 +412,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(root, MAKEFILE)
     workflow_text = read_text(root, WORKFLOW)
     genksyms_text = read_text(root, GENKSYMS_ZIG)
+    version_side_effect_text = read_text(root, VERSION_SIDE_EFFECT_TEST)
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -422,6 +427,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
+        count = count_exact_lines(version_side_effect_text, marker)
+        if count == 0:
+            issues.append(("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
 
     if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
         issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
@@ -514,7 +526,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         VERSION_SIDE_EFFECT_TEST,
-        'test "genksyms bridge preserves version side effect before invalid long option" {}\n',
+        'test "genksyms bridge preserves version side effect before invalid long option" {}\n'
+        'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {}\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
     write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
@@ -567,6 +580,29 @@ def run_self_test() -> int:
         write_text(root, MAKEFILE, "phase2-genksyms:\n")
         assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
         checks += 1
+
+        for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
+            build_self_test_root(root)
+            write_text(
+                root,
+                VERSION_SIDE_EFFECT_TEST,
+                read_text(root, VERSION_SIDE_EFFECT_TEST).replace(f"{marker}\n", "", 1),
+            )
+            assert ("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
+            build_self_test_root(root)
+            write_text(
+                root,
+                VERSION_SIDE_EFFECT_TEST,
+                duplicate_exact_line(read_text(root, VERSION_SIDE_EFFECT_TEST), marker),
+            )
+            assert (
+                "DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE",
+                f"{marker}:count=2",
+            ) in collect_issues(root)
+            checks += 1
 
         build_self_test_root(root)
         write_text(
