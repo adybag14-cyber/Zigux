@@ -36,7 +36,7 @@ The same exit-rollback companion also keeps initialized-stage direct-activity fa
 The registration-reentry companion still keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
-Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`: the live file names `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-trace-events-loader-substrate-drift-tests`, and aggregate `phase9-runtime-loader-shared-tests`, but those steps remain shared-owner evidence rather than family-local trace-events proof.
+Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`: the live file names `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-trace-events-loader-substrate-drift-tests`, aggregate `phase9-runtime-loader-shared-tests`, and the broader `phase9-first-loadable-runtime-module-parity-survey-tests` route, but those steps remain shared-owner evidence rather than family-local trace-events proof.
 
 ## Gap Versus Roadmap
 
