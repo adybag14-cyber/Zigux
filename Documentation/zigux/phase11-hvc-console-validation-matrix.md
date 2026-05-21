@@ -63,11 +63,13 @@ than current-head direct-readback evidence.
 ## Failure-Mode Evidence
 
 - `drivers/tty/hvc/hvc_console.zig` remains present and keeps CRLF framing,
-  flush intent, final-close teardown, tty-registration handoff, notifier-add
-  open handoff, khvcd polling-contract, khvcd worker-entry, khvcd
-  sleep-and-reschedule handoff, `__hvc_poll` drain-order, `hvc_hangup()`
-  disconnect, `hvc_remove()` handoff, `hvc_cleanup()` tty-port release,
-  targetless notifier and sanitized targetless-unregister handling, `hvc_kick()`
+  flush intent, final-close teardown, tty-registration handoff,
+  `hvc_install()` ownership, `hvc_alloc()` slot selection, early console setup
+  and device selection, `__hvc_resize()` handoff, notifier-add open handoff,
+  khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule
+  handoff, `__hvc_poll` drain-order, `hvc_hangup()` disconnect,
+  `hvc_remove()` handoff, `hvc_cleanup()` tty-port release, targetless
+  notifier and sanitized targetless-unregister handling, `hvc_kick()`
   wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on
   current `master`.
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps the helper
