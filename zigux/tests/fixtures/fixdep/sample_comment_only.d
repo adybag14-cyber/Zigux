@@ -4,4 +4,5 @@
 still comment with include/generated/autoconf.h sample2.so shared\#config.h \
 and shared\:config.h sample.rlib sample.rmeta stay invisible too \
 plus escaped\ space-config.h sample_dependency_continuation_dep.so shared\#config.h \
-and include/generated/autoconf.h sample_comment_continuation_dep.so still stay invisible
+and include/generated/autoconf.h sample_comment_continuation_dep.so still stay invisible \
+while shared\:config.h escaped\ space-config.h sample_comment_continuation_dep.so sample.rlib remain comment-only too
