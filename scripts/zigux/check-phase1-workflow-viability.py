@@ -152,7 +152,7 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
 )
 
 
-def load_text(root: Path) -> str:
+def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
