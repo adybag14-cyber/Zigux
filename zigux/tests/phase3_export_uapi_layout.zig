@@ -234,6 +234,46 @@ test "export shim mirrors boundary header predicate helpers" {
     try testing.expect(!export_shim.extendsBoundary(canonicalized));
 }
 
+test "export shim relays starter boundary-header validation through the focused replay" {
+    const canonical = export_shim.canonicalHeader(0x34);
+    const extended = export_shim.BoundaryHeader{
+        .size = export_shim.header_size + 8,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x34,
+    };
+    const undersized = export_shim.BoundaryHeader{
+        .size = export_shim.header_size - 1,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x34,
+    };
+    const stale = export_shim.BoundaryHeader{
+        .size = export_shim.header_size,
+        .abi_version = export_shim.abi_version + 1,
+        .flags = 0x34,
+    };
+    const ok = export_shim.validateBoundaryHeader(canonical);
+    const ok_extended = export_shim.validateBoundaryHeader(extended);
+    const invalid_size = export_shim.validateBoundaryHeader(undersized);
+    const invalid_version = export_shim.validateBoundaryHeader(stale);
+
+    try testing.expect(export_shim.statusIsOk(ok));
+    try testing.expect(export_shim.statusIsOk(ok_extended));
+    try testing.expect(!export_shim.statusIsOk(invalid_size));
+    try testing.expect(!export_shim.statusIsOk(invalid_version));
+    try testing.expectEqual(@as(i32, 0), ok.code);
+    try testing.expectEqual(@as(i32, 0), ok_extended.code);
+    try testing.expectEqual(@as(i32, -22), invalid_size.code);
+    try testing.expectEqual(@as(i32, -22), invalid_version.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), ok.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), ok_extended.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_size.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_version.facility);
+    try testing.expectEqual(@as(u16, 0), ok.flags);
+    try testing.expectEqual(@as(u16, 0), ok_extended.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_size.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_version.flags);
+}
+
 test "export shim keeps facility tagged statuses explicit" {
     const ok = export_shim.okStatus(.helpers);
     const err = export_shim.errorStatus(-22, .kernel);
