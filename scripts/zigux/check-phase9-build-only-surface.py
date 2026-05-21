@@ -33,10 +33,13 @@ REQUIRED_MARKERS = {
         "the returned shared runtime-loader allocator/init-flow packet remains neighboring shared-owner evidence",
     ],
     LANE_SEQUENCING_PATH: [
-        "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence",
-        "`zigux/tests/phase9_build.zig` currently exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
-        "the shared loader build shard itself now couples `runtime_loader_allocator_init_flow.zig`, `runtime_trace_events_loader_substrate_drift.zig`, and `runtime_bitmap_loader.zig` under `phase9-runtime-loader-shared-tests`",
-        "the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded `phase9-runtime-loader-shared-tests` build shard, and the public-tree fallback loader surfaces",
+        "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
+        "Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.",
+        "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+        "`zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`",
+        "the review-first shared packet still stays neighboring shared-owner evidence through this lane note, the scripts-root reminder, the bounded loader shard, and the direct command/environment boundary guard",
+        "keep the Phase 8 command and environment ownership boundary explicit: deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`, while `LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
+        "current Phase 9 material still does not prove shipped runtime command or environment activation control; it proves only that the shared runtime-loader packet keeps those Phase 8 control surfaces out of the loader contract",
     ],
     PHASE9_BUILD_PATH: [
         'const runtime_loader_allocator_init_flow_module = b.createModule(.{',
@@ -174,8 +177,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the current Phase 9 build-only packet keeps the shared "
-            "runtime-loader allocator/init-flow shard explicit across the docs, "
-            "review checklist, lane sequencing note, and phase9_build rerun surface."
+            "runtime-loader allocator/init-flow shard, the command/environment "
+            "boundary guard, and the aligned docs and checklist reminders "
+            "explicit across the docs, review checklist, lane sequencing note, "
+            "and phase9_build rerun surface."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
