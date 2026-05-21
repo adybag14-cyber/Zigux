@@ -51,12 +51,15 @@ REQUIRED_MARKERS = {
         "pub fn nextArg",
         "pub const next_arg = nextArg;",
         "pub fn memparse",
+        'test "nextArg keeps the Linux-style empty sentinel token for leading whitespace" {',
         'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {',
         'test "nextArg keeps leading equals tokens as bare parameters" {',
         'test "nextArg keeps quoted leading equals tokens as bare parameters" {',
+        'test "nextArg parses key value pairs and quoted values" {',
         'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {',
         'test "nextArg keeps quoted empty values explicit without swallowing the next token" {',
         'test "nextArg keeps unterminated quoted values inside the current token" {',
+        'test "nextArg keeps parameter and value slices borrowed from caller storage" {',
         'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
         'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
         'test "getOptions expands negative ranges and negative upper bounds" {',
@@ -92,8 +95,11 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
         'const checker = try readRepoFile(allocator, checker_path);',
+        'try expectContains(helper, "test \\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\" {");',
         'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
         'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
+        'try expectContains(helper, "test \\"nextArg parses key value pairs and quoted values\\" {");',
+        'try expectContains(helper, "test \\"nextArg keeps parameter and value slices borrowed from caller storage\\" {");',
         'try expectContains(helper, "test \\"nextArg keeps rest and remaining as the same borrowed suffix view\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
         'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\"quiet,debug\\\\x00,nohlt\\", \\"nohlt\\"));");',
@@ -113,7 +119,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 44
+SELF_TEST_CASE_COUNT = 50
 
 
 def read_text(path: Path) -> str:
@@ -261,15 +267,51 @@ def run_self_test() -> None:
         helper_markers = [
             ("missing_helper_nextarg_marker", "pub fn nextArg"),
             ("missing_helper_nextarg_alias_marker", "pub const next_arg = nextArg;"),
-            ("missing_helper_whitespace_only_sentinel_marker", 'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {'),
+            (
+                "missing_helper_linux_whitespace_sentinel_marker",
+                'test "nextArg keeps the Linux-style empty sentinel token for leading whitespace" {',
+            ),
+            (
+                "missing_helper_whitespace_only_sentinel_marker",
+                'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {',
+            ),
             ("missing_helper_bare_leading_equals_marker", 'test "nextArg keeps leading equals tokens as bare parameters" {'),
-            ("missing_helper_quoted_leading_equals_marker", 'test "nextArg keeps quoted leading equals tokens as bare parameters" {'),
-            ("missing_helper_quoted_bare_token_marker", 'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {'),
-            ("missing_helper_quoted_empty_value_marker", 'test "nextArg keeps quoted empty values explicit without swallowing the next token" {'),
-            ("missing_helper_unterminated_quoted_value_marker", 'test "nextArg keeps unterminated quoted values inside the current token" {'),
-            ("missing_helper_borrowed_suffix_marker", 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'),
-            ("missing_helper_incomplete_hex_descending_marker", 'test "getOption preserves incomplete hex-prefix and descending-range behavior" {'),
-            ("missing_helper_negative_range_marker", 'test "getOptions expands negative ranges and negative upper bounds" {'),
+            (
+                "missing_helper_quoted_leading_equals_marker",
+                'test "nextArg keeps quoted leading equals tokens as bare parameters" {',
+            ),
+            (
+                "missing_helper_key_value_quotes_marker",
+                'test "nextArg parses key value pairs and quoted values" {',
+            ),
+            (
+                "missing_helper_quoted_bare_token_marker",
+                'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {',
+            ),
+            (
+                "missing_helper_quoted_empty_value_marker",
+                'test "nextArg keeps quoted empty values explicit without swallowing the next token" {',
+            ),
+            (
+                "missing_helper_unterminated_quoted_value_marker",
+                'test "nextArg keeps unterminated quoted values inside the current token" {',
+            ),
+            (
+                "missing_helper_borrowed_storage_marker",
+                'test "nextArg keeps parameter and value slices borrowed from caller storage" {',
+            ),
+            (
+                "missing_helper_borrowed_suffix_marker",
+                'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
+            ),
+            (
+                "missing_helper_incomplete_hex_descending_marker",
+                'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
+            ),
+            (
+                "missing_helper_negative_range_marker",
+                'test "getOptions expands negative ranges and negative upper bounds" {',
+            ),
         ]
         for case, marker in helper_markers:
             remove_once(helper_path, marker)
@@ -309,12 +351,24 @@ def run_self_test() -> None:
         survey_markers = [
             ("missing_survey_checker_reader", 'const checker = try readRepoFile(allocator, checker_path);'),
             (
+                "missing_survey_helper_linux_whitespace_marker",
+                'try expectContains(helper, "test \\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\" {");',
+            ),
+            (
                 "missing_survey_helper_whitespace_only_marker",
                 'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
             ),
             (
                 "missing_survey_helper_leading_equals_marker",
                 'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
+            ),
+            (
+                "missing_survey_helper_key_value_quotes_marker",
+                'try expectContains(helper, "test \\"nextArg parses key value pairs and quoted values\\" {");',
+            ),
+            (
+                "missing_survey_helper_borrowed_storage_marker",
+                'try expectContains(helper, "test \\"nextArg keeps parameter and value slices borrowed from caller storage\\" {");',
             ),
             (
                 "missing_survey_helper_borrowed_suffix_marker",
@@ -337,21 +391,66 @@ def run_self_test() -> None:
 
         companion_markers = [
             ("missing_companion_exact_bare_option_marker", 'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {'),
-            ("missing_companion_first_nul_bare_option_marker", 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));'),
-            ("missing_companion_option_decoding_marker", 'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {'),
-            ("missing_companion_incomplete_hex_descending_marker", 'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {'),
-            ("missing_companion_validator_only_cursor_marker", 'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {'),
-            ("missing_companion_negative_range_marker", 'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {'),
-            ("missing_companion_quoted_argument_memparse_marker", 'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {'),
-            ("missing_companion_leading_whitespace_boundary_marker", 'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {'),
-            ("missing_companion_bare_leading_equals_marker", 'test "phase 7 cmdline companion replays bare leading-equals ownership" {'),
-            ("missing_companion_empty_input_borrow_marker", 'test "nextArg keeps empty input borrowed from the caller slice" {'),
-            ("missing_companion_first_nul_boundary_marker", 'test "nextArg stays inside the first NUL for bare and key value tokens" {'),
-            ("missing_companion_borrowed_suffix_marker", 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'),
-            ("missing_companion_quoted_empty_token_marker", 'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {'),
-            ("missing_companion_quoted_bare_grouping_marker", 'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {'),
-            ("missing_companion_quoted_equals_and_unterminated_marker", 'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {'),
-            ("missing_companion_quoted_value_borrow_marker", 'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {'),
+            (
+                "missing_companion_first_nul_bare_option_marker",
+                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+            ),
+            (
+                "missing_companion_option_decoding_marker",
+                'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
+            ),
+            (
+                "missing_companion_incomplete_hex_descending_marker",
+                'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+            ),
+            (
+                "missing_companion_validator_only_cursor_marker",
+                'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
+            ),
+            (
+                "missing_companion_negative_range_marker",
+                'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
+            ),
+            (
+                "missing_companion_quoted_argument_memparse_marker",
+                'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
+            ),
+            (
+                "missing_companion_leading_whitespace_boundary_marker",
+                'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+            ),
+            (
+                "missing_companion_bare_leading_equals_marker",
+                'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
+            ),
+            (
+                "missing_companion_empty_input_borrow_marker",
+                'test "nextArg keeps empty input borrowed from the caller slice" {',
+            ),
+            (
+                "missing_companion_first_nul_boundary_marker",
+                'test "nextArg stays inside the first NUL for bare and key value tokens" {',
+            ),
+            (
+                "missing_companion_borrowed_suffix_marker",
+                'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
+            ),
+            (
+                "missing_companion_quoted_empty_token_marker",
+                'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
+            ),
+            (
+                "missing_companion_quoted_bare_grouping_marker",
+                'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
+            ),
+            (
+                "missing_companion_quoted_equals_and_unterminated_marker",
+                'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
+            ),
+            (
+                "missing_companion_quoted_value_borrow_marker",
+                'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {',
+            ),
         ]
         for case, marker in companion_markers:
             remove_once(companion_path, marker)
