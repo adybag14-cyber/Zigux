@@ -11,6 +11,7 @@
     "current_hlist_view_present": true,
     "current_abi_header_present": true,
     "current_hvc_notifier_header_present": true,
+    "current_phase13_release_validator_present": true,
     "current_notifier_packet_checker_present": true,
     "current_phase13_notifier_list_manifest_present": true,
     "current_phase13_notifier_list_reviewability_present": true
@@ -43,6 +44,13 @@
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase13-notifier-packet.py",
       "why_now": "The focused checker now fail-closes on the survey, manifest, reviewability gate, ABI foothold, list_head and hlist helpers, and HVC notifier declarations for the shipped adjacent packet."
+    },
+    {
+      "id": "phase13-notifier-release-validator-companion",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/validate-phase13-release.py",
+      "why_now": "Current master ships the shared Phase 13 release validator, and the adjacent notifier packet depends on that returned companion to keep shipped surfaces and repo-reality gaps framed truthfully."
     },
     {
       "id": "phase13-notifier-reviewability-gate",
