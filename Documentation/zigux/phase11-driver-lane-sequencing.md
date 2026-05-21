@@ -32,12 +32,21 @@ Keep the current lane split explicit:
 - DesignWare lane `P11-L10` stays separate from the shared sequencing lane, but
   raw `master` fallback rereads in this run do rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and direct
-  rereads also keep `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+  rereads also keep the returned DesignWare docs-owner, checker, driver,
+  registration-scaffold, and adjacent PM-helper packet explicit through
+  `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+  `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
+  `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
+  `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
+  `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+  `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
+  `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+  `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `drivers/watchdog/dw_wdt_pm.zig`, and
-  `drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as adjacent same-lane
-  continuity evidence, so current shared-note work can keep that returned
-  DesignWare matrix-plus-PM-helper packet explicit while the wider
-  helper-backed owner packet stays separate-lane and the older
+  `drivers/watchdog/dw_wdt_pm_scaffold.zig`, so current shared-note work can
+  keep that returned DesignWare matrix-plus-continuity packet explicit while the
+  wider helper-backed owner packet stays separate-lane and the older
   `scripts/zigux/check-phase11-dw-wdt-packet.py` handle stays framed as
   historical vocabulary
 - HVC continuity lane `P11-L16` currently keeps the directly readable
@@ -90,6 +99,10 @@ surfaces that were reread in this run:
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`
+- `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`
+- `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
@@ -97,12 +110,18 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
+- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
+- `drivers/watchdog/dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
 - `zigux/Makefile`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -126,18 +145,18 @@ fallback rereads rematerialized both driver-local matrix notes, so keep all
 four driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
 
-Current rereads in this run also keep
-`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
-`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
-`scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
-`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route
-explicit as the broader contributor-facing reminder family for the shared
-Phase 11 packet, while `make -C zigux phase11` and
-`make -C zigux phase11-contract` still remain missing on current `master`.
-
-Current rereads in this run also keep the directly readable DesignWare teardown
-checker plus the adjacent PM helper pair through
+Current rereads in this run also keep the directly readable DesignWare
+platform-registration, provenance, lane-gap, verify-alignment, checker, driver,
+registration-scaffold, and adjacent PM-helper packet through
+`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+`Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
+`Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
+`Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
+`zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
 `drivers/watchdog/dw_wdt_pm.zig`, and
 `drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as same-lane continuity
 evidence beside the returned DesignWare matrix note, without promoting live PM
@@ -175,8 +194,16 @@ Use this note to keep the bounded work order honest:
    `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
    `scripts/zigux/check-phase11-build-inventory.py`, the returned shared
    validator `scripts/zigux/validate-phase11.py`, the directly readable
-   DesignWare teardown checker plus adjacent PM helper pair through
+   DesignWare continuity packet through
+   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
+   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
+   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
    `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
+   `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
    `drivers/watchdog/dw_wdt_pm.zig`, and
    `drivers/watchdog/dw_wdt_pm_scaffold.zig`, and the HVC current-head
    continuity packet with its cleanup companion,
@@ -215,8 +242,19 @@ Use this note to keep the bounded work order honest:
    execution, or hardware-backed closure beyond the helper, proof, note, and
    checker surfaces that were reread in this run.
 7. When contributor-facing summaries reopen, keep them aligned with the
-   returned four-matrix shared packet, the directly readable DesignWare teardown
-   checker plus adjacent PM helper pair, the narrower HVC current-head
+   returned four-matrix shared packet, the directly readable DesignWare
+   continuity packet through
+   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
+   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
+   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
+   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
+   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
+   `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
+   `drivers/watchdog/dw_wdt_pm.zig`, and
+   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, the narrower HVC current-head
    continuity packet plus its cleanup companion, current-head checker,
    dedicated targetless-unregister witness checker, shared build inventory,
    proof-backed adjunct stack, standalone targetless-unregister witness pair,
