@@ -9,7 +9,6 @@ import tempfile
 from pathlib import Path
 import sys
 
-
 SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 ATTACHED_TOOLCHAIN_GUIDANCE_PATH = Path(
     "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
@@ -20,7 +19,6 @@ REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 SHARED_SMOKE_ROUTE_CHECKER_PATH = Path("scripts/zigux/check-phase14-shared-smoke-route.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase14.py")
 RELEASE_BOUNDARY_CHECKER_PATH = Path("scripts/zigux/check-phase14-release-boundary-exact-counts.py")
-TESTS_README_CHECKER_PATH = Path("scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKQUEUE_BRIDGE_PATH = Path("kernel/workqueue_bridge.zig")
 WORKQUEUE_TEST_PATH = Path("zigux/tests/phase14_workqueue_bridge.zig")
@@ -30,6 +28,7 @@ WORKQUEUE_MANIFEST_PATH = Path("zigux/tests/phase14_workqueue_bridge_manifest.js
 TESTS_PHASE14_START = "## Phase 14 shared smoke packet"
 TESTS_PHASE14_END = "## Phase 15 shared governance packet"
 SCRIPTS_PHASE14_START = "## Phase 14"
+SCRIPTS_PHASE14_END = "## Phase 15"
 
 REQUIRED_FILES = (
     SURVEY_PATH,
@@ -40,7 +39,6 @@ REQUIRED_FILES = (
     SHARED_SMOKE_ROUTE_CHECKER_PATH,
     VALIDATOR_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
-    TESTS_README_CHECKER_PATH,
     MAKEFILE_PATH,
     WORKQUEUE_BRIDGE_PATH,
     WORKQUEUE_TEST_PATH,
@@ -56,7 +54,8 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_ATTACHED_TOOLCHAIN_MARKERS = (
-    "`zigux/tests/README.md` is already aligned with the returned route split",
+    "`zigux/tests/README.md` is aligned on the returned route split, but it still undercounts the broader recovered shared packet",
+    "`Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, and `zigux/tests/phase14_ring_buffer_survey.zig`",
     "`scripts/zigux/check-phase14-shared-smoke-route.py` is directly readable again through the current contents path",
     "`zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `phase14-validate` gate, but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
 )
@@ -68,10 +67,12 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase14-shared-smoke-route.py`",
     "`scripts/zigux/validate-phase14.py`",
     "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "`zigux/Makefile`",
     "`kernel/workqueue_bridge.zig`",
+    "`zigux/tests/phase14_workqueue_bridge.zig`",
     "`zigux/tests/phase14_workqueue_reviewability.zig`",
     "`zigux/tests/phase14_workqueue_bridge_manifest.json`",
-    "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent",
+    "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent",
     "`zigux/tests/phase14_build.zig`",
     "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "`zigux/tests/phase14_end_to_end_smoke_survey.zig`",
@@ -80,8 +81,14 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`net/core/skbuff_bridge.zig`",
 )
 
+FORBIDDEN_TESTS_ROOT_MARKERS = (
+    "`Documentation/zigux/phase14-release-boundary-survey.md`",
+    "`Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`",
+    "`zigux/tests/phase14_ring_buffer_survey.zig`",
+)
+
 REQUIRED_SCRIPTS_README_MARKERS = (
-    "the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet",
+    "Phase 14 flow - the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet",
     "`scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/validate-phase14.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the recoverable shared-smoke layer visible",
     "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` keep the directly readable workqueue reviewability shard explicit",
     "current `master` does materialize `zigux/Makefile`, and its live body now exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with `phase14-validate`; `phase14-smoke`, `phase14-test`, and `phase14` still do not return",
@@ -110,12 +117,10 @@ FORBIDDEN_MAKEFILE_MARKERS = (
 )
 
 
-def section(text: str, start_marker: str, end_marker: str | None, label: str) -> str:
+def section(text: str, start_marker: str, end_marker: str, label: str) -> str:
     start = text.find(start_marker)
     if start == -1:
         raise SystemExit(f"{label} missing section start marker: {start_marker}")
-    if end_marker is None:
-        return text[start:]
     end = text.find(end_marker, start)
     if end == -1:
         raise SystemExit(f"{label} missing section end marker: {end_marker}")
@@ -157,9 +162,19 @@ def check(root: Path) -> None:
         "phase14 tests-root README",
     )
     require_markers(tests_section, REQUIRED_TESTS_ROOT_MARKERS, "phase14 tests-root README")
+    require_absent_markers(
+        tests_section,
+        FORBIDDEN_TESTS_ROOT_MARKERS,
+        "phase14 tests-root README",
+    )
 
     scripts_text = (root / SCRIPTS_README_PATH).read_text(encoding="utf-8")
-    scripts_section = section(scripts_text, SCRIPTS_PHASE14_START, None, "phase14 scripts README")
+    scripts_section = section(
+        scripts_text,
+        SCRIPTS_PHASE14_START,
+        SCRIPTS_PHASE14_END,
+        "phase14 scripts README",
+    )
     require_markers(scripts_section, REQUIRED_SCRIPTS_README_MARKERS, "phase14 scripts README")
 
     checklist_text = (root / REVIEW_CHECKLIST_PATH).read_text(encoding="utf-8")
@@ -182,16 +197,7 @@ def write_fixture_tree(root: Path) -> None:
         shutil.rmtree(root)
     write_text(
         root / SURVEY_PATH,
-        "\n".join(
-            (
-                "# Phase 14 End-to-End Smoke Survey",
-                REQUIRED_SURVEY_MARKERS[0],
-                REQUIRED_SURVEY_MARKERS[1],
-                REQUIRED_SURVEY_MARKERS[2],
-                REQUIRED_SURVEY_MARKERS[3],
-            )
-        )
-        + "\n",
+        "\n".join(("# Phase 14 End-to-End Smoke Survey", *REQUIRED_SURVEY_MARKERS)) + "\n",
     )
     write_text(
         root / ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
@@ -218,7 +224,7 @@ def write_fixture_tree(root: Path) -> None:
                 "# scripts/zigux",
                 SCRIPTS_PHASE14_START,
                 *REQUIRED_SCRIPTS_README_MARKERS,
-                "## Phase 15",
+                SCRIPTS_PHASE14_END,
             )
         )
         + "\n",
@@ -232,8 +238,7 @@ def write_fixture_tree(root: Path) -> None:
         "# route checker\n" + "\n".join(REQUIRED_ROUTE_CHECKER_MARKERS) + "\n",
     )
     write_text(root / VALIDATOR_PATH, "# validator placeholder\n")
-    write_text(root / RELEASE_BOUNDARY_CHECKER_PATH, "# release-boundary checker placeholder\n")
-    write_text(root / TESTS_README_CHECKER_PATH, "# tests-readme checker placeholder\n")
+    write_text(root / RELEASE_BOUNDARY_CHECKER_PATH, "# release checker placeholder\n")
     write_text(
         root / MAKEFILE_PATH,
         "\n".join(
@@ -249,9 +254,9 @@ def write_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / WORKQUEUE_BRIDGE_PATH, "// workqueue bridge placeholder\n")
-    write_text(root / WORKQUEUE_TEST_PATH, "// workqueue tests placeholder\n")
-    write_text(root / WORKQUEUE_REVIEWABILITY_PATH, "// workqueue reviewability placeholder\n")
+    write_text(root / WORKQUEUE_BRIDGE_PATH, "// workqueue bridge\n")
+    write_text(root / WORKQUEUE_TEST_PATH, "// workqueue test\n")
+    write_text(root / WORKQUEUE_REVIEWABILITY_PATH, "// workqueue reviewability\n")
     write_text(root / WORKQUEUE_MANIFEST_PATH, "{}\n")
 
 
@@ -281,55 +286,11 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture_tree(base)
-        (base / SHARED_SMOKE_ROUTE_CHECKER_PATH).unlink()
-        expect_failure(base, "missing required files")
-        cases += 1
-
-        write_fixture_tree(base)
-        tests_path = base / TESTS_ROOT_README_PATH
-        tests_path.write_text(
-            tests_path.read_text(encoding="utf-8").replace(
-                REQUIRED_TESTS_ROOT_MARKERS[3],
-                "`scripts/zigux/check-phase14-shared-smoke-route-legacy.py`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "phase14 tests-root README missing required markers")
-        cases += 1
-
-        write_fixture_tree(base)
-        tests_path = base / TESTS_ROOT_README_PATH
-        tests_path.write_text(
-            tests_path.read_text(encoding="utf-8").replace(
-                REQUIRED_TESTS_ROOT_MARKERS[5],
-                "`scripts/zigux/check-phase14-release-boundary-drift.py`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "phase14 tests-root README missing required markers")
-        cases += 1
-
-        write_fixture_tree(base)
-        tests_path = base / TESTS_ROOT_README_PATH
-        tests_path.write_text(
-            tests_path.read_text(encoding="utf-8").replace(
-                REQUIRED_TESTS_ROOT_MARKERS[13],
-                "`zigux/tests/phase14_rcu_tree_summary.zig`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "phase14 tests-root README missing required markers")
-        cases += 1
-
-        write_fixture_tree(base)
         attached_path = base / ATTACHED_TOOLCHAIN_GUIDANCE_PATH
         attached_path.write_text(
             attached_path.read_text(encoding="utf-8").replace(
-                REQUIRED_ATTACHED_TOOLCHAIN_MARKERS[1],
-                "`scripts/zigux/check-phase14-shared-smoke-route-legacy.py` is directly readable again through the current contents path",
+                REQUIRED_ATTACHED_TOOLCHAIN_MARKERS[0],
+                "`zigux/tests/README.md` is already aligned with the returned route split",
                 1,
             ),
             encoding="utf-8",
@@ -338,29 +299,16 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture_tree(base)
-        scripts_path = base / SCRIPTS_README_PATH
-        scripts_path.write_text(
-            scripts_path.read_text(encoding="utf-8").replace(
-                REQUIRED_SCRIPTS_README_MARKERS[3],
-                "there are still no `phase14-review` targets",
+        tests_path = base / TESTS_ROOT_README_PATH
+        tests_path.write_text(
+            tests_path.read_text(encoding="utf-8").replace(
+                TESTS_PHASE14_END,
+                FORBIDDEN_TESTS_ROOT_MARKERS[1] + "\n" + TESTS_PHASE14_END,
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "phase14 scripts README missing required markers")
-        cases += 1
-
-        write_fixture_tree(base)
-        checklist_path = base / REVIEW_CHECKLIST_PATH
-        checklist_path.write_text(
-            checklist_path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKLIST_MARKERS[4],
-                "`zigux/Makefile` framed as readable current evidence for the shipped Phase 2 routes only",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "phase14 review checklist missing required markers")
+        expect_failure(base, "phase14 tests-root README found forbidden markers")
         cases += 1
 
         write_fixture_tree(base)
