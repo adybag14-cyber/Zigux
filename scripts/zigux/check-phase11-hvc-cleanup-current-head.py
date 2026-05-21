@@ -66,6 +66,7 @@ SURVEY_MARKERS = (
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
     "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -83,6 +84,7 @@ COMPANION_MARKERS = (
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
     "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
     "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -348,6 +350,7 @@ def build_fixture(root: Path) -> None:
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
                 "`scripts/zigux/check-phase11-build-inventory.py`",
                 "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
                 "`zigux/tests/fixtures/phase11_build_inventory.json`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -372,6 +375,7 @@ def build_fixture(root: Path) -> None:
                 "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
                 "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
                 "`scripts/zigux/check-phase11-build-inventory.py`",
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
                 "`zigux/tests/fixtures/phase11_build_inventory.json`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
@@ -505,9 +509,11 @@ def run_self_test() -> int:
         cases = [
             (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`,"),
             (SURVEY_PATH, "current authenticated contents readback still does not rematerialize"),
+            (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`"),
             (COMPANION_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
+            (COMPANION_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
             (COMPANION_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
@@ -556,7 +562,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=35")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=37")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
