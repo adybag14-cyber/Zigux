@@ -174,7 +174,7 @@ def run_self_test() -> int:
         ("missing_packet_header", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[0])),
         (
             "missing_shared_checker",
-            lambda root: mutate_remove_marker(root, "- `scripts/zigux/check-phase1-shared-reminder-packet.py`"),
+            lambda root: mutate_removeMarker(root, "- `scripts/zigux/check-phase1-shared-reminder-packet.py`"),
         ),
         (
             "missing_workflow_file_marker",
@@ -188,7 +188,7 @@ def run_self_test() -> int:
             lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[18]),
         ),
         ("missing_direct_anchor_split", lambda root: mutate_remove_marker(root, REQUIRED_MARKERS[19])),
-        ("duplicate_direct_anchor_split", lambda root: mutate_duplicateMarker(root, REQUIRED_MARKERS[19])),
+        ("duplicate_direct_anchor_split", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[19])),
         ("duplicate_reviewer_prompt", lambda root: mutate_duplicate_marker(root, REQUIRED_MARKERS[21])),
         ("missing_phase2_boundary", mutate_drop_phase2_heading),
         (
