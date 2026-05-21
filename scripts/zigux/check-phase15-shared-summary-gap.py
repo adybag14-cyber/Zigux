@@ -17,6 +17,8 @@ STATUS_MARKERS = (
 )
 
 MATERIALIZED_GOVERNANCE_PATHS = (
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -52,6 +54,8 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
@@ -185,6 +189,28 @@ def run_self_test() -> int:
         failures = collect_failures(missing_root)
         if failures != [f"expected materialized Phase 15 path missing: {MATERIALIZED_GOVERNANCE_PATHS[0]}"]:
             raise AssertionError(f"unexpected missing-path failure: {failures}")
+
+        decision_template_root = root / "decision_template"
+        _seed_repo(decision_template_root)
+        _write(
+            decision_template_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
+                "",
+                2,
+            ).replace(
+                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(decision_template_root)
+        expected = [
+            "gap note missing materialized path marker: `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+            "gap note missing required marker: `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected decision-template failure: {failures}")
 
         focused_root = root / "focused"
         _seed_repo(focused_root)
