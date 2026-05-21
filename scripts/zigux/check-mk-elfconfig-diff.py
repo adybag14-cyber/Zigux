@@ -87,6 +87,8 @@ EXPECTED_ZIG_MARKERS = {
     "render_truncated": 'test "renders truncated error" {',
     "render_not_elf": 'test "renders non-ELF error" {',
     "render_invalid_class": 'test "renders invalid class silently" {',
+    "split_trailing_elf64": 'test "split-read ELF input exits with stdout and ignores trailing bytes" {',
+    "split_trailing_elf32": 'test "split-read 32-bit ELF input exits with stdout and ignores trailing bytes" {',
     "split_exact_elf32_first_chunk": 'test "split-read exact 32-bit ELF header in first chunk exits after one read" {',
     "split_exact_elf64_first_chunk": 'test "split-read exact 64-bit ELF header in first chunk exits after one read" {',
     "split_exact_invalid_class_first_chunk": 'test "split-read exact invalid-class header in first chunk exits after one read" {',
@@ -97,8 +99,12 @@ EXPECTED_ZIG_MARKERS = {
     "split_exact_elf64_failure": 'test "split-read exact 64-bit ELF header ignores later read failure and exits with stdout" {',
     "split_exact_invalid_class": 'test "split-read exact invalid-class header exits silently at EOF" {',
     "split_exact_invalid_class_failure": 'test "split-read exact invalid-class header ignores later read failure and exits silently" {',
+    "split_empty_eof": 'test "split-read empty input exits with stderr after immediate EOF" {',
+    "split_trailing_invalid_class": 'test "split-read invalid class exits silently and ignores trailing bytes" {',
+    "split_trailing_not_elf": 'test "split-read non-ELF input exits with stderr and ignores trailing bytes" {',
     "split_exact_not_elf": 'test "split-read exact non-ELF header exits with stderr at EOF" {',
     "split_exact_not_elf_failure": 'test "split-read exact non-ELF header ignores later read failure and exits with stderr" {',
+    "split_truncated_eof": 'test "split-read truncated input exits with stderr after final EOF read" {',
     "split_truncated_failure": 'test "split-read truncated input keeps stderr when a later read fails" {',
 }
 EXPECTED_FD_TRAILING_ZIG_MARKERS = {
