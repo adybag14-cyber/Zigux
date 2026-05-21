@@ -14,6 +14,12 @@ ROLLBACK_THRESHOLD_MARKER = (
     "keeps this freeze-in-C packet fail-closed until the same review packet carries "
     "the required reopen evidence instead of a lighter status-review claim."
 )
+COMPANION_CONFIRMATION_HEADING = (
+    "executable packet companions confirmed on current `master` through public GitHub fallback:"
+)
+COMPANION_PARTIAL_MARKER = (
+    "authenticated contents-path readback still stays partial for those executable companions"
+)
 REQUIRED_EVIDENCE_HEADING = "- required evidence before any status review:"
 REQUIRED_EVIDENCE_MARKERS = [
     "- `Architecture Council` reopen record linked from the active review packet",
@@ -24,7 +30,7 @@ RETURN_TO_BLOCKED_HEADING = "- automatic return-to-blocked triggers:"
 RETURN_TO_BLOCKED_MARKERS = [
     "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record",
     "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
-    "- freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the missing-companion warning, or the rollback owner",
+    "- freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the companion-readback warning, or the rollback owner",
 ]
 
 
@@ -43,9 +49,10 @@ REQUIRED_MARKERS = [
     "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
     "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
     "directly readable dedicated packet surfaces on current `master`:",
-    "executable packet companions still missing through current contents-path readback:",
+    COMPANION_CONFIRMATION_HEADING,
     "`zigux/tests/phase14_rcu_tree_manifest.json`",
     "`zigux/tests/phase14_rcu_tree_survey.zig`",
+    COMPANION_PARTIAL_MARKER,
     "dedicated rollback guard surface:",
     "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
     "`phase14-rcu-tree-rollback-threshold-guardrail`",
@@ -97,14 +104,15 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-- executable packet companions still missing through current contents-path readback:
+- """ + COMPANION_CONFIRMATION_HEADING + """
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
+- authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker as the owner surface rather than claiming restored local replay or ownership
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 ## Rollback guardrail
 """ + ROLLBACK_THRESHOLD_MARKER + """
-- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, missing-companion wording, rollback owner, and required reopen evidence.
+- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, companion-readback wording, rollback owner, and required reopen evidence.
 - rollback owner: `Repo Tooling Pod`
 """ + REQUIRED_EVIDENCE_HEADING + """
 """ + "\n".join(f"  {marker}" for marker in REQUIRED_EVIDENCE_MARKERS) + """
@@ -124,9 +132,14 @@ def run_self_test() -> int:
         cases = [
             ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
             (
-                "remove-missing-section",
-                "executable packet companions still missing through current contents-path readback:",
-                "missing_marker:executable packet companions still missing through current contents-path readback:",
+                "remove-companion-heading",
+                COMPANION_CONFIRMATION_HEADING,
+                f"missing_marker:{COMPANION_CONFIRMATION_HEADING}",
+            ),
+            (
+                "remove-companion-partial-marker",
+                COMPANION_PARTIAL_MARKER,
+                f"missing_marker:{COMPANION_PARTIAL_MARKER}",
             ),
             (
                 "remove-checker",
@@ -161,7 +174,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
 
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=7")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -171,7 +184,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the dedicated Phase 14 RCU rollback note stays aligned with the "
-            "current freeze-in-C guardrail markers and does not overstate missing executable companions."
+            "current freeze-in-C guardrail markers and keeps companion readback wording honest."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
