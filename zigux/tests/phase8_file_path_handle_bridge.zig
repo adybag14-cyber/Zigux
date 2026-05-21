@@ -183,8 +183,13 @@ test "phase 8 file-path handle bridge proof keeps the current libbpf survey remi
     );
     try expectContains(
         libbpf_survey,
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
     );
+    try expectContains(libbpf_survey, "`tools/lib/bpf/zigux_segments/logging_verify.zig`");
+    try expectContains(libbpf_survey, "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`");
+    try expectContains(libbpf_survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
+    try expectContains(libbpf_survey, "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`");
+    try expectContains(libbpf_survey, "`tools/lib/bpf/zigux_segments/type_names_verify.zig`");
     try expectContains(libbpf_survey, "`zigux/tests/phase8_verify_routing_gap.zig`");
     try expectContains(libbpf_survey, "`zigux/tests/phase8_verify_routing_gap_only_build.zig`");
     try expectContains(
