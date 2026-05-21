@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
+VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 DOCS_README_PATH = "Documentation/zigux/README.md"
@@ -18,6 +19,7 @@ MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
+    VALIDATOR_PATH,
     SURVEY_PATH,
     BRIDGE_BOUNDARY_SURVEY_PATH,
     DOCS_README_PATH,
@@ -28,6 +30,10 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MARKERS = {
+    VALIDATOR_PATH: (
+        'LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")',
+        "LIBBPF_SHARD_ROUTES_CHECKER,",
+    ),
     SURVEY_PATH: (
         "Current helper-plus-build packet",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
@@ -81,14 +87,14 @@ REQUIRED_MARKERS = {
     ),
     BRIDGE_TEST_PATH: (
         "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
-        "\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
-        "\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
-        "\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"fdinfo-map-info-helpers\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"map-reuse-compatibility\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
+        "\\\"slug\\\\\\\": \\\\\\\"file-path-and-handle-bridge\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"deferred_high_risk\\\\\\\", \\\\\\\"kind\\\\\\\": \\\\\\\"resource_boundary\\\\\\\"",
     ),
     MANIFEST_PATH: (
-        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
-        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
-        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\\\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\\\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
     ),
