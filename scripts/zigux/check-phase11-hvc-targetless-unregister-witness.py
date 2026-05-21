@@ -519,7 +519,6 @@ def run_self_test() -> int:
 
         make_fixture(temp_dir)
         companion = temp_dir / CLEANUP_COMPANION_PATH
-        companion.writeText = None
         companion.write_text("# companion\n", encoding="utf-8")
         try:
             validate(temp_dir)
