@@ -37,9 +37,11 @@ That means the current parity-tracking gap is maintenance-only: keep the scoreca
 
 ## Current reminder route
 
-- the current directly materialized reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
+- the current checker-backed reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
 - anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
-- current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain broader gap vocabulary rather than shipped reminder-route evidence
+- validator-first reminder evidence now exists through `python3 scripts/zigux/validate-phase15.py`
+- shared replay evidence now exists through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`
+- current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence
 
 ## Anchor Scorecard
 
@@ -116,7 +118,7 @@ This scorecard does not claim:
 
 ## Gates
 
-1. run the current directly materialized reminder route
+1. run the checker-backed reminder route
    - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`
@@ -124,10 +126,13 @@ This scorecard does not claim:
    - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 2. run the dedicated parity scorecard replay
    - `zig test zigux/tests/phase15_parity_scorecard.zig`
-3. keep the broader validator-first and shared-build gaps explicit
-   - `scripts/zigux/validate-phase15.py` still returns missing on current `master`
-   - `zigux/tests/phase15_build.zig` still returns missing on current `master`
-   - the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes stay gap vocabulary until those companions return
+3. run the adjacent shipped validator and shared replay evidence
+   - `python3 scripts/zigux/validate-phase15.py`
+   - `zig build test --build-file zigux/tests/phase15_build.zig`
+4. keep the parked wrapper routes explicit as gaps until `zigux/Makefile` grows them
+   - `make -C zigux phase15-validate`
+   - `make -C zigux phase15-test`
+   - `make -C zigux phase15`
 
 ## Next bounded step
 
