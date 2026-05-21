@@ -57,6 +57,22 @@ PHASE14_FUTURE_DESTINATION_POLICY = (
     "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it"
 )
 
+CLOSURE_ALLOWED_ROADMAP_DESTINATIONS = [
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/",
+]
+
+CLOSURE_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "queue_reset_execution",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+    "freeze_restore_lifecycle",
+]
+
 COMMON_DRIVER_FIELD_VALUES = {
     "freeze_map": "Documentation/zigux/freeze-map.md",
     "freeze_boundary_status": "aligned",
@@ -168,6 +184,36 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "closure_manifest:freeze_status_change_claimed="
             + repr(closure_manifest.get("freeze_status_change_claimed"))
         )
+    if closure_manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
+        missing_markers.append(
+            "closure_manifest:risky_transport_posture="
+            + repr(closure_manifest.get("risky_transport_posture"))
+        )
+    if (
+        closure_manifest.get("allowed_roadmap_destinations")
+        != CLOSURE_ALLOWED_ROADMAP_DESTINATIONS
+    ):
+        missing_markers.append("closure_manifest:allowed_roadmap_destinations")
+    if (
+        closure_manifest.get("allowed_evidence_kinds")
+        != COMMON_DRIVER_FIELD_VALUES["allowed_evidence_kinds"]
+    ):
+        missing_markers.append("closure_manifest:allowed_evidence_kinds")
+    if (
+        closure_manifest.get("forbidden_transport_claims")
+        != CLOSURE_FORBIDDEN_TRANSPORT_CLAIMS
+    ):
+        missing_markers.append("closure_manifest:forbidden_transport_claims")
+    if closure_manifest.get("architecture_council_reopen_required") is not True:
+        missing_markers.append(
+            "closure_manifest:architecture_council_reopen_required="
+            + repr(closure_manifest.get("architecture_council_reopen_required"))
+        )
+    if closure_manifest.get("architecture_council_reopen_attached") is not False:
+        missing_markers.append(
+            "closure_manifest:architecture_council_reopen_attached="
+            + repr(closure_manifest.get("architecture_council_reopen_attached"))
+        )
     if closure_manifest.get("freeze_in_c_anchors") != FREEZE_IN_C_ANCHORS:
         missing_markers.append("closure_manifest:freeze_in_c_anchors")
     if closure_manifest.get("study_only_anchors") != STUDY_ONLY_ANCHORS:
@@ -221,6 +267,12 @@ def build_fixture_manifest() -> str:
             "freeze_map": "Documentation/zigux/freeze-map.md",
             "freeze_boundary_status": "aligned",
             "freeze_status_change_claimed": False,
+            "risky_transport_posture": "blocked_on_risky_transport",
+            "allowed_roadmap_destinations": CLOSURE_ALLOWED_ROADMAP_DESTINATIONS,
+            "allowed_evidence_kinds": COMMON_DRIVER_FIELD_VALUES["allowed_evidence_kinds"],
+            "forbidden_transport_claims": CLOSURE_FORBIDDEN_TRANSPORT_CLAIMS,
+            "architecture_council_reopen_required": True,
+            "architecture_council_reopen_attached": False,
             "freeze_in_c_anchors": FREEZE_IN_C_ANCHORS,
             "study_only_anchors": STUDY_ONLY_ANCHORS,
             "phase14_study_only_boundary": {
@@ -403,6 +455,54 @@ def run_self_test() -> int:
 
         run_manifest_case(
             root,
+            "risky_transport_posture",
+            "starter_landed",
+            "closure_manifest:risky_transport_posture='starter_landed'",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "allowed_roadmap_destinations",
+            ["drivers/virtio/*.zig"],
+            "closure_manifest:allowed_roadmap_destinations",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "allowed_evidence_kinds",
+            ["driver_local_lab_slices"],
+            "closure_manifest:allowed_evidence_kinds",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "forbidden_transport_claims",
+            ["queue_setup_reset_paths", "irq_parity"],
+            "closure_manifest:forbidden_transport_claims",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "architecture_council_reopen_required",
+            False,
+            "closure_manifest:architecture_council_reopen_required=False",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "architecture_council_reopen_attached",
+            True,
+            "closure_manifest:architecture_council_reopen_attached=True",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
             "freeze_in_c_anchors",
             FREEZE_IN_C_ANCHORS[:-1],
             "closure_manifest:freeze_in_c_anchors",
@@ -479,7 +579,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
@@ -502,7 +602,7 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
-total_manifest_checks = 10 + sum(
+total_manifest_checks = 16 + sum(
     len(fields) for fields in EXPECTED_DRIVER_MANIFEST_FIELDS.values()
 )
 
