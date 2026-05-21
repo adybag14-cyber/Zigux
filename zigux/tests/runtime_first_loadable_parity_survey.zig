@@ -28,6 +28,18 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(sample_root_readme);
 
+    const atomic_survey_note = try readRepoFileAlloc(
+        "../../Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic_survey_note);
+
+    const atomic_module_slice = try readRepoFileAlloc(
+        "../../Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic_module_slice);
+
     const manifest = try readRepoFileAlloc(
         "runtime_bitmap_manifest.json",
         16 * 1024,
@@ -88,6 +100,60 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(sample_root_readme, "Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned");
     try expectContains(sample_root_readme, "Keep `zigux/tests/runtime_bitmap_manifest.json` explicit as the manifest-backed ownership packet for the same runtime bitmap reminder family.");
     try expectContains(sample_root_readme, "Keep the neighboring `zigux/tests/phase9_build.zig` route names framed only as bounded rerun handles for the visible sample, loader, survey, top-bit, and manifest-backed packet while the module and diff legs stay absent on the trusted path.");
+
+    try expectContains(atomic_survey_note, "`PHASE9_STATUS=active`");
+    try expectContains(atomic_survey_note, "`PHASE9_SLICE=runtime-atomic64-survey`");
+    try expectContains(atomic_survey_note, "`PHASE9_LANE_KEY=P9-L04`");
+    try expectContains(atomic_survey_note, "`PHASE9_SURVEYED_COMMIT=2026-05-21-runtime-atomic64-direct-packet-truthfulness`");
+    try expectContains(
+        atomic_survey_note,
+        "scope: direct atomic64 note-plus-test packet truthfulness together with the visible shared first-loadable reminder surfaces only",
+    );
+    try expectContains(atomic_survey_note, "`zigux/tests/runtime_atomic64_module.zig`");
+    try expectContains(atomic_survey_note, "`zigux/tests/runtime_atomic64_diff.zig`");
+    try expectContains(
+        atomic_survey_note,
+        "Trusted current-master reads in this runtime still do not return these family-local atomic64 files on the same path:",
+    );
+    try expectContains(atomic_survey_note, "`samples/zigux/runtime_atomic64.zig`");
+    try expectContains(atomic_survey_note, "`samples/zigux/runtime_atomic64_loader.zig`");
+    try expectContains(atomic_survey_note, "`zigux/tests/runtime_atomic64_survey.zig`");
+    try expectContains(atomic_survey_note, "`zigux/tests/runtime_atomic64_manifest.json`");
+    try expectContains(
+        atomic_survey_note,
+        "It is not a completed loadable runtime-module path, it does not clear the broader runtime-substrate blocker, and it does not currently rematerialize the family-local sample, loader, survey, or manifest surfaces on the trusted read path used in this run.",
+    );
+    try expectContains(
+        atomic_survey_note,
+        "No dedicated `make -C zigux phase9-runtime-atomic64-test` route is currently materialized on current `master`",
+    );
+
+    try expectContains(atomic_module_slice, "`PHASE9_STATUS=active`");
+    try expectContains(atomic_module_slice, "`PHASE9_SLICE=runtime-atomic64-module-starter`");
+    try expectContains(atomic_module_slice, "`PHASE9_LANE_KEY=P9-L04`");
+    try expectContains(atomic_module_slice, "`PHASE9_SURVEYED_COMMIT=2026-05-21-runtime-atomic64-direct-packet-truthfulness`");
+    try expectContains(
+        atomic_module_slice,
+        "scope: selftest-hook and guarded lifecycle reviewability through the direct atomic64 note-plus-test packet, plus the adjacent shared reminder surfaces only",
+    );
+    try expectContains(atomic_module_slice, "## Direct Packet");
+    try expectContains(atomic_module_slice, "## Adjacent Shared Reminder Packet");
+    try expectContains(
+        atomic_module_slice,
+        "the direct atomic64 packet is narrower than the older loader-facing wording implied",
+    );
+    try expectContains(
+        atomic_module_slice,
+        "That means the honest current atomic64 packet is the direct note-plus-test packet together with a bounded shared-reminder packet.",
+    );
+    try expectContains(
+        atomic_module_slice,
+        "No dedicated family-local survey gate or manifest file currently returns on the trusted current-master path used in this run",
+    );
+    try expectContains(
+        atomic_module_slice,
+        "`zigux/tests/phase9_build.zig` currently keeps the direct `phase9-runtime-atomic64-diff` rerun and the build-local `phase9-runtime-atomic64-sample-tests` handle explicit;",
+    );
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
