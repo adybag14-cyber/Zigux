@@ -202,7 +202,14 @@ def run_self_test() -> int:
 
         validator = root / VALIDATOR
         original_validator = _read(validator)
-        validator.write_text(original_validator.replace('HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")', "", 1), encoding="utf-8")
+        validator.write_text(
+            original_validator.replace(
+                'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
         missing_validator_constant = validate_root(root)
         expected_validator_constant = 'scripts/zigux/validate-phase8.py:HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")'
         if expected_validator_constant not in missing_validator_constant.missing_markers:
@@ -275,6 +282,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing make route marker to be reported")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        validator.write_text(original_validator.replace("HELP_KALLSYMS_PACKET_CHECKER,", "", 1), encoding="utf-8")
+        missing_validator_tuple = validate_root(root)
+        expected_validator_tuple = "scripts/zigux/validate-phase8.py:HELP_KALLSYMS_PACKET_CHECKER,"
+        if expected_validator_tuple not in missing_validator_tuple.missing_markers:
+            raise AssertionError("expected missing validator checker tuple marker to be reported")
+        validator.write_text(original_validator, encoding="utf-8")
+
         kallsyms_slice = root / KALLSYMS_SLICE
         original_slice = _read(kallsyms_slice)
         kallsyms_slice.write_text(original_slice.replace("shared validation overlap only", "", 1), encoding="utf-8")
@@ -299,7 +313,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
