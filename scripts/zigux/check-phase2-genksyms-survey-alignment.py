@@ -24,6 +24,7 @@ REQUIRED_PATHS = (
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
@@ -36,23 +37,20 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
     "The Phase 2 roadmap still keeps `scripts/genksyms/genksyms.c` inside the bounded toolchain and Kbuild enablement tranche",
     "Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.",
-    "Current `master` directly serves the bounded checker and full expected-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`",
+    "Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again:",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "`scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, expanded fixture packet, workflow, make-wrapper, and validator packet",
-    "`abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, and `lone_dash_passthrough_expected.json`",
-    "the validator pair in `scripts/zigux/validate-phase2.py` and `scripts/zigux/validate-phase2-closure.py`",
-    "there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
-    "either teach `scripts/zigux/check-genksyms-bridge.py` to validate the restored process-output fixtures too, or add a dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
+    "The narrower repo-reality gap is now inventory-shaped rather than an implementation absence:",
+    "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.",
 )
 
 
@@ -123,19 +121,14 @@ Lane: `P2-L07`
 ## Current repo evidence
 
 - Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.
-- Current `master` directly serves the bounded checker and full expected-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json` are all readable on head.
+- Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json` are all readable on head.
 - Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` all still name the checker, fixture roster, or `phase2-genksyms` replay route.
-- `scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, expanded fixture packet, workflow, make-wrapper, and validator packet.
-- The narrower repo-reality gap is still governance-shaped rather than an implementation absence: the dedicated checker and broader shared Phase 2 reminder packet still do not fail-close on every restored process-output fixture, and there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`.
-
-## Survey result
-
-- The truthful current genksyms packet is the helper, its embedded Zig tests, `scripts/zigux/check-genksyms-bridge.py`, the bridge-invocation fixtures in `cases.json` plus `minimal_expected.json`, `debug_reference_types_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, and `lone_dash_passthrough_expected.json`, the help fixture, the restored process-output fixtures for version and parse-failure behavior, the dedicated survey-alignment checker, the validator pair in `scripts/zigux/validate-phase2.py` and `scripts/zigux/validate-phase2-closure.py`, and the shared Phase 2 closure and make-wrapper packet that still replays `phase2-genksyms`.
+- The narrower repo-reality gap is now inventory-shaped rather than an implementation absence: current `master` now catalogs the full bridge packet in `zigux/tests/fixtures/genksyms_bridge/manifest.json`, but the dedicated checker still only replays the invocation-fixture packet and has not yet taken direct ownership of every restored process-output fixture.
 
 ## Next bounded same-family step
 
-1. Leave this survey parked unless a future reread finds another genksyms-local wording or inventory drift.
-2. If the genksyms family reopens for expected-output governance rather than implementation, either teach `scripts/zigux/check-genksyms-bridge.py` to validate the restored process-output fixtures too, or add a dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json` that catalogs the full current packet.
+1. Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.
+2. If the family reopens for governance rather than implementation, keep the next move to one directly coupled bridge-checker update that validates `manifest.json` and the restored process-output fixtures without widening into fixdep, kconfig, or broader Phase 2 closure churn.
 """
     write_text(root, SURVEY, survey_text)
     write_text(
