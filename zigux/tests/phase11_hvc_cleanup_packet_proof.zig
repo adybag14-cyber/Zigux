@@ -153,6 +153,8 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     );
     defer std.testing.allocator.free(driver);
 
+    try expectContains(matrix_doc, "flush intent");
+    try expectContains(matrix_doc, "final-close teardown");
     try expectContains(matrix_doc, "khvcd sleep-and-reschedule handoff");
     try expectContains(matrix_doc, "`__hvc_poll` drain-order");
     try expectContains(matrix_doc, "`hvc_hangup()` disconnect");
@@ -161,6 +163,8 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(matrix_doc, "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and");
     try expectContains(matrix_doc, "modem-control helper summaries reviewable on current `master`.");
 
+    try expectContains(driver, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {");
+    try expectContains(driver, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {");
     try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");
     try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");
     try expectContains(driver, "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {");
@@ -173,6 +177,8 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");
     try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");
     try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
+    try expectContains(driver, "test \"phase11 hvc console keeps flush intent summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps final-close teardown ownership summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
