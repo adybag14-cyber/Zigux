@@ -47,7 +47,7 @@ Base raw URL prefix:
 
 ## Review Use
 - use this file only as a read-only archival index; it does not add a new replay surface
-- keep the fallback split explicit: this file is the commit-pinned historical replay artifact, while the current-master survey note, fixture manifest, survey manifest, survey replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only
+- keep the fallback split explicit: this file is archival commit-pinned history only for the historical replay artifact, while the current-master survey note, fixture manifest, survey manifest, survey replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only
 - rerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py` before widening any PMO wording around this artifact
 - exact current shared support-bundle and replay order is `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`
 - `make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`
