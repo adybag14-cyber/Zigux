@@ -177,7 +177,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
         "phase8_exec_cmd",
-        "Run the phase 8 exec-cmd review witness tests.",
+        "Run focused Phase 8 exec-cmd tests",
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
@@ -682,7 +682,7 @@ def run_self_test() -> int:
         missing_ready_buffer_window_mapped_size_wrapper = validate_root(root)
         expected_ready_buffer_window_mapped_size_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferWindowMappedSizeReturnAtAttempt"
         if expected_ready_buffer_window_mapped_size_wrapper not in missing_ready_buffer_window_mapped_size_wrapper.missing_markers:
-            raise AssertionError("expected missing aggregate verifier ready-buffer window mapped-size wrapper marker to be reported")
+            raise AssertionError("expected missing aggregate verifier ready-buffer window mapped-size wrapper to be reported")
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         verify_file.write_text(
