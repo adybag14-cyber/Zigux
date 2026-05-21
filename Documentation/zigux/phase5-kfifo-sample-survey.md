@@ -59,6 +59,7 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 - keep ownership and lifetime boundaries visible through explicit initialization, replay, reset, and teardown states
 - keep non-destructive preview and snapshot behavior explicit so reviewers can inspect queued state without inferring hidden mutation
 - keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
+- keep the direct `available()` helper explicit as the first remaining-capacity cue at cold, initialized, preview, wrapped, full, replay-complete, reset, and exited boundaries instead of leaving free-space review to derived queue-length math alone
 - keep helper-boundary behavior explicit at empty, short-drain, partial-`enqueueSlice()`-truncation, full, overflow, skip-at-capacity, reset, and reinit-after-exit edges
 - keep bitmap helper or runtime bitmap claims out of this packet; current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample
 - keep procfs, user-copy, locking, and module-registration claims out of scope unless a later runtime lane lands the required substrate first
