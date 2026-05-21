@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 92
+EXPECTED_SELF_TEST_CASE_COUNT = 96
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -136,6 +136,11 @@ def read_manifest(root: Path) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise SystemExit(f"manifest is not an object: {resolved}")
     return payload
+
+
+def probe_required_file(path: Path) -> None:
+    with path.open("rb") as handle:
+        handle.read(0)
 
 
 def collect_marker_count_issues(
@@ -179,6 +184,7 @@ def collect_branch_manifest_path_issues(
     missing_code: str,
     unexpected_code: str,
     non_file_code: str = "",
+    unreadable_code: str = "",
 ) -> list[tuple[str, str]]:
     if not isinstance(values, list):
         return []
@@ -189,6 +195,14 @@ def collect_branch_manifest_path_issues(
             continue
         resolved = resolve_path(root, Path(value))
         if resolved.is_file():
+            try:
+                probe_required_file(resolved)
+            except OSError:
+                if unreadable_code:
+                    issues.append((unreadable_code, value))
+                elif unexpected_code:
+                    issues.append((unexpected_code, value))
+                continue
             if unexpected_code:
                 issues.append((unexpected_code, value))
             continue
@@ -290,6 +304,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             missing_code="PRESENT_FILE_MISSING_ON_BRANCH",
             unexpected_code="",
             non_file_code="PRESENT_FILE_NOT_FILE_ON_BRANCH",
+            unreadable_code="PRESENT_FILE_UNREADABLE_ON_BRANCH",
         )
     )
     issues.extend(
@@ -318,6 +333,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 missing_code="WORKFLOW_SURFACE_MISSING_ON_BRANCH",
                 unexpected_code="",
                 non_file_code="WORKFLOW_SURFACE_NOT_FILE_ON_BRANCH",
+                unreadable_code="WORKFLOW_SURFACE_UNREADABLE_ON_BRANCH",
             )
         )
     if isinstance(present_files, list) and isinstance(missing_files, list):
@@ -484,6 +500,13 @@ def assert_run_checker_note_contains(root: Path, expected_fragment: str) -> None
     assert exit_code == 1, output
     assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output, output
     assert f"PHASE2_TOOL_MANIFEST_PACKETS_NOTE={expected_fragment}" in output, output
+
+
+def assert_run_checker_output_contains(root: Path, expected_fragment: str) -> None:
+    result, output = capture_run_checker(root)
+    assert result == 1, output
+    assert "PHASE2_TOOL_MANIFEST_PACKETS=fail" in output, output
+    assert expected_fragment in output, output
 
 
 def run_checker(root: Path) -> int:
@@ -798,6 +821,36 @@ def run_self_test() -> int:
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
             checks_run += 1
+
+        original_probe_required_file = globals()["probe_required_file"]
+        try:
+            build_self_test_root(root)
+
+            def fail_present_probe(path: Path) -> None:
+                if path == resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1])):
+                    raise OSError("simulated unreadable present file")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_present_probe
+            assert ("PRESENT_FILE_UNREADABLE_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
+            checks_run += 1
+            assert_run_checker_output_contains(root, "PRESENT_FILE_UNREADABLE_ON_BRANCH_START")
+            checks_run += 1
+
+            build_self_test_root(root)
+
+            def fail_workflow_probe(path: Path) -> None:
+                if path == resolve_path(root, Path(EXPECTED_WORKFLOW_SURFACE)):
+                    raise OSError("simulated unreadable workflow surface")
+                original_probe_required_file(path)
+
+            globals()["probe_required_file"] = fail_workflow_probe
+            assert ("WORKFLOW_SURFACE_UNREADABLE_ON_BRANCH", EXPECTED_WORKFLOW_SURFACE) in collect_issues(root)
+            checks_run += 1
+            assert_run_checker_output_contains(root, "WORKFLOW_SURFACE_UNREADABLE_ON_BRANCH_START")
+            checks_run += 1
+        finally:
+            globals()["probe_required_file"] = original_probe_required_file
 
         for path in (CLOSURE_DOC, BOOTSTRAP_NOTES, PHASE2_VALIDATOR, PHASE2_CLOSURE_VALIDATOR):
             build_self_test_root(root)
