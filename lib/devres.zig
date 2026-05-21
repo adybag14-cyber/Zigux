@@ -3,6 +3,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_dmam_alloc_coherent_planning: bool,
     provides_release_record_lifetime_planning: bool,
+    provides_release_call_planning: bool,
     provides_dmam_free_coherent_cleanup_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
@@ -41,7 +42,7 @@ pub const ReleaseRecordLifetimePlan = struct {
     should_release_on_detach: bool,
 };
 
-const ReleaseCallPlan = struct {
+pub const ManagedReleaseCallPlan = struct {
     anchor: []const u8,
     requested_size: u64,
     releases_from_devres: bool,
@@ -57,7 +58,7 @@ pub const DevresHelperLab = struct {
         }
     }
 
-    fn planReleaseCall(requested_size: u64, release_record_matches: bool) ReleaseCallPlan {
+    pub fn planManagedReleaseCall(requested_size: u64, release_record_matches: bool) ManagedReleaseCallPlan {
         return .{
             .anchor = descriptor().anchor,
             .requested_size = requested_size,
@@ -92,6 +93,7 @@ pub const DevresHelperLab = struct {
             .anchor = "lib/devres.c",
             .provides_dmam_alloc_coherent_planning = true,
             .provides_release_record_lifetime_planning = true,
+            .provides_release_call_planning = true,
             .provides_dmam_free_coherent_cleanup_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
@@ -116,7 +118,7 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedDmamFreeCoherent(requested_size: u64, release_record_matches: bool) ManagedDmamFreeCoherentPlan {
-        const release_call = planReleaseCall(requested_size, release_record_matches);
+        const release_call = planManagedReleaseCall(requested_size, release_record_matches);
 
         return .{
             .anchor = release_call.anchor,
@@ -139,6 +141,7 @@ test "descriptor stays helper-local" {
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_dmam_alloc_coherent_planning);
     try std.testing.expect(descriptor.provides_release_record_lifetime_planning);
+    try std.testing.expect(descriptor.provides_release_call_planning);
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
@@ -193,6 +196,26 @@ test "managed allocation requires a release record" {
         .release_record_allocated = false,
         .allocation_succeeds = true,
     }));
+}
+
+test "release-call planning consumes the matching devres release record" {
+    const release_call = DevresHelperLab.planManagedReleaseCall(2048, true);
+
+    try std.testing.expectEqual(@as(u64, 2048), release_call.requested_size);
+    try std.testing.expect(release_call.releases_from_devres);
+    try std.testing.expect(release_call.release_record_consumed);
+    try std.testing.expect(!release_call.warns_on_release_miss);
+    try std.testing.expect(release_call.destroys_release_record_before_free);
+}
+
+test "release-call planning still warns when the devres release record is missing" {
+    const release_call = DevresHelperLab.planManagedReleaseCall(2048, false);
+
+    try std.testing.expectEqual(@as(u64, 2048), release_call.requested_size);
+    try std.testing.expect(!release_call.releases_from_devres);
+    try std.testing.expect(!release_call.release_record_consumed);
+    try std.testing.expect(release_call.warns_on_release_miss);
+    try std.testing.expect(release_call.destroys_release_record_before_free);
 }
 
 test "managed free planning consumes the matching devres release record" {
