@@ -28,6 +28,9 @@ const VariantStats = struct {
     }
 };
 
+const TypedComparator = *const fn (*const u32, *const u32) i32;
+const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
+
 var compare_calls: usize = 0;
 
 pub fn main(init: std.process.Init) !void {
@@ -61,6 +64,15 @@ fn compareCounted(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareCountedDescending(key: *const u32, item: *const u32) i32 {
+    compare_calls += 1;
+    return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn compareCountedOpaque(key: *const anyopaque, item: *const anyopaque) i32 {
     compare_calls += 1;
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
@@ -72,17 +84,28 @@ fn compareCountedOpaque(key: *const anyopaque, item: *const anyopaque) i32 {
     };
 }
 
+fn compareCountedOpaqueDescending(key: *const anyopaque, item: *const anyopaque) i32 {
+    compare_calls += 1;
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_item.*, typed_key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
-fn runTypedVariants(values: []const u32, query: u32, expected_hit: bool, stats: *VariantStats) !void {
+fn runTypedVariants(values: []const u32, query: u32, expected_hit: bool, compare: TypedComparator, stats: *VariantStats) !void {
     compare_calls = 0;
-    const found_index = bsearch.searchIndex(u32, u32, &query, values, compareCounted);
+    const found_index = bsearch.searchIndex(u32, u32, &query, values, compare);
     stats.record(compare_calls);
 
     compare_calls = 0;
-    const found_value = bsearch.search(u32, u32, &query, values, compareCounted);
+    const found_value = bsearch.search(u32, u32, &query, values, compare);
     stats.record(compare_calls);
 
     if (expected_hit) {
@@ -97,15 +120,15 @@ fn runTypedVariants(values: []const u32, query: u32, expected_hit: bool, stats: 
     }
 }
 
-fn runRawVariants(values: []const u32, query: u32, expected_hit: bool, stats: *VariantStats) !void {
+fn runRawVariants(values: []const u32, query: u32, expected_hit: bool, compare: RawComparator, stats: *VariantStats) !void {
     const base: [*]const u8 = @ptrCast(values.ptr);
 
     compare_calls = 0;
-    const found_index = bsearch.bsearchIndex(&query, base, values.len, @sizeOf(u32), compareCountedOpaque);
+    const found_index = bsearch.bsearchIndex(&query, base, values.len, @sizeOf(u32), compare);
     stats.record(compare_calls);
 
     compare_calls = 0;
-    const found_value = bsearch.bsearch(&query, base, values.len, @sizeOf(u32), compareCountedOpaque);
+    const found_value = bsearch.bsearch(&query, base, values.len, @sizeOf(u32), compare);
     stats.record(compare_calls);
 
     if (expected_hit) {
@@ -121,12 +144,18 @@ fn runRawVariants(values: []const u32, query: u32, expected_hit: bool, stats: *V
     }
 }
 
-fn runWitnessCases(values: []const u32, queries: []const u32, expected_hits: []const bool) !WitnessResult {
+fn runWitnessCases(
+    values: []const u32,
+    queries: []const u32,
+    expected_hits: []const bool,
+    typed_compare: TypedComparator,
+    raw_compare: RawComparator,
+) !WitnessResult {
     var stats = VariantStats{};
 
     for (queries, expected_hits) |query, expected_hit| {
-        try runTypedVariants(values, query, expected_hit, &stats);
-        try runRawVariants(values, query, expected_hit, &stats);
+        try runTypedVariants(values, query, expected_hit, typed_compare, &stats);
+        try runRawVariants(values, query, expected_hit, raw_compare, &stats);
     }
 
     return .{
@@ -135,31 +164,64 @@ fn runWitnessCases(values: []const u32, queries: []const u32, expected_hits: []c
     };
 }
 
+fn populateDescending(descending: []u32, ascending: []const u32) void {
+    std.debug.assert(descending.len == ascending.len);
+    for (descending, 0..) |*slot, index| {
+        slot.* = ascending[ascending.len - 1 - index];
+    }
+}
+
 fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
-    const values = try allocator.alloc(u32, case.len);
-    defer allocator.free(values);
+    const ascending_values = try allocator.alloc(u32, case.len);
+    defer allocator.free(ascending_values);
+    const descending_values = try allocator.alloc(u32, case.len);
+    defer allocator.free(descending_values);
 
-    for (values, 0..) |*value, idx| {
+    for (ascending_values, 0..) |*value, idx| {
         value.* = @as(u32, @intCast(idx * 2));
     }
+    populateDescending(descending_values, ascending_values);
 
     const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
 
-    var queries: [fixtures.query_count]u32 = undefined;
-    var expected_hits: [fixtures.query_count]bool = undefined;
-    fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);
+    var ascending_queries: [fixtures.query_count]u32 = undefined;
+    var ascending_expected_hits: [fixtures.query_count]bool = undefined;
+    fixtures.seedDeterministicQueries(case.len, ascending_values, &ascending_queries, &ascending_expected_hits);
 
-    const witness_result = try runWitnessCases(values, &queries, &expected_hits);
-    try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);
+    var descending_queries: [fixtures.query_count]u32 = undefined;
+    var descending_expected_hits: [fixtures.query_count]bool = undefined;
+    fixtures.seedDeterministicQueries(case.len, descending_values, &descending_queries, &descending_expected_hits);
+
+    const ascending_witness = try runWitnessCases(
+        ascending_values,
+        &ascending_queries,
+        &ascending_expected_hits,
+        compareCounted,
+        compareCountedOpaque,
+    );
+    try std.testing.expect(ascending_witness.max_compare_calls <= max_compare_budget);
+
+    const descending_witness = try runWitnessCases(
+        descending_values,
+        &descending_queries,
+        &descending_expected_hits,
+        compareCountedDescending,
+        compareCountedOpaqueDescending,
+    );
+    try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);
 
     var perf_stats = VariantStats{};
     const started_at = benchTime(io);
 
     for (0..case.reps) |_| {
-        for (queries, expected_hits) |query, expected_hit| {
-            try runTypedVariants(values, query, expected_hit, &perf_stats);
-            try runRawVariants(values, query, expected_hit, &perf_stats);
+        for (ascending_queries, ascending_expected_hits) |query, expected_hit| {
+            try runTypedVariants(ascending_values, query, expected_hit, compareCounted, &perf_stats);
+            try runRawVariants(ascending_values, query, expected_hit, compareCountedOpaque, &perf_stats);
+        }
+        for (descending_queries, descending_expected_hits) |query, expected_hit| {
+            try runTypedVariants(descending_values, query, expected_hit, compareCountedDescending, &perf_stats);
+            try runRawVariants(descending_values, query, expected_hit, compareCountedOpaqueDescending, &perf_stats);
         }
     }
 
@@ -175,7 +237,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
         .avg_compare_calls = avg_compare_calls,
         .max_compare_calls = perf_stats.max_compare_calls,
         .max_compare_budget = max_compare_budget,
-        .witness_max_compare_calls = witness_result.max_compare_calls,
-        .witness_case_count = witness_result.case_count,
+        .witness_max_compare_calls = @max(ascending_witness.max_compare_calls, descending_witness.max_compare_calls),
+        .witness_case_count = ascending_witness.case_count + descending_witness.case_count,
     };
 }
