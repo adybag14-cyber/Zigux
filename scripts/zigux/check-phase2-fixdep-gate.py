@@ -123,7 +123,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
-    + 5
+    + 7
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -180,6 +180,19 @@ def collect_required_exact_lines(
         elif count != 1:
             issues.append((duplicate_code, f"{marker}:count={count}"))
     return issues
+
+
+def collect_exact_line_order_issue(
+    text: str, markers: tuple[str, ...], code: str
+) -> list[tuple[str, str]]:
+    marker_set = set(markers)
+    actual = [line.strip() for line in text.splitlines() if line.strip() in marker_set]
+    expected = list(markers)
+    if len(actual) != len(expected):
+        return []
+    if actual != expected:
+        return [(code, f"actual={actual!r}:expected={expected!r}")]
+    return []
 
 
 def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
@@ -285,6 +298,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "DUPLICATE_WORKFLOW_LINE",
         )
     )
+    issues.extend(
+        collect_exact_line_order_issue(
+            workflow_text,
+            REQUIRED_WORKFLOW_LINES,
+            "FIXDEP_WORKFLOW_ORDER_MISMATCH",
+        )
+    )
     phony_targets = phony_targets_present(makefile_text)
     for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
         if target not in phony_targets:
@@ -295,6 +315,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             REQUIRED_MAKEFILE_LINES,
             "MISSING_MAKEFILE_LINE",
             "DUPLICATE_MAKEFILE_LINE",
+        )
+    )
+    issues.extend(
+        collect_exact_line_order_issue(
+            makefile_text,
+            REQUIRED_MAKEFILE_LINES,
+            "FIXDEP_MAKEFILE_ORDER_MISMATCH",
         )
     )
 
@@ -353,6 +380,22 @@ def remove_phony_target(text: str, target: str) -> str:
 
 def append_line(text: str, line: str) -> str:
     return text + line + "\n"
+
+
+def swap_exact_lines(text: str, first: str, second: str) -> str:
+    lines = text.splitlines()
+    first_index = None
+    second_index = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == first and first_index is None:
+            first_index = index
+        if stripped == second and second_index is None:
+            second_index = index
+    if first_index is None or second_index is None:
+        raise AssertionError(f"marker line not found for swap: {first!r} / {second!r}")
+    lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
+    return "\n".join(lines) + "\n"
 
 
 def build_self_test_root(root: Path) -> None:
@@ -580,6 +623,20 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        build_self_test_root(root)
+        path = resolve(root, WORKFLOW_REL)
+        path.write_text(
+            swap_exact_lines(
+                path.read_text(encoding="utf-8"),
+                REQUIRED_WORKFLOW_LINES[1],
+                REQUIRED_WORKFLOW_LINES[2],
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert any(code == "FIXDEP_WORKFLOW_ORDER_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
         for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
             build_self_test_root(root)
             path = resolve(root, MAKEFILE_REL)
@@ -600,6 +657,20 @@ def run_self_test() -> int:
             path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MAKEFILE_REL)
+        path.write_text(
+            swap_exact_lines(
+                path.read_text(encoding="utf-8"),
+                REQUIRED_MAKEFILE_LINES[2],
+                REQUIRED_MAKEFILE_LINES[3],
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert any(code == "FIXDEP_MAKEFILE_ORDER_MISMATCH" for code, _ in issues)
+        checks_run += 1
 
         for rel in REQUIRED_FILES:
             build_self_test_root(root)
