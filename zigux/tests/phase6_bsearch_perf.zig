@@ -31,6 +31,11 @@ const VariantStats = struct {
 const TypedComparator = *const fn (*const u32, *const u32) i32;
 const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
 
+const ExpectedBounds = struct {
+    lower: usize,
+    upper: usize,
+};
+
 var compare_calls: usize = 0;
 
 pub fn main(init: std.process.Init) !void {
@@ -99,6 +104,25 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
+fn expectedBounds(values: []const u32, query: u32, descending: bool) ExpectedBounds {
+    var lower = values.len;
+    var upper = values.len;
+
+    if (descending) {
+        for (values, 0..) |value, index| {
+            if (lower == values.len and value <= query) lower = index;
+            if (upper == values.len and value < query) upper = index;
+        }
+    } else {
+        for (values, 0..) |value, index| {
+            if (lower == values.len and value >= query) lower = index;
+            if (upper == values.len and value > query) upper = index;
+        }
+    }
+
+    return .{ .lower = lower, .upper = upper };
+}
+
 fn runTypedVariants(values: []const u32, query: u32, expected_hit: bool, compare: TypedComparator, stats: *VariantStats) !void {
     compare_calls = 0;
     const found_index = bsearch.searchIndex(u32, u32, &query, values, compare);
@@ -117,6 +141,42 @@ fn runTypedVariants(values: []const u32, query: u32, expected_hit: bool, compare
     } else {
         try std.testing.expectEqual(@as(?usize, null), found_index);
         try std.testing.expectEqual(@as(?*const u32, null), found_value);
+    }
+}
+
+fn runTypedBoundVariants(values: []const u32, query: u32, descending: bool, compare: TypedComparator, stats: *VariantStats) !void {
+    const expected = expectedBounds(values, query, descending);
+
+    compare_calls = 0;
+    const lower_index = bsearch.lowerBoundIndex(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.lower, lower_index);
+
+    compare_calls = 0;
+    const lower_value = bsearch.lowerBound(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    if (expected.lower == values.len) {
+        try std.testing.expectEqual(@as(?*const u32, null), lower_value);
+    } else {
+        const typed_lower = lower_value orelse return error.ExpectedMatch;
+        try std.testing.expectEqual(values[expected.lower], typed_lower.*);
+        try std.testing.expectEqual(@intFromPtr(&values[expected.lower]), @intFromPtr(typed_lower));
+    }
+
+    compare_calls = 0;
+    const upper_index = bsearch.upperBoundIndex(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.upper, upper_index);
+
+    compare_calls = 0;
+    const upper_value = bsearch.upperBound(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    if (expected.upper == values.len) {
+        try std.testing.expectEqual(@as(?*const u32, null), upper_value);
+    } else {
+        const typed_upper = upper_value orelse return error.ExpectedMatch;
+        try std.testing.expectEqual(values[expected.upper], typed_upper.*);
+        try std.testing.expectEqual(@intFromPtr(&values[expected.upper]), @intFromPtr(typed_upper));
     }
 }
 
@@ -144,10 +204,50 @@ fn runRawVariants(values: []const u32, query: u32, expected_hit: bool, compare: 
     }
 }
 
+fn runRawBoundVariants(values: []const u32, query: u32, descending: bool, compare: RawComparator, stats: *VariantStats) !void {
+    const expected = expectedBounds(values, query, descending);
+    const base: [*]const u8 = @ptrCast(values.ptr);
+
+    compare_calls = 0;
+    const lower_index = bsearch.bsearchLowerBoundIndex(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.lower, lower_index);
+
+    compare_calls = 0;
+    const lower_value = bsearch.bsearchLowerBound(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    if (expected.lower == values.len) {
+        try std.testing.expectEqual(@as(?*const anyopaque, null), lower_value);
+    } else {
+        const raw_lower = lower_value orelse return error.ExpectedMatch;
+        const typed_lower: *const u32 = @ptrCast(@alignCast(raw_lower));
+        try std.testing.expectEqual(values[expected.lower], typed_lower.*);
+        try std.testing.expectEqual(@intFromPtr(&values[expected.lower]), @intFromPtr(typed_lower));
+    }
+
+    compare_calls = 0;
+    const upper_index = bsearch.bsearchUpperBoundIndex(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.upper, upper_index);
+
+    compare_calls = 0;
+    const upper_value = bsearch.bsearchUpperBound(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    if (expected.upper == values.len) {
+        try std.testing.expectEqual(@as(?*const anyopaque, null), upper_value);
+    } else {
+        const raw_upper = upper_value orelse return error.ExpectedMatch;
+        const typed_upper: *const u32 = @ptrCast(@alignCast(raw_upper));
+        try std.testing.expectEqual(values[expected.upper], typed_upper.*);
+        try std.testing.expectEqual(@intFromPtr(&values[expected.upper]), @intFromPtr(typed_upper));
+    }
+}
+
 fn runWitnessCases(
     values: []const u32,
     queries: []const u32,
     expected_hits: []const bool,
+    descending: bool,
     typed_compare: TypedComparator,
     raw_compare: RawComparator,
 ) !WitnessResult {
@@ -155,7 +255,9 @@ fn runWitnessCases(
 
     for (queries, expected_hits) |query, expected_hit| {
         try runTypedVariants(values, query, expected_hit, typed_compare, &stats);
+        try runTypedBoundVariants(values, query, descending, typed_compare, &stats);
         try runRawVariants(values, query, expected_hit, raw_compare, &stats);
+        try runRawBoundVariants(values, query, descending, raw_compare, &stats);
     }
 
     return .{
@@ -197,6 +299,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
         ascending_values,
         &ascending_queries,
         &ascending_expected_hits,
+        false,
         compareCounted,
         compareCountedOpaque,
     );
@@ -206,6 +309,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
         descending_values,
         &descending_queries,
         &descending_expected_hits,
+        true,
         compareCountedDescending,
         compareCountedOpaqueDescending,
     );
@@ -217,11 +321,15 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     for (0..case.reps) |_| {
         for (ascending_queries, ascending_expected_hits) |query, expected_hit| {
             try runTypedVariants(ascending_values, query, expected_hit, compareCounted, &perf_stats);
+            try runTypedBoundVariants(ascending_values, query, false, compareCounted, &perf_stats);
             try runRawVariants(ascending_values, query, expected_hit, compareCountedOpaque, &perf_stats);
+            try runRawBoundVariants(ascending_values, query, false, compareCountedOpaque, &perf_stats);
         }
         for (descending_queries, descending_expected_hits) |query, expected_hit| {
             try runTypedVariants(descending_values, query, expected_hit, compareCountedDescending, &perf_stats);
+            try runTypedBoundVariants(descending_values, query, true, compareCountedDescending, &perf_stats);
             try runRawVariants(descending_values, query, expected_hit, compareCountedOpaqueDescending, &perf_stats);
+            try runRawBoundVariants(descending_values, query, true, compareCountedOpaqueDescending, &perf_stats);
         }
     }
 
