@@ -32,6 +32,7 @@ EXPECTED_FIXTURE_FIELDS = {
     "targets",
     "zig_test_files",
 }
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def probe_required_file(path: Path) -> None:
@@ -736,6 +737,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+    assert case_count == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
