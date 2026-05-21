@@ -4,54 +4,57 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const abi_bindings = b.createModule(.{
+    const abi_bindings_module = b.createModule(.{
         .root_source_file = b.path("../bindings/abi.zig"),
         .target = target,
         .optimize = optimize,
     });
-    const uapi_dev_t = b.createModule(.{
+
+    const uapi_dev_t_module = b.createModule(.{
         .root_source_file = b.path("../uapi/dev_t.zig"),
         .target = target,
         .optimize = optimize,
     });
-    const uapi_version = b.createModule(.{
+
+    const uapi_version_module = b.createModule(.{
         .root_source_file = b.path("../uapi/version.zig"),
         .target = target,
         .optimize = optimize,
     });
-    uapi_version.addImport("abi_bindings", abi_bindings);
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
 
-    const dev_t_binding = b.createModule(.{
+    const dev_t_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/dev_t.zig"),
         .target = target,
         .optimize = optimize,
     });
-    dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    dev_t_binding_module.addImport("uapi_dev_t", uapi_dev_t_module);
 
-    const version_binding = b.createModule(.{
+    const version_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/version.zig"),
         .target = target,
         .optimize = optimize,
     });
-    version_binding.addImport("uapi_version", uapi_version);
+    version_binding_module.addImport("uapi_version", uapi_version_module);
 
-    const root_module = b.createModule(.{
+    const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
         .optimize = optimize,
     });
-    root_module.addImport("abi_bindings", abi_bindings);
-    root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("version_binding", version_binding);
+    export_shim_module.addImport("abi_bindings", abi_bindings_module);
+    export_shim_module.addImport("dev_t_binding", dev_t_binding_module);
+    export_shim_module.addImport("version_binding", version_binding_module);
 
-    const unit_tests = b.addTest(.{
-        .root_module = root_module,
+    const tests = b.addTest(.{
+        .name = "phase3-export-shim-test",
+        .root_module = export_shim_module,
     });
-    const run_unit_tests = b.addRunArtifact(unit_tests);
 
+    const run_tests = b.addRunArtifact(tests);
     const test_step = b.step(
         "phase3-export-shim-test",
-        "Run the Phase 3 export-shim packet self-check",
+        "Run the focused Phase 3 export shim replay",
     );
-    test_step.dependOn(&run_unit_tests.step);
+    test_step.dependOn(&run_tests.step);
 }
