@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L10`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-20 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-21 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
 
 ## Why this note exists
 
@@ -21,7 +21,7 @@ The older handoff target that treated the docs root as the next automatic Phase 
 
 The handoff continuity packet itself now has two dedicated machine-readable companions: the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`. Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
-This refresh closes that dedicated handoff replay gap and keeps the handoff-local lane identity aligned with the current Phase 15 next-bound survey lane. Reviewers can now read this note against the current 2026-05-20 governance packet instead of reconciling it against an older handoff note by hand.
+This refresh closes that dedicated handoff replay gap and keeps the handoff-local lane identity aligned with the current Phase 15 next-bound survey lane. Reviewers can now read this note against the current 2026-05-21 governance packet instead of reconciling it against an older handoff note by hand.
 
 ## Current handed-off packet on current master
 
