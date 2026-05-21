@@ -375,3 +375,99 @@ test "runFixdep keeps later config deps after continued comment blocks" {
 
     try std.testing.expectEqualStrings(expected, capture.list.items);
 }
+
+test "runFixdep ignores bytes after the first embedded NUL in depfiles" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const base_path = try tmpBasePath(tmp);
+    defer std.testing.allocator.free(base_path);
+
+    const source_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_nul_source.rmeta",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(source_path);
+
+    const config_dep_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_nul-config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(config_dep_path);
+
+    const later_dep_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_nul_later_dep.so",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(later_dep_path);
+
+    const depfile_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_nul.d",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(depfile_path);
+
+    const cmdline = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "clang -c {s} -o sample_nul.o",
+        .{source_path},
+    );
+    defer std.testing.allocator.free(cmdline);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_nul_source.rmeta",
+        .data = "",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_nul-config.h",
+        .data = "#define CONFIG_ZIGUX_NUL_CHAIN 1\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_nul_later_dep.so",
+        .data = "",
+    });
+
+    const depfile_text = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "sample_nul.o: {s} {s}\x00sample_nul.o: ignored_second_source.rmeta {s}\n",
+        .{ source_path, config_dep_path, later_dep_path },
+    );
+    defer std.testing.allocator.free(depfile_text);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_nul.d",
+        .data = depfile_text,
+    });
+
+    var capture = try Capture.init(std.testing.allocator, 512);
+    defer capture.deinit();
+
+    try fixdep.runFixdep(
+        std.testing.allocator,
+        std.testing.io,
+        &capture,
+        depfile_path,
+        "sample_nul.o",
+        cmdline,
+    );
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "savedcmd_sample_nul.o := {s}\n\n" ++
+            "source_sample_nul.o := {s}\n\n" ++
+            "deps_sample_nul.o := \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_NUL_CHAIN) \\\n" ++
+            "\n" ++
+            "sample_nul.o: $(deps_sample_nul.o)\n\n" ++
+            "$(deps_sample_nul.o):\n",
+        .{ cmdline, source_path, config_dep_path },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
