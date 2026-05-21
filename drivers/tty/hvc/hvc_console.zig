@@ -477,6 +477,47 @@ pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSum
     };
 }
 
+pub const CleanupTrigger = enum {
+    final_close_only,
+    hangup_only,
+    final_close_and_hangup,
+};
+
+pub const CleanupPrerequisiteRequest = struct {
+    final_close_completed: bool,
+    hangup_completed: bool,
+    tty_port_release_handoff: bool,
+    cleanup_time_tty_port_ownership: bool,
+    port_reference_drop_timing: bool,
+};
+
+pub const CleanupPrerequisiteSummary = struct {
+    trigger: CleanupTrigger,
+    tty_port_release_handoff: bool,
+    cleanup_time_tty_port_ownership: bool,
+    port_reference_drop_timing: bool,
+};
+
+pub fn summarizeCleanupPrerequisite(
+    request: CleanupPrerequisiteRequest,
+) error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {
+    const trigger: CleanupTrigger = if (request.final_close_completed and request.hangup_completed)
+        .final_close_and_hangup
+    else if (request.final_close_completed)
+        .final_close_only
+    else if (request.hangup_completed)
+        .hangup_only
+    else
+        return error.CleanupRequiresFinalCloseOrHangup;
+
+    return .{
+        .trigger = trigger,
+        .tty_port_release_handoff = request.tty_port_release_handoff,
+        .cleanup_time_tty_port_ownership = request.cleanup_time_tty_port_ownership,
+        .port_reference_drop_timing = request.port_reference_drop_timing,
+    };
+}
+
 pub const TargetlessNotifierEdgeRequest = struct {
     target_present: bool,
     notifier_registered: bool,
@@ -1032,6 +1073,61 @@ test "phase11 hvc console keeps active hangup and cleanup ownership handoffs rev
     try std.testing.expect(cleanup.tty_port_release_handoff);
     try std.testing.expect(cleanup.cleanup_time_tty_port_ownership);
     try std.testing.expect(cleanup.port_reference_drop_timing);
+}
+
+test "phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable" {
+    const summary = try summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = false,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(CleanupTrigger.final_close_only, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable" {
+    const summary = try summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(CleanupTrigger.hangup_only, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc console keeps cleanup prerequisite combined trigger reviewable" {
+    const summary = try summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(CleanupTrigger.final_close_and_hangup, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc console rejects cleanup without final-close or hangup evidence" {
+    try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = false,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    }));
 }
 
 test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {
