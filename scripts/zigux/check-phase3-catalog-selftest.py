@@ -33,6 +33,7 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
+        'Path("zigux/Makefile")',
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi.py"',
@@ -51,8 +52,11 @@ REQUIRED_MARKERS = {
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"make -C zigux phase3-export-uapi-layout-test"',
         '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
         '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
+        '"make -C zigux phase3-low-level-wrappers-test"',
+        '"make -C zigux phase3-validate"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     SURVEY_PATH: (
@@ -155,6 +159,11 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("zigux/Makefile")',
+            "expected missing catalog phase3 Makefile marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
             "expected missing catalog phase3 abi manifest marker was not reported",
         ),
@@ -235,6 +244,11 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            '"make -C zigux phase3-export-uapi-layout-test"',
+            "expected missing catalog export-uapi Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
             "expected missing catalog shared low-level-wrapper build route marker was not reported",
         ),
@@ -242,6 +256,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
             "expected missing catalog dedicated low-level-wrapper build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-low-level-wrappers-test"',
+            "expected missing catalog low-level-wrapper Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-validate"',
+            "expected missing catalog phase3 validate Makefile route marker was not reported",
         ),
         (
             LOW_LEVEL_WRAPPER_SURVEY_PATH,
