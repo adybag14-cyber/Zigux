@@ -157,10 +157,10 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(sample_file, "pub const sample_review_non_goals = [_][]const u8{");
     try expectContains(sample_file,
         \\pub const sample_review_non_goals = [_][]const u8{
-        \\    "loadable runtime bitmap module parity",
-        \\    "shared runtime-loader command-name or argv-policy controls",
-        \\    "real runtime execution through a live substrate",
-        \\    "full lib/test_bitmap.c parity beyond the bounded starter packet",
+        \\    \"loadable runtime bitmap module parity\",
+        \\    \"shared runtime-loader command-name or argv-policy controls\",
+        \\    \"real runtime execution through a live substrate\",
+        \\    \"full lib/test_bitmap.c parity beyond the bounded starter packet\",
         \\};
     );
     try expectContains(sample_file, "\"loadable runtime bitmap module parity\",");
@@ -173,6 +173,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
 
     try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
     try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
+    try expectContains(loader_file, "runtime bitmap loader rejects re-selftest without disturbing lifecycle summaries");
     try expectContains(loader_file, "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest");
     try expectContains(loader_file, "runtime bitmap loader rejects malformed loader payloads without leaving initialized state");
     try expectContains(loader_file, ".source_bit_list = \"0, 63, 64, 127\",");
