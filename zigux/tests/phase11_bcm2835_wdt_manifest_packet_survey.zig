@@ -24,6 +24,7 @@ test "phase11 bcm2835 manifest packet survey keeps the surviving reminder packet
     defer std.testing.allocator.free(survey_note);
 
     try expectContains(survey_note, "PHASE11_BCM2835_WDT_SURVEY_STATUS=survey_gate_landed");
+    try expectContains(survey_note, "archival packet identity remains `P11-L08`");
     try expectContains(survey_note, "Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md");
     try expectContains(survey_note, "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig");
     try expectContains(survey_note, "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig");
