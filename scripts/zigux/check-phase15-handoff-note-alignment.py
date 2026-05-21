@@ -9,7 +9,7 @@ from pathlib import Path
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-handoff-note-alignment.py")
-EXPECTED_LANE_KEY = "P15-L11"
+EXPECTED_LANE_KEY = "P15-L12"
 EXPECTED_PHASE = "Phase 15"
 RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
 REQUIRED_BOUNDARY_MARKERS = (
@@ -135,7 +135,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_manifest() -> str:
     return json.dumps(
         {
-            "lane_key": "P15-L11",
+            "lane_key": "P15-L12",
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-21",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -156,6 +156,8 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
                 "zigux/tests/phase15_architecture_council_review_process.zig",
                 "zigux/tests/phase15_architecture_council_review_process_build.zig",
+                "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+                "zigux/tests/phase15_governance_lane_sequencing.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps.zig",
@@ -175,10 +177,11 @@ def _sample_manifest() -> str:
             ],
             "required_markers": [
                 "PHASE15_STATUS=handoff_next_steps_survey_landed",
-                "PHASE15_LANE_KEY=P15-L11",
+                "PHASE15_LANE_KEY=P15-L12",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
-                "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
-                "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
+                "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+                "The dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+                "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
                 "an Architecture Council approval workflow implementation",
                 "a direct port-readiness decision for any Phase 15 anchor",
             ],
@@ -215,11 +218,12 @@ def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
-- the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
-- Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
+- the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
+- The dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
+- Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
 ## Current handed-off packet on current master
 
@@ -238,6 +242,8 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
@@ -329,7 +335,7 @@ def run_self_test() -> int:
         _write(
             manifest_identity_drift_root / MANIFEST_PATH,
             _sample_manifest()
-            .replace('"lane_key": "P15-L11"', '"lane_key": "P15-L99"', 1)
+            .replace('"lane_key": "P15-L12"', '"lane_key": "P15-L99"', 1)
             .replace('"phase": "Phase 15"', '"phase": "Phase 15 drift"', 1)
             .replace(
                 '"handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md"',
@@ -349,7 +355,7 @@ def run_self_test() -> int:
             _write(manifest_identity_drift_root / repo_path, "# fixture\n")
         failures = collect_failures(manifest_identity_drift_root)
         expected = [
-            "handoff manifest lane key drifted from P15-L11: P15-L99",
+            "handoff manifest lane key drifted from P15-L12: P15-L99",
             "handoff manifest phase drifted from Phase 15: Phase 15 drift",
             "handoff manifest note path drifted from Documentation/zigux/phase15-handoff-next-steps-survey.md: Documentation/zigux/phase15-handoff-next-step-survey.md",
             "handoff manifest checker path drifted from scripts/zigux/check-phase15-handoff-note-alignment.py: scripts/zigux/check-phase15-handoff-alignment.py",
@@ -566,7 +572,6 @@ def main() -> int:
 
     print("Phase 15 handoff-note alignment check passed.")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
