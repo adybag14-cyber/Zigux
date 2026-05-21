@@ -83,23 +83,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const runtime_trace_events_sample_module = b.createModule(.{
-        .root_source_file = b.path("../../samples/zigux/runtime_trace_events.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const runtime_trace_events_loader_module = b.createModule(.{
-        .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    runtime_trace_events_loader_module.addImport("runtime_loader", runtime_loader_module);
-    runtime_trace_events_loader_module.addImport(
-        "runtime_trace_events_sample",
-        runtime_trace_events_sample_module,
-    );
-
     const runtime_atomic64_sample_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-sample-tests",
         .root_module = runtime_atomic64_sample_module,
@@ -157,29 +140,6 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_loader_command_env_boundary_guard_module,
     });
 
-    const runtime_trace_events_loader_substrate_drift_module = b.createModule(.{
-        .root_source_file = b.path("runtime_trace_events_loader_substrate_drift.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    runtime_trace_events_loader_substrate_drift_module.addImport(
-        "runtime_loader",
-        runtime_loader_module,
-    );
-    runtime_trace_events_loader_substrate_drift_module.addImport(
-        "runtime_trace_events_loader",
-        runtime_trace_events_loader_module,
-    );
-    runtime_trace_events_loader_substrate_drift_module.addImport(
-        "runtime_trace_events_sample",
-        runtime_trace_events_sample_module,
-    );
-
-    const runtime_trace_events_loader_substrate_drift_tests = b.addTest(.{
-        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",
-        .root_module = runtime_trace_events_loader_substrate_drift_module,
-    });
-
     const runtime_first_loadable_parity_survey_tests = b.addTest(.{
         .name = "phase9-first-loadable-runtime-module-parity-survey-tests",
         .root_module = b.createModule(.{
@@ -201,9 +161,6 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_loader_command_env_boundary_guard_tests = b.addRunArtifact(
         runtime_loader_command_env_boundary_guard_tests,
-    );
-    const run_runtime_trace_events_loader_substrate_drift_tests = b.addRunArtifact(
-        runtime_trace_events_loader_substrate_drift_tests,
     );
     const run_runtime_first_loadable_parity_survey_tests = b.addRunArtifact(
         runtime_first_loadable_parity_survey_tests,
@@ -270,9 +227,6 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     phase9_runtime_loader_shared.dependOn(
         &run_runtime_loader_command_env_boundary_guard_tests.step,
-    );
-    phase9_runtime_loader_shared.dependOn(
-        &run_runtime_trace_events_loader_substrate_drift_tests.step,
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
 
