@@ -24,6 +24,13 @@ const direct_anchor_fallback_provenance_marker =
     "shared or roadmap-aligned non-owner surfaces still rematerialized through authenticated " ++
     "rereads in this slot.";
 
+const ownership_focus_fallback_marker =
+    "machine-readable fallback provenance must stay explicit too: " ++
+    "`public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, " ++
+    "because that shared non-owner surface needed public fallback in this runtime while the " ++
+    "other listed shared or roadmap-aligned non-owner surfaces still rematerialized through " ++
+    "authenticated rereads";
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -117,6 +124,7 @@ test "phase 7 rbtree survey keeps roadmap-path readback truthful without claimin
     try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectSliceContains(manifest.ownership_focus, "path truthfulness must keep the currently returned helper rooted at `tools/lib/rbtree.zig` explicit while the readable roadmap destination `lib/rbtree.zig` stays explicit as shared runtime-family companion evidence rather than helper-local ownership on current master");
+    try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);
     try expectContains(manifest.next_bounded_step, "public-fallback provenance");
     try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig` roadmap-path companion");
 }
