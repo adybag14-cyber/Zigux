@@ -160,6 +160,9 @@ HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {',
     'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());',
     'test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {',
+    'const no_op = try device.configWriteDispositionSummary();',
+    'try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);',
+    'try std.testing.expect(!no_op.has_changes);',
 ]
 
 SURVEY_GATE_MARKERS = [
@@ -324,6 +327,9 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {', 'test "phase10 virtio mmio keeps config-generation drift" {', 'helper_tests:test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write plan drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());', 'try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);', 'helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'const no_op = try device.configWriteDispositionSummary();', 'const no_op_missing = try device.configWriteDispositionSummary();', 'helper_tests:const no_op = try device.configWriteDispositionSummary();')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);', 'try std.testing.expectEqual(@as(u4, 1), no_op.changed_byte_mask);', 'helper_tests:try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expect(!no_op.has_changes);', 'try std.testing.expect(no_op.has_changes);', 'helper_tests:try std.testing.expect(!no_op.has_changes);')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "interrupt-ack disposition review");', 'try expectContains(survey_note, "interrupt-ack drift");', 'survey_gate:try expectContains(survey_note, "interrupt-ack disposition review");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "staged config-write planning");', 'try expectContains(survey_note, "staged config-write drift");', 'survey_gate:try expectContains(survey_note, "staged config-write planning");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {', 'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {', 'survey_gate:test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {')
@@ -338,7 +344,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=46")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=49")
     return 0
 
 
