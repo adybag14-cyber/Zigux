@@ -126,6 +126,8 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
     try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\"quiet,debug\\x00,nohlt\", \"nohlt\"));");
+    try expectContains(helper_companion, "try std.testing.expect(cmdline.parseOptionStr(\"debug,,quiet\", \"\"));");
+    try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_companion, "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries");
     try expectContains(helper_companion, "try std.testing.expectEqualStrings(\"2,9\", descending_rest);");
