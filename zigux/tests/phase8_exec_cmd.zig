@@ -56,6 +56,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, validator, "EXEC_CMD_BUILD = Path(\"zigux/tests/phase8_exec_cmd_only_build.zig\")") != null);
     try std.testing.expect(std.mem.indexOf(u8, validator, "Path(\"zigux/tests/phase8_exec_cmd.zig\")") != null);
     try std.testing.expect(std.mem.indexOf(u8, validator, "tools/lib/subcmd/exec-cmd.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "    EXEC_CMD_TEST,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validator, "    EXEC_CMD_BUILD,") != null);
 
     const tests_root = try readRepoFile("zigux/tests/README.md");
     defer std.testing.allocator.free(tests_root);
@@ -76,8 +78,11 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
     defer std.testing.allocator.free(workflow);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 8 tooling routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run focused Phase 8 exec-cmd tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-exec-cmd-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-test") != null);
 }
 
 test "phase 8 exec-cmd review witness keeps the later workqueue study boundary explicit" {
