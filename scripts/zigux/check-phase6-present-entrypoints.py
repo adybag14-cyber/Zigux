@@ -71,6 +71,23 @@ EXPECTED_BASE64_RERUN_ROUTES = [
     "make -C zigux phase6-perf",
 ]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+EXPECTED_BSEARCH_REVIEW_POSTURE = "direct-helper-readback-restored"
+EXPECTED_BSEARCH_CASES = ["len15", "len64", "len1024"]
+EXPECTED_BSEARCH_QUERY_COUNT = 16
+EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
+EXPECTED_BSEARCH_PARITY_BUDGET_MODEL = "comparison_budget"
+EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
+EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS = [
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+]
+EXPECTED_BSEARCH_RERUN_ROUTES = [
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-test",
+    "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-perf",
+    "make -C zigux phase6-perf",
+]
 EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
 EXPECTED_HEXDUMP_CHECKER = "scripts/zigux/check-phase6-hexdump-packet.py"
 EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-helper-readback-restored"
@@ -129,7 +146,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 29
 
 
 class ValidationError(RuntimeError):
@@ -220,6 +237,41 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 bsearch checker surface mismatch")
     if bsearch.get("dedicated_slowdown_replay") != "zigux/tests/phase6_bsearch_perf.zig":
         raise ValidationError("phase6 bsearch perf replay mismatch")
+    if bsearch.get("current_review_posture") != EXPECTED_BSEARCH_REVIEW_POSTURE:
+        raise ValidationError("phase6 bsearch review posture mismatch")
+    bsearch_perf = bsearch.get("current_perf_evidence")
+    if not isinstance(bsearch_perf, dict):
+        raise ValidationError("phase6 bsearch perf evidence missing")
+    if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_CASES:
+        raise ValidationError("phase6 bsearch perf case labels mismatch")
+    if bsearch_perf.get("query_count") != EXPECTED_BSEARCH_QUERY_COUNT:
+        raise ValidationError("phase6 bsearch query count mismatch")
+    if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA:
+        raise ValidationError("phase6 bsearch budget formula mismatch")
+    if bsearch_perf.get("linux_style_rerun_routes") != EXPECTED_BSEARCH_RERUN_ROUTES:
+        raise ValidationError("phase6 bsearch perf rerun routes mismatch")
+
+    bsearch_parity = next(helper for helper in parity_helpers if helper.get("key") == "bsearch")
+    if bsearch_parity.get("current_review_posture") != EXPECTED_BSEARCH_REVIEW_POSTURE:
+        raise ValidationError("phase6 parity bsearch review posture mismatch")
+    bsearch_parity_perf = bsearch_parity.get("current_perf_evidence")
+    if not isinstance(bsearch_parity_perf, dict):
+        raise ValidationError("phase6 parity bsearch perf evidence missing")
+    if bsearch_parity_perf.get("budget_model") != EXPECTED_BSEARCH_PARITY_BUDGET_MODEL:
+        raise ValidationError("phase6 parity bsearch budget model mismatch")
+    if bsearch_parity_perf.get("case_labels") != EXPECTED_BSEARCH_CASES:
+        raise ValidationError("phase6 parity bsearch perf case labels mismatch")
+    if bsearch_parity_perf.get("query_count") != EXPECTED_BSEARCH_QUERY_COUNT:
+        raise ValidationError("phase6 parity bsearch query count mismatch")
+    if bsearch_parity_perf.get("bound_budget_formula") != EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA:
+        raise ValidationError("phase6 parity bsearch budget formula mismatch")
+    if (
+        bsearch_parity_perf.get("runtime_selected_c_abi_replays")
+        != EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS
+    ):
+        raise ValidationError("phase6 parity bsearch C ABI replay mismatch")
+    if bsearch_parity_perf.get("linux_style_rerun_routes") != EXPECTED_BSEARCH_RERUN_ROUTES:
+        raise ValidationError("phase6 parity bsearch rerun routes mismatch")
 
     checksum = next(helper for helper in helpers if helper.get("key") == "checksum")
     if checksum.get("checker_surfaces") != [EXPECTED_CHECKSUM_CHECKER]:
@@ -287,6 +339,13 @@ def scaffold_repo(root: Path) -> None:
                         "key": "bsearch",
                         "checker_surfaces": [EXPECTED_BSEARCH_CHECKER],
                         "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
+                        "current_review_posture": EXPECTED_BSEARCH_REVIEW_POSTURE,
+                        "current_perf_evidence": {
+                            "case_labels": EXPECTED_BSEARCH_CASES,
+                            "query_count": EXPECTED_BSEARCH_QUERY_COUNT,
+                            "budget_formula": EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA,
+                            "linux_style_rerun_routes": EXPECTED_BSEARCH_RERUN_ROUTES,
+                        },
                     },
                     {
                         "key": "checksum",
@@ -330,7 +389,19 @@ def scaffold_repo(root: Path) -> None:
                             "max_decode_slowdown_pct": EXPECTED_BASE64_DECODE_SLOWDOWN_PCT,
                             "linux_style_rerun_routes": EXPECTED_BASE64_RERUN_ROUTES,
                         },
-                    }
+                    },
+                    {
+                        "key": "bsearch",
+                        "current_review_posture": EXPECTED_BSEARCH_REVIEW_POSTURE,
+                        "current_perf_evidence": {
+                            "budget_model": EXPECTED_BSEARCH_PARITY_BUDGET_MODEL,
+                            "case_labels": EXPECTED_BSEARCH_CASES,
+                            "query_count": EXPECTED_BSEARCH_QUERY_COUNT,
+                            "bound_budget_formula": EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA,
+                            "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS,
+                            "linux_style_rerun_routes": EXPECTED_BSEARCH_RERUN_ROUTES,
+                        },
+                    },
                 ],
             },
             indent=2,
@@ -382,6 +453,18 @@ def run_self_test() -> None:
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"current_review_posture": "drifted"})))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_formula": "len + 1"})))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-bsearch-perf")))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_model": "drifted"})))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["runtime_selected_c_abi_replays"].remove("zigux/tests/phase6_bsearch_c_abi_budget.zig")))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-bsearch-perf")))
         cases_run += 1
         expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-base64-perf")))
         cases_run += 1
