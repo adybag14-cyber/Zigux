@@ -22,6 +22,7 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     defer allocator.free(build_file);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
+    try expectContains(survey_note, "lane key: `P10-L11`");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
@@ -99,8 +100,14 @@ test "phase10 virtio mmio survey packet keeps the config-write companion and sli
     );
 }
 
-test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inventory, and risky transport posture explicit" {
+test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {
     const allocator = std.testing.allocator;
+
+    const lane_sequencing_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    );
+    defer allocator.free(lane_sequencing_note);
 
     const manifest = try readRepoRelative(
         allocator,
@@ -108,6 +115,10 @@ test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inven
     );
     defer allocator.free(manifest);
 
+    try expectContains(
+        lane_sequencing_note,
+        "MMIO lane `P10-L11` owns the bounded MMIO helper packet",
+    );
     try expectContains(manifest, "\"lane_key\": \"P10-L11\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-mmio-interrupt-ack-disposition-helper\"");
