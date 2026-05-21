@@ -199,6 +199,10 @@ PROOF_MARKERS = (
     'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
     'try expectContains(matrix_doc, "the current matrix packet now stays aligned with the smaller");',
     'try expectContains(matrix_doc, "keep helper-local failure-mode edges reviewable through");',
+    'test "phase11 hvc cleanup packet proof keeps standalone targetless witness packet explicit" {',
+    'try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stays");',
+    'try expectContains(cleanup_companion, "separate failure-mode replay");',
+    'try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
     'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {',
 )
 
@@ -528,6 +532,10 @@ def run_self_test() -> int:
             (DRIVER_PATH, "targetless_unregister_request_sanitized: bool,"),
             (DRIVER_PATH, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {'),
+            (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps standalone targetless witness packet explicit" {'),
+            (PROOF_PATH, 'try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stays");'),
+            (PROOF_PATH, 'try expectContains(cleanup_companion, "separate failure-mode replay");'),
+            (PROOF_PATH, 'try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");'),
         ]
         for index, (rel, marker) in enumerate(cases, start=1):
             broken = tmpdir / f"broken_{index:02d}"
@@ -548,7 +556,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=31")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=35")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
