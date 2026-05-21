@@ -98,6 +98,11 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "shared fixture keys."
 )
 
+EXPECTED_C_HARNESS_REASON = (
+    "The old host-side parity route still depends on helper `tools/lib/*.c` inputs "
+    "that current master no longer ships beside the Phase 1 `.zig` ports."
+)
+
 EXPECTED_FIXTURE_SENTINELS = {
     ("find_bit", "bits_per_long"): 64,
     ("find_bit", "tail_clamped_empty_last"): 69,
@@ -330,6 +335,14 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(issue("blocker_lane:shared_helpers", EXPECTED_SHARED_HELPERS, shared_helpers))
         if direct_helpers != EXPECTED_DIRECT_HELPERS:
             failures.append(issue("blocker_lane:direct_helpers", EXPECTED_DIRECT_HELPERS, direct_helpers))
+        if blocker_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+            failures.append(
+                issue(
+                    "blocker_lane:anti_overlap_rule",
+                    EXPECTED_ANTI_OVERLAP_RULE,
+                    blocker_lane.get("anti_overlap_rule"),
+                )
+            )
 
     replay = blockers.get("replay")
     if not isinstance(replay, dict):
@@ -361,6 +374,7 @@ def collect_failures(root: Path) -> list[str]:
             ("state", "blocked"),
             ("helper_count", len(EXPECTED_MANIFEST_HELPERS)),
             ("blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID),
+            ("reason", EXPECTED_C_HARNESS_REASON),
         ):
             actual = c_harness.get(key)
             if actual != expected:
@@ -444,6 +458,7 @@ def sample_blockers() -> dict[str, object]:
             "shared_replay_parked_helpers": list(EXPECTED_SHARED_HELPERS),
             "direct_anchor_followup_helper_count": len(EXPECTED_DIRECT_HELPERS),
             "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_HELPERS),
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
         "replay": {
             "path": EXPECTED_REPLAY_PATH,
@@ -463,6 +478,7 @@ def sample_blockers() -> dict[str, object]:
             "helper_count": len(EXPECTED_MANIFEST_HELPERS),
             "helpers": list(EXPECTED_MANIFEST_HELPERS),
             "blocker_id": EXPECTED_C_HARNESS_BLOCKER_ID,
+            "reason": EXPECTED_C_HARNESS_REASON,
         },
     }
 
@@ -559,6 +575,13 @@ def mutate_blocker_shared_count(root: Path) -> None:
     path.write_text(json.dumps(blockers, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
+def mutate_blocker_anti_overlap_rule(root: Path) -> None:
+    path = root / "zigux/tests/fixtures/phase1_replay_blockers.json"
+    blockers = json.loads(path.read_text(encoding="utf-8"))
+    blockers["lane_sequencing"]["anti_overlap_rule"] = "drifted blocker anti-overlap rule"
+    path.write_text(json.dumps(blockers, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+
+
 def mutate_replay_blocker_id(root: Path) -> None:
     path = root / "zigux/tests/fixtures/phase1_replay_blockers.json"
     blockers = json.loads(path.read_text(encoding="utf-8"))
@@ -573,6 +596,13 @@ def mutate_c_harness_blocker_id(root: Path) -> None:
     path.write_text(json.dumps(blockers, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
+def mutate_c_harness_reason(root: Path) -> None:
+    path = root / "zigux/tests/fixtures/phase1_replay_blockers.json"
+    blockers = json.loads(path.read_text(encoding="utf-8"))
+    blockers["c_harness"]["reason"] = "drifted c harness reason"
+    path.write_text(json.dumps(blockers, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+
+
 def mutate_blockers_invalid_json(root: Path) -> None:
     write_text(root, "zigux/tests/fixtures/phase1_replay_blockers.json", '{"status":\n')
 
@@ -581,7 +611,7 @@ def mutate_unknown_artifact_family(root: Path) -> None:
     write_text(
         root,
         "scripts/zigux/artifact_diff.py",
-        "#!/usr/bin/env python3\nprint(\"ARTIFACT_DIFF_SELF_TEST=pass\")\n",
+        '#!/usr/bin/env python3\nprint("ARTIFACT_DIFF_SELF_TEST=pass")\n',
     )
 
 
@@ -589,6 +619,7 @@ def run_self_test() -> int:
     cases = (
         ("success", None, None),
         ("sha256_artifact_family", None, sample_sha256_artifact_diff_text()),
+        ("write_sample_root", None, None),
         ("missing_artifact_diff", lambda root: (root / "scripts/zigux/artifact_diff.py").unlink(), None),
         ("required_file_not_regular", mutate_required_file_not_regular, None),
         ("missing_artifact_marker", mutate_remove_artifact_marker, None),
@@ -602,8 +633,10 @@ def run_self_test() -> int:
         ("manifest_invalid_json", mutate_manifest_invalid_json, None),
         ("blocker_manifest", mutate_blocker_manifest, None),
         ("blocker_shared_count", mutate_blocker_shared_count, None),
+        ("blocker_anti_overlap_rule", mutate_blocker_anti_overlap_rule, None),
         ("replay_blocker_id", mutate_replay_blocker_id, None),
         ("c_harness_blocker_id", mutate_c_harness_blocker_id, None),
+        ("c_harness_reason", mutate_c_harness_reason, None),
         ("blockers_invalid_json", mutate_blockers_invalid_json, None),
     )
 
@@ -611,10 +644,15 @@ def run_self_test() -> int:
         with tempfile.TemporaryDirectory(prefix="phase1-parity-artifact-packet-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root, artifact_diff_text=artifact_diff_text)
-            if mutation is not None:
-                mutation(root)
-            failures = collect_failures(root)
-            if name in {"success", "sha256_artifact_family"}:
+            if name == "write_sample_root":
+                sample_root = root / "sample-root"
+                build_sample_repo(sample_root)
+                failures = collect_failures(sample_root)
+            else:
+                if mutation is not None:
+                    mutation(root)
+                failures = collect_failures(root)
+            if name in {"success", "sha256_artifact_family", "write_sample_root"}:
                 if failures:
                     print(f"self-test:{name}:unexpected_failures")
                     for failure in failures:
@@ -633,10 +671,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override repository root")
     parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="write a current-like sample root for focused validation",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root is not None:
+        target = args.write_sample_root.resolve()
+        build_sample_repo(target)
+        print(f"PHASE1_PARITY_ARTIFACT_PACKET_SAMPLE_ROOT={target}")
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
