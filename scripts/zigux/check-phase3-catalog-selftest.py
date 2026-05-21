@@ -52,11 +52,16 @@ REQUIRED_MARKERS = {
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
         '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
         '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
+        '"make -C zigux phase3-low-level-wrappers"',
         '"make -C zigux phase3-low-level-wrappers-test"',
+        '"make -C zigux phase3-test"',
+        '"make -C zigux phase3-dump"',
         '"make -C zigux phase3-validate"',
+        '"make -C zigux phase3"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     SURVEY_PATH: (
@@ -244,8 +249,13 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
-            '"make -C zigux phase3-export-uapi-layout-test"',
+            '"make -C zigux phase3-export-uapi-layout"',
             "expected missing catalog export-uapi Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-export-uapi-layout-test"',
+            "expected missing catalog export-uapi test Makefile route marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -259,13 +269,33 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
-            '"make -C zigux phase3-low-level-wrappers-test"',
+            '"make -C zigux phase3-low-level-wrappers"',
             "expected missing catalog low-level-wrapper Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-low-level-wrappers-test"',
+            "expected missing catalog low-level-wrapper test Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-test"',
+            "expected missing catalog phase3 test Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-dump"',
+            "expected missing catalog phase3 dump Makefile route marker was not reported",
         ),
         (
             CATALOG_PATH,
             '"make -C zigux phase3-validate"',
             "expected missing catalog phase3 validate Makefile route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3"',
+            "expected missing catalog aggregate phase3 Makefile route marker was not reported",
         ),
         (
             LOW_LEVEL_WRAPPER_SURVEY_PATH,
