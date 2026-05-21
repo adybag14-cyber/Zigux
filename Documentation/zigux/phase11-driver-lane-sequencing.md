@@ -16,7 +16,7 @@ contributor-facing summaries.
 
 Keep the current lane split explicit:
 
-- shared sequencing lane `P11-Y06` owns the shared reminder wording in
+- shared sequencing lane `P11-L06` owns the shared reminder wording in
   `Documentation/zigux/phase11-driver-lane-sequencing.md` and
   `Documentation/zigux/phase11-validation-matrix-gap-survey.md` together with
   the smallest coupled checker updates needed to keep that shared packet honest
@@ -90,6 +90,7 @@ Treat the current shared Phase 11 packet as the reminder and continuity
 surfaces that were reread in this run:
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -144,6 +145,15 @@ Authenticated contents reads still clip
 fallback rereads rematerialized both driver-local matrix notes, so keep all
 four driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
+
+Current rereads in this run also keep
+`Documentation/zigux/phase11-shared-replay-contract.md` directly readable as an
+archival shared reminder surface.
+Keep that returned contract explicit in the sequencing packet, but keep its
+older paired `scripts/zigux/check-phase11-shared-replay-contract.py`,
+`scripts/zigux/check-phase11-shared-summary-surfaces.py`, and
+`zigux/tests/phase11_build.zig` routes framed as missing current-head
+companions rather than live replay evidence.
 
 Current rereads in this run also keep
 `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
@@ -214,14 +224,17 @@ Use this note to keep the bounded work order honest:
    `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
    `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
    `drivers/watchdog/dw_wdt_pm.zig`, and
-   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, and the HVC current-head
-   continuity packet with its cleanup companion,
+   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, the returned archival
+   `Documentation/zigux/phase11-shared-replay-contract.md`, and the HVC
+   current-head continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
    `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, shared
    build inventory anchor, proof-backed adjunct stack, and standalone
    targetless-unregister witness pair; keep it explicit that the bcm2835 and
    DesignWare matrix notes currently return through raw `master` fallback rather
-   than this runtime's authenticated contents bridge.
+   than this runtime's authenticated contents bridge, and that the returned
+   shared replay contract does not by itself restore its older paired checker
+   scripts or the missing `zigux/tests/phase11_build.zig` route.
 4. Keep bcm2835 and DesignWare follow-through parked in their own lanes; do not
    widen either lane into live watchdog-core execution, PM plumbing, reset
    execution, IRQ execution, live MMIO validation, or claims of hardware-backed
@@ -267,11 +280,12 @@ Use this note to keep the bounded work order honest:
    continuity packet plus its cleanup companion, current-head checker,
    dedicated targetless-unregister witness checker, shared build inventory,
    proof-backed adjunct stack, standalone targetless-unregister witness pair,
-   the returned shared validator
-   `scripts/zigux/validate-phase11.py`, and the returned `zigux/Makefile`
-   surface plus `make -C zigux phase11-validate` build gate instead of reviving
-   broader bcm2835 or DesignWare owner-packet claims, shared-contract surfaces,
-   or overstating the HVC archival stack.
+   the returned archival `Documentation/zigux/phase11-shared-replay-contract.md`,
+   the returned shared validator `scripts/zigux/validate-phase11.py`, and the
+   returned `zigux/Makefile` surface plus `make -C zigux phase11-validate`
+   build gate instead of reviving broader bcm2835 or DesignWare owner-packet
+   claims, the retired shared build-route family, or overstating the HVC
+   archival stack.
 8. Keep the next bounded shared follow-through inside the smallest
    reminder-surface truthfulness repair unless a later reread restores or
    removes another Phase 11 packet surface.
@@ -282,9 +296,13 @@ This note does not widen Phase 11 into:
 
 - a claim that the overall simple-driver tranche is closed
 - a claim that the broader absent `make -C zigux phase11` and
-  `make -C zigux phase11-contract` routes or the missing shared replay-contract
-  surfaces are already present on current `master` just because the returned
-  shared validator `scripts/zigux/validate-phase11.py` and the now-returned
+  `make -C zigux phase11-contract` routes, the missing paired
+  `scripts/zigux/check-phase11-shared-replay-contract.py` and
+  `scripts/zigux/check-phase11-shared-summary-surfaces.py` routes, or the
+  missing shared `zigux/tests/phase11_build.zig` replay family are already
+  present on current `master` just because the returned archival
+  `Documentation/zigux/phase11-shared-replay-contract.md`, the returned shared
+  validator `scripts/zigux/validate-phase11.py`, and the now-returned
   `make -C zigux phase11-validate` path are back
 - a claim that bcm2835 or DesignWare broader reminder packets, helper stacks, or
   replay routes have all returned just because the driver-local validation
