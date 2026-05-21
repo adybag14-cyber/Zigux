@@ -67,6 +67,18 @@
       "boundary": "Stays a shared Phase 9 reminder surface adjacent to this lane rather than becoming family-local survey ownership."
     },
     {
+      "surface": "zigux/tests/phase9_build.zig",
+      "role": "adjacent_shared_build_shard",
+      "owner": "P9-L11",
+      "boundary": "Keeps the shared loader-handoff rerun shard explicit for the surviving trace-events packet without widening this family-local survey lane into shared loader ownership."
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader_command_env_boundary_guard.zig",
+      "role": "adjacent_shared_command_env_guard",
+      "owner": "P9-L11",
+      "boundary": "Keeps the shared command/environment boundary guard reviewable beside the shared loader shard without promoting request-control boundaries into family-local trace-events proof."
+    },
+    {
       "surface": ".github/workflows/zigux-bootstrap.yml",
       "role": "adjacent_shared_workflow_guard",
       "owner": "P9-L11",
