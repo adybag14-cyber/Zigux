@@ -143,7 +143,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 143
+EXPECTED_SELF_TEST_CASE_COUNT = 144
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -619,6 +619,16 @@ def assert_run_validator_note_contains(root: Path, expected_fragment: str) -> No
     assert f"PHASE2_CLOSURE_VALIDATION_NOTE={expected_fragment}" in output, output
 
 
+def assert_run_validator_output_contains(root: Path, expected_fragment: str) -> None:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        exit_code = run_validator(root)
+    output = stdout.getvalue()
+    assert exit_code == 1, output
+    assert "PHASE2_CLOSURE_VALIDATION=fail" in output, output
+    assert expected_fragment in output, output
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_validator_") as tmp_dir:
@@ -945,6 +955,8 @@ def run_self_test() -> int:
                 "PRESENT_FILE_UNREADABLE_ON_BRANCH",
                 EXPECTED_PRESENT_FILES[-1],
             ) in collect_issues(root)
+            checks_run += 1
+            assert_run_validator_output_contains(root, "PRESENT_FILE_UNREADABLE_ON_BRANCH_START")
             checks_run += 1
 
         finally:
