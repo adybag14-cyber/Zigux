@@ -21,8 +21,10 @@ const Manifest = struct {
     rollback_owner: []const u8,
 
     shared_validator_path: []const u8,
+    shared_validator_blob_sha: []const u8,
 
     shared_matrix_path: []const u8,
+    shared_matrix_blob_sha: []const u8,
 
     shared_gate_evidence_path: []const u8,
 
@@ -113,7 +115,11 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     try std.testing.expectEqualStrings("4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694", manifest.helper_replay_blob_sha);
 
-    try std.testing.expectEqualStrings("6a56c502280d4ff33a58141e91a231f9968b1851", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("dea77e6385618147aba44d3714f73b6c5249e942", manifest.shared_validator_blob_sha);
+
+    try std.testing.expectEqualStrings("44955f39e37b9389b3b97e7d710c25b1841aedf3", manifest.shared_matrix_blob_sha);
+
+    try std.testing.expectEqualStrings("ffe579365d4cf0cca43f8840f917be0623e3b49b", manifest.gate_evidence_blob_sha);
 
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
@@ -151,7 +157,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "35-bit and 115-bit synthetic fill prefixes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "rounded 64-bit and 128-bit zero boundaries") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "blob pins") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared validator or matrix blob pins") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared build route drift again") != null);
 }
@@ -191,11 +197,11 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     try expectContains(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
+    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49");
 
     try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49");
 
     try expectContains(gate_evidence_source, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
 
