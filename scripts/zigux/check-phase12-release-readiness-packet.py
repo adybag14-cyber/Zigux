@@ -164,6 +164,7 @@ REQUIRED_MARKERS = {
         "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard,",
         "The active shared build packet is the returned five-file `virtio_net` quintet only:",
+        "Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packets and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
