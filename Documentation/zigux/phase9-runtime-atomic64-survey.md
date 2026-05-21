@@ -7,7 +7,7 @@ This note tracks the bounded Phase 9 runtime atomic64 packet on current `master`
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_LANE_KEY=P9-L04`
-- `PHASE9_SURVEYED_COMMIT=2026-05-21-runtime-atomic64-direct-packet-truthfulness`
+- `PHASE9_SURVEYED_COMMIT=2026-05-21-runtime-atomic64-shared-loader-readback-refresh`
 - scope: direct atomic64 note-plus-test packet truthfulness together with the visible shared first-loadable reminder surfaces only
 
 ## Current Packet
@@ -27,6 +27,9 @@ Current `master` also keeps these adjacent shared reminder surfaces visible:
 - `samples/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
+- `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/kernel/runtime_loader.zig`
+- `zigux/kernel/runtime_loader_contract.zig`
 
 Trusted current-master reads in this runtime still do not return these family-local atomic64 files on the same path:
 
@@ -35,16 +38,13 @@ Trusted current-master reads in this runtime still do not return these family-lo
 - `zigux/tests/runtime_atomic64_survey.zig`
 - `zigux/tests/runtime_atomic64_manifest.json`
 
-Trusted current-master reads in this runtime also still do not return these deeper shared loader files on the same path:
+Trusted current-master reads in this runtime still do not return these deeper shared loader reminder files on the same path:
 
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
-- `zigux/tests/runtime_loader_allocator_init_flow.zig`
 - `zigux/tests/runtime_loader_gap_survey.zig`
 - `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`
-- `zigux/kernel/runtime_loader.zig`
-- `zigux/kernel/runtime_loader_contract.zig`
 
-That means the honest current packet is still the direct atomic64 note-plus-test packet together with a visible shared reminder packet. It is not a completed loadable runtime-module path, it does not clear the broader runtime-substrate blocker, and it does not currently rematerialize the family-local sample, loader, survey, or manifest surfaces on the trusted read path used in this run.
+That means the honest current packet is still the direct atomic64 note-plus-test packet together with a visible mixed shared reminder packet. It is not a completed loadable runtime-module path, it does not clear the broader runtime-substrate blocker, and it does not currently rematerialize the family-local sample, loader, survey, or manifest surfaces on the trusted read path used in this run.
 
 ## Routes
 
@@ -52,7 +52,7 @@ That means the honest current packet is still the direct atomic64 note-plus-test
 2. `zigux/tests/runtime_atomic64_diff.zig` keeps the `lib/atomic64_test.c` operation families machine-checkable.
 3. `zigux/tests/phase9_build.zig` keeps the direct `phase9-runtime-atomic64-diff` rerun explicit and keeps the build-local `phase9-runtime-atomic64-sample-tests` handle visible as reminder vocabulary; it does not currently materialize the missing family-local sample, loader, survey, or manifest files on the same trusted path.
 4. No dedicated `make -C zigux phase9-runtime-atomic64-test` route is currently materialized on current `master`, so that family-local convenience handle stays backlog vocabulary instead of shipped make-route evidence.
-5. `Documentation/zigux/phase9-first-loadable-runtime-module-parity.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, and `zigux/tests/phase9_build.zig` remain visible shared reminder surfaces, while the broader runtime substrate stays blocked and the deeper shared loader packet stays non-returned on the trusted read path used in this run.
+5. `Documentation/zigux/phase9-first-loadable-runtime-module-parity.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, and `zigux/kernel/runtime_loader_contract.zig` remain visible shared reminder surfaces, while the broader runtime substrate stays blocked and the family-local atomic64 sample, loader, survey, and manifest packet stays non-returned on the trusted read path used in this run.
 
 ## Boundaries
 
