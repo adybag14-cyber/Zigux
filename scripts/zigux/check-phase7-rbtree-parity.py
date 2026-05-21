@@ -110,11 +110,20 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase7_build.zig"',
         '"scripts/zigux/validate-phase7.py"',
         '"public_fallback_non_owner_paths": [',
+        '"absent_makefile_markers": [',
+        '"phase7-rbtree-test:"',
+        '"phase7-rbtree-survey:"',
+        '"phase7-test:"',
+        '"phase7:"',
+        '"absent_workflow_markers": [',
+        '"Validate Phase 7 runtime helper gates"',
+        '"Run Phase 7 runtime helper tests"',
+        '"make -C zigux phase7-test"',
         '"public-fallback provenance"',
     ],
 }
 
-SELF_TEST_CASE_COUNT = 34
+SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -429,6 +438,36 @@ def run_self_test() -> None:
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_manifest_public_fallback_next_step_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_marker = '"phase7-rbtree-test:"'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_absent_makefile_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_marker = '"Validate Phase 7 runtime helper gates"'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_absent_workflow_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_marker = '"absent_workflow_markers": ['
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_absent_workflow_list_marker",
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
