@@ -18,7 +18,7 @@ pub const ReplaySummary = struct {
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     comparable_match: bool,
-    matched_index: usize,
+    matched_index: i32,
     size_text: RenderedText,
     compact_size_text: RenderedText,
     replaced_text: RenderedText,
@@ -53,9 +53,9 @@ pub const StringHelpersSample = struct {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
         const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
         var size_text = RenderedText{};
-        size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &size_text.bytes, 0);
+        size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &size_text.bytes);
         var compact_size_text = RenderedText{};
-        compact_size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES, &compact_size_text.bytes, 0);
+        compact_size_text.len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES, &compact_size_text.bytes);
         var replaced_text = RenderedText{};
         @memcpy(replaced_text.bytes[0..10], "mode-ready");
         replaced_text.bytes[10] = 0;
@@ -75,20 +75,20 @@ pub const StringHelpersSample = struct {
         var exact_unescape_text = RenderedText{};
         exact_unescape_text.len = string_helpers.stringUnescape("\\n", &exact_unescape_text.bytes, 2, string_helpers.UNESCAPE_SPACE);
         var escaped_text = RenderedText{};
-        escaped_text.len = string_helpers.stringEscapeMem("\n", &escaped_text.bytes, 0, string_helpers.ESCAPE_HEX, null);
+        escaped_text.len = string_helpers.stringEscapeMem("\n", &escaped_text.bytes, string_helpers.ESCAPE_HEX, null);
         var bounded_escape_text = RenderedText{ .bytes = [_]u8{'?'} ** 16 };
-        bounded_escape_text.len = string_helpers.stringEscapeMem("\n", bounded_escape_text.bytes[0..5], 0, string_helpers.ESCAPE_HEX, null);
+        bounded_escape_text.len = string_helpers.stringEscapeMem("\n", bounded_escape_text.bytes[0..5], string_helpers.ESCAPE_HEX, null);
         var selected_escape_text = RenderedText{};
-        selected_escape_text.len = string_helpers.stringEscapeMem("A\n\tZ", &selected_escape_text.bytes, 0, string_helpers.ESCAPE_SPACE, "\n");
+        selected_escape_text.len = string_helpers.stringEscapeMem("A\n\tZ", &selected_escape_text.bytes, string_helpers.ESCAPE_SPACE, "\n");
         var appended_escape_text = RenderedText{};
-        appended_escape_text.len = string_helpers.stringEscapeMem("A\nZ", &appended_escape_text.bytes, 0, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
+        appended_escape_text.len = string_helpers.stringEscapeMem("A\nZ", &appended_escape_text.bytes, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
         self.stage_state = .replay_complete;
         return .{
             .anchor = descriptor().anchor,
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
             .comparable_match = string_helpers.sysfsStreq("mode", "mode\n"),
-            .matched_index = string_helpers.sysfsMatchString(&values, "enabled\n") orelse unreachable,
+            .matched_index = string_helpers.sysfsMatchString(&values, values.len, "enabled\n"),
             .size_text = size_text,
             .compact_size_text = compact_size_text,
             .replaced_text = replaced_text,
@@ -124,8 +124,8 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expect(replay.comparable_match);
-    try std.testing.expectEqual(@as(usize, 1), replay.matched_index);
-    try std.testing.expectEqual(@as(?usize, null), string_helpers.matchString(values[0..2], "ignored"));
+    try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
+    try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
     try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&replay.size_text.bytes));
     try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);
     try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&replay.compact_size_text.bytes));
@@ -138,11 +138,11 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
     try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
     try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
-    try std.testing.expectEqualSlices(u8, "\\x0A", replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqualSlices(u8, "\\x0a", replay.escaped_text.bytes[0..replay.escaped_text.len]);
     try std.testing.expectEqual(@as(usize, 4), replay.bounded_escape_text.len);
-    try std.testing.expectEqualSlices(u8, "\\x0A?", replay.bounded_escape_text.bytes[0..5]);
+    try std.testing.expectEqualSlices(u8, "\\x0a?", replay.bounded_escape_text.bytes[0..5]);
     try std.testing.expectEqualSlices(u8, "A\\n\tZ", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
-    try std.testing.expectEqualSlices(u8, "A\\x0AZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
+    try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
     try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
 }
 
