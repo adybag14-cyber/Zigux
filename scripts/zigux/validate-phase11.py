@@ -15,6 +15,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
@@ -308,6 +309,18 @@ def run_self_test() -> int:
                 "phase11-validate-self-test:baseline_failed:" + ",".join(baseline_issues)
             )
 
+        missing_shared_replay_contract = root / "Documentation/zigux/phase11-shared-replay-contract.md"
+        missing_shared_replay_contract.unlink()
+        issues = collect_issues(root)
+        expected_missing_shared_replay_contract = "missing_required_path:Documentation/zigux/phase11-shared-replay-contract.md"
+        if expected_missing_shared_replay_contract not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_shared_replay_contract_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         missing = root / "Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
         missing.unlink()
         issues = collect_issues(root)
@@ -666,7 +679,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
