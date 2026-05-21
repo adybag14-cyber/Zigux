@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L10",
+  "lane_key": "P15-L11",
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-21",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -39,7 +39,7 @@
   ],
   "required_markers": [
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
-    "PHASE15_LANE_KEY=P15-L10",
+    "PHASE15_LANE_KEY=P15-L11",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
     "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
