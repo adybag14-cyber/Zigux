@@ -54,6 +54,7 @@ SURVEY_MARKERS = (
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
     "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_HELPER_SELF_TEST_CASE_COUNT=21`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
@@ -110,7 +111,29 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "extra_positional_rejected",
 )
 
-CONTRACT_HELPER_SELF_TEST_CASES = HELPER_EXPECTED_SELF_TEST_CASES
+CONTRACT_HELPER_SELF_TEST_CASES = (
+    "text_pass",
+    "text_mismatch",
+    "json_pass",
+    "json_mismatch",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "bytes_pass",
+    "bytes_drift",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "legacy_sha256_alias",
+    "invalid_mode_rejected",
+    "extra_positional_rejected",
+)
 
 CONTRACT_BASE_CASES = (
     "helper_self_test",
@@ -238,7 +261,7 @@ def require_current_helper_contract(text: str) -> None:
 def require_current_contract_checker(text: str) -> None:
     helper_cases = tuple(extract_literal_assignment(text, "HELPER_SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
     if helper_cases != CONTRACT_HELPER_SELF_TEST_CASES:
-        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case helper replay catalog")
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 21-case helper replay catalog")
     base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if base_cases != CONTRACT_BASE_CASES:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case base contract catalog")
