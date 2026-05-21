@@ -151,6 +151,14 @@ FILE_MARKERS: dict[str, list[str]] = {
 }
 
 FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
+    SURVEY_NOTE_PATH: [
+        "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay: `error.OutstandingRegistration` leaves the initialized direct-activity summary unchanged after one main replay plus one function-thread replay, the later unregister stays explicit, and the module can still reach the selftest_complete summary without drift.",
+        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
+    ],
+    MODULE_SLICE_PATH: [
+        "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves one main replay plus one function-thread replay unchanged until unregister and the later `runSelftest()` replay succeeds without drift.",
+        'Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
+    ],
     SAMPLES_README_PATH: [
         "Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.",
         "Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.",
@@ -223,7 +231,12 @@ def validate(root: Path) -> list[str]:
 
 
 def seed_fixture_tree(base: Path) -> None:
-    for rel_path, markers in FILE_MARKERS.items():
+    fixture_paths = set(FILE_MARKERS) | set(FILE_EXACT_ONCE_MARKERS)
+    for rel_path in fixture_paths:
+        markers = list(FILE_MARKERS.get(rel_path, []))
+        for marker in FILE_EXACT_ONCE_MARKERS.get(rel_path, []):
+            if marker not in markers:
+                markers.append(marker)
         write_text(base / rel_path, build_fixture_text(rel_path, markers))
 
 
