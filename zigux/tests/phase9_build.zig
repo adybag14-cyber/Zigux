@@ -4,15 +4,6 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const runtime_atomic64_diff_tests = b.addTest(.{
-        .name = "phase9-runtime-atomic64-diff-tests",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("runtime_atomic64_diff.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
-
     const bitmap_view_module = b.createModule(.{
         .root_source_file = b.path("../helpers/bitmap_view.zig"),
         .target = target,
@@ -45,6 +36,36 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_atomic64_sample_module.addImport("atomic", atomic_module);
+
+    const runtime_atomic64_diff_module = b.createModule(.{
+        .root_source_file = b.path("runtime_atomic64_diff.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_atomic64_diff_module.addImport(
+        "runtime_atomic64_sample",
+        runtime_atomic64_sample_module,
+    );
+
+    const runtime_atomic64_diff_tests = b.addTest(.{
+        .name = "phase9-runtime-atomic64-diff-tests",
+        .root_module = runtime_atomic64_diff_module,
+    });
+
+    const runtime_atomic64_module_tests_module = b.createModule(.{
+        .root_source_file = b.path("runtime_atomic64_module.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_atomic64_module_tests_module.addImport(
+        "runtime_atomic64_sample",
+        runtime_atomic64_sample_module,
+    );
+
+    const runtime_atomic64_module_tests = b.addTest(.{
+        .name = "phase9-runtime-atomic64-module-tests",
+        .root_module = runtime_atomic64_module_tests_module,
+    });
 
     const runtime_loader_module = b.createModule(.{
         .root_source_file = b.path("../kernel/runtime_loader.zig"),
@@ -159,6 +180,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_runtime_atomic64_diff_tests = b.addRunArtifact(runtime_atomic64_diff_tests);
+    const run_runtime_atomic64_module_tests = b.addRunArtifact(runtime_atomic64_module_tests);
     const run_runtime_atomic64_sample_tests = b.addRunArtifact(runtime_atomic64_sample_tests);
     const run_runtime_bitmap_sample_tests = b.addRunArtifact(runtime_bitmap_sample_tests);
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
@@ -179,6 +201,19 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 9 runtime atomic64 differential replay tests.",
     );
     phase9_runtime_atomic64_diff.dependOn(&run_runtime_atomic64_diff_tests.step);
+
+    const phase9_runtime_atomic64_module = b.step(
+        "phase9-runtime-atomic64-module-tests",
+        "Run the Phase 9 runtime atomic64 module lifecycle tests.",
+    );
+    phase9_runtime_atomic64_module.dependOn(&run_runtime_atomic64_module_tests.step);
+
+    const phase9_runtime_atomic64 = b.step(
+        "phase9-runtime-atomic64-tests",
+        "Run the Phase 9 runtime atomic64 lifecycle and differential replay tests.",
+    );
+    phase9_runtime_atomic64.dependOn(&run_runtime_atomic64_diff_tests.step);
+    phase9_runtime_atomic64.dependOn(&run_runtime_atomic64_module_tests.step);
 
     const phase9_runtime_atomic64_sample = b.step(
         "phase9-runtime-atomic64-sample-tests",
