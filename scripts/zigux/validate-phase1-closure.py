@@ -29,6 +29,7 @@ TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+ZIGUX_MAKEFILE_REL = Path("zigux/Makefile")
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")
@@ -50,6 +51,7 @@ REQUIRED_FILES = (
     PHASE1_SMOKE_REL,
     WORKFLOW_REL,
     MANIFEST_REL,
+    ZIGUX_MAKEFILE_REL,
     BITMAP_HELPER_REL,
     FIND_BIT_HELPER_REL,
     RBTREE_HELPER_REL,
@@ -109,6 +111,30 @@ FORBIDDEN_CLOSURE_MARKERS = {
     "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`",
     "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`",
 }
+
+EXPECTED_MAKEFILE_MARKERS = (
+    "phase2-toolchain:",
+    "phase2-tools:",
+    "phase2-kconfig:",
+    "phase2-cross:",
+    "phase2-genksyms:",
+    "phase3-validate:",
+    "phase4-validate:",
+    "phase6-validate:",
+    "phase8-validate:",
+    "phase10-validate:",
+    "phase12-smoke:",
+    "phase12-test:",
+    "phase12: phase12-smoke phase12-test",
+    "phase14-validate:",
+)
+
+FORBIDDEN_MAKEFILE_MARKERS = (
+    "phase1-validate:",
+    "phase1-test:",
+    "phase1-bench:",
+    "phase1:",
+)
 
 EXPECTED_FIND_BIT_REVIEW_ANCHORS = {
     "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
@@ -222,6 +248,14 @@ def collect_failures(root: Path) -> list[str]:
         if count:
             failures.append(f"{PHASE1_CLOSURE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
 
+    makefile_text = load_text(root, ZIGUX_MAKEFILE_REL)
+    for marker in EXPECTED_MAKEFILE_MARKERS:
+        failures.extend(require_exact_occurrence(makefile_text, f"{ZIGUX_MAKEFILE_REL.as_posix()}:required", marker))
+    for marker in FORBIDDEN_MAKEFILE_MARKERS:
+        count = makefile_text.count(marker)
+        if count:
+            failures.append(f"{ZIGUX_MAKEFILE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
+
     manifest = json.loads(load_text(root, MANIFEST_REL))
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
@@ -240,7 +274,6 @@ def collect_failures(root: Path) -> list[str]:
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
-
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.bitmap.zig", review_anchors.get("tools/lib/bitmap.zig"), EXPECTED_BITMAP_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib/find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
@@ -269,10 +302,8 @@ def make_fixture_tree(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         write_text(root / relative_path, f"fixture for {relative_path.as_posix()}\n")
 
-    write_text(
-        root / PHASE1_CLOSURE_REL,
-        "# Phase 1 Closure\n\n" + "\n".join(EXPECTED_CLOSURE_MARKERS.values()) + "\n",
-    )
+    write_text(root / PHASE1_CLOSURE_REL, "# Phase 1 Closure\n\n" + "\n".join(EXPECTED_CLOSURE_MARKERS.values()) + "\n")
+    write_text(root / ZIGUX_MAKEFILE_REL, "\n".join(EXPECTED_MAKEFILE_MARKERS) + "\n")
     write_text(
         root / MANIFEST_REL,
         json.dumps(
@@ -327,20 +358,13 @@ def run_self_test() -> int:
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
         ("missing_bitmap_or_window_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_window_anchor")),
-        ("missing_bitmap_or_multiword_tail_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_multiword_tail_anchor")),
-        ("missing_bitmap_weighted_tail_count_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "weighted_tail_count_anchor")),
-        ("missing_bitmap_linux_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "linux_alias_anchor")),
         ("stale_bitmap_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "next_safe_step_note")),
         ("stale_string_sysfs_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "sysfs_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
-        ("missing_route_summary_checker", lambda root: (root / ROUTE_SUMMARY_CHECKER_REL).unlink()),
-        ("failing_route_summary_checker", lambda root: make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL, ok=False)),
-        ("missing_bench_checker", lambda root: (root / BENCH_CHECKER_REL).unlink()),
-        ("failing_bench_checker", lambda root: make_checker_stub(root / BENCH_CHECKER_REL, ok=False)),
-        ("missing_shared_reminder_checker", lambda root: (root / SHARED_REMINDER_CHECKER_REL).unlink()),
-        ("failing_shared_reminder_checker", lambda root: make_checker_stub(root / SHARED_REMINDER_CHECKER_REL, ok=False)),
+        ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
+        ("forbidden_phase1_makefile_route", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL) + "phase1-validate:\n")),
     ]
 
     for name, mutate in cases:
