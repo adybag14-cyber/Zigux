@@ -49,7 +49,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
 
     try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-20", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-21", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
     try std.testing.expectEqual(@as(usize, 27), manifest.present_paths.len);
