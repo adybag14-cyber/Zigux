@@ -8,6 +8,8 @@ test "phase 7 cmdline companion replays exact bare-option matching boundaries" {
     try std.testing.expect(cmdline.parseOptionStr("quiet,debug\x00,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
     try std.testing.expect(cmdline.parseOptionStr(",debug", ""));
+    try std.testing.expect(cmdline.parseOptionStr("debug,,quiet", ""));
+    try std.testing.expect(!cmdline.parseOptionStr("debug,", ""));
     try std.testing.expect(!cmdline.parseOptionStr("", ""));
 }
 
