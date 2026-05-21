@@ -21,6 +21,7 @@ REQUIRED_NOTE_MARKERS = (
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "scripts/zigux/check-phase3-abi-support-packet.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -33,6 +34,8 @@ REQUIRED_NOTE_MARKERS = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -67,6 +70,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "scripts/zigux/check-phase3-abi-support-packet.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -85,6 +89,8 @@ REQUIRED_PACKET_FILES = (
 )
 
 REQUIRED_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
@@ -218,6 +224,7 @@ def run_self_test() -> int:
             return 1
 
         note_cases = (
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
             "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
             "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -236,6 +243,7 @@ def run_self_test() -> int:
 
         manifest_packet_cases = (
             "scripts/zigux/phase3_catalog.py",
+            "scripts/zigux/check-phase3-abi-support-packet.py",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
         )
         for entry in manifest_packet_cases:
@@ -252,6 +260,7 @@ def run_self_test() -> int:
                 return 1
 
         manifest_route_cases = (
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
             "make -C zigux phase3-low-level-wrappers-test",
         )
@@ -283,8 +292,9 @@ def run_self_test() -> int:
             print("expected repo-reality gap misclassification was not reported")
             return 1
 
+    case_count = 2 + len(note_cases) + len(manifest_packet_cases) + len(manifest_route_cases)
     print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass")
-    print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=10")
+    print(f"PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
