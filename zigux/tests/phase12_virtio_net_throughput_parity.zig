@@ -26,6 +26,29 @@ test "phase12 throughput parity gate passes once queue restore refill recycle an
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
 }
 
+test "phase12 throughput parity gate keeps queue restore explicit when queue pairs drop after reset" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 4,
+        .queue_pairs_after_restore = 3,
+        .receive_buffers_before_reset = 512,
+        .receive_buffers_after_restore = 512,
+        .receive_descriptors_reposted = true,
+        .recycled_transmit_descriptors = 4,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+        .expected_min_ratio_pct = 90,
+    });
+
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_queue_restore, summary.status);
+    try std.testing.expect(!summary.queue_pairs_preserved);
+    try std.testing.expect(summary.refill_budget_preserved);
+    try std.testing.expect(summary.recycle_budget_ready);
+    try std.testing.expectEqual(@as(u8, 75), summary.queue_pair_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 75), summary.throughput_ratio_pct);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
+}
+
 test "phase12 throughput parity gate keeps descriptor repost explicit after refill counts return" {
     const summary = try throughput_parity.summarizeThroughputParity(.{
         .queue_pairs_before_reset = 2,
@@ -48,6 +71,30 @@ test "phase12 throughput parity gate keeps descriptor repost explicit after refi
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
     try std.testing.expect(!summary.meets_expected_min_ratio);
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
+}
+
+test "phase12 throughput parity gate keeps refill budget explicit when restored buffers shrink" {
+    const summary = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 192,
+        .receive_descriptors_reposted = true,
+        .recycled_transmit_descriptors = 2,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+        .expected_min_ratio_pct = 90,
+    });
+
+    try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(summary.queue_pairs_preserved);
+    try std.testing.expect(!summary.refill_budget_preserved);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expectEqual(@as(u8, 75), summary.refill_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 75), summary.throughput_ratio_pct);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
 }
 
 test "phase12 throughput parity gate blocks stopped transmit queues below the wake threshold" {
