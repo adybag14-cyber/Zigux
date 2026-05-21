@@ -39,7 +39,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     const checklist = try readRepoFile("Documentation/zigux/review-checklist.md");
     defer std.testing.allocator.free(checklist);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the shared Phase 8 userspace-adjacent tooling packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "`scripts/zigux/check-phase8-libbpf-segment-gate.py`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`scripts/zigux/check-phase8-libbpf-shard-routes.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") == null);
 
