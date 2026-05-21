@@ -220,11 +220,14 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
         "scripts/zigux/validate-phase14.py --self-test",
         "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     ],
     END_TO_END_SMOKE_MANIFEST_PATH: [
         "\"shared_smoke_surfaces\": [",
+        "\"scripts/zigux/check-phase14-rollback-threshold-sequencing.py\"",
         "\"Documentation/zigux/phase14-core-boundary-traceability.md\"",
         "\"scripts/zigux/check-phase14-release-boundary-exact-counts.py\"",
         "\"smoke_commands\": [",
@@ -317,20 +320,24 @@ def fixture_text(rel_path: str) -> str:
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
     }
-    if rel_path in REQUIRED_MARKERS:
-        title = titles.get(rel_path)
-        if title is not None:
-            return marker_fixture(title, REQUIRED_MARKERS[rel_path])
-        return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
             "#!/usr/bin/env python3\n"
             "import sys\n"
+            "# PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass\n"
+            "# `PHASE14_LANE_KEY=P14-L16`\n"
+            "# `phase14-rcu-tree-rollback-threshold-guardrail`\n"
+            "# Check that the dedicated Phase 14 RCU rollback note stays aligned\n"
             "if \"--self-test\" in sys.argv:\n"
             "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass\")\n"
             "else:\n"
             "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL=pass\")\n"
         )
+    if rel_path in REQUIRED_MARKERS:
+        title = titles.get(rel_path)
+        if title is not None:
+            return marker_fixture(title, REQUIRED_MARKERS[rel_path])
+        return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
     if rel_path.endswith(".py"):
         return "#!/usr/bin/env python3\n"
     if rel_path.endswith(".zig"):
@@ -338,6 +345,13 @@ def fixture_text(rel_path: str) -> str:
     if rel_path.endswith(".json"):
         return "{}\n"
     return ""
+
+
+def write_fixture_tree(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+    for rel_path in REQUIRED_FILES:
+        write_text(root / rel_path, fixture_text(rel_path))
 
 
 def checker_script_path(root: Path) -> Path:
@@ -365,13 +379,6 @@ def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
         f"subcheck_fail:{RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH}:{line}"
         for line in output
     ]
-
-
-def write_fixture_tree(root: Path) -> None:
-    if root.exists():
-        shutil.rmtree(root)
-    for rel_path in REQUIRED_FILES:
-        write_text(root / rel_path, fixture_text(rel_path))
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -422,6 +429,7 @@ def run_self_test() -> int:
 
         marker_cases = [
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
+            (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][7]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][3]),
@@ -432,13 +440,13 @@ def run_self_test() -> int:
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
             ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
-            (RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, REQUIRED_MARKERS[RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][4]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][3]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][1]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][4]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
