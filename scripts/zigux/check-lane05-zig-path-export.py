@@ -48,6 +48,20 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
         )
 
 
+def require_order_before_last(text: str, earlier: str, later: str, label: str) -> None:
+    earlier_index = text.find(earlier)
+    later_index = text.rfind(later)
+    if earlier_index == -1 or later_index == -1:
+        raise SystemExit(
+            f"lane05 zig-path export checker missing ordered markers for {label}"
+        )
+    if earlier_index >= later_index:
+        raise SystemExit(
+            "lane05 zig-path export checker expected "
+            f"{label} `{earlier}` before final `{later}`"
+        )
+
+
 def check_workflow(text: str) -> int:
     require_marker(text, SETUP_STEP, "workflow setup step")
     require_marker(text, FAILURE_GATE, "workflow failure gate")
@@ -57,12 +71,13 @@ def check_workflow(text: str) -> int:
     require_marker(text, FINAL_VERSION, "workflow final zig version probe")
     require_marker(text, NEXT_STEP, "workflow next-step anchor")
 
+    require_exact_count(text, FAILURE_MESSAGE, 1, "workflow failure message")
     require_exact_count(text, PATH_EXPORT, 1, "workflow PATH export marker")
     require_exact_count(text, FINAL_VERSION, 1, "workflow final zig version probe")
 
     require_order(text, SETUP_STEP, FAILURE_GATE, "workflow setup flow")
-    require_order(text, FAILURE_GATE, FINAL_ZIG_PATH, "workflow success handoff order")
-    require_order(text, FINAL_ZIG_PATH, PATH_EXPORT, "workflow finalization order")
+    require_order_before_last(text, FAILURE_MESSAGE, FINAL_ZIG_PATH, "workflow success handoff order")
+    require_order_before_last(text, FINAL_ZIG_PATH, PATH_EXPORT, "workflow finalization order")
     require_order(text, PATH_EXPORT, FINAL_VERSION, "workflow PATH export order")
     require_order(text, FINAL_VERSION, NEXT_STEP, "workflow step order")
 
