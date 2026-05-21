@@ -48,6 +48,8 @@ pub const ThroughputParitySummary = struct {
     queue_pairs_preserved: bool,
     refill_budget_preserved: bool,
     recycle_budget_ready: bool,
+    receive_refill_checkpoint_ready: bool,
+    transmit_recycle_checkpoint_ready: bool,
     requires_post_reset_probe_replay: bool,
     meets_expected_min_ratio: bool,
     status: ThroughputParityStatus,
@@ -123,6 +125,8 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
         .queue_pairs_preserved = queue_pairs_preserved,
         .refill_budget_preserved = refill_budget_preserved,
         .recycle_budget_ready = recycle_budget_ready,
+        .receive_refill_checkpoint_ready = receive_refill_checkpoint_ready,
+        .transmit_recycle_checkpoint_ready = transmit_recycle_checkpoint_ready,
         .requires_post_reset_probe_replay = requires_post_reset_probe_replay,
         .meets_expected_min_ratio = status == .parity_gate_ready and
             throughput_ratio_pct >= request.expected_min_ratio_pct,
@@ -164,6 +168,8 @@ test "summarizeThroughputParity passes once queue restore refill recycle and rep
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
     try std.testing.expect(summary.receive_descriptors_reposted);
     try std.testing.expect(summary.recycle_budget_ready);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(summary.meets_expected_min_ratio);
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
 }
@@ -183,6 +189,8 @@ test "summarizeThroughputParity keeps descriptor repost explicit after refill co
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(!summary.receive_descriptors_reposted);
     try std.testing.expectEqual(@as(u8, 100), summary.refill_ratio_pct);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
@@ -204,6 +212,8 @@ test "summarizeThroughputParity blocks stopped transmit queues below the wake th
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_transmit_recycle, summary.status);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
     try std.testing.expectEqual(@as(u8, 50), summary.recycle_ratio_pct);
     try std.testing.expectEqual(@as(u8, 50), summary.throughput_ratio_pct);
     try std.testing.expect(!summary.recycle_budget_ready);
@@ -225,6 +235,8 @@ test "summarizeThroughputParity keeps receive refill explicit after control queu
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(!summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expect(!summary.meets_expected_min_ratio);
 }
@@ -243,6 +255,8 @@ test "summarizeThroughputParity keeps transmit recycle explicit after receive re
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_transmit_recycle, summary.status);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
@@ -261,6 +275,8 @@ test "summarizeThroughputParity keeps post reset replay explicit after receive r
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_post_reset_probe_replay, summary.status);
+    try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
