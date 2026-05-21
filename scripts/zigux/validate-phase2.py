@@ -286,6 +286,7 @@ def run_self_test() -> int:
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
         + (len(REQUIRED_PATHS) - 1)
+        + 2
     )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
@@ -335,6 +336,17 @@ def run_self_test() -> int:
             (root / rel).unlink()
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
             checks += 1
+
+        for rel in (WORKFLOW, MAKEFILE):
+            build_self_test_root(root)
+            (root / rel).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {rel}")
 
     assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
