@@ -52,12 +52,14 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(parity_note, "`phase9-runtime-atomic64-diff`");
-    try expectContains(parity_note, "build-local `phase9-runtime-atomic64-sample-tests` route name, the bounded bitmap sample, loader, survey, and top-bit routes, and the returned shared `phase9-runtime-loader-shared-tests` handoff step");
+    try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
+    try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
+    try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
     try expectContains(
         parity_note,
-        "build-local `phase9-runtime-atomic64-sample-tests` route name, the bounded bitmap sample, loader, survey, and top-bit routes, and the returned shared `phase9-runtime-loader-shared-tests` handoff step; it still does not prove a matched pair of first-loadable runtime modules because the atomic64 direct sample, loader, survey, and manifest remain absent on the same trusted path",
+        "those sample-test and loader-shared route names are reminder vocabulary rather than proof that the underlying packet returned",
     );
-    try expectContains(parity_note, "does not prove a matched pair of first-loadable runtime modules");
+    try expectContains(parity_note, "does not yet materialize that target as a coherent cross-family packet");
     try expectContains(parity_note, "must not claim shipped cross-family loader parity");
     try expectContains(
         parity_note,
