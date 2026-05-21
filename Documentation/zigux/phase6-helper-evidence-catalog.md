@@ -127,7 +127,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `make -C zigux phase6-hexdump-perf-matrix-test`
 - `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-test`
-- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`
+- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-hexdump-perf`
 - `make -C zigux phase6-perf`
 
