@@ -226,6 +226,58 @@ pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {
     complement(dst, src, nbits);
 }
 
+pub fn weightAnd(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    assertBitmapLen(src1, nbits);
+    assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
+
+    const lim = nbits / bits_per_long;
+    var total: usize = 0;
+
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        total += @popCount(src1[idx] & src2[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        total += @popCount((src1[idx] & src2[idx]) & lastWordMask(nbits));
+    }
+
+    return total;
+}
+
+pub fn bitmap_weight_and(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAnd(src1, src2, nbits);
+}
+
+pub fn weightAndNot(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    assertBitmapLen(src1, nbits);
+    assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
+
+    const lim = nbits / bits_per_long;
+    var total: usize = 0;
+
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        total += @popCount(src1[idx] & ~src2[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        total += @popCount((src1[idx] & ~src2[idx]) & lastWordMask(nbits));
+    }
+
+    return total;
+}
+
+pub fn bitmap_weight_andnot(src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightAndNot(src1, src2, nbits);
+}
+
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
@@ -783,6 +835,28 @@ test "bitmap weighted or and xor clamp counts to the declared tail window" {
     try std.testing.expectEqualSlices(Word, &direct_xor, &alias_xor);
     try std.testing.expectEqual(@as(Word, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 8) | (@as(Word, 1) << 9)), direct_xor[1]);
     try std.testing.expectEqual(@as(usize, 2), weight(&direct_xor, nbits));
+}
+
+test "bitmap weighted and andnot clamp counts to the declared tail window" {
+    const nbits = bits_per_long + 5;
+    const and_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 3) | (@as(Word, 1) << 8) };
+    const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+
+    const direct_and_weight = weightAnd(&and_lhs, &and_rhs, nbits);
+    const alias_and_weight = bitmap_weight_and(&and_lhs, &and_rhs, nbits);
+    try std.testing.expectEqual(@as(usize, 1), direct_and_weight);
+    try std.testing.expectEqual(direct_and_weight, alias_and_weight);
+
+    const direct_andnot_weight = weightAndNot(&and_lhs, &and_rhs, nbits);
+    const alias_andnot_weight = bitmap_weight_andnot(&and_lhs, &and_rhs, nbits);
+    try std.testing.expectEqual(@as(usize, 1), direct_andnot_weight);
+    try std.testing.expectEqual(direct_andnot_weight, alias_andnot_weight);
+
+    const zero = [_]Word{~@as(Word, 0)};
+    try std.testing.expectEqual(@as(usize, 0), weightAnd(zero[0..0], zero[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(zero[0..0], zero[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), weightAndNot(zero[0..0], zero[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(zero[0..0], zero[0..0], 0));
 }
 
 test "bitmap complement clamps partial tails and leaves zero-sized caller views untouched" {
