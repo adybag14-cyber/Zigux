@@ -77,6 +77,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_TEST: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
+        'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
+        'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
     ),
     KALLSYMS_TEST: (
         'test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit"',
@@ -188,6 +190,20 @@ def run_self_test() -> int:
             raise AssertionError("expected missing help test marker to be reported")
         help_test.write_text(original_help_test, encoding="utf-8")
 
+        help_test.write_text(original_help_test.replace('test "phase 8 help output emission keeps column-major pretty-printing pure and testable"', "", 1), encoding="utf-8")
+        missing_help_output_marker = validate_root(root)
+        expected_help_output_marker = 'zigux/tests/phase8_help.zig:test "phase 8 help output emission keeps column-major pretty-printing pure and testable"'
+        if expected_help_output_marker not in missing_help_output_marker.missing_markers:
+            raise AssertionError("expected missing help output marker to be reported")
+        help_test.write_text(original_help_test, encoding="utf-8")
+
+        help_test.write_text(original_help_test.replace('test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"', "", 1), encoding="utf-8")
+        missing_help_section_marker = validate_root(root)
+        expected_help_section_marker = 'zigux/tests/phase8_help.zig:test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"'
+        if expected_help_section_marker not in missing_help_section_marker.missing_markers:
+            raise AssertionError("expected missing help section marker to be reported")
+        help_test.write_text(original_help_test, encoding="utf-8")
+
         kallsyms_test = root / KALLSYMS_TEST
         original_kallsyms_test = _read(kallsyms_test)
         kallsyms_test.write_text(original_kallsyms_test.replace('test "phase 8 kallsyms wrappers preserve the parked callback contract"', "", 1), encoding="utf-8")
@@ -246,7 +262,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
