@@ -105,3 +105,4 @@ This survey does not claim:
 ## Next bounded step
 
 Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together first. Only widen into the shared Phase 14 smoke packet if those lane-local surfaces cannot be made truthful on their own.
+The exact bridge-local reread packet remains `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md`.
