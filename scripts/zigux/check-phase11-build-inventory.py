@@ -116,8 +116,18 @@ REQUIRED_SCRIPTS_ROOT_MARKERS = (
 REQUIRED_VALIDATE_PHASE11_MARKERS = (
     '("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test")',
     '("python", "scripts/zigux/check-phase11-build-inventory.py")',
+    '("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-matrix-gap-survey.py")',
+    '("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py")',
     '("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test")',
     '("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py")',
+    '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")',
+    '("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py")',
+    '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig")',
@@ -156,36 +166,8 @@ REQUIRED_EXPORT_BUILD_MARKERS = (
 
 REQUIRED_WORKFLOW_PHASE11_STEPS = (
     (
-        "Self-test current Phase 11 build inventory checker",
-        "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
-    ),
-    (
-        "Check current Phase 11 build inventory packet",
-        "python3 scripts/zigux/check-phase11-build-inventory.py",
-    ),
-    (
-        "Self-test current Phase 11 HVC cleanup current-head checker",
-        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
-    ),
-    (
-        "Check current Phase 11 HVC cleanup current-head packet",
-        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
-    ),
-    (
-        "Run current Phase 11 HVC hv_ops layout proof",
-        "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
-    ),
-    (
-        "Run current Phase 11 HVC export surface layout proof",
-        "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
-    ),
-    (
-        "Run current Phase 11 HVC cleanup packet proof",
-        "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
-    ),
-    (
-        "Run current Phase 11 HVC targetless-unregister gap witness",
-        "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        "Validate current Phase 11 support bundle",
+        "make -C zigux phase11-validate",
     ),
 )
 
@@ -582,8 +564,18 @@ FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
     ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
     ("python", "scripts/zigux/check-phase11-build-inventory.py"),
+    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
+    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
     ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
     ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
+    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
     ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
     ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
     ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
@@ -615,22 +607,8 @@ jobs:
   bootstrap:
     runs-on: ubuntu-latest
     steps:
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
-      - name: Self-test current Phase 11 HVC cleanup current-head checker
-        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test
-      - name: Check current Phase 11 HVC cleanup current-head packet
-        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
-      - name: Run current Phase 11 HVC hv_ops layout proof
-        run: zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
-      - name: Run current Phase 11 HVC export surface layout proof
-        run: zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
-      - name: Run current Phase 11 HVC cleanup packet proof
-        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
-      - name: Run current Phase 11 HVC targetless-unregister gap witness
-        run: zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
+      - name: Validate current Phase 11 support bundle
+        run: make -C zigux phase11-validate
 """
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
@@ -750,38 +728,12 @@ def run_self_test() -> int:
         write(
             missing_workflow_step / WORKFLOW_PATH,
             read_text(missing_workflow_step / WORKFLOW_PATH).replace(
-                "      - name: Run current Phase 11 HVC cleanup packet proof\n        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig\n",
+                "      - name: Validate current Phase 11 support bundle\n        run: make -C zigux phase11-validate\n",
                 "",
                 1,
             ),
         )
-        expect_failure(missing_workflow_step, "Run current Phase 11 HVC cleanup packet proof")
-        case_count += 1
-
-        missing_hv_ops_workflow_step = tmpdir / "missing_hv_ops_workflow_step"
-        shutil.copytree(fixture, missing_hv_ops_workflow_step, dirs_exist_ok=True)
-        write(
-            missing_hv_ops_workflow_step / WORKFLOW_PATH,
-            read_text(missing_hv_ops_workflow_step / WORKFLOW_PATH).replace(
-                "      - name: Run current Phase 11 HVC hv_ops layout proof\n        run: zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig\n",
-                "",
-                1,
-            ),
-        )
-        expect_failure(missing_hv_ops_workflow_step, "Run current Phase 11 HVC hv_ops layout proof")
-        case_count += 1
-
-        missing_targetless_workflow_step = tmpdir / "missing_targetless_workflow_step"
-        shutil.copytree(fixture, missing_targetless_workflow_step, dirs_exist_ok=True)
-        write(
-            missing_targetless_workflow_step / WORKFLOW_PATH,
-            read_text(missing_targetless_workflow_step / WORKFLOW_PATH).replace(
-                "      - name: Run current Phase 11 HVC targetless-unregister gap witness\n        run: zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\n",
-                "",
-                1,
-            ),
-        )
-        expect_failure(missing_targetless_workflow_step, "Run current Phase 11 HVC targetless-unregister gap witness")
+        expect_failure(missing_workflow_step, "Validate current Phase 11 support bundle")
         case_count += 1
 
         missing_makefile_marker = tmpdir / "missing_makefile_marker"
@@ -821,14 +773,14 @@ def run_self_test() -> int:
         write(
             missing_validate_marker / VALIDATE_PHASE11_PATH,
             read_text(missing_validate_marker / VALIDATE_PHASE11_PATH).replace(
-                '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig")',
-                '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build_missing.zig")',
+                '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")',
+                '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment-missing.py")',
                 1,
             ),
         )
         expect_failure(
             missing_validate_marker,
-            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig")',
+            '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")',
         )
         case_count += 1
 
