@@ -53,7 +53,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "zig test samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -63,6 +63,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
     var saw_symbol_check = false;
+    var saw_retargeted_symbol_check = false;
     var saw_duration_check = false;
     var saw_maxactive_check = false;
     var saw_exit_check = false;
@@ -103,6 +104,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_symbol_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_clone") != null);
         }
+        if (std.mem.eql(u8, check.id, "retargeted-symbol")) {
+            saw_retargeted_symbol_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "retargetSymbol(\"do_sys_openat2\")") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "module_param parity") != null);
+        }
         if (std.mem.eql(u8, check.id, "private-data-shape")) {
             saw_private_data_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "my_data") != null);
@@ -135,6 +141,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
+    try std.testing.expect(saw_retargeted_symbol_check);
     try std.testing.expect(saw_duration_check);
     try std.testing.expect(saw_maxactive_check);
     try std.testing.expect(saw_exit_check);
