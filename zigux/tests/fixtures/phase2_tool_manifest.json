@@ -1,22 +1,29 @@
 {
+  "notes": [
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the dedicated genksyms selftest-alignment guard, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option version-side-effect proof, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
+    "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
+    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
+    "Keep the dedicated manifest guards and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option version-side-effect proof, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
+  ],
   "phase": "Phase 2",
-  "status": "active",
-  "scope": "current directly readable scripts-root toolchain, local-archive, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, fixdep, and tranche-closure reminder packet",
-  "workflow": ".github/workflows/zigux-bootstrap.yml",
   "present_surfaces": {
-    "review_surfaces": [
-      "Documentation/zigux/README.md",
-      "Documentation/zigux/phase2-closure.md",
-      "Documentation/zigux/review-checklist.md",
-      "zigux/tests/README.md"
+    "archive_support": [
+      "third_party/README.md",
+      "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
     ],
-    "closure_notes": [
-      "Documentation/zigux/phase2-closure.md",
-      "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+    "artifact_support": [
+      "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+      "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
     ],
-    "validators": [
-      "scripts/zigux/validate-phase2.py",
-      "scripts/zigux/validate-phase2-closure.py"
+    "bootstrap_helpers": [
+      "scripts/zigux/install-zig.py"
+    ],
+    "bridge_helpers": [
+      "scripts/zigux/kconfig/conf_bridge.zig",
+      "scripts/zigux/kconfig/confdata_bridge.zig",
+      "scripts/zigux/genksyms.zig",
+      "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
     ],
     "checkers": [
       "scripts/zigux/check-zig-toolchain.py",
@@ -24,6 +31,7 @@
       "scripts/zigux/check-lane05-local-archive-readme.py",
       "scripts/zigux/check-kconfig-bridge.py",
       "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+      "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
       "scripts/zigux/check-phase2-kbuild-routes.py",
       "scripts/zigux/check-phase2-tests-readme-alignment.py",
       "scripts/zigux/check-phase2-cross.py",
@@ -38,40 +46,13 @@
       "scripts/zigux/check-phase2-fixdep-gate.py",
       "scripts/zigux/check-fixdep-diff.py"
     ],
-    "bootstrap_helpers": [
-      "scripts/zigux/install-zig.py"
-    ],
-    "bridge_helpers": [
-      "scripts/zigux/kconfig/conf_bridge.zig",
-      "scripts/zigux/kconfig/confdata_bridge.zig",
-      "scripts/zigux/genksyms.zig",
-      "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
-    ],
-    "policy": [
-      "scripts/zigux/zig-toolchain-policy.json"
-    ],
-    "archive_support": [
-      "third_party/README.md",
-      "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
-    ],
-    "make_wrappers": [
-      "zigux/Makefile",
-      "make -C zigux phase2-toolchain",
-      "make -C zigux phase2-tools",
-      "make -C zigux phase2-kconfig",
-      "make -C zigux phase2-cross",
-      "make -C zigux phase2-genksyms",
-      "make -C zigux phase2-fixdep",
-      "make -C zigux phase2-validate",
-      "make -C zigux phase2"
+    "closure_notes": [
+      "Documentation/zigux/phase2-closure.md",
+      "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
     ],
     "cross_route_support": [
       "scripts/zigux/check-phase2-cross.py",
       "zigux/tests/fixtures/phase2_cross_targets.json"
-    ],
-    "artifact_support": [
-      "scripts/zigux/check-phase2-artifact-tools-manifest.py",
-      "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
     ],
     "fixdep_support": [
       "scripts/basic/fixdep.c",
@@ -203,14 +184,34 @@
       "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
       "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json"
+    ],
+    "make_wrappers": [
+      "zigux/Makefile",
+      "make -C zigux phase2-toolchain",
+      "make -C zigux phase2-tools",
+      "make -C zigux phase2-kconfig",
+      "make -C zigux phase2-cross",
+      "make -C zigux phase2-genksyms",
+      "make -C zigux phase2-fixdep",
+      "make -C zigux phase2-validate",
+      "make -C zigux phase2"
+    ],
+    "policy": [
+      "scripts/zigux/zig-toolchain-policy.json"
+    ],
+    "review_surfaces": [
+      "Documentation/zigux/README.md",
+      "Documentation/zigux/phase2-closure.md",
+      "Documentation/zigux/review-checklist.md",
+      "zigux/tests/README.md"
+    ],
+    "validators": [
+      "scripts/zigux/validate-phase2.py",
+      "scripts/zigux/validate-phase2-closure.py"
     ]
   },
   "repo_reality_gaps": [],
-  "notes": [
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option version-side-effect proof, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
-    "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
-    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-    "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option version-side-effect proof, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
-  ]
+  "scope": "current directly readable scripts-root toolchain, local-archive, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, fixdep, and tranche-closure reminder packet",
+  "status": "active",
+  "workflow": ".github/workflows/zigux-bootstrap.yml"
 }
