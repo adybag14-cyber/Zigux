@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 71
+EXPECTED_SELF_TEST_CASE_COUNT = 75
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -419,6 +419,8 @@ def run_self_test() -> int:
         path.write_text(replace_once(path.read_text(encoding="utf-8"), EXPECTED_MAKEFILE_LINES[0]), encoding="utf-8")
         assert ("MISSING_MAKEFILE_LINE", EXPECTED_MAKEFILE_LINES[0]) in collect_issues(root)
         checks_run += 1
+        assert_run_validator_output_contains(root, "MISSING_MAKEFILE_LINE_START")
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, MAKEFILE)
@@ -430,6 +432,8 @@ def run_self_test() -> int:
         path = resolve_path(root, MAKEFILE)
         path.write_text(path.read_text(encoding="utf-8") + DISALLOWED_MAKEFILE_LINES[0] + "\n", encoding="utf-8")
         assert ("UNEXPECTED_MAKEFILE_LINE", f"{DISALLOWED_MAKEFILE_LINES[0]}:count=1") in collect_issues(root)
+        checks_run += 1
+        assert_run_validator_output_contains(root, "UNEXPECTED_MAKEFILE_LINE_START")
         checks_run += 1
 
         for code, duplicate_code, path in (
@@ -446,6 +450,9 @@ def run_self_test() -> int:
                 )
                 assert (code, marker) in collect_issues(root)
                 checks_run += 1
+                if code == "MISSING_SCRIPTS_README_MARKERS":
+                    assert_run_validator_output_contains(root, "MISSING_SCRIPTS_README_MARKERS_START")
+                    checks_run += 1
 
                 build_self_test_root(root)
                 target = resolve_path(root, path)
