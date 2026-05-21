@@ -9,13 +9,15 @@
     "lib/devres.zig",
     "Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md",
     "zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json",
-    "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig"
+    "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py"
   ],
   "fixture_governance": {
     "release_record_lifetime_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "release_call_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "detach_cleanup_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "zero_sized_request_owner": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "validation_guard": "scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py",
     "owner_map": "zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "zigux/tests/phase13_devres_dma_coherent.zig"
