@@ -1138,6 +1138,26 @@ test "split-read truncated input exits with stderr after final EOF read" {
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
 
+test "split-read one byte short of a full header exits with truncated stderr at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 8 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
 test "split-read truncated input keeps stderr when a later read fails" {
     var reader = FailingReader{
         .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
@@ -1154,6 +1174,24 @@ test "split-read truncated input keeps stderr when a later read fails" {
     try std.testing.expectEqual(@as(usize, 3), reader.call_count);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
+test "readHeader preserves fifteen-byte count at EOF one byte before the full header" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 8 },
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 15), header.len);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0,
+    }, header.bytes[0..header.len]);
 }
 
 test "readHeader keeps fifteen bytes when a later read fails one byte before the full header" {
