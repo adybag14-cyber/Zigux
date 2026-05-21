@@ -109,6 +109,9 @@ test "phase14 ring-buffer survey note keeps the exact compile-route posture expl
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE14_STATUS=study_only") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "current ring-buffer packet replay vocabulary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`zigux/tests/phase14_ring_buffer_manifest.json`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`Documentation/zigux/phase14-core-boundary-traceability.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "public raw-file readback now recovers both `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "dedicated ring-buffer survey replay, backed by current public raw-file readback") != null);
