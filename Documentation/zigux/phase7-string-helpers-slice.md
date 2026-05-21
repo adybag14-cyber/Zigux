@@ -111,7 +111,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `parseIntArray()` and `parse_int_array()` keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set
 - `stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
-- the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test and keeps the bounded `trace_events_string_formatting_sample.zig` allowance tied to the non-runtime `trace_events` anchor
+- the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test and keeps the bounded `trace_events_string_formatting_sample.zig` allowance tied to the non-runtime `trace_events` anchor
 
 ## Non-goals
 
