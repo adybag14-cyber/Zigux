@@ -80,6 +80,7 @@ VALIDATOR_PATHS = (
 
 TEST_PATHS = (
     Path("zigux/tests/build.zig"),
+    Path("zigux/Makefile"),
     Path("zigux/tests/phase3_dev_t_starter_packet.zig"),
     Path("zigux/tests/phase3_dev_t_starter_packet_build.zig"),
     Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
@@ -128,8 +129,11 @@ COMMANDS = (
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "make -C zigux phase3-low-level-wrappers-test",
+    "make -C zigux phase3-validate",
 )
 
 
