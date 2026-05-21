@@ -58,7 +58,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     KALLSYMS_SLICE: (
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-kallsyms-test`",
         "shared validation overlap only",
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
@@ -404,6 +406,26 @@ def run_self_test() -> int:
             raise AssertionError("expected missing kallsyms CRLF-contract marker to be reported")
         kallsyms_slice.write_text(original_slice, encoding="utf-8")
 
+        kallsyms_slice.write_text(
+            original_slice.replace("`zigux/tests/phase8_kallsyms_only_build.zig`", "", 1),
+            encoding="utf-8",
+        )
+        missing_kallsyms_build_slice_marker = validate_root(root)
+        expected_kallsyms_build_slice_marker = "Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms_only_build.zig`"
+        if expected_kallsyms_build_slice_marker not in missing_kallsyms_build_slice_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms dedicated build marker to be reported")
+        kallsyms_slice.write_text(original_slice, encoding="utf-8")
+
+        kallsyms_slice.write_text(
+            original_slice.replace("`make -C zigux phase8-kallsyms-test`", "", 1),
+            encoding="utf-8",
+        )
+        missing_kallsyms_route_slice_marker = validate_root(root)
+        expected_kallsyms_route_slice_marker = "Documentation/zigux/phase8-kallsyms-slice.md:`make -C zigux phase8-kallsyms-test`"
+        if expected_kallsyms_route_slice_marker not in missing_kallsyms_route_slice_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms dedicated route marker to be reported")
+        kallsyms_slice.write_text(original_slice, encoding="utf-8")
+
         missing_source = root / KALLSYMS_SOURCE
         missing_source.unlink()
         missing_file = validate_root(root)
@@ -439,7 +461,7 @@ def run_self_test() -> int:
         _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=26")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
