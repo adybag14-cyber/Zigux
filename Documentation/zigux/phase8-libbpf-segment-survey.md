@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 libbpf segmentation reviewability 
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=libbpf-segment-gap-readback`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-20
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-21
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: current-tree reviewability and lane-safe next-step selection only
