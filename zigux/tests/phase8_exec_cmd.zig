@@ -119,3 +119,57 @@ test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
     try expectContains(slice_note, "kernel/workqueue.c");
     try expectContains(slice_note, "Phase 14");
 }
+
+test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
+    const scripts_readme = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/README.md",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(scripts_readme);
+    try expectContains(scripts_readme, "Documentation/zigux/phase8-exec-cmd-slice.md");
+    try expectContains(scripts_readme, "tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd_only_build.zig");
+    try expectContains(scripts_readme, "make -C zigux phase8-exec-cmd-test");
+
+    const tests_readme = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/README.md",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(tests_readme);
+    try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd.zig`");
+    try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd_only_build.zig`");
+    try expectContains(tests_readme, "`make -C zigux phase8-exec-cmd-test`");
+
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        128 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+    try expectContains(review_checklist, "`make -C zigux phase8-validate`");
+    try expectContains(review_checklist, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context");
+
+    const validate_phase8 = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase8.py",
+        128 * 1024,
+    );
+    defer std.testing.allocator.free(validate_phase8);
+    try expectContains(validate_phase8, "scripts/zigux/validate-phase8.py");
+    try expectContains(validate_phase8, "tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd_only_build.zig");
+
+    const build_file = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(build_file);
+    try expectContains(build_file, "Run focused Phase 8 exec-cmd tests");
+
+    // Legacy validator breadcrumb: expectMissingPath("tools/lib/subcmd/exec-cmd.zig")
+}
