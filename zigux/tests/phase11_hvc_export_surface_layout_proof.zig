@@ -66,30 +66,49 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 test "phase11 HVC exported helper proof keeps winsize layout explicit" {
-    comptime {
-        layout_assert.assertSize(WinsizeLayout, 8);
-        layout_assert.assertAlign(WinsizeLayout, 2);
-        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
-        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
-        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
-        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
-    }
+    try layout_assert.expectSize(WinsizeLayout, 8);
+    try layout_assert.expectAlign(WinsizeLayout, 2);
+    try layout_assert.expectOffset(WinsizeLayout, "ws_row", 0);
+    try layout_assert.expectOffset(WinsizeLayout, "ws_col", 2);
+    try layout_assert.expectOffset(WinsizeLayout, "ws_xpixel", 4);
+    try layout_assert.expectOffset(WinsizeLayout, "ws_ypixel", 6);
+}
+
+test "phase11 HVC exported helper proof keeps imported winsize layout tied to current module" {
+    try layout_assert.expectSize(hvc_console.Winsize, 8);
+    try layout_assert.expectAlign(hvc_console.Winsize, 2);
+    try layout_assert.expectOffset(hvc_console.Winsize, "ws_row", 0);
+    try layout_assert.expectOffset(hvc_console.Winsize, "ws_col", 2);
+    try layout_assert.expectOffset(hvc_console.Winsize, "ws_xpixel", 4);
+    try layout_assert.expectOffset(hvc_console.Winsize, "ws_ypixel", 6);
 }
 
 test "phase11 HVC exported helper proof keeps hv_ops callback table layout explicit" {
-    comptime {
-        layout_assert.assertSize(HvOpsLayout, 72);
-        layout_assert.assertAlign(HvOpsLayout, 8);
-        layout_assert.assertOffset(HvOpsLayout, "get_chars", 0);
-        layout_assert.assertOffset(HvOpsLayout, "put_chars", 8);
-        layout_assert.assertOffset(HvOpsLayout, "flush", 16);
-        layout_assert.assertOffset(HvOpsLayout, "notifier_add", 24);
-        layout_assert.assertOffset(HvOpsLayout, "notifier_del", 32);
-        layout_assert.assertOffset(HvOpsLayout, "notifier_hangup", 40);
-        layout_assert.assertOffset(HvOpsLayout, "tiocmget", 48);
-        layout_assert.assertOffset(HvOpsLayout, "tiocmset", 56);
-        layout_assert.assertOffset(HvOpsLayout, "dtr_rts", 64);
-    }
+    try layout_assert.expectSize(HvOpsLayout, 72);
+    try layout_assert.expectAlign(HvOpsLayout, 8);
+    try layout_assert.expectOffset(HvOpsLayout, "get_chars", 0);
+    try layout_assert.expectOffset(HvOpsLayout, "put_chars", 8);
+    try layout_assert.expectOffset(HvOpsLayout, "flush", 16);
+    try layout_assert.expectOffset(HvOpsLayout, "notifier_add", 24);
+    try layout_assert.expectOffset(HvOpsLayout, "notifier_del", 32);
+    try layout_assert.expectOffset(HvOpsLayout, "notifier_hangup", 40);
+    try layout_assert.expectOffset(HvOpsLayout, "tiocmget", 48);
+    try layout_assert.expectOffset(HvOpsLayout, "tiocmset", 56);
+    try layout_assert.expectOffset(HvOpsLayout, "dtr_rts", 64);
+}
+
+test "phase11 HVC exported helper proof keeps imported hv_ops layout tied to current module" {
+    try layout_assert.expectSize(hvc_console.HvOps, 72);
+    try layout_assert.expectAlign(hvc_console.HvOps, 8);
+    try layout_assert.expectOffset(hvc_console.HvOps, "get_chars", 0);
+    try layout_assert.expectOffset(hvc_console.HvOps, "put_chars", 8);
+    try layout_assert.expectOffset(hvc_console.HvOps, "flush", 16);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_add", 24);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_del", 32);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_hangup", 40);
+    try layout_assert.expectOffset(hvc_console.HvOps, "tiocmget", 48);
+    try layout_assert.expectOffset(hvc_console.HvOps, "tiocmset", 56);
+    try layout_assert.expectOffset(hvc_console.HvOps, "dtr_rts", 64);
 }
 
 test "phase11 HVC exported helper proof keeps hv_ops callback signatures exact" {
@@ -134,19 +153,17 @@ test "phase11 HVC exported helper proof keeps hv_ops callback signatures exact" 
 }
 
 test "phase11 HVC exported helper proof keeps the exported helper surface layout explicit" {
-    comptime {
-        layout_assert.assertSize(HvcExportSurface, 72);
-        layout_assert.assertAlign(HvcExportSurface, 8);
-        layout_assert.assertOffset(HvcExportSurface, "hvc_instantiate", 0);
-        layout_assert.assertOffset(HvcExportSurface, "hvc_alloc", 8);
-        layout_assert.assertOffset(HvcExportSurface, "hvc_remove", 16);
-        layout_assert.assertOffset(HvcExportSurface, "hvc_poll", 24);
-        layout_assert.assertOffset(HvcExportSurface, "hvc_kick", 32);
-        layout_assert.assertOffset(HvcExportSurface, "__hvc_resize", 40);
-        layout_assert.assertOffset(HvcExportSurface, "notifier_add_irq", 48);
-        layout_assert.assertOffset(HvcExportSurface, "notifier_del_irq", 56);
-        layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);
-    }
+    try layout_assert.expectSize(HvcExportSurface, 72);
+    try layout_assert.expectAlign(HvcExportSurface, 8);
+    try layout_assert.expectOffset(HvcExportSurface, "hvc_instantiate", 0);
+    try layout_assert.expectOffset(HvcExportSurface, "hvc_alloc", 8);
+    try layout_assert.expectOffset(HvcExportSurface, "hvc_remove", 16);
+    try layout_assert.expectOffset(HvcExportSurface, "hvc_poll", 24);
+    try layout_assert.expectOffset(HvcExportSurface, "hvc_kick", 32);
+    try layout_assert.expectOffset(HvcExportSurface, "__hvc_resize", 40);
+    try layout_assert.expectOffset(HvcExportSurface, "notifier_add_irq", 48);
+    try layout_assert.expectOffset(HvcExportSurface, "notifier_del_irq", 56);
+    try layout_assert.expectOffset(HvcExportSurface, "notifier_hangup_irq", 64);
 }
 
 test "phase11 HVC exported helper proof keeps exported helper signatures exact" {
