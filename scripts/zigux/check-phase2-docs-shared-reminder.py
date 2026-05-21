@@ -213,6 +213,7 @@ THIRD_PARTY_README_MARKERS = (
 THIRD_PARTY_README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
 
 THIRD_PARTY_README_EXACT_COUNT_MARKERS = (
+    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` when that pinned archive is present.",
     "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt` before the direct `ziglang.org` download URL.",
     "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
 )
