@@ -77,6 +77,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_loader_command_env_boundary_guard_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const runtime_trace_events_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_trace_events.zig"),
@@ -147,6 +152,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_loader_allocator_init_flow_module,
     });
 
+    const runtime_loader_command_env_boundary_guard_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-command-env-boundary-guard-tests",
+        .root_module = runtime_loader_command_env_boundary_guard_module,
+    });
+
     const runtime_trace_events_loader_substrate_drift_module = b.createModule(.{
         .root_source_file = b.path("runtime_trace_events_loader_substrate_drift.zig"),
         .target = target,
@@ -188,6 +198,9 @@ pub fn build(b: *std.Build) void {
     const run_runtime_bitmap_top_bit_tests = b.addRunArtifact(runtime_bitmap_top_bit_tests);
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
         runtime_loader_allocator_init_flow_tests,
+    );
+    const run_runtime_loader_command_env_boundary_guard_tests = b.addRunArtifact(
+        runtime_loader_command_env_boundary_guard_tests,
     );
     const run_runtime_trace_events_loader_substrate_drift_tests = b.addRunArtifact(
         runtime_trace_events_loader_substrate_drift_tests,
@@ -242,11 +255,22 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_survey_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
+    const phase9_runtime_loader_command_env_boundary_guard = b.step(
+        "phase9-runtime-loader-command-env-boundary-guard-tests",
+        "Run the Phase 9 shared runtime loader command/environment boundary guard tests.",
+    );
+    phase9_runtime_loader_command_env_boundary_guard.dependOn(
+        &run_runtime_loader_command_env_boundary_guard_tests.step,
+    );
+
     const phase9_runtime_loader_shared = b.step(
         "phase9-runtime-loader-shared-tests",
         "Run the shared Phase 9 runtime loader handoff parity tests.",
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+    phase9_runtime_loader_shared.dependOn(
+        &run_runtime_loader_command_env_boundary_guard_tests.step,
+    );
     phase9_runtime_loader_shared.dependOn(
         &run_runtime_trace_events_loader_substrate_drift_tests.step,
     );
