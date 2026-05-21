@@ -10,6 +10,8 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
+PUBLIC_FALLBACK_NON_OWNER_BLOCK = '"public_fallback_non_owner_paths": [\n    "zigux/tests/phase7_build.zig"\n  ],'
+
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
@@ -67,6 +69,7 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase7_rbtree.zig",',
         '"zigux/tests/phase7_rbtree_survey.zig",',
         '"zigux/tests/phase7_rbtree_manifest.json",',
+        "PUBLIC_FALLBACK_NON_OWNER_BLOCK = '",
     ],
     "tools/lib/rbtree.zig": [
         "pub const Node = struct {",
@@ -130,7 +133,7 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
         '"zigux/tests/phase7_build.zig"',
         '"scripts/zigux/validate-phase7.py"',
-        '"public_fallback_non_owner_paths": [',
+        PUBLIC_FALLBACK_NON_OWNER_BLOCK,
         '"absent_makefile_markers": [',
         '"phase7-rbtree-test:"',
         '"phase7-rbtree-survey:"',
@@ -144,7 +147,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 58
+SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -619,10 +622,23 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_marker = '"public_fallback_non_owner_paths": ['
+        manifest_marker = PUBLIC_FALLBACK_NON_OWNER_BLOCK
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_manifest_public_fallback_list_marker",
+            "missing_manifest_public_fallback_block_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        expanded_public_fallback_block = '"public_fallback_non_owner_paths": [\n    "zigux/tests/phase7_build.zig",\n    "scripts/zigux/validate-phase7.py"\n  ],'
+        manifest_path.write_text(
+            read_text(manifest_path).replace(PUBLIC_FALLBACK_NON_OWNER_BLOCK, expanded_public_fallback_block, 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "expanded_manifest_public_fallback_block",
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
