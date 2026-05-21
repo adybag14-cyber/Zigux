@@ -62,6 +62,9 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_maxactive_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
+    var saw_skip_kernel_thread_check = false;
+    var saw_missed_summary_check = false;
+    var saw_outstanding_instance_check = false;
     var saw_symbol_check = false;
     var saw_retargeted_symbol_check = false;
     var saw_duration_check = false;
@@ -109,6 +112,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retargetSymbol(\"do_sys_openat2\")") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "module_param parity") != null);
         }
+        if (std.mem.eql(u8, check.id, "skip-kernel-thread")) {
+            saw_skip_kernel_thread_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "no current mm") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "skipped") != null);
+        }
         if (std.mem.eql(u8, check.id, "private-data-shape")) {
             saw_private_data_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "my_data") != null);
@@ -123,6 +131,16 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_maxactive_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retargetMaxactive(3)") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactive explicit") != null);
+        }
+        if (std.mem.eql(u8, check.id, "missed-summary")) {
+            saw_missed_summary_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "one missed instance") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "nmissed summary") != null);
+        }
+        if (std.mem.eql(u8, check.id, "outstanding-instance-boundary")) {
+            saw_outstanding_instance_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "armed sample") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "retHandler clears") != null);
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
@@ -140,6 +158,9 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_maxactive_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
+    try std.testing.expect(saw_skip_kernel_thread_check);
+    try std.testing.expect(saw_missed_summary_check);
+    try std.testing.expect(saw_outstanding_instance_check);
     try std.testing.expect(saw_symbol_check);
     try std.testing.expect(saw_retargeted_symbol_check);
     try std.testing.expect(saw_duration_check);
