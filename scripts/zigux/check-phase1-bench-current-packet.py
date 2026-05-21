@@ -56,6 +56,11 @@ MARKERS = {
 EXPECTED_ASSERT_BLOCKS = {
     BENCH_CHECKER_REL: (
         (
+            "ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent",
+            'EXPECTATIONS = ROOT / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"',
+            'PHASE1_BENCH = ROOT / "zigux" / "tests" / "phase1_bench.zig"',
+        ),
+        (
             "EXPECTED_ITERATIONS = {",
             '"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,',
             '"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,',
@@ -398,6 +403,15 @@ EXPECTED_ASSERT_BLOCKS = {
             "kind, payload = validate_expectations(missing_rbtree_iterations)",
             'assert kind == "expectations_missing_rbtree_iterations"',
             'assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]',
+        ),
+        (
+            'parser = argparse.ArgumentParser(description="Run and validate the bounded Phase 1 benchmark smoke output.")',
+            'parser.add_argument("--zig", help="Path to Zig executable")',
+            'parser.add_argument("--self-test", action="store_true", help="Run checker self-test cases without invoking Zig.")',
+            "args = parser.parse_args()",
+            "if args.self_test:",
+            "run_self_test()",
+            "return 0",
         ),
         (
             'if kind == "missing_expectations_file":',
