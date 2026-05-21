@@ -30,13 +30,13 @@ The packet-local validator is now present and should stay aligned with this surv
 
 On current `master`, this packet stays narrow and explicit:
 
-- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays.
+- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `validateBoundaryHeader`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays.
 - That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.
 - `zigux/bindings/version.zig` and `zigux/bindings/dev_t.zig` keep the curated Zig-facing binding side of the same starter boundary explicit through current-version compatibility checks, status-tagged version validation, layout parity, `dev_t` packing helpers, and range validation that mirror the shipped UAPI packet without widening it.
 - `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through the current ABI version fields, `matchesCurrent`, and the status-tagged `validate()` compatibility gate that mirrors `include/linux/zigux.h`.
 - `zigux/uapi/dev_t.zig` keeps the bounded chrdev validation and range checks readable beside the shared `include/zigux/dev_t.h` contract.
-- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header, the curated binding companions, and the starter `dev_t` packet, including both the `zigux_uapi_boundary_header_*()` relays, the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers, and the `zigux_boundary_header_*()` compatibility aliases as thin wrappers instead of a second ownership root.
-- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, device-number bridge contract, and header-family relay visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
+- `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header, the curated binding companions, and the starter `dev_t` packet, including `zigux_uapi_boundary_header_*()` relays, the status-tagged `zigux_uapi_validate_boundary_header()` gate, the Linux-facing `zigux_boundary_header_*()` compatibility aliases, and the relay `zigux_validate_boundary_header()` as thin wrappers instead of a second ownership root.
+- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, starter boundary-header validation relay, device-number bridge contract, and header-family relay visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
 
 Current `master` now directly serves `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet, and `scripts/zigux/check-phase3-catalog-selftest.py` as the dedicated guard that keeps the catalog helper's export/UAPI self-test markers fail-closed.
 
@@ -48,9 +48,9 @@ The dedicated replay route `zig build phase3-export-uapi-layout-test --build-fil
 
 The shared Phase 3 validator runner at `scripts/zigux/run-phase3-checks.py` keeps this dedicated export/UAPI survey replay inside the existing `phase3-validate` packet without needing to describe a still-blocked shared tests-root compile handoff.
 
-Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion, missing shared-route wiring, or missing starter `dev_t` validation relay inside the packet itself.
+Against the roadmap, the remaining gap here is still broader unfinished Phase 3 interop-substrate coverage outside this starter packet, not a missing export/UAPI companion, missing shared-route wiring, or missing starter boundary-header validation relay inside the packet itself.
 
-This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, the live curated binding companions, the already-shipped starter `dev_t` validation relays, and the shared tests-root replay wiring explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.
+This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, the returned catalog-selftest guard, the live curated binding companions, the already-shipped starter boundary-header validation relay, the already-shipped starter `dev_t` validation relays, and the shared tests-root replay wiring explicit as shipped same-family evidence so the roadmap's permanent boundary does not get understated as shim-plus-UAPI only.
 
 ## Scope
 
