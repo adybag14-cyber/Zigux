@@ -164,6 +164,66 @@ test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init 
     try std.testing.expectEqual(@as(?*rbtree.Node, null), root.root.node);
 }
 
+test "phase 7 rbtree companion replays plain erase-init ownership boundaries" {
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var reseed_entry = Entry{ .key = 12 };
+    var root = rbtree.Root.init();
+
+    rbtree.add(&root_entry.node, &root, less);
+    rbtree.add(&left_entry.node, &root, less);
+    rbtree.add(&right_entry.node, &root, less);
+
+    rbtree.eraseInit(&root_entry.node, &root);
+    try std.testing.expect(rbtree.emptyNode(&root_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.first(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &right_entry.node), rbtree.last(&root));
+    try std.testing.expect(rbtree.prev(&left_entry.node) == null);
+
+    var order: [2]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 2), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 15 }, order[0..count]);
+
+    rbtree.eraseInit(&left_entry.node, &root);
+    try std.testing.expect(rbtree.emptyNode(&left_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &right_entry.node), rbtree.first(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &right_entry.node), rbtree.last(&root));
+    try std.testing.expect(rbtree.prev(&right_entry.node) == null);
+    try std.testing.expect(rbtree.next(&right_entry.node) == null);
+
+    rbtree.eraseInit(&right_entry.node, &root);
+    try std.testing.expect(rbtree.emptyNode(&right_entry.node));
+    try std.testing.expect(rbtree.emptyRoot(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), root.node);
+
+    rbtree.add(&reseed_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &reseed_entry.node), root.node);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &reseed_entry.node), rbtree.first(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &reseed_entry.node), rbtree.last(&root));
+}
+
 test "phase 7 rbtree companion replays postorder aliases and null-stop handling" {
     const Entry = struct {
         key: i32,
