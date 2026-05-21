@@ -47,6 +47,99 @@ pub const __sw_hweight32 = swHweight32;
 pub const __sw_hweight64 = swHweight64;
 pub const hweight_long = hweightLong;
 
+fn rotateLeft8(value: u32, shift: usize) u32 {
+    const masked = value & 0xff;
+    const amount: u5 = @intCast(shift % 8);
+    if (amount == 0) {
+        return masked;
+    }
+    return ((masked << amount) | (masked >> @as(u5, @intCast(8 - amount)))) & 0xff;
+}
+
+fn rotateLeft16(value: u32, shift: usize) u32 {
+    const masked = value & 0xffff;
+    const amount: u5 = @intCast(shift % 16);
+    if (amount == 0) {
+        return masked;
+    }
+    return ((masked << amount) | (masked >> @as(u5, @intCast(16 - amount)))) & 0xffff;
+}
+
+fn rotateLeft32(value: u32, shift: usize) u32 {
+    const amount: u5 = @intCast(shift % 32);
+    if (amount == 0) {
+        return value;
+    }
+    const back: u5 = 0 -% amount;
+    return (value << amount) | (value >> back);
+}
+
+fn rotateLeft64(value: u64, shift: usize) u64 {
+    const amount: u6 = @intCast(shift % 64);
+    if (amount == 0) {
+        return value;
+    }
+    const back: u6 = 0 -% amount;
+    return (value << amount) | (value >> back);
+}
+
+fn rotateLeftLong(value: usize, shift: usize) usize {
+    return if (@sizeOf(usize) == 4)
+        @intCast(rotateLeft32(@intCast(value), shift))
+    else
+        @intCast(rotateLeft64(@intCast(value), shift));
+}
+
+fn expectRotateInvariant8(value: u32) !void {
+    const expected = swHweight8(value & 0xff);
+    var shift: usize = 0;
+    while (shift < 8) : (shift += 1) {
+        const rotated = rotateLeft8(value, shift);
+        try std.testing.expectEqual(expected, swHweight8(rotated));
+        try std.testing.expectEqual(expected, __sw_hweight8(rotated));
+    }
+}
+
+fn expectRotateInvariant16(value: u32) !void {
+    const expected = swHweight16(value & 0xffff);
+    var shift: usize = 0;
+    while (shift < 16) : (shift += 1) {
+        const rotated = rotateLeft16(value, shift);
+        try std.testing.expectEqual(expected, swHweight16(rotated));
+        try std.testing.expectEqual(expected, __sw_hweight16(rotated));
+    }
+}
+
+fn expectRotateInvariant32(value: u32) !void {
+    const expected = swHweight32(value);
+    var shift: usize = 0;
+    while (shift < 32) : (shift += 1) {
+        const rotated = rotateLeft32(value, shift);
+        try std.testing.expectEqual(expected, swHweight32(rotated));
+        try std.testing.expectEqual(expected, __sw_hweight32(rotated));
+    }
+}
+
+fn expectRotateInvariant64(value: u64) !void {
+    const expected = swHweight64(value);
+    var shift: usize = 0;
+    while (shift < 64) : (shift += 1) {
+        const rotated = rotateLeft64(value, shift);
+        try std.testing.expectEqual(expected, swHweight64(rotated));
+        try std.testing.expectEqual(expected, __sw_hweight64(rotated));
+    }
+}
+
+fn expectRotateInvariantLong(value: usize) !void {
+    const expected = hweightLong(value);
+    var shift: usize = 0;
+    while (shift < @bitSizeOf(usize)) : (shift += 1) {
+        const rotated = rotateLeftLong(value, shift);
+        try std.testing.expectEqual(expected, hweightLong(rotated));
+        try std.testing.expectEqual(expected, hweight_long(rotated));
+    }
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -91,4 +184,22 @@ test "hweight helpers stay additive for disjoint masks" {
     const high_long: usize = if (@sizeOf(usize) == 4) 0xa800_0000 else 0xa800_0000_0000_0000;
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
+}
+
+test "hweight helpers stay invariant under in-width bit rotation" {
+    try expectRotateInvariant8(0x00);
+    try expectRotateInvariant8(0x96);
+    try expectRotateInvariant8(0xff);
+    try expectRotateInvariant16(0x0000);
+    try expectRotateInvariant16(0x963c);
+    try expectRotateInvariant16(0xffff);
+    try expectRotateInvariant32(0x0000_0000);
+    try expectRotateInvariant32(0x963c_5aa5);
+    try expectRotateInvariant32(0xffff_ffff);
+    try expectRotateInvariant64(0x0000_0000_0000_0000);
+    try expectRotateInvariant64(0x963c_5aa5_0f0f_f0f0);
+    try expectRotateInvariant64(0xffff_ffff_ffff_ffff);
+    try expectRotateInvariantLong(0);
+    try expectRotateInvariantLong(if (@sizeOf(usize) == 4) 0x963c_5aa5 else 0x963c_5aa5_0f0f_f0f0);
+    try expectRotateInvariantLong(std.math.maxInt(usize));
 }
