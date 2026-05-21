@@ -90,6 +90,12 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/fixdep.zig",
 )
 
+REQUIRED_MAKEFILE_PHONY_TARGETS = (
+    "phase2-fixdep",
+    "phase2-validate",
+    "phase2",
+)
+
 REQUIRED_MAKEFILE_LINES = (
     "phase2-fixdep:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
@@ -97,6 +103,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
@@ -111,6 +118,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
+    + len(REQUIRED_MAKEFILE_PHONY_TARGETS)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_FILES)
@@ -135,6 +143,16 @@ def write_text(path: Path, content: str) -> None:
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def phony_targets_present(text: str) -> set[str]:
+    targets: set[str] = set()
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(".PHONY:"):
+            _, suffix = stripped.split(":", 1)
+            targets.update(token for token in suffix.strip().split() if token)
+    return targets
 
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
@@ -257,6 +275,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "DUPLICATE_WORKFLOW_LINE",
         )
     )
+    phony_targets = phony_targets_present(makefile_text)
+    for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
+        if target not in phony_targets:
+            issues.append(("MISSING_MAKEFILE_PHONY_TARGET", target))
     issues.extend(
         collect_required_exact_lines(
             makefile_text,
@@ -305,6 +327,18 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
+
+def remove_phony_target(text: str, target: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(".PHONY:"):
+            prefix, suffix = stripped.split(":", 1)
+            targets = [token for token in suffix.strip().split() if token and token != target]
+            lines[index] = f"{prefix}: {' '.join(targets)}"
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f".PHONY line not found while removing target: {target}")
 
 
 def append_line(text: str, line: str) -> str:
@@ -386,6 +420,7 @@ def build_self_test_root(root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+                "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
                 "phase2: phase2-validate",
             )
         )
@@ -525,6 +560,13 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
+            build_self_test_root(root)
+            path = resolve(root, MAKEFILE_REL)
+            path.write_text(remove_phony_target(path.read_text(encoding="utf-8"), target), encoding="utf-8")
+            assert ("MISSING_MAKEFILE_PHONY_TARGET", target) in collect_issues(root)
+            checks_run += 1
+
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             path = resolve(root, MAKEFILE_REL)
@@ -573,6 +615,7 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_PHONY_TARGET_COUNT={len(REQUIRED_MAKEFILE_PHONY_TARGETS)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
 
