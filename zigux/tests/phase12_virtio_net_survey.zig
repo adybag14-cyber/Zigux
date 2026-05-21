@@ -100,8 +100,8 @@ test "phase12 virtio net survey manifest tracks the shared-build quintet and thr
 
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("6c941cb561420120b8e1d5a07e8a44e1c918a5f2", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-19", manifest.verified_on);
+    try std.testing.expectEqualStrings("c36b21af252cf76160ba5ae9c8f84b2310f4b2e1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-21", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -180,7 +180,7 @@ test "phase12 virtio net survey note reflects the quintet and preserved non-goal
 
     try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");
     try expectContains(survey_note, "lane owner: `P12-L04`");
-    try expectContains(survey_note, "6c941cb561420120b8e1d5a07e8a44e1c918a5f2");
+    try expectContains(survey_note, "c36b21af252cf76160ba5ae9c8f84b2310f4b2e1");
     try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
     try expectContains(survey_note, "summarizeReceiveRefillReplay()");
