@@ -119,6 +119,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");
+    try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");
     try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix and descending-range behavior\\\" {");
     try expectContains(helper, "test \\\"getOptions expands negative ranges and negative upper bounds\\\" {");
