@@ -39,6 +39,7 @@ EXACT_CURRENT_CHECKS = (
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
 HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
@@ -101,6 +102,12 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
+)
+
+REQUIRED_SCRIPTS_ROOT_MARKERS = (
+    "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`",
+    "`make -C zigux phase11-validate`",
 )
 
 REQUIRED_HV_OPS_BUILD_MARKERS = (
@@ -364,6 +371,7 @@ def run_check(root: Path) -> None:
     require_text_markers(root / MAKEFILE_PATH, REQUIRED_MAKEFILE_ROUTE_MARKERS)
     require_text_markers(root / HV_OPS_BUILD_PATH, REQUIRED_HV_OPS_BUILD_MARKERS)
     require_text_markers(root / EXPORT_BUILD_PATH, REQUIRED_EXPORT_BUILD_MARKERS)
+    require_text_markers(root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_ROOT_MARKERS)
     expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
@@ -430,86 +438,86 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import("std");
+FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-cleanup-packet-proof",
+        .name = \"phase11-hvc-cleanup-packet-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
 
 
-FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import("std");
+FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const hv_ops_proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_hv_ops_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const hv_ops_proof_tests = b.addTest(.{
-        .name = "phase11-hvc-hv-ops-layout-proof-tests",
+        .name = \"phase11-hvc-hv-ops-layout-proof-tests\",
         .root_module = hv_ops_proof_module,
     });
     const run_hv_ops_proof_tests = b.addRunArtifact(hv_ops_proof_tests);
 
     const export_surface_proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const export_surface_proof_tests = b.addTest(.{
-        .name = "phase11-hvc-export-surface-layout-proof-tests",
+        .name = \"phase11-hvc-export-surface-layout-proof-tests\",
         .root_module = export_surface_proof_module,
     });
     const run_export_surface_proof_tests = b.addRunArtifact(export_surface_proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 exported-header proofs\");
     test_step.dependOn(&run_hv_ops_proof_tests.step);
     test_step.dependOn(&run_export_surface_proof_tests.step);
 }
 """
 
 
-FIXTURE_EXPORT_BUILD_TEXT = """const std = @import("std");
+FIXTURE_EXPORT_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-export-surface-layout-proof",
+        .name = \"phase11-hvc-export-surface-layout-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC exported-helper ABI proof\");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
@@ -527,6 +535,15 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - current-head HVC continuity packet rather than a whole-Phase-11 replay roster
+"""
+
+FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
+
+## Phase 11
+
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `make -C zigux phase11-validate`
 """
 
 FIXTURE_WORKFLOW_TEXT = """name: zigux-bootstrap
@@ -568,6 +585,7 @@ def build_fixture(root: Path) -> None:
     write(root / EXPORT_BUILD_PATH, FIXTURE_EXPORT_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
+    write(root / SCRIPTS_README_PATH, FIXTURE_SCRIPTS_README_TEXT)
     write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
     write(root / MAKEFILE_PATH, FIXTURE_MAKEFILE_TEXT)
 
@@ -713,6 +731,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_makefile_marker,
             "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+        )
+        case_count += 1
+
+        missing_scripts_readme_marker = tmpdir / "missing_scripts_readme_marker"
+        shutil.copytree(fixture, missing_scripts_readme_marker, dirs_exist_ok=True)
+        write(
+            missing_scripts_readme_marker / SCRIPTS_README_PATH,
+            read_text(missing_scripts_readme_marker / SCRIPTS_README_PATH).replace(
+                "- `make -C zigux phase11-validate`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_scripts_readme_marker,
+            "`make -C zigux phase11-validate`",
         )
         case_count += 1
 
