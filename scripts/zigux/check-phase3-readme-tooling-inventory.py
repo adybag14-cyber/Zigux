@@ -44,6 +44,9 @@ HEADER_FAMILY_VALIDATOR_FILE = Path(
 HEADER_FAMILY_NOTE_FILE = Path(
     "Documentation/zigux/phase3-abi-header-family-survey.md"
 )
+HEADER_FAMILY_NEXT_STEP_NOTE_FILE = Path(
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+)
 EXPORT_UAPI_SURVEY_NOTE_FILE = Path(
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 )
@@ -127,10 +130,10 @@ HEADER_FAMILY_RETURNED_SURFACES_MARKER = (
     "in repo-reality-gap wording"
 )
 HEADER_FAMILY_NEXT_STEP_REMINDER_MARKER = (
-    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` still returns missing on current "
-    "`master`, so keep the broader header-family next-step follow-through framed as the "
-    "remaining same-family gap rather than implying that the shipped survey follow-through is "
-    "still missing"
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` is directly readable on current "
+    "`master`, so keep that focused abi.h next-step follow-through explicit beside the bounded "
+    "header-family survey, the shared ABI inventory, and the export/UAPI layout replay instead "
+    "of leaving it in repo-reality-gap wording"
 )
 
 REQUIRED_FILES = (
@@ -158,6 +161,7 @@ REQUIRED_FILES = (
     FIXTURE_MANIFEST_FILE,
     HEADER_FAMILY_VALIDATOR_FILE,
     HEADER_FAMILY_NOTE_FILE,
+    HEADER_FAMILY_NEXT_STEP_NOTE_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     XARRAY_SLOT_CHECK_FILE,
@@ -460,6 +464,10 @@ FILE_CASES = (
     (
         HEADER_FAMILY_NOTE_FILE,
         "expected missing header-family survey note was not reported",
+    ),
+    (
+        HEADER_FAMILY_NEXT_STEP_NOTE_FILE,
+        "expected missing header-family next-step note was not reported",
     ),
     (
         LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
