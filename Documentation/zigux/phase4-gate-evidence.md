@@ -12,7 +12,7 @@
   * `PHASE4_SCRIPT_README_BLOB_SHA=83126c399d73992e4aabbd11d8c57326ad3ae31b`
   * `PHASE4_TESTS_README_BLOB_SHA=4df2358985dca0abf52dbf08258841a77cf02b91`
   * `PHASE4_VALIDATOR_BLOB_SHA=4ef6d3c50ee6111e6855ff05fe92928c5700097b`
-  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=69a76e9bc7329310d39e182b7c15ff0d5ee4e75c`
+  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=6daa6d402dffe7980df66762604109cdba5ad1f4`
   * `PHASE4_ATOMIC64_DIFF_BLOB_SHA=e84bf84b5e24428d596fe25502512fa24ce28b51`
   * `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=9ad41de72613cd72273b41c9cf2a64a0c46962df`
   * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=0c7e843708eefefd688d4909110b81bf3782176c`
@@ -34,7 +34,7 @@
   * `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
 
 ## Exact Readback Evidence
-  * `scripts/zigux/check-phase4-gate-evidence.py` now exact-pins the broader packet instead of leaving the checker blob implicit.
+  * `scripts/zigux/check-phase4-gate-evidence.py` now recomputes the broader packet blob pins from live file contents so stale readback evidence fails closed.
   * The runtime atomic64 handoff remains reviewable through `phase4-runtime-atomic64-diff-survey-tests`, `make -C zigux phase4-runtime-atomic64-diff-survey`, two `inc_not_zero` checks, and three `dec_if_positive` checks.
   * The adjacent local-only perf packet remains explicit through `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and the shared posture that local-only benchmark commands and acceptable limits are approved today while shared CI perf promotion pending remains unchanged.
   * The parked starter-gap packet keeps `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix` explicit beside the current `make -C zigux phase4-kprobe-example-survey` and `make -C zigux phase4-test-fsmount-survey` wrappers.
