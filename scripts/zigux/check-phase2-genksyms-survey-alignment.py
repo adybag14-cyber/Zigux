@@ -33,7 +33,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.",
     "Current `master` directly serves the bounded checker and expanded expected-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "`scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note",
+    "`scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, and survey-local fixture inventory while also requiring the workflow, make-wrapper, and validator companion packet to stay present",
     "there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
     "either teach `scripts/zigux/check-genksyms-bridge.py` to validate the restored process-output fixtures too, or add a dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`",
 )
@@ -108,7 +108,7 @@ Lane: `P2-L07`
 - Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.
 - Current `master` directly serves the bounded checker and expanded expected-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json` are all readable on head.
 - Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` all still name the checker, fixture roster, or `phase2-genksyms` replay route.
-- `scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, fixture, workflow, make-wrapper, and validator packet.
+- `scripts/zigux/check-phase2-genksyms-survey-alignment.py` now fail-closes the survey note against the current helper, checker, and survey-local fixture inventory while also requiring the workflow, make-wrapper, and validator companion packet to stay present, without widening into parser behavior or closure-note churn.
 - The narrower repo-reality gap is still governance-shaped rather than an implementation absence: the dedicated checker and broader shared Phase 2 reminder packet still do not fail-close on every restored process-output fixture, and there is still no dedicated `zigux/tests/fixtures/genksyms_bridge/manifest.json`.
 
 ## Next bounded same-family step
@@ -193,7 +193,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Fail closed when the Phase 2 genksyms survey drifts from the live dual-implementation packet.")
+    parser = argparse.ArgumentParser(
+        description="Fail closed when the Phase 2 genksyms survey wording or companion-file presence drifts from the live dual-implementation packet."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
