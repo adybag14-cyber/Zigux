@@ -257,6 +257,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_scatterlist_build.zig`
 - `security/landlock/ruleset.zig`
+- `security/landlock/syscalls.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `Documentation/zigux/review-checklist.md`
