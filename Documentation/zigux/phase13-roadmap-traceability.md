@@ -48,6 +48,7 @@ Use this compact reread before editing the broader Phase 13 packet.
 
 - refresh basis: current `master` direct readback on `2026-05-21`
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
+- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`
 - stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`
