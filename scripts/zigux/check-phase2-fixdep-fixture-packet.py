@@ -183,6 +183,8 @@ def collect_case_issues(path: Path) -> list[tuple[str, str]]:
         if name in seen:
             duplicates.add(name)
         seen.add(name)
+        if name not in REQUIRED_CASE_ORDER:
+            issues.append(("UNEXPECTED_FIXDEP_CASE", name))
 
     for name in sorted(duplicates):
         issues.append(("DUPLICATE_FIXDEP_CASE", name))
@@ -379,7 +381,18 @@ def run_self_test() -> int:
         payload[0]["name"] = "unexpected_fixdep_case"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
+        assert ("UNEXPECTED_FIXDEP_CASE", "unexpected_fixdep_case") in issues
         assert ("MISSING_FIXDEP_CASE", REQUIRED_CASE_ORDER[0]) in issues
+        assert any(code == "FIXDEP_CASE_ORDER_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload.append({"name": "unexpected_fixdep_case"})
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("UNEXPECTED_FIXDEP_CASE", "unexpected_fixdep_case") in issues
         assert any(code == "FIXDEP_CASE_ORDER_MISMATCH" for code, _ in issues)
         checks_run += 1
 
