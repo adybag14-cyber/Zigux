@@ -23,7 +23,7 @@ That roadmap boundary still matters, but repo reality matters more than stale re
 
 ## Live repo reality on current master
 
-Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.
+Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 9 packets.
 
 ### 1. Trace-events remains the direct shipped runtime sample family
 
@@ -50,9 +50,9 @@ That means the truthful shared-owner posture is narrower and more useful: the re
 
 ### 3. The runtime bitmap side is still only partial
 
-- direct authenticated reads do materialize `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-- the same trusted read path still returns missing for `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json`
-- current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces
+- direct authenticated reads do materialize `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- the same trusted read path still returns missing for `zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig`
+- current `master` therefore supports a manifest-backed partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces
 
 ## Current shared-owner state
 
@@ -66,8 +66,8 @@ This means the shared owner packet should keep the narrow trace-events family ex
 
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds are the current allocator/init-flow packet evidence surfaces
 - `zigux/tests/phase9_build.zig` now records the bounded atomic64, bitmap, loader-shared, and cross-family parity-survey rerun shard rather than full publication completion
-- `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current trusted bitmap-side evidence surfaces
-- the missing bitmap module gate, diff gate, and manifest stay repo-reality gaps on the same trusted path until a later reread restores them
+- `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current trusted bitmap-side evidence surfaces
+- the missing bitmap module gate and diff gate stay repo-reality gaps on the same trusted path until a later reread restores them
 - no shared reminder surface should present the partial bitmap packet as equal to the shipped trace-events packet or as proof that all runtime publication boundaries are now complete
 
 ## Historical boundaries
@@ -106,7 +106,7 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 
 1. Re-read this lane-sequencing note first, because the scripts-root reminder already caught up and the next smallest stale shared reminder surface was this note's loader-versus-build-route summary.
 2. After that, prefer `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or another single shared reminder surface only after a fresh exact reread confirms new drift in the same mixed-source packet.
-3. If the still-missing bitmap module, diff, and manifest legs return later, widen the bitmap-side reminder packet only after the trusted direct read path returns those exact files.
+3. If the still-missing bitmap module and diff legs return later, widen the bitmap-side reminder packet only after the trusted direct read path returns those exact files.
 4. If the blocked publication or install-root surfaces return later, widen this note only after an exact reread proves those deeper loader-family files too.
 
 ## Anti-overlap rule
