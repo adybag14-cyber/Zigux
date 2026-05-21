@@ -74,7 +74,7 @@ test "phase10 virtio ring survey note keeps the broader public-readback replay e
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
 }
 
-test "phase10 virtio ring survey manifest keeps lane identity and blocked transport posture explicit" {
+test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundary posture explicit" {
     const allocator = std.testing.allocator;
 
     const manifest = try readRepoRelative(
@@ -84,7 +84,21 @@ test "phase10 virtio ring survey manifest keeps lane identity and blocked transp
     defer allocator.free(manifest);
 
     try expectContains(manifest, "\"lane_key\": \"P10-L10\"");
+    try expectContains(manifest, "\"freeze_status_change_claimed\": false");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
+    try expectContains(manifest, "\"allowed_evidence_kinds\": [");
+    try expectContains(manifest, "\"driver_local_lab_slices\"");
+    try expectContains(manifest, "\"survey_manifests\"");
+    try expectContains(manifest, "\"shared_validation_gates\"");
+    try expectContains(manifest, "\"forbidden_transport_claims\": [");
+    try expectContains(manifest, "\"queue_setup_reset_paths\"");
+    try expectContains(manifest, "\"irq_parity\"");
+    try expectContains(manifest, "\"dma_paths\"");
+    try expectContains(manifest, "\"input_registration_lifecycle\"");
+    try expectContains(manifest, "\"probe_remove_lifecycle\"");
+    try expectContains(manifest, "\"architecture_council_reopen_required\": true");
+    try expectContains(manifest, "\"architecture_council_reopen_attached\": false");
+    try expectContains(manifest, "\"freeze_boundary_owner_lane\": \"P10-L11\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-ring-survey-gate\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-readiness-helper\"");
