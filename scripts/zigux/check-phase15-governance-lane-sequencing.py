@@ -18,11 +18,14 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "Phase 15 is a governance tranche, not a hidden deep-core delivery lane.",
     "`zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`",
-    "`zigux/tests/phase15_handoff_next_steps_manifest.json` and `scripts/zigux/check-phase15-handoff-note-alignment.py`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_handoff_next_steps.zig`",
+    "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "The shared reminder surfaces must not say that:",
     "a deep-core status change has been approved",
     "a freeze-in-C anchor is ready for a direct Zigux bridge",
     "a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`",
+    "python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
     "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
@@ -33,6 +36,7 @@ REQUIRED_READINESS_MARKERS = (
     "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
     "`zigux/tests/phase15_governance_lane_sequencing.zig`",
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
 )
 
 EXPECTED_MAINTENANCE_REPLAY_COMMANDS = (
@@ -48,7 +52,6 @@ EXPECTED_MAINTENANCE_REPLAY_COMMANDS = (
 EXPECTED_MISSING_BROADER_PATHS = (
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 EXPECTED_DIRECT_PACKET_PATHS = (
@@ -67,6 +70,7 @@ EXPECTED_DIRECT_PACKET_PATHS = (
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
 )
 
@@ -159,7 +163,7 @@ def _sample_sequencing_note() -> str:
 - `PHASE15_STATUS=governance_lane_sequencing_packet_landed`
 - `PHASE15_LANE_KEY=arch-council`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
 
 ## Purpose
 
@@ -169,7 +173,7 @@ Phase 15 is a governance tranche, not a hidden deep-core delivery lane.
 
 {direct_paths}
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json` and `scripts/zigux/check-phase15-handoff-note-alignment.py`
+- `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `scripts/zigux/check-phase15-handoff-note-alignment.py`
 
 ## Shared-surface boundaries
 
@@ -187,6 +191,7 @@ Current `master` still returns missing for several broader Phase 15 companions t
 
 ## Maintenance-mode handoff
 
+  - `python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 {replay_commands}
 """
 
@@ -196,7 +201,7 @@ def _sample_manifest() -> str:
         {
             "lane_key": "arch-council",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-19",
+            "surveyed_commit": "current-master-readback-2026-05-20",
             "sequencing_note": str(SEQUENCING_NOTE_PATH),
             "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
             "shared_summary_gap_note": str(SHARED_GAP_NOTE_PATH),
@@ -215,9 +220,9 @@ def _sample_readiness_note() -> str:
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
@@ -226,7 +231,6 @@ def _sample_shared_gap_note() -> str:
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
@@ -279,10 +283,10 @@ def run_self_test() -> int:
 
         missing_direct_root = root / "missing_direct"
         _seed_repo(missing_direct_root)
-        (missing_direct_root / "zigux/tests/phase15_handoff_next_steps_manifest.json").unlink()
+        (missing_direct_root / "zigux/tests/phase15_handoff_next_steps.zig").unlink()
         failures = collect_failures(missing_direct_root)
         expected = [
-            "repo is missing direct governance packet path: zigux/tests/phase15_handoff_next_steps_manifest.json"
+            "repo is missing direct governance packet path: zigux/tests/phase15_handoff_next_steps.zig"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct failure: {failures}")
