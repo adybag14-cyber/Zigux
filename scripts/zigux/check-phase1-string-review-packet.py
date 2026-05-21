@@ -307,6 +307,10 @@ def load_json(root: Path, relative_path: Path) -> object:
     return json.loads(load_text(root, relative_path))
 
 
+def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
+    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     if count != 1:
@@ -355,8 +359,16 @@ def collect_failures(root: Path) -> list[str]:
 
     helper_text = load_text(root, STRING_HELPER_REL)
     lane_text = load_text(root, STRING_LANE_NOTE_REL)
-    manifest = load_json(root, STRING_MANIFEST_REL)
-    fixture = load_json(root, STRING_FIXTURE_REL)
+    try:
+        manifest = load_json(root, STRING_MANIFEST_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("manifest", exc)]
+
+    try:
+        fixture = load_json(root, STRING_FIXTURE_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("fixture", exc)]
+
     if not isinstance(manifest, dict):
         return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
     if not isinstance(fixture, dict):
@@ -559,6 +571,8 @@ def run_self_test() -> int:
     mutation_specs.append(("manifest_missing_file", ("missing_file", STRING_MANIFEST_REL), "missing_file"))
     mutation_specs.append(("fixture_missing_file", ("missing_file", STRING_FIXTURE_REL), "missing_file"))
     mutation_specs.append(("lane_note_missing_file", ("missing_file", STRING_LANE_NOTE_REL), "missing_file"))
+    mutation_specs.append(("manifest_invalid_json", ("invalid_json", STRING_MANIFEST_REL), "invalid_json"))
+    mutation_specs.append(("fixture_invalid_json", ("invalid_json", STRING_FIXTURE_REL), "invalid_json"))
 
     for name, target, kind in mutation_specs:
         safe_name = name.replace("/", "_")
@@ -606,6 +620,8 @@ def run_self_test() -> int:
                 mutate_json_path(root, STRING_MANIFEST_REL, target[1])
             elif isinstance(target, tuple) and target[0] == "fixture":
                 mutate_json_path(root, STRING_FIXTURE_REL, target[1])
+            elif isinstance(target, tuple) and target[0] == "invalid_json":
+                (root / target[1]).write_text("{\n", encoding="utf-8")
             else:
                 (root / target[1]).unlink()
 
