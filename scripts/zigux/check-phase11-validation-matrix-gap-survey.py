@@ -42,6 +42,9 @@ MARKERS = {
         "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
         "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
         "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+        "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+        "`python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+        "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
         "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
         "`scripts/zigux/validate-phase11.py`",
         "`python3 scripts/zigux/validate-phase11.py`",
@@ -49,6 +52,7 @@ MARKERS = {
         "`phase11-hvc-hv-ops-layout-proof-tests`",
         "`phase11-hvc-export-surface-layout-proof-tests`",
         "`phase11-hvc-cleanup-packet-proof`",
+        "The dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also stays directly readable beside that smaller proof inventory and standalone witness pair",
         "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
     ],
 }
@@ -249,7 +253,10 @@ def build_self_test_fixture(root: Path) -> None:
 - That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so keep that targetless-unregister failure-mode evidence explicit beside the narrower three-proof inventory instead of silently collapsing it into the shared proof-backed roster.
+- The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, so keep that focused witness-check route explicit beside the standalone witness pair instead of treating the pair as unchecked prose evidence.
 - Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`, so keep that returned shared validation-and-build gate explicit beside the matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - `scripts/zigux/validate-phase11.py`
 - `python3 scripts/zigux/validate-phase11.py`
@@ -257,6 +264,7 @@ def build_self_test_fixture(root: Path) -> None:
 - `phase11-hvc-hv-ops-layout-proof-tests`
 - `phase11-hvc-export-surface-layout-proof-tests`
 - `phase11-hvc-cleanup-packet-proof`
+- The dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also stays directly readable beside that smaller proof inventory and standalone witness pair.
 - The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory.
 """,
     )
@@ -339,9 +347,21 @@ def run_self_test() -> None:
             ),
             (
                 "matrix_gap_note",
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+            ),
+            (
+                "matrix_gap_note",
+                "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+            ),
+            (
+                "matrix_gap_note",
                 "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
             ),
             ("matrix_gap_note", "`python3 scripts/zigux/validate-phase11.py`"),
+            (
+                "matrix_gap_note",
+                "The dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also stays directly readable beside that smaller proof inventory and standalone witness pair",
+            ),
             (
                 "matrix_gap_note",
                 "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
@@ -420,7 +440,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=20")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=23")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
