@@ -48,6 +48,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_verify_routing_gap.zig`",
         "`zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
+        "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
     ),
     BRIDGE_BOUNDARY_SURVEY_PATH: (
         "deferred `perf-buffer-online-cpu-routing` packet",
