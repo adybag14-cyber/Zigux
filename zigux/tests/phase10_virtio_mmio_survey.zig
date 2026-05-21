@@ -26,6 +26,8 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_manifest.json");
+    try expectContains(survey_note, "probe preflight gating");
+    try expectContains(survey_note, "selected-queue readiness");
     try expectContains(survey_note, "interrupt-ack disposition review");
     try expectContains(survey_note, "staged config-write planning");
     try expectContains(survey_note, "config-write disposition reporting");
