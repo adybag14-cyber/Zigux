@@ -39,8 +39,14 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - shared-tree raw-read anchors during degraded contents reads:
   - `zigux/tests/phase12_build.zig`
   - `scripts/zigux/check-build-only-phase12-surface.py`
-- rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in PMO release wording. Only the `virtio_scsi` catalog is commit-pinned direct replay evidence, and neither the NVMe gap note nor the shared-tree anchors should be promoted into extra commit-pinned fallback artifacts unless new dedicated files actually land.
-- keep the shared build anchor plus checker visible during degraded contents reads too, and do not promote any of those shared-tree surfaces into extra commit-pinned fallback artifacts unless new dedicated files actually land.
+- current contents-bridge shared support bundle during degraded contents reads:
+  - `scripts/zigux/validate-phase12.py`
+  - `scripts/zigux/check-phase12-release-readiness-packet.py`
+  - `.github/workflows/zigux-bootstrap.yml`
+  - `scripts/zigux/README.md`
+  - `zigux/Makefile`
+- rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in PMO release wording. Only the `virtio_scsi` catalog is commit-pinned direct replay evidence, and neither the NVMe gap note, the shared-tree anchors, nor the current contents-bridge shared support bundle should be promoted into extra commit-pinned fallback artifacts unless new dedicated files actually land.
+- keep the shared build anchor plus checker plus current contents-bridge shared support bundle visible during degraded contents reads too, and do not promote any of those support surfaces into extra commit-pinned fallback artifacts unless new dedicated files actually land.
 
 ## Smoke Set
 Current repo-reality override: `zigux/Makefile` now exposes `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, while `phase12-validate` remains reminder-only vocabulary until same-lane work rematerializes that wrapper. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`. Keep the compact PMO order aligned with the rest of the shared Phase 12 packet: `make -C zigux phase12-validate` is still reminder-only vocabulary, but it remains the validator-first entry in the sequencing contract before the shipped smoke-and-test wrapper reruns.
