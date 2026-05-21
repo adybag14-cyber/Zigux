@@ -28,4 +28,21 @@ test "phase 8 libbpf-segment compatibility witness keeps the focused verify-rout
             "phase 8 verify routing witness records the current direct-readback libbpf survey packet",
         ) != null,
     );
+
+    const routed_review_build = try readRepoFile("zigux/tests/phase8_verify_routing_gap_only_build.zig");
+    defer std.testing.allocator.free(routed_review_build);
+
+    try std.testing.expect(
+        std.mem.indexOf(u8, routed_review_build, "phase8_verify_routing_gap.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, routed_review_build, "phase8_verify_routing_gap") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            routed_review_build,
+            "Run the phase 8 verify routing witness tests.",
+        ) != null,
+    );
 }
