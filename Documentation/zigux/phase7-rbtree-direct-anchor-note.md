@@ -15,6 +15,7 @@ In this slot, the directly readable same-lane truthfulness packet is limited to:
 Fresh authenticated GitHub reread in this slot directly returned:
 
 - `Documentation/zigux/phase7-rbtree-slice.md`
+- `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`
 - `tools/lib/rbtree.zig`
 - `zigux/tests/phase7_rbtree.zig`
 - `zigux/tests/phase7_rbtree_survey.zig`
