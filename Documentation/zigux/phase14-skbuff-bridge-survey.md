@@ -36,6 +36,20 @@ The live bridge packet therefore remains review-only boundary evidence, not a de
 4. keep the live bridge-local packet aligned with the manifest and focused gate
    - if the bridge, dedicated test, manifest, or Phase 14 build shard drifts again, fix the directly coupled packet before widening into shared Phase 14 reminder surfaces
 
+## Stay-In-C Guardrail
+- manifest-backed guardrail: `phase14-skbuff-stay-in-c-guardrail` keeps this review-only packet fail-closed until the same packet carries explicit reopen evidence instead of lighter bridge-presence wording
+- machine-check surface: `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, review-only posture, live-packet wording, and required stay-in-C evidence
+- rollback owner: `Repo Tooling Pod`
+- required evidence before any status review:
+  - `Architecture Council` reopen record linked from the active skbuff packet
+  - parity scorecard evidence and benchmark notes attached to the same skbuff packet
+  - validation replay command and evidence archive path recorded beside the latest blocker disposition
+- automatic return-to-blocked triggers:
+  - any `net/core/skbuff_bridge.zig` claim or status review that drops `phase14-skbuff-live-ownership-blocker`
+  - missing qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, or final sock-owned tail transfer wording in the active skbuff packet
+  - any bridge-presence wording that upgrades the packet into parity, runtime ownership, or a freeze-map status change without the required reopen evidence
+
 ## Next bounded step
 Leave this lane parked unless a future current-`master` reread finds another survey-only drift against the live skbuff bridge packet or the Phase 14 roadmap.
 If it reopens, first compare this note with `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, and `zigux/tests/phase14_build.zig`, then keep the repair inside this survey note only unless those directly coupled surfaces prove the wording stale again.
+If the packet ever moves toward status review, update this note and `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py` together before any broader shared Phase 14 reminder surface repeats the claim.
