@@ -41,7 +41,9 @@ REQUIRED_SOURCE_MARKERS = {
         "struct zigux_notifier_block {",
         "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
         "static inline int zigux_notifier_first_chain_priority_increase(",
+        "static inline int zigux_list_first_broken_backlink(",
         "static inline int zigux_list_has_consistent_backlinks(",
+        "static inline int zigux_hlist_first_broken_prev_link(",
         "static inline int zigux_hlist_has_consistent_prev_links(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline zigux_boundary_header zigux_compatible_header(",
@@ -68,7 +70,9 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;",
         "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
         "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
+        "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
         "pub fn defaultHeader(flags: u16) BoundaryHeader {",
         "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
@@ -94,7 +98,9 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const HListPrevLinkBreak = extern struct {",
         "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
         "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {",
+        "pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
     ABI_CHECKER_PATH: (
@@ -493,9 +499,24 @@ def run_self_test() -> int:
                 "missing zigux/tests/build.zig marker: const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);",
             ),
             (
+                ABI_HEADER_PATH,
+                'static inline int zigux_list_first_broken_backlink(\n',
+                "missing include/zigux/abi.h marker: static inline int zigux_list_first_broken_backlink(",
+            ),
+            (
                 ABI_BINDINGS_PATH,
                 'pub const NotifierResult = notifier_abi.NotifierResult;\n',
                 "missing zigux/bindings/abi.zig marker: pub const NotifierResult = notifier_abi.NotifierResult;",
+            ),
+            (
+                ABI_BINDINGS_PATH,
+                'pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {\n',
+                "missing zigux/bindings/abi.zig marker: pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {",
+            ),
+            (
+                NOTIFIER_BINDINGS_PATH,
+                'pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {\n',
+                "missing zigux/bindings/notifier_abi.zig marker: pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
             ),
             (
                 PHASE3_CATALOG_PATH,
@@ -585,7 +606,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
