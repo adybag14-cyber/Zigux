@@ -112,7 +112,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-trace-events-loader-substrate-drift-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-command-env-boundary-guard-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
     try expectContains(phase9_build, "\"phase9-first-loadable-runtime-module-parity-survey-tests\"");
     try expectContains(phase9_build, "\"runtime_first_loadable_parity_survey.zig\"");
