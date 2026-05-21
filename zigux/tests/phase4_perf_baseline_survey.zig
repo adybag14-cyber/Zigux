@@ -71,3 +71,12 @@ test "phase4 perf baseline survey keeps the dedicated packet contract reviewable
     try requireMarker("\"ABI and Runtime Team\"");
     try requireMarker("\"Shared Subsystems Pod\"");
 }
+
+test "phase4 perf baseline survey keeps coordination-owner and evidence-id pins exact" {
+    try requireMarkerCount("\"coordination_owners\": [", 2);
+    try requireMarkerCount("\"owner\": \"Validation and Perf Team\"", 2);
+    try requireMarker("\"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\"");
+    try requireMarker("\"id\": \"phase4-perf-baseline-atomic64-command-evidence\"");
+    try requireMarker("\"id\": \"phase4-perf-baseline-bitmap-acceptable-limit\"");
+    try requireMarker("\"id\": \"phase4-perf-baseline-bitmap-command-evidence\"");
+}
