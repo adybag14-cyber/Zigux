@@ -117,32 +117,39 @@ pub const RuntimeBitmapSample = struct {
         if (start >= bitmap_nbits or len > bitmap_nbits - start) return error.BitRangeOutOfBounds;
     }
 
-    fn assignBit(self: *Self, bit: u32, value: bool) void {
+    fn assignBitWords(words: []bitmap_view.Word, bit: u32, value: bool) void {
         const word_index: usize = @intCast(bit / bitmap_view.word_bits);
         const bit_index: u6 = @intCast(bit % bitmap_view.word_bits);
         const mask: bitmap_view.Word = @as(bitmap_view.Word, 1) << bit_index;
         if (value) {
-            self.words[word_index] |= mask;
+            words[word_index] |= mask;
         } else {
-            self.words[word_index] &= ~mask;
+            words[word_index] &= ~mask;
         }
+    }
+
+    fn assignBit(self: *Self, bit: u32, value: bool) void {
+        assignBitWords(self.words[0..], bit, value);
     }
 
     pub fn initWithSetBits(self: *Self, bits: []const u32) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
-        self.words = [_]bitmap_view.Word{0} ** backing_word_count;
+
+        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
         for (bits) |bit| {
             if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
-            self.assignBit(bit, true);
+            assignBitWords(next_words[0..], bit, true);
         }
+
+        self.words = next_words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
 
     pub fn initFromBitList(self: *Self, bit_list: []const u8) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
-        self.words = [_]bitmap_view.Word{0} ** backing_word_count;
 
+        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
         const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
         if (trimmed.len != 0) {
             var tokens = std.mem.splitScalar(u8, trimmed, ',');
@@ -151,10 +158,11 @@ pub const RuntimeBitmapSample = struct {
                 if (token.len == 0) return error.InvalidBitList;
                 const bit = std.fmt.parseUnsigned(u32, token, 10) catch return error.InvalidBitList;
                 if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
-                self.assignBit(bit, true);
+                assignBitWords(next_words[0..], bit, true);
             }
         }
 
+        self.words = next_words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
