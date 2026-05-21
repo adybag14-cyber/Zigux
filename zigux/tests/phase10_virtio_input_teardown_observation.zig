@@ -1,34 +1,18 @@
 const std = @import("std");
 const virtio_input = @import("virtio_input");
-
-pub const TeardownObservationSummary = virtio_input.TeardownObservationSummary;
-
-pub fn summarize(device: *const virtio_input.VirtioInputLab) TeardownObservationSummary {
-    return device.teardownObservationSummary();
-}
-
-pub fn runtimeStateArmed(summary: TeardownObservationSummary) bool {
-    return summary.clears_runtime_state;
-}
-
-pub fn capabilityStateArmed(summary: TeardownObservationSummary) bool {
-    return summary.clears_capability_state;
-}
-
-pub fn preservesIdentity(summary: TeardownObservationSummary) bool {
-    return summary.preserves_identity;
-}
+const teardown = @import("virtio_input_teardown_observation");
 
 test "phase10 virtio input teardown observation keeps identity while resettable runtime state stays explicit" {
+    const ids = virtio_input.DeviceIds{
+        .vendor = 0x1af4,
+        .product = 0x1052,
+        .version = 7,
+    };
     var device = try virtio_input.VirtioInputLab.init(
         "Virtio Touch Lab",
         "serial-24",
         3,
-        .{
-            .vendor = 0x1af4,
-            .product = 0x1052,
-            .version = 7,
-        },
+        ids,
     );
 
     try device.configureEventQueue(16);
@@ -40,36 +24,38 @@ test "phase10 virtio input teardown observation keeps identity while resettable 
     try std.testing.expect(sent.sent);
     try std.testing.expectEqual(@as(usize, 1), sent.queued_status_count);
 
-    const summary = device.teardownObservationSummary();
+    const summary = teardown.summarize(&device);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
     try std.testing.expectEqualStrings("Virtio Touch Lab", summary.name);
     try std.testing.expectEqualStrings("serial-24", summary.serial);
     try std.testing.expectEqualStrings("virtio3/input0", summary.phys);
-    try std.testing.expect(summary.event_queue_was_configured);
-    try std.testing.expect(summary.status_queue_was_configured);
+    try std.testing.expect(teardown.idsMatch(summary, ids));
+    try std.testing.expect(teardown.eventQueueConfigured(summary));
+    try std.testing.expect(teardown.statusQueueConfigured(summary));
     try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.queued_status_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.suppressed_status_count);
-    try std.testing.expect(summary.ready_before_reset);
-    try std.testing.expect(summary.preserves_identity);
-    try std.testing.expect(summary.clears_runtime_state);
-    try std.testing.expect(!summary.clears_capability_state);
+    try std.testing.expectEqual(@as(usize, 1), teardown.queuedStatusCount(summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown.suppressedStatusCount(summary));
+    try std.testing.expect(teardown.readyBeforeReset(summary));
+    try std.testing.expect(teardown.preservesIdentity(summary));
+    try std.testing.expect(teardown.runtimeStateArmed(summary));
+    try std.testing.expect(!teardown.capabilityStateArmed(summary));
 
     device.reset();
 
+    const post_reset = teardown.summarize(&device);
     const snapshot = device.configSnapshot();
     try std.testing.expectEqualStrings("Virtio Touch Lab", snapshot.name);
     try std.testing.expectEqualStrings("serial-24", snapshot.serial);
     try std.testing.expectEqualStrings("virtio3/input0", snapshot.phys);
     try std.testing.expectEqual(@as(u16, virtio_input.bus_virtual), snapshot.ids.bustype);
-    try std.testing.expectEqual(@as(u16, 0x1af4), snapshot.ids.vendor);
-    try std.testing.expectEqual(@as(u16, 0x1052), snapshot.ids.product);
-    try std.testing.expectEqual(@as(u16, 7), snapshot.ids.version);
-    try std.testing.expectEqual(@as(u16, 0), device.event_descriptor_count);
-    try std.testing.expectEqual(@as(u16, 0), device.status_descriptor_count);
-    try std.testing.expectEqual(@as(u16, 0), device.queued_event_buffer_count);
-    try std.testing.expectEqual(@as(usize, 0), device.queued_status_count);
-    try std.testing.expect(!device.ready);
+    try std.testing.expect(teardown.idsMatch(post_reset, ids));
+    try std.testing.expect(!teardown.eventQueueConfigured(post_reset));
+    try std.testing.expect(!teardown.statusQueueConfigured(post_reset));
+    try std.testing.expectEqual(@as(usize, 0), teardown.queuedStatusCount(post_reset));
+    try std.testing.expectEqual(@as(usize, 0), teardown.suppressedStatusCount(post_reset));
+    try std.testing.expect(!teardown.readyBeforeReset(post_reset));
+    try std.testing.expect(!teardown.runtimeStateArmed(post_reset));
+    try std.testing.expect(!teardown.capabilityStateArmed(post_reset));
 }
 
 test "phase10 virtio input teardown observation reports capability and suppressed-status cleanup before reset" {
@@ -95,27 +81,27 @@ test "phase10 virtio input teardown observation reports capability and suppresse
     try std.testing.expectEqual(@as(usize, 0), suppressed.queued_status_count);
     try std.testing.expectEqual(@as(usize, 1), suppressed.suppressed_status_count);
 
-    const summary = device.teardownObservationSummary();
-    try std.testing.expect(summary.event_queue_was_configured);
-    try std.testing.expect(summary.status_queue_was_configured);
+    const summary = teardown.summarize(&device);
+    try std.testing.expect(teardown.eventQueueConfigured(summary));
+    try std.testing.expect(teardown.statusQueueConfigured(summary));
     try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.queued_status_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
-    try std.testing.expect(summary.ready_before_reset);
+    try std.testing.expectEqual(@as(usize, 0), teardown.queuedStatusCount(summary));
+    try std.testing.expectEqual(@as(usize, 1), teardown.suppressedStatusCount(summary));
+    try std.testing.expect(teardown.readyBeforeReset(summary));
     try std.testing.expect(summary.multitouch_was_enabled);
-    try std.testing.expectEqual(@as(u16, 6), summary.planned_multitouch_slots);
-    try std.testing.expect(summary.clears_runtime_state);
-    try std.testing.expect(summary.clears_capability_state);
+    try std.testing.expectEqual(@as(u16, 6), teardown.plannedMultitouchSlots(summary));
+    try std.testing.expect(teardown.runtimeStateArmed(summary));
+    try std.testing.expect(teardown.capabilityStateArmed(summary));
 
     device.reset();
 
-    try std.testing.expectEqual(@as(usize, 0), device.suppressed_status_count);
-    try std.testing.expectEqual(@as(usize, 0), device.config_bitmap_count);
-    try std.testing.expectEqual(@as(usize, 0), device.abs_info_count);
-    try std.testing.expectEqual(@as(u16, 0), device.planned_multitouch_slots);
-    try std.testing.expect(!device.multitouch_enabled);
-
-    const post_reset = device.teardownObservationSummary();
-    try std.testing.expect(!post_reset.clears_runtime_state);
-    try std.testing.expect(!post_reset.clears_capability_state);
+    const post_reset = teardown.summarize(&device);
+    try std.testing.expect(!teardown.eventQueueConfigured(post_reset));
+    try std.testing.expect(!teardown.statusQueueConfigured(post_reset));
+    try std.testing.expectEqual(@as(usize, 0), teardown.queuedStatusCount(post_reset));
+    try std.testing.expectEqual(@as(usize, 0), teardown.suppressedStatusCount(post_reset));
+    try std.testing.expectEqual(@as(u16, 0), teardown.plannedMultitouchSlots(post_reset));
+    try std.testing.expect(!teardown.readyBeforeReset(post_reset));
+    try std.testing.expect(!teardown.runtimeStateArmed(post_reset));
+    try std.testing.expect(!teardown.capabilityStateArmed(post_reset));
 }
