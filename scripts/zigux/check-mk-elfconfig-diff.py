@@ -14,6 +14,7 @@ ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig.zig"
 FD_TRAILING_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_bytes_test.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "mk_elfconfig"
 CASES_PATH = FIXTURE_DIR / "cases.json"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
 EXPECTED_CASES = {
     "elf32": {"input": "elf32.hex", "expected": "elf32_expected.json"},
@@ -113,6 +114,12 @@ EXPECTED_FD_TRAILING_ZIG_MARKERS = {
     "fd_trailing_invalid_class": 'test "fd-backed trailing invalid-class input exits silently" {',
     "fd_trailing_not_elf": 'test "fd-backed trailing non-ELF input exits with stderr" {',
 }
+EXPECTED_WORKFLOW_LINES = (
+    "      - name: Self-test current Phase 2 mk_elfconfig checker",
+    "        run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
+    "      - name: Check current Phase 2 mk_elfconfig packet",
+    "        run: python3 scripts/zigux/check-mk-elfconfig-diff.py",
+)
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
@@ -193,6 +200,20 @@ def validate_zig_source_markers(path: Path, markers: dict[str, str]) -> None:
 
 def load_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def validate_workflow_step_packet(path: Path) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    positions: list[int] = []
+    for expected_line in EXPECTED_WORKFLOW_LINES:
+        matches = [index for index, line in enumerate(lines) if line == expected_line]
+        if not matches:
+            raise ValueError(f"{path}:missing_workflow_line:{expected_line}")
+        if len(matches) != 1:
+            raise ValueError(f"{path}:duplicate_workflow_line:{expected_line}")
+        positions.append(matches[0])
+    if positions != sorted(positions):
+        raise ValueError(f"{path}:workflow_line_order={positions!r}")
 
 
 def validate_cases(cases: object) -> list[dict[str, str]]:
@@ -304,6 +325,7 @@ def check_cases(*, zig: str, compiler: str) -> None:
     if not FD_TRAILING_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_TRAILING_ZIG_TOOL)
     validate_zig_source_markers(FD_TRAILING_ZIG_TOOL, EXPECTED_FD_TRAILING_ZIG_MARKERS)
+    validate_workflow_step_packet(WORKFLOW_PATH)
     run_zig_tests(zig, ZIG_TOOL)
     run_zig_tests(zig, FD_TRAILING_ZIG_TOOL)
     cases = validate_cases(load_json(CASES_PATH))
@@ -340,7 +362,7 @@ def validate_self_test_case_count(cases: list[dict[str, str]]) -> int:
         raise ValueError(
             f"{CASES_PATH}:case_count={actual_case_count},expected_case_count={expected_case_count}"
         )
-    return actual_case_count
+    return actual_case_count + 1
 
 
 def run_self_test() -> None:
@@ -355,6 +377,7 @@ def run_self_test() -> None:
     if not FD_TRAILING_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_TRAILING_ZIG_TOOL)
     validate_zig_source_markers(FD_TRAILING_ZIG_TOOL, EXPECTED_FD_TRAILING_ZIG_MARKERS)
+    validate_workflow_step_packet(WORKFLOW_PATH)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
 
