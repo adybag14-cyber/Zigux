@@ -76,14 +76,23 @@ REQUIRED_MARKERS = {
         "pub fn add",
         "pub fn findAdd",
         "pub fn rb_find_add_cached",
+        "pub fn firstPostorder",
+        "pub fn rb_first_postorder",
+        "pub fn nextPostorder",
+        "pub fn rb_next_postorder",
     ],
     "zigux/tests/phase7_rbtree.zig": [
         'const rbtree = @import("../../tools/lib/rbtree.zig");',
         'test "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers" {',
         'test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries" {',
+        'test "phase 7 rbtree companion replays postorder aliases and null-stop handling" {',
         "rbtree.matchIterator",
         "rbtree.eraseInitCached",
         "rbtree.rb_erase_init_cached",
+        "rbtree.firstPostorder",
+        "rbtree.rb_first_postorder",
+        "rbtree.nextPostorder",
+        "rbtree.rb_next_postorder",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-rbtree-parity.py");',
@@ -123,7 +132,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 37
+SELF_TEST_CASE_COUNT = 46
 
 
 def read_text(path: Path) -> str:
@@ -311,6 +320,30 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_marker = "pub fn firstPostorder"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_first_postorder", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn rb_first_postorder"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_first_postorder_alias", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn nextPostorder"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_next_postorder", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn rb_next_postorder"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_next_postorder_alias", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         companion_path = tmp_root / "zigux" / "tests" / "phase7_rbtree.zig"
         companion_marker = "rbtree.rb_erase_init_cached"
         companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
@@ -336,6 +369,56 @@ def run_self_test() -> None:
         companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_cached_erase_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = 'test "phase 7 rbtree companion replays postorder aliases and null-stop handling" {'
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_postorder_replay",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.firstPostorder"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_first_postorder_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.rb_first_postorder"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_first_postorder_alias",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.nextPostorder"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_next_postorder_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.rb_next_postorder"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_next_postorder_alias",
             tmp_root,
             f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
         )
