@@ -136,7 +136,7 @@ test "phase 15 readiness manifest records the lane-owner replay as direct packet
     const readiness = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", readiness.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-19", readiness.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-20", readiness.surveyed_commit);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-readiness-gate-packet.py", readiness.readiness_packet_checker);
     try expectSliceContains(readiness.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing_manifest.json");
     try expectSliceContains(readiness.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing.zig");
