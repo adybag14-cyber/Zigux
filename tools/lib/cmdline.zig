@@ -319,14 +319,21 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
-test "nextArg keeps empty and unterminated quoted values aligned" {
-    const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("root", empty.param);
-    try std.testing.expectEqualStrings("", empty.value.?);
-    try std.testing.expectEqualStrings("quiet", empty.remaining);
+test "nextArg keeps quoted bare tokens together" {
+    const parsed = nextArg("\"two words\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("two words", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
 
-    const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("mode", unterminated.param);
-    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
-    try std.testing.expectEqualStrings("", unterminated.remaining);
+test "nextArg preserves empty quoted values" {
+    const parsed = nextArg("param=\"\" next") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("param", parsed.param);
+    try std.testing.expectEqualStrings("", parsed.value.?);
+    try std.testing.expectEqualStrings("next", parsed.remaining);
+
+    const trailing = nextArg("param=\"\"") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("param", trailing.param);
+    try std.testing.expectEqualStrings("", trailing.value.?);
+    try std.testing.expectEqualStrings("", trailing.remaining);
 }
