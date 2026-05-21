@@ -140,3 +140,51 @@ test "hweight helpers stay stable under bit reversal" {
         try std.testing.expectEqual(hweight_long(value), hweight_long(reversed));
     }
 }
+
+test "hweight helpers stay stable under byte swaps" {
+    const samples8 = [_]u32{ 0x01, 0x12, 0x69, 0xf0, 0xff };
+    for (samples8) |value| {
+        const swapped = @as(u32, @intCast(@byteSwap(@as(u8, @intCast(value)))));
+        try std.testing.expectEqual(swHweight8(value), swHweight8(swapped));
+        try std.testing.expectEqual(__sw_hweight8(value), __sw_hweight8(swapped));
+    }
+
+    const samples16 = [_]u32{ 0x0001, 0x1234, 0x6996, 0xf0f0, 0xffff };
+    for (samples16) |value| {
+        const swapped = @as(u32, @intCast(@byteSwap(@as(u16, @intCast(value)))));
+        try std.testing.expectEqual(swHweight16(value), swHweight16(swapped));
+        try std.testing.expectEqual(__sw_hweight16(value), __sw_hweight16(swapped));
+    }
+
+    const samples32 = [_]u32{ 0x0000_0001, 0x1234_5678, 0x6996_6996, 0xf0f0_f0f0, 0xffff_ffff };
+    for (samples32) |value| {
+        const swapped = @byteSwap(value);
+        try std.testing.expectEqual(swHweight32(value), swHweight32(swapped));
+        try std.testing.expectEqual(__sw_hweight32(value), __sw_hweight32(swapped));
+    }
+
+    const samples64 = [_]u64{
+        0x0000_0000_0000_0001,
+        0x0123_4567_89ab_cdef,
+        0x6996_6996_9669_9669,
+        0xf0f0_f0f0_f0f0_f0f0,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (samples64) |value| {
+        const swapped = @byteSwap(value);
+        try std.testing.expectEqual(swHweight64(value), swHweight64(swapped));
+        try std.testing.expectEqual(__sw_hweight64(value), __sw_hweight64(swapped));
+    }
+
+    const samples_long = [_]usize{
+        0x1,
+        0x1234,
+        if (@sizeOf(usize) == 4) 0x89ab_cdef else 0x0123_4567_89ab_cdef,
+        if (@sizeOf(usize) == 4) 0xf0f0_f0f0 else 0xf0f0_f0f0_f0f0_f0f0,
+    };
+    for (samples_long) |value| {
+        const swapped = @byteSwap(value);
+        try std.testing.expectEqual(hweightLong(value), hweightLong(swapped));
+        try std.testing.expectEqual(hweight_long(value), hweight_long(swapped));
+    }
+}
