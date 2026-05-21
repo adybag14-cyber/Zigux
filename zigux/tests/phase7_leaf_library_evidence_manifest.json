@@ -13,7 +13,6 @@
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
     "zigux/Makefile",
     "lib/string_helpers.zig",
-    "lib/string_helpers_parse_int_array.zig",
     "lib/cmdline.zig",
     "lib/argv_split.zig"
   ],
@@ -36,9 +35,9 @@
     },
     {
       "key": "string_helpers_parse_int_array",
-      "zig_helper": "lib/string_helpers_parse_int_array.zig",
+      "zig_helper": "lib/string_helpers.zig",
       "expected_markers": [
-        "pub const ParseIntArrayResult",
+        "pub const ParseIntArrayError",
         "pub fn parseIntArray"
       ]
     },
