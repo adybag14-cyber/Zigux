@@ -3,8 +3,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 ## Status
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
-- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-field-and-chrdev-window-layout-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=142cecfcfe3b01b07ef8c9f1010fc90bd4a56746`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-shared-abi-replays`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=73092ab6b3d86d14c83c3bcc10e47e7abe7b6d0e`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
@@ -13,14 +13,14 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=01a6b30ab444a9b6be66eb1fb3a0e3666f55863a`
 - `PHASE3_UNSAFE_POLICY_PATH=zigux/helpers/unsafe_policy.zig`
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-decoder-plus-permits-and-audit-aliases`
-- `PHASE3_UNSAFE_POLICY_BLOB_SHA=7598cfcfb87a863dd40d60e5150fa8493d1dc8ed`
+- `PHASE3_UNSAFE_POLICY_BLOB_SHA=e0b6820c0956f4d0fbf711c8c3bb4d8de9174a67`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=80bb8185281d1495f8a4389002c0b83f4b0d574c`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=086463703abc6b51b273545c71a790d7a88b3087`
-- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=827f468e2e05ff438fc4f3267578ee2626c14602`
-- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=3d790043d771e58daf6f18251b683b03007dded0`
+- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=630eb2a33947c8dd34c5e1af3e1022af9b777528`
+- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=c20f557b3f043b0e723492205adbaf18d27ee6be`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 - `PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py`
@@ -40,7 +40,7 @@ This lane does not justify broad runtime policy machinery on its own.
 ## Live Repo Reality
 This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.
 The current tree still carries a real bounded policy-and-unsafe packet, but the live proof surface has split into a helper-local policy slice plus a directly coupled low-level-wrapper packet rather than the older shared-ABI-only reminder route:
-- `zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` plus the current panic, allocator, and unsafe-scope byte values, and it now also keeps the current chrdev notify ack-window policy budget-window delivery-window view, summary, budget-view, and budget-summary layouts explicit so those ABI structs no longer live only in the shared replays.
+- `zigux/helpers/layout_assert.zig` is still a small generic helper, but it now centralizes compile-time layout checks for `BoundaryHeader`, `ExportStatus`, `InteropPolicy`, `NotifierBlock`, `ChainPriorityIncrease`, `ListHead`, `HListHead`, `HListNode`, `ListBackLinkBreak`, and `HListPrevLinkBreak` plus the current panic, allocator, unsafe-scope, and notifier-result values, and it now also keeps the current chrdev notify ack-window policy budget-window delivery-window view, summary, budget-view, and budget-summary layouts explicit so those ABI structs and constants no longer live only in the shared replays.
 - `zigux/helpers/panic_policy.zig` now keeps panic escalation explicit through `Escalation`, `escalationFor`, `causesImmediateHalt`, `emitsKernelBug`, and `permitsWarningOnlyContinuation`, while still rejecting unknown panic modes and nonzero reserved bytes through `modeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, and the paired `*PolicyBytes`, `*InteropPolicy`, and `*Byte` relays before raw-byte callers infer behavior elsewhere in the packet.
 - `zigux/helpers/allocator_policy.zig` keeps allocator mode, init ownership, owned-state setup, and reset requirements explicit through `InitFlow`, `initFlowFor`, `modeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `permitsGlobalFallbackPolicyBytes`, `initializesOwnedStatePolicyBytes`, and `requiresResetOnInitPolicyBytes` so unknown allocator modes, helper-owned initialization, arena reset requirements, and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.
 - `zigux/helpers/unsafe_policy.zig` is now the helper-local unsafe-scope decoder that keeps the unsafe capability split explicit through `AccessBoundary`, `accessBoundaryFor`, `permitsNoUnsafe`, `requiresDedicatedAudit`, `permitsVolatileMmio`, and `permitsRawPointerBridge`, including the newer scope and permits symmetry aliases that the helper-local policy starter packet and focused policy dump route both read back directly.
@@ -57,7 +57,7 @@ Current same-family progress already includes helper-local explicit-byte decodin
 - the allocator helper decodes ABI allocator-mode bytes explicitly, names caller-prepared versus helper-owned init flow through `InitFlow`, and rejects nonzero reserved bytes so shared callers do not have to rediscover caller ownership, helper-owned initialization, owned-state setup, global fallback, or arena-reset policy elsewhere in the packet
 - the helper-local unsafe decoder keeps the unsafe capability split explicit through `AccessBoundary`, `permitsNoUnsafe*`, `permitsVolatileMmio*`, and `permitsRawPointerBridge*`, while the narrow decoder now restores the bounded raw-pointer bridge entrypoints and fail-closed denial paths without implying a broader helper-owned pointer facade
 - the MMIO helper routes policy-aware reads and writes through explicit byte and typed `InteropPolicy` relays while keeping denied-scope accesses fail-closed instead of spreading that contract across unrelated callers
-- the layout helper now keeps the canonical starter layouts, the chrdev budget-window delivery-window layouts, and the interop byte values explicit again, while the helper-local policy starter packet, focused policy dump route, and directly coupled low-level-wrapper packet own the live replay and survey evidence
+- the layout helper now keeps the canonical starter layouts, the notifier block, notifier priority-increase, malformed list-link layouts, the chrdev budget-window delivery-window layouts, and the interop plus notifier-result values explicit again, while the helper-local policy starter packet, focused policy dump route, and directly coupled low-level-wrapper packet own the live replay and survey evidence
 - there is no remaining packet-local substrate regression in this narrow helper lane; the same-lane follow-through is only to keep this survey aligned if the helper-local policy starter packet, focused policy dump route, or directly coupled low-level-wrapper packet drifts again
 ## Next Bounded Step
 - leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, or `zigux/unsafe/narrow.zig` drifts again from this survey
