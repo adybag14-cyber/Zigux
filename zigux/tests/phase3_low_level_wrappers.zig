@@ -35,6 +35,34 @@ test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-
     try std.testing.expectEqual(@as(?atomic.Ordering, .seq_cst), atomic.strongestAllowedFailureOrder(.seq_cst));
 }
 
+test "phase3 low-level wrappers keep monotonic strong compare-exchange mismatch explicit before MMIO publish" {
+    var state: u32 = 0x10;
+
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        try atomic.compareExchangeStrong(u32, &state, 0x10, 0x20, .monotonic, .monotonic),
+    );
+    try std.testing.expectEqual(@as(u32, 0x20), state);
+
+    try std.testing.expectEqual(
+        @as(?u32, 0x20),
+        try atomic.compareExchangeStrong(u32, &state, 0x10, 0x30, .monotonic, .monotonic),
+    );
+    try std.testing.expectEqual(@as(u32, 0x20), state);
+
+    try std.testing.expectEqual(@as(?atomic.Ordering, .monotonic), atomic.weakestAllowedFailureOrder(.monotonic));
+    try std.testing.expectEqual(@as(?atomic.Ordering, .monotonic), atomic.strongestAllowedFailureOrder(.monotonic));
+
+    var register: u32 = 0;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    barrier.release();
+    mmio.write(u32, register_ptr, state);
+    barrier.acquire();
+    try std.testing.expectEqual(@as(u32, 0x20), mmio.read(u32, const_register_ptr));
+}
+
 test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {
     var state: u32 = 0x0040_0004;
     try std.testing.expectEqual(@as(?u32, null), try atomic.compareExchangeStrong(u32, &state, 0x0040_0004, 0x00AA_5501, .acq_rel, .acquire));
