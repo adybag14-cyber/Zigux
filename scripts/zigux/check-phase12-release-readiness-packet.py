@@ -61,6 +61,9 @@ BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
+PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
+)
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -90,6 +93,7 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_SCSI_SURVEY_TEST_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
+    PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH,
     SCRIPTS_README_PATH,
     VALIDATOR_PATH,
     MAKEFILE_PATH,
@@ -158,7 +162,7 @@ REQUIRED_MARKERS = {
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "Shared fallback and anti-overlap packet: keep `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the same active smoke-first packet, the same one-catalog plus one-gap-note plus two-anchor fallback split, and the same release-planning-only boundary.",
         "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
-        "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
+        "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard,",
         "The active shared build packet is the returned five-file `virtio_net` quintet only:",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
@@ -193,6 +197,9 @@ REQUIRED_MARKERS = {
         "- shared survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`",
         "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`",
         "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves`",
+    ],
+    PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH: [
+        "PHASE12_CHECK_PACKET=virtio_scsi_libbpf_boundary",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
@@ -268,6 +275,7 @@ EXACT_COUNT_MARKERS = {
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
+        "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard,": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
         "  * current contents-bridge shared support bundle during degraded contents reads:": 1,
