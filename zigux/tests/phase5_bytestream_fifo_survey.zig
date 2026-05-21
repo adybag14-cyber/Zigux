@@ -173,6 +173,8 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
         "## Exact checks verified on 2026-05-21",
         "Fresh direct sample and tests readback on 2026-05-21 showed this exact packet on current `master`:",
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
+        "the fixed-buffer storage backing",
+        "the ten-item `reviewContract().focus` order",
         "`zigux/tests/phase5_bytestream_fifo.zig` currently carries five focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries five survey-packet checks",
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
