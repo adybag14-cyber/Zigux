@@ -52,10 +52,14 @@ def resolve_repo_path(root: Path, relative_path: Path) -> Path:
 
 
 def read_text(path: Path) -> str:
+    if not path.exists():
+        raise SystemExit(f"required file missing: {path}")
+    if not path.is_file():
+        raise SystemExit(f"required path is not a file: {path}")
     try:
         return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
+    except OSError as exc:
+        raise SystemExit(f"failed to read required file: {path}: {exc}") from exc
 
 
 def load_json(path: Path) -> object:
@@ -753,12 +757,32 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        fixture_path.unlink()
+        fixture_path.mkdir()
+        result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "required path is not a file" in output
+        checks_run += 1
+        fixture_path.rmdir()
+
+        build_self_test_root(root)
         policy_path.unlink()
         result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
         assert result == 1
         assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
         assert "required file missing" in output
         checks_run += 1
+
+        build_self_test_root(root)
+        policy_path.unlink()
+        policy_path.mkdir()
+        result, output = capture_stdout(run_checked, root, "zig", None, False, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "required path is not a file" in output
+        checks_run += 1
+        policy_path.rmdir()
 
         build_self_test_root(root)
         fixture_path.write_text("{\n", encoding="utf-8")
