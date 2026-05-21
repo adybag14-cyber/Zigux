@@ -88,6 +88,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(checker, "\"Documentation/zigux/phase7-string-helpers-slice.md\"");
     try expectContains(checker, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContains(checker, "test \\\"phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup\\\" {");
+    try expectContains(checker, "test \\\"phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view\\\" {");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
@@ -121,6 +123,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
+    try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter reports parse-int-array allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly");
