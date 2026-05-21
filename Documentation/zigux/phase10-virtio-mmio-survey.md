@@ -6,6 +6,7 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-survey`
 - lane family: `Phase 10 virtio MMIO`
+- lane key: `P10-L11`
 - surveyed against current `master` readback on `2026-05-20`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: keep the current `drivers/virtio/virtio_mmio.zig` helper surface reviewable without claiming transport-backed queue setup, IRQ delivery, DMA, or probe/remove lifecycle parity
