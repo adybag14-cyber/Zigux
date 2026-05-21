@@ -186,3 +186,27 @@ test "fd-backed exact non-ELF input leaves the cursor at the full header" {
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
     try expectCursor(file, 16);
 }
+
+test "fd-backed exact non-ELF input with trailing bytes still leaves the cursor at the full header" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "not_elf_exact_trailing.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x00, 'E',  'L',  'F',  1, 1, 1, 0,
+        0,    0,    0,    0,    0, 0, 0, 0,
+        0xaa, 0xbb, 0xcc, 0xdd,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+    try expectCursor(file, 16);
+}
