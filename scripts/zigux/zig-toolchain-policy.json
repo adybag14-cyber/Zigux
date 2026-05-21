@@ -12,7 +12,8 @@
     ],
     "required_make_routes": [
       "phase2-toolchain",
-      "phase2-validate"
+      "phase2-validate",
+      "phase2-cross"
     ]
   }
 }
