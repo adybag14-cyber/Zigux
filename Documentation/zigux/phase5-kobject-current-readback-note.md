@@ -56,7 +56,7 @@ When a future same-lane repair touches shared Phase 5 reminder surfaces, use thi
 
 Prefer follow-through in this order:
 
-1. one shared reminder-surface truthfulness repair
+1. one shared reminder-surface truthfulness repair, starting with `Documentation/zigux/review-checklist.md` if it still compresses the mixed direct-versus-public-tree-backed kobject packet
 2. one dedicated kobject survey-note truthfulness repair
 3. one kobject survey or build-route wording repair tied to the existing packet
 
@@ -64,6 +64,6 @@ Avoid widening from this note into sample behavior changes unless the sample, fo
 
 ## Next bounded step
 
-Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` the next time the lane reopens.
+Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` the next time the lane reopens.
 
-If one shared surface still overstates which kobject packet members were directly readable in the 2026-05-21 run, repair only that one surface and leave the rest of the Phase 5 packet parked.
+If one shared surface, especially `Documentation/zigux/review-checklist.md`, still overstates or compresses which kobject packet members were directly readable in the 2026-05-21 run, repair only that one surface and leave the rest of the Phase 5 packet parked.
