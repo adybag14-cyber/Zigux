@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 
 KPROBE_REVERSIBLE_DELIVERY_EVIDENCE = (
     "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, "
@@ -67,6 +67,8 @@ MATRIX_MARKERS = (
     "shared CI perf promotion pending",
     "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "Validation and Perf Team owning that policy decision",
+    "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+    "rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
 )
 
 KPROBE_NOTE_MARKERS = (
@@ -202,16 +204,25 @@ def validate_perf_manifest(payload: dict[str, object], missing: list[str]) -> No
         (("dedicated_linux_style_survey_wrapper",), "make -C zigux phase4-perf-baseline-survey"),
         (("validation_entrypoint",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
         (("bootstrap_ci_posture",), "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"),
+        (("atomic64", "gate_owner"), "ABI and Runtime Team"),
+        (("atomic64", "gate_rollback_owner"), "ABI and Runtime Team"),
+        (("atomic64", "benchmark_command"), "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"),
         (("atomic64", "acceptable_limit_status"), "approved_local_only"),
         (("atomic64", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("atomic64", "acceptable_limit_iterations"), 4),
         (("atomic64", "acceptable_limit_sample_count"), 7),
         (("atomic64", "acceptable_limit_max_elapsed_ns"), 8192),
+        (("bitmap", "gate_owner"), "Shared Subsystems Pod"),
+        (("bitmap", "gate_rollback_owner"), "Shared Subsystems Pod"),
+        (("bitmap", "benchmark_command"), "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"),
         (("bitmap", "acceptable_limit_status"), "approved_local_only"),
         (("bitmap", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("bitmap", "acceptable_limit_iterations"), 4),
         (("bitmap", "acceptable_limit_sample_count"), 7),
         (("bitmap", "acceptable_limit_max_elapsed_ns"), 12288),
         (("promotion_decision", "status"), "shared CI perf promotion pending"),
         (("promotion_decision", "owner"), "Validation and Perf Team"),
+        (("promotion_decision", "coordination_owners"), ["ABI and Runtime Team", "Shared Subsystems Pod"]),
     )
     for path, expected in expected_values:
         expect_json_value(payload, path, expected, missing, "perf_manifest")
@@ -281,6 +292,8 @@ def write_fixture_tree(root: Path) -> None:
 +shared CI perf promotion pending
 +`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`
 +Validation and Perf Team owning that policy decision
++gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
++rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
 +""".replace("\n+", "\n"),
 +    )
 +    write_text(
@@ -386,20 +399,29 @@ def write_fixture_tree(root: Path) -> None:
 +  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
 +  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
 +  "atomic64": {
++    "gate_owner": "ABI and Runtime Team",
++    "gate_rollback_owner": "ABI and Runtime Team",
++    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
 +    "acceptable_limit_status": "approved_local_only",
 +    "acceptable_limit_metric": "median_elapsed_ns",
++    "acceptable_limit_iterations": 4,
 +    "acceptable_limit_sample_count": 7,
 +    "acceptable_limit_max_elapsed_ns": 8192
 +  },
 +  "bitmap": {
++    "gate_owner": "Shared Subsystems Pod",
++    "gate_rollback_owner": "Shared Subsystems Pod",
++    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
 +    "acceptable_limit_status": "approved_local_only",
 +    "acceptable_limit_metric": "median_elapsed_ns",
++    "acceptable_limit_iterations": 4,
 +    "acceptable_limit_sample_count": 7,
 +    "acceptable_limit_max_elapsed_ns": 12288
 +  },
 +  "promotion_decision": {
 +    "status": "shared CI perf promotion pending",
-+    "owner": "Validation and Perf Team"
++    "owner": "Validation and Perf Team",
++    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]
 +  }
 +}
 +""".replace("\n+", "\n"),
@@ -424,6 +446,8 @@ def write_fixture_tree(root: Path) -> None:
 +            (MATRIX, "`scripts/zigux/check-phase4-remaining-gap-matrix.py`", "`scripts/zigux/check-phase4-gap-matrix.py`", "matrix_marker:`scripts/zigux/check-phase4-remaining-gap-matrix.py`"),
 +            (MATRIX, "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "matrix_marker:`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`"),
 +            (MATRIX, "Validation and Perf Team owning that policy decision", "ABI and Runtime Team owning that policy decision", "matrix_marker:Validation and Perf Team owning that policy decision"),
++            (MATRIX, "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`", "gate owners: `Validation and Perf Team`", "matrix_marker:gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`"),
++            (MATRIX, "rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`", "rollback owners: `Validation and Perf Team`", "matrix_marker:rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`"),
 +            (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-lab-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey"),
 +            (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-gap-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey"),
 +            (KPROBE_NOTE, "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "kprobe_note_marker:PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"),
@@ -441,7 +465,9 @@ def write_fixture_tree(root: Path) -> None:
 +            (PERF_MANIFEST, "\"shared_ci_perf_promotion_status\": \"pending\"", "\"shared_ci_perf_promotion_status\": \"approved\"", "perf_manifest:shared_ci_perf_promotion_status:expected='pending'"),
 +            (PERF_MANIFEST, "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"", "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-gap-survey\"", "perf_manifest:dedicated_linux_style_survey_wrapper:expected='make -C zigux phase4-perf-baseline-survey'"),
 +            (PERF_MANIFEST, "\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"", "\"bootstrap_ci_posture\": \"shared_phase4_test_route\"", "perf_manifest:bootstrap_ci_posture:expected='reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow'"),
-+            (PERF_MANIFEST, "\"acceptable_limit_status\": \"approved_local_only\"", "\"acceptable_limit_status\": \"threshold_pending\"", "perf_manifest:atomic64.acceptable_limit_status:expected='approved_local_only'"),
++            (PERF_MANIFEST, "\"gate_rollback_owner\": \"ABI and Runtime Team\"", "\"gate_rollback_owner\": \"Validation and Perf Team\"", "perf_manifest:atomic64.gate_rollback_owner:expected='ABI and Runtime Team'"),
++            (PERF_MANIFEST, "\"acceptable_limit_iterations\": 4", "\"acceptable_limit_iterations\": 5", "perf_manifest:atomic64.acceptable_limit_iterations:expected=4"),
++            (PERF_MANIFEST, "\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"", "\"benchmark_command\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"", "perf_manifest:bitmap.benchmark_command:expected='zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig'"),
 +            (PERF_MANIFEST, "\"acceptable_limit_max_elapsed_ns\": 12288", "\"acceptable_limit_max_elapsed_ns\": 12289", "perf_manifest:bitmap.acceptable_limit_max_elapsed_ns:expected=12288"),
 +        )
 +        for rel, old, new, expected_prefix in variants:
