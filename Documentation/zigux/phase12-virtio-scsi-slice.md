@@ -1,12 +1,12 @@
 # Phase 12 virtio_scsi Slice
 - `PHASE12_SLICE=virtio-scsi-rollback-evidence`
-- reread against live `master` and the current `P12-L09` survey packet on `2026-05-20`
+- reread against live `master` and the active `P12-L13` survey packet on `2026-05-21`
 - lane: `complex-drivers-infra`
 - anchor: `drivers/scsi/virtio_scsi.c`
 
 ## Current-master evidence
 - current `master` still carries this slice note, the survey note, the raw-read fallback catalog, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
-- current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
+- current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
 - `zigux/tests/phase12_build.zig` still acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` lane is preserved here as rollback evidence only
 - `scripts/zigux/check-phase12-virtio-scsi-packet.py` now fails closed if the survey packet stops matching this rollback-only current-master state
 
