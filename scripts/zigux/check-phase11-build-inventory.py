@@ -41,6 +41,8 @@ INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
+HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
+EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
 
 REQUIRED_BUILD_TEXT_MARKERS = (
     "phase11_hvc_cleanup_packet_proof.zig",
@@ -99,6 +101,20 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
+)
+
+REQUIRED_HV_OPS_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig")',
+    '.name = "phase11-hvc-hv-ops-layout-proof-tests"',
+    '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig")',
+    '.name = "phase11-hvc-export-surface-layout-proof-tests"',
+    'const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");',
+)
+
+REQUIRED_EXPORT_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig")',
+    '.name = "phase11-hvc-export-surface-layout-proof"',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");',
 )
 
 REQUIRED_WORKFLOW_PHASE11_STEPS = (
@@ -346,6 +362,8 @@ def run_check(root: Path) -> None:
         if normalize_whitespace(f"run: {run}") not in normalized_workflow_text:
             raise CheckError(f"missing workflow run in {WORKFLOW_PATH}: {run}")
     require_text_markers(root / MAKEFILE_PATH, REQUIRED_MAKEFILE_ROUTE_MARKERS)
+    require_text_markers(root / HV_OPS_BUILD_PATH, REQUIRED_HV_OPS_BUILD_MARKERS)
+    require_text_markers(root / EXPORT_BUILD_PATH, REQUIRED_EXPORT_BUILD_MARKERS)
     expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
@@ -436,6 +454,67 @@ pub fn build(b: *std.Build) void {
 """
 
 
+FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const hv_ops_proof_module = b.createModule(.{
+        .root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const hv_ops_proof_tests = b.addTest(.{
+        .name = "phase11-hvc-hv-ops-layout-proof-tests",
+        .root_module = hv_ops_proof_module,
+    });
+    const run_hv_ops_proof_tests = b.addRunArtifact(hv_ops_proof_tests);
+
+    const export_surface_proof_module = b.createModule(.{
+        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const export_surface_proof_tests = b.addTest(.{
+        .name = "phase11-hvc-export-surface-layout-proof-tests",
+        .root_module = export_surface_proof_module,
+    });
+    const run_export_surface_proof_tests = b.addRunArtifact(export_surface_proof_tests);
+
+    const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");
+    test_step.dependOn(&run_hv_ops_proof_tests.step);
+    test_step.dependOn(&run_export_surface_proof_tests.step);
+}
+"""
+
+
+FIXTURE_EXPORT_BUILD_TEXT = """const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const proof_module = b.createModule(.{
+        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const proof_tests = b.addTest(.{
+        .name = "phase11-hvc-export-surface-layout-proof",
+        .root_module = proof_module,
+    });
+    const run_proof_tests = b.addRunArtifact(proof_tests);
+
+    const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");
+    test_step.dependOn(&run_proof_tests.step);
+}
+"""
+
+
 FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -485,6 +564,8 @@ FIXTURE_MAKEFILE_TEXT = """phase11-validate:
 
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
+    write(root / HV_OPS_BUILD_PATH, FIXTURE_HV_OPS_BUILD_TEXT)
+    write(root / EXPORT_BUILD_PATH, FIXTURE_EXPORT_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
     write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
@@ -520,6 +601,32 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_build_marker, "phase11-hvc-cleanup-packet-proof")
+        case_count += 1
+
+        missing_hv_ops_build_marker = tmpdir / "missing_hv_ops_build_marker"
+        shutil.copytree(fixture, missing_hv_ops_build_marker, dirs_exist_ok=True)
+        write(
+            missing_hv_ops_build_marker / HV_OPS_BUILD_PATH,
+            read_text(missing_hv_ops_build_marker / HV_OPS_BUILD_PATH).replace(
+                "phase11-hvc-export-surface-layout-proof-tests",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_hv_ops_build_marker, "phase11-hvc-export-surface-layout-proof-tests")
+        case_count += 1
+
+        missing_export_build_marker = tmpdir / "missing_export_build_marker"
+        shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
+        write(
+            missing_export_build_marker / EXPORT_BUILD_PATH,
+            read_text(missing_export_build_marker / EXPORT_BUILD_PATH).replace(
+                "phase11-hvc-export-surface-layout-proof",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_export_build_marker, "phase11-hvc-export-surface-layout-proof")
         case_count += 1
 
         wrong_proof_command = tmpdir / "wrong_proof_command"
