@@ -17,6 +17,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
+ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -54,6 +55,7 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     MAKEFILE_PATH,
     CHECKER_PATH,
+    ARGV_SPLIT_PACKET_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
@@ -66,7 +68,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -132,6 +134,7 @@ def validate(root: Path) -> None:
             raise ValidationError(f"phase7 make route count drift: {marker} ({count} != 1)")
 
     run_checker(root, CHECKER_PATH)
+    run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
 
 
 def write(path: Path, content: str) -> None:
@@ -295,6 +298,24 @@ if __name__ == \"__main__\":
     raise SystemExit(main())
 """,
     )
+    write(
+        root / ARGV_SPLIT_PACKET_CHECKER_PATH,
+        """#!/usr/bin/env python3
+from __future__ import annotations
+import argparse
+from pathlib import Path
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(\"--repo-root\", type=Path, default=Path(\".\"))
+    parser.parse_args()
+    print(\"PHASE7_ARGV_SPLIT_PACKET=pass\")
+    return 0
+
+if __name__ == \"__main__\":
+    raise SystemExit(main())
+""",
+    )
 
 
 def expect_failure(root: Path, rel_path: Path, transform: str, delete_only: bool = False) -> None:
@@ -325,6 +346,7 @@ def run_self_test() -> None:
             (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", False),
             (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
             (CHECKER_PATH, "", True),
+            (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
             (DOCS_README_PATH, "Phase 7 notes\n", False),
             (SCRIPTS_README_PATH, "## Phase 7\n", False),
             (TESTS_README_PATH, "## Phase 7\n", False),
