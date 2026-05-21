@@ -399,3 +399,44 @@ test "runtime bitmap sample rejects re-selftest without disturbing lifecycle sum
     try std.testing.expect(module.isSet(70));
     try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
+
+test "runtime bitmap sample keeps initialized summary stable across direct exit without selftest" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(u32, 0), before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 1), before_exit.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), before_exit.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.nbits);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(before_exit.first_set, after_exit.first_set);
+    try std.testing.expectEqual(before_exit.first_zero, after_exit.first_zero);
+    try std.testing.expectEqual(before_exit.weight, after_exit.weight);
+    try std.testing.expectEqual(before_exit.nbits, after_exit.nbits);
+    try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 5), module.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, 64), module.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(5, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(64, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
