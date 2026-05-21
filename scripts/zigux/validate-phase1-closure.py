@@ -104,6 +104,18 @@ EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [
     "tools/lib/string.zig",
 ]
 
+EXPECTED_LANE_RULE_SUMMARY = (
+    "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, "
+    "while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local "
+    "follow-up anchors on current master."
+)
+
+EXPECTED_ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers "
+    "reopen only for their existing helper-local anchors or already-committed shared fixture keys."
+)
+
 EXPECTED_CLOSURE_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -309,6 +321,8 @@ def collect_failures(root: Path) -> list[str]:
         return [f"{MANIFEST_REL.as_posix()}:lane_sequencing:expected=dict:actual={type(lane_sequencing).__name__}"]
     failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:lane_sequencing.shared_replay_parked_helpers", lane_sequencing.get("shared_replay_parked_helpers"), EXPECTED_SHARED_REPLAY_PARKED_HELPERS))
     failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:lane_sequencing.direct_anchor_followup_helpers", lane_sequencing.get("direct_anchor_followup_helpers"), EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS))
+    failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:lane_sequencing.rule_summary", lane_sequencing.get("rule_summary"), EXPECTED_LANE_RULE_SUMMARY))
+    failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:lane_sequencing.anti_overlap_rule", lane_sequencing.get("anti_overlap_rule"), EXPECTED_ANTI_OVERLAP_RULE))
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
@@ -354,6 +368,8 @@ def make_fixture_tree(root: Path) -> None:
                 "lane_sequencing": {
                     "shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS,
                     "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
+                    "rule_summary": EXPECTED_LANE_RULE_SUMMARY,
+                    "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
                 },
                 "review_anchors": {
                     "tools/lib/bitmap.zig": EXPECTED_BITMAP_REVIEW_ANCHORS,
@@ -398,8 +414,10 @@ def run_self_test() -> int:
         ("old_next_step_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["next_step"], "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`", 1))),
         ("forbidden_old_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n")),
         ("bad_helper_count", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n")),
+        ("stale_lane_rule_summary", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "rule_summary": "drifted rule summary"}}, indent=2) + "\n")),
+        ("stale_anti_overlap_rule", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "anti_overlap_rule": "drifted anti-overlap rule"}}, indent=2) + "\n")),
         ("duplicate_manifest_helper_count", lambda root: insert_duplicate_manifest_line(root, '  "helper_count": 13,', '  "helper_count": 99,')),
-        ("duplicate_manifest_string_strnchr_review_anchor", lambda root: insert_duplicate_manifest_line(root, '      "strnchr_review_anchor": "test \\"strnchr honors count and C-string boundaries\\"",', '      "strnchr_review_anchor": "drifted anchor",')),
+        ("duplicate_manifest_lane_rule_summary", lambda root: insert_duplicate_manifest_line(root, f'    "rule_summary": "{EXPECTED_LANE_RULE_SUMMARY}",', '    "rule_summary": "drifted rule summary",')),
         ("missing_find_bit_andnot_contract", lambda root: mutate_remove_review_key(root, "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract")),
         ("stale_find_bit_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "review_packet_summary")),
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
