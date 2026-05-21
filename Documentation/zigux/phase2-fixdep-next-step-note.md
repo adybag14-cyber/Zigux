@@ -12,7 +12,7 @@ Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-imple
 ## Current repo evidence
 
 - Current `master` directly serves `scripts/zigux/fixdep.zig`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/validate-phase2.py`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `Documentation/zigux/phase2-fixdep-next-step-note.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/fixtures/fixdep/cases.json`.
-- `zigux/tests/fixtures/fixdep/cases.json` currently inventories 12 external fixdep cases, including `sample_dependency_continuation`, `sample_comment_continuation`, and the current stdout-failure replay cases.
+- `zigux/tests/fixtures/fixdep/cases.json` currently inventories 13 external fixdep cases, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_double_backslash_comment`, and the current stdout-failure replay cases.
 - The live bootstrap workflow and `zigux/Makefile` still expose direct fixdep replay routes through `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig`.
 - The current bounded drift is narrower: direct current-`master` readback for `scripts/basic/fixdep.c` still returns missing through the same contents path, while `scripts/zigux/check-fixdep-diff.py` still hard-codes that file as both `C_FIXDEP` and `EXPECTED_C_FIXDEP`, so the diff checker no longer points at a fully readable in-repo C anchor.
 
