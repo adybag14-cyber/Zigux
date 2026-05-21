@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 101
+EXPECTED_SELF_TEST_CASE_COUNT = 103
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -662,6 +662,8 @@ def run_self_test() -> int:
         assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
         assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT_ON_BRANCH", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
         checks_run += 1
+        assert_run_checker_output_contains(root, "MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT_ON_BRANCH_START")
+        checks_run += 1
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
@@ -676,6 +678,8 @@ def run_self_test() -> int:
             "MASTER_PRESENT_BRANCH_PATH_NOT_MISSING_ON_BRANCH",
             "scripts/zigux/not-in-missing.py",
         ) in issues
+        checks_run += 1
+        assert_run_checker_output_contains(root, "MASTER_PRESENT_BRANCH_PATH_NOT_MISSING_ON_BRANCH_START")
         checks_run += 1
 
         build_self_test_root(root)
