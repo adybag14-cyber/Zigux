@@ -69,10 +69,13 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
         'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
-        'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
         'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));',
+        'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+        'try std.testing.expect(cmdline.parseOptionStr("debug,,quiet", ""));',
+        'try std.testing.expect(!cmdline.parseOptionStr("debug,", ""));',
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
         'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+        'try std.testing.expectEqualStrings("2,9", descending_rest);',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
@@ -125,7 +128,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 55
+SELF_TEST_CASE_COUNT = 58
 
 
 def read_text(path: Path) -> str:
@@ -418,12 +421,24 @@ def run_self_test() -> None:
                 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));',
             ),
             (
+                "missing_companion_empty_entry_option_marker",
+                'try std.testing.expect(cmdline.parseOptionStr("debug,,quiet", ""));',
+            ),
+            (
+                "missing_companion_trailing_empty_option_guard_marker",
+                'try std.testing.expect(!cmdline.parseOptionStr("debug,", ""));',
+            ),
+            (
                 "missing_companion_option_decoding_marker",
                 'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
             ),
             (
                 "missing_companion_incomplete_hex_descending_marker",
                 'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+            ),
+            (
+                "missing_companion_descending_range_rest_marker",
+                'try std.testing.expectEqualStrings("2,9", descending_rest);',
             ),
             (
                 "missing_companion_validator_only_cursor_marker",
