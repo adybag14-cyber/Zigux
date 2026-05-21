@@ -10,9 +10,9 @@ import tempfile
 SELF_PATH = Path(__file__).resolve()
 
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+DOCS_README_PATH = "Documentation/zigux/README.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
-SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 
@@ -22,16 +22,12 @@ PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
 PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
 PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
-TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
-MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references."
-MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
-MODULE_SLICE_ADJACENT_CONTEXT_MARKER = (
-    "Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence."
-)
 
-CHECKLIST_REQUIRED_MARKERS = [
+REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "if the change touches the shared Phase 9 runtime-pilot packet",
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
+    "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`",
+    "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`",
     "`samples/zigux/runtime_trace_events.zig`",
     "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
     "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
@@ -40,9 +36,14 @@ CHECKLIST_REQUIRED_MARKERS = [
     "initialized, selftest_complete, and exited lifecycle tracking",
     "failed-exit rollback explicit after reusable selftest replay",
     "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest",
-    "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` while `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the trusted contents path`",
+    "`Documentation/zigux/phase9-runtime-loader-gap-survey.md`",
+    "`zigux/tests/runtime_loader_gap_survey.zig`",
+    "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
+    "`zigux/kernel/runtime_loader.zig`",
+    "`zigux/kernel/runtime_loader_contract.zig`",
+    "`samples/zigux/runtime_*_loader.zig`",
+    "the partial separate runtime bitmap reminder packet stays explicit in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` while `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the trusted contents path",
     "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -51,15 +52,15 @@ CHECKLIST_REQUIRED_MARKERS = [
     PHASE3_BOUNDARY_MARKER,
 ]
 
-CHECKLIST_EXACT_ONCE_MARKERS = [
-    "if the change touches the shared Phase 9 runtime-pilot packet",
-    "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
+DOCS_README_REQUIRED_MARKERS = [
+    "Phase 9 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md` - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` - `Documentation/zigux/review-checklist.md` - `Documentation/zigux/README.md` - `scripts/zigux/README.md` - `samples/zigux/README.md` - `zigux/tests/README.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - `scripts/zigux/check-phase9-freeze-map-study-boundaries.py` keep the shared Phase 9 reminder packet honest by routing any study-only freeze-map summary back through the dedicated accounting note, keeping the returned loader shard and the bounded `zigux/tests/phase9_build.zig` rerun bundle explicit as shared-owner evidence, and not treating `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-substrate readiness evidence.",
+    "keep the returned shared runtime-loader allocator/init-flow packet explicit too: `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence without implying that blocked publication, install-root, or module-metadata boundaries are already solved.",
+    "keep the partial runtime bitmap reminder packet distinct from that returned loader shard too: `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are the current trusted bitmap-side evidence surfaces, while `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the same trusted path.",
 ]
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
     "Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.",
     "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence",
-    "direct build-bundle proof is broader than the older reminder wording",
     "`zigux/tests/phase9_build.zig` currently exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
     "the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded `phase9-runtime-loader-shared-tests` build shard, and the public-tree fallback loader surfaces",
     "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces",
@@ -68,36 +69,23 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
 ]
 
 MODULE_SLICE_REQUIRED_MARKERS = [
-    "Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded shared Phase 9 build bundle: it keeps `phase9-runtime-atomic64-diff` rooted in `runtime_atomic64_diff.zig` and also names the separate bitmap-family rerun handles.",
-    "The adjacent shared allocator/init-flow review packet has returned through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds",
+    "The adjacent shared build shard in `zigux/tests/phase9_build.zig` now names `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-trace-events-loader-substrate-drift-tests`, and aggregate `phase9-runtime-loader-shared-tests`, but that loader-backed rerun route remains neighboring shared-owner evidence instead of expanding this module slice into returned family-local runtime-loader parity.",
+    "Current `master` does now expose the shared loader-backed surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds through the adjacent `phase9-runtime-loader-shared-tests` shard in `zigux/tests/phase9_build.zig`, but that shard still stays neighboring shared-owner evidence rather than returned family-local trace-events proof.",
     "Current `master` still keeps the separate Phase 9 runtime bitmap reminder packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the bounded `zigux/tests/phase9_build.zig` bundle, while `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` remain trusted-contents gaps.",
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
     PHASE3_EXPORT_SHIM_MARKER,
-    MODULE_SLICE_PHASE2_BOUNDARY_MARKER,
-    MODULE_SLICE_PHASE3_BOUNDARY_MARKER,
-    MODULE_SLICE_ADJACENT_CONTEXT_MARKER,
-]
-
-SCRIPTS_README_REQUIRED_MARKERS = [
-    "the current shared runtime-pilot packet is still review-first, but it now spans three bounded truths: the surviving trace-events runtime sample family, the returned shared runtime-loader allocator/init-flow packet, and the separate partial runtime bitmap reminder packet, instead of flattening Phase 9 into trace-events-only proof or treating the returned allocator/init-flow packet as still absent",
-    "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` and `scripts/zigux/check-phase9-trace-events-runtime-packet.py` keep the shipped Phase 9 boundary and runtime-packet guards explicit from the scripts root",
-    "keep the returned shared runtime-loader allocator/init-flow packet explicit through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/phase9_build.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds; treat that packet as mixed-source shared-owner evidence again without overstating blocked publication, install-root, or loadable-runtime-complete follow-through",
-    "keep the separate runtime bitmap family parked as adjacent Phase 9 support material through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`; direct authenticated contents rereads now materialize that restored sample-plus-top-bit packet while still returning missing for `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json`, so keep the bitmap-side packet framed as partial reminder evidence rather than proof that the deeper bitmap loader packet returned or as a fifth Phase 5 sample",
-    "current `master` still does not materialize the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness and the returned allocator/init-flow packet; keep `zigux/tests/phase9_build.zig` explicit as the returned `phase9-runtime-atomic64-diff` build shard plus the bounded bitmap-family rerun handles rather than proof that every deeper runtime-publication surface has returned",
-    "keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes",
-    PHASE2_CONF_BRIDGE_MARKER,
-    PHASE2_CONFDATA_BRIDGE_MARKER,
-    PHASE3_EXPORTS_MARKER,
-    PHASE3_EXPORT_SHIM_MARKER,
-    PHASE2_BOUNDARY_MARKER,
-    PHASE3_BOUNDARY_MARKER,
+    "- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references.",
+    "- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.",
+    "- Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.",
 ]
 
 SAMPLES_README_REQUIRED_MARKERS = [
-    "direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` still remain absent on the same trusted path",
-    "Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
+    "Fresh trusted mixed reread on 2026-05-20 also restored a narrower runtime bitmap sample-side packet on current `master`: direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the shared `zigux/tests/phase9_build.zig` bundle keep the same sample-side reminder packet explicit, and `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` still remain absent on the same trusted path. Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
+    "Keep `samples/zigux/runtime_bitmap.zig` explicit as the bounded two-word in-memory bitmap starter proof with selftest-hook metadata, sparse iteration, parse-and-print replay, range mutation, copy behavior, and direct exit guards.",
+    "Keep `samples/zigux/runtime_bitmap_loader.zig` explicit as the returned loader-input companion proof for the same runtime bitmap starter.",
+    "Keep `samples/zigux/runtime_bitmap_top_bit_contract.zig` explicit as the returned highest-valid-bit companion proof for the same runtime bitmap starter.",
     "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -108,18 +96,21 @@ SAMPLES_README_REQUIRED_MARKERS = [
 ]
 
 REQUIRED_MARKERS = {
-    REVIEW_CHECKLIST_PATH: CHECKLIST_REQUIRED_MARKERS,
+    REVIEW_CHECKLIST_PATH: REVIEW_CHECKLIST_REQUIRED_MARKERS,
+    DOCS_README_PATH: DOCS_README_REQUIRED_MARKERS,
     LANE_SEQUENCING_PATH: LANE_SEQUENCING_REQUIRED_MARKERS,
     MODULE_SLICE_PATH: MODULE_SLICE_REQUIRED_MARKERS,
-    SCRIPTS_README_PATH: SCRIPTS_README_REQUIRED_MARKERS,
     SAMPLES_README_PATH: SAMPLES_README_REQUIRED_MARKERS,
 }
 
 EXACT_ONCE_MARKERS = {
-    REVIEW_CHECKLIST_PATH: CHECKLIST_EXACT_ONCE_MARKERS,
+    REVIEW_CHECKLIST_PATH: [
+        "if the change touches the shared Phase 9 runtime-pilot packet",
+        "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
+    ],
 }
 
-MAKEFILE_FORBIDDEN_ROUTE_FIXTURES = ["phase9-test", "phase9-runtime-trace-events-sample-tests", "phase9"]
+FORBIDDEN_PHASE9_MAKE_ROUTES = ["phase9", "phase9-test", "phase9-runtime-trace-events-sample-tests"]
 
 
 def infer_repo_root() -> Path:
@@ -141,6 +132,14 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def count_exact_line_occurrences(content: str, marker: str) -> int:
+    return sum(1 for line in content.splitlines() if line == marker)
+
+
+def duplicate_marker_occurrence(content: str, marker: str) -> str:
+    return content.replace(marker, f"{marker}\n{marker}", 1)
+
+
 def find_makefile_phase9_routes(text: str) -> list[str]:
     routes: list[str] = []
     for raw_line in text.splitlines():
@@ -152,18 +151,9 @@ def find_makefile_phase9_routes(text: str) -> list[str]:
     return routes
 
 
-def duplicate_marker_occurrence(content: str, marker: str) -> str:
-    return content.replace(marker, f"{marker}\n{marker}", 1)
-
-
-def count_exact_line_occurrences(content: str, marker: str) -> int:
-    return sum(1 for line in content.splitlines() if line == marker)
-
-
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    required_paths = [*REQUIRED_MARKERS, MAKEFILE_PATH]
-    for rel_path in required_paths:
+    for rel_path in [*REQUIRED_MARKERS, MAKEFILE_PATH]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
@@ -232,7 +222,9 @@ def run_self_test() -> int:
             for marker in markers:
                 seed_fixture_tree(base)
                 current = read_text(base, rel_path)
-                write_text(base / rel_path, current.replace(marker, ""))
+                if current.count(marker) != 1:
+                    continue
+                write_text(base / rel_path, current.replace(marker, "", 1))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for rel_path, markers in EXACT_ONCE_MARKERS.items():
@@ -242,7 +234,7 @@ def run_self_test() -> int:
                 write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
                 expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
 
-        for route in MAKEFILE_FORBIDDEN_ROUTE_FIXTURES:
+        for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
             seed_fixture_tree(base)
             current = read_text(base, MAKEFILE_PATH)
             write_text(base / MAKEFILE_PATH, current + f"\n{route}:\n\t@true\n")
@@ -256,27 +248,33 @@ def run_self_test() -> int:
         shutil.rmtree(base, ignore_errors=True)
 
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SELF_TEST=pass")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MODULE_SLICE_MARKER_COUNT={len(MODULE_SLICE_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_FORBIDDEN_ROUTE_FIXTURES)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FILE_COUNT={len(REQUIRED_MARKERS) + 1}")
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
+        f"{len(FORBIDDEN_PHASE9_MAKE_ROUTES)}"
+    )
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the current Phase 9 reviewer-facing packet keeps the trace-events runtime family, "
-            "the returned shared allocator/init-flow packet, the partial runtime bitmap reminder, "
-            "the aligned scripts README, the trace-events module-slice earlier-phase boundary reminders, "
-            "and the no-Phase-9-make-route boundary explicit across the checklist, sequencing note, "
-            "trace-events module slice, scripts README, samples README, and live Makefile posture."
+            "Check that the current Phase 9 reviewer-facing packet keeps the surviving "
+            "trace-events runtime family, the returned shared loader packet, the "
+            "partial runtime bitmap reminder packet, and the no-Phase-9-Makefile-route "
+            "boundary explicit across the key reviewer-facing surfaces."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
+    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
     args = parser.parse_args()
 
     if args.self_test:
@@ -288,12 +286,19 @@ def main() -> int:
             print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_ERROR={failure}")
         return 1
 
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MODULE_SLICE_MARKER_COUNT={len(MODULE_SLICE_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_FORBIDDEN_ROUTE_FIXTURES)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FILE_COUNT={len(REQUIRED_MARKERS) + 1}")
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
+        f"{len(FORBIDDEN_PHASE9_MAKE_ROUTES)}"
+    )
     return 0
 
 
