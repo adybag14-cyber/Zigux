@@ -733,7 +733,6 @@ def run_self_test() -> int:
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_missing.json", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_manifest.json", "phase10-closure-self-test")
         cases += 1
-        closure_doc.writeText = None
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "phase10-closure-self-test")
         cases += 1
