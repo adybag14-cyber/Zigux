@@ -454,7 +454,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description(("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes.")))
+    parser = argparse.ArgumentParser(description=("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes."))
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate. Defaults to the script directory.")
     parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
     args = parser.parse_args()
