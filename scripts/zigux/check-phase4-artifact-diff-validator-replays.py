@@ -18,6 +18,8 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
     'CheckSpec(\n        "phase4-artifact-diff-contract",\n        ("python", "scripts/zigux/check-artifact-diff-contract.py"),\n    ),',
     'CheckSpec(\n        "phase4-artifact-diff-determinism-self-test",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"),\n    ),',
     'CheckSpec(\n        "phase4-artifact-diff-determinism",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-validator-replays-self-test",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "--self-test"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-validator-replays",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py"),\n    ),',
 ]
 
 EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
@@ -42,6 +44,7 @@ EXPECTED_SELF_TEST_CASES = [
     "validator_marker_round_trip",
     "validator_helper_marker_drift",
     "validator_marker_drift",
+    "validator_replay_marker_drift",
     "repo_reality_handoff_round_trip",
     "repo_reality_handoff_drift",
     "repo_reality_handoff_note_missing",
@@ -179,6 +182,16 @@ def run_self_test() -> int:
             covered_cases.append("validator_marker_drift")
         else:
             raise AssertionError("expected validator_marker_drift to fail closed")
+
+        make_validator_fixture(root)
+        trimmed_markers = EXPECTED_VALIDATOR_REPLAY_MARKERS[:-2]
+        write(root / VALIDATOR_REL, "\n".join(trimmed_markers) + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("validator_replay_marker_drift")
+        else:
+            raise AssertionError("expected validator_replay_marker_drift to fail closed")
 
         root = Path(tmp)
         for rel in (VALIDATOR_REL, NOTE_REL):
