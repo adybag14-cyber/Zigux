@@ -46,7 +46,7 @@ The honest same-lane task is therefore not to pretend the wider direct helper pa
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` replays that helper directly and keeps the retained-release-record, explicit detach-cleanup, freed-release-record, and missing-release-record cases reviewable without claiming live DMA allocation side effects.
 - `zigux/tests/phase13_devres_dma_coherent.zig` continues to fail closed on generic DMA and scatterlist ownership boundaries beside the new helper-first planner.
 - `lib/devres_scatterlist.zig` ships helper-first scatterlist lifetime planning through `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, and `planManagedScatterlistUnmap(...)`, and `zigux/tests/phase13_devres_scatterlist.zig` replays retained-release-record success, freed-release-record fallback, release-record-allocation failure, exact release-match behavior, and the dedicated planner note or manifest packet without widening into live DMA mapping or `sg_table` lifecycle control.
-- helper-source readback shows `lib/devres_scatterlist.zig` still omits live `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, and `dma_map_sgtable()` ownership markers, so the current scatterlist slice remains planner-only.
+- helper-source readback shows `lib/devres_scatterlist.zig` still omits live `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, `dma_map_sgtable()`, and `dma_unmap_sgtable()` ownership markers, so the current scatterlist slice remains planner-only.
 - `scripts/zigux/check-phase13-devres-mmio-packet.py` now fail-closes on the survey note, slice note, planner note, scatterlist slice, helper manifests, focused replays, helper-local MMIO absences, and the scatterlist build shard so the missing MMIO and iomap gaps cannot silently disappear from current `master`.
 - helper-source readback also shows that current `master` still ships no MMIO or iomap helper-first surface in `lib/devres.zig`: there are no `devm_iounmap(`, `devm_ioremap_np(`, `devm_of_iomap(`, `devm_arch_phys_wc_add(`, or `devm_arch_io_reserve_memtype_wc(` markers in the live helper file.
 - current `master` likewise ships no dedicated MMIO-facing replay or manifest packet alongside the current DMA planner packet: `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain absent, so the survey has to keep those MMIO and iomap safety surfaces framed as missing roadmap gaps rather than implied shipped coverage.
@@ -61,7 +61,7 @@ The honest same-lane task is therefore not to pretend the wider direct helper pa
 - the live `phase13_devres_dma_coherent.zig` replay still requires the planner notes to keep generic DMA mapping helpers and scatterlist lifecycle ownership blocked.
 - helper-source readback shows `lib/devres.zig` keeps the boundary planning-only: it contains `planManagedDmamAllocCoherent`, `planManagedDmamFreeCoherent`, `.touches_live_dma = false`, and `.touches_live_scatterlist = false`, but omits live `dmam_alloc_coherent()`, `dmam_free_coherent()`, generic `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, and `sg_init_table()` markers.
 - helper-source readback also shows that `lib/devres.zig` omits the MMIO and iomap safety family markers `devm_iounmap(`, `devm_ioremap_np(`, `devm_of_iomap(`, `devm_arch_phys_wc_add(`, and `devm_arch_io_reserve_memtype_wc(`.
-- the live `devres_scatterlist.zig` helper descriptor still marks `provides_scatterlist_lifetime_planning = true`, `touches_live_dma = false`, and `touches_live_scatterlist = false`, and the helper body stays bounded to `planManagedScatterlistMap`, `scatterlistReleaseMatches`, and `planManagedScatterlistUnmap` while omitting live `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, and `dma_map_sgtable()` ownership.
+- the live `devres_scatterlist.zig` helper descriptor still marks `provides_scatterlist_lifetime_planning = true`, `touches_live_dma = false`, and `touches_live_scatterlist = false`, and the helper body stays bounded to `planManagedScatterlistMap`, `scatterlistReleaseMatches`, and `planManagedScatterlistUnmap` while omitting live `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, `dma_map_sgtable()`, and `dma_unmap_sgtable()` ownership.
 - the live `check-phase13-devres-mmio-packet.py` packet guard requires the survey note, slice note, planner note, scatterlist slice, planner manifest, focused replays, helper-local MMIO absences, scatterlist helper markers, and scatterlist build shard to agree before the bounded MMIO packet can pass.
 
 ## Recorded gaps
@@ -101,9 +101,9 @@ This survey does not claim:
 
 - the broader direct `phase13_devres` replay already landed on current `master`
 - live `dmam_alloc_coherent()` side effects
-- generic `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, or `dma_map_sgtable()` ownership
+- generic `dma_map_*`, `dma_unmap_*`, `dma_sync_*`, `dma_mmap_*`, `dma_map_sgtable()`, or `dma_unmap_sgtable()` ownership
 - live scatterlist ownership or `sg_table` lifecycle control
-- shipped `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, or `dma_unmap_sg()` ownership
+- shipped `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, `dma_map_sgtable()`, or `dma_unmap_sgtable()` ownership
 - shipped `devm_iounmap()`, `devm_ioremap_np()`, `devm_of_iomap()`, `devm_arch_phys_wc_add()`, or `devm_arch_io_reserve_memtype_wc()` helper surfaces
 - live MMIO mapping state, device-tree walks, or arch memtype mutation
 - IOMMU state, DMA attributes, or device-managed pool mutation
