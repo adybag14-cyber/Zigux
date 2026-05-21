@@ -258,3 +258,80 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "runtime bitmap sample review contract keeps bounded starter focus explicit" {
+    const descriptor = RuntimeBitmapSample.descriptor();
+    const contract = RuntimeBitmapSample.reviewContract();
+
+    try std.testing.expectEqualStrings("runtime_bitmap", descriptor.name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+    try std.testing.expectEqual(@as(usize, sample_review_focus.len), contract.focus.len);
+    try std.testing.expectEqual(@as(usize, sample_review_non_goals.len), contract.non_goals.len);
+    try std.testing.expectEqual(SampleFocus.top_bit_contract, contract.focus[contract.focus.len - 1]);
+}
+
+test "runtime bitmap sample keeps sparse summaries and nth-set replay explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
+
+    const summary = module.summary();
+    try std.testing.expectEqual(@as(u32, 10), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 8), summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+    try std.testing.expectEqual(@as(?u32, 10), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 123), module.nthSetBit(7));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(8));
+    try std.testing.expectEqual(@as(u32, 7), try module.countSetBitsInRange(0, 81));
+}
+
+test "runtime bitmap sample keeps parse print and range mutation replay explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList("0, 5, 64, 70");
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", formatted);
+
+    try module.clearRange(@intCast(bitmap_view.word_bits), 2);
+    try module.setRange(9, 4);
+
+    const summary = module.summary();
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), summary.weight);
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(@intCast(bitmap_view.word_bits + 6)));
+    try std.testing.expect(!module.isSet(@intCast(bitmap_view.word_bits)));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(9, 4));
+}
+
+test "runtime bitmap sample keeps selftest copy and exit lifecycle explicit" {
+    var source = RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 0, 5, 64, 70 });
+    const before = source.summary();
+    const selftest = try source.runSelftest();
+
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expect(selftest.checked_range_mutations);
+    try std.testing.expect(selftest.checked_iteration_paths);
+
+    var mirror = RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&source);
+    const mirrored = mirror.summary();
+    try std.testing.expectEqual(before.first_set, mirrored.first_set);
+    try std.testing.expectEqual(before.weight, mirrored.weight);
+
+    try source.exit();
+    const after = source.summary();
+    try std.testing.expectEqual(ModuleStage.exited, source.stage());
+    try std.testing.expectEqual(@as(usize, 1), after.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, source.setRange(1, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, source.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, source.exit());
+}
