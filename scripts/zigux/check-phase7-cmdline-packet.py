@@ -64,6 +64,7 @@ REQUIRED_MARKERS = {
         'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
         'test "getOptions expands negative ranges and negative upper bounds" {',
         'test "parseOptionStr matches only exact bare options" {',
+        'test "memparse saturates signed overflow instead of trapping" {',
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
@@ -75,6 +76,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
+        'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
         'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
         'test "nextArg keeps empty input borrowed from the caller slice" {',
@@ -97,14 +99,16 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
         'const checker = try readRepoFile(allocator, checker_path);',
-        'try expectContains(helper, "test \\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\" {");',
-        'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
-        'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
-        'try expectContains(helper, "test \\"nextArg parses key value pairs and quoted values\\" {");',
-        'try expectContains(helper, "test \\"nextArg keeps parameter and value slices borrowed from caller storage\\" {");',
-        'try expectContains(helper, "test \\"nextArg keeps rest and remaining as the same borrowed suffix view\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
+        'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
-        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\"quiet,debug\\\\x00,nohlt\\", \\"nohlt\\"));");',
+        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -121,7 +125,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 52
+SELF_TEST_CASE_COUNT = 55
 
 
 def read_text(path: Path) -> str:
@@ -318,6 +322,10 @@ def run_self_test() -> None:
                 "missing_helper_exact_bare_option_marker",
                 'test "parseOptionStr matches only exact bare options" {',
             ),
+            (
+                "missing_helper_memparse_signed_clamp_marker",
+                'test "memparse saturates signed overflow instead of trapping" {',
+            ),
         ]
         for case, marker in helper_markers:
             remove_once(helper_path, marker)
@@ -358,27 +366,31 @@ def run_self_test() -> None:
             ("missing_survey_checker_reader", 'const checker = try readRepoFile(allocator, checker_path);'),
             (
                 "missing_survey_helper_linux_whitespace_marker",
-                'try expectContains(helper, "test \\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\" {");',
+                'try expectContains(helper, "test \\\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\\" {");',
             ),
             (
                 "missing_survey_helper_whitespace_only_marker",
-                'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
+                'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
             ),
             (
                 "missing_survey_helper_leading_equals_marker",
-                'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
+                'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
             ),
             (
                 "missing_survey_helper_key_value_quotes_marker",
-                'try expectContains(helper, "test \\"nextArg parses key value pairs and quoted values\\" {");',
+                'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
             ),
             (
                 "missing_survey_helper_borrowed_storage_marker",
-                'try expectContains(helper, "test \\"nextArg keeps parameter and value slices borrowed from caller storage\\" {");',
+                'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
             ),
             (
                 "missing_survey_helper_borrowed_suffix_marker",
-                'try expectContains(helper, "test \\"nextArg keeps rest and remaining as the same borrowed suffix view\\" {");',
+                'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
+            ),
+            (
+                "missing_survey_helper_memparse_signed_clamp_marker",
+                'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
             ),
             (
                 "missing_survey_companion_leading_equals_marker",
@@ -386,7 +398,11 @@ def run_self_test() -> None:
             ),
             (
                 "missing_survey_companion_first_nul_bare_option_marker",
-                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\"quiet,debug\\\\x00,nohlt\\", \\"nohlt\\"));");',
+                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+            ),
+            (
+                "missing_survey_companion_memparse_signed_clamp_marker",
+                'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
             ),
         ]
         for case, marker in survey_markers:
@@ -397,10 +413,6 @@ def run_self_test() -> None:
 
         companion_markers = [
             ("missing_companion_exact_bare_option_marker", 'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {'),
-            (
-                "missing_companion_first_nul_bare_option_marker",
-                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
-            ),
             (
                 "missing_companion_non_bare_option_guard_marker",
                 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));',
@@ -424,6 +436,10 @@ def run_self_test() -> None:
             (
                 "missing_companion_quoted_argument_memparse_marker",
                 'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
+            ),
+            (
+                "missing_companion_memparse_signed_clamp_marker",
+                'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
             ),
             (
                 "missing_companion_leading_whitespace_boundary_marker",
