@@ -73,6 +73,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "getValue8 reads aligned bytes from bitmap words"',
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
     'test "find last bit scans backward across words"',
     'test "find last bit ignores storage beyond an exact word boundary"',
     'test "find last bit clamps tail words to nbits"',
@@ -125,6 +126,7 @@ EXPECTED_MANIFEST_PACKET = {
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "single_word_tail_inclusive_boundary_anchor": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
     "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
     "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
@@ -306,6 +308,8 @@ def run_self_test() -> int:
         ("duplicate_lane_paragraph", "lane_paragraph:expected=1:actual=2"),
         ("duplicate_closure_paragraph", "closure_paragraph:expected=1:actual=2"),
         ("duplicate_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=2"),
+        ('missing_single_word_tail_anchor', 'helper_anchor:test "single-word tail windows keep the last in-range next matches reachable from an inclusive start":expected=1:actual=0'),
+        ("missing_manifest_single_word_tail_anchor", "manifest:single_word_tail_inclusive_boundary_anchor:expected_current_packet"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -422,8 +426,21 @@ def run_self_test() -> int:
         if cases[14][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_closure_no_read_sentence")
 
+        build_sample_repo(tmp_root)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[23] + "\n", "", 1)
+        write_text(tmp_root, HELPER_REL, helper_text)
+        if cases[15][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:missing_single_word_tail_anchor")
+
+        build_sample_repo(tmp_root)
+        manifest = load_json(tmp_root, MANIFEST_REL)
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["single_word_tail_inclusive_boundary_anchor"] = "drift"
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[16][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:missing_manifest_single_word_tail_anchor")
+
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
