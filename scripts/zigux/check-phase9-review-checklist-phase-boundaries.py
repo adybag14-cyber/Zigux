@@ -14,6 +14,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
@@ -99,12 +100,30 @@ SAMPLES_README_REQUIRED_MARKERS = [
     PHASE3_BOUNDARY_MARKER,
 ]
 
+CONTRACT_REQUIRED_MARKERS = [
+    "test \"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\" {",
+    "const blocked_publication_fields = [_][]const u8{",
+    "\"modinfo\",",
+    "\"module_alias\",",
+    "\"module_aliases\",",
+    "\"modules_alias_path\",",
+    "\"module_install_root\",",
+    "\"modules_order_path\",",
+    "\"modules_builtin_path\",",
+    "\"module_symvers_path\",",
+    "\"depmod_script\",",
+    "\"depmod_manifest\",",
+    "\"depmod_aliases\",",
+    "try std.testing.expect(!@hasField(LoadPlan, field));",
+]
+
 REQUIRED_MARKERS = {
     REVIEW_CHECKLIST_PATH: REVIEW_CHECKLIST_REQUIRED_MARKERS,
     DOCS_README_PATH: DOCS_README_REQUIRED_MARKERS,
     LANE_SEQUENCING_PATH: LANE_SEQUENCING_REQUIRED_MARKERS,
     MODULE_SLICE_PATH: MODULE_SLICE_REQUIRED_MARKERS,
     SAMPLES_README_PATH: SAMPLES_README_REQUIRED_MARKERS,
+    CONTRACT_PATH: CONTRACT_REQUIRED_MARKERS,
 }
 
 EXACT_ONCE_MARKERS = {
@@ -200,7 +219,9 @@ phase10-test:
 phase12-test:
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
 """
-    return "# fixture\n\n" + "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
+    if rel_path.endswith(".md"):
+        return "# fixture\n\n" + "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
+    return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
 
 
 def seed_fixture_tree(base: Path) -> None:
@@ -273,9 +294,9 @@ def main() -> int:
         description=(
             "Check that the current Phase 9 reviewer-facing packet keeps the surviving "
             "trace-events runtime family, the returned shared loader packet, the "
-            "command/environment boundary guard, the partial runtime bitmap reminder "
-            "packet, and the no-Phase-9-Makefile-route boundary explicit across the "
-            "key reviewer-facing surfaces."
+            "command/environment boundary guard, the blocked-publication contract "
+            "boundary, the partial runtime bitmap reminder packet, and the no-Phase-9-"
+            "Makefile-route boundary explicit across the key reviewer-facing surfaces."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
