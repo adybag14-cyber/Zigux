@@ -26,10 +26,12 @@
   "architecture_council_reopen_attached": false,
   "forbidden_transport_claims": [
     "queue_setup_reset_paths",
+    "queue_reset_execution",
     "irq_parity",
     "dma_paths",
     "input_registration_lifecycle",
-    "probe_remove_lifecycle"
+    "probe_remove_lifecycle",
+    "freeze_restore_lifecycle"
   ],
   "roadmap_parity_scoreboard": {
     "virtqueue_wrappers": {
