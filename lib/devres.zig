@@ -5,6 +5,7 @@ pub const ModuleDescriptor = struct {
     provides_release_record_lifetime_planning: bool,
     provides_release_call_planning: bool,
     provides_dmam_free_coherent_cleanup_planning: bool,
+    provides_dmam_detach_cleanup_transition_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
 };
@@ -29,6 +30,17 @@ pub const ManagedDmamFreeCoherentPlan = struct {
     anchor: []const u8,
     requested_size: u64,
     frees_allocation: bool,
+    releases_from_devres: bool,
+    release_record_consumed: bool,
+    warns_on_release_miss: bool,
+    destroys_release_record_before_free: bool,
+};
+
+pub const ManagedDmamDetachCleanupPlan = struct {
+    anchor: []const u8,
+    requested_size: u64,
+    had_detach_cleanup_owner: bool,
+    generates_cleanup_plan: bool,
     releases_from_devres: bool,
     release_record_consumed: bool,
     warns_on_release_miss: bool,
@@ -95,6 +107,7 @@ pub const DevresHelperLab = struct {
             .provides_release_record_lifetime_planning = true,
             .provides_release_call_planning = true,
             .provides_dmam_free_coherent_cleanup_planning = true,
+            .provides_dmam_detach_cleanup_transition_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
         };
@@ -130,6 +143,37 @@ pub const DevresHelperLab = struct {
             .destroys_release_record_before_free = release_call.destroys_release_record_before_free,
         };
     }
+
+    pub fn planManagedDmamDetachCleanup(
+        allocation_plan: ManagedDmamAllocCoherentPlan,
+        release_record_matches: bool,
+    ) ManagedDmamDetachCleanupPlan {
+        if (!allocation_plan.should_free_on_detach) {
+            return .{
+                .anchor = allocation_plan.anchor,
+                .requested_size = allocation_plan.requested_size,
+                .had_detach_cleanup_owner = false,
+                .generates_cleanup_plan = false,
+                .releases_from_devres = false,
+                .release_record_consumed = false,
+                .warns_on_release_miss = false,
+                .destroys_release_record_before_free = false,
+            };
+        }
+
+        const cleanup = planManagedDmamFreeCoherent(allocation_plan.requested_size, release_record_matches);
+
+        return .{
+            .anchor = cleanup.anchor,
+            .requested_size = cleanup.requested_size,
+            .had_detach_cleanup_owner = true,
+            .generates_cleanup_plan = true,
+            .releases_from_devres = cleanup.releases_from_devres,
+            .release_record_consumed = cleanup.release_record_consumed,
+            .warns_on_release_miss = cleanup.warns_on_release_miss,
+            .destroys_release_record_before_free = cleanup.destroys_release_record_before_free,
+        };
+    }
 };
 
 const std = @import("std");
@@ -143,6 +187,7 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_release_record_lifetime_planning);
     try std.testing.expect(descriptor.provides_release_call_planning);
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
+    try std.testing.expect(descriptor.provides_dmam_detach_cleanup_transition_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
@@ -238,4 +283,56 @@ test "managed free planning still frees allocations when the release record is m
     try std.testing.expect(!plan.release_record_consumed);
     try std.testing.expect(plan.warns_on_release_miss);
     try std.testing.expect(plan.destroys_release_record_before_free);
+}
+
+test "detach cleanup planning materializes a coherent free when allocation retained ownership" {
+    const allocation_plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+    const cleanup = DevresHelperLab.planManagedDmamDetachCleanup(allocation_plan, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expectEqual(@as(u64, 4096), cleanup.requested_size);
+    try std.testing.expect(cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(cleanup.releases_from_devres);
+    try std.testing.expect(cleanup.release_record_consumed);
+    try std.testing.expect(!cleanup.warns_on_release_miss);
+    try std.testing.expect(cleanup.destroys_release_record_before_free);
+}
+
+test "detach cleanup planning keeps missing release records warnable" {
+    const allocation_plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+    const cleanup = DevresHelperLab.planManagedDmamDetachCleanup(allocation_plan, false);
+
+    try std.testing.expect(cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(!cleanup.releases_from_devres);
+    try std.testing.expect(!cleanup.release_record_consumed);
+    try std.testing.expect(cleanup.warns_on_release_miss);
+    try std.testing.expect(cleanup.destroys_release_record_before_free);
+}
+
+test "detach cleanup planning skips cleanup when allocation never retained ownership" {
+    const allocation_plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 0,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+    const cleanup = DevresHelperLab.planManagedDmamDetachCleanup(allocation_plan, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expectEqual(@as(u64, 0), cleanup.requested_size);
+    try std.testing.expect(!cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(!cleanup.generates_cleanup_plan);
+    try std.testing.expect(!cleanup.releases_from_devres);
+    try std.testing.expect(!cleanup.release_record_consumed);
+    try std.testing.expect(!cleanup.warns_on_release_miss);
+    try std.testing.expect(!cleanup.destroys_release_record_before_free);
 }
