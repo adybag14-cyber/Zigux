@@ -61,7 +61,7 @@ The current tests check:
 - one-byte and two-byte std, URL-safe, and IMAP tail parity with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
-- helper-local same-file sweeps for `paddedChars` and `unpaddedChars`, every one-byte and two-byte tail across std, URL-safe, and IMAP variants with and without padding, non-canonical tail-bit rejection, and reverse-map classification across all byte values
+- helper-local direct checks for `chars`, `bytes`, convenience-wrapper foreign-alphabet rejection, and exact-fit encode/decode buffer boundaries across the bounded std, URL-safe, and IMAP fixture packet
 - helper-local convenience parity between the generic and variant-pinned size, direct, slice, and allocator encode/decode entrypoints
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
