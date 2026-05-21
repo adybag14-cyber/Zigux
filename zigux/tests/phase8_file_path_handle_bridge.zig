@@ -51,6 +51,9 @@ test "phase 8 file-path handle bridge helper stays wired into its focused Phase 
     try expectContains(focused_build_file, "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(focused_build_file, "phase8_file_path_handle_bridge.zig");
     try expectContains(focused_build_file, "phase8-file-path-handle-bridge-tests");
+    try expectContains(focused_build_file, "const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);");
+    try expectContains(focused_build_file, "const test_step = b.step(\"test\", \"Run focused Phase 8 file-path-handle bridge tests\");");
+    try expectContains(focused_build_file, "test_step.dependOn(&run_file_path_handle_bridge_tests.step);");
 }
 
 test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {
@@ -64,6 +67,8 @@ test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8
     try expectContains(shared_build_file, "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(shared_build_file, "phase8_file_path_handle_bridge.zig");
     try expectContains(shared_build_file, "phase8-file-path-handle-bridge-tests");
+    try expectContains(shared_build_file, "const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);");
+    try expectContains(shared_build_file, "test_step.dependOn(&run_file_path_handle_bridge_tests.step);");
 }
 
 test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {
