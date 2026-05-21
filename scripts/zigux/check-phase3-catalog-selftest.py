@@ -38,6 +38,8 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
         'Path("scripts/zigux/check-phase3-policy-dump.py")',
+        'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
+        'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
@@ -54,6 +56,9 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
         '"python3 scripts/zigux/check-phase3-policy-dump.py"',
+        '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-wrapper-templates.py"',
+        '"python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
@@ -93,6 +98,8 @@ REQUIRED_MARKERS = {
         '("validated zigux/tests/phase3_policy_dump.zig",',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
         '("validated Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",',
+        'Path("scripts/zigux/check-phase3-wrapper-templates.py"),',
+        '("validated scripts/zigux/generate-phase3-check-wrappers.py",',
         '"expected missing linux-zigux header-governance output marker to fail the runner"',
     ),
     SELFTEST_RUNNER_PATH: (
@@ -102,6 +109,10 @@ REQUIRED_MARKERS = {
         '("PHASE3_POLICY_DUMP_SELF_TEST=pass",',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
         '("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",',
+        'Path("scripts/zigux/check-phase3-wrapper-templates.py"),',
+        '("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=pass",',
+        'Path("scripts/zigux/generate-phase3-check-wrappers.py"),',
+        '("PHASE3_WRAPPER_SELF_TEST=pass",',
         '"expected linux-zigux header governance validator omission was not reported"',
         '"expected missing governance pass marker to fail the packet"',
     ),
@@ -213,6 +224,16 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
+            "expected missing catalog wrapper-template checker marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
+            "expected missing catalog wrapper-generator marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
             "expected missing catalog policy-unsafe validator marker was not reported",
         ),
@@ -275,6 +296,21 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"python3 scripts/zigux/check-phase3-policy-dump.py"',
             "expected missing catalog policy-dump route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
+            "expected missing catalog wrapper-template self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-wrapper-templates.py"',
+            "expected missing catalog wrapper-template route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"',
+            "expected missing catalog wrapper-generator self-test route marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -437,6 +473,16 @@ def run_self_test() -> int:
             "expected missing runner governance output marker was not reported",
         ),
         (
+            RUNNER_PATH,
+            'Path("scripts/zigux/check-phase3-wrapper-templates.py"),',
+            "expected missing runner wrapper-template checker route marker was not reported",
+        ),
+        (
+            RUNNER_PATH,
+            '("validated scripts/zigux/generate-phase3-check-wrappers.py",',
+            "expected missing runner wrapper-template output marker was not reported",
+        ),
+        (
             SELFTEST_RUNNER_PATH,
             'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
             "expected missing selftest-packet governance validator route marker was not reported",
@@ -445,6 +491,26 @@ def run_self_test() -> int:
             SELFTEST_RUNNER_PATH,
             '("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),',
             "expected missing selftest-packet governance pass marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            'Path("scripts/zigux/check-phase3-wrapper-templates.py"),',
+            "expected missing selftest-packet wrapper-template checker route marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            '("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=pass",',
+            "expected missing selftest-packet wrapper-template checker pass marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            'Path("scripts/zigux/generate-phase3-check-wrappers.py"),',
+            "expected missing selftest-packet wrapper-generator route marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            '("PHASE3_WRAPPER_SELF_TEST=pass",',
+            "expected missing selftest-packet wrapper-generator pass marker was not reported",
         ),
         (
             LOW_LEVEL_WRAPPER_SURVEY_PATH,
@@ -521,7 +587,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the Phase 3 catalog helper packet",
+        help="repository root that contains the Phase 3 catalog packet",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
