@@ -42,6 +42,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_dropped_io_retirement_helper: bool,
+    provides_recovery_reservation_replay_helper: bool,
     provides_recovery_rollback_gate_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
@@ -251,6 +252,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_dropped_io_retirement_helper = true,
+            .provides_recovery_reservation_replay_helper = true,
             .provides_recovery_rollback_gate_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
@@ -833,6 +835,8 @@ test "nvme pci PRP metadata budget reserves one metadata page once a PRP list is
 
 test "nvme pci recovery reservation replay marks stale PRP metadata as descriptor rebuild debt" {
     var lab = try NvmePciQueueLab.init(4096, 8);
+    const descriptor = NvmePciQueueLab.descriptor();
+    try std.testing.expect(descriptor.provides_recovery_reservation_replay_helper);
     _ = try lab.planAdminQueue(32, 64, false);
     const reservation = try lab.reserveIoQueues(6, 6);
     _ = try lab.planPrpBufferShape(4096 * 3, 128);
