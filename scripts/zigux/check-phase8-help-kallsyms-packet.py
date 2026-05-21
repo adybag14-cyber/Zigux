@@ -19,6 +19,7 @@ HELP_SLICE = Path("Documentation/zigux/phase8-help-slice.md")
 KALLSYMS_SLICE = Path("Documentation/zigux/phase8-kallsyms-slice.md")
 TOOLING_LANE_SEQUENCE = Path("Documentation/zigux/phase8-tooling-lane-sequencing.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
 MAKEFILE = Path("zigux/Makefile")
 TESTS_README = Path("zigux/tests/README.md")
@@ -35,6 +36,7 @@ REQUIRED_FILES = (
     KALLSYMS_SLICE,
     TOOLING_LANE_SEQUENCE,
     CHECKLIST,
+    SCRIPTS_README,
     VALIDATOR,
     MAKEFILE,
     TESTS_README,
@@ -72,6 +74,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "if the change touches the parked Phase 8 `kallsyms` parser packet",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`make -C zigux phase8-kallsyms-test`",
+    ),
+    SCRIPTS_README: (
+        "while treating the returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors",
+        "`scripts/zigux/check-phase8-help-kallsyms-packet.py` and `scripts/zigux/check-phase8-libbpf-shard-routes.py` rematerialize those broader help, kallsyms, and libbpf-segment companions on `master`",
     ),
     VALIDATOR: (
         'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
@@ -226,7 +232,7 @@ def run_self_test() -> int:
         missing_checklist_help_route = validate_root(root)
         expected_checklist_help_route = "Documentation/zigux/review-checklist.md:`make -C zigux phase8-help-test`"
         if expected_checklist_help_route not in missing_checklist_help_route.missing_markers:
-            raise AssertionError("expected missing checklist help route to be reported")
+            raise AssertionError("expected missing checklist help route marker to be reported")
         checklist.write_text(original_checklist, encoding="utf-8")
 
         checklist.write_text(original_checklist.replace("`zigux/tests/phase8_kallsyms_only_build.zig`", "", 1), encoding="utf-8")
@@ -235,6 +241,25 @@ def run_self_test() -> int:
         if expected_checklist_kallsyms_build not in missing_checklist_kallsyms_build.missing_markers:
             raise AssertionError("expected missing checklist kallsyms build marker to be reported")
         checklist.write_text(original_checklist, encoding="utf-8")
+
+        scripts_readme = root / SCRIPTS_README
+        original_scripts_readme = _read(scripts_readme)
+        scripts_readme.write_text(
+            original_scripts_readme.replace(
+                "while treating the returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_scripts_readme_marker = validate_root(root)
+        expected_scripts_readme_marker = (
+            "scripts/zigux/README.md:"
+            "while treating the returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors"
+        )
+        if expected_scripts_readme_marker not in missing_scripts_readme_marker.missing_markers:
+            raise AssertionError("expected missing scripts README broader-packet marker to be reported")
+        scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
 
         validator = root / VALIDATOR
         original_validator = _read(validator)
@@ -322,7 +347,7 @@ def run_self_test() -> int:
         missing_validator_tuple = validate_root(root)
         expected_validator_tuple = "scripts/zigux/validate-phase8.py:HELP_KALLSYMS_PACKET_CHECKER,"
         if expected_validator_tuple not in missing_validator_tuple.missing_markers:
-            raise AssertionError("expected missing validator checker tuple to be reported")
+            raise AssertionError("expected missing validator checker tuple marker to be reported")
         validator.write_text(original_validator, encoding="utf-8")
 
         kallsyms_slice = root / KALLSYMS_SLICE
@@ -348,8 +373,14 @@ def run_self_test() -> int:
             raise AssertionError("expected missing kallsyms helper file to be reported")
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
+        scripts_readme.unlink()
+        missing_scripts_readme = validate_root(root)
+        if SCRIPTS_README.as_posix() not in missing_scripts_readme.missing_files:
+            raise AssertionError("expected missing scripts README file to be reported")
+        _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
+
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
