@@ -35,7 +35,6 @@ Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-roadmap-traceability.md` for the broader Phase 13 roadmap-to-repo owner map and the current syscall repo-reality gaps
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` for the broader Phase 13 owner split and lane routing
 - `Documentation/zigux/phase13-contributor-workflow-guide.md` for the contributor-facing workflow packet
-- `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md` for the stale survey-first continuity that still needs any future validation-only follow-up to reopen in its own lane
 - adjacent notifier evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h`; if direct companions such as `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/tests/phase13_notifier_list_manifest.json`, or `zigux/tests/phase13_notifier_list_reviewability.zig` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped evidence
 
 ## Owned Review Surface
@@ -54,7 +53,7 @@ Keep contributor guidance anchored to the broader shipped reminder packet while 
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-L16`, while the shared Phase 13 reminder notes currently keep the direct syscall survey, replay, reviewability, manifest, and shared-build companions recorded as repo-reality gaps until current `master` rematerializes them.
+This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-Y04`, while the shared Phase 13 reminder notes currently keep the direct syscall survey, replay, reviewability, manifest, and shared-build companions recorded as repo-reality gaps until current `master` rematerializes them.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -78,4 +77,4 @@ If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing repo path stays limited to the direct syscall survey, the direct replay pair, the direct manifest, and the shared `phase13_build.zig` companion rather than mislabeling those absent paths as shipped current-`master` evidence
 - helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, restrict-self planning, top-level create-ruleset initialization plus attr-presence wrapper checks, create-handle-only reuse of the ruleset-fd install planner, add-rule planning, top-level add-rule initialization plus attr-presence wrapper checks, ruleset-fd install planning, ruleset-fd stub planning, ruleset release planning, handled-access plus attr-size plus flag validation, incoming-layer plus tree-walk validation, delegated ruleset creation plus rule-tree search plus rule insertion planning, explicit `ruleset_fops` binding discipline, explicit `no_new_privs` plus supported restrict-self flag discipline, explicit `FMODE_CAN_READ` or `FMODE_CAN_WRITE` stub-mode discipline, explicit `filp->private_data` release discipline, and no live FD installation, file-buffer handling, or credential replacement
-- note-versus-gap ownership stays explicit: `P13-L16` owns this governance note, while the broader shared Phase 13 reminder packet keeps the absent direct syscall companions recorded as repo-reality gaps until current `master` rematerializes them
+- note-versus-gap ownership stays explicit: `P13-Y04` owns this governance note, while the broader shared Phase 13 reminder packet keeps the absent direct syscall companions recorded as repo-reality gaps until current `master` rematerializes them
