@@ -46,6 +46,10 @@ PHASE12_LIBBPF_SEGMENT_SURVEY_PATH = (
 PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
+LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
+)
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
@@ -70,6 +74,8 @@ REQUIRED_FILES = [
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     PHASE12_LIBBPF_SEGMENT_SURVEY_PATH,
     PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    LIBBPF_SNAPSHOT_PATH,
+    LIBBPF_SNAPSHOT_DETERMINISM_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     SCRIPTS_README_PATH,
@@ -105,6 +111,7 @@ REQUIRED_MARKERS = {
         "The route story on current `master` is split rather than absent: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
         "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
         "`zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that throughput-parity anchor still belongs to the adjacent bounded `virtio_net` packet rather than to the shared PMO release route.",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot.json` remains the parked visibility anchor for the note-owned libbpf reviewability packet on current `master`, while `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remains the helper-local determinism companion for directly readable `tools/lib/bpf/zigux_segments/pin_path.zig`",
     ],
     RELEASE_SEQUENCING_PATH: [
         "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
@@ -130,6 +137,7 @@ REQUIRED_MARKERS = {
         "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-test ZIG=<attached-zig-path>`",
         "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "The deterministic libbpf fixture pair stays explicit: `zigux/tests/fixtures/phase12_libbpf_snapshot.json` and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remain required before the shared release packet can be described as ready for closure review.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
@@ -164,7 +172,7 @@ REQUIRED_MARKERS = {
     PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH: [
         "- shared survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`",
         "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`",
-        "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves",
+        "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves`",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
@@ -331,6 +339,10 @@ def fixture_text(rel_path: str) -> str:
         }:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
+    if rel_path == LIBBPF_SNAPSHOT_PATH:
+        return '{\n  "lane_key": "P12-L16"\n}\n'
+    if rel_path == LIBBPF_SNAPSHOT_DETERMINISM_PATH:
+        return '{\n  "lane_key": "P12-L16",\n  "kind": "determinism"\n}\n'
     if rel_path.endswith(".py"):
         return "#!/usr/bin/env python3\n"
     if rel_path.endswith(".md"):
@@ -339,6 +351,8 @@ def fixture_text(rel_path: str) -> str:
         return "// fixture\n"
     if rel_path.endswith(".yml"):
         return "name: zigux-bootstrap\n"
+    if rel_path.endswith(".json"):
+        return "{}\n"
     return ""
 
 
@@ -387,6 +401,8 @@ def run_self_test() -> int:
             PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
             PHASE12_LIBBPF_SEGMENT_SURVEY_PATH,
             PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH,
+            LIBBPF_SNAPSHOT_PATH,
+            LIBBPF_SNAPSHOT_DETERMINISM_PATH,
             BUILD_ONLY_CHECKER_PATH,
             RELEASE_READINESS_CHECKER_PATH,
             SCRIPTS_README_PATH,
