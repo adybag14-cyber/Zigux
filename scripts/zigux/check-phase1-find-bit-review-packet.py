@@ -355,7 +355,7 @@ def run_self_test() -> int:
         if cases[6][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_closure_paragraph")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         closure_text = load_text(tmp_root, CLOSURE_NOTE_REL).replace(EXPECTED_CLOSURE_NO_READ_SENTENCE, "", 1)
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
         if cases[7][1] not in collect_failures(tmp_root):
