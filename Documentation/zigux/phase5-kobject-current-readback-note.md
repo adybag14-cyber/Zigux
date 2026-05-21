@@ -56,14 +56,13 @@ When a future same-lane repair touches shared Phase 5 reminder surfaces, use thi
 
 Prefer follow-through in this order:
 
-1. one shared tests-root reminder-and-guard sync across `zigux/tests/README.md` and `scripts/zigux/check-phase5-review-guide-surface.py`, because fresh repo-first comparison in this run found the broader shared packet already keeping the mixed direct-versus-public-tree-backed kobject split truthful while the tests-root packet and its shipped guard still do not keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit beside the current direct packet
-2. one broader shared reminder-surface reread across `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` after that tests-root sync lands
-3. one dedicated kobject survey-note, survey-replay, or build-route truthfulness repair if that broader reread exposes a surviving mismatch
+1. one broader shared reminder-surface reread across `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, because fresh repo-first comparison in this run found that `zigux/tests/README.md` and `scripts/zigux/check-phase5-review-guide-surface.py` already keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit beside the current direct packet
+2. one dedicated kobject survey-note, survey-replay, or build-route truthfulness repair if that broader reread exposes a surviving mismatch
 
 Avoid widening from this note into sample behavior changes unless the sample, focused test, manifest, or survey replay actually changes.
 
 ## Next bounded step
 
-Compare this note against `zigux/tests/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, and `samples/zigux/README.md` the next time the lane reopens.
+Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` the next time the lane reopens.
 
-This run still found `Documentation/zigux/review-checklist.md` carrying the mixed kobject packet correctly, but the shared tests-root reminder and its shipped guide-surface guard still undercount the direct attr-group companion inside that same packet. Reopen the lane only for that bounded tests-root reminder-and-guard sync or another equally small same-lane reminder drift that fresh repo-first reread proves after it.
+This run found the earlier tests-root-undercount claim stale: `zigux/tests/README.md` and `scripts/zigux/check-phase5-review-guide-surface.py` already keep the direct attr-group companion explicit inside the current kobject packet. Reopen the lane only for a broader shared reminder-surface reread or another equally small same-lane reminder drift that fresh repo-first comparison proves after that reread.
