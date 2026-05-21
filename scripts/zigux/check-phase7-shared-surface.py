@@ -24,6 +24,7 @@ EXPECTED_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase7-shared-surface.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -55,7 +56,11 @@ EXPECTED_HELPERS = [
             "pub fn kstrdupQuotableCmdline",
         ],
     ),
-    ("string_helpers_parse_int_array", "lib/string_helpers_parse_int_array.zig", ["pub const ParseIntArrayResult", "pub fn parseIntArray"]),
+    (
+        "string_helpers_parse_int_array",
+        "lib/string_helpers_parse_int_array.zig",
+        ["pub const ParseIntArrayResult", "pub fn parseIntArray"],
+    ),
     ("cmdline", "lib/cmdline.zig", ["pub fn parseOptionStr", "pub fn getOption"]),
     ("argv_split", "lib/argv_split.zig", ["pub const ArgvSplitResult", "pub fn argvSplit"]),
 ]
@@ -69,6 +74,7 @@ EXPECTED_REPLAYS = [
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
     "- `Documentation/zigux/README.md`",
+    "- `scripts/zigux/check-phase7-build-wiring.py`",
     "- `scripts/zigux/README.md`",
     "- `zigux/tests/README.md`",
     "- `lib/string_helpers_parse_int_array.zig`",
@@ -88,7 +94,7 @@ README_REQUIRED_RULES = [
     (SCRIPTS_README_PATH, ["## Phase 7"]),
     (TESTS_README_PATH, ["## Phase 7"]),
 ]
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -189,49 +195,110 @@ def scaffold_repo(root: Path) -> None:
         write(root / rel_path, "\n".join(markers) + "\n")
 
 
-def expect_failure(root: Path, path: Path, snippet: str, mode: str = "delete_line") -> None:
-    original = read_text(path)
-    if path == root / MANIFEST_PATH and snippet == '"current_repo_reality_gaps"':
-        data = json.loads(original)
-        data.pop("current_repo_reality_gaps", None)
-        write(path, json.dumps(data, indent=2) + "\n")
-    elif mode == "inject":
-        write(path, original + snippet + "\n")
-    else:
-        write(path, original.replace(snippet + "\n", "", 1))
-    try:
-        validate(root)
-    except (ValidationError, json.JSONDecodeError):
-        return
-    raise AssertionError("expected validation failure")
+def _mutate_text(root: Path, rel: Path, old: str, new: str, case: str) -> None:
+    path = root / rel
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(old, new, 1)
+    assert updated != text, case
+    path.write_text(updated, encoding="utf-8")
+
+
+def _append_text(root: Path, rel: Path, extra: str) -> None:
+    path = root / rel
+    path.write_text(path.read_text(encoding="utf-8") + extra, encoding="utf-8")
 
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase7_shared_surface_") as tmpdir:
-        root = Path(tmpdir)
+    missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
+    marker_cases = [
+        (
+            "missing_catalog_build_wiring_companion_marker",
+            CATALOG_PATH,
+            "- `scripts/zigux/check-phase7-build-wiring.py`",
+            "- `scripts/zigux/check-phase7-build-route.py`",
+        ),
+        (
+            "missing_catalog_validate_route_marker",
+            CATALOG_PATH,
+            "- `make -C zigux phase7-validate`",
+            "- `make -C zigux phase7-verify`",
+        ),
+        (
+            "missing_phase7_validate_route",
+            MAKEFILE_PATH,
+            "phase7-validate:",
+            "phase7-verify:",
+        ),
+        (
+            "missing_phase7_validate_run",
+            MAKEFILE_PATH,
+            "$(PYTHON) scripts/zigux/validate-phase7.py",
+            "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py",
+        ),
+        (
+            "missing_manifest_build_wiring_companion",
+            MANIFEST_PATH,
+            '"scripts/zigux/check-phase7-build-wiring.py",',
+            '"scripts/zigux/check-phase7-build-route.py",',
+        ),
+        (
+            "missing_manifest_phase7_test_gap",
+            MANIFEST_PATH,
+            "make -C zigux phase7-test",
+            "make -C zigux phase7-run",
+        ),
+        (
+            "missing_helper_parse_int_array_entry",
+            MANIFEST_PATH,
+            '"string_helpers_parse_int_array"',
+            '"string_helpers_parse_int_array_missing"',
+        ),
+    ]
+    unexpected_marker_cases = [
+        ("phase7_test_route_returned", "phase7-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig\n"),
+        ("phase7_aggregate_route_returned", "phase7: phase7-validate phase7-test\n"),
+    ]
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_shared_surface_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
         scaffold_repo(root)
         validate(root)
-        cases_run = 0
-        for path, snippet, mode in [
-            (root / CATALOG_PATH, "- `Documentation/zigux/README.md`", "delete_line"),
-            (root / CATALOG_PATH, "- `make -C zigux phase7-validate`", "delete_line"),
-            (root / CATALOG_PATH, "`kstrdupQuotable()`", "delete_line"),
-            (root / MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py", "delete_line"),
-            (root / MANIFEST_PATH, '"current_repo_reality_gaps"', "delete_line"),
-            (root / MANIFEST_PATH, '"make -C zigux phase7-validate"', "delete_line"),
-            (root / Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", "delete_line"),
-            (root / Path("lib/argv_split.zig"), "pub fn argvSplit", "delete_line"),
-            (root / DOCS_README_PATH, "Phase 7 notes", "delete_line"),
-            (root / SCRIPTS_README_PATH, "## Phase 7", "delete_line"),
-            (root / TESTS_README_PATH, "## Phase 7", "delete_line"),
-        ]:
+
+        for case, rel in missing_file_cases:
+            (root / rel).unlink()
+            try:
+                validate(root)
+            except ValidationError:
+                pass
+            else:
+                raise AssertionError(case)
             scaffold_repo(root)
-            expect_failure(root, path, snippet, mode)
-            cases_run += 1
-        if cases_run != SELF_TEST_CASE_COUNT:
-            raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
+
+        for case, rel, old, new in marker_cases:
+            _mutate_text(root, rel, old, new, case)
+            try:
+                validate(root)
+            except ValidationError:
+                pass
+            else:
+                raise AssertionError(case)
+            scaffold_repo(root)
+
+        for case, extra in unexpected_marker_cases:
+            _append_text(root, MAKEFILE_PATH, extra)
+            try:
+                validate(root)
+            except ValidationError:
+                pass
+            else:
+                raise AssertionError(case)
+            scaffold_repo(root)
+
     print("PHASE7_SHARED_SURFACE_SELF_TEST=pass")
-    print(f"PHASE7_SHARED_SURFACE_SELF_TEST_CASE_COUNT={cases_run}")
+    print(
+        "PHASE7_SHARED_SURFACE_SELF_TEST_CASE_COUNT=%d"
+        % (len(missing_file_cases) + len(marker_cases) + len(unexpected_marker_cases))
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -246,11 +313,13 @@ def main() -> int:
     if args.self_test:
         run_self_test()
         return 0
+
     try:
         validate(args.repo_root)
     except ValidationError as exc:
         print(f"PHASE7_SHARED_SURFACE=fail: {exc}")
         return 1
+
     print("PHASE7_SHARED_SURFACE=pass")
     return 0
 
