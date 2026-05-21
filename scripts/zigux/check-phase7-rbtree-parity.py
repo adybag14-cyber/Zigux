@@ -45,13 +45,18 @@ REQUIRED_MARKERS = {
         "- `zigux/tests/phase7_rbtree.zig`",
         "- `zigux/tests/phase7_rbtree_survey.zig`",
         "- `zigux/tests/phase7_rbtree_manifest.json`",
+        "Fresh current-master reread in this slot also confirmed these shared non-owner surfaces:",
+        "- `scripts/zigux/check-phase7-build-wiring.py`",
+        "- `scripts/zigux/validate-phase7.py`",
+        "- `zigux/tests/phase7_build.zig`",
+        "- `zigux/Makefile`",
+        "- `.github/workflows/zigux-bootstrap.yml`",
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
-        "`zigux/tests/phase7_build.zig`",
-        "`scripts/zigux/validate-phase7.py`",
         "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`",
         "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
+        "shared build, validator, and workflow evidence",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
@@ -107,7 +112,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(path: Path) -> str:
@@ -232,6 +237,26 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        note_marker = "Fresh current-master reread in this slot also confirmed these shared non-owner surfaces:"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_shared_non_owner_header_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "- `zigux/tests/phase7_build.zig`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_shared_build_path_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
@@ -246,6 +271,16 @@ def run_self_test() -> None:
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_note_current_packet_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "shared build, validator, and workflow evidence"
+        note_path.write_text(read_text(note_path).replace(note_marker, "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_shared_build_evidence_phrase_marker",
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
         )
