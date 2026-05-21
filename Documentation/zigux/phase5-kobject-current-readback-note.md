@@ -22,20 +22,20 @@ Authenticated contents readback in this run directly returned:
 - `samples/zigux/kobject_example.zig`
 - `zigux/tests/phase5_kobject_example.zig`
 - `zigux/tests/phase5_kobject_example_manifest.json`
+- `zigux/tests/phase5_build.zig`
 
 Fresh sample-root reread in the same run also directly returned `samples/zigux/kobject_example_attr_group_contract.zig` as the bounded attr-group companion for the same anchor.
 
-The same run also confirmed these current `master` packet members through public GitHub file readback:
+The same run still confirmed this current `master` packet member through public GitHub file readback:
 
 - `zigux/tests/phase5_kobject_example_survey.zig`
-- `zigux/tests/phase5_build.zig`
 
 That means the strongest honest current packet for this run is:
 
-- the dedicated survey note, sample-root file, focused tests-root replay, and manifest-backed contract are directly readable through the authenticated contents route used here
+- the dedicated survey note, sample-root file, focused tests-root replay, manifest-backed contract, and shared build route are directly readable through the authenticated contents route used here
 - the direct sample-root attr-group companion is readable too and should stay framed as bounded companion evidence for the same `kobject` anchor rather than as a fifth Phase 5 sample
-- the survey replay and shared build route remain visible on public current `master`
-- same-lane reminder work should treat authenticated contents `404` results on those two public-file members as current connector-local readback flakiness, not as proof that the broader kobject packet vanished from the repo
+- the survey replay remains visible on public current `master`
+- same-lane reminder work should treat authenticated contents `404` results on that public-file member as current connector-local readback flakiness, not as proof that the broader kobject packet vanished from the repo
 
 ## Sample-backed cues this run kept explicit
 
@@ -47,7 +47,7 @@ Keep these sample-backed cues explicit when the lane reopens:
 - `zigux/tests/phase5_kobject_example.zig` keeps the focused replay packet explicit around descriptor, registration, shared `baz` and `bar` dispatch, lifecycle boundaries, and teardown posture
 - `zigux/tests/phase5_kobject_example_manifest.json` remains the manifest-backed contract for the same bounded packet
 - `samples/zigux/kobject_example_attr_group_contract.zig` remains the direct sample-root companion for the bounded `foo`/`baz`/`bar` attribute-group contract, the shared `0664` mode cue, the unnamed-group marker, and the NULL-terminated attribute-list slot without turning that companion into a fifth Phase 5 sample
-- `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain part of the same packet even when this run had to prove them through public current-`master` fallback instead of the authenticated contents route
+- `zigux/tests/phase5_build.zig` remains part of the same packet on the direct authenticated contents route, and `zigux/tests/phase5_kobject_example_survey.zig` remains part of the same packet even when this run had to prove that survey replay through public current-`master` fallback instead of the authenticated contents route
 - non-goals stay unchanged: no sysfs file creation parity, no `kernel_kobj` integration, no uevents, and no loadable module registration claim
 
 ## Review posture
