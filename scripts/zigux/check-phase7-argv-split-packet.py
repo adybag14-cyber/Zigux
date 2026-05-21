@@ -46,6 +46,7 @@ REQUIRED_MARKERS = {
         "fn nextSplitArgSpan(",
         "test \"argvSplit treats whitespace before the first NUL as blank input\" {",
         "test \"argvSplit treats a leading NUL as blank input\" {",
+        "test \"argvSplit reuses shared blank sentinel views without argc output\" {",
         "test \"blank-input deinit on one caller keeps the shared sentinel views usable for another\" {",
         "test \"argvFree resets released non-blank results to the shared empty exported views\" {",
         "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {",
@@ -76,6 +77,7 @@ REQUIRED_MARKERS = {
         "try std.testing.expect(!stringSliceContains(manifest.review_surfaces, \"Documentation/zigux/phase7-helper-lane-sequencing.md\"));",
         "try expectNotContains(checker, \"\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",\");",
         "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");",
+        "try expectContains(helper, \"test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries\");",
         "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");",
@@ -98,7 +100,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 39
+SELF_TEST_CASE_COUNT = 40
 
 
 def read_text(path: Path) -> str:
@@ -240,6 +242,12 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
+        survey_marker = "try expectContains(helper, \"test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {\");"
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_blank_without_argc_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
         survey_marker = "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");"
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_repeated_blank_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
@@ -328,6 +336,12 @@ def run_self_test() -> None:
         helper_marker = "test \"argvSplit treats a leading NUL as blank input\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_leading_nul_blank_input_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"argvSplit reuses shared blank sentinel views without argc output\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_blank_without_argc_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
