@@ -24,6 +24,7 @@ REQUIRED_FILES = (
 )
 
 EXACT_WORKFLOW_RUN_COUNTS = {
+    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing": 1,
     "python3 scripts/zigux/install-zig.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross.py": 1,
@@ -44,7 +45,7 @@ ORDERED_STEP_MARKERS = (
     "- name: Check current Phase 2 toolchain pinning packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -234,6 +235,21 @@ def run_self_test() -> int:
         assert (
             "DUPLICATE_WORKFLOW_RUN",
             "python3 scripts/zigux/check-phase2-toolchain-pinning.py:count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            duplicate_exact_line(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_WORKFLOW_RUN",
+            "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2",
         ) in collect_issues(root)
         checks_run += 1
 
