@@ -106,9 +106,12 @@ REQUIRED_MARKERS = {
         "pub fn summarizePublishReadiness(",
         "pub fn queueCanPublish(summary: QueuePublishReadinessSummary) bool {",
         "pub fn queueHasPublishCapacity(summary: QueuePublishReadinessSummary) bool {",
+        'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
         'test "phase10 virtio ring publish-readiness wrapper keeps unpublished chains visible while remaining queue-local publishable" {',
         'test "phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity" {',
+        'test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {',
         'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
+        'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {',
     ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
@@ -251,7 +254,7 @@ def write_fixture(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("\n".join(markers) + "\n", encoding="utf-8")
     manifest_path = root / MANIFEST_PATH
-    manifest_path.write_text(json.dumps(fixture_manifest(), indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(json.dumps(fixture_manifest(), indent=2) + "\n")
 
 
 def expect_problem(root: Path, mutate, expected: str) -> None:
@@ -316,6 +319,45 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_empty_queue_test(tmp_root: Path) -> None:
+            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = 'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {'
+            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper keeps empty queues hidden" {', 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_empty_queue_test,
+            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
+        )
+        write_fixture(root)
+
+        def remove_used_buffer_recovery_test(tmp_root: Path) -> None:
+            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = 'test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {'
+            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper regains publish capacity late" {', 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_used_buffer_recovery_test,
+            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {',
+        )
+        write_fixture(root)
+
+        def remove_broken_full_queue_recovery_test(tmp_root: Path) -> None:
+            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = 'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {'
+            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper forgets queue-full after clearBroken" {', 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_broken_full_queue_recovery_test,
+            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {',
+        )
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_ring_survey.zig").unlink()
         missing_files, problems = validate(root)
         if problems:
@@ -326,7 +368,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
