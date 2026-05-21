@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 98
+EXPECTED_SELF_TEST_CASE_COUNT = 100
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -716,6 +716,7 @@ def run_self_test() -> int:
         missing_dir.mkdir()
         assert ("MISSING_FILE_NOT_FILE_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
         checks_run += 1
+        missing_dir.rmdir()
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
@@ -734,11 +735,14 @@ def run_self_test() -> int:
             EXPECTED_MISSING_FILES[0],
         ) in collect_issues(root)
         checks_run += 1
+        master_missing_dir.rmdir()
 
         build_self_test_root(root)
         workflow_path = resolve_path(root, Path(EXPECTED_WORKFLOW_SURFACE))
         workflow_path.unlink()
         assert ("WORKFLOW_SURFACE_MISSING_ON_BRANCH", EXPECTED_WORKFLOW_SURFACE) in collect_issues(root)
+        checks_run += 1
+        assert_run_checker_output_contains(root, "WORKFLOW_SURFACE_MISSING_ON_BRANCH_START")
         checks_run += 1
 
         build_self_test_root(root)
@@ -747,8 +751,10 @@ def run_self_test() -> int:
         workflow_path.parent.mkdir(parents=True, exist_ok=True)
         workflow_path.mkdir()
         assert ("WORKFLOW_SURFACE_NOT_FILE_ON_BRANCH", EXPECTED_WORKFLOW_SURFACE) in collect_issues(root)
-        workflow_path.rmdir()
+        assert_run_checker_output_contains(root, "WORKFLOW_SURFACE_NOT_FILE_ON_BRANCH_START")
         checks_run += 1
+        checks_run += 1
+        workflow_path.rmdir()
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files="wrong"))
@@ -872,7 +878,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
-        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        assert_systemExit_contains(lambda: collect_issues(root), "required file missing:")
         checks_run += 1
 
         build_self_test_root(root)
