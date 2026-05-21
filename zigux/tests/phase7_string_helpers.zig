@@ -114,6 +114,18 @@ test "phase 7 string helpers starter keeps sysfs matching newline aware" {
     try std.testing.expect(string_helpers.sysfsStreq(&newline, &nul));
 }
 
+test "phase 7 string helpers starter keeps termination checks bounded by the caller limit" {
+    const terminated = [_]u8{ 'o', 'k', 0, 'x' };
+    try std.testing.expect(string_helpers.stringIsTerminated(&terminated, 3));
+    try std.testing.expect(string_helpers.string_is_terminated(&terminated, 3));
+    try std.testing.expect(!string_helpers.stringIsTerminated(&terminated, 2));
+
+    const trailing_only = [_]u8{ 'o', 'k', 0 };
+    try std.testing.expect(string_helpers.stringIsTerminated(&trailing_only, trailing_only.len));
+    try std.testing.expect(!string_helpers.string_is_terminated("zigux", 6));
+    try std.testing.expect(!string_helpers.stringIsTerminated("zigux", 0));
+}
+
 test "phase 7 string helpers starter matches tables through the first null entry" {
     const values = [_]?[]const u8{
         "disabled",
