@@ -62,9 +62,11 @@ REQUIRED_MARKERS = {
         "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig` now keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same stable-output helper packet.",
         "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, perf-buffer wait-classification, poll-summary, execution-summary, and impossible-summary fail-closed outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
+        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
     ),
     BRIDGE_BOUNDARY_SURVEY_PATH: (
         "deferred `perf-buffer-online-cpu-routing` packet",
