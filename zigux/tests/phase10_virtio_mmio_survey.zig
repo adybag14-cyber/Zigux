@@ -81,7 +81,7 @@ test "phase10 virtio mmio survey packet keeps the config-write companion and sli
     );
 }
 
-test "phase10 virtio mmio survey gate keeps manifest lane identity and risky transport posture explicit" {
+test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inventory, and risky transport posture explicit" {
     const allocator = std.testing.allocator;
 
     const manifest = try readRepoRelative(
@@ -93,6 +93,8 @@ test "phase10 virtio mmio survey gate keeps manifest lane identity and risky tra
     try expectContains(manifest, "\"lane_key\": \"P10-L11\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-mmio-interrupt-ack-disposition-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-mmio-feature-negotiation-summary-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-mmio-config-write-plan-freshness-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-mmio-survey-gate\"");
 }
 
