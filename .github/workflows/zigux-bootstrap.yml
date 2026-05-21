@@ -253,6 +253,9 @@ jobs:
       - name: Run current Phase 2 fixdep make route
         run: make -C zigux phase2-fixdep
 
+      - name: Run current Phase 2 cross make route
+        run: make -C zigux phase2-cross
+
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
 
