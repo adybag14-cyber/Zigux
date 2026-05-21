@@ -54,7 +54,7 @@ REQUIRED_MARKERS = {
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
-        "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`",
+        "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.",
         "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
         "shared build, validator, and workflow evidence",
     ],
@@ -268,7 +268,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`"
+        note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface."
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_note_fallback_provenance_marker",
