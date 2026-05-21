@@ -63,6 +63,13 @@ EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_PUBLIC_COMPANIONS = ["Documentation/zigux/phase6-perf-gate-survey.md"]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+]
 EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-test",
@@ -220,7 +227,7 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 shared perf wrapper route drift")
     if helper_parity_manifest.get("public_tree_backed_shared_companions") != EXPECTED_SHARED_PUBLIC_COMPANIONS:
         raise ValidationError("phase6 helper parity public companion drift")
-    if helper_parity_manifest.get("shared_follow_through_gaps") != []:
+    if helper_parity_manifest.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper parity follow-through gap drift")
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
@@ -281,7 +288,7 @@ def scaffold_repo(root: Path) -> None:
         "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
         "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
         "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
-        "shared_follow_through_gaps": [],
+        "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
         "helpers": [
             {
                 "key": "base64",
