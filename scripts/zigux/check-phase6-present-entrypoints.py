@@ -54,6 +54,22 @@ EXPECTED_CATALOG_SNIPPETS = [
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
+EXPECTED_BASE64_CASES = [
+    "STD_PAD",
+    "STD_NO_PAD",
+    "URLSAFE_PAD",
+    "URLSAFE_NO_PAD",
+    "IMAP_PAD",
+    "IMAP_NO_PAD",
+]
+EXPECTED_BASE64_ITERATIONS = 12000
+EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT = 150
+EXPECTED_BASE64_DECODE_SLOWDOWN_PCT = 325
+EXPECTED_BASE64_RERUN_ROUTES = [
+    "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-perf",
+    "make -C zigux phase6-perf",
+]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
 EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
 EXPECTED_HEXDUMP_CHECKER = "scripts/zigux/check-phase6-hexdump-packet.py"
@@ -113,7 +129,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -179,6 +195,25 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helpers list missing")
     if [helper.get("key") for helper in helpers if isinstance(helper, dict)] != EXPECTED_HELPER_KEYS:
         raise ValidationError("phase6 helper key order mismatch")
+
+    parity_helpers = parity.get("helpers")
+    if not isinstance(parity_helpers, list):
+        raise ValidationError("phase6 parity helpers list missing")
+
+    base64 = next(helper for helper in parity_helpers if helper.get("key") == "base64")
+    base64_perf = base64.get("current_perf_evidence")
+    if not isinstance(base64_perf, dict):
+        raise ValidationError("phase6 base64 perf evidence missing")
+    if base64_perf.get("case_labels") != EXPECTED_BASE64_CASES:
+        raise ValidationError("phase6 base64 perf case labels mismatch")
+    if base64_perf.get("iterations") != EXPECTED_BASE64_ITERATIONS:
+        raise ValidationError("phase6 base64 perf iterations mismatch")
+    if base64_perf.get("max_encode_slowdown_pct") != EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT:
+        raise ValidationError("phase6 base64 encode slowdown mismatch")
+    if base64_perf.get("max_decode_slowdown_pct") != EXPECTED_BASE64_DECODE_SLOWDOWN_PCT:
+        raise ValidationError("phase6 base64 decode slowdown mismatch")
+    if base64_perf.get("linux_style_rerun_routes") != EXPECTED_BASE64_RERUN_ROUTES:
+        raise ValidationError("phase6 base64 perf rerun routes mismatch")
 
     bsearch = next(helper for helper in helpers if helper.get("key") == "bsearch")
     if bsearch.get("checker_surfaces") != [EXPECTED_BSEARCH_CHECKER]:
@@ -285,6 +320,18 @@ def scaffold_repo(root: Path) -> None:
                 "packet": EXPECTED_PARITY_PACKET,
                 "phase": EXPECTED_PHASE,
                 "surveyed_head": EXPECTED_PARITY_SURVEYED_HEAD,
+                "helpers": [
+                    {
+                        "key": "base64",
+                        "current_perf_evidence": {
+                            "case_labels": EXPECTED_BASE64_CASES,
+                            "iterations": EXPECTED_BASE64_ITERATIONS,
+                            "max_encode_slowdown_pct": EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT,
+                            "max_decode_slowdown_pct": EXPECTED_BASE64_DECODE_SLOWDOWN_PCT,
+                            "linux_style_rerun_routes": EXPECTED_BASE64_RERUN_ROUTES,
+                        },
+                    }
+                ],
             },
             indent=2,
         )
@@ -335,6 +382,12 @@ def run_self_test() -> None:
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-base64-perf")))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"max_decode_slowdown_pct": 326})))
+        cases_run += 1
+        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"case_labels": EXPECTED_BASE64_CASES[:-1]})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
         cases_run += 1
