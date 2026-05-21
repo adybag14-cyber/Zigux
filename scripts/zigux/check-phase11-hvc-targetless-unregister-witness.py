@@ -14,12 +14,23 @@ from pathlib import Path
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 REQUIRED_STEP_NAME = "Run current Phase 11 HVC targetless-unregister gap witness"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+LANE_NOTE_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
 CLEANUP_COMPANION_PATH = "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md"
+VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
+SURVEY_PATH = "Documentation/zigux/phase11-hvc-console-survey.md"
+VERIFY_BOUNDARY_PATH = "Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
+DRIVER_PATH = "drivers/tty/hvc/hvc_console.zig"
 CLEANUP_CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
 CLEANUP_SELF_TEST_COMMAND = "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test"
 CLEANUP_COMMAND = "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
 CLEANUP_SELF_TEST_STEP = "Self-test current Phase 11 HVC cleanup current-head checker"
 CLEANUP_STEP = "Check current Phase 11 HVC cleanup current-head packet"
+VALIDATE_PHASE11_PATH = "scripts/zigux/validate-phase11.py"
+MAKEFILE_PATH = "zigux/Makefile"
+INVENTORY_PATH = "zigux/tests/fixtures/phase11_build_inventory.json"
+WITNESS_PATH = "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+WITNESS_BUILD_PATH = "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+SELF_PATH = "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
 
 
 @dataclass(frozen=True)
@@ -30,17 +41,19 @@ class FileExpectation:
 
 REQUIRED_PACKET_FILES = (
     WORKFLOW_PATH,
-    "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    LANE_NOTE_PATH,
     CLEANUP_COMPANION_PATH,
-    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-    "Documentation/zigux/phase11-hvc-console-survey.md",
+    VALIDATION_MATRIX_PATH,
+    SURVEY_PATH,
+    VERIFY_BOUNDARY_PATH,
+    DRIVER_PATH,
     CLEANUP_CHECKER_PATH,
-    "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-    "scripts/zigux/validate-phase11.py",
-    "zigux/Makefile",
-    "zigux/tests/fixtures/phase11_build_inventory.json",
-    "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    SELF_PATH,
+    VALIDATE_PHASE11_PATH,
+    MAKEFILE_PATH,
+    INVENTORY_PATH,
+    WITNESS_PATH,
+    WITNESS_BUILD_PATH,
 )
 
 FILE_EXPECTATIONS = (
@@ -52,44 +65,67 @@ FILE_EXPECTATIONS = (
         ),
     ),
     FileExpectation(
-        "Documentation/zigux/phase11-driver-lane-sequencing.md",
+        LANE_NOTE_PATH,
         (
             CLEANUP_COMPANION_PATH,
             CLEANUP_CHECKER_PATH,
-            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            SELF_PATH,
+            WITNESS_PATH,
+            WITNESS_BUILD_PATH,
         ),
     ),
     FileExpectation(
         CLEANUP_COMPANION_PATH,
         (
             CLEANUP_CHECKER_PATH,
-            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            SELF_PATH,
+            WITNESS_PATH,
+            WITNESS_BUILD_PATH,
         ),
     ),
     FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        VALIDATION_MATRIX_PATH,
         (
             CLEANUP_COMPANION_PATH,
             CLEANUP_CHECKER_PATH,
-            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            SELF_PATH,
+            WITNESS_PATH,
+            WITNESS_BUILD_PATH,
             "make -C zigux phase11-validate",
         ),
     ),
     FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-survey.md",
+        SURVEY_PATH,
         (
             CLEANUP_COMPANION_PATH,
             CLEANUP_CHECKER_PATH,
-            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            SELF_PATH,
+            WITNESS_PATH,
+            WITNESS_BUILD_PATH,
             "standalone targetless-unregister witness pair",
+        ),
+    ),
+    FileExpectation(
+        VERIFY_BOUNDARY_PATH,
+        (
+            "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge",
+            "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable",
+            "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
+            "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit",
+        ),
+    ),
+    FileExpectation(
+        DRIVER_PATH,
+        (
+            "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+            "targetless_no_unregister_edge: bool,",
+            "targetless_unregister_request_sanitized: bool,",
+            ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,",
+            ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
+            ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,",
+            'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+            "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);",
+            'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
         ),
     ),
     FileExpectation(
@@ -100,20 +136,41 @@ FILE_EXPECTATIONS = (
         ),
     ),
     FileExpectation(
-        "scripts/zigux/validate-phase11.py",
+        VALIDATE_PHASE11_PATH,
         (
             CLEANUP_CHECKER_PATH,
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            WITNESS_PATH,
+            WITNESS_BUILD_PATH,
             "phase11-hvc-cleanup-current-head",
             "phase11-hvc-targetless-unregister-gap-build",
         ),
     ),
     FileExpectation(
-        "zigux/Makefile",
+        MAKEFILE_PATH,
         (
             "phase11-validate:",
             "phase11_hvc_targetless_unregister_gap_build.zig",
+        ),
+    ),
+    FileExpectation(
+        WITNESS_PATH,
+        (
+            'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {',
+            f'const driver = try readRepoFile("{DRIVER_PATH}");',
+            f'const boundary = try readRepoFile("{VERIFY_BOUNDARY_PATH}");',
+            'try expectContains(driver, "targetless_no_unregister_edge: bool,");',
+            'try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");',
+            'try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");',
+            'try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");',
+            'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
+        ),
+    ),
+    FileExpectation(
+        WITNESS_BUILD_PATH,
+        (
+            '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),',
+            '.name = "phase11-hvc-targetless-unregister-gap",',
+            'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
         ),
     ),
 )
@@ -151,7 +208,7 @@ def require_fragments(root: Path) -> None:
 
 
 def require_inventory(root: Path) -> None:
-    inventory_text = read_text(root, "zigux/tests/fixtures/phase11_build_inventory.json")
+    inventory_text = read_text(root, INVENTORY_PATH)
     try:
         inventory = json.loads(inventory_text)
     except json.JSONDecodeError as exc:
@@ -224,15 +281,15 @@ def make_fixture(root: Path) -> None:
     )
     write_text(
         root,
-        "Documentation/zigux/phase11-driver-lane-sequencing.md",
+        LANE_NOTE_PATH,
         "\n".join(
             (
                 "# sequencing",
                 CLEANUP_COMPANION_PATH,
                 CLEANUP_CHECKER_PATH,
-                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                SELF_PATH,
+                WITNESS_PATH,
+                WITNESS_BUILD_PATH,
             )
         )
         + "\n",
@@ -244,41 +301,74 @@ def make_fixture(root: Path) -> None:
             (
                 "# companion",
                 CLEANUP_CHECKER_PATH,
-                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                SELF_PATH,
+                WITNESS_PATH,
+                WITNESS_BUILD_PATH,
             )
         )
         + "\n",
     )
     write_text(
         root,
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        VALIDATION_MATRIX_PATH,
         "\n".join(
             (
                 "# matrix",
                 CLEANUP_COMPANION_PATH,
                 CLEANUP_CHECKER_PATH,
-                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                SELF_PATH,
+                WITNESS_PATH,
+                WITNESS_BUILD_PATH,
                 "make -C zigux phase11-validate",
+                "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
             )
         )
         + "\n",
     )
     write_text(
         root,
-        "Documentation/zigux/phase11-hvc-console-survey.md",
+        SURVEY_PATH,
         "\n".join(
             (
                 "# survey",
                 CLEANUP_COMPANION_PATH,
                 CLEANUP_CHECKER_PATH,
-                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                SELF_PATH,
+                WITNESS_PATH,
+                WITNESS_BUILD_PATH,
                 "standalone targetless-unregister witness pair",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        VERIFY_BOUNDARY_PATH,
+        "\n".join(
+            (
+                "# boundary",
+                "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge",
+                "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable",
+                "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
+                "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        DRIVER_PATH,
+        "\n".join(
+            (
+                "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+                "targetless_no_unregister_edge: bool,",
+                "targetless_unregister_request_sanitized: bool,",
+                ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,",
+                ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
+                ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,",
+                "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {",
+                "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);",
+                "test \"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\" {",
             )
         )
         + "\n",
@@ -298,13 +388,13 @@ def make_fixture(root: Path) -> None:
     )
     write_text(
         root,
-        "scripts/zigux/validate-phase11.py",
+        VALIDATE_PHASE11_PATH,
         "\n".join(
             (
                 "# validate",
                 CLEANUP_CHECKER_PATH,
-                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                WITNESS_PATH,
+                WITNESS_BUILD_PATH,
                 "phase11-hvc-cleanup-current-head",
                 "phase11-hvc-targetless-unregister-gap-build",
             )
@@ -313,7 +403,7 @@ def make_fixture(root: Path) -> None:
     )
     write_text(
         root,
-        "zigux/Makefile",
+        MAKEFILE_PATH,
         "\n".join(
             (
                 "phase11-validate:",
@@ -322,7 +412,36 @@ def make_fixture(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root, "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "# self\n")
+    write_text(
+        root,
+        WITNESS_PATH,
+        "\n".join(
+            (
+                "test \"phase11 hvc notifier witness records current-head targetless unregister sanitizer\" {",
+                f"const driver = try readRepoFile(\"{DRIVER_PATH}\");",
+                f"const boundary = try readRepoFile(\"{VERIFY_BOUNDARY_PATH}\");",
+                "try expectContains(driver, \"targetless_no_unregister_edge: bool,\");",
+                "try expectContains(driver, \".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\");",
+                "try expectContains(boundary, \"`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge\");",
+                "try expectContains(boundary, \"`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable\");",
+                "try expectContains(matrix, \"keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet\");",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        WITNESS_BUILD_PATH,
+        "\n".join(
+            (
+                ".root_source_file = b.path(\"phase11_hvc_targetless_unregister_gap.zig\"),",
+                ".name = \"phase11-hvc-targetless-unregister-gap\",",
+                "const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC targetless-unregister gap witness.\");",
+            )
+        )
+        + "\n",
+    )
+    write_text(root, SELF_PATH, "# self\n")
 
     inventory = {
         "exact_current_checks": [
@@ -338,7 +457,7 @@ def make_fixture(root: Path) -> None:
     }
     write_text(
         root,
-        "zigux/tests/fixtures/phase11_build_inventory.json",
+        INVENTORY_PATH,
         json.dumps(inventory, indent=2, sort_keys=True) + "\n",
     )
 
@@ -351,7 +470,7 @@ def run_self_test() -> int:
         validate(temp_dir)
         total_cases += 1
 
-        sequencing = temp_dir / "Documentation/zigux/phase11-driver-lane-sequencing.md"
+        sequencing = temp_dir / LANE_NOTE_PATH
         sequencing.write_text("# sequencing\n", encoding="utf-8")
         try:
             validate(temp_dir)
@@ -371,7 +490,7 @@ def run_self_test() -> int:
             raise AssertionError("expected cleanup companion fragment check to fail")
 
         make_fixture(temp_dir)
-        matrix = temp_dir / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
+        matrix = temp_dir / VALIDATION_MATRIX_PATH
         matrix.write_text("# matrix\n", encoding="utf-8")
         try:
             validate(temp_dir)
@@ -381,7 +500,7 @@ def run_self_test() -> int:
             raise AssertionError("expected validation matrix fragment check to fail")
 
         make_fixture(temp_dir)
-        survey = temp_dir / "Documentation/zigux/phase11-hvc-console-survey.md"
+        survey = temp_dir / SURVEY_PATH
         survey.write_text("# survey\n", encoding="utf-8")
         try:
             validate(temp_dir)
@@ -389,6 +508,26 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected survey fragment check to fail")
+
+        make_fixture(temp_dir)
+        boundary = temp_dir / VERIFY_BOUNDARY_PATH
+        boundary.write_text("# boundary\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected verify-boundary fragment check to fail")
+
+        make_fixture(temp_dir)
+        driver = temp_dir / DRIVER_PATH
+        driver.write_text("# driver\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected driver fragment check to fail")
 
         make_fixture(temp_dir)
         cleanup_checker = temp_dir / CLEANUP_CHECKER_PATH
@@ -401,6 +540,26 @@ def run_self_test() -> int:
             raise AssertionError("expected cleanup checker required-file validation to keep failing via coupled fragments")
 
         make_fixture(temp_dir)
+        witness = temp_dir / WITNESS_PATH
+        witness.write_text("# witness\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected witness replay fragment check to fail")
+
+        make_fixture(temp_dir)
+        witness_build = temp_dir / WITNESS_BUILD_PATH
+        witness_build.write_text("# witness build\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected witness build fragment check to fail")
+
+        make_fixture(temp_dir)
         workflow = temp_dir / WORKFLOW_PATH
         workflow.write_text("jobs:\n  bootstrap:\n    steps:\n", encoding="utf-8")
         try:
@@ -411,7 +570,7 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow fragment check to fail")
 
         make_fixture(temp_dir)
-        inventory_path = temp_dir / "zigux/tests/fixtures/phase11_build_inventory.json"
+        inventory_path = temp_dir / INVENTORY_PATH
         inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
         inventory["exact_current_checks"] = [REQUIRED_COMMAND]
         inventory_path.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -445,7 +604,7 @@ def run_self_test() -> int:
             raise AssertionError("expected invalid inventory JSON validation to fail")
 
         make_fixture(temp_dir)
-        missing_packet_file = temp_dir / "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+        missing_packet_file = temp_dir / WITNESS_PATH
         missing_packet_file.unlink()
         try:
             validate(temp_dir)
@@ -457,7 +616,7 @@ def run_self_test() -> int:
             raise AssertionError("expected missing packet file validation to fail")
 
         make_fixture(temp_dir)
-        validate_script = temp_dir / "scripts/zigux/validate-phase11.py"
+        validate_script = temp_dir / VALIDATE_PHASE11_PATH
         validate_script.write_text("# validate\n", encoding="utf-8")
         try:
             validate(temp_dir)
@@ -467,7 +626,7 @@ def run_self_test() -> int:
             raise AssertionError("expected validate-phase11 fragment validation to fail")
 
         make_fixture(temp_dir)
-        makefile = temp_dir / "zigux/Makefile"
+        makefile = temp_dir / MAKEFILE_PATH
         makefile.write_text("phase11-validate:\n", encoding="utf-8")
         try:
             validate(temp_dir)
