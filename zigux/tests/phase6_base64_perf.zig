@@ -25,7 +25,7 @@ fn perfPayloadFingerprint(bytes: []const u8) u64 {
 }
 
 fn validatePerfMatrix() !void {
-    const expected_payload_fingerprint: u64 = 0xcfb1_4153_5702_a392;
+    const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;
     const expected = [_]struct {
         label: []const u8,
         padding: bool,
@@ -108,9 +108,6 @@ fn resolveCodec(case: fixtures.PerfCase) Codec {
             .decoder = if (case.padding) &std.base64.url_safe.Decoder else &std.base64.url_safe_no_pad.Decoder,
         };
     }
-    // The committed IMAP perf payload intentionally avoids the '/' glyph, so the standard
-    // encoder and decoder remain a byte-for-byte baseline while the helper still exercises
-    // its dedicated IMAP alphabet path.
     if (std.mem.eql(u8, case.variant_name, "imap")) {
         return .{
             .helper_variant = .imap,
@@ -119,6 +116,26 @@ fn resolveCodec(case: fixtures.PerfCase) Codec {
         };
     }
     unreachable;
+}
+
+fn isImapCase(case: fixtures.PerfCase) bool {
+    return std.mem.eql(u8, case.variant_name, "imap");
+}
+
+fn mapStdEncodedToImap(dst: []u8, src: []const u8) []const u8 {
+    std.debug.assert(dst.len >= src.len);
+    for (src, 0..) |byte, idx| {
+        dst[idx] = if (byte == '/') ',' else byte;
+    }
+    return dst[0..src.len];
+}
+
+fn mapImapEncodedToStd(dst: []u8, src: []const u8) []const u8 {
+    std.debug.assert(dst.len >= src.len);
+    for (src, 0..) |byte, idx| {
+        dst[idx] = if (byte == ',') '/' else byte;
+    }
+    return dst[0..src.len];
 }
 
 fn monotonicNs() u64 {
@@ -144,12 +161,14 @@ fn runHelperEncodeBench(case: fixtures.PerfCase, codec: Codec) BenchResult {
 
 fn runReferenceEncodeBench(case: fixtures.PerfCase, codec: Codec) BenchResult {
     var std_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var imap_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
     var sink: u8 = 0;
     const start_ns = monotonicNs();
     var iteration: usize = 0;
     while (iteration < case.iterations) : (iteration += 1) {
         const encoded = codec.encoder.encode(std_buf[0..], case.payload);
-        sink +%= encoded[encoded.len - 1];
+        const reference_encoded = if (isImapCase(case)) mapStdEncodedToImap(imap_buf[0..], encoded) else encoded;
+        sink +%= reference_encoded[reference_encoded.len - 1];
     }
     return .{ .elapsed_ns = monotonicNs() - start_ns, .sink = sink };
 }
@@ -168,11 +187,13 @@ fn runHelperDecodeBench(case: fixtures.PerfCase, codec: Codec, encoded: []const 
 
 fn runReferenceDecodeBench(case: fixtures.PerfCase, codec: Codec, encoded: []const u8) BenchResult {
     var std_buf: [fixtures.perf_payload_buf_size]u8 = undefined;
+    var normalized_encoded_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
     var sink: u8 = 0;
     const start_ns = monotonicNs();
     var iteration: usize = 0;
     while (iteration < case.iterations) : (iteration += 1) {
-        codec.decoder.decode(std_buf[0..case.payload.len], encoded) catch unreachable;
+        const reference_encoded = if (isImapCase(case)) mapImapEncodedToStd(normalized_encoded_buf[0..], encoded) else encoded;
+        codec.decoder.decode(std_buf[0..case.payload.len], reference_encoded) catch unreachable;
         sink +%= std_buf[case.payload.len - 1];
     }
     return .{ .elapsed_ns = monotonicNs() - start_ns, .sink = sink };
@@ -196,11 +217,13 @@ fn medianNs(samples: []u64) u64 {
 fn encodeSlowdownPct(case: fixtures.PerfCase, codec: Codec) !u64 {
     var helper_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
     var std_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var imap_reference_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
 
     const helper_len = try base64.encode(helper_buf[0..], case.payload, case.padding, codec.helper_variant);
     const std_out = codec.encoder.encode(std_buf[0..], case.payload);
-    try std.testing.expectEqual(helper_len, std_out.len);
-    try std.testing.expectEqualStrings(std_out, helper_buf[0..helper_len]);
+    const reference_out = if (isImapCase(case)) mapStdEncodedToImap(imap_reference_buf[0..], std_out) else std_out;
+    try std.testing.expectEqual(helper_len, reference_out.len);
+    try std.testing.expectEqualStrings(reference_out, helper_buf[0..helper_len]);
 
     var helper_samples: [bench_sample_count]u64 = undefined;
     var baseline_samples: [bench_sample_count]u64 = undefined;
@@ -228,9 +251,11 @@ fn decodeSlowdownPct(case: fixtures.PerfCase, codec: Codec) !u64 {
 
     var helper_buf: [fixtures.perf_payload_buf_size]u8 = undefined;
     var std_buf: [fixtures.perf_payload_buf_size]u8 = undefined;
+    var normalized_encoded_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
 
     const helper_written = try base64.decode(helper_buf[0..], encoded, case.padding, codec.helper_variant);
-    try codec.decoder.decode(std_buf[0..case.payload.len], encoded);
+    const reference_encoded = if (isImapCase(case)) mapImapEncodedToStd(normalized_encoded_buf[0..], encoded) else encoded;
+    try codec.decoder.decode(std_buf[0..case.payload.len], reference_encoded);
     try std.testing.expectEqual(case.payload.len, helper_written);
     try std.testing.expectEqualStrings(case.payload, helper_buf[0..helper_written]);
     try std.testing.expectEqualStrings(case.payload, std_buf[0..case.payload.len]);
