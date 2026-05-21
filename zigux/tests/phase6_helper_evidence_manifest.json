@@ -126,9 +126,38 @@
         "scripts/zigux/check-phase6-checksum-c-parity.py"
       ],
       "current_perf_evidence": {
+        "cases": [
+          {
+            "label": "64B",
+            "iterations": 200000,
+            "max_slowdown_pct": 150
+          },
+          {
+            "label": "1501B",
+            "iterations": 12000,
+            "max_slowdown_pct": 150
+          }
+        ],
         "payload_case_labels": [
           "64B",
           "1501B"
+        ],
+        "ipv4_fast_path_cases": [
+          {
+            "label": "IPV4_20B",
+            "iterations": 600000,
+            "max_slowdown_pct": 100
+          },
+          {
+            "label": "IPV4_24B",
+            "iterations": 500000,
+            "max_slowdown_pct": 100
+          },
+          {
+            "label": "IPV4_60B",
+            "iterations": 250000,
+            "max_slowdown_pct": 100
+          }
         ],
         "ipv4_fast_path_case_labels": [
           "IPV4_20B",
@@ -160,7 +189,36 @@
       ],
       "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
       "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",
-      "current_review_posture": "direct-helper-readback-restored"
+      "current_review_posture": "direct-helper-readback-restored",
+      "current_perf_evidence": {
+        "cases": [
+          {
+            "label": "16B-plain-g1",
+            "reps": 40000,
+            "max_slowdown_pct": 175
+          },
+          {
+            "label": "32B-ascii-g2",
+            "reps": 10000,
+            "max_slowdown_pct": 550
+          },
+          {
+            "label": "16B-ascii-g4",
+            "reps": 20000,
+            "max_slowdown_pct": 550
+          },
+          {
+            "label": "16B-ascii-g8",
+            "reps": 20000,
+            "max_slowdown_pct": 600
+          }
+        ],
+        "linux_style_rerun_routes": [
+          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-hexdump-perf",
+          "make -C zigux phase6-perf"
+        ]
+      }
     }
   ],
   "current_repo_reality_gaps": [
