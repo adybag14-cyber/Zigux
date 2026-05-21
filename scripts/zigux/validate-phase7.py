@@ -16,6 +16,7 @@ ROOT = _FILE_PATH.parents[2] if len(_FILE_PATH.parents) > 2 else _FILE_PATH.pare
 CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
@@ -36,10 +37,12 @@ EXPECTED_COMPANIONS = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
+    "zigux/tests/phase7_build.zig",
     "zigux/Makefile",
     "lib/string_helpers.zig",
     "lib/cmdline.zig",
     "lib/argv_split.zig",
+    "lib/rbtree.zig",
 ]
 EXPECTED_ROADMAP_ANCHORS = [
     "lib/string_helpers.c",
@@ -50,14 +53,13 @@ EXPECTED_ROADMAP_ANCHORS = [
 EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-shared-surface.py",
     "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
+    "python3 scripts/zigux/check-phase7-build-wiring.py",
+    "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
 ]
-EXPECTED_GAPS = [
-    "lib/rbtree.zig",
-    "zigux/tests/phase7_build.zig",
-]
+EXPECTED_GAPS: list[str] = []
 EXPECTED_HELPER_MARKERS = {
     Path("lib/string_helpers.zig"): [
         "pub const STRING_UNITS_10",
@@ -75,11 +77,42 @@ EXPECTED_HELPER_MARKERS = {
         "pub const ArgvSplitResult",
         "pub fn argvSplit",
     ],
+    Path("lib/rbtree.zig"): [
+        "pub const Node = struct",
+        "pub const RootCached = struct",
+        "pub fn add(",
+        "pub fn rb_find_add_cached(",
+    ],
 }
+EXPECTED_BUILD_WIRING_EVIDENCE = [
+    {
+        "path": "zigux/tests/phase7_build.zig",
+        "expected_markers": [
+            "../../lib/string_helpers.zig",
+            "../../lib/cmdline.zig",
+            "../../lib/argv_split.zig",
+            "../../lib/rbtree.zig",
+            "phase7-string-helpers-test",
+            "phase7-cmdline-test",
+            "phase7-argv-split-test",
+            "phase7-rbtree-test",
+            "phase7-rbtree-survey",
+        ],
+    },
+    {
+        "path": "zigux/Makefile",
+        "expected_markers": [
+            "phase7-validate:",
+            "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "$(PYTHON) scripts/zigux/validate-phase7.py",
+        ],
+    },
+]
 REQUIRED_FILES = [
     CATALOG_PATH,
     MANIFEST_PATH,
     MAKEFILE_PATH,
+    BUILD_PATH,
     CHECKER_PATH,
     BUILD_WIRING_CHECKER_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
@@ -90,13 +123,14 @@ REQUIRED_FILES = [
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
+    Path("lib/rbtree.zig"),
 ]
 REQUIRED_MAKEFILE_LINES = [
     "phase7-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -152,12 +186,19 @@ def validate(root: Path) -> None:
         raise ValidationError("phase7 replay inventory drift")
     if manifest.get("current_repo_reality_gaps") != EXPECTED_GAPS:
         raise ValidationError("phase7 repo-reality gaps drift")
+    if manifest.get("current_build_wiring_evidence") != EXPECTED_BUILD_WIRING_EVIDENCE:
+        raise ValidationError("phase7 build-wiring evidence drift")
 
     for rel_path, markers in EXPECTED_HELPER_MARKERS.items():
         helper_text = read_text(root / rel_path)
         for marker in markers:
             if marker not in helper_text:
                 raise ValidationError(f"phase7 helper marker missing in {rel_path.as_posix()}: {marker}")
+
+    build_text = read_text(root / BUILD_PATH)
+    for marker in EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]:
+        if marker not in build_text:
+            raise ValidationError(f"phase7 build marker missing: {marker}")
 
     makefile = read_text(root / MAKEFILE_PATH)
     for marker in REQUIRED_MAKEFILE_LINES:
@@ -196,21 +237,33 @@ def scaffold_repo(root: Path) -> None:
                 "- `scripts/zigux/README.md`",
                 "- `zigux/tests/README.md`",
                 "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
+                "- `zigux/tests/phase7_build.zig`",
                 "- `zigux/Makefile`",
                 "- `lib/string_helpers.zig`",
                 "- `lib/cmdline.zig`",
                 "- `lib/argv_split.zig`",
+                "- `lib/rbtree.zig`",
                 "",
                 "## Current replay inventory",
+                "- `python3 scripts/zigux/check-phase7-shared-surface.py`",
+                "- `python3 scripts/zigux/check-phase7-shared-surface.py --self-test`",
+                "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
+                "- `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`",
+                "- `python3 scripts/zigux/validate-phase7.py`",
+                "- `python3 scripts/zigux/validate-phase7.py --self-test`",
                 "- `make -C zigux phase7-validate`",
                 "",
-                "## Current repo-reality gaps",
-                "- `lib/rbtree.zig`",
-                "- `zigux/tests/phase7_build.zig`",
+                "## Current build-wiring evidence",
+                "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
+                "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper and survey routes through `phase7-string-helpers-test`, `phase7-cmdline-test`, `phase7-argv-split-test`, and `phase7-rbtree-test`.",
+                "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
                 "",
-                "`kstrdupQuotable()`",
-                "`kstrdupQuotableCmdline()`",
-                "`parseIntArray()`",
+                "## Current repo-reality gaps",
+                "- none currently",
+                "",
+                "## Review posture",
+                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, and one Makefile-backed validation foothold",
+                "- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes",
             ]
         )
         + "\n",
@@ -220,6 +273,10 @@ def scaffold_repo(root: Path) -> None:
         "phase7-validate:\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
+    )
+    write(
+        root / BUILD_PATH,
+        "\n".join(EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]) + "\n",
     )
     write(
         root / MANIFEST_PATH,
@@ -259,7 +316,13 @@ def scaffold_repo(root: Path) -> None:
                         "zig_helper": "lib/argv_split.zig",
                         "expected_markers": EXPECTED_HELPER_MARKERS[Path("lib/argv_split.zig")],
                     },
+                    {
+                        "key": "rbtree",
+                        "zig_helper": "lib/rbtree.zig",
+                        "expected_markers": EXPECTED_HELPER_MARKERS[Path("lib/rbtree.zig")],
+                    },
                 ],
+                "current_build_wiring_evidence": EXPECTED_BUILD_WIRING_EVIDENCE,
                 "current_replay_inventory": EXPECTED_REPLAYS,
                 "current_repo_reality_gaps": EXPECTED_GAPS,
             },
@@ -282,6 +345,13 @@ def scaffold_repo(root: Path) -> None:
         ),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
+        (
+            Path("lib/rbtree.zig"),
+            "pub const Node = struct {};\n"
+            "pub const RootCached = struct {};\n"
+            "pub fn add() void {}\n"
+            "pub fn rb_find_add_cached() void {}\n",
+        ),
     ]:
         write(root / rel_path, content)
     for checker_path, success_marker, root_flag in [
@@ -307,14 +377,16 @@ def scaffold_repo(root: Path) -> None:
         )
 
 
-def expect_failure(root: Path, rel_path: Path, transform: str, delete_only: bool = False) -> None:
+def expect_failure(root: Path, rel_path: Path, marker: str, delete_only: bool = False) -> None:
     path = root / rel_path
     if delete_only:
         path.unlink()
     else:
         original = read_text(path)
-        replacement_target = transform if path.suffix == ".json" else transform
-        write(path, original.replace(replacement_target, "", 1))
+        updated = original.replace(marker, "", 1)
+        if updated == original:
+            raise AssertionError(f"marker not found: {marker}")
+        write(path, updated)
     try:
         validate(root)
     except (ValidationError, json.JSONDecodeError):
@@ -328,26 +400,23 @@ def run_self_test() -> None:
         scaffold_repo(root)
         validate(root)
         cases_run = 0
-        for rel_path, transform, delete_only in [
-            (MANIFEST_PATH, '"scripts/zigux/check-phase7-build-wiring.py"', False),
-            (MANIFEST_PATH, '"lib/cmdline.zig"', False),
+        for rel_path, marker, delete_only in [
+            (MANIFEST_PATH, '"lib/rbtree.zig"', False),
             (MANIFEST_PATH, '"zigux/tests/phase7_build.zig"', False),
+            (BUILD_PATH, "../../lib/rbtree.zig", False),
+            (BUILD_PATH, "phase7-rbtree-test", False),
             (MAKEFILE_PATH, "phase7-validate:", False),
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n", False),
-            (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", False),
-            (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", False),
-            (Path("lib/string_helpers.zig"), "pub const ParseIntArrayError", False),
-            (Path("lib/string_helpers.zig"), "pub fn parseIntArray", False),
-            (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
+            (Path("lib/rbtree.zig"), "pub fn rb_find_add_cached()", False),
+            (Path("lib/string_helpers.zig"), "pub fn parseIntArray()", False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
-            (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
                 scaffold_repo(case_root)
-                expect_failure(case_root, rel_path, transform, delete_only)
+                expect_failure(case_root, rel_path, marker, delete_only)
                 cases_run += 1
             finally:
                 for child in sorted(case_root.rglob("*"), reverse=True):
