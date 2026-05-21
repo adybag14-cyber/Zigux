@@ -39,6 +39,7 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn memchr_inv(buf: []const u8, value: u8) ?usize {",
     "pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {",
     "pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn __sysfs_match_string(haystack: []const []const u8, count: usize, needle: []const u8) ?usize {",
     "pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {",
     "pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
     "pub fn matchString(haystack: []const []const u8, needle: []const u8) ?usize {",
