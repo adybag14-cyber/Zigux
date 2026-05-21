@@ -406,6 +406,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='sample_comment_only_expected.stderr.txt'",
     )
 
+    missing_expected_stderr_fixture_cases = copy_valid_cases(valid_cases)
+    find_case(missing_expected_stderr_fixture_cases, "sample_comment_only")["expected_stderr"] = "missing_expected_stderr.txt"
+    expect_failure(
+        "missing_expected_stderr_fixture",
+        lambda: validate_cases(missing_expected_stderr_fixture_cases),
+        f"{CASES_PATH}:missing_expected_stderr:missing_expected_stderr.txt",
+    )
+
     missing_expected_output_fixture_cases = copy_valid_cases(valid_cases)
     find_case(missing_expected_output_fixture_cases, "sample")["expected_stdout"] = "missing_expected_output.txt"
     expect_failure(
@@ -470,9 +478,14 @@ def run_self_test() -> int:
         lambda: validate_tool_sources(C_FIXDEP.with_name("fixdep-mismatch.c"), ZIG_FIXDEP),
         f"fixdep:c_tool={C_FIXDEP.with_name('fixdep-mismatch.c')},expected={EXPECTED_C_FIXDEP}",
     )
+    expect_failure(
+        "explicit_zig_tool_drift",
+        lambda: validate_tool_sources(C_FIXDEP, ZIG_FIXDEP.with_name("fixdep-mismatch.zig")),
+        f"fixdep:zig_tool={ZIG_FIXDEP.with_name('fixdep-mismatch.zig')},expected={EXPECTED_ZIG_FIXDEP}",
+    )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 11}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")
     return 0
 
 
