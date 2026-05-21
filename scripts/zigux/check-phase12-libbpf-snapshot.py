@@ -659,4 +659,131 @@ def run_self_test() -> None:
         if not isinstance(note_blobs, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
         note_blobs[-1]["blob_sha"] = f"{'3' * 40}"
-        (tmp_root / SNAPSHOT_PATH).writeText if false
+        (tmp_root / SNAPSHOT_PATH).write_text(
+            json.dumps(snapshot, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            "snapshot:verification_evidence:current_note_blobs:3:blob_sha:mismatch",
+            "snapshot_current_note_blob_sha_mismatch",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / SNAPSHOT_DETERMINISM_PATH,
+            f'"readback_mode": "{EXPECTED_READBACK_MODE}"',
+            '"readback_mode": "raw-github-read"',
+        )
+        expect_case(
+            tmp_root,
+            f"determinism:verification_evidence:readback_mode:{EXPECTED_READBACK_MODE}",
+            "determinism_readback_mode",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / SNAPSHOT_DETERMINISM_PATH,
+            SELF_REL_PATH.as_posix(),
+            "scripts/zigux/check-phase12-libbpf-other.py",
+        )
+        expect_case(
+            tmp_root,
+            f"determinism:verification_evidence:checker:path:{SELF_REL_PATH.as_posix()}",
+            "determinism_checker_path",
+        )
+        build_fixture_tree(tmp_root)
+
+        checker_blob_sha = git_blob_sha(tmp_root / SELF_REL_PATH)
+        replace_once(tmp_root / SNAPSHOT_DETERMINISM_PATH, checker_blob_sha, f"{'4' * 40}")
+        expect_case(
+            tmp_root,
+            "determinism:verification_evidence:checker:blob_sha:mismatch",
+            "determinism_checker_blob_sha_mismatch",
+        )
+        build_fixture_tree(tmp_root)
+
+        determinism = load_json(tmp_root / SNAPSHOT_DETERMINISM_PATH)
+        determinism["verification_evidence"]["current_helper_blob"]["path"] = (
+            "tools/lib/bpf/zigux_segments/verify.zig"
+        )
+        (tmp_root / SNAPSHOT_DETERMINISM_PATH).write_text(
+            json.dumps(determinism, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            (
+                "determinism:verification_evidence:current_helper_blob:path:"
+                "tools/lib/bpf/zigux_segments/pin_path.zig"
+            ),
+            "determinism_current_helper_blob_path",
+        )
+        build_fixture_tree(tmp_root)
+
+        determinism = load_json(tmp_root / SNAPSHOT_DETERMINISM_PATH)
+        determinism["verification_evidence"]["current_helper_blob"]["blob_sha"] = f"{'5' * 40}"
+        (tmp_root / SNAPSHOT_DETERMINISM_PATH).write_text(
+            json.dumps(determinism, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            "determinism:verification_evidence:current_helper_blob:blob_sha:mismatch",
+            "determinism_current_helper_blob_sha_mismatch",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / SNAPSHOT_DETERMINISM_PATH,
+            f'"self_test_case_count": {SELF_TEST_CASE_COUNT}',
+            '"self_test_case_count": 18',
+        )
+        expect_case(
+            tmp_root,
+            (
+                "determinism:verification_evidence:checker:self_test_case_count:"
+                f"{SELF_TEST_CASE_COUNT}"
+            ),
+            "determinism_checker_self_test_case_count",
+        )
+
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
+    print(f"PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Fail closed when the live Phase 12 libbpf snapshot anchor drifts."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect.")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    missing = collect_missing(args.root)
+    if missing:
+        print("PHASE12_LIBBPF_SNAPSHOT=fail")
+        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_END")
+        return 1
+
+    print("PHASE12_LIBBPF_SNAPSHOT=pass")
+    print(
+        "PHASE12_LIBBPF_SNAPSHOT_TRACKED_FILE_COUNT="
+        f"{len(EXPECTED_SNAPSHOT_TRACKED_PATHS)}"
+    )
+    print(
+        "PHASE12_LIBBPF_SNAPSHOT_DETERMINISM_TRACKED_FILE_COUNT="
+        f"{len(EXPECTED_DETERMINISM_TRACKED_PATHS)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
