@@ -69,6 +69,7 @@ This means the shared owner packet should keep the narrow trace-events family ex
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current reminder surfaces for the partial bitmap packet
 - the missing bitmap module gate and diff gate stay repo-reality gaps on the same trusted path until a later reread restores them
 - no shared reminder surface should present the partial bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime-pilot boundary returned
+- keep the older non-owner boundary anchors explicit too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence
 
 ## Historical boundaries
 
