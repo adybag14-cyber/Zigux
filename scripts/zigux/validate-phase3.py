@@ -187,16 +187,24 @@ REQUIRED_SOURCE_MARKERS = {
         '"lane": "abi-runtime"',
         '"slug": "phase3-abi-packet"',
         '"status": "shared_abi_and_header_family_binding_surface_present"',
+        '"scripts/zigux/check-phase3-abi-support-packet.py"',
         '"scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
+        '"zigux/tests/README.md"',
         '"zigux/tests/phase3_export_uapi_c_header_smoke.c"',
         '"zigux/tests/phase3_policy_starter_packet.zig"',
         '"zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"zigux/tests/phase3_policy_starter_packet_manifest.json"',
         '"zigux/tests/phase3_low_level_wrappers.zig"',
         '"zigux/tests/phase3_low_level_wrappers_build.zig"',
+        '"zigux/Makefile"',
+        '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
         '"repo_reality_gaps": []',
@@ -244,6 +252,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/unsafe/narrow.zig",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/check-phase3-abi-support-packet.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -253,6 +262,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "zigux/tests/build.zig",
+    "zigux/tests/README.md",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -264,13 +274,18 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zigux/Makefile",
 )
 
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
@@ -541,6 +556,36 @@ def run_self_test() -> int:
             _write(repo_root / rel_path, current)
 
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["packet_files"].remove("scripts/zigux/check-phase3-abi-support-packet.py")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/check-phase3-abi-support-packet.py"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected shared ABI support-checker packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove(
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"
+        )
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected shared ABI support-checker replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].append(REQUIRED_MANIFEST_REPLAY_ROUTES[0])
         _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -606,7 +651,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
