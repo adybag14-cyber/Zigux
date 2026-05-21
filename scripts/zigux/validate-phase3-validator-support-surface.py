@@ -67,14 +67,14 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 REQUIRED_SHARED_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root, tests-root, and scripts-root Phase 3 summaries now all reflect those returns without widening into broader replay claims",
+    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the focused abi.h next-step note, the shared ABI catalog helper plus manifest-backed inventory companion, the shared tests-root export/UAPI layout route, the direct C smoke proof for the Linux-facing header helpers, and the shared docs-root, tests-root, and scripts-root Phase 3 summaries now all reflect those returns without widening into broader replay claims",
     "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread reopens a smaller one-file Phase 3 reminder or checker drift; the earlier docs-root refresh is now closed",
     "`Documentation/zigux/README.md` now stays aligned with the same bounded Phase 3 reminder family already carried by the validator-support note, the shared reminder gap note, the tests-root reminder, and the scripts-root reminder; it should not be treated as a narrower holdout unless a fresh reread finds new same-lane drift.",
-    "`zigux/tests/README.md` now also keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the returned `xarray_slot` packet explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.",
+    "`zigux/tests/README.md` now also keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, the shared tests-root export/UAPI layout route, the direct C smoke route, and the returned `xarray_slot` packet explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.",
     "`Documentation/zigux/phase3-abi-header-family-survey.md` together with `scripts/zigux/validate-phase3-abi-header-family-survey.py` now stays explicit as returned same-family follow-through rather than as a sampled missing wider member.",
-    "`scripts/zigux/README.md` remains a separate scripts-root reminder surface, and its current Phase 3 inventory now aligns with the directly readable shared ABI manifest companion at `zigux/tests/fixtures/phase3_abi_manifest.json`.",
-    "Current `master` also directly serves the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py` together with the manifest-backed ABI inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, and it directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the bounded Linux-header ownership note for `include/linux/zigux.h`, so those returned survey, validator, catalog, manifest, and governance surfaces no longer belong in the already-closed shared-reminder bucket.",
-    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
+    "`scripts/zigux/README.md` remains a separate scripts-root reminder surface, and its current Phase 3 inventory now aligns with the directly readable shared ABI manifest companion at `zigux/tests/fixtures/phase3_abi_manifest.json` plus the shared export/UAPI layout and direct C smoke proof surfaces.",
+    "Current `master` also directly serves the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py` together with the manifest-backed ABI inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, and it directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the bounded Linux-header ownership note for `include/linux/zigux.h`, so those returned survey, next-step, validator, catalog, manifest, governance, shared-route, and C-smoke surfaces no longer belong in the already-closed shared-reminder bucket.",
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` now also stays explicit as returned focused abi.h follow-through beside the dedicated header-family survey instead of being left in missing-route wording.",
     "The earlier shared-reminder drift is currently closed across the docs-root, tests-root, and scripts-root summaries.",
 )
 
@@ -99,17 +99,7 @@ SELF_TEST_NOTE_MARKERS = (
     "records the separately landed header-family survey follow-through without promoting it into broader validator support",
 )
 
-SELF_TEST_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root, tests-root, and scripts-root Phase 3 summaries now all reflect those returns without widening into broader replay claims",
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread reopens a smaller one-file Phase 3 reminder or checker drift; the earlier docs-root refresh is now closed",
-    "`Documentation/zigux/README.md` now stays aligned with the same bounded Phase 3 reminder family already carried by the validator-support note, the shared reminder gap note, the tests-root reminder, and the scripts-root reminder; it should not be treated as a narrower holdout unless a fresh reread finds new same-lane drift.",
-    "`zigux/tests/README.md` now also keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the returned `xarray_slot` packet explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.",
-    "`Documentation/zigux/phase3-abi-header-family-survey.md` together with `scripts/zigux/validate-phase3-abi-header-family-survey.py` now stays explicit as returned same-family follow-through rather than as a sampled missing wider member.",
-    "`scripts/zigux/README.md` remains a separate scripts-root reminder surface, and its current Phase 3 inventory now aligns with the directly readable shared ABI manifest companion at `zigux/tests/fixtures/phase3_abi_manifest.json`.",
-    "Current `master` also directly serves the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py` together with the manifest-backed ABI inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, and it directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the bounded Linux-header ownership note for `include/linux/zigux.h`, so those returned survey, validator, catalog, manifest, and governance surfaces no longer belong in the already-closed shared-reminder bucket.",
-    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
-    "The earlier shared-reminder drift is currently closed across the docs-root, tests-root, and scripts-root summaries.",
-)
+SELF_TEST_GAP_MARKERS = REQUIRED_SHARED_GAP_MARKERS
 
 
 def load_text(path: Path) -> str:
