@@ -28,6 +28,14 @@ DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (
     "rereads in this slot."
 )
 
+OWNERSHIP_FOCUS_FALLBACK_MARKER = (
+    "machine-readable fallback provenance must stay explicit too: "
+    "`public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, "
+    "because that shared non-owner surface needed public fallback in this runtime while the "
+    "other listed shared or roadmap-aligned non-owner surfaces still rematerialized through "
+    "authenticated rereads"
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`",
@@ -55,6 +63,7 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase7-rbtree-slice.md": [',
         '"zigux/tests/phase7_rbtree_manifest.json": [',
         "DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (",
+        "OWNERSHIP_FOCUS_FALLBACK_MARKER = (",
     ],
     "tools/lib/rbtree.zig": [
         "pub const Node = struct {",
@@ -71,10 +80,12 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         'const direct_anchor_fallback_provenance_marker =',
+        'const ownership_focus_fallback_marker =',
         'try expectContains(slice_note, "The helper-local implementation remains rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence rather than proof that helper-local ownership has moved off the tool-root packet.");',
         'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);',
         'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");',
         'try expectSliceNotContains(manifest.missing_paths, "lib/rbtree.zig");',
+        'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);',
         'try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig` roadmap-path companion");',
         'try expectNotContains(makefile, "phase7-rbtree-test:");',
         'try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");',
@@ -91,10 +102,11 @@ REQUIRED_MARKERS = {
         '"missing_paths": [',
         '"zigux/tests/fixtures/phase7_rbtree.json"',
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
+        OWNERSHIP_FOCUS_FALLBACK_MARKER,
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -158,8 +170,22 @@ def run_self_test() -> None:
         cases += 1
         write_fixture_root(root)
 
+        path = root / "zigux/tests/phase7_rbtree_manifest.json"
+        marker = OWNERSHIP_FOCUS_FALLBACK_MARKER
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "zigux/tests/phase7_rbtree_manifest.json", marker)
+        cases += 1
+        write_fixture_root(root)
+
         path = root / "zigux/tests/phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        marker = 'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
