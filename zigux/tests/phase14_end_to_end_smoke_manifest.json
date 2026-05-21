@@ -1,5 +1,5 @@
 {
-  "lane_key": "P14-L03",
+  "lane_key": "P14-L01",
   "phase": "Phase 14",
   "surveyed_commit": "40f2a065b1c06d7ea621c1c0c388e6202b0b22b7",
   "productization": {
@@ -11,6 +11,7 @@
   },
   "shared_smoke_surfaces": [
     "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-shared-smoke-route.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
@@ -109,7 +110,7 @@
     "phase14_validate_entrypoint_present": true,
     "phase14_build_has_shared_smoke_step": true,
     "phase14_build_has_smoke_shard_step": true,
-    "phase14_make_target_present": false,
+    "phase14_make_target_present": true,
     "phase14_make_smoke_target_present": false,
     "workflow_runs_phase14_validate": true,
     "workflow_runs_phase14_build": false,
