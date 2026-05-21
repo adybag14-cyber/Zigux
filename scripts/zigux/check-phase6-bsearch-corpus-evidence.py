@@ -29,9 +29,15 @@ REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
         "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, fixture-backed perf replay, or compact fixture-companion drift reappears",
+        "- `IndexRange.firstConst`",
+        "- `IndexRange.firstMutable`",
+        "- `IndexRange.lastConst`",
+        "- `IndexRange.lastMutable`",
+        "- `IndexRange.bytes`",
+        "- `IndexRange.bytesMutable`",
         "- `zigux/tests/phase6_bsearch_perf.zig`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
-        "- the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, deterministic query corpus, and dedicated perf-case lengths reviewable without widening this lane into speculative threshold recalibration or broader shared survey work",
+        "- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, `IndexRange` typed and byte-view companions, mutable write-through aliases, raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths",
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     ],
     CATALOG_PATH: [
@@ -72,6 +78,12 @@ REQUIRED_SNIPPETS = {
         "pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {",
         "pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
+        "pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {",
+        "pub fn firstMutable(self: @This(), comptime T: type, items: []T) ?*T {",
+        "pub fn lastConst(self: @This(), comptime T: type, items: []const T) ?*const T {",
+        "pub fn lastMutable(self: @This(), comptime T: type, items: []T) ?*T {",
+        "pub fn bytes(self: @This(), base: [*]const u8, size: usize) []const u8 {",
+        "pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {",
         "pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
         "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
         "pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
@@ -84,6 +96,10 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {',
         'test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {',
         'test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {',
+        'test "phase 6 bsearch index range views keep typed and byte aliases aligned" {',
+        'const first_const = duplicate_range.firstConst(u32, duplicates[0..]) orelse return error.ExpectedMatch;',
+        'const last_const = duplicate_range.lastConst(u32, duplicates[0..]) orelse return error.ExpectedMatch;',
+        'const mutable_byte_view = duplicate_range.bytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(u32));',
     ],
     PERF_TEST_PATH: [
         "phase6-bsearch-perf",
@@ -134,11 +150,33 @@ REQUIRED_SNIPPETS = {
 }
 
 SELF_TEST_CASES = [
-    (SLICE_PATH, "- `zigux/tests/phase6_bsearch_perf.zig`", "- `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (SLICE_PATH, "- `IndexRange.firstConst`", "- `IndexRange.firstHead`"),
+    (SLICE_PATH, "- `IndexRange.bytesMutable`", "- `IndexRange.rawBytesMutable`"),
+    (SLICE_PATH, "- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, `IndexRange` typed and byte-view companions, mutable write-through aliases, raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths", "- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, mutable write-through aliases, raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths"),
     (
         HELPER_TEST_PATH,
-        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
-        'test "phase 6 bsearch direct descending bounds wrappers keep duplicate-span and write-through coverage aligned" {',
+        'test "phase 6 bsearch index range views keep typed and byte aliases aligned" {',
+        'test "phase 6 bsearch equal-range index views keep typed and byte aliases aligned" {',
+    ),
+    (
+        HELPER_TEST_PATH,
+        'const first_const = duplicate_range.firstConst(u32, duplicates[0..]) orelse return error.ExpectedMatch;',
+        'const first_const = duplicate_range.firstHead(u32, duplicates[0..]) orelse return error.ExpectedMatch;',
+    ),
+    (
+        HELPER_TEST_PATH,
+        'const mutable_byte_view = duplicate_range.bytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(u32));',
+        'const mutable_byte_view = duplicate_range.rawBytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(u32));',
+    ),
+    (
+        LIB_PATH,
+        "pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {",
+        "pub fn firstHead(self: @This(), comptime T: type, items: []const T) ?*const T {",
+    ),
+    (
+        LIB_PATH,
+        "pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {",
+        "pub fn rawBytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {",
     ),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
     (
@@ -155,11 +193,6 @@ SELF_TEST_CASES = [
         HELPER_PARITY_MANIFEST_PATH,
         '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
         '"bound_budget_formula": "std.math.log2_int_floor(len) + 1"',
-    ),
-    (
-        LIB_PATH,
-        "pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
-        "pub fn bsearchEqualRangeBytes(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
     ),
     (
         LOWER_BOUND_TEST_PATH,
