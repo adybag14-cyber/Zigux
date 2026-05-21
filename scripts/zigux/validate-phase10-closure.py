@@ -97,6 +97,7 @@ EXPECTED_CORE_HELPERS = [
     "phase10-interrupt-ack-bookkeeping-helper",
     "phase10-lifecycle-guard-bookkeeping-helper",
     "phase10-driver-validation-narrowing-helper",
+    "phase10-core-attribute-summary-helper",
     "phase10-reset-replay-bookkeeping-helper",
 ]
 
@@ -641,6 +642,11 @@ def run_self_test() -> int:
             cases += 1
 
         exact_helper_cases = [
+            (
+                "landed_core_helper_evidence",
+                "zigux/tests/phase10_virtio_core_manifest.json",
+                "phase10-core-attribute-summary-helper",
+            ),
             (
                 "landed_ring_helper_evidence",
                 "zigux/tests/phase10_virtio_ring_manifest.json",
