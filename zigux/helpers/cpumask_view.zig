@@ -357,6 +357,22 @@ test "cpumask projection stays aligned with bitmap helpers on bounded windows" {
 
     try std.testing.expect(isValid(view));
     try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expectEqual(view.words_addr, projected.words_addr);
+    try std.testing.expectEqual(view.nbits, projected.nbits);
+    try std.testing.expectEqual(view.word_count, projected.word_count);
+    try std.testing.expectEqual(cpuIsSet(view, 5), bitmap.testBit(projected, 5));
+    try std.testing.expectEqual(
+        cpuIsSet(view, bitmap.bits_per_word - 1),
+        bitmap.testBit(projected, bitmap.bits_per_word - 1),
+    );
+    try std.testing.expectEqual(
+        cpuIsSet(view, bitmap.bits_per_word + 10),
+        bitmap.testBit(projected, bitmap.bits_per_word + 10),
+    );
+    try std.testing.expectEqual(
+        cpuIsSet(view, bitmap.bits_per_word + 11),
+        bitmap.testBit(projected, bitmap.bits_per_word + 11),
+    );
     try std.testing.expectEqual(firstCpu(view), bitmap.firstSet(projected));
     try std.testing.expectEqual(firstAbsentCpu(view), bitmap.firstZero(projected));
     try std.testing.expectEqual(weight(view), bitmap.weight(projected));
