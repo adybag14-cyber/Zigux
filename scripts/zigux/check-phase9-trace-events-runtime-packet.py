@@ -13,6 +13,7 @@ MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slic
 SAMPLES_README_PATH = "samples/zigux/README.md"
 MANIFEST_PATH = "zigux/tests/runtime_trace_events_manifest.json"
 SURVEY_GATE_PATH = "zigux/tests/runtime_trace_events_survey.zig"
+PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
@@ -110,6 +111,17 @@ FILE_MARKERS: dict[str, list[str]] = {
         'try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[4].owner);',
         'try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test");',
+    ],
+    PHASE9_BUILD_PATH: [
+        '.name = "phase9-runtime-loader-allocator-init-flow-tests"',
+        '.name = "phase9-runtime-loader-command-env-boundary-guard-tests"',
+        '.name = "phase9-runtime-trace-events-loader-substrate-drift-tests"',
+        '.name = "phase9-runtime-loader-shared-tests"',
+        '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
+        "runtime_loader_allocator_init_flow.zig",
+        "runtime_trace_events_loader_substrate_drift.zig",
+        "../../samples/zigux/runtime_trace_events.zig",
+        "../../samples/zigux/runtime_trace_events_loader.zig",
     ],
     SAMPLE_PATH: [
         '.name = "runtime_trace_events"',
