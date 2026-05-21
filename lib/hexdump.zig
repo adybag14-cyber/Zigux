@@ -482,10 +482,20 @@ test "hexBytePack helpers chain bytes and preserve destination on bounds errors"
     try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
 }
 
-test "hex2bin rejects invalid length and bad digits" {
-    var decoded: [2]u8 = undefined;
-    try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
-    try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(decoded[0..], "zz00"));
+test "hex2bin preserves destination on rejected input and aliases stay aligned" {
+    var invalid_length_direct = [_]u8{ 0xaa, 0xbb };
+    var invalid_length_alias = [_]u8{ 0x11, 0x22 };
+    try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(invalid_length_direct[0..], "abc"));
+    try std.testing.expectError(HexError.InvalidSourceLength, hex2Bin(invalid_length_alias[0..], "abc"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xbb }, &invalid_length_direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x11, 0x22 }, &invalid_length_alias);
+
+    var invalid_digit_direct = [_]u8{ 0xcc, 0xdd };
+    var invalid_digit_alias = [_]u8{ 0x33, 0x44 };
+    try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(invalid_digit_direct[0..], "zz00"));
+    try std.testing.expectError(HexError.InvalidHexDigit, hex2Bin(invalid_digit_alias[0..], "zz00"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xdd }, &invalid_digit_direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x33, 0x44 }, &invalid_digit_alias);
 }
 
 test "hexDumpLineLength mirrors formatter normalization" {
