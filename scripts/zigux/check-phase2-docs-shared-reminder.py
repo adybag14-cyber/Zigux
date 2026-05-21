@@ -62,7 +62,7 @@ PHASE2_NOTES_MARKERS = (
     "`make -C zigux phase2-cross`",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, or returned fixdep packet on current `master`.",
     "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness, local-first archive workflow truthfulness, third_party archive README truthfulness",
-    "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, fixdep governance and parity packet, and make-wrapper-backed toolchain plus direct-cross route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
+    "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, kconfig bridge, fixdep governance and parity packet, and make-wrapper-backed `phase2-toolchain`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, `phase2-genksyms`, `phase2-fixdep`, and `phase2-validate` route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
 )
 
 PHASE2_NOTES_FORBIDDEN_MARKERS = (
@@ -76,7 +76,7 @@ PHASE2_NOTES_EXACT_COUNT_MARKERS = (
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL` from `scripts/zigux/zig-toolchain-policy.json`, tries `community-mirrors.txt` before the direct Zig download URL, and reruns `python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"` inside each install attempt so the pinned bootstrap setup path stays reviewable at the same policy-driven boundary as the later reminder hooks.",
-    "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, fixdep governance and parity packet, and make-wrapper-backed toolchain plus direct-cross route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
+    "so the live bootstrap packet exercises the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, kconfig bridge, fixdep governance and parity packet, and make-wrapper-backed `phase2-toolchain`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, `phase2-genksyms`, `phase2-fixdep`, and `phase2-validate` route replays instead of leaving the returned Phase 2 packet implicit beside the shipped CI path.",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -427,7 +427,7 @@ def run_self_test() -> int:
         + len(THIRD_PARTY_README_FORBIDDEN_MARKERS)
         + 6
     )
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_\") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
