@@ -41,6 +41,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "drivers/tty/hvc/hvc_console.h",
+    "drivers/tty/hvc/hvc_console.zig",
     "drivers/watchdog/dw_wdt.zig",
     "drivers/watchdog/dw_wdt_verify.zig",
     "drivers/watchdog/dw_wdt_pm.zig",
@@ -318,6 +320,30 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        missing_hvc_header = root / "drivers/tty/hvc/hvc_console.h"
+        missing_hvc_header.unlink()
+        issues = collect_issues(root)
+        expected_missing_hvc_header = "missing_required_path:drivers/tty/hvc/hvc_console.h"
+        if expected_missing_hvc_header not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_hvc_header_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_hvc_console = root / "drivers/tty/hvc/hvc_console.zig"
+        missing_hvc_console.unlink()
+        issues = collect_issues(root)
+        expected_missing_hvc_console = "missing_required_path:drivers/tty/hvc/hvc_console.zig"
+        if expected_missing_hvc_console not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_hvc_console_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         missing_dw_platform_plan = root / "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
         missing_dw_platform_plan.unlink()
         issues = collect_issues(root)
@@ -573,7 +599,8 @@ def run_self_test() -> int:
             )
 
         build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        buildSampleRepo = build_sampleRepo
+        buildSampleRepo(root)
         build_fake_zig(
             fake_zig,
             fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
@@ -639,7 +666,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
