@@ -56,8 +56,8 @@ When a future same-lane repair touches shared Phase 5 reminder surfaces, use thi
 
 Prefer follow-through in this order:
 
-1. one shared reminder-surface truthfulness repair, starting with `Documentation/zigux/review-checklist.md`, because fresh repo-first comparison in this run still shows that shared checklist compressing the mixed direct-versus-public-tree-backed kobject packet by leaving the direct survey note, sample-root file, and manifest-backed contract out of the direct bucket
-2. one dedicated kobject survey-note truthfulness repair
+1. one shared reminder-surface reread across `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, because fresh repo-first comparison in this run found the shared checklist already carrying the mixed direct-versus-public-tree-backed kobject packet correctly
+2. one dedicated kobject survey-note truthfulness repair if that broader shared reread exposes a surviving mismatch
 3. one kobject survey or build-route wording repair tied to the existing packet
 
 Avoid widening from this note into sample behavior changes unless the sample, focused test, manifest, or survey replay actually changes.
@@ -66,4 +66,4 @@ Avoid widening from this note into sample behavior changes unless the sample, fo
 
 Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` the next time the lane reopens.
 
-This run still found `Documentation/zigux/review-checklist.md` compressing which kobject packet members were directly readable in the 2026-05-21 run by leaving `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` out of the direct bucket. Repair only that one shared surface first and leave the rest of the Phase 5 packet parked.
+This run no longer found `Documentation/zigux/review-checklist.md` compressing which kobject packet members were directly readable in the 2026-05-21 packet. Reopen the lane only if that shared reread finds another one-file reminder drift inside the same mixed direct-plus-public-tree-backed packet; otherwise leave the Phase 5 kobject packet parked.
