@@ -81,6 +81,10 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
         'test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {',
         'test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {',
+        'test "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested" {',
+        'test "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes" {',
+        'test "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result" {',
+        'test "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
         'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
@@ -102,7 +106,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\");',
+        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
@@ -156,7 +160,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -345,6 +349,30 @@ def run_self_test() -> None:
         tests_overflow_marker = 'test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {'
         tests_path.write_text(read_text(tests_path).replace(tests_overflow_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_overflow_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_overflow_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        tests_blank_sentinel_marker = 'test "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_blank_sentinel_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_blank_sentinel_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_blank_sentinel_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        tests_sibling_zero_count_marker = 'test "phase 7 string helpers starter keeps sibling zero-count results on the shared sentinel after one owner deinitializes" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_sibling_zero_count_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_sibling_zero_count_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_sibling_zero_count_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        tests_sibling_string_arrays_marker = 'test "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_sibling_string_arrays_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_sibling_string_arrays_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_sibling_string_arrays_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        tests_idempotent_kfree_marker = 'test "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_idempotent_kfree_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_idempotent_kfree_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_idempotent_kfree_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
