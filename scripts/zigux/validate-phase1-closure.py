@@ -249,6 +249,7 @@ EXPECTED_MARKERS = {
     "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
+    "string_sysfs_review": "`PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",
     "next_step": (
         "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker "
         "against the restored closure note, the closure validator, the shared tests-root smoke "
@@ -433,6 +434,7 @@ def make_fixture_tree(root: Path) -> None:
                 EXPECTED_MARKERS["route_summary_guard"],
                 EXPECTED_MARKERS["shared_tests_route"],
                 EXPECTED_MARKERS["validator_state"],
+                EXPECTED_MARKERS["string_sysfs_review"],
                 EXPECTED_MARKERS["next_step"],
                 "",
             ]
@@ -491,6 +493,13 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
                 replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["route_summary_guard"] + "\n", ""),
+            ),
+        ),
+        (
+            "missing_string_sysfs_review",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["string_sysfs_review"] + "\n", ""),
             ),
         ),
         (
