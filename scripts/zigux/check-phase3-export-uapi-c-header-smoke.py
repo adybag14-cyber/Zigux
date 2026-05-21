@@ -22,6 +22,7 @@ REQUIRED_MARKERS = {
         "static int check_boundary_header_relays(void)",
         "zigux_boundary_header_make(",
         "zigux_boundary_header_make_compatible(",
+        "zigux_validate_boundary_header(",
         "zigux_boundary_header_is_current_abi_version(",
         "zigux_boundary_header_is_compatible_size(",
         "zigux_boundary_header_is_canonical_size(",
@@ -38,6 +39,8 @@ REQUIRED_MARKERS = {
         "int main(void)",
     ),
     LINUX_HEADER_PATH: (
+        "zigux_uapi_validate_boundary_header(",
+        "zigux_validate_boundary_header(",
         "zigux_boundary_header_make(",
         "zigux_boundary_header_make_compatible(",
         "zigux_boundary_header_is_current_abi_version(",
@@ -317,6 +320,22 @@ static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(
     return header;
 }
 
+static inline struct zigux_export_status zigux_uapi_validate_boundary_header(
+    zigux_boundary_header header)
+{
+    if (zigux_uapi_boundary_header_is_compatible(header))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
+static inline struct zigux_export_status zigux_validate_boundary_header(
+    zigux_boundary_header header)
+{
+    return zigux_uapi_validate_boundary_header(header);
+}
+
 static inline zigux_boundary_header zigux_boundary_header_make(uint16_t flags)
 {
     return zigux_uapi_boundary_header_current(flags);
@@ -456,6 +475,16 @@ static int check_boundary_header_relays(void)
             0x41u);
     zigux_boundary_header canonicalized =
         zigux_boundary_header_canonicalize(compatible);
+    struct zigux_export_status canonical_status =
+        zigux_validate_boundary_header(canonical);
+    struct zigux_export_status compatible_status =
+        zigux_validate_boundary_header(compatible);
+    struct zigux_export_status undersized_status =
+        zigux_validate_boundary_header((zigux_boundary_header){
+            .size = (uint32_t)sizeof(zigux_boundary_header) - 1u,
+            .abi_version = canonical.abi_version,
+            .flags = canonical.flags,
+        });
 
     if (!zigux_boundary_header_is_current_abi_version(canonical.abi_version))
         return __LINE__;
@@ -467,6 +496,8 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (!zigux_boundary_header_is_compatible(canonical))
         return __LINE__;
+    if (!zigux_export_status_ok(canonical_status))
+        return __LINE__;
     if (zigux_boundary_header_extends_boundary(canonical))
         return __LINE__;
     if (zigux_boundary_header_requested_extra_bytes(canonical) != 0u)
@@ -475,6 +506,8 @@ static int check_boundary_header_relays(void)
     if (zigux_boundary_header_is_canonical(compatible))
         return __LINE__;
     if (!zigux_boundary_header_is_compatible(compatible))
+        return __LINE__;
+    if (!zigux_export_status_ok(compatible_status))
         return __LINE__;
     if (!zigux_boundary_header_extends_boundary(compatible))
         return __LINE__;
@@ -486,6 +519,11 @@ static int check_boundary_header_relays(void)
     if (zigux_boundary_header_extends_boundary(canonicalized))
         return __LINE__;
     if (canonicalized.flags != compatible.flags)
+        return __LINE__;
+
+    if (zigux_export_status_ok(undersized_status))
+        return __LINE__;
+    if (undersized_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
 
     return 0;
