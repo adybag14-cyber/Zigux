@@ -36,7 +36,8 @@
     "missing_long_reference_argument_expected.json",
     "missing_reference_argument_expected.json",
     "too_many_reference_files_expected.json",
-    "unsupported_long_option_expected.json"
+    "unsupported_long_option_expected.json",
+    "unexpected_long_help_argument_expected.json"
   ],
   "helper_local_anchors": [
     "genksyms bridge treats pure version requests as version command",
@@ -46,6 +47,7 @@
     "genksyms bridge renders invalid short option failure like the fixture",
     "genksyms bridge renders missing long option argument like the fixture",
     "genksyms bridge renders missing short option argument like the fixture",
+    "genksyms bridge renders unexpected long option argument like the fixture",
     "genksyms bridge appends usage after getopt-style parse failures",
     "genksyms bridge leaves tool-local reference-limit failure message unchanged",
     "genksyms bridge rejects more than sixteen reference files like the C harness"
