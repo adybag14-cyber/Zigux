@@ -1,6 +1,6 @@
 # Phase 5 Kobject Current Readback Note
 
-This note records the bounded 2026-05-20 readback state for the roadmap-backed `samples/kobject/kobject-example.c` anchor.
+This note records the bounded 2026-05-21 readback state for the roadmap-backed `samples/kobject/kobject-example.c` anchor.
 
 ## Purpose
 
@@ -12,27 +12,27 @@ Keep the lane narrow:
 - record what this run could prove directly versus through public current-`master` fallback
 - avoid widening into sysfs, `kernel_kobj`, uevents, or module-registration claims
 
-## Current bounded packet on 2026-05-20
+## Current bounded packet on 2026-05-21
 
-Fresh repo-first inspection in this run kept the roadmap-backed kobject packet visible, but the read paths were mixed.
+Fresh repo-first inspection in this run kept the roadmap-backed kobject packet visible, and the direct authenticated contents route was broader than the narrower 2026-05-20 readback note.
 
 Authenticated contents readback in this run directly returned:
 
+- `Documentation/zigux/phase5-kobject-sample-survey.md`
+- `samples/zigux/kobject_example.zig`
 - `zigux/tests/phase5_kobject_example.zig`
+- `zigux/tests/phase5_kobject_example_manifest.json`
 
 The same run also confirmed these current `master` packet members through public GitHub file readback:
 
-- `Documentation/zigux/phase5-kobject-sample-survey.md`
-- `samples/zigux/kobject_example.zig`
-- `zigux/tests/phase5_kobject_example_manifest.json`
 - `zigux/tests/phase5_kobject_example_survey.zig`
 - `zigux/tests/phase5_build.zig`
 
 That means the strongest honest current packet for this run is:
 
-- the focused tests-root replay file is still directly readable through the authenticated contents route used here
-- the dedicated survey note, sample-root file, manifest, survey replay, and shared build route remain visible on public current `master`
-- same-lane reminder work should treat authenticated contents `404` results on those public-file members as current connector-local readback flakiness, not as proof that the kobject packet vanished from the repo
+- the dedicated survey note, sample-root file, focused tests-root replay, and manifest-backed contract are directly readable through the authenticated contents route used here
+- the survey replay and shared build route remain visible on public current `master`
+- same-lane reminder work should treat authenticated contents `404` results on those two public-file members as current connector-local readback flakiness, not as proof that the broader kobject packet vanished from the repo
 
 ## Sample-backed cues this run kept explicit
 
@@ -62,4 +62,4 @@ Avoid widening from this note into sample behavior changes unless the sample, fo
 
 Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` the next time the lane reopens.
 
-If one shared surface still overstates which kobject packet members were directly readable in the 2026-05-20 run, repair only that one surface and leave the rest of the Phase 5 packet parked.
+If one shared surface still overstates which kobject packet members were directly readable in the 2026-05-21 run, repair only that one surface and leave the rest of the Phase 5 packet parked.
