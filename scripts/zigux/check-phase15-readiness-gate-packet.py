@@ -25,7 +25,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
-    "PHASE15_LANE_KEY=arch-council",
+    "PHASE15_LANE_KEY=P15-L01",
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
@@ -184,7 +184,7 @@ def _sample_note() -> str:
     return """# Phase 15 Readiness Gate Survey
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=arch-council`
+- `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
