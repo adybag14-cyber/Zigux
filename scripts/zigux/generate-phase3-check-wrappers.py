@@ -20,7 +20,7 @@ from __future__ import annotations
 from phase3_check_lib import run_from_wrapper
 
 
-if __name__ == \"__main__\":
+if __name__ == "__main__":
     raise SystemExit(run_from_wrapper(__file__))
 """
 
@@ -97,6 +97,7 @@ def run_self_test() -> int:
             "",
         ]
     )
+    case_count = 0
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_wrapper_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -132,6 +133,7 @@ def run_self_test() -> int:
         assert obsolete_shared_runner_wrapper.exists()
         assert obsolete_wrapper.exists()
         assert support_checker.exists()
+        case_count += 1
 
         mismatches = sync_wrappers(entries, expected, check=False, scripts_dir=tmp_dir)
         assert mismatches == [
@@ -145,11 +147,14 @@ def run_self_test() -> int:
         assert not obsolete_shared_runner_wrapper.exists()
         assert not obsolete_wrapper.exists()
         assert support_checker.exists()
+        case_count += 1
 
         mismatches = sync_wrappers(entries, expected, check=True, scripts_dir=tmp_dir)
         assert mismatches == []
+        case_count += 1
 
     print("PHASE3_WRAPPER_SELF_TEST=pass")
+    print(f"PHASE3_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
