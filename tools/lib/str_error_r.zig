@@ -198,3 +198,29 @@ test "strErrorR respects offset caller slices and leaves neighboring bytes untou
     try std.testing.expectEqual(@as(u8, 0), storage[18]);
     try std.testing.expectEqual(@as(u8, 0xbb), storage[19]);
 }
+
+test "strErrorR reuses offset caller slices after tiny generated renders" {
+    var storage = [_]u8{0xcc} ** 64;
+    const view = storage[5..23];
+
+    var tiny_expected_storage: [64]u8 = undefined;
+    const tiny_expected = try std.fmt.bufPrint(
+        &tiny_expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, 12 },
+    );
+
+    const tiny_rendered = strErrorR(4096, view[0..12]);
+    try std.testing.expectEqual(@intFromPtr(&storage[5]), @intFromPtr(tiny_rendered.ptr));
+    try std.testing.expectEqualStrings(tiny_expected[0 .. 12 - 1], tiny_rendered);
+    try std.testing.expectEqual(@as(u8, 0xcc), storage[4]);
+    try std.testing.expectEqual(@as(u8, 0), storage[16]);
+    try std.testing.expectEqual(@as(u8, 0xcc), storage[17]);
+
+    const exact_known = strErrorR(13, view);
+    try std.testing.expectEqual(@intFromPtr(&storage[5]), @intFromPtr(exact_known.ptr));
+    try std.testing.expectEqualStrings("Permission denied", exact_known);
+    try std.testing.expectEqual(@as(u8, 0xcc), storage[4]);
+    try std.testing.expectEqual(@as(u8, 0), storage[22]);
+    try std.testing.expectEqual(@as(u8, 0xcc), storage[23]);
+}
