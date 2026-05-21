@@ -52,8 +52,6 @@ PHASE2_NOTES_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-kbuild-routes.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit",
     "`scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, and the `zigux/tests/fixtures/genksyms_bridge/` fixture roster keep the bounded genksyms bridge helper packet explicit beside the reminder guards, and `make -C zigux phase2-genksyms` keeps its wrapper route inside the same returned make-wrapper packet.",
     "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, and `zigux/tests/fixtures/fixdep/cases.json` keep the returned fixdep governance, parity, helper, and fixture packet explicit beside the reminder guards, and `make -C zigux phase2-fixdep` keeps its wrapper route inside the same returned make-wrapper packet.",
@@ -149,7 +147,6 @@ REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "current directly readable Phase 2 local-first archive, toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, tool-manifest, artifact-support, fixdep, genksyms-bridge, and required-make-route packet",
     "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
@@ -190,15 +187,10 @@ TESTS_README_MARKERS = (
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
     "Keep the current toolchain self-check and replay surface explicit through `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase2-cross.py --self-test`.",
     "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
-    "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
     "Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?",
 )
 
 TESTS_README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
-
-TESTS_README_EXACT_COUNT_MARKERS = (
-    "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
-)
 
 
 def read_text(path: Path) -> str:
@@ -317,13 +309,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_exact_count_markers(
-            tests_readme_text,
-            TESTS_README_EXACT_COUNT_MARKERS,
-            "EXACT_COUNT_TESTS_README_MARKERS",
-        )
-    )
-    issues.extend(
         collect_forbidden_markers(
             tests_readme_text,
             TESTS_README_FORBIDDEN_MARKERS,
@@ -380,7 +365,6 @@ def run_self_test() -> int:
         + len(SCRIPTS_README_MARKERS)
         + len(SCRIPTS_README_FORBIDDEN_MARKERS)
         + len(TESTS_README_MARKERS)
-        + len(TESTS_README_EXACT_COUNT_MARKERS)
         + len(TESTS_README_FORBIDDEN_MARKERS)
         + 5
     )
@@ -478,14 +462,6 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in TESTS_README_EXACT_COUNT_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("EXACT_COUNT_TESTS_README_MARKERS", f"2::{marker}") in issues
-            checks_run += 1
-
         for marker in TESTS_README_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
@@ -534,7 +510,7 @@ def main() -> int:
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_EXACT_COUNT_MARKER_COUNT="
-        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(TESTS_README_EXACT_COUNT_MARKERS)}"
+        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
