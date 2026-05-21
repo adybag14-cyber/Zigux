@@ -347,6 +347,15 @@ pub fn __sysfs_match_string(haystack: []const ?[]const u8, needle: []const u8) ?
     return sysfsMatchString(haystack, needle);
 }
 
+pub fn stringIsTerminated(buf: []const u8, count: usize) bool {
+    if (count == 0 or count > buf.len) return false;
+    return std.mem.indexOfScalar(u8, buf[0..count], 0) != null;
+}
+
+pub fn string_is_terminated(buf: []const u8, count: usize) bool {
+    return stringIsTerminated(buf, count);
+}
+
 pub fn stringGetSize(size: u64, blk_size: u64, units: u32, buf: []u8, len: usize) usize {
     var scaled: u128 = if (blk_size == 0) 0 else @as(u128, size) * @as(u128, blk_size);
     const units_base = units & STRING_UNITS_MASK;
@@ -894,6 +903,19 @@ test "stringGetSize reports rounded units and truncates destination buffers safe
     try std.testing.expectEqual(@as(usize, 7), truncated_len);
     try std.testing.expectEqualStrings("1.50", truncated[0..cStringLen(truncated[0..])]);
     try std.testing.expectEqual(@as(u8, 0), truncated[4]);
+}
+
+test "stringIsTerminated stays inside the caller-provided bound" {
+    const terminated = [_]u8{ 'o', 'k', 0, 'x' };
+    try std.testing.expect(stringIsTerminated(&terminated, 3));
+    try std.testing.expect(string_is_terminated(&terminated, 3));
+    try std.testing.expect(!stringIsTerminated(&terminated, 2));
+
+    const trailing_only = [_]u8{ 'o', 'k', 0 };
+    try std.testing.expect(stringIsTerminated(&trailing_only, trailing_only.len));
+
+    try std.testing.expect(!stringIsTerminated("zigux", 0));
+    try std.testing.expect(!string_is_terminated("zigux", 6));
 }
 
 test "string escape and unescape preserve bounded output and invalid escape fallbacks" {
