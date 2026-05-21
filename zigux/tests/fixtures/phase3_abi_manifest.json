@@ -73,8 +73,6 @@
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
   ],
-  "repo_reality_gaps": [
-    "zigux/bindings/abi.zig still duplicates notifier result, notifier layout, and list-helper ownership that current master already materializes in zigux/bindings/notifier_abi.zig, so the shared ABI packet is not yet on a single notifier-binding ownership path"
-  ],
-  "next_safe_step": "relay the shared notifier result, notifier layout, and list-helper surface in zigux/bindings/abi.zig through explicit aliases and wrappers over zigux/bindings/notifier_abi.zig, then rerun the dedicated phase3 ABI checker plus the narrowest honest Zig replay before treating the packet as ownership-clean"
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again"
 }
