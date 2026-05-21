@@ -29,6 +29,16 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
+Current `master` also keeps the direct non-runtime bytestream packet visible as current sample-root proof through directly readable paired evidence for `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`, while `zigux/tests/phase5_build.zig` stays current public-tree-backed companion evidence until a fresh authenticated reread returns that shared route directly again.
+
+Keep that bytestream packet framed as the approved in-memory FIFO idiom for the Phase 5 anchor:
+
+* `BytestreamFifoSample.descriptor()` keeps the Linux anchor path, `requires_runtime_substrate = false`, `provides_selfcheck = true`, and `StorageBacking.embedded_fixed_buffer` explicit
+* the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle keeps queue ownership and lifetime reviewable without implying runtime-owned registration
+* `runPreviewBoundaryReplay()` plus `runWrappedPreviewReplay()` keep non-destructive preview truncation and the wrapped `{ 28, 4 }` visible-span split explicit at the sample root
+* `runRemainingCapacityReplay()` plus `runPartialEnqueueBoundaryReplay()` keep `available()`, occupancy and writable-span cues, the short-drain `"hel"` / `"lo"` helper boundary, and partial `enqueueSlice()` truncation explicit
+* keep procfs, user-copy, locking, and loadable module registration parity out of scope
+
 Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are direct authenticated reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again.
 
 Keep that kobject packet framed as the approved in-memory ownership-and-lifetime idiom for the Phase 5 anchor:
