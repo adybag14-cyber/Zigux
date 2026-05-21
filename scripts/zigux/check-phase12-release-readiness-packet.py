@@ -141,6 +141,7 @@ REQUIRED_MARKERS = {
         "  * `scripts/zigux/validate-phase12.py`",
         "The active smoke-first direct shard set on current `master` is `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig`, because those are the five files the current `smoke` step actually runs.",
         "Current `zigux/tests/phase12_build.zig` wires that same five-file bounded `virtio_net` follow-up quintet through both `smoke` and `test`, so the shared release packet should keep those bounded queue-resume, receive-refill replay, transmit-disposition, post-reset replay, and throughput-parity replays explicit without rounding them up into live interrupt-backed transmit completion parity, queue-restart parity, or transport-backed throughput delivery.",
+        "Current workflow-side fallback recovery evidence: `.github/workflows/zigux-bootstrap.yml` now rebuilds the repo-local `.zig-toolchain` path by first trying the pinned `third_party` archive, then the Zig community-mirror list, and finally `ziglang.org`, so this sequencing note should treat the local Makefile fallback as a restorable local-first path before attached-`ZIG=<attached-zig-path>` reruns rather than as a one-shot cache hit.",
         "The broader starter-present `virtio_net` direct and syntax-lab packet, the driver-local `virtio_scsi` rollback-lab packet, and the published-but-still-unwired NVMe foothold remain adjacent review surfaces in the PMO note set, but they are not wired shared `smoke` or `test` build outputs in current `zigux/tests/phase12_build.zig`.",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
@@ -297,7 +298,6 @@ EXACT_COUNT_MARKERS = {
         "Keep `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` explicit as the shared heavy-helper anti-overlap companion so the tests-root reminder stays aligned with the same parked libbpf boundary already named by the release-order, closure, readiness, coordination, fallback, and complex-driver notes.": 1,
     },
 }
-
 
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
