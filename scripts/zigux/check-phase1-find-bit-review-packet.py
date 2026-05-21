@@ -351,7 +351,7 @@ def run_self_test() -> int:
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[23] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[4][1] not in collect_failures(tmp_root):
