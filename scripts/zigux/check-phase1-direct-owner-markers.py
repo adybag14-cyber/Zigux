@@ -136,6 +136,14 @@ EXPECTED_RBTREE_CACHED_ROOT_DIRECT_REVIEW_SUMMARY = (
     "`cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, "
     "the shared host-tools smoke replay, and the committed fixture"
 )
+EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
+    "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact "
+    "`cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, "
+    "while the committed Phase 1 fixture still carries the exact traversal, detached-node, "
+    "duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue "
+    "to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+    "replacement, detach, and reseed paths that the shared smoke route does not replay exactly"
+)
 EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the "
     "string review packet and this lane note unless dedicated shared sysfs fixture keys land; "
@@ -250,6 +258,7 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "shared_replay_summary"): EXPECTED_RBTREE_SHARED_REPLAY_SUMMARY,
     ("review_anchors", "tools/lib/rbtree.zig", "cached_root_direct_review_summary"): EXPECTED_RBTREE_CACHED_ROOT_DIRECT_REVIEW_SUMMARY,
+    ("review_anchors", "tools/lib/rbtree.zig", "review_packet_summary"): EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY,
     ("review_anchors", "tools/lib/rbtree.zig", "ordered_alias_anchor"): 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     ("review_anchors", "tools/lib/rbtree.zig", "low_level_alias_anchor"): 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
     ("review_anchors", "tools/lib/rbtree.zig", "phase1_helper_replay_anchor"): 'test "phase1 host-tools smoke exercises live helper behavior"',
@@ -381,6 +390,7 @@ def sample_manifest() -> str:
                 "next_match_terminal_null",
             ],
             "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+            "review_packet_summary": EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY,
         },
         "tools/lib/string.zig": {
             "next_safe_step_note": EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
