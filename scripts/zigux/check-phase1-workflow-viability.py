@@ -20,6 +20,8 @@ REQUIRED_FILE_RELS = (
     WORKFLOW_REL,
     CLOSURE_NOTE_REL,
     CHECKER_REL,
+    Path("scripts/zigux/check-phase1-route-summary-counts.py"),
+    Path("scripts/zigux/check-phase1-bench.py"),
     Path("scripts/zigux/validate-phase1-closure.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/run-phase3-checks.py"),
@@ -32,6 +34,7 @@ REQUIRED_FILE_RELS = (
 )
 
 REQUIRED_NOTE_LINES = (
+    "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
     "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "- `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "- `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
@@ -39,6 +42,9 @@ REQUIRED_NOTE_LINES = (
 )
 
 PHASE1_TAIL_STEPS = (
+    ("Self-test current Phase 1 route summary checker", "python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test"),
+    ("Check current Phase 1 route summary packet", "python3 scripts/zigux/check-phase1-route-summary-counts.py"),
+    ("Self-test current Phase 1 bench checker", "python3 scripts/zigux/check-phase1-bench.py --self-test"),
     ("Self-test current Phase 1 shared reminder checker", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test"),
     ("Check current Phase 1 shared reminder packet", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py"),
     ("Self-test current Phase 1 closure validator", "python3 scripts/zigux/validate-phase1-closure.py --self-test"),
@@ -70,6 +76,15 @@ REQUIRED_CHAIN = (
     "Self-test current Phase 3 interop packet",
     "Check current Phase 3 interop packet",
     "Run current Phase 3 export/UAPI layout replay",
+)
+PHASE1_PACKET_CHAIN = (
+    "Self-test current Phase 1 route summary checker",
+    "Check current Phase 1 route summary packet",
+    "Self-test current Phase 1 bench checker",
+    "Self-test current Phase 1 shared reminder checker",
+    "Check current Phase 1 shared reminder packet",
+    "Self-test current Phase 1 closure validator",
+    "Check current Phase 1 closure packet",
 )
 SMOKE_TO_PHASE4_CHAIN = (
     "Run current Phase 1 shared tests-root smoke",
@@ -156,6 +171,7 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(require_step_pair(workflow_text, step_name, run_command))
 
     failures.extend(require_order(workflow_text, REQUIRED_ORDER))
+    failures.extend(require_chain(workflow_text, PHASE1_PACKET_CHAIN, "workflow_phase1_packet"))
     failures.extend(require_chain(workflow_text, REQUIRED_CHAIN, "workflow_chain"))
     failures.extend(require_chain(workflow_text, SMOKE_TO_PHASE4_CHAIN, "workflow_phase4_lead"))
 
@@ -247,7 +263,7 @@ def run_self_test() -> int:
         write_text(
             broken_root,
             CLOSURE_NOTE_REL,
-            rewrite_once(note_text, REQUIRED_NOTE_LINES[2] + "\n"),
+            rewrite_once(note_text, REQUIRED_NOTE_LINES[0] + "\n"),
         )
         failures = collect_failures(broken_root)
         if "closure_note:expected=1:actual=0" not in failures:
@@ -259,12 +275,12 @@ def run_self_test() -> int:
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
         duplicate_block = (
-            "      - name: Self-test current Phase 3 interop packet\n"
-            "        run: python3 scripts/zigux/validate_phase3_selftest.py\n"
+            "      - name: Self-test current Phase 1 bench checker\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
         )
         write_text(broken_root, WORKFLOW_REL, workflow_text + duplicate_block)
         failures = collect_failures(broken_root)
-        if "workflow_step:Self-test current Phase 3 interop packet:expected=1:actual=2" not in failures:
+        if "workflow_step:Self-test current Phase 1 bench checker:expected=1:actual=2" not in failures:
             print("self-test:duplicate_step_not_detected")
             return 1
         case_count += 1
@@ -272,7 +288,7 @@ def run_self_test() -> int:
         broken_root = root / "broken-order"
         write_sample_root(broken_root)
         reordered = list(PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS)
-        reordered[3], reordered[4] = reordered[4], reordered[3]
+        reordered[2], reordered[3] = reordered[3], reordered[2]
         lines = [
             "name: zigux-bootstrap",
             "jobs:",
@@ -288,6 +304,31 @@ def run_self_test() -> int:
         failures = collect_failures(broken_root)
         if "workflow_order:out_of_order" not in failures:
             print("self-test:broken_order_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "broken-phase1-chain"
+        write_sample_root(broken_root)
+        workflow_text = load_text(broken_root, WORKFLOW_REL)
+        old = (
+            "      - name: Self-test current Phase 1 bench checker\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+            "      - name: Self-test current Phase 1 shared reminder checker\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n"
+        )
+        new = (
+            "      - name: Self-test current Phase 1 bench checker\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+            "      - name: Drifted inserted step\n"
+            "        run: python3 drift.py\n"
+            "      - name: Self-test current Phase 1 shared reminder checker\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n"
+        )
+        write_text(broken_root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
+        failures = collect_failures(broken_root)
+        expected = f"workflow_phase1_packet:missing:{'->'.join(PHASE1_PACKET_CHAIN)}"
+        if expected not in failures:
+            print("self-test:broken_phase1_chain_not_detected")
             return 1
         case_count += 1
 
