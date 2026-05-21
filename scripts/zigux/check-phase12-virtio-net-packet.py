@@ -32,7 +32,7 @@ ABSENT_FILES = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P12-L04"',
+    '"lane_key": "P12-L01"',
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
     '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
@@ -56,8 +56,8 @@ MANIFEST_MARKERS = [
 
 SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
-    "lane owner: `P12-L04`",
-    "verified head: `6c941cb561420120b8e1d5a07e8a44e1c918a5f2`",
+    "lane owner: `P12-L01`",
+    "verified head: `c36b21af252cf76160ba5ae9c8f84b2310f4b2e1`",
     "scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity review packet truthful without reopening live runtime data-path work",
     "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_receive_refill_replay.zig",
@@ -80,13 +80,13 @@ SURVEY_GATE_MARKERS = [
     "phase12 virtio net survey note reflects the quintet and preserved non-goals",
     "phase12 virtio net survey gate keeps the present files and shared routes explicit",
     "phase12 virtio net survey gate keeps split helper markers explicit",
-    'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);',
     '"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
     '"split_helper_packet_direct_replays_present_shared_route_quintet_complete"',
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays"',
     'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");',
-    'try expectContains(survey_note, "lane owner: `P12-L04`");',
-    'try expectContains(survey_note, "6c941cb561420120b8e1d5a07e8a44e1c918a5f2");',
+    'try expectContains(survey_note, "lane owner: `P12-L01`");',
+    'try expectContains(survey_note, "c36b21af252cf76160ba5ae9c8f84b2310f4b2e1");',
     'try expectContains(build_zig, "phase12_virtio_net_receive_refill_replay.zig");',
     'try expectContains(build_zig, "phase12-virtio-net-receive-refill-replay-tests");',
     'try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");',
@@ -179,8 +179,8 @@ def run_check(root: Path) -> None:
     require_markers(manifest_text, "zigux/tests/phase12_virtio_net_manifest.json", MANIFEST_MARKERS)
 
     manifest = json.loads(manifest_text)
-    if manifest.get("lane_key") != "P12-L04":
-        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L04")
+    if manifest.get("lane_key") != "P12-L01":
+        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L01")
     if manifest.get("phase") != "Phase 12":
         raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: phase drifted from Phase 12")
 
@@ -225,7 +225,7 @@ def make_fixture_tree(root: Path) -> None:
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_manifest.json": json.dumps(
             {
-                "lane_key": "P12-L04",
+                "lane_key": "P12-L01",
                 "phase": "Phase 12",
                 "anchor": "drivers/net/virtio_net.c",
                 "roadmap_gap_check": {
