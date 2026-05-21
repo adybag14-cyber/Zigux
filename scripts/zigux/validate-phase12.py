@@ -46,6 +46,9 @@ RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
+HEAVY_CONSUMER_PACKET_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py"
+)
 VIRTIO_NET_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-net-packet.py"
 VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packet.py"
 VIRTIO_SCSI_BOUNDARY_CHECKER_PATH = (
@@ -109,6 +112,7 @@ REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH,
     VIRTIO_NET_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
@@ -217,14 +221,19 @@ REQUIRED_MARKERS = {
         "phase12_virtio_net_post_reset_replay.zig",
         "phase12-virtio-net-post-reset-replay-tests",
     ],
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH: [
+        "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",
+        "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+        "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    ],
     VIRTIO_NET_MANIFEST_PATH: [
-        '"lane_key": "P12-L04"',
-        '"phase": "Phase 12"',
-        '"anchor": "drivers/net/virtio_net.c"',
-        '"id": "phase12-build-gate"',
-        '"id": "phase12-virtio-net-post-reset-replay-followup"',
-        '"id": "phase12-virtio-net-runtime-data-path"',
-        '"status": "blocked_on_dma_transport_runtime"',
+        "\"lane_key\": \"P12-L04\"",
+        "\"phase\": \"Phase 12\"",
+        "\"anchor\": \"drivers/net/virtio_net.c\"",
+        "\"id\": \"phase12-build-gate\"",
+        "\"id\": \"phase12-virtio-net-post-reset-replay-followup\"",
+        "\"id\": \"phase12-virtio-net-runtime-data-path\"",
+        "\"status\": \"blocked_on_dma_transport_runtime\"",
     ],
     VIRTIO_SCSI_MANIFEST_PATH: [
         "\"lane_key\": \"P12-L13\"",
@@ -277,6 +286,7 @@ REQUIRED_MARKERS = {
         BUILD_ONLY_CHECKER_PATH,
         RELEASE_READINESS_CHECKER_PATH,
         LIBBPF_SNAPSHOT_CHECKER_PATH,
+        HEAVY_CONSUMER_PACKET_CHECKER_PATH,
         VIRTIO_NET_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
@@ -287,9 +297,30 @@ REQUIRED_MARKERS = {
         VIRTIO_SCSI_MANIFEST_PATH,
         VIRTIO_SCSI_SURVEY_GATE_PATH,
         "PHASE12_VALIDATOR_SELF_TEST=pass",
+        "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",
         "make -C zigux phase12-validate",
         "stale reminder vocabulary",
         "scripts-side support packet",
+    ],
+    WORKFLOW_PATH: [
+        "- name: Self-test current Phase 12 build-only surface checker",
+        "run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+        "- name: Check current Phase 12 build-only surface",
+        "run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+        "- name: Self-test current Phase 12 release-readiness packet checker",
+        "run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+        "- name: Check current Phase 12 release-readiness packet",
+        "run: python3 scripts/zigux/check-phase12-release-readiness-packet.py",
+        "- name: Validate current Phase 12 support bundle",
+        "run: python3 scripts/zigux/validate-phase12.py",
+        "- name: Run current Phase 12 smoke packet",
+        "run: make -C zigux phase12-smoke",
+        "- name: Run current Phase 12 shared test packet",
+        "run: make -C zigux phase12-test",
+        "- name: Run current Phase 12 aggregate route",
+        "run: make -C zigux phase12",
+        "- name: Run current Phase 12 throughput-parity anchor",
+        "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     ],
 }
 
@@ -429,6 +460,10 @@ FIXTURE_TEXT = {
     BUILD_ONLY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
     LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH: "\n".join(
+        REQUIRED_MARKERS[HEAVY_CONSUMER_PACKET_CHECKER_PATH]
+    )
+    + "\n",
     VIRTIO_NET_PACKET_CHECKER_PATH: "\n".join(
         REQUIRED_MARKERS[VIRTIO_NET_PACKET_CHECKER_PATH]
     )
@@ -462,7 +497,7 @@ FIXTURE_TEXT = {
     ),
     LIBBPF_SNAPSHOT_PATH: '{\n  "lane_key": "P12-L16"\n}\n',
     LIBBPF_SNAPSHOT_DETERMINISM_PATH: '{\n  "lane_key": "P12-L17"\n}\n',
-    WORKFLOW_PATH: "name: zigux-bootstrap\n",
+    WORKFLOW_PATH: "\n".join(REQUIRED_MARKERS[WORKFLOW_PATH]) + "\n",
 }
 
 
