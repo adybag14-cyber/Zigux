@@ -32,7 +32,6 @@ EXECUTABLE_GAP_MARKERS = [
     "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     "- `zigux/tests/phase14_skbuff_bridge.zig`",
-    "- `zigux/tests/phase14_ring_buffer_survey.zig`",
     "- `zigux/tests/phase14_rcu_tree_survey.zig`",
     "- `net/core/skbuff_bridge.zig`",
 ]
