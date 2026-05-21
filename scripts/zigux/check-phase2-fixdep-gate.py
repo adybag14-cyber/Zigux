@@ -126,6 +126,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + 9
     + len(CLOSURE_REQUIRED_MARKERS)
+    + len(CLOSURE_REQUIRED_MARKERS)
+    + len(TESTS_README_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
@@ -168,6 +170,19 @@ def phony_targets_present(text: str) -> set[str]:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_required_marker_issues(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
 
 
 def collect_required_exact_lines(
@@ -284,11 +299,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
     issues.extend(
-        collect_missing_markers(closure_text, CLOSURE_REQUIRED_MARKERS, "MISSING_CLOSURE_MARKER")
+        collect_required_marker_issues(
+            closure_text,
+            CLOSURE_REQUIRED_MARKERS,
+            "MISSING_CLOSURE_MARKER",
+            "DUPLICATE_CLOSURE_MARKER",
+        )
     )
     issues.extend(
-        collect_missing_markers(
-            tests_readme_text, TESTS_README_REQUIRED_MARKERS, "MISSING_TESTS_README_MARKER"
+        collect_required_marker_issues(
+            tests_readme_text,
+            TESTS_README_REQUIRED_MARKERS,
+            "MISSING_TESTS_README_MARKER",
+            "DUPLICATE_TESTS_README_MARKER",
         )
     )
     issues.extend(
@@ -604,7 +627,7 @@ def run_self_test() -> int:
         cases[0]["name"] = ""
         path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''" ) in issues
+        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''") in issues
         checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
@@ -614,11 +637,25 @@ def run_self_test() -> int:
             assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in CLOSURE_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, PHASE2_CLOSURE_REL)
+            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_CLOSURE_MARKER", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         for marker in TESTS_README_REQUIRED_MARKERS:
             build_self_test_root(root)
             path = resolve(root, TESTS_README_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, TESTS_README_REL)
+            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_TESTS_README_MARKER", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
