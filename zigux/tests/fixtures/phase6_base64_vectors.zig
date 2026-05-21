@@ -133,14 +133,20 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 };
 
 pub const variant_decode_cases = [_]DecodeCase{
+    .{ .input = "APv/f4A", .expected = &variant_sample, .padding = false, .variant_name = "std" },
+    .{ .input = "APv/f4A=", .expected = &variant_sample, .padding = true, .variant_name = "std" },
     .{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },
     .{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },
+    .{ .input = "+w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "std" },
+    .{ .input = "+w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "std" },
     .{ .input = "-w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "-w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "+w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "imap" },
     .{ .input = "+w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "imap" },
+    .{ .input = "//A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "std" },
+    .{ .input = "//A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "std" },
     .{ .input = "__A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "__A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },
@@ -196,6 +202,7 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     const expected_max_decode_slowdown_pct = 325;
     const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;
     const expected_suffix = [_]u8{ 0xfb, 0xff, 0xf0 };
+    const expected_variant_decode_case_count = 18;
 
     var saw_std_pad = false;
     var saw_std_no_pad = false;
@@ -205,6 +212,7 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     var saw_imap_no_pad = false;
 
     try std.testing.expectEqual(expected_case_count, perf_cases.len);
+    try std.testing.expectEqual(expected_variant_decode_case_count, variant_decode_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
     try std.testing.expectEqual(expected_payload_fingerprint, perfPayloadFingerprint(perf_payload));
     try std.testing.expect(std.mem.endsWith(u8, perf_payload, &expected_suffix));
