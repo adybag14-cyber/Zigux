@@ -40,7 +40,7 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-hexdump-perf-matrix-test`",
         "- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
         "- `make -C zigux phase6-hexdump-test`",
-        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
+        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
         "- `make -C zigux phase6-hexdump-perf`",
     ],
     SLICE_PATH: [
@@ -53,6 +53,7 @@ REQUIRED_SNIPPETS = {
         "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
         "`zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet",
         "`make -C zigux phase6-hexdump-review`",
+        "`zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
     ],
     PERF_REFRESH_PATH: [
         "# Phase 6 Hexdump Perf Refresh Evidence",
@@ -164,6 +165,11 @@ SELF_TEST_CASES = [
         "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-proof.py`",
     ),
     (
+        CATALOG_PATH,
+        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
+        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
+    ),
+    (
         SLICE_PATH,
         "`PHASE6_STATUS=parked_reviewable`",
         "`PHASE6_STATUS=parked`",
@@ -172,6 +178,11 @@ SELF_TEST_CASES = [
         SLICE_PATH,
         "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
         "the landed `hexAsc*` helper parity surface",
+    ),
+    (
+        SLICE_PATH,
+        "`zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
+        "`zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
     ),
     (
         PERF_REFRESH_PATH,
