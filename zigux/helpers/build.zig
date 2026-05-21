@@ -77,6 +77,25 @@ fn addAbiHelperTest(
     );
 }
 
+fn addMmioHelperModule(
+    b: *std.Build,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    abi_bindings: *std.Build.Module,
+    unsafe_policy: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = addAbiHelperModule(
+        b,
+        root_source_file,
+        target,
+        optimize,
+        abi_bindings,
+    );
+    root_module.addImport("unsafe_policy", unsafe_policy);
+    return root_module;
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -107,6 +126,18 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    const unsafe_policy_module = addAbiHelperModule(
+        b,
+        "unsafe_policy.zig",
+        target,
+        optimize,
+        abi_bindings,
+    );
+    const unsafe_policy = addModuleTest(
+        b,
+        "helper-unsafe-policy",
+        unsafe_policy_module,
+    );
     const atomic = addHelperTest(
         b,
         "helper-atomic",
@@ -121,12 +152,25 @@ pub fn build(b: *std.Build) void {
         target,
         optimize,
     );
+    const mmio = addModuleTest(
+        b,
+        "helper-mmio",
+        addMmioHelperModule(
+            b,
+            "mmio.zig",
+            target,
+            optimize,
+            abi_bindings,
+            unsafe_policy_module,
+        ),
+    );
     const policy_helpers = b.step(
         "test-policy-helpers",
         "Run the helper-local Phase 3 ABI policy helper tests.",
     );
     policy_helpers.dependOn(&panic_policy.step);
     policy_helpers.dependOn(&allocator_policy.step);
+    policy_helpers.dependOn(&unsafe_policy.step);
 
     const low_level_helpers = b.step(
         "test-low-level-helpers",
@@ -134,6 +178,7 @@ pub fn build(b: *std.Build) void {
     );
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
+    low_level_helpers.dependOn(&mmio.step);
 
     const layout_step = b.step(
         "test-layout-assert",
@@ -148,7 +193,9 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&layout_assert.step);
     all.dependOn(&panic_policy.step);
     all.dependOn(&allocator_policy.step);
+    all.dependOn(&unsafe_policy.step);
     all.dependOn(&atomic.step);
     all.dependOn(&barrier.step);
+    all.dependOn(&mmio.step);
     b.default_step = all;
 }
