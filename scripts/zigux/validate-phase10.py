@@ -458,7 +458,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         survey_text = survey_path.read_text(encoding="utf-8").replace(
             "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
