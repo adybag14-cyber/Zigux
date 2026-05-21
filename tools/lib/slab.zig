@@ -218,6 +218,33 @@ test "multiple zero-sized allocations stay independently tracked across mixed fr
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "zero-sized and non-zero live allocations stay independently tracked" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_live = kmallocBytes(0, GFP_KERNEL | __GFP_ZERO) orelse
+        return error.TestUnexpectedResult;
+    const normal_live = kmallocArray(2, 2, GFP_KERNEL) orelse
+        return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_live.len);
+    try std.testing.expectEqual(@as(usize, 4), normal_live.len);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocArray(1, 4, 0) == null);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    kfree(normal_live);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocBytes(std.math.maxInt(usize), GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(zero_live);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "kmallocArray zeroes fresh allocations after earlier dirty frees" {
     kmalloc_nr_allocated = 0;
 
