@@ -427,7 +427,7 @@ def run_self_test() -> int:
         + len(THIRD_PARTY_README_FORBIDDEN_MARKERS)
         + 6
     )
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_\") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
