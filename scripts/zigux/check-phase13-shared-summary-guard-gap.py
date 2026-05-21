@@ -15,8 +15,9 @@ REQUIRED_MARKERS = {
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
         "- companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
         "The remaining follow-up is now narrower than the old missing-checker gap and no longer includes the earlier tests-root release-validator undercount.",
-        "Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift.",
-        "Current `master` already keeps the tests-root README and its dedicated checker aligned around `scripts/zigux/validate-phase13-release.py`",
+        "Fresh authenticated file checks in this run show the scripts-root Phase 13 reminder drift has narrowed again:",
+        "`scripts/zigux/README.md` already keeps the shipped `libfs` packet anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`",
+        "the remaining broader shared reminder drift has contracted to one stale scripts-root repo-reality-gap sentence that still lists returned `scripts/zigux/validate-phase13-release.py` as missing",
         "- `Documentation/zigux/phase13-release-notes-survey.md`",
         "`scripts/zigux/README.md`",
         "`zigux/tests/README.md`",
@@ -32,6 +33,8 @@ FORBIDDEN_MARKERS = (
     "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.",
     "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
     "zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support",
+    "But that same scripts-root section still treats missing `Documentation/zigux/phase13-libfs-survey.md` as shipped `libfs` evidence and still leaves returned `scripts/zigux/validate-phase13-release.py` in repo-reality-gap wording",
+    "while `scripts/zigux/README.md` still needs the shipped `libfs` packet kept anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`",
 )
 
 
@@ -114,7 +117,7 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
-                "Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift.\n",
+                "Fresh authenticated file checks in this run show the scripts-root Phase 13 reminder drift has narrowed again:\n",
                 "",
                 1,
             ),
@@ -122,7 +125,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift."
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:Fresh authenticated file checks in this run show the scripts-root Phase 13 reminder drift has narrowed again:"
             in issues
         )
         checks_run += 1
@@ -145,12 +148,26 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8")
-            + "zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support\n",
+            + "But that same scripts-root section still treats missing `Documentation/zigux/phase13-libfs-survey.md` as shipped `libfs` evidence and still leaves returned `scripts/zigux/validate-phase13-release.py` in repo-reality-gap wording\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:zigux/tests/README.md still needs the returned `scripts/zigux/validate-phase13-release.py` kept explicit as shipped release-discipline support"
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:But that same scripts-root section still treats missing `Documentation/zigux/phase13-libfs-survey.md` as shipped `libfs` evidence and still leaves returned `scripts/zigux/validate-phase13-release.py` in repo-reality-gap wording"
+            in issues
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8")
+            + "while `scripts/zigux/README.md` still needs the shipped `libfs` packet kept anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:while `scripts/zigux/README.md` still needs the shipped `libfs` packet kept anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`"
             in issues
         )
         checks_run += 1
