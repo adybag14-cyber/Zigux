@@ -134,133 +134,140 @@ def populate_fixture(root: Path) -> None:
         write_text(root, relpath, "\n".join(markers) + "\n")
 
 
-+def run_self_test() -> int:
-+    tempdir = Path(tempfile.mkdtemp(prefix="phase13-landlock-syscalls-packet-"))
-+    checks_run = 0
-+    try:
-+        populate_fixture(tempdir)
-+        issues = collect_issues(tempdir)
-+        if issues:
-+            raise SystemExit(f"fixture tree should pass but failed: {issues!r}")
-+        checks_run += 1
-+
-+        target = tempdir / "Documentation/zigux/phase13-landlock-syscalls-slice.md"
-+        target.write_text(
-+            target.read_text(encoding="utf-8").replace(
-+                "keeps one planning-only `landlock_restrict_self()` helper explicit\n",
-+                "",
-+                1,
-+            ),
-+            encoding="utf-8",
-+        )
-+        issues = collect_issues(tempdir)
-+        expected = (
-+            "missing_marker:Documentation/zigux/phase13-landlock-syscalls-slice.md:"
-+            "keeps one planning-only `landlock_restrict_self()` helper explicit"
-+        )
-+        if expected not in issues:
-+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
-+        populate_fixture(tempdir)
-+        checks_run += 1
-+
-+        target = tempdir / "Documentation/zigux/phase13-landlock-syscalls-governance.md"
-+        target.write_text(
-+            target.read_text(encoding="utf-8")
-+            + "Keep this packet parked unless a future lane can add live syscall enforcement.\n",
-+            encoding="utf-8",
-+        )
-+        issues = collect_issues(tempdir)
-+        expected = (
-+            "forbidden_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:"
-+            "Keep this packet parked unless a future lane can add live syscall enforcement."
-+        )
-+        if expected not in issues:
-+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
-+        populate_fixture(tempdir)
-+        checks_run += 1
-+
-+        target = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
-+        target.write_text(
-+            target.read_text(encoding="utf-8").replace(
-+                "- `zigux/tests/phase13_landlock_syscalls_manifest.json`\n",
-+                "",
-+                1,
-+            ),
-+            encoding="utf-8",
-+        )
-+        issues = collect_issues(tempdir)
-+        expected = (
-+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:"
-+            "- `zigux/tests/phase13_landlock_syscalls_manifest.json`"
-+        )
-+        if expected not in issues:
-+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
-+        populate_fixture(tempdir)
-+        checks_run += 1
-+
-+        target = tempdir / "security/landlock/syscalls.zig"
-+        target.write_text(
-+            target.read_text(encoding="utf-8").replace(
-+                ".touches_live_cred_replacement = false\n",
-+                ".touches_live_cred_replacement = true\n",
-+                1,
-+            ),
-+            encoding="utf-8",
-+        )
-+        issues = collect_issues(tempdir)
-+        expected = (
-+            "forbidden_marker:security/landlock/syscalls.zig:.touches_live_cred_replacement = true"
-+        )
-+        if expected not in issues:
-+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
-+        populate_fixture(tempdir)
-+        checks_run += 1
-+
-+        target = tempdir / "security/landlock/syscalls.zig"
-+        target.write_text(
-+            target.read_text(encoding="utf-8").replace(
-+                "pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {\n",
-+                "",
-+                1,
-+            ),
-+            encoding="utf-8",
-+        )
-+        issues = collect_issues(tempdir)
-+        expected = (
-+            "missing_marker:security/landlock/syscalls.zig:"
-+            "pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {"
-+        )
-+        if expected not in issues:
-+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
-+        checks_run += 1
-+
-+        print("PHASE13_LANDLOCK_SYSCALLS_PACKET_SELF_TEST=pass")
-+        print(f"PHASE13_LANDLOCK_SYSCALLS_PACKET_SELF_TEST_CASE_COUNT={checks_run}")
-+        return 0
-+    finally:
-+        shutil.rmtree(tempdir, ignore_errors=True)
-+
-+
- def main() -> int:
-     parser = argparse.ArgumentParser(
-         description="Validate the Phase 13 Landlock syscalls helper packet and its repo-reality gap discipline."
-     )
-     parser.add_argument("--root", type=Path, default=Path("."), help="Repository root to validate")
-+    parser.add_argument("--self-test", action="store_true", help="Run the built-in fixture self-test")
-     args = parser.parse_args()
- 
-+    if args.self_test:
-+        return run_self_test()
-+
-     issues = collect_issues(args.root)
-     if issues:
-         return emit_failure(issues)
- 
-     print("PHASE13_LANDLOCK_SYSCALLS_PACKET=pass")
-@@ -173,6 +259,6 @@ def main() -> int:
-     )
-     return 0
- 
- 
- if __name__ == "__main__":
-     raise SystemExit(main())
+def run_self_test() -> int:
+    tempdir = Path(tempfile.mkdtemp(prefix="phase13-landlock-syscalls-packet-"))
+    checks_run = 0
+    try:
+        populate_fixture(tempdir)
+        issues = collect_issues(tempdir)
+        if issues:
+            raise SystemExit(f"fixture tree should pass but failed: {issues!r}")
+        checks_run += 1
+
+        target = tempdir / "Documentation/zigux/phase13-landlock-syscalls-slice.md"
+        target.write_text(
+            target.read_text(encoding="utf-8").replace(
+                "keeps one planning-only `landlock_restrict_self()` helper explicit\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        expected = (
+            "missing_marker:Documentation/zigux/phase13-landlock-syscalls-slice.md:"
+            "keeps one planning-only `landlock_restrict_self()` helper explicit"
+        )
+        if expected not in issues:
+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
+        populate_fixture(tempdir)
+        checks_run += 1
+
+        target = tempdir / "Documentation/zigux/phase13-landlock-syscalls-governance.md"
+        target.write_text(
+            target.read_text(encoding="utf-8")
+            + "Keep this packet parked unless a future lane can add live syscall enforcement.\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        expected = (
+            "forbidden_marker:Documentation/zigux/phase13-landlock-syscalls-governance.md:"
+            "Keep this packet parked unless a future lane can add live syscall enforcement."
+        )
+        if expected not in issues:
+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
+        populate_fixture(tempdir)
+        checks_run += 1
+
+        target = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
+        target.write_text(
+            target.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/phase13_landlock_syscalls_manifest.json`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        expected = (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:"
+            "- `zigux/tests/phase13_landlock_syscalls_manifest.json`"
+        )
+        if expected not in issues:
+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
+        populate_fixture(tempdir)
+        checks_run += 1
+
+        target = tempdir / "security/landlock/syscalls.zig"
+        target.write_text(
+            target.read_text(encoding="utf-8").replace(
+                ".touches_live_cred_replacement = false\n",
+                ".touches_live_cred_replacement = true\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        expected = (
+            "forbidden_marker:security/landlock/syscalls.zig:.touches_live_cred_replacement = true"
+        )
+        if expected not in issues:
+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
+        populate_fixture(tempdir)
+        checks_run += 1
+
+        target = tempdir / "security/landlock/syscalls.zig"
+        target.write_text(
+            target.read_text(encoding="utf-8").replace(
+                "pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        expected = (
+            "missing_marker:security/landlock/syscalls.zig:"
+            "pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {"
+        )
+        if expected not in issues:
+            raise SystemExit(f"expected failure not found: {expected!r} actual={issues!r}")
+        checks_run += 1
+
+        print("PHASE13_LANDLOCK_SYSCALLS_PACKET_SELF_TEST=pass")
+        print(f"PHASE13_LANDLOCK_SYSCALLS_PACKET_SELF_TEST_CASE_COUNT={checks_run}")
+        return 0
+    finally:
+        shutil.rmtree(tempdir, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the Phase 13 Landlock syscalls helper packet and its repo-reality gap discipline."
+    )
+    parser.add_argument("--root", type=Path, default=Path("."), help="Repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="Run the built-in fixture self-test")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_issues(args.root)
+    if issues:
+        return emit_failure(issues)
+
+    print("PHASE13_LANDLOCK_SYSCALLS_PACKET=pass")
+    print(f"PHASE13_LANDLOCK_SYSCALLS_PACKET_FILE_COUNT={len(sorted(set(REQUIRED_MARKERS) | set(FORBIDDEN_MARKERS)))}")
+    print(
+        "PHASE13_LANDLOCK_SYSCALLS_PACKET_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE13_LANDLOCK_SYSCALLS_PACKET_FORBIDDEN_COUNT="
+        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
