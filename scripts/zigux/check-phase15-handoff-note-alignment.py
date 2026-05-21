@@ -9,7 +9,7 @@ from pathlib import Path
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-handoff-note-alignment.py")
-EXPECTED_LANE_KEY = "P15-L10"
+EXPECTED_LANE_KEY = "P15-L11"
 EXPECTED_PHASE = "Phase 15"
 RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
 REQUIRED_BOUNDARY_MARKERS = (
@@ -135,9 +135,9 @@ def _write(path: Path, text: str) -> None:
 def _sample_manifest() -> str:
     return json.dumps(
         {
-            "lane_key": "P15-L10",
+            "lane_key": "P15-L11",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-20",
+            "surveyed_commit": "current-master-readback-2026-05-21",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
             "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
             "present_paths": [
@@ -175,7 +175,7 @@ def _sample_manifest() -> str:
             ],
             "required_markers": [
                 "PHASE15_STATUS=handoff_next_steps_survey_landed",
-                "PHASE15_LANE_KEY=P15-L10",
+                "PHASE15_LANE_KEY=P15-L11",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
                 "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
                 "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
@@ -215,9 +215,9 @@ def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L10`
+- `PHASE15_LANE_KEY=P15-L11`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
 - the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
 - Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
@@ -329,7 +329,7 @@ def run_self_test() -> int:
         _write(
             manifest_identity_drift_root / MANIFEST_PATH,
             _sample_manifest()
-            .replace('"lane_key": "P15-L10"', '"lane_key": "P15-L99"', 1)
+            .replace('"lane_key": "P15-L11"', '"lane_key": "P15-L99"', 1)
             .replace('"phase": "Phase 15"', '"phase": "Phase 15 drift"', 1)
             .replace(
                 '"handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md"',
@@ -349,7 +349,7 @@ def run_self_test() -> int:
             _write(manifest_identity_drift_root / repo_path, "# fixture\n")
         failures = collect_failures(manifest_identity_drift_root)
         expected = [
-            "handoff manifest lane key drifted from P15-L10: P15-L99",
+            "handoff manifest lane key drifted from P15-L11: P15-L99",
             "handoff manifest phase drifted from Phase 15: Phase 15 drift",
             "handoff manifest note path drifted from Documentation/zigux/phase15-handoff-next-steps-survey.md: Documentation/zigux/phase15-handoff-next-step-survey.md",
             "handoff manifest checker path drifted from scripts/zigux/check-phase15-handoff-note-alignment.py: scripts/zigux/check-phase15-handoff-alignment.py",
@@ -361,7 +361,7 @@ def run_self_test() -> int:
         missing_surveyed_commit_root = root / "missing_surveyed_commit"
         _write(
             missing_surveyed_commit_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("`current-master-readback-2026-05-20`", "`current-master-readback-YYYY-MM-DD`", 1),
+            _sample_handoff_note().replace("`current-master-readback-2026-05-21`", "`current-master-readback-YYYY-MM-DD`", 1),
         )
         _write(missing_surveyed_commit_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_surveyed_commit_root / MANIFEST_PATH)
