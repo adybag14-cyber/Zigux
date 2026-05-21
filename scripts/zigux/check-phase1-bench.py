@@ -6,11 +6,13 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 
 
 HERE = Path(__file__).resolve()
 ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 EXPECTATIONS = ROOT / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
+PHASE1_BENCH = ROOT / "zigux" / "tests" / "phase1_bench.zig"
 EXPECTED_ITERATIONS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
     "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
@@ -75,6 +77,22 @@ RBTREE_REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
+}
+FIND_BIT_REQUIRED_SOURCE_MARKERS = {
+    "find_bit_bench_fn": "fn findBitBench() struct { checksum: u64 } {",
+    "find_bit_edge_fn": "fn findBitEdgeBench() struct { checksum: u64 } {",
+    "find_bit_bench_call": "const find_bit_result = findBitBench();",
+    "find_bit_edge_call": "const find_bit_edge_result = findBitEdgeBench();",
+    "find_next_iterations_print": 'try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\\n", .{iterations_find_bit});',
+    "find_next_checksum_print": 'try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\\n", .{find_bit_result.checksum});',
+    "find_edge_iterations_print": 'try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS={d}\\n", .{iterations_find_bit_edge});',
+    "find_edge_checksum_print": 'try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={d}\\n", .{find_bit_edge_result.checksum});',
+    "boundary_next_bit": "checksum +%= @intCast(find_bit.findNextBit(&boundary_set, head_nbits, boundary));",
+    "boundary_next_and_bit": "checksum +%= @intCast(find_bit.findNextAndBit(&boundary_set, &boundary_set, head_nbits, boundary));",
+    "boundary_next_zero_bit": "checksum +%= @intCast(find_bit.findNextZeroBit(&boundary_zero, head_nbits, boundary));",
+    "tail_first_bit": "checksum +%= @intCast(find_bit.findFirstBit(&tail_set, tail_nbits));",
+    "tail_first_and_bit": "checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));",
+    "tail_last_bit": "checksum +%= @intCast(find_bit.findLastBit(&tail_set, tail_nbits));",
 }
 
 
@@ -234,6 +252,23 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     return ("pass", expectations)
 
 
+def validate_find_bit_bench_source(text: str) -> tuple[str, object]:
+    missing = [
+        label for label, marker in FIND_BIT_REQUIRED_SOURCE_MARKERS.items() if marker not in text
+    ]
+    if missing:
+        return ("bench_source_missing_markers", missing)
+    return ("pass", text)
+
+
+def load_runtime_bench_source(path: Path) -> tuple[str, object]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return ("missing_bench_source_file", path)
+    return validate_find_bit_bench_source(text)
+
+
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
     parsed, counts = parse_output(stdout)
     required_keys = {
@@ -343,6 +378,32 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     return ("pass", parsed)
 
 
+def build_find_bit_bench_source(omit_label: str | None = None) -> str:
+    lines = [
+        "fn findBitBench() struct { checksum: u64 } {",
+        "    checksum +%= @intCast(find_bit.findNextBit(&boundary_set, head_nbits, boundary));",
+        "}",
+        "fn findBitEdgeBench() struct { checksum: u64 } {",
+        "    checksum +%= @intCast(find_bit.findNextBit(&boundary_set, head_nbits, boundary));",
+        "    checksum +%= @intCast(find_bit.findNextAndBit(&boundary_set, &boundary_set, head_nbits, boundary));",
+        "    checksum +%= @intCast(find_bit.findNextZeroBit(&boundary_zero, head_nbits, boundary));",
+        "    checksum +%= @intCast(find_bit.findFirstBit(&tail_set, tail_nbits));",
+        "    checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));",
+        "    checksum +%= @intCast(find_bit.findLastBit(&tail_set, tail_nbits));",
+        "}",
+        "const find_bit_result = findBitBench();",
+        "const find_bit_edge_result = findBitEdgeBench();",
+        'try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\\n", .{iterations_find_bit});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\\n", .{find_bit_result.checksum});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS={d}\\n", .{iterations_find_bit_edge});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={d}\\n", .{find_bit_edge_result.checksum});',
+    ]
+    if omit_label is not None:
+        marker = FIND_BIT_REQUIRED_SOURCE_MARKERS[omit_label]
+        lines = [line for line in lines if line != marker]
+    return "\n".join(lines) + "\n"
+
+
 def run_self_test() -> None:
     case_count = 0
     expectations = {
@@ -367,6 +428,32 @@ def run_self_test() -> None:
     kind, payload = validate_expectations(expectations)
     assert kind == "pass", (kind, payload)
     case_count += 1
+
+    kind, payload = validate_find_bit_bench_source(build_find_bit_bench_source())
+    assert kind == "pass", (kind, payload)
+    case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-source-") as tmp:
+        missing_path = Path(tmp) / "phase1_bench.zig"
+        kind, payload = load_runtime_bench_source(missing_path)
+        assert kind == "missing_bench_source_file"
+        assert payload == missing_path
+        case_count += 1
+
+        source_path = Path(tmp) / "phase1_bench.zig"
+        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        kind, payload = load_runtime_bench_source(source_path)
+        assert kind == "pass", (kind, payload)
+        case_count += 1
+
+        source_path.write_text(
+            build_find_bit_bench_source("find_edge_checksum_print"),
+            encoding="utf-8",
+        )
+        kind, payload = load_runtime_bench_source(source_path)
+        assert kind == "bench_source_missing_markers"
+        assert payload == ["find_edge_checksum_print"]
+        case_count += 1
 
     duplicate_top_level_text = """{
   \"status\": \"pass\",
@@ -981,6 +1068,13 @@ def main() -> int:
     expectations = payload
     assert isinstance(expectations, dict)
 
+    kind, payload = load_runtime_bench_source(PHASE1_BENCH)
+    if kind != "pass":
+        print("PHASE1_BENCH_CHECK=fail")
+        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(payload)
+        return 1
+
     zig = find_zig(args.zig)
     result = subprocess.run(
         [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
@@ -1006,6 +1100,7 @@ def main() -> int:
 
     print("PHASE1_BENCH_CHECK=pass")
     print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
+    print(f"PHASE1_BENCH_SOURCE={PHASE1_BENCH}")
     print(f"PHASE1_BENCH_ZIG={zig}")
     return 0
 
