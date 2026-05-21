@@ -751,6 +751,17 @@ test "strspn counts the accepted prefix with C-string semantics" {
     try std.testing.expectEqual(@as(usize, 1), strspn("abca", &accept_cstr));
 }
 
+test "strcspn counts until the first rejected byte with C-string semantics" {
+    try std.testing.expectEqual(@as(usize, 4), strcspn("path=/tmp", "="));
+    try std.testing.expectEqual(@as(usize, 4), strcspn("keep", ""));
+
+    const cstr = [_]u8{ 'a', 'b', 'c', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 3), strcspn(&cstr, "xyz"));
+
+    const reject_cstr = [_]u8{ 'x', 0, 'y' };
+    try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
+}
+
 test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abc", 2, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abc", 1, 'b'));
