@@ -102,7 +102,7 @@ test "phase 7 rbtree survey keeps the shared-build evidence truthful without cla
     try expectContains(slice_note, "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit without claiming the dedicated fixture pair as returned");
     try expectContains(slice_note, "`scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`");
     try expectContains(slice_note, "`zigux/tests/phase7_build.zig` needed public blob/raw fallback after the authenticated contents bridge returned `404`, so keep that one path framed as returned shared non-owner evidence without overstating authenticated whole-file coverage.");
-    try expectContains(slice_note, "`zigux/tests/phase7_build.zig` needed public blob/raw fallback after the authenticated contents bridge returned `404`, while the other listed shared-control surfaces still materialized through authenticated rereads");
+    try expectContains(slice_note, "in this runtime `zigux/tests/phase7_build.zig` was confirmed through public blob/raw fallback after the authenticated contents bridge returned `404`, while the roadmap-path port and dedicated fixture pair still do not directly materialize on current `master`");
     try expectContains(slice_note, "public-fallback provenance");
     try expectNotContains(slice_note, "- `zigux/tests/phase7_build.zig`");
 
