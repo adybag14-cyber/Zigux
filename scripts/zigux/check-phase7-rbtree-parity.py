@@ -50,7 +50,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "`zigux/tests/phase7_build.zig`",
         "`scripts/zigux/validate-phase7.py`",
-        "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.",
+        "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`",
         "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
@@ -107,7 +107,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -232,7 +232,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface."
+        note_marker = "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.`"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_note_fallback_provenance_marker",
@@ -259,11 +259,37 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_marker = "pub const RootCached = struct {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_cached_root_type", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         companion_path = tmp_root / "zigux" / "tests" / "phase7_rbtree.zig"
         companion_marker = "rbtree.rb_erase_init_cached"
         companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_cached_erase_alias",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = 'test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries" {'
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_cached_ownership_replay",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.eraseInitCached"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_cached_erase_helper",
             tmp_root,
             f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
         )
