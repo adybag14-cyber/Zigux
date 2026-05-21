@@ -166,7 +166,11 @@ test "phase 8 file-path handle bridge helper source keeps planning-only bridge b
     try expectContains(helper_source, "pub fn planTokenPreparation(");
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "F_DUPFD_CLOEXEC") == null);
-    try std.testing.expect(std.mem.indexOf(u8, helper_source, "/sys/fs/bpf") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "openFile") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "readFile") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "readToEnd") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "std.posix.open") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "pread(") == null);
 }
 
 test "phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit" {
