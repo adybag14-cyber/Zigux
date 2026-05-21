@@ -35,6 +35,11 @@ NO_EXTRA_SAMPLE_BULLETS = [
     "* `*strarray*`",
 ]
 
+NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER = (
+    "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps "
+    "the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned"
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "`PHASE7_STATUS=starter_landed`",
@@ -42,6 +47,7 @@ REQUIRED_MARKERS = {
         "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path",
         "`stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULs",
+        NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
         DEVM_FOLLOW_ON_MARKER,
     ],
     "scripts/zigux/check-phase7-string-helpers-packet.py": [
@@ -52,8 +58,8 @@ REQUIRED_MARKERS = {
         '"pub fn devmKasprintfStrarray("',
         '"pub fn devm_kasprintf_strarray("',
         '"zigux/tests/phase7_string_helpers_manifest.json": [',
-        '"\\\\\\"devmKasprintfStrarray\\\\\\""',
-        '"\\\\\\"devm_kasprintf_strarray\\\\\\""',
+        '"\\\\\"devmKasprintfStrarray\\\\\""',
+        '"\\\\\"devm_kasprintf_strarray\\\\\""',
         "MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START",
         "MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_END",
         "UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -99,6 +105,7 @@ REQUIRED_MARKERS = {
         "bounded uppercase and lowercase copies through the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
         "dedicated helper-local checker-backed packet reviewability",
+        NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
         DEVM_FOLLOW_ON_MARKER,
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
@@ -160,17 +167,14 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
-
+SELF_TEST_CASE_COUNT = 27
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
@@ -180,10 +184,8 @@ def write_fixture_root(tmp_root: Path) -> None:
                 lines.extend([marker] * expected)
         write(tmp_root / rel, "\n".join(lines) + "\n")
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -193,7 +195,6 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
-
 
 def collect_mismatched_counts(root: Path) -> list[str]:
     mismatches: list[str] = []
@@ -205,7 +206,6 @@ def collect_mismatched_counts(root: Path) -> list[str]:
                 mismatches.append(f"{rel}: expected {expected} occurrence(s) of {marker!r}, found {actual}")
     return mismatches
 
-
 def collect_unexpected_markers(root: Path) -> list[str]:
     unexpected: list[str] = []
     for rel, markers in FORBIDDEN_MARKERS.items():
@@ -214,7 +214,6 @@ def collect_unexpected_markers(root: Path) -> list[str]:
             if marker in text:
                 unexpected.append(f"{rel}: {marker}")
     return unexpected
-
 
 def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
@@ -227,7 +226,6 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
         collect_unexpected_markers(root),
     )
 
-
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_markers == [], case
@@ -235,13 +233,11 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert unexpected_markers == [], case
     assert missing_files == [rel], case
 
-
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_files == [], case
     assert unexpected_markers == [], case
     assert missing_markers == [marker], case
-
 
 def expect_mismatched_count(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
@@ -250,14 +246,12 @@ def expect_mismatched_count(case: str, tmp_root: Path, mismatch: str) -> None:
     assert unexpected_markers == [], case
     assert mismatched_counts == [mismatch], case
 
-
 def expect_unexpected_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert mismatched_counts == [], case
     assert unexpected_markers == [marker], case
-
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_string_helpers_packet_") as tmp_dir_str:
@@ -276,6 +270,12 @@ def run_self_test() -> None:
         slice_marker = "`scripts/zigux/check-phase7-string-helpers-packet.py`"
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_checker_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_exclusions_marker = NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER
+        slice_path.write_text(read_text(slice_path).replace(slice_exclusions_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_no_extra_sample_exclusions_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_exclusions_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
@@ -383,6 +383,12 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest_exclusions_marker = NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_exclusions_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_no_extra_sample_exclusions_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_exclusions_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
         sample_boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
         sample_boundary_path.write_text(read_text(sample_boundary_path).replace(sample_boundary_marker + "\n", "", 1), encoding="utf-8")
@@ -428,7 +434,6 @@ def run_self_test() -> None:
 
         assert cases_run == SELF_TEST_CASE_COUNT, cases_run
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to validate")
@@ -446,32 +451,7 @@ def main() -> int:
         print("PHASE7_STRING_HELPERS_PACKET=pass")
         return 0
 
-    if missing_files:
-        print("MISSING_PHASE7_STRING_HELPERS_FILES_START")
-        for rel in missing_files:
-            print(rel)
-        print("MISSING_PHASE7_STRING_HELPERS_FILES_END")
-
-    if missing_markers:
-        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")
-        for marker in missing_markers:
-            print(marker)
-        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_END")
-
-    if mismatched_counts:
-        print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START")
-        for mismatch in mismatched_counts:
-            print(mismatch)
-        print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_END")
-
-    if unexpected_markers:
-        print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START")
-        for marker in unexpected_markers:
-            print(marker)
-        print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_END")
-
     return 1
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
