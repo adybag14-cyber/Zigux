@@ -10,9 +10,9 @@
 The Phase 14 roadmap keeps the shared smoke packet in a study-only, reviewability-first posture. That means the shipped guidance needs to stay explicit about how reviewers reason about the attached Zig toolchain when it is the only available compiler, and this note needs to describe the current reminder split truthfully instead of replaying older route-gap wording that current `master` has already closed.
 
 ## Current repo readback
-Fresh rereads on 2026-05-20 show that the attached-toolchain reminder split is narrower than this note previously recorded.
+Fresh rereads on 2026-05-21 show that the attached-toolchain reminder split is narrower than this note previously recorded.
 
-Fresh builder-environment validation on 2026-05-20 also confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
+Fresh builder-environment validation on 2026-05-21 also confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
 - unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz` into the scheduled runtime succeeded without extra environment overrides
 - `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
 - `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` returned a normal `x86_64-linux` environment payload with the expected library and cache paths
