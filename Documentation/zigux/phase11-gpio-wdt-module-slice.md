@@ -10,7 +10,8 @@ current-head evidence.
 ## Review Packet
 
 The `gpio_wdt_lab` starter remains intentionally review-first while still
-exposing the shipped checkpoint names that the archived survey gate tracks:
+exposing the shipped checkpoint names that the returned driver, proof, and
+companion notes keep explicit:
 - `platformDriverIdentitySummary()` keeps the Linux anchor and bounded starter
   identity explicit.
 - `watchdogMetadataSummary()` keeps the watchdog metadata packet visible before
