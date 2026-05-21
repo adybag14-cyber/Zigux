@@ -103,6 +103,9 @@ RAW_GITHUB_COVERAGE_MARKER = (
 RAW_GITHUB_COVERAGE_RETURNED_WRAPPER_MARKER = (
     "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`, so treat the readable Makefile as bounded support evidence for the returned smoke-and-test wrappers rather than as proof that the whole shared packet is directly bridge-readable"
 )
+RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER = (
+    "`.github/workflows/zigux-bootstrap.yml` now rebuilds the repo-local `.zig-toolchain` fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org`, so treat the Makefile fallback as a restorable local-first degraded-workflow path before falling back to attached `ZIG=<attached-zig-path>` reruns"
+)
 MAKEFILE_FALLBACK_MARKERS = [
     "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
     "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))",
@@ -191,6 +194,7 @@ REQUIRED_MARKERS = {
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         RAW_GITHUB_COVERAGE_MARKER,
         RAW_GITHUB_COVERAGE_RETURNED_WRAPPER_MARKER,
+        RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER,
     ],
 }
 
@@ -617,6 +621,20 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
+        raw_coverage_path.write_text(
+            raw_coverage_path.read_text(encoding="utf-8").replace(
+                RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER, "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:"
+            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER}",
+        )
+
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             "\n".join(f"    {line}" for line in workflow_path.read_text(encoding="utf-8").splitlines())
@@ -635,7 +653,7 @@ def run_self_test() -> int:
             + len(marker_cases)
             + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
             + len(PHASE12_BUILD_EXACT_COUNTS)
-            + 8
+            + 9
         )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
