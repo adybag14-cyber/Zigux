@@ -226,6 +226,29 @@ EXPECTED_FIND_BIT_REVIEW_ANCHORS = {
     "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families.",
 }
 
+EXPECTED_BITMAP_REVIEW_ANCHORS = {
+    "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
+    "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.",
+    "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through.",
+}
+
+EXPECTED_STRING_REVIEW_ANCHORS = {
+    "sysfs_review_summary": "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests because the shared Phase 1 replay still carries no dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and sysfs_match_string remain review-visible at the helper surface",
+    "counted_search_review_anchors": [
+        'test "strchr mirrors full-length C-string searches"',
+        'test "strrchr finds the last in-range match with C-string semantics"',
+        'test "strpbrk finds the first accepted byte with C-string semantics"',
+        'test "strspn counts the accepted prefix with C-string semantics"',
+        'test "strcspn counts until the first rejected byte with C-string semantics"',
+        'test "strnchr honors count and C-string boundaries"',
+        'test "strnlen honors count and C-string boundaries"',
+        'test "strnchrNul returns the first match, NUL, or count boundary"',
+    ],
+    "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
+    "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default.",
+}
+
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -390,6 +413,20 @@ def collect_failures(root: Path) -> list[str]:
             EXPECTED_RBTREE_REVIEW_ANCHORS,
         )
     )
+    failures.extend(
+        require_expected_mapping(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.bitmap.zig",
+            review_anchors.get("tools/lib/bitmap.zig"),
+            EXPECTED_BITMAP_REVIEW_ANCHORS,
+        )
+    )
+    failures.extend(
+        require_expected_mapping(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.string.zig",
+            review_anchors.get("tools/lib/string.zig"),
+            EXPECTED_STRING_REVIEW_ANCHORS,
+        )
+    )
 
     for script_rel, label in DELEGATED_CHECKERS:
         failures.extend(run_checker(root, script_rel, label))
@@ -454,10 +491,10 @@ def make_fixture_tree(root: Path) -> None:
                     "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
                 },
                 "review_anchors": {
-                    "tools/lib/bitmap.zig": {},
+                    "tools/lib/bitmap.zig": EXPECTED_BITMAP_REVIEW_ANCHORS,
                     "tools/lib/find_bit.zig": EXPECTED_FIND_BIT_REVIEW_ANCHORS,
                     "tools/lib/rbtree.zig": EXPECTED_RBTREE_REVIEW_ANCHORS,
-                    "tools/lib/string.zig": {},
+                    "tools/lib/string.zig": EXPECTED_STRING_REVIEW_ANCHORS,
                 },
             },
             indent=2,
@@ -594,6 +631,87 @@ def run_self_test() -> int:
                             "tools/lib/rbtree.zig": {
                                 **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/rbtree.zig"],
                                 "shared_replay_summary": "older rbtree replay summary",
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "missing_bitmap_linux_alias_anchor",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/bitmap.zig": {
+                                key: value
+                                for key, value in json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/bitmap.zig"].items()
+                                if key != "linux_alias_anchor"
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "stale_bitmap_next_safe_step_note",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/bitmap.zig": {
+                                **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/bitmap.zig"],
+                                "next_safe_step_note": "older bitmap next step",
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "stale_string_sysfs_review_summary",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/string.zig": {
+                                **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/string.zig"],
+                                "sysfs_review_summary": "older string sysfs summary",
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
+        (
+            "stale_string_next_safe_step_note",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        **json.loads(load_text(root, MANIFEST_REL)),
+                        "review_anchors": {
+                            **json.loads(load_text(root, MANIFEST_REL))["review_anchors"],
+                            "tools/lib/string.zig": {
+                                **json.loads(load_text(root, MANIFEST_REL))["review_anchors"]["tools/lib/string.zig"],
+                                "next_safe_step_note": "older string next step",
                             },
                         },
                     },
