@@ -10,6 +10,7 @@ from pathlib import Path
 
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -28,6 +29,11 @@ REQUIRED_CATALOG_SNIPPETS = [
     "bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
     "- `make -C zigux phase6-base64-perf`",
     "- `make -C zigux phase6-bsearch-perf`",
+]
+
+REQUIRED_SURVEY_SNIPPETS = [
+    "`zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
+    "`len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
 ]
 
 REQUIRED_MAKEFILE_SNIPPETS = [
@@ -75,11 +81,12 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 21
 
 
 class ValidationError(RuntimeError):
     """Raised when the Phase 6 base64/bsearch perf packet drifts."""
+
 
 
 def read_text(path: Path) -> str:
@@ -89,6 +96,7 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
+
 def require_snippets(path: Path, snippets: list[str]) -> None:
     content = read_text(path)
     for snippet in snippets:
@@ -96,6 +104,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             raise ValidationError(
                 f"missing expected Phase 6 base64/bsearch perf marker in {path.as_posix()}: {snippet}"
             )
+
 
 
 def load_manifest(path: Path) -> dict[str, object]:
@@ -108,6 +117,7 @@ def load_manifest(path: Path) -> dict[str, object]:
     return parsed
 
 
+
 def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
@@ -116,6 +126,7 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
         if isinstance(helper, dict) and helper.get("key") == key:
             return helper
     raise ValidationError(f"missing helper row in manifest: {key}")
+
 
 
 def require_checker_surfaces(
@@ -131,9 +142,11 @@ def require_checker_surfaces(
             raise ValidationError(f"{key} checker surface drifted: {surface}")
 
 
+
 def require_string_list(value: object, label: str, expected: list[str]) -> None:
     if value != expected:
         raise ValidationError(f"{label} drifted")
+
 
 
 def validate_evidence_manifest(path: Path) -> None:
@@ -179,6 +192,7 @@ def validate_evidence_manifest(path: Path) -> None:
             raise ValidationError(
                 f"missing shared replay inventory marker in {path.as_posix()}: {replay}"
             )
+
 
 
 def validate_parity_manifest(path: Path) -> None:
@@ -232,13 +246,16 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("bsearch rerun route missing phase6-bsearch-perf")
 
 
+
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / SURVEY_PATH, REQUIRED_SURVEY_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(repo_root / BSEARCH_PERF_PATH, REQUIRED_BSEARCH_PERF_SNIPPETS)
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
+
 
 
 def write(path: Path, content: str) -> None:
@@ -246,9 +263,11 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+
 def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
+    write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(root / BSEARCH_PERF_PATH, "\n".join(REQUIRED_BSEARCH_PERF_SNIPPETS) + "\n")
     write(
@@ -322,9 +341,11 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
+
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
     write(path, content.replace(old, new, 1))
+
 
 
 def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
@@ -338,6 +359,7 @@ def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
             ) from exc
     else:
         raise AssertionError("expected validation failure")
+
 
 
 def run_self_test() -> None:
@@ -368,6 +390,42 @@ def run_self_test() -> None:
                 "zigux/tests/phase6_bsearch.zig",
             ),
             "phase6_bsearch",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`iterations = 12000`",
+                "`iterations = 16000`",
+            ),
+            "phase6-perf-gate-survey.md",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`len1024` at `reps = 250`",
+                "`len2048` at `reps = 250`",
+            ),
+            "phase6-perf-gate-survey.md",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`query_count = 16`",
+                "`query_count = 32`",
+            ),
+            "phase6-perf-gate-survey.md",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -570,11 +628,13 @@ def run_self_test() -> None:
     print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
+
 
 
 def main() -> int:
