@@ -14,12 +14,9 @@ test "head-word and exact-word boundary next scans keep inclusive starts reachab
     };
     const and_lhs = [_]Word{
         (@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 5),
-        (@as(Word, 1) << @intCast(bits_per_long))
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
     };
-    const and_rhs = [_]Word{
-        (@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 5),
-        (@as(Word, 1) << @intCast(bits_per_long))
-    };
+    const and_rhs = and_lhs;
     const andnot_lhs = [_]Word{
         (@as(Word, 1) << 5) | (@as(Word, 1) << @intCast(boundary)),
         (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
