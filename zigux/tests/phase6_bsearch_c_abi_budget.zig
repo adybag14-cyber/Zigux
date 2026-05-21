@@ -12,7 +12,7 @@ const CountedTypedKey = struct {
     comparisons: *usize,
 };
 
-const max_perf_case_len: usize = comptime blk: {
+const max_perf_case_len: usize = blk: {
     var max_len: usize = 0;
     for (fixtures.perf_cases) |case| {
         max_len = @max(max_len, case.len);
@@ -72,15 +72,23 @@ fn maxBinarySearchComparisons(len: usize) usize {
 fn expectSearchBudget(items: []const u32, target: u32, expect_hit: bool, compare: bsearch.CRawComparator) !usize {
     var comparisons: usize = 0;
     const key = CountedOpaqueKey{ .target = target, .comparisons = &comparisons };
+    const found_index = bsearch.bsearchIndex(&key, @ptrCast(items.ptr), items.len, @sizeOf(u32), compare);
+    const index_comparisons = comparisons;
+
+    comparisons = 0;
     const found = bsearch.bsearch(&key, @ptrCast(items.ptr), items.len, @sizeOf(u32), compare);
     if (expect_hit) {
+        const index = found_index orelse return error.ExpectedMatch;
         const opaque_found = found orelse return error.ExpectedMatch;
         const typed_found: *const u32 = @ptrCast(@alignCast(opaque_found));
+        try std.testing.expectEqual(target, items[index]);
         try std.testing.expectEqual(target, typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&items[index]), @intFromPtr(typed_found));
     } else {
+        try std.testing.expectEqual(@as(?usize, null), found_index);
         try std.testing.expectEqual(@as(?*const anyopaque, null), found);
     }
-    return comparisons;
+    return @max(index_comparisons, comparisons);
 }
 
 fn expectRangeBudget(items: []const u32, target: u32, expected: bsearch.IndexRange, compare: bsearch.CRawComparator) !usize {
@@ -115,14 +123,22 @@ fn expectTypedSearchBudget(
 ) !usize {
     var comparisons: usize = 0;
     const key = CountedTypedKey{ .target = target, .comparisons = &comparisons };
+    const found_index = bsearch.searchIndex(CountedTypedKey, u32, &key, items, compare);
+    const index_comparisons = comparisons;
+
+    comparisons = 0;
     const found = bsearch.search(CountedTypedKey, u32, &key, items, compare);
     if (expect_hit) {
+        const index = found_index orelse return error.ExpectedMatch;
         const typed_found = found orelse return error.ExpectedMatch;
+        try std.testing.expectEqual(target, items[index]);
         try std.testing.expectEqual(target, typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&items[index]), @intFromPtr(typed_found));
     } else {
+        try std.testing.expectEqual(@as(?usize, null), found_index);
         try std.testing.expectEqual(@as(?*const u32, null), found);
     }
-    return comparisons;
+    return @max(index_comparisons, comparisons);
 }
 
 fn expectTypedRangeBudget(
@@ -185,8 +201,8 @@ fn assertRepresentativeBudget(items: []const u32, compare: bsearch.CRawComparato
         return;
     }
 
-    var queries: [8]u32 = undefined;
-    var expected_hits: [8]bool = undefined;
+    var queries: [fixtures.query_count]u32 = undefined;
+    var expected_hits: [fixtures.query_count]bool = undefined;
     fixtures.seedDeterministicQueries(items.len, items, &queries, &expected_hits);
 
     for (queries, expected_hits) |query, expect_hit| {
@@ -203,8 +219,8 @@ fn assertRepresentativeTypedBudget(items: []const u32, compare: bsearch.CCompara
         return;
     }
 
-    var queries: [8]u32 = undefined;
-    var expected_hits: [8]bool = undefined;
+    var queries: [fixtures.query_count]u32 = undefined;
+    var expected_hits: [fixtures.query_count]bool = undefined;
     fixtures.seedDeterministicQueries(items.len, items, &queries, &expected_hits);
 
     for (queries, expected_hits) |query, expect_hit| {
