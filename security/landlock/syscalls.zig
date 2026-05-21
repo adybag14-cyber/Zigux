@@ -16,6 +16,7 @@ pub const ModuleDescriptor = struct {
     provides_abi_version_query_planning: bool,
     provides_restrict_self_planning: bool,
     provides_add_rule_planning: bool,
+    provides_ruleset_fd_lookup_planning: bool,
     provides_ruleset_fd_install_planning: bool,
     provides_ruleset_fd_stub_planning: bool,
     provides_ruleset_release_planning: bool,
@@ -79,9 +80,27 @@ pub const CreateRulesetSyscallPlan = struct {
     ruleset_fd_install_plan: ?RulesetFdInstallPlan,
 };
 
+pub const GetRulesetFromFdRequest = struct {
+    ruleset_fd_present: bool = true,
+    file_present: bool = true,
+    ruleset_fops_present: bool = true,
+    private_data_present: bool = true,
+    ruleset_present: bool = true,
+};
+
+pub const GetRulesetFromFdPlan = struct {
+    anchor: []const u8,
+    validates_ruleset_fd: bool,
+    obtains_file_from_fd: bool,
+    validates_file_operations_binding: bool,
+    reads_file_private_data: bool,
+    validates_ruleset_presence: bool,
+    returns_ruleset_handle: bool,
+};
+
 pub const RestrictSelfRequest = struct {
     initialized: bool = true,
-    ruleset_present: bool = true,
+    ruleset_fd: GetRulesetFromFdRequest = .{},
     no_new_privs: bool = true,
     flags: u32 = 0,
 };
@@ -92,6 +111,8 @@ pub const RestrictSelfPlan = struct {
     validates_ruleset_presence: bool,
     validates_no_new_privs: bool,
     validates_flags: bool,
+    reuses_ruleset_fd_lookup_planning: bool,
+    ruleset_fd_lookup_plan: GetRulesetFromFdPlan,
     logs_new_exec_transitions: bool,
     requests_tsync: bool,
     prepares_new_domain: bool,
@@ -115,8 +136,10 @@ pub const AddRulePlan = struct {
     validates_incoming_layers: bool,
     validates_tree_walk: bool,
     performs_copy_from_user: bool,
+    reuses_ruleset_fd_lookup_planning: bool,
     delegates_rule_tree_search_planning: bool,
     delegates_rule_insertion_planning: bool,
+    ruleset_fd_lookup_plan: GetRulesetFromFdPlan,
     search_plan: landlock_ruleset.RuleTreeSearchPlan,
     branch_plan: landlock_ruleset.InsertRuleBranchPlan,
 };
@@ -124,7 +147,7 @@ pub const AddRulePlan = struct {
 pub const AddRuleSyscallRequest = struct {
     initialized: bool = true,
     attr_present: bool = true,
-    ruleset_fd_present: bool = true,
+    ruleset_fd: GetRulesetFromFdRequest = .{},
     input: AddRuleInput = .{},
 };
 
@@ -197,6 +220,7 @@ pub const SyscallsHelperLab = struct {
             .provides_abi_version_query_planning = true,
             .provides_restrict_self_planning = true,
             .provides_add_rule_planning = true,
+            .provides_ruleset_fd_lookup_planning = true,
             .provides_ruleset_fd_install_planning = true,
             .provides_ruleset_fd_stub_planning = true,
             .provides_ruleset_release_planning = true,
@@ -294,13 +318,37 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
+    pub fn planGetRulesetFromFd(request: GetRulesetFromFdRequest) !GetRulesetFromFdPlan {
+        if (!request.ruleset_fd_present) {
+            return error.MissingRulesetFd;
+        }
+        if (!request.file_present) {
+            return error.MissingFile;
+        }
+        if (!request.ruleset_fops_present) {
+            return error.MissingRulesetFileOperations;
+        }
+        if (!request.private_data_present or !request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .validates_ruleset_fd = true,
+            .obtains_file_from_fd = true,
+            .validates_file_operations_binding = true,
+            .reads_file_private_data = true,
+            .validates_ruleset_presence = true,
+            .returns_ruleset_handle = true,
+        };
+    }
+
     pub fn planLandlockRestrictSelf(request: RestrictSelfRequest) !RestrictSelfPlan {
         if (!request.initialized) {
             return error.BootDisabled;
         }
-        if (!request.ruleset_present) {
-            return error.MissingRuleset;
-        }
+
+        const ruleset_fd_lookup_plan = try planGetRulesetFromFd(request.ruleset_fd);
         if (!request.no_new_privs) {
             return error.MissingNoNewPrivileges;
         }
@@ -314,6 +362,8 @@ pub const SyscallsHelperLab = struct {
             .validates_ruleset_presence = true,
             .validates_no_new_privs = true,
             .validates_flags = true,
+            .reuses_ruleset_fd_lookup_planning = true,
+            .ruleset_fd_lookup_plan = ruleset_fd_lookup_plan,
             .logs_new_exec_transitions = (request.flags & LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON) != 0,
             .requests_tsync = (request.flags & LANDLOCK_RESTRICT_SELF_TSYNC) != 0,
             .prepares_new_domain = true,
@@ -322,10 +372,8 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
-    pub fn planAddRule(input: AddRuleInput, ruleset_fd_present: bool) !AddRulePlan {
-        if (!ruleset_fd_present) {
-            return error.MissingRulesetFd;
-        }
+    pub fn planAddRule(input: AddRuleInput, ruleset_fd: GetRulesetFromFdRequest) !AddRulePlan {
+        const ruleset_fd_lookup_plan = try planGetRulesetFromFd(ruleset_fd);
         if (input.incoming_layers.len == 0) {
             return error.MissingLayers;
         }
@@ -349,8 +397,10 @@ pub const SyscallsHelperLab = struct {
             .validates_incoming_layers = true,
             .validates_tree_walk = true,
             .performs_copy_from_user = true,
+            .reuses_ruleset_fd_lookup_planning = true,
             .delegates_rule_tree_search_planning = true,
             .delegates_rule_insertion_planning = true,
+            .ruleset_fd_lookup_plan = ruleset_fd_lookup_plan,
             .search_plan = search_plan,
             .branch_plan = branch_plan,
         };
@@ -369,7 +419,7 @@ pub const SyscallsHelperLab = struct {
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
             .reuses_add_rule_validation = true,
-            .add_rule_plan = try planAddRule(request.input, request.ruleset_fd_present),
+            .add_rule_plan = try planAddRule(request.input, request.ruleset_fd),
         };
     }
 
@@ -460,6 +510,7 @@ test "landlock syscalls descriptor stays within create, restrict-self, and add-r
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_lookup_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_stub_planning);
     try std.testing.expect(descriptor.provides_ruleset_release_planning);
@@ -564,7 +615,7 @@ test "landlock syscalls top-level wrapper keeps version query install planning n
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
-    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
+    try std.testing.expect(wrapper.reuses_createRuleset_validation);
     try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
@@ -620,7 +671,34 @@ test "landlock syscalls top-level wrapper rejects disabled boot before planning"
     }));
 }
 
-test "landlock syscalls restrict-self keeps no_new_privs and domain merge planning explicit" {
+test "landlock syscalls ruleset-fd lookup keeps file, fops, and private-data handoff explicit" {
+    const plan = try SyscallsHelperLab.planGetRulesetFromFd(.{});
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expect(plan.validates_ruleset_fd);
+    try std.testing.expect(plan.obtains_file_from_fd);
+    try std.testing.expect(plan.validates_file_operations_binding);
+    try std.testing.expect(plan.reads_file_private_data);
+    try std.testing.expect(plan.validates_ruleset_presence);
+    try std.testing.expect(plan.returns_ruleset_handle);
+}
+
+test "landlock syscalls ruleset-fd lookup rejects missing fd file fops and ruleset state" {
+    try std.testing.expectError(error.MissingRulesetFd, SyscallsHelperLab.planGetRulesetFromFd(.{
+        .ruleset_fd_present = false,
+    }));
+    try std.testing.expectError(error.MissingFile, SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_present = false,
+    }));
+    try std.testing.expectError(error.MissingRulesetFileOperations, SyscallsHelperLab.planGetRulesetFromFd(.{
+        .ruleset_fops_present = false,
+    }));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planGetRulesetFromFd(.{
+        .private_data_present = false,
+    }));
+}
+
+test "landlock syscalls restrict-self keeps ruleset lookup no_new_privs and domain merge planning explicit" {
     const plan = try SyscallsHelperLab.planLandlockRestrictSelf(.{
         .flags = LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON | LANDLOCK_RESTRICT_SELF_TSYNC,
     });
@@ -630,6 +708,9 @@ test "landlock syscalls restrict-self keeps no_new_privs and domain merge planni
     try std.testing.expect(plan.validates_ruleset_presence);
     try std.testing.expect(plan.validates_no_new_privs);
     try std.testing.expect(plan.validates_flags);
+    try std.testing.expect(plan.reuses_ruleset_fd_lookup_planning);
+    try std.testing.expect(plan.ruleset_fd_lookup_plan.validates_file_operations_binding);
+    try std.testing.expect(plan.ruleset_fd_lookup_plan.reads_file_private_data);
     try std.testing.expect(plan.logs_new_exec_transitions);
     try std.testing.expect(plan.requests_tsync);
     try std.testing.expect(plan.prepares_new_domain);
@@ -637,12 +718,12 @@ test "landlock syscalls restrict-self keeps no_new_privs and domain merge planni
     try std.testing.expect(!plan.updates_current_cred);
 }
 
-test "landlock syscalls restrict-self rejects disabled boot missing preconditions and unknown flags" {
+test "landlock syscalls restrict-self rejects disabled boot missing lookup preconditions and unknown flags" {
     try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockRestrictSelf(.{
         .initialized = false,
     }));
-    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planLandlockRestrictSelf(.{
-        .ruleset_present = false,
+    try std.testing.expectError(error.MissingRulesetFd, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .ruleset_fd = .{ .ruleset_fd_present = false },
     }));
     try std.testing.expectError(error.MissingNoNewPrivileges, SyscallsHelperLab.planLandlockRestrictSelf(.{
         .no_new_privs = false,
@@ -652,17 +733,19 @@ test "landlock syscalls restrict-self rejects disabled boot missing precondition
     }));
 }
 
-test "landlock syscalls add-rule plans fresh inode insertion through ruleset search and link helpers" {
+test "landlock syscalls add-rule plans fresh inode insertion through ruleset lookup search and link helpers" {
     const plan = try SyscallsHelperLab.planAddRule(.{
         .search_key_data = 64,
         .incoming_layers = &.{.{ .level = 0, .access = 0x2 }},
-    }, true);
+    }, .{});
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
     try std.testing.expect(plan.validates_ruleset_fd);
     try std.testing.expect(plan.validates_incoming_layers);
     try std.testing.expect(plan.validates_tree_walk);
     try std.testing.expect(plan.performs_copy_from_user);
+    try std.testing.expect(plan.reuses_ruleset_fd_lookup_planning);
+    try std.testing.expect(plan.ruleset_fd_lookup_plan.reads_file_private_data);
     try std.testing.expect(plan.delegates_rule_tree_search_planning);
     try std.testing.expect(plan.delegates_rule_insertion_planning);
     try std.testing.expectEqual(landlock_ruleset.TreeRoot.inode, plan.search_plan.root);
@@ -690,7 +773,7 @@ test "landlock syscalls add-rule plans matched-rule replacement for layered merg
         .current_num_rules = 6,
         .existing_rule = existing,
         .incoming_layers = &.{.{ .level = 5, .access = 0x10 }},
-    }, true);
+    }, .{});
 
     try std.testing.expect(plan.search_plan.matched_existing_rule);
     try std.testing.expectEqual(landlock_ruleset.InsertRuleBranchMode.replace_existing_rule, plan.branch_plan.mode);
@@ -703,7 +786,7 @@ test "landlock syscalls add-rule plans matched-rule replacement for layered merg
 test "landlock syscalls add-rule rejects missing ruleset fds before branch planning" {
     try std.testing.expectError(error.MissingRulesetFd, SyscallsHelperLab.planAddRule(.{
         .incoming_layers = &.{.{ .level = 0, .access = 0x1 }},
-    }, false));
+    }, .{ .ruleset_fd_present = false }));
 }
 
 test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot gates explicit" {
@@ -719,6 +802,7 @@ test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_add_rule_validation);
     try std.testing.expect(wrapper.add_rule_plan.performs_copy_from_user);
+    try std.testing.expect(wrapper.add_rule_plan.reuses_ruleset_fd_lookup_planning);
 }
 
 test "landlock syscalls add-rule top-level wrapper rejects disabled boot and missing attr" {
