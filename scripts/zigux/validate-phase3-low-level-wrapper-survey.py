@@ -136,6 +136,7 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
         'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {',
+        'test "phase3 low-level wrappers keep MMIO single-byte interop-policy shorthands explicit" {',
         'test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers explicit" {',
         'test "phase3 low-level wrappers keep direct MMIO scope gates explicit" {',
         'test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {',
@@ -145,6 +146,10 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
         "try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);",
         "try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),",
+        "mmio.readInteropPolicyByte(u32, 1, const_register_ptr)",
+        "mmio.writeInteropPolicyByte(u32, 1, register_ptr, 0x1234_5678)",
+        "mmio.exchangeInteropPolicyByte(u32, 1, register_ptr, 0xCAFE_BABE)",
+        "mmio.writeMaskedInteropPolicyByte(u32, 1, register_ptr, 0x00F0_0FF0, 0x000E_000E)",
         "const updated = try mmio.writeMaskedInteropPolicyBytes(",
         "try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F),",
     ),
@@ -230,7 +235,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
-        _write(root / relative_path, "\n".join(markers) + "\n")
+        _write(root / relative_path, "\\n".join(markers) + "\\n")
 
 
 def run_self_test() -> int:
@@ -241,7 +246,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         if issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("\n".join(issues))
+            print("\\n".join(issues))
             return 1
 
         for relative_path, marker in SELF_TEST_CASES:
