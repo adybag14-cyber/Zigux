@@ -292,6 +292,21 @@ EXPECTED_STRING_LANE_MARKERS = [
         "and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing "
         "closure-side validator names by default`",
     ),
+    (
+        "lane_counted_search_match_or_nul",
+        "- The counted-search owner term here also covers the current `strnchrNul()` and "
+        "`strnchrnul()` match-or-NUL boundary anchor already cataloged in "
+        "`zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should "
+        "keep that helper-local boundary proof inside the same counted-search packet instead of "
+        "treating it as an unowned follow-up beside `strnchr()`."
+    ),
+    (
+        "lane_counted_search_strspn",
+        "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix "
+        "anchor review-visible on current `master`, so future string-only rereads should treat "
+        "accepted-byte-prefix scanning as part of that helper-local search family instead of "
+        "leaving it implicit beside `strpbrk()` and `strnchr()`."
+    ),
 ]
 
 
