@@ -21,6 +21,8 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strscpy(dest: []u8, src: []const u8) isize {",
     "pub fn strscpyPad(dest: []u8, src: []const u8) isize {",
     "pub fn strscpy_pad(dest: []u8, src: []const u8) isize {",
+    "pub fn strEq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn streq(lhs: []const u8, rhs: []const u8) bool {",
     "pub fn trimSpaces(buf: []u8) []u8 {",
     "pub fn strim(buf: []u8) []u8 {",
     "pub fn strstrip(buf: []u8) []u8 {",
