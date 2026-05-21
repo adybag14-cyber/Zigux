@@ -73,6 +73,8 @@ PM_MARKERS = [
     'test "phase11 dw_wdt pm suspend keeps missing hook teardown explicit during running stop" {',
     'test "phase11 dw_wdt pm resume keeps imported-running handoff explicit" {',
     "PmResumeState.import_running_state_then_restore_hooks,",
+    'test "phase11 dw_wdt pm resume keeps idle restore path explicit" {',
+    "try std.testing.expectEqual(PmResumeState.restore_idle_hooks, summary.state);",
     'test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore" {',
     "PmResumeState.blocked_live_mmio_timeout_reprogram,",
     'test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {',
@@ -268,6 +270,22 @@ def run_self_test() -> None:
         note_path = missing_marker / FILES["note"]
         note_path.write_text("# Phase 11 DesignWare Verify Alignment Gap\n", encoding="utf-8")
         expect_failure(missing_marker, "missing marker in note")
+
+        missing_idle_restore = root / "missing-idle-restore"
+        shutil.copytree(fixture, missing_idle_restore)
+        pm_path = missing_idle_restore / FILES["pm"]
+        pm_path.write_text(
+            pm_path.read_text(encoding="utf-8").replace(
+                'test "phase11 dw_wdt pm resume keeps idle restore path explicit" {\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_idle_restore,
+            'missing marker in pm: test "phase11 dw_wdt pm resume keeps idle restore path explicit" {',
+        )
 
 
 def parse_args() -> argparse.Namespace:
