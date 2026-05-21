@@ -249,6 +249,26 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     }
 
     const duplicate_key = @as(i32, 10);
+    const found_duplicate = rbtree.find(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;
+    const found_duplicate_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", found_duplicate);
+    try std.testing.expectEqual(@as(i32, 10), found_duplicate_entry.key);
+
+    const missing_key = @as(i32, 17);
+    try std.testing.expect(rbtree.find(&missing_key, &tree_root, RbtreeSmokeEntry.cmp) == null);
+
+    const first_duplicate = rbtree.findFirst(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;
+    const first_duplicate_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", first_duplicate);
+    try std.testing.expectEqual(@as(usize, 0), first_duplicate_entry.serial);
+
+    const second_duplicate = rbtree.nextMatch(&duplicate_key, first_duplicate, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;
+    const second_duplicate_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", second_duplicate);
+    try std.testing.expectEqual(@as(usize, 2), second_duplicate_entry.serial);
+
+    const third_duplicate = rbtree.nextMatch(&duplicate_key, second_duplicate, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;
+    const third_duplicate_entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", third_duplicate);
+    try std.testing.expectEqual(@as(usize, 4), third_duplicate_entry.serial);
+    try std.testing.expect(rbtree.nextMatch(&duplicate_key, third_duplicate, RbtreeSmokeEntry.cmp) == null);
+
     var iter = rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp);
     var duplicate_serials: [3]usize = undefined;
     var duplicate_count: usize = 0;
