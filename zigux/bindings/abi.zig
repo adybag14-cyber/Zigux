@@ -1,5 +1,16 @@
 const std = @import("std");
-const notifier_abi = @import("notifier_abi.zig");
+
+fn listHeadFromRaw(raw: usize) ?*const ListHead {
+    if (raw == 0) return null;
+    const node: *const ListHead = @ptrFromInt(raw);
+    return node;
+}
+
+fn hlistNodeFromRaw(raw: usize) ?*const HListNode {
+    if (raw == 0) return null;
+    const node: *const HListNode = @ptrFromInt(raw);
+    return node;
+}
 
 pub const ABI_VERSION: u16 = 1;
 
@@ -73,7 +84,11 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
-pub const NotifierResult = notifier_abi.NotifierResult;
+pub const NotifierResult = enum(u32) {
+    done = NOTIFIER_DONE,
+    ok = NOTIFIER_OK,
+    stop = NOTIFIER_STOP,
+};
 
 pub const ChainPriorityIncrease = extern struct {
     previous_index: usize,
@@ -106,23 +121,60 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     skipped: u32,
 };
 
-pub const NotifierBlock = notifier_abi.NotifierBlock;
-pub const ListHead = notifier_abi.ListHead;
-pub const HListHead = notifier_abi.HListHead;
-pub const HListNode = notifier_abi.HListNode;
-pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;
-pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;
+pub const NotifierBlock = extern struct {
+    notifier_call: usize,
+    next: usize,
+    priority: i32,
+};
+
+pub const ListHead = extern struct {
+    next: usize,
+    prev: usize,
+};
+
+pub const HListHead = extern struct {
+    first: usize,
+};
+
+pub const HListNode = extern struct {
+    next: usize,
+    pprev: usize,
+};
+
+pub const ListBackLinkBreak = extern struct {
+    current_index: usize,
+    expected_prev: usize,
+    actual_prev: usize,
+};
+
+pub const HListPrevLinkBreak = extern struct {
+    current_index: usize,
+    expected_pprev: usize,
+    actual_pprev: usize,
+};
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
-    return notifier_abi.chainHasNonincreasingPriority(head);
+    var current = head orelse return true;
+    var previous_priority = current.priority;
+
+    while (current.next != 0) {
+        const next: *const NotifierBlock = @ptrFromInt(current.next);
+        if (next.priority > previous_priority) return false;
+        previous_priority = next.priority;
+        current = next;
+    }
+
+    return true;
 }
 
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
-    return notifier_abi.listHasConsistentBacklinks(head);
+    if (head == null) return false;
+    return firstBrokenBacklink(head) == null;
 }
 
 pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
-    return notifier_abi.hlistHasConsistentPrevLinks(head);
+    if (head == null) return false;
+    return firstBrokenPrevLink(head) == null;
 }
 
 pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
@@ -151,11 +203,69 @@ pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityInc
 }
 
 pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
-    return notifier_abi.firstBrokenBacklink(head);
+    const sentinel = head orelse return null;
+    var expected_prev = @intFromPtr(sentinel);
+    var current_index: usize = 0;
+    var cursor = listHeadFromRaw(sentinel.next) orelse {
+        return .{
+            .current_index = 0,
+            .expected_prev = expected_prev,
+            .actual_prev = 0,
+        };
+    };
+
+    while (cursor != sentinel) {
+        if (cursor.prev != expected_prev) {
+            return .{
+                .current_index = current_index,
+                .expected_prev = expected_prev,
+                .actual_prev = cursor.prev,
+            };
+        }
+
+        expected_prev = @intFromPtr(cursor);
+        current_index += 1;
+        cursor = listHeadFromRaw(cursor.next) orelse {
+            return .{
+                .current_index = current_index,
+                .expected_prev = expected_prev,
+                .actual_prev = 0,
+            };
+        };
+    }
+
+    if (sentinel.prev != expected_prev) {
+        return .{
+            .current_index = current_index,
+            .expected_prev = expected_prev,
+            .actual_prev = sentinel.prev,
+        };
+    }
+
+    return null;
 }
 
 pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
-    return notifier_abi.firstBrokenPrevLink(head);
+    const first_head = head orelse return null;
+    var expected_pprev = @intFromPtr(&first_head.first);
+    var current_index: usize = 0;
+    var cursor = hlistNodeFromRaw(first_head.first);
+
+    while (cursor) |node| {
+        if (node.pprev != expected_pprev) {
+            return .{
+                .current_index = current_index,
+                .expected_pprev = expected_pprev,
+                .actual_pprev = node.pprev,
+            };
+        }
+
+        expected_pprev = @intFromPtr(&node.next);
+        current_index += 1;
+        cursor = hlistNodeFromRaw(node.next);
+    }
+
+    return null;
 }
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
@@ -382,7 +492,7 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
 }
 
-test "abi binding notifier and list layouts stay aligned with the dedicated notifier bindings" {
+test "abi binding notifier and list layouts stay aligned with the published abi packet" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
     const expected_notifier_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
     const raw_increase_size = (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2);
@@ -393,7 +503,6 @@ test "abi binding notifier and list layouts stay aligned with the dedicated noti
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.NotifierBlock), @sizeOf(NotifierBlock));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ChainPriorityIncrease));
     try std.testing.expectEqual(expected_increase_size, @sizeOf(ChainPriorityIncrease));
@@ -401,41 +510,35 @@ test "abi binding notifier and list layouts stay aligned with the dedicated noti
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ChainPriorityIncrease, "current_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ChainPriorityIncrease, "previous_priority"));
     try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(ChainPriorityIncrease, "current_priority"));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.NotifierChainPriorityIncrease), @sizeOf(ChainPriorityIncrease));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListHead, "prev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(ListHead));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.ListHead), @sizeOf(ListHead));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListHead));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListHead, "first"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @sizeOf(HListHead));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.HListHead), @sizeOf(HListHead));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListNode));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListNode, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.HListNode), @sizeOf(HListNode));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListBackLinkBreak));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListBackLinkBreak, "current_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListBackLinkBreak, "expected_prev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ListBackLinkBreak, "actual_prev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(ListBackLinkBreak));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.ListBackLinkBreak), @sizeOf(ListBackLinkBreak));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListPrevLinkBreak));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListPrevLinkBreak, "current_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListPrevLinkBreak, "expected_pprev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(HListPrevLinkBreak, "actual_pprev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
-    try std.testing.expectEqual(@sizeOf(notifier_abi.HListPrevLinkBreak), @sizeOf(HListPrevLinkBreak));
 }
 
-test "abi binding notifier helper matches the dedicated notifier binding" {
+test "abi binding notifier helper logic stays explicit inside the shared packet" {
     const third = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
@@ -453,10 +556,6 @@ test "abi binding notifier helper matches the dedicated notifier binding" {
     };
 
     try std.testing.expect(chainHasNonincreasingPriority(&first));
-    try std.testing.expectEqual(
-        notifier_abi.chainHasNonincreasingPriority(&first),
-        chainHasNonincreasingPriority(&first),
-    );
 
     const increasing_tail = NotifierBlock{
         .notifier_call = 0,
@@ -470,10 +569,6 @@ test "abi binding notifier helper matches the dedicated notifier binding" {
     };
 
     try std.testing.expect(!chainHasNonincreasingPriority(&increasing_head));
-    try std.testing.expectEqual(
-        notifier_abi.chainHasNonincreasingPriority(&increasing_head),
-        chainHasNonincreasingPriority(&increasing_head),
-    );
 }
 
 test "abi binding keeps first priority increase and list relays explicit" {
@@ -515,17 +610,9 @@ test "abi binding keeps first priority increase and list relays explicit" {
     list_head.next = @intFromPtr(&list_head);
     list_head.prev = @intFromPtr(&list_head);
     try std.testing.expect(listHasConsistentBacklinks(&list_head));
-    try std.testing.expectEqual(
-        notifier_abi.listHasConsistentBacklinks(&list_head),
-        listHasConsistentBacklinks(&list_head),
-    );
     try std.testing.expectEqual(@as(?ListBackLinkBreak, null), firstBrokenBacklink(&list_head));
 
     const hlist_head = HListHead{ .first = 0 };
     try std.testing.expect(hlistHasConsistentPrevLinks(&hlist_head));
-    try std.testing.expectEqual(
-        notifier_abi.hlistHasConsistentPrevLinks(&hlist_head),
-        hlistHasConsistentPrevLinks(&hlist_head),
-    );
     try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(&hlist_head));
 }
