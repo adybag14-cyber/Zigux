@@ -34,7 +34,11 @@ MAKE_MARKERS = [
 
 CLOSURE_DOC_MARKERS = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
+    "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
@@ -691,6 +695,7 @@ def run_self_test() -> int:
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_missing.json", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_manifest.json", "phase10-closure-self-test")
         cases += 1
+        closure_doc.writeText if False else None
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "phase10-closure-self-test")
         cases += 1
@@ -699,6 +704,18 @@ def run_self_test() -> int:
         cases += 1
         closure_doc.write_text(original_doc.replace("Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-missing.md", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-shared-freeze-boundary.py", "scripts/zigux/check-phase10-shared-freeze-boundary-missing.py", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-shared-freeze-boundary.py", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-input-packet.py", "scripts/zigux/check-phase10-input-packet-missing.py", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-input-packet.py", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-mmio-packet.py", "scripts/zigux/check-phase10-mmio-packet-missing.py", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-mmio-packet.py", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc.replace("scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "scripts/zigux/check-phase10-tests-readme-core-surfaces-missing.py", 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "phase10-closure-self-test")
         cases += 1
         closure_doc.write_text(original_doc, encoding="utf-8")
 
@@ -762,35 +779,28 @@ def main() -> int:
     manifest_drift = collect_manifest_drift(ROOT)
     if manifest_drift:
         print("PHASE10_CLOSURE_VALIDATION=fail")
-        print("PHASE10_CLOSURE_MANIFEST_DRIFT_START")
+        print("MISSING_PHASE10_CLOSURE_DRIFT_START")
         for item in manifest_drift:
             print(item)
-        print("PHASE10_CLOSURE_MANIFEST_DRIFT_END")
+        print("MISSING_PHASE10_CLOSURE_DRIFT_END")
         return 1
 
-    failures = run_required_commands(ROOT)
-    if failures:
+    command_failures = run_required_commands(ROOT)
+    if command_failures:
         print("PHASE10_CLOSURE_VALIDATION=fail")
-        print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_START")
-        for item in failures:
+        print("PHASE10_CLOSURE_REQUIRED_COMMAND_FAILURES_START")
+        for item in command_failures:
             print(item)
-        print("PHASE10_CLOSURE_VALIDATION_FAILED_COMMANDS_END")
+        print("PHASE10_CLOSURE_REQUIRED_COMMAND_FAILURES_END")
         return 1
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}"
-    )
-    print(f"PHASE10_CLOSURE_COMMAND_COUNT={len(COMMANDS)}")
-    print(f"PHASE10_CLOSURE_PROVENANCE_PACKET_COUNT={len(SURVEY_MANIFESTS)}")
-    print(f"PHASE10_CLOSURE_READY_FOLLOWUP_COUNT={len(READY_TRANSPORT_FOLLOWUPS)}")
-    print(f"PHASE10_CLOSURE_LANDED_HELPER_PACKET_COUNT={len(LANDED_HELPER_FIELDS)}")
-    print(f"PHASE10_CLOSURE_FOCUSED_HARNESS_REPLAY_COUNT={len(FOCUSED_HARNESS_REPLAY_FILES)}")
-    print(f"PHASE10_CLOSURE_EXACT_ROUTE_CHECK_COUNT={len(EXPECTED_EXACT_CHECKS)}")
+    print(f"PHASE10_CLOSURE_DOC_MARKER_COUNT={len(CLOSURE_DOC_MARKERS)}")
+    print(f"PHASE10_CLOSURE_EXACT_CHECK_COUNT={len(EXPECTED_EXACT_CHECKS)}")
+    print(f"PHASE10_CLOSURE_FOCUSED_REPLAY_COUNT={len(FOCUSED_HARNESS_REPLAY_FILES)}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
