@@ -129,11 +129,16 @@ COMMANDS = (
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "make -C zigux phase3-low-level-wrappers",
     "make -C zigux phase3-low-level-wrappers-test",
+    "make -C zigux phase3-test",
+    "make -C zigux phase3-dump",
     "make -C zigux phase3-validate",
+    "make -C zigux phase3",
 )
 
 
