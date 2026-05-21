@@ -37,6 +37,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "drivers/watchdog/dw_wdt_pm.zig",
+    "drivers/watchdog/dw_wdt_pm_scaffold.zig",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
@@ -307,6 +309,30 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        missing_dw_pm = root / "drivers/watchdog/dw_wdt_pm.zig"
+        missing_dw_pm.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_pm = "missing_required_path:drivers/watchdog/dw_wdt_pm.zig"
+        if expected_missing_dw_pm not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_pm_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_dw_pm_scaffold = root / "drivers/watchdog/dw_wdt_pm_scaffold.zig"
+        missing_dw_pm_scaffold.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_pm_scaffold = "missing_required_path:drivers/watchdog/dw_wdt_pm_scaffold.zig"
+        if expected_missing_dw_pm_scaffold not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_pm_scaffold_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         failing_build_inventory_self_test_script = root / "scripts/zigux/check-phase11-build-inventory.py"
         build_stub_script(failing_build_inventory_self_test_script, self_test_exit_code=1)
         issues = collect_issues(root)
@@ -568,7 +594,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
