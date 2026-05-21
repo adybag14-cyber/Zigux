@@ -24,6 +24,7 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -40,6 +41,7 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
 EXPECTED_PARITY_DIRECT_EVIDENCE = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -49,9 +51,7 @@ EXPECTED_PARITY_DIRECT_EVIDENCE = [
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
 ]
-EXPECTED_PUBLIC_TREE_COMPANIONS = [
-    "Documentation/zigux/phase6-perf-gate-survey.md",
-]
+EXPECTED_PUBLIC_TREE_COMPANIONS = []
 EXPECTED_EVIDENCE_CURRENT_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_parity.zig",
@@ -272,7 +272,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
-        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
         cases_run += 1
@@ -280,7 +280,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-evidence"})))
         cases_run += 1
-        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": []})))
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"]})))
         cases_run += 1
