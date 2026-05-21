@@ -67,6 +67,52 @@ test "phase3 abi keeps export shim compatibility and status helpers reviewable" 
     try std.testing.expect(std.meta.eql(positive, abi_positive));
 }
 
+test "phase3 abi keeps raw boundary header rejection and shim validation aligned" {
+    const undersized = abi.BoundaryHeader{
+        .size = @sizeOf(abi.BoundaryHeader) - 1,
+        .abi_version = abi.ABI_VERSION,
+        .flags = 0x52,
+    };
+    const stale = abi.BoundaryHeader{
+        .size = @sizeOf(abi.BoundaryHeader),
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0x52,
+    };
+    const expanded = abi.compatibleHeader(@sizeOf(abi.BoundaryHeader) + 4, 0x52);
+    const undersized_status = export_shim.validateBoundaryHeader(undersized);
+    const stale_status = export_shim.validateBoundaryHeader(stale);
+    const expanded_status = export_shim.validateBoundaryHeader(expanded);
+
+    try std.testing.expect(!abi.headerIsCanonical(undersized));
+    try std.testing.expect(!abi.headerIsCompatible(undersized));
+    try std.testing.expect(!abi.extendsBoundary(undersized));
+    try std.testing.expectEqual(@as(u32, 0), abi.requestedExtraBytes(undersized));
+
+    try std.testing.expect(!abi.headerIsCanonical(stale));
+    try std.testing.expect(!abi.headerIsCompatible(stale));
+    try std.testing.expect(!abi.extendsBoundary(stale));
+    try std.testing.expectEqual(@as(u32, 0), abi.requestedExtraBytes(stale));
+
+    try std.testing.expect(header_family.boundaryHeaderIsCanonicalSize(stale.size));
+    try std.testing.expect(header_family.boundaryHeaderIsCompatibleSize(stale.size));
+    try std.testing.expect(!header_family.boundaryHeaderIsCompatibleSize(undersized.size));
+    try std.testing.expect(!header_family.boundaryHeaderIsCanonical(undersized));
+    try std.testing.expect(!header_family.boundaryHeaderIsCompatible(undersized));
+    try std.testing.expect(!header_family.boundaryHeaderExtendsBoundary(undersized));
+    try std.testing.expectEqual(@as(u32, 0), header_family.boundaryHeaderRequestedExtraBytes(undersized));
+    try std.testing.expect(!header_family.boundaryHeaderIsCanonical(stale));
+    try std.testing.expect(!header_family.boundaryHeaderIsCompatible(stale));
+    try std.testing.expect(!header_family.boundaryHeaderExtendsBoundary(stale));
+    try std.testing.expectEqual(@as(u32, 0), header_family.boundaryHeaderRequestedExtraBytes(stale));
+
+    try std.testing.expect(export_shim.statusIsOk(expanded_status));
+    try std.testing.expect(!export_shim.statusIsOk(undersized_status));
+    try std.testing.expect(!export_shim.statusIsOk(stale_status));
+    try std.testing.expect(std.meta.eql(export_shim.okStatus(.kernel), expanded_status));
+    try std.testing.expect(std.meta.eql(export_shim.errorStatus(-22, .kernel), undersized_status));
+    try std.testing.expect(std.meta.eql(export_shim.errorStatus(-22, .kernel), stale_status));
+}
+
 test "phase3 abi keeps version and dev_t relays explicit" {
     const current = export_shim.currentVersion();
     const fields = export_shim.makeDevTFields(42, 7);
