@@ -193,6 +193,10 @@ The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux
 
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
+Keep the bounded core packet explicit too through `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and the returned `zigux/tests/phase10_virtio_core_manifest.json` so the tests-root reminder stays aligned with the refreshed lane-sequencing note instead of collapsing the core lane into the broader closure gate.
+
+Public current-`master` readback also rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, and `zigux/tests/phase10_virtio_core_survey.zig`, so keep those returned core companions explicit beside the bounded core replay while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower exact-path gaps in this tests-root reminder.
+
 ## Phase 12 review packet
 
 Keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the shared Phase 12 tests-root reminder packet.
@@ -258,9 +262,9 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
-- `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
 Current `master` does materialize the helper-local `libfs` slice plus tests-root packet through `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` stay recorded as repo-reality gaps rather than shipped tests-root evidence.
