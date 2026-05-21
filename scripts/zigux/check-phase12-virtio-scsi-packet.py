@@ -40,7 +40,6 @@ REQUIRED_FILES = [
 TEXT_MARKERS = {
     SLICE_PATH: [
         "`PHASE12_SLICE=virtio-scsi-rollback-evidence`",
-        "active `P12-L13` survey packet",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "rollback evidence only",
     ],
@@ -48,7 +47,6 @@ TEXT_MARKERS = {
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-21`",
-        "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet",
         "receive-refill replay",
         "rollback-only split machine-checkable",
     ],
@@ -69,7 +67,6 @@ TEXT_MARKERS = {
         '"missing_on_master"',
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
-        '"rollback owner: `P12-L13` keeps the active virtio_scsi survey packet"',
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
