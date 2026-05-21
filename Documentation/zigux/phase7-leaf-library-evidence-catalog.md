@@ -7,6 +7,7 @@
 - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`
 - `Documentation/zigux/README.md`
 - `scripts/zigux/check-phase7-shared-surface.py`
+- `scripts/zigux/check-phase7-build-wiring.py`
 - `scripts/zigux/validate-phase7.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -46,6 +47,6 @@
 
 ## Review posture
 
-- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, and one Makefile-backed validation foothold
+- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated `check-phase7-build-wiring.py` guard, and one Makefile-backed validation foothold
 - do not present the missing `lib/rbtree.zig` roadmap anchor or `zigux/tests/phase7_build.zig` as landed work
 - do not widen this packet into new helper semantics, closure claims, or deeper runtime-family validation routes until those remaining missing anchors land
