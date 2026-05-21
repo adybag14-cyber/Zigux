@@ -51,6 +51,11 @@ CHECKLIST_REQUIRED_MARKERS = [
     PHASE3_BOUNDARY_MARKER,
 ]
 
+CHECKLIST_EXACT_ONCE_MARKERS = [
+    "if the change touches the shared Phase 9 runtime-pilot packet",
+    "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
+]
+
 LANE_SEQUENCING_REQUIRED_MARKERS = [
     "Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.",
     "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence",
@@ -110,6 +115,10 @@ REQUIRED_MARKERS = {
     SAMPLES_README_PATH: SAMPLES_README_REQUIRED_MARKERS,
 }
 
+EXACT_ONCE_MARKERS = {
+    REVIEW_CHECKLIST_PATH: CHECKLIST_EXACT_ONCE_MARKERS,
+}
+
 MAKEFILE_FORBIDDEN_ROUTE_FIXTURES = ["phase9-test", "phase9-runtime-trace-events-sample-tests", "phase9"]
 
 
@@ -143,6 +152,14 @@ def find_makefile_phase9_routes(text: str) -> list[str]:
     return routes
 
 
+def duplicate_marker_occurrence(content: str, marker: str) -> str:
+    return content.replace(marker, f"{marker}\n{marker}", 1)
+
+
+def count_exact_line_occurrences(content: str, marker: str) -> int:
+    return sum(1 for line in content.splitlines() if line == marker)
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     required_paths = [*REQUIRED_MARKERS, MAKEFILE_PATH]
@@ -157,6 +174,13 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in EXACT_ONCE_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            count = count_exact_line_occurrences(text, marker)
+            if count != 1:
+                failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
 
     makefile = read_text(root, MAKEFILE_PATH)
     for route in find_makefile_phase9_routes(makefile):
@@ -210,6 +234,13 @@ def run_self_test() -> int:
                 current = read_text(base, rel_path)
                 write_text(base / rel_path, current.replace(marker, ""))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
+
+        for rel_path, markers in EXACT_ONCE_MARKERS.items():
+            for marker in markers:
+                seed_fixture_tree(base)
+                current = read_text(base, rel_path)
+                write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
+                expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
 
         for route in MAKEFILE_FORBIDDEN_ROUTE_FIXTURES:
             seed_fixture_tree(base)
