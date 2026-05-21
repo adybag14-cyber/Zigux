@@ -98,7 +98,7 @@ test "phase12 virtio net survey manifest tracks the shared-build quintet and thr
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("c36b21af252cf76160ba5ae9c8f84b2310f4b2e1", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-21", manifest.verified_on);
@@ -179,7 +179,7 @@ test "phase12 virtio net survey note reflects the quintet and preserved non-goal
     defer std.testing.allocator.free(survey_note);
 
     try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");
-    try expectContains(survey_note, "lane owner: `P12-L04`");
+    try expectContains(survey_note, "lane owner: `P12-L01`");
     try expectContains(survey_note, "c36b21af252cf76160ba5ae9c8f84b2310f4b2e1");
     try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
