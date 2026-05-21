@@ -83,6 +83,7 @@ NOTE_HELPERS = (
     "`zigux_uapi_boundary_header_extends_boundary()`",
     "`zigux_uapi_boundary_header_requested_extra_bytes()`",
     "`zigux_uapi_boundary_header_canonicalize()`",
+    "`zigux_uapi_validate_boundary_header()`",
     "`zigux_boundary_header_make()`",
     "`zigux_boundary_header_make_compatible()`",
     "`zigux_boundary_header_is_current_abi_version()`",
@@ -93,6 +94,7 @@ NOTE_HELPERS = (
     "`zigux_boundary_header_extends_boundary()`",
     "`zigux_boundary_header_requested_extra_bytes()`",
     "`zigux_boundary_header_canonicalize()`",
+    "`zigux_validate_boundary_header()`",
     "`zigux_uapi_dev_t_fields_is_valid()`",
     "`zigux_uapi_validate_dev_t_fields()`",
     "`zigux_uapi_validate_dev_t_components()`",
@@ -227,6 +229,7 @@ keep the starter UAPI companions and canonical owner headers as the single sourc
 `zigux_uapi_boundary_header_extends_boundary()`
 `zigux_uapi_boundary_header_requested_extra_bytes()`
 `zigux_uapi_boundary_header_canonicalize()`
+`zigux_uapi_validate_boundary_header()`
 `zigux_boundary_header_make()`
 `zigux_boundary_header_make_compatible()`
 `zigux_boundary_header_is_current_abi_version()`
@@ -237,6 +240,7 @@ keep the starter UAPI companions and canonical owner headers as the single sourc
 `zigux_boundary_header_extends_boundary()`
 `zigux_boundary_header_requested_extra_bytes()`
 `zigux_boundary_header_canonicalize()`
+`zigux_validate_boundary_header()`
 `zigux_uapi_dev_t_fields_is_valid()`
 `zigux_uapi_validate_dev_t_fields()`
 `zigux_uapi_validate_dev_t_components()`
@@ -257,6 +261,16 @@ keep the starter UAPI companions and canonical owner headers as the single sourc
         return 1
 
     broken = validate_text(
+        sample_note.replace("`zigux_validate_boundary_header()`", "", 1),
+        sample_header,
+    )
+    expected = "governance note helper marker missing: `zigux_validate_boundary_header()`"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected alias helper-marker drift was not reported")
+        return 1
+
+    broken = validate_text(
         sample_note.replace("`zigux_uapi_validate_dev_t_range()`", "", 1),
         sample_header,
     )
@@ -273,11 +287,14 @@ keep the starter UAPI companions and canonical owner headers as the single sourc
         print("expected include drift was not reported")
         return 1
 
-    broken = validate_text(sample_note, sample_header.replace(
-        "static inline int zigux_uapi_validate_version(void) { return 0; }\n",
-        "",
-        1,
-    ))
+    broken = validate_text(
+        sample_note,
+        sample_header.replace(
+            "static inline int zigux_uapi_validate_version(void) { return 0; }\n",
+            "",
+            1,
+        ),
+    )
     expected = "header helper missing: zigux_uapi_validate_version"
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
