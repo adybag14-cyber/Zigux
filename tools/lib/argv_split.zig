@@ -22,13 +22,13 @@ pub const ArgvSplitResult = struct {
 
 fn skipSpaces(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
 fn skipArg(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and !std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and !std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
@@ -38,7 +38,7 @@ fn countArgc(text: []const u8) usize {
 
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+        if (idx >= text.len or text[idx] == 0) {
             break;
         }
         count += 1;
@@ -55,19 +55,20 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
     var idx: usize = 0;
     var arg_idx: usize = 0;
+    errdefer {
+        for (argv[0..arg_idx]) |arg| {
+            allocator.free(arg);
+        }
+    }
+
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+        if (idx >= text.len or text[idx] == 0) {
             break;
         }
 
         const end = skipArg(text, idx);
         argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
-        errdefer {
-            for (argv[0..arg_idx + 1]) |arg| {
-                allocator.free(arg);
-            }
-        }
         arg_idx += 1;
         idx = end;
     }
@@ -84,6 +85,11 @@ pub fn argvFree(result: *ArgvSplitResult) void {
 
 pub const argv_split = argvSplit;
 pub const argv_free = argvFree;
+
+fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const u8) !void {
+    var result = try argvSplit(allocator, text);
+    defer result.deinit();
+}
 
 test "argvSplit matches the phase 1 committed fixture shape" {
     var result = try argvSplit(std.testing.allocator, "alpha beta gamma");
@@ -112,4 +118,54 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
     defer argv_free(&only_spaces);
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
+}
+
+test "argvSplit frees duplicated arguments when a later allocation fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitWithFailingAllocator,
+        .{"alpha beta gamma"},
+    );
+}
+
+test "argvSplit cleanup resets state and tolerates repeat deinit calls" {
+    var result = try argvSplit(std.testing.allocator, "alpha beta");
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    result.deinit();
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    argv_free(&result);
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
+
+test "argvSplit stops at the first embedded NUL byte" {
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', ' ', 'b', 'e', 't', 'a', 0, 'g', 'a', 'm', 'm', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+}
+
+test "argvSplit treats a NUL after leading whitespace as end of input" {
+    const source = [_]u8{ ' ', '\t', 0, 'a', 'l', 'p', 'h', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
+
+test "argvSplit truncates the current token at an embedded NUL" {
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', 0, 'b', 'e', 't', 'a', ' ', 'g', 'a', 'm', 'm', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqual(@as(usize, 1), result.argv.len);
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
 }
