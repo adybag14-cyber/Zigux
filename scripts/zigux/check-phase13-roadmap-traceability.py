@@ -13,22 +13,23 @@ ROADMAP_NOTE = "Documentation/zigux/phase13-roadmap-traceability.md"
 
 REQUIRED_MARKERS = [
     "The roadmap keeps that tranche bounded to four Linux anchors:",
-    "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.",
-    "- refresh basis: current `master` direct readback on `2026-05-18`",
+    "Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the stable contributor-facing handle.",
+    "- refresh basis: current `master` direct readback on `2026-05-21`",
+    "- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`",
     "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
-    "- `lib/devres.c`: shipped narrower DMA-boundary, planner, and scatterlist packet through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while the older broader direct `phase13_devres` helper packet stays recorded as a repo-reality gap.",
-    "- `security/landlock/syscalls.c`: shipped governance, slice, and starter packet through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`.",
-    "Current `master` now materializes `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note together with the checker-backed adjacent notifier packet and the bounded list, hlist, and ABI companions explicit as adjacent notifier evidence through:",
+    "- shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
+    "- shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`",
+    "Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, and the surrounding shared reminder packet, while the Phase 13 Makefile route family still remains missing.",
+    "- `lib/devres.c`: `devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and the historically named `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain repo-reality gaps on current `master`.",
     "- `scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "- `zigux/helpers/notifier_chain_view.zig`",
-    "That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.",
 ]
 
 FORBIDDEN_MARKERS = [
+    "- refresh basis: current `master` direct readback on `2026-05-18`",
     "treating that Phase 2-only wrapper file as a materialized shared Phase 13 build handle.",
     "`Documentation/zigux/phase13-notifier-list-survey.md` still does not materialize on current `master`",
     "Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet.",
-    "repo-reality gap instead of the current active devres packet.",
     "stable shared-summary guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
 ]
 
@@ -74,21 +75,22 @@ def emit_issues(issues: list[str]) -> int:
 
 
 def populate_repo(root: Path) -> None:
-    write_text(root, ROADMAP_NOTE, "\n".join(REQUIRED_MARKERS) + "\n")
+    write_text(root, ROADMAP_NOTE, (root / ROADMAP_NOTE).read_text(encoding="utf-8"))
 
 
 def run_self_test() -> int:
     tempdir = Path(tempfile.mkdtemp(prefix="phase13-roadmap-traceability-"))
     checks_run = 0
     try:
-        populate_repo(tempdir)
+        source_note = Path(__file__).resolve().parents[2] / ROADMAP_NOTE
+        write_text(tempdir, ROADMAP_NOTE, source_note.read_text(encoding="utf-8"))
         assert collect_issues(tempdir) == []
         checks_run += 1
 
         note_path = tempdir / ROADMAP_NOTE
         note_path.write_text(
             note_path.read_text(encoding="utf-8").replace(
-                "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`\n",
+                "- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`\n",
                 "",
                 1,
             ),
@@ -96,10 +98,10 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`"
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`"
             in issues
         )
-        populate_repo(tempdir)
+        write_text(tempdir, ROADMAP_NOTE, source_note.read_text(encoding="utf-8"))
         checks_run += 1
 
         note_path.write_text(
@@ -115,7 +117,7 @@ def run_self_test() -> int:
             "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:- `zigux/helpers/notifier_chain_view.zig`"
             in issues
         )
-        populate_repo(tempdir)
+        write_text(tempdir, ROADMAP_NOTE, source_note.read_text(encoding="utf-8"))
         checks_run += 1
 
         note_path.write_text(
@@ -128,17 +130,17 @@ def run_self_test() -> int:
             "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:stable shared-summary guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`"
             in issues
         )
-        populate_repo(tempdir)
+        write_text(tempdir, ROADMAP_NOTE, source_note.read_text(encoding="utf-8"))
         checks_run += 1
 
         note_path.write_text(
             note_path.read_text(encoding="utf-8")
-            + "treating that Phase 2-only wrapper file as a materialized shared Phase 13 build handle.\n",
+            + "- refresh basis: current `master` direct readback on `2026-05-18`\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:treating that Phase 2-only wrapper file as a materialized shared Phase 13 build handle."
+            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:- refresh basis: current `master` direct readback on `2026-05-18`"
             in issues
         )
         checks_run += 1
@@ -166,7 +168,7 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE13_ROADMAP_TRACEABILITY=pass")
-    print("PHASE13_ROADMAP_TRACEABILITY_MARKER_COUNT=10")
+    print(f"PHASE13_ROADMAP_TRACEABILITY_MARKER_COUNT={len(REQUIRED_MARKERS)}")
     return 0
 
 
