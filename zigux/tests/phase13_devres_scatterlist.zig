@@ -81,10 +81,21 @@ test "phase13 devres rejects scatterlist planning when the release record cannot
 test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {
     const exact = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistUnmap(6, 4, 6, 4);
     try std.testing.expectEqualStrings("lib/devres.c", exact.anchor);
+    try std.testing.expectEqual(@as(u32, 6), exact.tracked_original_entries);
+    try std.testing.expectEqual(@as(u32, 4), exact.tracked_mapped_entries);
+    try std.testing.expectEqual(@as(u32, 6), exact.candidate_original_entries);
+    try std.testing.expectEqual(@as(u32, 4), exact.candidate_mapped_entries);
     try std.testing.expect(exact.release_matches);
     try std.testing.expect(!exact.warns_on_release_miss);
+}
 
+test "phase13 devres scatterlist unmap planning warns when release counts drift" {
     const miss = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistUnmap(6, 4, 6, 3);
+    try std.testing.expectEqualStrings("lib/devres.c", miss.anchor);
+    try std.testing.expectEqual(@as(u32, 6), miss.tracked_original_entries);
+    try std.testing.expectEqual(@as(u32, 4), miss.tracked_mapped_entries);
+    try std.testing.expectEqual(@as(u32, 6), miss.candidate_original_entries);
+    try std.testing.expectEqual(@as(u32, 3), miss.candidate_mapped_entries);
     try std.testing.expect(!miss.release_matches);
     try std.testing.expect(miss.warns_on_release_miss);
 }
@@ -103,10 +114,14 @@ test "phase13 devres scatterlist planner manifest records the dedicated helper-f
     try requireContains(manifest, "zigux/tests/phase13_devres_scatterlist.zig");
     try requireContains(manifest, "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"release_match_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
+    try requireContains(manifest, "\"overmapped_request_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
+    try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_scatterlist_planner_manifest.json\"");
     try requireContains(manifest, "planManagedScatterlistMap");
     try requireContains(manifest, "scatterlistReleaseMatches");
     try requireContains(manifest, "planManagedScatterlistUnmap");
+    try requireContains(manifest, "impossible over-mapped scatterlist results free the release record");
+    try requireContains(manifest, "warn-on-release-miss outcome");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try requireContains(manifest, "\"status\": \"blocked_on_scatterlist_state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-sg-table-lifecycle\"");
@@ -123,9 +138,11 @@ test "phase13 devres scatterlist planner note keeps the helper-first scatterlist
     try requireContains(note, "routes `planManagedScatterlistMap(...)` through one helper-local release-record outcome");
     try requireContains(note, "retains detach-time unmap ownership on success");
     try requireContains(note, "failed mapping frees the release record");
+    try requireContains(note, "records whether impossible over-mapped scatterlist results free the release record and avoid retaining detach-time unmap ownership");
     try requireContains(note, "routes `planManagedScatterlistUnmap(...)` through exact original-entry and mapped-entry matching");
+    try requireContains(note, "records whether a release-count mismatch surfaces a warn-on-release-miss outcome without claiming live unmap side effects");
     try requireContains(note, "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check");
-    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, missing-release-record, and exact-release-match fixture coverage");
+    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, and warn-on-release-miss fixture coverage");
     try requireContains(note, "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map");
     try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
     try requireContains(note, "sg_alloc_table()");
