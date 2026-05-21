@@ -165,7 +165,12 @@ test "phase 8 file-path handle bridge helper source keeps planning-only bridge b
     try expectContains(helper_source, "pub fn resolveReusePinnedMapAttempt(");
     try expectContains(helper_source, "pub fn planTokenPreparation(");
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_object_prepare_token(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "F_DUPFD_CLOEXEC") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "close(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "dup(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "dup2(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "dup3(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "openFile") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "readFile") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "readToEnd") == null);
