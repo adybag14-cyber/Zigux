@@ -38,7 +38,6 @@ EXPECTED_COMPANIONS = [
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
     "zigux/Makefile",
     "lib/string_helpers.zig",
-    "lib/string_helpers_parse_int_array.zig",
     "lib/cmdline.zig",
     "lib/argv_split.zig",
 ]
@@ -65,9 +64,7 @@ EXPECTED_HELPER_MARKERS = {
         "pub const KasprintfStrarrayResult",
         "pub fn kstrdupQuotable",
         "pub fn kstrdupQuotableCmdline",
-    ],
-    Path("lib/string_helpers_parse_int_array.zig"): [
-        "pub const ParseIntArrayResult",
+        "pub const ParseIntArrayError",
         "pub fn parseIntArray",
     ],
     Path("lib/cmdline.zig"): [
@@ -91,7 +88,6 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     Path("lib/string_helpers.zig"),
-    Path("lib/string_helpers_parse_int_array.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
 ]
@@ -202,7 +198,6 @@ def scaffold_repo(root: Path) -> None:
                 "- `zigux/tests/phase7_leaf_library_evidence_manifest.json`",
                 "- `zigux/Makefile`",
                 "- `lib/string_helpers.zig`",
-                "- `lib/string_helpers_parse_int_array.zig`",
                 "- `lib/cmdline.zig`",
                 "- `lib/argv_split.zig`",
                 "",
@@ -239,12 +234,20 @@ def scaffold_repo(root: Path) -> None:
                     {
                         "key": "string_helpers",
                         "zig_helper": "lib/string_helpers.zig",
-                        "expected_markers": EXPECTED_HELPER_MARKERS[Path("lib/string_helpers.zig")],
+                        "expected_markers": [
+                            "pub const STRING_UNITS_10",
+                            "pub const KasprintfStrarrayResult",
+                            "pub fn kstrdupQuotable",
+                            "pub fn kstrdupQuotableCmdline",
+                        ],
                     },
                     {
                         "key": "string_helpers_parse_int_array",
-                        "zig_helper": "lib/string_helpers_parse_int_array.zig",
-                        "expected_markers": EXPECTED_HELPER_MARKERS[Path("lib/string_helpers_parse_int_array.zig")],
+                        "zig_helper": "lib/string_helpers.zig",
+                        "expected_markers": [
+                            "pub const ParseIntArrayError",
+                            "pub fn parseIntArray",
+                        ],
                     },
                     {
                         "key": "cmdline",
@@ -273,11 +276,8 @@ def scaffold_repo(root: Path) -> None:
             "pub const STRING_UNITS_10 = 0;\n"
             "pub const KasprintfStrarrayResult = struct {};\n"
             "pub fn kstrdupQuotable() void {}\n"
-            "pub fn kstrdupQuotableCmdline() void {}\n",
-        ),
-        (
-            Path("lib/string_helpers_parse_int_array.zig"),
-            "pub const ParseIntArrayResult = struct {};\n"
+            "pub fn kstrdupQuotableCmdline() void {}\n"
+            "pub const ParseIntArrayError = error{};\n"
             "pub fn parseIntArray() void {}\n",
         ),
         (Path("lib/cmdline.zig"), "pub fn parseOptionStr() void {}\npub fn getOption() void {}\n"),
@@ -330,13 +330,14 @@ def run_self_test() -> None:
         cases_run = 0
         for rel_path, transform, delete_only in [
             (MANIFEST_PATH, '"scripts/zigux/check-phase7-build-wiring.py"', False),
-            (MANIFEST_PATH, '"lib/string_helpers_parse_int_array.zig"', False),
+            (MANIFEST_PATH, '"lib/cmdline.zig"', False),
             (MANIFEST_PATH, '"zigux/tests/phase7_build.zig"', False),
             (MAKEFILE_PATH, "phase7-validate:", False),
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n", False),
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", False),
             (Path("lib/string_helpers.zig"), "pub fn kstrdupQuotableCmdline", False),
-            (Path("lib/string_helpers_parse_int_array.zig"), "pub fn parseIntArray", False),
+            (Path("lib/string_helpers.zig"), "pub const ParseIntArrayError", False),
+            (Path("lib/string_helpers.zig"), "pub fn parseIntArray", False),
             (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
