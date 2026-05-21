@@ -33,7 +33,7 @@ REQUIRED_MARKERS = {
         "Keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.",
         "`zigux/tests/phase7_build.zig` needed public blob/raw fallback after the authenticated contents bridge returned `404`, so keep that one path framed as returned shared non-owner evidence without overstating authenticated whole-file coverage.",
         "This slice must stay truthful about the current direct helper path. The readable helper is still rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` remains a repo-reality gap on current `master`.",
-        "Keep same-lane follow-through inside this slice-backed direct-helper packet by rereading `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json` against this note for shared non-owner build-evidence provenance,",
+        "Keep same-lane follow-through inside this slice-backed direct-helper packet by rereading `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json` against this note for shared non-owner build-evidence and public-fallback provenance,",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
@@ -438,7 +438,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        slice_marker = "Keep same-lane follow-through inside this slice-backed direct-helper packet by rereading `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json` against this note for shared non-owner build-evidence provenance,"
+        slice_marker = "Keep same-lane follow-through inside this slice-backed direct-helper packet by rereading `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json` against this note for shared non-owner build-evidence and public-fallback provenance,"
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_slice_next_step_packet_boundary_marker",
