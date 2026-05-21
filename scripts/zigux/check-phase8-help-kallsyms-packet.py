@@ -17,6 +17,7 @@ def _default_root() -> Path:
 ROOT = _default_root()
 HELP_SLICE = Path("Documentation/zigux/phase8-help-slice.md")
 KALLSYMS_SLICE = Path("Documentation/zigux/phase8-kallsyms-slice.md")
+TOOLING_LANE_SEQUENCE = Path("Documentation/zigux/phase8-tooling-lane-sequencing.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
 MAKEFILE = Path("zigux/Makefile")
@@ -32,6 +33,7 @@ KALLSYMS_SOURCE = Path("tools/lib/symbol/kallsyms.zig")
 REQUIRED_FILES = (
     HELP_SLICE,
     KALLSYMS_SLICE,
+    TOOLING_LANE_SEQUENCE,
     CHECKLIST,
     VALIDATOR,
     MAKEFILE,
@@ -58,6 +60,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "shared validation overlap only",
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
+    ),
+    TOOLING_LANE_SEQUENCE: (
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only",
+        "help-local output or command-source drift stays in the help lane, while parser, truncation, or callback-wrapper drift stays in the symbol lane until `tools/lib/symbol/kallsyms.zig` is readable again.",
     ),
     CHECKLIST: (
         "if the change touches the parked Phase 8 `help` packet",
@@ -184,13 +190,43 @@ def run_self_test() -> int:
             raise AssertionError("expected missing help slice marker to be reported")
         help_slice.write_text(original_help_slice, encoding="utf-8")
 
+        tooling_sequence = root / TOOLING_LANE_SEQUENCE
+        original_tooling_sequence = _read(tooling_sequence)
+        tooling_sequence.write_text(
+            original_tooling_sequence.replace(
+                "`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_tooling_route_marker = validate_root(root)
+        expected_tooling_route_marker = "Documentation/zigux/phase8-tooling-lane-sequencing.md:`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only"
+        if expected_tooling_route_marker not in missing_tooling_route_marker.missing_markers:
+            raise AssertionError("expected missing tooling-lane shared-route marker to be reported")
+        tooling_sequence.write_text(original_tooling_sequence, encoding="utf-8")
+
+        tooling_sequence.write_text(
+            original_tooling_sequence.replace(
+                "help-local output or command-source drift stays in the help lane, while parser, truncation, or callback-wrapper drift stays in the symbol lane until `tools/lib/symbol/kallsyms.zig` is readable again.",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_tooling_owner_split = validate_root(root)
+        expected_tooling_owner_split = "Documentation/zigux/phase8-tooling-lane-sequencing.md:help-local output or command-source drift stays in the help lane, while parser, truncation, or callback-wrapper drift stays in the symbol lane until `tools/lib/symbol/kallsyms.zig` is readable again."
+        if expected_tooling_owner_split not in missing_tooling_owner_split.missing_markers:
+            raise AssertionError("expected missing tooling-lane owner-split marker to be reported")
+        tooling_sequence.write_text(original_tooling_sequence, encoding="utf-8")
+
         checklist = root / CHECKLIST
         original_checklist = _read(checklist)
         checklist.write_text(original_checklist.replace("`make -C zigux phase8-help-test`", "", 1), encoding="utf-8")
         missing_checklist_help_route = validate_root(root)
         expected_checklist_help_route = "Documentation/zigux/review-checklist.md:`make -C zigux phase8-help-test`"
         if expected_checklist_help_route not in missing_checklist_help_route.missing_markers:
-            raise AssertionError("expected missing checklist help route marker to be reported")
+            raise AssertionError("expected missing checklist help route to be reported")
         checklist.write_text(original_checklist, encoding="utf-8")
 
         checklist.write_text(original_checklist.replace("`zigux/tests/phase8_kallsyms_only_build.zig`", "", 1), encoding="utf-8")
@@ -286,7 +322,7 @@ def run_self_test() -> int:
         missing_validator_tuple = validate_root(root)
         expected_validator_tuple = "scripts/zigux/validate-phase8.py:HELP_KALLSYMS_PACKET_CHECKER,"
         if expected_validator_tuple not in missing_validator_tuple.missing_markers:
-            raise AssertionError("expected missing validator checker tuple marker to be reported")
+            raise AssertionError("expected missing validator checker tuple to be reported")
         validator.write_text(original_validator, encoding="utf-8")
 
         kallsyms_slice = root / KALLSYMS_SLICE
@@ -313,7 +349,7 @@ def run_self_test() -> int:
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
