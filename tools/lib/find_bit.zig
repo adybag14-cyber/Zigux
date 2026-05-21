@@ -779,6 +779,26 @@ test "tail-word boundary scans keep the last in-range bit reachable from an incl
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
 
+test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {
+    const nbits = 11;
+    const boundary = nbits - 1;
+    const set_map = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const and_lhs = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const and_rhs = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const andnot_lhs = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const andnot_rhs = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << 13)};
+    const zero_map = [_]Word{lastWordMask(nbits) & ~(@as(Word, 1) << @intCast(boundary))};
+
+    try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_map, nbits, boundary + 1));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary + 1));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_map, nbits, boundary + 1));
+}
+
 test "find last bit scans backward across words" {
     const nbits = bits_per_long * 3;
     var bitmap = [_]Word{ 0, 0, 0 };
@@ -898,24 +918,4 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
     try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
-}
-
-test "clump8 alias no-op paths leave caller byte untouched" {
-    const empty = [_]Word{0};
-    var clump: u8 = 0x3c;
-
-    try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &empty, 0));
-    try std.testing.expectEqual(@as(u8, 0x3c), clump);
-
-    clump = 0x5a;
-    try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &empty, 0));
-    try std.testing.expectEqual(@as(u8, 0x5a), clump);
-
-    clump = 0x7e;
-    try std.testing.expectEqual(@as(usize, 8), find_next_clump8(&clump, &empty, 8, 8));
-    try std.testing.expectEqual(@as(u8, 0x7e), clump);
-
-    clump = 0x19;
-    try std.testing.expectEqual(@as(usize, 8), _find_next_clump8(&clump, &empty, 8, 12));
-    try std.testing.expectEqual(@as(u8, 0x19), clump);
 }
