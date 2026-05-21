@@ -24,6 +24,7 @@ MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")
+STRING_HELPER_REL = Path("tools/lib/string.zig")
 
 REQUIRED_FILES = (
     LANE_NOTE_REL,
@@ -38,6 +39,7 @@ REQUIRED_FILES = (
     BITMAP_HELPER_REL,
     FIND_BIT_HELPER_REL,
     RBTREE_HELPER_REL,
+    STRING_HELPER_REL,
 )
 
 EXPECTED_HELPERS = [
@@ -217,6 +219,13 @@ REQUIRED_EXACT_LINES = {
         'test "rbtree cached root keeps the leftmost pointer in sync" {',
         'test "rbtree cached-root Linux-style aliases mirror the primary helpers" {',
         'test "rbtree eraseInitCached clears singleton cached roots before reseed" {',
+    ],
+    STRING_HELPER_REL: [
+        'test "sysfsStreq treats trailing newline and NUL as equivalent" {',
+        'test "sysfsMatchString finds newline-aware matches and preserves first-match order" {',
+        'test "memchrInv follows the earliest dirty byte as long buffers change" {',
+        'test "strspn counts the accepted prefix with C-string semantics" {',
+        'test "strnchrNul returns the first match, NUL, or count boundary" {',
     ],
 }
 
