@@ -39,6 +39,7 @@ test "phase3 barrier wrappers compile" {
     full();
     acquireRelease();
     fullFence();
+    storeLoad();
     try fence(.acquire);
     try fence(.release);
     try fence(.acq_rel);
@@ -116,6 +117,7 @@ test "phase3 barrier wrappers stay side-effect free on unrelated storage" {
     release();
     full();
     acquireRelease();
+    storeLoad();
 
     try std.testing.expectEqual(before.ready, packet.ready);
     try std.testing.expectEqual(before.value, packet.value);
@@ -219,5 +221,9 @@ pub fn acquireRelease() void {
 }
 
 pub fn fullFence() void {
+    fence(.seq_cst) catch unreachable;
+}
+
+pub fn storeLoad() void {
     fence(.seq_cst) catch unreachable;
 }
