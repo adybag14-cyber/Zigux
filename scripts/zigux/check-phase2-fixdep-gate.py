@@ -70,6 +70,7 @@ REQUIRED_FIXDEP_CASE_NAMES = (
     "sample_concatenated",
     "sample_dependency_continuation",
     "sample_comment_continuation",
+    "sample_double_backslash_comment",
     "sample_comment_only",
     "sample_comment_only_stdout_full",
     "sample_missing_dep",
