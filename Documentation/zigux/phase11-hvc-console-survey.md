@@ -78,15 +78,17 @@ current-head packet below:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 The shared build-inventory checker plus shared build inventory still record
-three proof-backed build tests, the coupled `workflow_phase11_steps` list that
-keeps the build-inventory self-test, the cleanup-current-head self-test and
-live check, and the standalone targetless-unregister witness route explicit,
-and no dedicated survey replay entries, which matches that narrower current-head
-packet rather than the older starter-depth packet. The dedicated
-targetless-unregister witness checker and the standalone targetless-unregister
-witness pair likewise stay explicit as separate failure-mode coverage that
-rereads the current starter against the verify-helper boundary note without
-promoting the witness into the shared three-entry build inventory.
+three proof-backed build tests, the coupled `exact_current_checks` list that
+keeps the build-inventory self-test and live check, the cleanup-current-head
+self-test and live check, and the standalone targetless-unregister witness build
+route explicit, the single `workflow_phase11_steps` entry that routes that
+packet through `make -C zigux phase11-validate`, and no dedicated survey replay
+entries, which matches that narrower current-head packet rather than the older
+starter-depth packet. The dedicated targetless-unregister witness checker and
+the standalone targetless-unregister witness pair likewise stay explicit as
+separate failure-mode coverage that rereads the current starter against the
+verify-helper boundary note without promoting the witness into the shared
+three-entry build inventory.
 
 ## Still-Bounded Gaps
 
