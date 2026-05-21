@@ -65,6 +65,7 @@ PHASE12_VIRTIO_NET_POST_RESET_REPLAY_TEST_PATH = (
 PHASE12_VIRTIO_NET_THROUGHPUT_PARITY_TEST_PATH = (
     "zigux/tests/phase12_virtio_net_throughput_parity.zig"
 )
+PHASE12_VIRTIO_NET_SURVEY_TEST_PATH = "zigux/tests/phase12_virtio_net_survey.zig"
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
@@ -95,7 +96,7 @@ TESTS_README_MARKERS = [
     "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
     "Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.",
     "Keep `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` explicit as the shared anti-overlap companion so the tests-root reminder stays aligned with the same complex-driver packet boundary already named by the release-order, closure, coordination, and fallback notes.",
-    "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate, while `virtio_net` remains the split-helper queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity shared packet, `virtio_scsi` remains the driver-local rollback-lab packet outside the shared smoke-and-test route, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.",
+    "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate, while `virtio_net` remains the split-helper queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate shared packet, `virtio_scsi` remains the driver-local rollback-lab packet outside the shared smoke-and-test route, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.",
 ]
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
@@ -139,6 +140,7 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_NET_RECEIVE_REFILL_REPLAY_TEST_PATH,
     PHASE12_VIRTIO_NET_POST_RESET_REPLAY_TEST_PATH,
     PHASE12_VIRTIO_NET_THROUGHPUT_PARITY_TEST_PATH,
+    PHASE12_VIRTIO_NET_SURVEY_TEST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
 ]
@@ -168,16 +170,22 @@ REQUIRED_MARKERS = {
         '"phase12_virtio_net_receive_refill_replay.zig"',
         '"phase12_virtio_net_post_reset_replay.zig"',
         '"phase12_virtio_net_throughput_parity.zig"',
+        '"phase12_virtio_net_survey.zig"',
+        '"phase12-virtio-net-survey-tests"',
         "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_survey_tests.step);",
         "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
         "test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
         "test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
+        "test_step.dependOn(&run_virtio_net_survey_tests.step);",
+        "throughput-parity, and survey-gate smoke tests",
+        "throughput-parity, and survey-gate tests",
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 12 build-only surface checker",
@@ -206,12 +214,12 @@ REQUIRED_MARKERS = {
 }
 
 PHASE12_BUILD_EXACT_COUNTS = {
-    "b.createModule(.{": 10,
+    "b.createModule(.{": 11,
     ".addImport(": 5,
-    "b.addTest(.{": 5,
-    "b.addRunArtifact(": 5,
-    "smoke_step.dependOn(": 5,
-    "test_step.dependOn(": 5,
+    "b.addTest(.{": 6,
+    "b.addRunArtifact(": 6,
+    "smoke_step.dependOn(": 6,
+    "test_step.dependOn(": 6,
     "b.step(": 2,
 }
 
@@ -362,6 +370,12 @@ pub fn build(b: *std.Build) void {
         virtio_net_throughput_parity_module,
     );
 
+    const virtio_net_survey_root_module = b.createModule(.{
+        .root_source_file = b.path(\"phase12_virtio_net_survey.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase12_virtio_net_queue_resume_tests = b.addTest(.{
         .name = \"phase12-virtio-net-queue-resume-tests\",
         .root_module = virtio_net_queue_resume_root_module,
@@ -402,25 +416,35 @@ pub fn build(b: *std.Build) void {
         phase12_virtio_net_throughput_parity_tests,
     );
 
+    const phase12_virtio_net_survey_tests = b.addTest(.{
+        .name = \"phase12-virtio-net-survey-tests\",
+        .root_module = virtio_net_survey_root_module,
+    });
+    const run_virtio_net_survey_tests = b.addRunArtifact(
+        phase12_virtio_net_survey_tests,
+    );
+
     const smoke_step = b.step(
         \"smoke\",
-        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity smoke tests\",
+        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate smoke tests\",
     );
     smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
     smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+    smoke_step.dependOn(&run_virtio_net_survey_tests.step);
 
     const test_step = b.step(
         \"test\",
-        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity tests\",
+        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests\",
     );
     test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
     test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+    test_step.dependOn(&run_virtio_net_survey_tests.step);
 }
 """
 
