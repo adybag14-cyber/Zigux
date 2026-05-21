@@ -113,8 +113,9 @@ test "phase14 ring-buffer survey note keeps the exact compile-route posture expl
     try std.testing.expect(std.mem.indexOf(u8, note, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "dedicated ring-buffer survey replay, backed by current public raw-file readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared Phase 14 build bundle replay, backed by current public raw-file readback") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "missing dedicated `make -C zigux phase14` route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "current contents-path readback used by some shared notes is still partial") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "keep those two routes as ring-buffer-local replay vocabulary only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "missing dedicated `make -C zigux phase14` route") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-zig-port-blocker") != null);
