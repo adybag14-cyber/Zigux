@@ -1,16 +1,5 @@
 const std = @import("std");
-
-fn listHeadFromRaw(raw: usize) ?*const ListHead {
-    if (raw == 0) return null;
-    const node: *const ListHead = @ptrFromInt(raw);
-    return node;
-}
-
-fn hlistNodeFromRaw(raw: usize) ?*const HListNode {
-    if (raw == 0) return null;
-    const node: *const HListNode = @ptrFromInt(raw);
-    return node;
-}
+const notifier_abi = @import("notifier_abi.zig");
 
 pub const ABI_VERSION: u16 = 1;
 
@@ -85,18 +74,14 @@ pub const UnsafeScope = enum(u8) {
     raw_pointer_bridge = UNSAFE_RAW_POINTER_BRIDGE,
 };
 
-pub const NotifierResult = enum(u32) {
-    done = NOTIFIER_DONE,
-    ok = NOTIFIER_OK,
-    stop = NOTIFIER_STOP,
-};
-
-pub const ChainPriorityIncrease = extern struct {
-    previous_index: usize,
-    current_index: usize,
-    previous_priority: i32,
-    current_priority: i32,
-};
+pub const NotifierResult = notifier_abi.NotifierResult;
+pub const ChainPriorityIncrease = notifier_abi.NotifierChainPriorityIncrease;
+pub const NotifierBlock = notifier_abi.NotifierBlock;
+pub const ListHead = notifier_abi.ListHead;
+pub const HListHead = notifier_abi.HListHead;
+pub const HListNode = notifier_abi.HListNode;
+pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;
+pub const HListPrevLinkBreak = notifier_abi.HListPrevLinkBreak;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
     ack_window: u32,
@@ -122,151 +107,28 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     skipped: u32,
 };
 
-pub const NotifierBlock = extern struct {
-    notifier_call: usize,
-    next: usize,
-    priority: i32,
-};
-
-pub const ListHead = extern struct {
-    next: usize,
-    prev: usize,
-};
-
-pub const HListHead = extern struct {
-    first: usize,
-};
-
-pub const HListNode = extern struct {
-    next: usize,
-    pprev: usize,
-};
-
-pub const ListBackLinkBreak = extern struct {
-    current_index: usize,
-    expected_prev: usize,
-    actual_prev: usize,
-};
-
-pub const HListPrevLinkBreak = extern struct {
-    current_index: usize,
-    expected_pprev: usize,
-    actual_pprev: usize,
-};
-
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
-    var current = head orelse return true;
-    var previous_priority = current.priority;
-
-    while (current.next != 0) {
-        const next: *const NotifierBlock = @ptrFromInt(current.next);
-        if (next.priority > previous_priority) return false;
-        previous_priority = next.priority;
-        current = next;
-    }
-
-    return true;
+    return notifier_abi.chainHasNonincreasingPriority(head);
 }
 
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
-    if (head == null) return false;
-    return firstBrokenBacklink(head) == null;
+    return notifier_abi.listHasConsistentBacklinks(head);
 }
 
 pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
-    if (head == null) return false;
-    return firstBrokenPrevLink(head) == null;
+    return notifier_abi.hlistHasConsistentPrevLinks(head);
 }
 
 pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
-    var current = head orelse return null;
-    if (current.next == 0) return null;
-
-    var previous_index: usize = 0;
-    var previous_priority = current.priority;
-    while (current.next != 0) {
-        const next: *const NotifierBlock = @ptrFromInt(current.next);
-        const current_index = previous_index + 1;
-        if (next.priority > previous_priority) {
-            return .{
-                .previous_index = previous_index,
-                .current_index = current_index,
-                .previous_priority = previous_priority,
-                .current_priority = next.priority,
-            };
-        }
-        previous_index = current_index;
-        previous_priority = next.priority;
-        current = next;
-    }
-
-    return null;
+    return notifier_abi.firstChainPriorityIncrease(head);
 }
 
 pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
-    const sentinel = head orelse return null;
-    var expected_prev = @intFromPtr(sentinel);
-    var current_index: usize = 0;
-    var cursor = listHeadFromRaw(sentinel.next) orelse {
-        return .{
-            .current_index = 0,
-            .expected_prev = expected_prev,
-            .actual_prev = 0,
-        };
-    };
-
-    while (cursor != sentinel) {
-        if (cursor.prev != expected_prev) {
-            return .{
-                .current_index = current_index,
-                .expected_prev = expected_prev,
-                .actual_prev = cursor.prev,
-            };
-        }
-
-        expected_prev = @intFromPtr(cursor);
-        current_index += 1;
-        cursor = listHeadFromRaw(cursor.next) orelse {
-            return .{
-                .current_index = current_index,
-                .expected_prev = expected_prev,
-                .actual_prev = 0,
-            };
-        };
-    }
-
-    if (sentinel.prev != expected_prev) {
-        return .{
-            .current_index = current_index,
-            .expected_prev = expected_prev,
-            .actual_prev = sentinel.prev,
-        };
-    }
-
-    return null;
+    return notifier_abi.firstBrokenBacklink(head);
 }
 
 pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
-    const first_head = head orelse return null;
-    var expected_pprev = @intFromPtr(&first_head.first);
-    var current_index: usize = 0;
-    var cursor = hlistNodeFromRaw(first_head.first);
-
-    while (cursor) |node| {
-        if (node.pprev != expected_pprev) {
-            return .{
-                .current_index = current_index,
-                .expected_pprev = expected_pprev,
-                .actual_pprev = node.pprev,
-            };
-        }
-
-        expected_pprev = @intFromPtr(&node.next);
-        current_index += 1;
-        cursor = hlistNodeFromRaw(node.next);
-    }
-
-    return null;
+    return notifier_abi.firstBrokenPrevLink(head);
 }
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
@@ -547,37 +409,20 @@ test "abi binding notifier and list layouts stay aligned with the exported ABI h
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
 }
 
-test "abi binding notifier priority helpers stay explicit" {
-    const third = NotifierBlock{
-        .notifier_call = 0,
-        .next = 0,
-        .priority = 3,
-    };
-    const second = NotifierBlock{
-        .notifier_call = 0,
-        .next = @intFromPtr(&third),
-        .priority = 5,
-    };
-    const first = NotifierBlock{
-        .notifier_call = 0,
-        .next = @intFromPtr(&second),
-        .priority = 5,
-    };
-
-    try std.testing.expect(chainHasNonincreasingPriority(&first));
-
-    const increasing_tail = NotifierBlock{
+test "abi binding notifier helper relays stay aligned with notifier_abi" {
+    const tail = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
         .priority = 8,
     };
-    const increasing_head = NotifierBlock{
+    const head = NotifierBlock{
         .notifier_call = 0,
-        .next = @intFromPtr(&increasing_tail),
+        .next = @intFromPtr(&tail),
         .priority = 2,
     };
 
-    try std.testing.expect(!chainHasNonincreasingPriority(&increasing_head));
+    try std.testing.expectEqual(notifier_abi.chainHasNonincreasingPriority(&head), chainHasNonincreasingPriority(&head));
+    try std.testing.expectEqual(notifier_abi.firstChainPriorityIncrease(&head), firstChainPriorityIncrease(&head));
 }
 
 test "abi binding first priority increase and list helpers stay explicit" {
