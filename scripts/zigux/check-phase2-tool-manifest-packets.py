@@ -101,7 +101,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 96
+EXPECTED_SELF_TEST_CASE_COUNT = 98
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -588,6 +588,8 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, manifest_json(tool_manifest_checker="scripts/zigux/other.py"))
         assert ("INVALID_MANIFEST_FIELD", "tool_manifest_checker") in collect_issues(root)
         checks_run += 1
+        assert_run_checker_output_contains(root, "INVALID_MANIFEST_FIELD_START")
+        checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
@@ -798,6 +800,8 @@ def run_self_test() -> int:
         bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != CHECKER_PATH]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH) in collect_issues(root)
+        checks_run += 1
+        assert_run_checker_output_contains(root, "CHECKER_NOT_MARKED_PRESENT_START")
         checks_run += 1
 
         build_self_test_root(root)
