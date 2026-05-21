@@ -7,13 +7,13 @@ The notifier or list packet stays adjacent to that tranche because the current r
 ## Survey Snapshot
 - owner posture: adjacent notifier evidence rather than helper-lane ownership
 - lane key: `P13-L18`
-- surveyed commit: `master-readback-2026-05-20`
-- surveyed state: `current master` readback refreshed on `2026-05-20`
+- surveyed commit: `master-readback-2026-05-21`
+- surveyed state: `current master` readback refreshed on `2026-05-21`
 - owner-map reminder: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps adjacent notifier evidence outside the four roadmap-owned helper anchors, so this note stays adjacent release-surface evidence instead of claiming a fifth helper lane
 - roadmap-adjacent reviewability evidence only
 - shared Phase 13 build intentionally omits this packet, so the adjacent notifier surfaces stay reviewable without adding a counted helper replay to the shared Phase 13 bundle
 ## Current Repo Reality
-As of `2026-05-20`, current `master` keeps this adjacent notifier-facing packet explicit through:
+As of `2026-05-21`, current `master` keeps this adjacent notifier-facing packet explicit through:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
@@ -24,6 +24,13 @@ As of `2026-05-20`, current `master` keeps this adjacent notifier-facing packet 
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 - `scripts/zigux/validate-phase13-release.py`
+Current authenticated readback fixes that shipped adjacent packet to these exact file states:
+- `zigux/bindings/notifier_abi.zig` blob `7e821f2498147db05b57c538e824cb2d76b84395` keeps the bounded read-only ABI foothold explicit through `NotifierBlock`, `NotifierChainPriorityIncrease`, `ListHead`, `HListHead`, `HListNode`, `chainHasNonincreasingPriority()`, `firstChainPriorityIncrease()`, `listHasConsistentBacklinks()`, and `hlistHasConsistentPrevLinks()`, plus layout and witness tests for empty, single-node, descending, and broken-link cases.
+- `zigux/helpers/list_view.zig` blob `0d0400bb8f1239fdd0338e21dfc5323f5fda32c9` keeps the `list_head` helper read-only through `ListView.isEmpty()`, `first()`, `last()`, `len()`, `iterator()`, `hasConsistentBacklinks()`, and `firstBrokenBacklink()`.
+- `zigux/helpers/hlist_view.zig` blob `425e7f8788d550ff845849979f84e6bb9242f0d9` keeps the `hlist` helper read-only through `HListView.isEmpty()`, `first()`, `len()`, `firstPprevMatchesHead()`, `hasConsistentPrevLinks()`, `firstBrokenPrevLink()`, and `tailNextIsNull()`.
+- `include/zigux/abi.h` blob `a7a816e0f2b0810260cf881bbb550675f2373d55` mirrors the same bounded C-side packet through `struct zigux_notifier_block`, `struct zigux_list_head`, `struct zigux_hlist_head`, `zigux_notifier_first_chain_priority_increase()`, `zigux_list_has_consistent_backlinks()`, and `zigux_hlist_has_consistent_prev_links()`.
+- `drivers/tty/hvc/hvc_console.h` blob `57f1542b3e6f1901f444bc2d94b5e438f14eb9b3` still keeps the adjacent HVC notifier declarations visible through `notifier_add_irq`, `notifier_del_irq`, and `notifier_hangup_irq` beside the `hv_ops` notifier callbacks.
+- `zigux/tests/phase13_notifier_list_manifest.json` blob `e349670187087408cbc17be56a1c3925f552f380`, `zigux/tests/phase13_notifier_list_reviewability.zig` blob `7b62256190263e285cbd8ebc3d5911f91e5f9f41`, `scripts/zigux/check-phase13-notifier-packet.py` blob `d80bdb58fefdb110872efc9de7b92b0354dd420a`, and `scripts/zigux/validate-phase13-release.py` blob `519fb5d7a820d0a705ca4786f886df1e85679554` still gate the adjacent packet and still frame the missing notifier-chain helper, dedicated notifier ABI header, shared Phase 13 build shard, and Makefile route names as repo-reality gaps rather than shipped evidence.
 The shipped adjacent `zigux/bindings/notifier_abi.zig` foothold keeps notifier priority ordering plus `list_head` and `hlist` layout witnesses explicit through `NotifierBlock`, `ListHead`, `HListHead`, `HListNode`, `chainHasNonincreasingPriority()`, `listHasConsistentBacklinks()`, and `hlistHasConsistentPrevLinks()` without claiming callback execution, registration, SRCU, or blocking-notifier semantics.
 The shipped adjacent `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers stay read-only: they walk `list_head` and `hlist` links, report backlink or prev-link consistency witnesses, and stop short of mutation or notifier callback behavior.
 The shipped adjacent `include/zigux/abi.h` foothold mirrors that same bounded posture through `struct zigux_notifier_block`, `struct zigux_list_head`, `struct zigux_hlist_head`, `zigux_notifier_first_chain_priority_increase()`, `zigux_list_has_consistent_backlinks()`, and `zigux_hlist_has_consistent_prev_links()` for C-side callers that only need read-only notifier ordering or list-link truthfulness.
