@@ -126,10 +126,18 @@ REQUIRED_MARKERS = {
     ),
     CATALOG_HELPER_PATH: (
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"make -C zigux phase3-export-uapi-layout"',
+        '"make -C zigux phase3-export-uapi-layout-test"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     CATALOG_SELFTEST_CHECK_PATH: (
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        '\'\"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig\"\'',
+        '\'\"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\"\'',
+        '\'\"make -C zigux phase3-export-uapi-layout\"\'',
+        '\'\"make -C zigux phase3-export-uapi-layout-test\"\'',
         'print("PHASE3_CATALOG_SELFTEST_CHECK=pass")',
     ),
     SHARED_CHECK_RUNNER_PATH: (
@@ -302,6 +310,46 @@ def run_self_test() -> int:
             UAPI_DEV_T_PATH,
             "pub fn validateRange(start: Fields, end: Fields) bool {",
             "expected missing uapi dev_t range marker was not reported",
+        ),
+        (
+            CATALOG_HELPER_PATH,
+            '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+            "expected missing catalog helper shared export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_HELPER_PATH,
+            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+            "expected missing catalog helper dedicated export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_HELPER_PATH,
+            '"make -C zigux phase3-export-uapi-layout"',
+            "expected missing catalog helper Makefile export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_HELPER_PATH,
+            '"make -C zigux phase3-export-uapi-layout-test"',
+            "expected missing catalog helper Makefile export-uapi test route marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            '\'\"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig\"\'',
+            "expected missing catalog selftest guard shared export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            '\'\"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\"\'',
+            "expected missing catalog selftest guard dedicated export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            '\'\"make -C zigux phase3-export-uapi-layout\"\'',
+            "expected missing catalog selftest guard Makefile export-uapi route marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            '\'\"make -C zigux phase3-export-uapi-layout-test\"\'',
+            "expected missing catalog selftest guard Makefile export-uapi test route marker was not reported",
         ),
     )
 
