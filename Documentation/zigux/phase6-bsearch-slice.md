@@ -47,7 +47,7 @@
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
-- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, `IndexRange` typed and byte-view companions, mutable write-through aliases, raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths
+- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, `IndexRange` typed and byte-view companions, mutable write-through aliases, typed and raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected typed and raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths
 - the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, deterministic query corpus, and dedicated perf-case lengths reviewable without widening this lane into speculative threshold recalibration or broader shared survey work
 - helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - shared helper-evidence row companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
