@@ -118,7 +118,7 @@ Keep the release-facing Phase 14 reminder packet aligned with the recovered stud
 
 If a future same-lane reread finds another broader shared reminder surface still undercounting the returned route checker, the directly readable validator surface, the directly readable exact-count checker, the directly readable tests-root reminder checker, the directly readable workqueue reviewability shard, or the returned `phase14-validate` route, tighten that smaller shared note next.
 
-If a future same-lane reread instead finds drift between the recovered reminder packet and the stale raw-manifest route claims or another shared reminder surface, tighten only that smaller truthfulness surface next rather than replaying the already-closed tests-root plus checker exactness work.
+If a future same-lane reread instead finds drift between the recovered reminder packet and the now-aligned raw-manifest posture or another shared reminder surface, tighten only that smaller truthfulness surface next rather than replaying the already-closed tests-root plus checker exactness work.
 
 If a future same-lane reread finds `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, or `scripts/zigux/README.md` drifting against the returned `phase14-validate` split or promoting the older `phase14-smoke`, `phase14-test`, or `phase14` names more strongly than the shared packet now does, tighten only that smallest reminder surface next before reopening executable-layer or anchor-local follow-through.
 
