@@ -32,7 +32,6 @@ EXPECTED_DIRECT_COMPANIONS = [
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
     "zigux/Makefile",
     "lib/string_helpers.zig",
-    "lib/string_helpers_parse_int_array.zig",
     "lib/cmdline.zig",
     "lib/argv_split.zig",
 ]
@@ -49,9 +48,9 @@ EXPECTED_HELPER_EVIDENCE = [
     },
     {
         "key": "string_helpers_parse_int_array",
-        "zig_helper": "lib/string_helpers_parse_int_array.zig",
+        "zig_helper": "lib/string_helpers.zig",
         "expected_markers": [
-            "pub const ParseIntArrayResult",
+            "pub const ParseIntArrayError",
             "pub fn parseIntArray",
         ],
     },
@@ -86,12 +85,12 @@ REQUIRED_FILES = (
 
 CATALOG_REQUIRED_SNIPPETS = [
     "## Current direct-readback companions",
-    "- `lib/string_helpers_parse_int_array.zig`",
     "## Current replay inventory",
     "- `make -C zigux phase7-validate`",
     "## Current repo-reality gaps",
     "- `lib/rbtree.zig`",
     "- `zigux/tests/phase7_build.zig`",
+    "`parseIntArray()`",
     "do not present the missing `lib/rbtree.zig` roadmap anchor or `zigux/tests/phase7_build.zig` as landed work",
 ]
 
@@ -212,7 +211,6 @@ def build_fixture_root(root: Path) -> None:
                 "- packet: `phase7-leaf-library-evidence`",
                 "",
                 "## Current direct-readback companions",
-                "- `lib/string_helpers_parse_int_array.zig`",
                 "",
                 "## Current replay inventory",
                 "- `make -C zigux phase7-validate`",
@@ -220,6 +218,8 @@ def build_fixture_root(root: Path) -> None:
                 "## Current repo-reality gaps",
                 "- `lib/rbtree.zig`",
                 "- `zigux/tests/phase7_build.zig`",
+                "",
+                "`parseIntArray()`",
                 "",
                 "do not present the missing `lib/rbtree.zig` roadmap anchor or `zigux/tests/phase7_build.zig` as landed work",
             ]
@@ -277,7 +277,7 @@ def run_self_test() -> None:
         validate(root)
 
         mutations = [
-            (CATALOG_PATH, "- `lib/string_helpers_parse_int_array.zig`", "- `lib/string_helpers.zig`"),
+            (CATALOG_PATH, "`parseIntArray()`", "`parseIntArrayMissing()`"),
             (CATALOG_PATH, "- `zigux/tests/phase7_build.zig`", "- `zigux/tests/phase7_rbtree.zig`"),
             (VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7"),
             (
