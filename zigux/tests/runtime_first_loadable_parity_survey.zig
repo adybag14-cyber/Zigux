@@ -22,6 +22,12 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(parity_note);
 
+    const sample_root_readme = try readRepoFileAlloc(
+        "../../samples/zigux/README.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     const manifest = try readRepoFileAlloc(
         "runtime_bitmap_manifest.json",
         16 * 1024,
@@ -73,6 +79,14 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         "must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.",
     );
     try expectContains(parity_note, "Leave `P9-L02` parked after this shared note refresh");
+
+    try expectContains(sample_root_readme, "Fresh trusted mixed reread on 2026-05-20 also restored a narrower runtime bitmap sample-side packet on current `master`");
+    try expectContains(sample_root_readme, "direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `zigux/tests/runtime_bitmap_manifest.json`");
+    try expectContains(sample_root_readme, "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the shared `zigux/tests/phase9_build.zig` bundle keep the same sample-side reminder packet explicit");
+    try expectContains(sample_root_readme, "`zigux/tests/runtime_bitmap_module.zig` plus `zigux/tests/runtime_bitmap_diff.zig` still remain absent on the same trusted path");
+    try expectContains(sample_root_readme, "Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned");
+    try expectContains(sample_root_readme, "Keep `zigux/tests/runtime_bitmap_manifest.json` explicit as the manifest-backed ownership packet for the same runtime bitmap reminder family.");
+    try expectContains(sample_root_readme, "Keep the neighboring `zigux/tests/phase9_build.zig` route names framed only as bounded rerun handles for the visible sample, loader, survey, top-bit, and manifest-backed packet while the module and diff legs stay absent on the trusted path.");
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
