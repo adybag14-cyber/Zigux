@@ -98,6 +98,57 @@ EXPECTED_MODE_ARG_CASE_NAMES = ("defconfig", "savedefconfig")
 EXPECTED_ALLCONFIG_OVERRIDE_CASE_NAMES = ("allmodconfig", "randconfig")
 EXPECTED_SYNCCONFIG_ENV_CASE_NAMES = ("syncconfig",)
 EXPECTED_RANDCONFIG_ENV_CASE_NAMES = ("randconfig",)
+EXPECTED_CONFDATA_CASE_NAMES = (
+    "sample",
+    "escaped_strings",
+    "escaped_control_sequences",
+    "trailing_escaped_backslash",
+    "sample_crlf",
+    "explicit_n_tristate",
+    "final_trailing_carriage_return",
+    "final_unterminated_unset_comment",
+    "uppercase_tristate",
+    "non_config_lines",
+    "empty_config_symbol_names",
+    "malformed_unset_comment_tokens",
+    "last_state_transitions",
+    "duplicate_assignments",
+    "duplicate_malformed_quoted_assignment",
+)
+EXPECTED_CONFDATA_INPUT_PACKET = (
+    "sample.config",
+    "escaped_strings.config",
+    "escaped_control_sequences.config",
+    "trailing_escaped_backslash.config",
+    "sample_crlf.config",
+    "explicit_n_tristate.config",
+    "final_trailing_carriage_return.config",
+    "final_unterminated_unset_comment.config",
+    "uppercase_tristate.config",
+    "non_config_lines.config",
+    "empty_config_symbol_names.config",
+    "malformed_unset_comment_tokens.config",
+    "last_state_transitions.config",
+    "duplicate_assignments.config",
+    "duplicate_malformed_quoted_assignment.config",
+)
+EXPECTED_CONFDATA_EXPECTED_PACKET = (
+    "sample_expected.json",
+    "escaped_strings_expected.json",
+    "escaped_control_sequences_expected.json",
+    "trailing_escaped_backslash_expected.json",
+    "sample_crlf_expected.json",
+    "explicit_n_tristate_expected.json",
+    "final_trailing_carriage_return_expected.json",
+    "final_unterminated_unset_comment_expected.json",
+    "uppercase_tristate_expected.json",
+    "non_config_lines_expected.json",
+    "empty_config_symbol_names_expected.json",
+    "malformed_unset_comment_tokens_expected.json",
+    "last_state_transitions_expected.json",
+    "duplicate_assignments_expected.json",
+    "duplicate_malformed_quoted_assignment_expected.json",
+)
 
 CONF_MANIFEST_STATIC_FIELDS = {
     "tool": "scripts/zigux/kconfig/conf_bridge.zig",
@@ -215,7 +266,7 @@ VALID_CASES_PAYLOAD = {
     ]
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
@@ -392,6 +443,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("INVALID_CONFDATA_CASES_PAYLOAD", type(raw_confdata_cases).__name__))
             else:
                 confdata_cases = [case for case in raw_confdata_cases if isinstance(case, dict)]
+                confdata_case_names = [case.get("name") for case in confdata_cases]
+                if confdata_case_names != list(EXPECTED_CONFDATA_CASE_NAMES):
+                    issues.append(("CONFDATA_CASE_PACKET_MISMATCH", f"actual={confdata_case_names!r}:expected={list(EXPECTED_CONFDATA_CASE_NAMES)!r}"))
+                confdata_input_packet = [case.get("input") for case in confdata_cases if "input" in case]
+                if confdata_input_packet != list(EXPECTED_CONFDATA_INPUT_PACKET):
+                    issues.append(("CONFDATA_INPUT_PACKET_MISMATCH", f"actual={confdata_input_packet!r}:expected={list(EXPECTED_CONFDATA_INPUT_PACKET)!r}"))
+                confdata_expected_packet = [case.get("expected") for case in confdata_cases if "expected" in case]
+                if confdata_expected_packet != list(EXPECTED_CONFDATA_EXPECTED_PACKET):
+                    issues.append(("CONFDATA_EXPECTED_PACKET_MISMATCH", f"actual={confdata_expected_packet!r}:expected={list(EXPECTED_CONFDATA_EXPECTED_PACKET)!r}"))
 
     if conf_cases:
         try:
@@ -594,6 +654,30 @@ def run_self_test() -> int:
         payload["conf_cases"][2].pop("probability")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("CONF_CASE_RANDCONFIG_ENV_PACKET_MISMATCH", "actual=[]:expected=['randconfig']") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["name"] = "drifted-sample"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(code == "CONFDATA_CASE_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["input"] = "drifted.config"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(code == "CONFDATA_INPUT_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["expected"] = "drifted_expected.json"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(code == "CONFDATA_EXPECTED_PACKET_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
