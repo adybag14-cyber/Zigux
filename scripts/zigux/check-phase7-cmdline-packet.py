@@ -106,7 +106,10 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");',
         'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
@@ -129,7 +132,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 59
+SELF_TEST_CASE_COUNT = 62
 
 
 def read_text(path: Path) -> str:
@@ -385,8 +388,20 @@ def run_self_test() -> None:
                 'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
             ),
             (
+                "missing_survey_helper_quoted_leading_equals_marker",
+                'try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");',
+            ),
+            (
                 "missing_survey_helper_key_value_quotes_marker",
                 'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
+            ),
+            (
+                "missing_survey_helper_quoted_empty_value_marker",
+                'try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");',
+            ),
+            (
+                "missing_survey_helper_unterminated_quoted_value_marker",
+                'try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");',
             ),
             (
                 "missing_survey_helper_borrowed_storage_marker",
