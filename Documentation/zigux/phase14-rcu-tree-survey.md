@@ -9,33 +9,35 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 - survey provenance captured against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
 - directly readable dedicated packet surfaces on current `master`:
   - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `kernel/rcu/tree_bridge.zig`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
 - executable packet companions confirmed on current `master` through public GitHub fallback:
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
-- authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker as the owner surface rather than claiming restored local replay or ownership
+- authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker and review-only bridge boundary map as the owner surfaces rather than claiming restored local replay or active ownership
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 
 ## Why this packet exists
 The Phase 14 roadmap treats `kernel/rcu/tree.c` as a freeze-in-C anchor even while it recommends `kernel/rcu/tree_bridge.zig` as a possible long-horizon destination.
 
-This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, the exact dedicated note that remains directly readable on `master`, and the executable companions that public GitHub fallback confirms are still live even while authenticated contents-path reads stay partial. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
+This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, the exact dedicated note and review-only bridge boundary map that remain directly readable on `master`, and the executable companions that public GitHub fallback confirms are still live even while authenticated contents-path reads stay partial. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
 
 ## Exact evidence captured
 - freeze-map posture:
   - `Documentation/zigux/freeze-map.md` keeps `kernel/rcu/tree.c` in `Freeze In C Initially`
 - directly readable dedicated packet surfaces on current `master`:
   - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `kernel/rcu/tree_bridge.zig`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/freeze-map.md`
 - executable packet companions confirmed on current `master` through public GitHub fallback:
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
-- authenticated contents-path readback still stays partial for those executable companions, so the dedicated note continues to treat the freeze-in-C blocker and shared owner-map packet as the live owner surfaces for this lane
+- authenticated contents-path readback still stays partial for those executable companions, so the dedicated note continues to treat the freeze-in-C blocker, the review-only bridge boundary map, and the shared owner-map packet as the live owner surfaces for this lane
 - shared Phase 14 reminder surfaces that still carry the bounded owner-map tie-back:
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
