@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-20",
+  "surveyed_commit": "master-readback-2026-05-21",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-scatterlist-planner",
   "status": "starter_landed",
@@ -14,6 +14,8 @@
   "fixture_governance": {
     "scatterlist_lifetime_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "release_match_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "overmapped_request_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "owner_map": "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "zigux/tests/phase13_devres_dma_coherent.zig"
@@ -32,7 +34,9 @@
     "planManagedScatterlistUnmap",
     "retains detach-time unmap ownership on success",
     "failed mapping frees the release record",
+    "impossible over-mapped scatterlist results free the release record",
     "exact original-entry and mapped-entry matching",
+    "warn-on-release-miss outcome",
     "sg_alloc_table()",
     "sg_free_table()",
     "sg_dma_address()",
