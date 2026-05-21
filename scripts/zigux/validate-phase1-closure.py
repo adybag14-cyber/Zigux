@@ -186,9 +186,18 @@ EXPECTED_RBTREE_REVIEW_ANCHORS = {
 
 EXPECTED_BITMAP_REVIEW_ANCHORS = {
     "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "equal_fast_path_anchor": 'test "bitmap equal fast path ignores storage beyond an exact word boundary"',
     "or_window_anchor": 'test "bitmap or keeps caller-selected bit window"',
     "or_multiword_tail_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word"',
     "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
+    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
+    "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+    "copy_zero_and_aligned_anchors": [
+        'test "bitmap copy and extend handles zero and aligned counts"',
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    ],
+    "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
     "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
     "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.",
     "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through.",
@@ -423,6 +432,8 @@ def run_self_test() -> int:
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
         ("missing_bitmap_or_window_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_window_anchor")),
+        ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
+        ("stale_bitmap_empty_buffer_anchor", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "empty_buffer_anchor")),
         ("stale_bitmap_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "next_safe_step_note")),
         ("stale_string_sysfs_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "sysfs_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
