@@ -89,6 +89,7 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
 
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
+    try expectContains(survey_note, "`PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-loader-partial-return`");
     try expectContains(survey_note, "scope: partial reminder packet, direct sample proof, direct loader proof, top-bit companion proof, and blocked module-side follow-through only");
     try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-20 do materialize");
     try expectContains(survey_note, "`samples/zigux/runtime_bitmap.zig`");
@@ -103,6 +104,7 @@ test "phase9 runtime bitmap survey gate matches the partial bitmap reminder pack
     try expectNotContains(survey_note, "restored top-bit companion proof");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
+    try expectContains(module_slice_note, "`PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-loader-partial-return`");
     try expectContains(module_slice_note, "scope: partial runtime bitmap reminder packet, direct sample proof, direct loader proof, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim");
     try expectContains(module_slice_note, "## Current visible slice");
     try expectContains(module_slice_note, "## Repo-reality gaps inside the bitmap family");
