@@ -13,6 +13,8 @@ from pathlib import Path
 
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 REQUIRED_STEP_NAME = "Run current Phase 11 HVC targetless-unregister gap witness"
+PHASE11_VALIDATE_COMMAND = "make -C zigux phase11-validate"
+PHASE11_VALIDATE_STEP = "Validate current Phase 11 support bundle"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 LANE_NOTE_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
 CLEANUP_COMPANION_PATH = "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md"
@@ -60,8 +62,8 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         WORKFLOW_PATH,
         (
-            REQUIRED_STEP_NAME,
-            REQUIRED_COMMAND,
+            PHASE11_VALIDATE_STEP,
+            PHASE11_VALIDATE_COMMAND,
         ),
     ),
     FileExpectation(
@@ -238,14 +240,12 @@ def require_inventory(root: Path) -> None:
         )
 
     required_steps = (
-        {"name": CLEANUP_SELF_TEST_STEP, "run": CLEANUP_SELF_TEST_COMMAND},
-        {"name": CLEANUP_STEP, "run": CLEANUP_COMMAND},
-        {"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND},
+        {"name": PHASE11_VALIDATE_STEP, "run": PHASE11_VALIDATE_COMMAND},
     )
     for required_step in required_steps:
         if required_step not in workflow_steps:
             raise ValidationError(
-                "phase11_build_inventory.json must keep the coupled cleanup and witness workflow steps explicit"
+                "phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit"
             )
 
 
@@ -273,12 +273,8 @@ def make_fixture(root: Path) -> None:
                 "jobs:",
                 "  bootstrap:",
                 "    steps:",
-                f"      - name: {CLEANUP_SELF_TEST_STEP}",
-                f"        run: {CLEANUP_SELF_TEST_COMMAND}",
-                f"      - name: {CLEANUP_STEP}",
-                f"        run: {CLEANUP_COMMAND}",
-                f"      - name: {REQUIRED_STEP_NAME}",
-                f"        run: {REQUIRED_COMMAND}",
+                f"      - name: {PHASE11_VALIDATE_STEP}",
+                f"        run: {PHASE11_VALIDATE_COMMAND}",
             )
         )
         + "\n",
@@ -429,7 +425,7 @@ def make_fixture(root: Path) -> None:
                 f"const driver = try readRepoFile(\"{DRIVER_PATH}\");",
                 f"const boundary = try readRepoFile(\"{VERIFY_BOUNDARY_PATH}\");",
                 "try expectContains(driver, \"targetless_no_unregister_edge: bool,\");",
-                "try expectContains(driver, \".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\");",
+                "try expectContains(driver, \\".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable\");",
                 "try expectContains(matrix, \"keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet\");",
@@ -458,9 +454,7 @@ def make_fixture(root: Path) -> None:
             REQUIRED_COMMAND,
         ],
         "workflow_phase11_steps": [
-            {"name": CLEANUP_SELF_TEST_STEP, "run": CLEANUP_SELF_TEST_COMMAND},
-            {"name": CLEANUP_STEP, "run": CLEANUP_COMMAND},
-            {"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND},
+            {"name": PHASE11_VALIDATE_STEP, "run": PHASE11_VALIDATE_COMMAND},
         ],
     }
     write_text(
@@ -499,7 +493,7 @@ def run_self_test() -> int:
 
         make_fixture(temp_dir)
         matrix = temp_dir / VALIDATION_MATRIX_PATH
-        matrix.write_text("# matrix\n", encoding="utf-8")
+        matrix.writeText("# matrix\n", encoding="utf-8")
         try:
             validate(temp_dir)
         except ValidationError:
