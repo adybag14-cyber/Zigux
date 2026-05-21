@@ -49,11 +49,11 @@ EXPECTED_SELF_TEST_CASES = (
 )
 
 SURVEY_MARKERS = (
-    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_aligned_but_broader_note_and_validator_packet_still_partial_on_current_master",
+    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_direct_readback_ahead_of_contract_checker_but_broader_note_and_validator_packet_still_partial_on_current_master",
     "current direct-readback helper-and-contract packet:",
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
     "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=21`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
@@ -104,6 +104,8 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "bytes_missing_actual",
     "bytes_missing_both",
     "legacy_sha256_alias",
+    "missing_mode_value_rejected",
+    "missing_positional_arguments_rejected",
     "invalid_mode_rejected",
     "extra_positional_rejected",
 )
@@ -230,13 +232,13 @@ def require_current_helper_contract(text: str) -> None:
         )
     self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", DIRECT_HELPER.as_posix()))
     if self_test_cases != HELPER_EXPECTED_SELF_TEST_CASES:
-        raise RuntimeError(f"{DIRECT_HELPER.as_posix()} must keep the current 21-case self-test catalog")
+        raise RuntimeError(f"{DIRECT_HELPER.as_posix()} must keep the current 23-case self-test catalog")
 
 
 def require_current_contract_checker(text: str) -> None:
     helper_cases = tuple(extract_literal_assignment(text, "HELPER_SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
     if helper_cases != CONTRACT_HELPER_SELF_TEST_CASES:
-        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 21-case helper replay catalog")
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case helper replay catalog")
     base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if base_cases != CONTRACT_BASE_CASES:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case base contract catalog")
