@@ -27,6 +27,13 @@ REQUIRED_TOOLING = {
     "supported_modes": ["text", "json", "bytes"],
 }
 
+PRIMARY_TOOL_MARKERS = (
+    'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
+    '    "legacy_sha256_alias",',
+    "def normalize_mode(mode: str) -> str:",
+    "    return LEGACY_MODE_ALIASES.get(mode, mode)",
+)
+
 EXPECTED_CONSUMER_MARKERS = {
     "scripts/zigux/check-kconfig-bridge.py": (
         'ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"',
@@ -43,6 +50,7 @@ REQUIRED_NOTE_MARKERS = (
     "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks in both the kconfig bridge and fixdep parity packets.",
     "Keep `scripts/zigux/check-phase2-artifact-tools-manifest.py` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
     "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts/zigux/check-kconfig-bridge.py` and `scripts/zigux/check-fixdep-diff.py` plus directly readable fixture packets before widening into broader closure routes.",
+    "Keep the legacy `sha256` compatibility alias explicit as the path that normalizes to the shipped `bytes` comparison surface in `scripts/zigux/artifact_diff.py`.",
 )
 
 
@@ -92,6 +100,22 @@ def collect_tooling_entry_issues(root: Path, category: str, actual: object, expe
 
 def count_exact_occurrences(text: str, marker: str) -> int:
     return text.count(marker)
+
+
+def collect_primary_tool_marker_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    path = resolve_manifest_path(root, PRIMARY_TOOL.as_posix())
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return issues
+    for marker in PRIMARY_TOOL_MARKERS:
+        count = count_exact_occurrences(text, marker)
+        if count == 0:
+            issues.append(("MISSING_PRIMARY_TOOL_MARKER", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_PRIMARY_TOOL_MARKER", f"{marker}:count={count}"))
+    return issues
 
 
 def collect_consumer_marker_issues(root: Path) -> list[tuple[str, str]]:
@@ -182,6 +206,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                             f"actual={actual_modes!r}:expected={REQUIRED_TOOLING['supported_modes']!r}",
                         )
                     )
+            issues.extend(collect_primary_tool_marker_issues(root))
         issues.extend(collect_consumer_marker_issues(root))
 
     notes = manifest.get("notes")
@@ -235,6 +260,22 @@ def build_self_test_manifest() -> dict:
     }
 
 
+def render_primary_tool_self_test_source() -> str:
+    return "\n".join(
+        (
+            'MODE_CHOICES = ("text", "json", "bytes")',
+            'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
+            "SELF_TEST_CASES = [",
+            '    "legacy_sha256_alias",',
+            "]",
+            "",
+            "def normalize_mode(mode: str) -> str:",
+            "    return LEGACY_MODE_ALIASES.get(mode, mode)",
+            "",
+        )
+    )
+
+
 def render_consumer_self_test_source(relative_path: str) -> str:
     markers = EXPECTED_CONSUMER_MARKERS.get(relative_path)
     if markers is None:
@@ -245,10 +286,7 @@ def render_consumer_self_test_source(relative_path: str) -> str:
 def build_self_test_root(root: Path) -> None:
     manifest_path = root / MANIFEST
     write_manifest(manifest_path, build_self_test_manifest())
-    write_text(
-        root / PRIMARY_TOOL,
-        'MODE_CHOICES = ("text", "json", "bytes")\n',
-    )
+    write_text(root / PRIMARY_TOOL, render_primary_tool_self_test_source())
     for relative_path in (
         *REQUIRED_TOOLING["consumers"],
         *REQUIRED_TOOLING["checkers"],
@@ -272,6 +310,8 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + len(PRIMARY_TOOL_MARKERS)
+        + len(PRIMARY_TOOL_MARKERS)
         + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
         + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
     )
@@ -380,6 +420,23 @@ def run_self_test() -> int:
         write_text(manifest_path, "{broken\n")
         assert ("INVALID_MANIFEST_JSON", manifest_path.as_posix()) in collect_issues(root)
         checks_run += 1
+
+        for marker in PRIMARY_TOOL_MARKERS:
+            build_self_test_root(root)
+            path = root / PRIMARY_TOOL
+            path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
+            assert ("MISSING_PRIMARY_TOOL_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in PRIMARY_TOOL_MARKERS:
+            build_self_test_root(root)
+            path = root / PRIMARY_TOOL
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(marker, f"{marker}\n{marker}", 1),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_PRIMARY_TOOL_MARKER", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
 
         for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
             for marker in markers:
