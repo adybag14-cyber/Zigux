@@ -46,6 +46,8 @@ It is not Architecture Council approval and does not request a status change by 
 
 ## Supporting Context
 
+- governance lane sequencing link or explicit scope note: `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation: `this anchor remains one of the four freeze-in-C anchors recorded in Documentation/zigux/freeze-map.md and is not part of the study-only inventory in Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - parity scorecard link or blocker record: `Documentation/zigux/phase15-parity-scorecard.md`
 - indefinite-C policy link or explicit non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`
 - linked governance notes:
