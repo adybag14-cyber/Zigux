@@ -15,12 +15,17 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/validate-phase10-closure.py",
+    "scripts/zigux/validate-phase10.py",
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core_manifest.json",
@@ -195,8 +200,17 @@ COMMANDS = [
     ["scripts/zigux/check-phase10-bootstrap-route.py"],
     ["scripts/zigux/check-phase10-shared-freeze-boundary.py", "--self-test"],
     ["scripts/zigux/check-phase10-shared-freeze-boundary.py"],
+    ["scripts/zigux/check-phase10-ring-packet.py", "--self-test"],
+    ["scripts/zigux/check-phase10-ring-packet.py"],
+    ["scripts/zigux/check-phase10-input-packet.py", "--self-test"],
+    ["scripts/zigux/check-phase10-input-packet.py"],
+    ["scripts/zigux/check-phase10-mmio-packet.py", "--self-test"],
+    ["scripts/zigux/check-phase10-mmio-packet.py"],
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
+    ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
+    ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
+    ["scripts/zigux/validate-phase10.py", "--self-test"],
 ]
 
 
@@ -365,33 +379,24 @@ def build_manifest(lane_key: str, surveyed_commit: str, starter_ids: list[str], 
 
 def write_fixture(root: Path) -> None:
     write_text(root / "scripts/zigux/validate-phase10-closure.py", "fixture\n")
-    write_text(
-        root / "scripts/zigux/check-phase10-bootstrap-route.py",
-        "#!/usr/bin/env python3\n"
-        "import sys\n"
-        "if '--self-test' in sys.argv[1:]:\n"
-        "    print('PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass')\n"
-        "    raise SystemExit(0)\n"
-        "print('PHASE10_BOOTSTRAP_ROUTE_CHECK=pass')\n",
-    )
-    write_text(
-        root / "scripts/zigux/check-phase10-shared-freeze-boundary.py",
-        "#!/usr/bin/env python3\n"
-        "import sys\n"
-        "if '--self-test' in sys.argv[1:]:\n"
-        "    print('PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass')\n"
-        "    raise SystemExit(0)\n"
-        "print('PHASE10_SHARED_FREEZE_BOUNDARY=pass')\n",
-    )
-    write_text(
-        root / "scripts/zigux/check-phase10-harness-coverage.py",
-        "#!/usr/bin/env python3\n"
-        "import sys\n"
-        "if '--self-test' in sys.argv[1:]:\n"
-        "    print('PHASE10_HARNESS_COVERAGE_SELF_TEST=pass')\n"
-        "    raise SystemExit(0)\n"
-        "print('PHASE10_HARNESS_COVERAGE=pass')\n",
-    )
+    for rel_path in [
+        "scripts/zigux/validate-phase10.py",
+        "scripts/zigux/check-phase10-bootstrap-route.py",
+        "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+        "scripts/zigux/check-phase10-ring-packet.py",
+        "scripts/zigux/check-phase10-input-packet.py",
+        "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-harness-coverage.py",
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    ]:
+        write_text(
+            root / rel_path,
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    raise SystemExit(0)\n"
+            "raise SystemExit(0)\n",
+        )
     for rel_path in [
         "Documentation/zigux/phase10-closure-evidence.md",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -535,6 +540,19 @@ def run_self_test() -> int:
 
         def write_closure(data: dict) -> None:
             write_text(closure_path, json.dumps(data))
+
+        def expect_command_failure(rel_path: str, expected_failure: str, error_label: str) -> None:
+            path = root / rel_path
+            path.write_text(
+                "#!/usr/bin/env python3\n"
+                "raise SystemExit(1)\n",
+                encoding="utf-8",
+            )
+            failures = run_required_commands(root)
+            if failures != [expected_failure]:
+                actual = ",".join(failures) if failures else "none"
+                raise SystemExit(f"{error_label}:{actual}")
+            write_fixture(root)
 
         cases = 0
 
@@ -746,37 +764,47 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
-        shared_freeze = root / "scripts/zigux/check-phase10-shared-freeze-boundary.py"
-        shared_freeze.write_text(
-            "#!/usr/bin/env python3\n"
-            "import sys\n"
-            "if '--self-test' in sys.argv[1:]:\n"
-            "    print('PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass')\n"
-            "    raise SystemExit(0)\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
+        expect_command_failure(
+            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+            "phase10-closure-self-test:failed_shared_freeze_command_not_detected",
         )
-        failures = run_required_commands(root)
-        if failures != ["scripts/zigux/check-phase10-shared-freeze-boundary.py"]:
-            actual = ",".join(failures) if failures else "none"
-            raise SystemExit(f"phase10-closure-self-test:failed_shared_freeze_command_not_detected:{actual}")
         cases += 1
-        write_fixture(root)
-
-        harness = root / "scripts/zigux/check-phase10-harness-coverage.py"
-        harness.write_text(
-            "#!/usr/bin/env python3\n"
-            "import sys\n"
-            "if '--self-test' in sys.argv[1:]:\n"
-            "    print('PHASE10_HARNESS_COVERAGE_SELF_TEST=pass')\n"
-            "    raise SystemExit(0)\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
+        expect_command_failure(
+            "scripts/zigux/check-phase10-ring-packet.py",
+            "scripts/zigux/check-phase10-ring-packet.py",
+            "phase10-closure-self-test:failed_ring_command_not_detected",
         )
-        failures = run_required_commands(root)
-        if failures != ["scripts/zigux/check-phase10-harness-coverage.py"]:
-            actual = ",".join(failures) if failures else "none"
-            raise SystemExit(f"phase10-closure-self-test:failed_command_not_detected:{actual}")
+        cases += 1
+        expect_command_failure(
+            "scripts/zigux/check-phase10-input-packet.py",
+            "scripts/zigux/check-phase10-input-packet.py",
+            "phase10-closure-self-test:failed_input_command_not_detected",
+        )
+        cases += 1
+        expect_command_failure(
+            "scripts/zigux/check-phase10-mmio-packet.py",
+            "scripts/zigux/check-phase10-mmio-packet.py",
+            "phase10-closure-self-test:failed_mmio_command_not_detected",
+        )
+        cases += 1
+        expect_command_failure(
+            "scripts/zigux/check-phase10-harness-coverage.py",
+            "scripts/zigux/check-phase10-harness-coverage.py",
+            "phase10-closure-self-test:failed_harness_command_not_detected",
+        )
+        cases += 1
+        expect_command_failure(
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            "phase10-closure-self-test:failed_tests_readme_command_not_detected",
+        )
+        cases += 1
+        expect_command_failure(
+            "scripts/zigux/validate-phase10.py",
+            "scripts/zigux/validate-phase10.py --self-test",
+            "phase10-closure-self-test:failed_phase10_validate_self_test_not_detected",
+        )
         cases += 1
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
