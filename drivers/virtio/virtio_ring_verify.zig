@@ -411,7 +411,7 @@ test "phase10 virtio ring verify exposes reset-readiness blocker ordering after 
     try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
 
-    const kick = try ring.prepareKick(2);
+    const kick = try summarizePrepareKick(&ring, 2);
     try std.testing.expect(kick.needs_kick);
     try std.testing.expectEqual(@as(u16, 2), kick.num_added);
 
@@ -429,7 +429,7 @@ test "phase10 virtio ring verify exposes reset-readiness blocker ordering after 
     try std.testing.expectEqual(@as(u16, 2), readiness.pending_used_chain_count);
     try std.testing.expect(queueNeedsResetPoll(readiness));
 
-    const poll = try ring.pollUsedBuffers(2);
+    const poll = try summarizeUsedBufferPoll(&ring, 2);
     try std.testing.expectEqual(@as(u16, 2), poll.newly_used_chain_count);
 
     readiness = try summarizeResetReadiness(&ring, 2);
@@ -454,7 +454,7 @@ test "phase10 virtio ring verify keeps reset-readiness blockers ordered through 
     readiness = try summarizeResetReadiness(&ring, 6);
     try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));
 
-    _ = try ring.prepareKick(6);
+    _ = try summarizePrepareKick(&ring, 6);
     readiness = try summarizeResetReadiness(&ring, 6);
     try std.testing.expectEqualStrings("outstanding_chains", @tagName(readiness.blocker.?));
 
@@ -463,10 +463,67 @@ test "phase10 virtio ring verify keeps reset-readiness blockers ordered through 
     try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(readiness.blocker.?));
     try std.testing.expect(queueNeedsResetPoll(readiness));
 
-    _ = try ring.pollUsedBuffers(6);
+    _ = try summarizeUsedBufferPoll(&ring, 6);
     readiness = try summarizeResetReadiness(&ring, 6);
     try std.testing.expect(readiness.reset_ready);
     try std.testing.expect(readiness.blocker == null);
+    try std.testing.expect(!queueNeedsResetPoll(readiness));
+}
+
+test "phase10 virtio ring verify keeps used-index rollover explicit across wraparound poll debt" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, virtio_ring.max_descriptor_count, .split, true, false);
+
+    var rounds: usize = 0;
+    while (rounds < 63) : (rounds += 1) {
+        var descriptors: u16 = 0;
+        while (descriptors < virtio_ring.max_descriptor_count) : (descriptors += 1) {
+            try ring.publishDescriptorChain(0);
+        }
+        _ = try summarizePrepareKick(&ring, 0);
+        try ring.recordUsedChains(0, virtio_ring.max_descriptor_count);
+        _ = try summarizeUsedBufferPoll(&ring, 0);
+    }
+
+    var descriptors: u16 = 0;
+    while (descriptors < virtio_ring.max_descriptor_count - 1) : (descriptors += 1) {
+        try ring.publishDescriptorChain(0);
+    }
+    _ = try summarizePrepareKick(&ring, 0);
+    try ring.recordUsedChains(0, virtio_ring.max_descriptor_count - 1);
+    _ = try summarizeUsedBufferPoll(&ring, 0);
+
+    var notification = try summarizeNotificationState(&ring, 0);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), notification.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), notification.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), notification.num_added);
+
+    try ring.publishDescriptorChain(0);
+    notification = try summarizeNotificationState(&ring, 0);
+    try std.testing.expectEqual(@as(u16, 0), notification.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), notification.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), notification.num_added);
+
+    _ = try summarizePrepareKick(&ring, 0);
+    try ring.recordUsedChains(0, 1);
+
+    var readiness = try summarizeResetReadiness(&ring, 0);
+    try std.testing.expectEqual(@as(u16, 0), readiness.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), readiness.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), readiness.pending_used_chain_count);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(readiness.blocker.?));
+    try std.testing.expect(queueNeedsResetPoll(readiness));
+
+    const poll = try summarizeUsedBufferPoll(&ring, 0);
+    try std.testing.expectEqual(@as(u16, 0), poll.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), poll.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
+    try std.testing.expect(poll.has_newly_used_chains);
+
+    readiness = try summarizeResetReadiness(&ring, 0);
+    try std.testing.expect(readiness.reset_ready);
+    try std.testing.expect(readiness.blocker == null);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
     try std.testing.expect(!queueNeedsResetPoll(readiness));
 }
 
