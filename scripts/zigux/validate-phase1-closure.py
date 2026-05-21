@@ -161,7 +161,7 @@ FORBIDDEN_MAKEFILE_MARKERS = (
 
 EXPECTED_FIND_BIT_REVIEW_ANCHORS = {
     "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
-    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
+    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
     "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families.",
 }
 
@@ -387,6 +387,17 @@ def make_fixture_tree(root: Path) -> None:
         make_checker_stub(root / checker_rel)
 
 
+def write_sample_root(destination: Path) -> None:
+    if destination.exists():
+        if not destination.is_dir():
+            raise SystemExit(f"sample-root path is not a directory: {destination}")
+        if any(destination.iterdir()):
+            raise SystemExit(f"sample-root directory must be empty: {destination}")
+    else:
+        destination.mkdir(parents=True)
+    make_fixture_tree(destination)
+
+
 def mutate_remove_review_key(root: Path, helper: str, key: str) -> None:
     manifest_path = root / MANIFEST_REL
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -456,10 +467,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run validator self-tests")
+    parser.add_argument(
+        "--write-sample-root",
+        help="write a current-like sample repository packet to an empty directory and exit",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root:
+        destination = Path(args.write_sample_root).resolve()
+        write_sample_root(destination)
+        print(f"PHASE1_CLOSURE_SAMPLE_ROOT={destination}")
+        print("PHASE1_CLOSURE_SAMPLE_ROOT_MODE=current-like-fixture")
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
