@@ -54,6 +54,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+LEGACY_IMPORT_MARKER = "from phase3_check_lib import run_from_wrapper"
+LEGACY_CALL_MARKER = "run_from_wrapper(__file__)"
 WRAPPER_STUB = \"\"\"#!/usr/bin/env python3
 from __future__ import annotations
 
@@ -69,10 +71,17 @@ def render_wrapper_stub() -> str:
     return WRAPPER_STUB
 
 
+def _is_generated_wrapper(path: Path, expected: str) -> bool:
+    text = path.read_text(encoding="utf-8")
+    return text == expected or (
+        LEGACY_IMPORT_MARKER in text and LEGACY_CALL_MARKER in text
+    )
+
+
 def sync_wrappers(entries, expected, check, scripts_dir):
     mismatches = []
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
-        if path.read_text(encoding="utf-8") == expected:
+        if _is_generated_wrapper(path, expected):
             mismatches.append(path.as_posix())
     return mismatches
 """
@@ -84,6 +93,18 @@ from phase3_check_lib import run_from_wrapper
 
 
 if __name__ == "__main__":
+    raise SystemExit(run_from_wrapper(__file__))
+"""
+
+    legacy_wrapper_text = """#!/usr/bin/env python3
+from __future__ import annotations
+
+import sys
+from phase3_check_lib import run_from_wrapper
+
+
+if __name__ == "__main__":
+    print(sys.version_info[0])
     raise SystemExit(run_from_wrapper(__file__))
 """
 
@@ -115,8 +136,19 @@ if __name__ == "__main__":
             print("expected stale wrapper template was not reported")
             return 1
 
+        _write(root / SCRIPTS_DIR / "check-phase3-shared-runner.py", legacy_wrapper_text)
+        issues = validate_repo(root)
+        expected_legacy_stale = (
+            "stale wrapper template: "
+            + str(root / SCRIPTS_DIR / "check-phase3-shared-runner.py")
+        )
+        if expected_legacy_stale not in issues:
+            print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=fail")
+            print("expected legacy shared-runner wrapper template was not reported")
+            return 1
+
     print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=pass")
-    print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
