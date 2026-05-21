@@ -338,6 +338,18 @@ test "nextArg preserves empty quoted values" {
     try std.testing.expectEqualStrings("", trailing.remaining);
 }
 
+test "nextArg preserves empty quoted values in fully quoted tokens" {
+    const parsed = nextArg("\"param=\" next") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("param", parsed.param);
+    try std.testing.expectEqualStrings("", parsed.value.?);
+    try std.testing.expectEqualStrings("next", parsed.remaining);
+
+    const trailing = nextArg("\"param=\"") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("param", trailing.param);
+    try std.testing.expectEqualStrings("", trailing.value.?);
+    try std.testing.expectEqualStrings("", trailing.remaining);
+}
+
 test "nextArg keeps unterminated quoted values aligned" {
     const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("mode", unterminated.param);
