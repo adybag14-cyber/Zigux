@@ -296,6 +296,8 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
 
     try module.init();
     const preview_replay = try module.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, preview_replay.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, preview_replay.stage_after_replay);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview_replay.snapshot_prefix[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview_replay.preview_total_visible);
@@ -327,6 +329,8 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(!module.usesWrappedStorageWindow());
 
     const wrapped_preview = try module.runWrappedPreviewReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrapped_preview.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrapped_preview.stage_after_replay);
     try std.testing.expectEqualSlices(u8, "hell", wrapped_preview.drained_prefix[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 200, 201, 202, 203 }, wrapped_preview.refill_values[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, wrapped_preview.snapshot_prefix[0..]);
@@ -357,6 +361,8 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(module.usesWrappedStorageWindow());
 
     const remaining_capacity = try module.runRemainingCapacityReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, remaining_capacity.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, remaining_capacity.stage_after_replay);
     try std.testing.expectEqualSlices(u8, &.{ 'e', 'l', 'l', 'o', 0, 1, 2, 3 }, remaining_capacity.drained_prefix[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), remaining_capacity.available_after_init);
     try std.testing.expectEqual(@as(usize, 27), remaining_capacity.available_after_hello);
