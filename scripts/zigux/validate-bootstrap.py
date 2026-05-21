@@ -18,8 +18,11 @@ REQUIRED_PATHS = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
+    "third_party/README.md",
     "zigux/tests/README.md",
     WORKFLOW,
 )
@@ -62,10 +65,21 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
 )
 
+THIRD_PARTY_README_MARKERS = (
+    "# Zigux third-party archives",
+    "Lane 05 bootstrap CI",
+    "`third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
+)
+
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
@@ -126,6 +140,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     docs_readme = read_text(root, "Documentation/zigux/README.md")
     freeze_map = read_text(root, "Documentation/zigux/freeze-map.md")
     scripts_readme = read_text(root, "scripts/zigux/README.md")
+    third_party_readme = read_text(root, "third_party/README.md")
     workflow = read_text(root, WORKFLOW)
 
     for marker in README_MARKERS:
@@ -146,6 +161,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in SCRIPTS_README_MARKERS:
         if marker not in scripts_readme:
             issues.append(("MISSING_SCRIPTS_README_MARKER", marker))
+    for marker in THIRD_PARTY_README_MARKERS:
+        if marker not in third_party_readme:
+            issues.append(("MISSING_THIRD_PARTY_README_MARKER", marker))
 
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow, marker)
@@ -267,8 +285,27 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(root, "scripts/zigux/check-zig-toolchain.py", "present\n")
     write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
+    write_text(
+        root,
+        "third_party/README.md",
+        "\n".join(
+            (
+                "# Zigux third-party archives",
+                "",
+                "This directory is reserved for trusted archive payloads that Lane 05 bootstrap CI",
+                "can validate locally before it falls back to network downloads.",
+                "",
+                "- Lane 05 bootstrap CI keeps the repo-local path explicit.",
+                "- `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
+                "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
+            )
+        )
+        + "\n",
+    )
     write_text(root, "zigux/tests/README.md", "present\n")
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
 
@@ -320,6 +357,15 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root,
+            "third_party/README.md",
+            read_text(root, "third_party/README.md").replace(THIRD_PARTY_README_MARKERS[2] + "\n", "", 1),
+        )
+        assert ("MISSING_THIRD_PARTY_README_MARKER", THIRD_PARTY_README_MARKERS[2]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
@@ -328,6 +374,19 @@ def run_self_test() -> int:
             ),
         )
         assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[-1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
+                REQUIRED_WORKFLOW_LINES[3],
+                "run: python3 scripts/zigux/missing-lane05-selftest.py",
+            ),
+        )
+        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[3]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -347,7 +406,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, toolchain, and workflow surfaces."
+        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, toolchain, local-archive, and workflow surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run built-in contract checks")
