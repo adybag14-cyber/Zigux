@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh mixed readback on 2026-05-20 confirmed these current sample-root files on `master`:
+Fresh mixed readback on 2026-05-21 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
@@ -44,8 +44,10 @@ Current `master` keeps the roadmap-backed `kobject` packet split explicit in thi
 
 Keep that kobject packet framed as the approved in-memory ownership-and-lifetime idiom for the Phase 5 anchor:
 
+* `runSingleInitBoundaryReplay()` keeps the one-time `init()` rule plus the `1/0/0` counter posture explicit before registration begins
 * `runPreRegistrationBoundaryReplay()` keeps the initialized-but-not-registered zero-active-attributes boundary explicit
-* `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited lifecycle cues explicit
+* `runRegistrationOwnershipReplay()` plus `runRegisteredBoundaryReplay()` keep the cold-to-initialized-to-registered handoff, duplicate-registration rejection, and the still-usable registered-stage foo roundtrip explicit
+* `runInputValidationReplay()` plus `ownershipSummary()` and sample-owned `runOwnershipReplay()` keep the shared `baz`/`bar` dispatch, parse-failure visibility, and the cold, initialized, registered, and exited lifecycle cues explicit
 * keep the initialized-only `abandoned_before_registration` exit split distinct from the registered `tore_down_registered_attributes` teardown path
 * keep sysfs file creation, `kernel_kobj` integration, uevents, and module registration out of scope
 
