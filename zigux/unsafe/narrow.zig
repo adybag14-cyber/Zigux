@@ -9,6 +9,12 @@ pub const Surface = enum {
     raw_pointer_bridge_only,
 };
 
+pub const AccessBoundary = enum {
+    typed_safe,
+    volatile_mmio_window,
+    raw_pointer_bridge,
+};
+
 pub const UnsafeScopeError = error{UnsafeScopeDenied};
 pub const RawPointerBridgeError = UnsafeScopeError || error{
     AddressOverflow,
@@ -46,8 +52,32 @@ pub fn recognizesByte(scope: u8) bool {
     return scopeFromByte(scope) != null;
 }
 
+pub fn accessBoundaryFor(scope: UnsafeScopeTag) AccessBoundary {
+    return switch (scope) {
+        .none => .typed_safe,
+        .volatile_mmio => .volatile_mmio_window,
+        .raw_pointer_bridge => .raw_pointer_bridge,
+    };
+}
+
+pub fn accessBoundaryFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?AccessBoundary {
+    return accessBoundaryFor(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return null);
+}
+
+pub fn accessBoundaryFromInteropPolicy(policy: abi.InteropPolicy) ?AccessBoundary {
+    return accessBoundaryFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn accessBoundaryFromByte(scope: u8) ?AccessBoundary {
+    return accessBoundaryFor(scopeFromByte(scope) orelse return null);
+}
+
+pub fn allowsTypedOnlyAccess(scope: UnsafeScopeTag) bool {
+    return accessBoundaryFor(scope) == .typed_safe;
+}
+
 pub fn permitsNoUnsafe(scope: UnsafeScopeTag) bool {
-    return scope == .none;
+    return allowsTypedOnlyAccess(scope);
 }
 
 pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
@@ -92,6 +122,18 @@ pub fn permitsVolatileMmioByte(scope: u8) bool {
 
 pub fn permitsRawPointerBridgeByte(scope: u8) bool {
     return scopeFromByte(scope) == .raw_pointer_bridge;
+}
+
+pub fn allowsTypedOnlyAccessPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .none;
+}
+
+pub fn allowsTypedOnlyAccessInteropPolicy(policy: abi.InteropPolicy) bool {
+    return scopeFromInteropPolicy(policy) == .none;
+}
+
+pub fn allowsTypedOnlyAccessByte(scope: u8) bool {
+    return scopeFromByte(scope) == .none;
 }
 
 pub fn requireNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {
@@ -317,6 +359,14 @@ pub fn writeValueAtByte(comptime T: type, address: usize, value: T, scope: u8) R
 }
 
 test "phase3 narrow unsafe scope bytes stay explicit" {
+    try std.testing.expectEqual(AccessBoundary.typed_safe, accessBoundaryFor(.none));
+    try std.testing.expectEqual(AccessBoundary.volatile_mmio_window, accessBoundaryFor(.volatile_mmio));
+    try std.testing.expectEqual(AccessBoundary.raw_pointer_bridge, accessBoundaryFor(.raw_pointer_bridge));
+
+    try std.testing.expect(allowsTypedOnlyAccess(.none));
+    try std.testing.expect(!allowsTypedOnlyAccess(.volatile_mmio));
+    try std.testing.expect(!allowsTypedOnlyAccess(.raw_pointer_bridge));
+
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromByte(0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromByte(1));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromByte(2));
@@ -343,6 +393,16 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromByte(1));
     try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromByte(2));
     try std.testing.expectEqual(@as(?Surface, null), surfaceFromByte(9));
+
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromByte(0));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromByte(1));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromByte(2));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromByte(9));
+
+    try std.testing.expect(allowsTypedOnlyAccessByte(0));
+    try std.testing.expect(!allowsTypedOnlyAccessByte(1));
+    try std.testing.expect(!allowsTypedOnlyAccessByte(2));
+    try std.testing.expect(!allowsTypedOnlyAccessByte(9));
 
     try std.testing.expect(!isUnsafeByte(0));
     try std.testing.expect(isUnsafeByte(1));
@@ -413,11 +473,23 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(reserved_policy));
 
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromInteropPolicy(none_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromInteropPolicy(mmio_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromInteropPolicy(raw_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(reserved_policy));
+
     try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(mmio_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(raw_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(unknown_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));
+
+    try std.testing.expect(allowsTypedOnlyAccessInteropPolicy(none_policy));
+    try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(mmio_policy));
+    try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(raw_policy));
+    try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(unknown_policy));
+    try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(reserved_policy));
 
     try std.testing.expect(!permitsVolatileMmioInteropPolicy(none_policy));
     try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));
