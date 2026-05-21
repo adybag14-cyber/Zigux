@@ -35,6 +35,7 @@ The Phase 12 roadmap requires DMA-safe abstractions, queueing correctness, throu
 The current bounded packet only proves reviewability for:
 
 - queue-pair planning and IO queue reservation sizing
+- recovery reservation replay preflight and queue-numbering restart review
 - PRP buffer-shape accounting and PRP metadata budgeting
 - reset freeze summaries and frozen queue-restore host-DMA budgeting
 - dropped-backlog retirement review
