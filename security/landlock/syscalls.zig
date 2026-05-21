@@ -622,6 +622,21 @@ test "landlock syscalls top-level wrapper keeps version query install planning n
     try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
 }
 
+test "landlock syscalls top-level wrapper ignores ruleset_fops for version query mode" {
+    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .ruleset_fops_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
+}
+
 test "landlock syscalls top-level wrapper threads ruleset fd install only for create path" {
     const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
         .input = .{
