@@ -136,8 +136,31 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectNotContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
+    try expectContains(sample_file,
+        \\pub const sample_review_focus = [_]SampleFocus{
+        \\    .descriptor_and_anchor,
+        \\    .summary_replay,
+        \\    .sparse_iteration,
+        \\    .parse_and_print,
+        \\    .range_mutation_and_copy,
+        \\    .selftest_lifecycle,
+        \\    .exit_lifecycle_and_guards,
+        \\    .top_bit_contract,
+        \\};
+    );
+    try expectContains(sample_file, "pub const sample_review_non_goals = [_][]const u8{");
+    try expectContains(sample_file,
+        \\pub const sample_review_non_goals = [_][]const u8{
+        \\    "loadable runtime bitmap module parity",
+        \\    "shared runtime-loader command-name or argv-policy controls",
+        \\    "real runtime execution through a live substrate",
+        \\    "full lib/test_bitmap.c parity beyond the bounded starter packet",
+        \\};
+    );
     try expectContains(sample_file, "\"loadable runtime bitmap module parity\",");
     try expectContains(sample_file, "\"shared runtime-loader command-name or argv-policy controls\",");
+    try expectContains(sample_file, "\"real runtime execution through a live substrate\",");
+    try expectContains(sample_file, "\"full lib/test_bitmap.c parity beyond the bounded starter packet\",");
     try expectContains(sample_file, ".top_bit_contract,");
     try expectContains(sample_file, "pub fn reviewContract() ReviewContract");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
