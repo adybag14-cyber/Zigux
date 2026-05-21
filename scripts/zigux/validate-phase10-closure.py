@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
@@ -191,6 +192,8 @@ EXPECTED_EXACT_CHECKS = [
 COMMANDS = [
     ["scripts/zigux/check-phase10-bootstrap-route.py", "--self-test"],
     ["scripts/zigux/check-phase10-bootstrap-route.py"],
+    ["scripts/zigux/check-phase10-shared-freeze-boundary.py", "--self-test"],
+    ["scripts/zigux/check-phase10-shared-freeze-boundary.py"],
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
 ]
@@ -369,6 +372,15 @@ def write_fixture(root: Path) -> None:
         "    print('PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass')\n"
         "    raise SystemExit(0)\n"
         "print('PHASE10_BOOTSTRAP_ROUTE_CHECK=pass')\n",
+    )
+    write_text(
+        root / "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "if '--self-test' in sys.argv[1:]:\n"
+        "    print('PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass')\n"
+        "    raise SystemExit(0)\n"
+        "print('PHASE10_SHARED_FREEZE_BOUNDARY=pass')\n",
     )
     write_text(
         root / "scripts/zigux/check-phase10-harness-coverage.py",
@@ -725,6 +737,23 @@ def run_self_test() -> int:
             "make:PHONY += phase10-validate phase10-test phase10",
             "phase10-closure-self-test",
         )
+        cases += 1
+        write_fixture(root)
+
+        shared_freeze = root / "scripts/zigux/check-phase10-shared-freeze-boundary.py"
+        shared_freeze.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        failures = run_required_commands(root)
+        if failures != ["scripts/zigux/check-phase10-shared-freeze-boundary.py"]:
+            actual = ",".join(failures) if failures else "none"
+            raise SystemExit(f"phase10-closure-self-test:failed_shared_freeze_command_not_detected:{actual}")
         cases += 1
         write_fixture(root)
 
