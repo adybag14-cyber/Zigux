@@ -14,6 +14,12 @@ from pathlib import Path
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 REQUIRED_STEP_NAME = "Run current Phase 11 HVC targetless-unregister gap witness"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+CLEANUP_COMPANION_PATH = "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md"
+CLEANUP_CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
+CLEANUP_SELF_TEST_COMMAND = "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test"
+CLEANUP_COMMAND = "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
+CLEANUP_SELF_TEST_STEP = "Self-test current Phase 11 HVC cleanup current-head checker"
+CLEANUP_STEP = "Check current Phase 11 HVC cleanup current-head packet"
 
 
 @dataclass(frozen=True)
@@ -25,8 +31,10 @@ class FileExpectation:
 REQUIRED_PACKET_FILES = (
     WORKFLOW_PATH,
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    CLEANUP_COMPANION_PATH,
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
+    CLEANUP_CHECKER_PATH,
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/validate-phase11.py",
     "zigux/Makefile",
@@ -46,6 +54,17 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         "Documentation/zigux/phase11-driver-lane-sequencing.md",
         (
+            CLEANUP_COMPANION_PATH,
+            CLEANUP_CHECKER_PATH,
+            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        ),
+    ),
+    FileExpectation(
+        CLEANUP_COMPANION_PATH,
+        (
+            CLEANUP_CHECKER_PATH,
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -54,6 +73,8 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
         (
+            CLEANUP_COMPANION_PATH,
+            CLEANUP_CHECKER_PATH,
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -63,6 +84,8 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         "Documentation/zigux/phase11-hvc-console-survey.md",
         (
+            CLEANUP_COMPANION_PATH,
+            CLEANUP_CHECKER_PATH,
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -70,10 +93,19 @@ FILE_EXPECTATIONS = (
         ),
     ),
     FileExpectation(
+        CLEANUP_CHECKER_PATH,
+        (
+            "check-phase11-hvc-targetless-unregister-witness.py",
+            "phase11_hvc_targetless_unregister_gap_build.zig",
+        ),
+    ),
+    FileExpectation(
         "scripts/zigux/validate-phase11.py",
         (
+            CLEANUP_CHECKER_PATH,
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            "phase11-hvc-cleanup-current-head",
             "phase11-hvc-targetless-unregister-gap-build",
         ),
     ),
@@ -128,10 +160,15 @@ def require_inventory(root: Path) -> None:
         ) from exc
 
     exact_current_checks = inventory.get("exact_current_checks")
-    if not isinstance(exact_current_checks, list) or REQUIRED_COMMAND not in exact_current_checks:
+    if not isinstance(exact_current_checks, list):
         raise ValidationError(
-            "phase11_build_inventory.json must keep the targetless-unregister witness build in exact_current_checks"
+            "phase11_build_inventory.json must keep exact_current_checks as a JSON array"
         )
+    for command in (CLEANUP_SELF_TEST_COMMAND, CLEANUP_COMMAND, REQUIRED_COMMAND):
+        if command not in exact_current_checks:
+            raise ValidationError(
+                f"phase11_build_inventory.json must keep {command!r} in exact_current_checks"
+            )
 
     workflow_steps = inventory.get("workflow_phase11_steps")
     if not isinstance(workflow_steps, list):
@@ -139,11 +176,16 @@ def require_inventory(root: Path) -> None:
             "phase11_build_inventory.json must keep workflow_phase11_steps as a JSON array"
         )
 
-    required_step = {"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND}
-    if required_step not in workflow_steps:
-        raise ValidationError(
-            "phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit"
-        )
+    required_steps = (
+        {"name": CLEANUP_SELF_TEST_STEP, "run": CLEANUP_SELF_TEST_COMMAND},
+        {"name": CLEANUP_STEP, "run": CLEANUP_COMMAND},
+        {"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND},
+    )
+    for required_step in required_steps:
+        if required_step not in workflow_steps:
+            raise ValidationError(
+                "phase11_build_inventory.json must keep the coupled cleanup and witness workflow steps explicit"
+            )
 
 
 def validate(root: Path) -> None:
@@ -170,6 +212,10 @@ def make_fixture(root: Path) -> None:
                 "jobs:",
                 "  bootstrap:",
                 "    steps:",
+                f"      - name: {CLEANUP_SELF_TEST_STEP}",
+                f"        run: {CLEANUP_SELF_TEST_COMMAND}",
+                f"      - name: {CLEANUP_STEP}",
+                f"        run: {CLEANUP_COMMAND}",
                 f"      - name: {REQUIRED_STEP_NAME}",
                 f"        run: {REQUIRED_COMMAND}",
             )
@@ -182,6 +228,22 @@ def make_fixture(root: Path) -> None:
         "\n".join(
             (
                 "# sequencing",
+                CLEANUP_COMPANION_PATH,
+                CLEANUP_CHECKER_PATH,
+                "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+                "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        CLEANUP_COMPANION_PATH,
+        "\n".join(
+            (
+                "# companion",
+                CLEANUP_CHECKER_PATH,
                 "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -195,6 +257,8 @@ def make_fixture(root: Path) -> None:
         "\n".join(
             (
                 "# matrix",
+                CLEANUP_COMPANION_PATH,
+                CLEANUP_CHECKER_PATH,
                 "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -209,6 +273,8 @@ def make_fixture(root: Path) -> None:
         "\n".join(
             (
                 "# survey",
+                CLEANUP_COMPANION_PATH,
+                CLEANUP_CHECKER_PATH,
                 "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -219,12 +285,27 @@ def make_fixture(root: Path) -> None:
     )
     write_text(
         root,
+        CLEANUP_CHECKER_PATH,
+        "\n".join(
+            (
+                "# cleanup checker",
+                "check-phase11-hvc-targetless-unregister-witness.py",
+                "phase11_hvc_targetless_unregister_gap_build.zig",
+                "PHASE11_HVC_CLEANUP_CURRENT_HEAD=pass",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         "scripts/zigux/validate-phase11.py",
         "\n".join(
             (
                 "# validate",
+                CLEANUP_CHECKER_PATH,
                 "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
                 "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                "phase11-hvc-cleanup-current-head",
                 "phase11-hvc-targetless-unregister-gap-build",
             )
         )
@@ -244,8 +325,16 @@ def make_fixture(root: Path) -> None:
     write_text(root, "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "# self\n")
 
     inventory = {
-        "exact_current_checks": [REQUIRED_COMMAND],
-        "workflow_phase11_steps": [{"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND}],
+        "exact_current_checks": [
+            CLEANUP_SELF_TEST_COMMAND,
+            CLEANUP_COMMAND,
+            REQUIRED_COMMAND,
+        ],
+        "workflow_phase11_steps": [
+            {"name": CLEANUP_SELF_TEST_STEP, "run": CLEANUP_SELF_TEST_COMMAND},
+            {"name": CLEANUP_STEP, "run": CLEANUP_COMMAND},
+            {"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND},
+        ],
     }
     write_text(
         root,
@@ -272,6 +361,16 @@ def run_self_test() -> int:
             raise AssertionError("expected lane sequencing fragment check to fail")
 
         make_fixture(temp_dir)
+        companion = temp_dir / CLEANUP_COMPANION_PATH
+        companion.write_text("# companion\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected cleanup companion fragment check to fail")
+
+        make_fixture(temp_dir)
         matrix = temp_dir / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
         matrix.write_text("# matrix\n", encoding="utf-8")
         try:
@@ -292,6 +391,16 @@ def run_self_test() -> int:
             raise AssertionError("expected survey fragment check to fail")
 
         make_fixture(temp_dir)
+        cleanup_checker = temp_dir / CLEANUP_CHECKER_PATH
+        cleanup_checker.write_text("# cleanup checker\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected cleanup checker required-file validation to keep failing via coupled fragments")
+
+        make_fixture(temp_dir)
         workflow = temp_dir / WORKFLOW_PATH
         workflow.write_text("jobs:\n  bootstrap:\n    steps:\n", encoding="utf-8")
         try:
@@ -304,7 +413,7 @@ def run_self_test() -> int:
         make_fixture(temp_dir)
         inventory_path = temp_dir / "zigux/tests/fixtures/phase11_build_inventory.json"
         inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
-        inventory["exact_current_checks"] = []
+        inventory["exact_current_checks"] = [REQUIRED_COMMAND]
         inventory_path.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         try:
             validate(temp_dir)
@@ -312,6 +421,17 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected inventory exact_current_checks validation to fail")
+
+        make_fixture(temp_dir)
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+        inventory["workflow_phase11_steps"] = [{"name": REQUIRED_STEP_NAME, "run": REQUIRED_COMMAND}]
+        inventory_path.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected inventory workflow step validation to fail")
 
         make_fixture(temp_dir)
         validate_script = temp_dir / "scripts/zigux/validate-phase11.py"
