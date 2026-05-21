@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L17",
   "phase": "Phase 12",
-  "surveyed_commit": "7f9b8703b96d4de67447791a88584023950b1de7",
+  "surveyed_commit": "054a0568393fe573889cc8336d3328fd6153c0ab",
   "tracked_file_count": 1,
   "tracked_paths": [
     "tools/lib/bpf/zigux_segments/pin_path.zig"
@@ -13,13 +13,13 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-20T19:01:00Z",
+    "checked_at_utc": "2026-05-21T19:24:29Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
-      "blob_sha": "f053b309655901f6f42f05cc734b8ca52689dfdf",
-      "modified_at_utc": "2026-05-20T19:01:00Z",
-      "self_test_case_count": 24
+      "blob_sha": "44af0de3d192ab22f29fbfd7978a4f3fa815cef0",
+      "modified_at_utc": "2026-05-21T18:54:51Z",
+      "self_test_case_count": 28
     },
     "current_helper_blob": {
       "path": "tools/lib/bpf/zigux_segments/pin_path.zig",
