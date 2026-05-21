@@ -4,11 +4,11 @@
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
 - `PHASE9_LANE_KEY=P9-L02`
-- `PHASE9_SURVEYED_COMMIT=2026-05-20-first-loadable-parity-partial-readback`
+- `PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-bitmap-manifest-readback`
 - scope: cross-family repo-reality survey for the bounded atomic64 and bitmap runtime pilot packets only
 
 ## Current Repo Reality
-Trusted current-tree reads on 2026-05-20 show a mixed partial Phase 9 pilot picture rather than either of the older extremes.
+Trusted current-tree reads on 2026-05-21 show a mixed partial Phase 9 pilot picture rather than either of the older extremes.
 
 These atomic64-facing surfaces are directly readable on current `master`:
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
@@ -28,13 +28,13 @@ These bitmap-facing surfaces are directly readable on current `master`:
 - `samples/zigux/runtime_bitmap.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
 - `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- `zigux/tests/runtime_bitmap_manifest.json`
 - `zigux/tests/runtime_bitmap_survey.zig`
 - `zigux/tests/phase9_build.zig`
 
 These bitmap-facing surfaces are not directly readable on the same trusted path:
 - `zigux/tests/runtime_bitmap_module.zig`
 - `zigux/tests/runtime_bitmap_diff.zig`
-- `zigux/tests/runtime_bitmap_manifest.json`
 
 The broader shared runtime-loader substrate is also still absent on the trusted read path:
 - `zigux/kernel/runtime_loader.zig`
@@ -45,7 +45,7 @@ The Phase 9 roadmap target is still `first loadable Zigux runtime modules with s
 
 Current `master` does not yet materialize that target as a coherent cross-family packet:
 - the atomic64 side still exposes only a partial trusted-path packet around module and diff evidence plus family-local notes
-- the bitmap side still exposes only a partial trusted-path packet around the direct sample, loader, top-bit companion, survey gate, and bounded build bundle
+- the bitmap side still exposes only a partial trusted-path packet around the direct sample, loader, top-bit companion, manifest-backed ownership packet, survey gate, and bounded build bundle
 - the shared runtime-loader substrate remains absent on the trusted path
 - the shared `zigux/tests/phase9_build.zig` bundle still proves `phase9-runtime-atomic64-diff`, the build-local `phase9-runtime-atomic64-sample-tests` route name, the bounded bitmap sample, loader, survey, and top-bit routes, the build-local `phase9-runtime-loader-shared-tests` route name, and the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle; because the atomic64 direct sample, loader, survey, and manifest plus the shared runtime-loader substrate files still remain absent on the same trusted path, those sample-test and loader-shared route names are reminder vocabulary rather than proof that the underlying packet returned
 
