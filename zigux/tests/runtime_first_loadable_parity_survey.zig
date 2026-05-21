@@ -65,6 +65,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(parity_note, "manifest-backed ownership packet");
     try expectContains(parity_note, "phase9-runtime-atomic64-diff");
+    try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-module-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
     try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
@@ -110,7 +111,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "\"Run the Phase 9 first-loadable runtime-module parity survey tests.\"");
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-loader-tests\"") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-module-tests\"") == null);
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-survey-tests\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-bitmap-module-tests\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-bitmap-diff-tests\"") == null);
