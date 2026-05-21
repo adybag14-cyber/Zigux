@@ -11,10 +11,12 @@
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
+    "zigux/tests/phase7_build.zig",
     "zigux/Makefile",
     "lib/string_helpers.zig",
     "lib/cmdline.zig",
-    "lib/argv_split.zig"
+    "lib/argv_split.zig",
+    "lib/rbtree.zig"
   ],
   "roadmap_anchors": [
     "lib/string_helpers.c",
@@ -56,17 +58,50 @@
         "pub const ArgvSplitResult",
         "pub fn argvSplit"
       ]
+    },
+    {
+      "key": "rbtree",
+      "zig_helper": "lib/rbtree.zig",
+      "expected_markers": [
+        "pub const Node = struct",
+        "pub const RootCached = struct",
+        "pub fn add(",
+        "pub fn rb_find_add_cached("
+      ]
+    }
+  ],
+  "current_build_wiring_evidence": [
+    {
+      "path": "zigux/tests/phase7_build.zig",
+      "expected_markers": [
+        "../../lib/string_helpers.zig",
+        "../../lib/cmdline.zig",
+        "../../lib/argv_split.zig",
+        "../../lib/rbtree.zig",
+        "phase7-string-helpers-test",
+        "phase7-cmdline-test",
+        "phase7-argv-split-test",
+        "phase7-rbtree-test",
+        "phase7-rbtree-survey"
+      ]
+    },
+    {
+      "path": "zigux/Makefile",
+      "expected_markers": [
+        "phase7-validate:",
+        "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+        "$(PYTHON) scripts/zigux/validate-phase7.py"
+      ]
     }
   ],
   "current_replay_inventory": [
     "python3 scripts/zigux/check-phase7-shared-surface.py",
     "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
+    "python3 scripts/zigux/check-phase7-build-wiring.py",
+    "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate"
   ],
-  "current_repo_reality_gaps": [
-    "lib/rbtree.zig",
-    "zigux/tests/phase7_build.zig"
-  ]
+  "current_repo_reality_gaps": []
 }
