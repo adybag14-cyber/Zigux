@@ -14,6 +14,7 @@ REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 REPO_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 PINS_CHECKER = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
 VALIDATOR_REPLAYS = Path("scripts/zigux/check-phase4-artifact-diff-validator-replays.py")
+VALIDATOR = Path("scripts/zigux/validate-phase4.py")
 DIRECT_HELPER = Path("scripts/zigux/artifact_diff.py")
 CONTRACT_CHECKER = Path("scripts/zigux/check-artifact-diff-contract.py")
 SELF_PATH = Path("scripts/zigux/check-phase4-artifact-diff-determinism.py")
@@ -26,13 +27,13 @@ CURRENT_DIRECT_PACKET = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "scripts/zigux/validate-phase4.py",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
 )
 
 AUTH_MISSING_BROADER_COMPANIONS = (
     "Documentation/zigux/artifact-diff.md",
-    "scripts/zigux/validate-phase4.py",
 )
 
 EXPECTED_SELF_TEST_CASES = (
@@ -49,16 +50,17 @@ EXPECTED_SELF_TEST_CASES = (
 )
 
 SURVEY_MARKERS = (
-    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_direct_readback_ahead_of_contract_checker_but_broader_note_and_validator_packet_still_partial_on_current_master",
-    "current direct-readback helper-and-contract packet:",
-    "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
-    "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
+    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_contract_and_validator_direct_readback_aligned_but_broader_note_still_partial_on_current_master",
+    "current direct-readback helper-contract-and-validator packet:",
+    "authenticated contents reads on current `master` still return missing for this broader artifact-diff companion:",
+    "`scripts/zigux/check-artifact-diff-contract.py` is directly readable again on current `master` and now exact-publishes the matching helper replay plus the 25-base-case / 30-case bytes-aware contract packet",
+    "`scripts/zigux/validate-phase4.py` is directly readable again on current `master` and keeps the current artifact-diff helper, contract, determinism, and validator-replay checks explicit inside the shared Phase 4 validator packet.",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_HELPER_SELF_TEST_CASE_COUNT=21`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_HELPER_SELF_TEST_CASE_COUNT=23`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=24`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=25`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
-    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=29`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
     ".github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps",
 )
 
@@ -111,34 +113,13 @@ HELPER_EXPECTED_SELF_TEST_CASES = (
     "extra_positional_rejected",
 )
 
-CONTRACT_HELPER_SELF_TEST_CASES = (
-    "text_pass",
-    "text_mismatch",
-    "json_pass",
-    "json_mismatch",
-    "json_invalid_expected",
-    "json_invalid_actual",
-    "json_invalid_both",
-    "json_missing_expected",
-    "json_missing_actual",
-    "json_missing_both",
-    "bytes_pass",
-    "bytes_drift",
-    "text_missing_expected",
-    "text_missing_actual",
-    "text_missing_both",
-    "bytes_missing_expected",
-    "bytes_missing_actual",
-    "bytes_missing_both",
-    "legacy_sha256_alias",
-    "invalid_mode_rejected",
-    "extra_positional_rejected",
-)
+CONTRACT_HELPER_SELF_TEST_CASES = HELPER_EXPECTED_SELF_TEST_CASES
 
 CONTRACT_BASE_CASES = (
     "helper_self_test",
     "cli_help_output",
     "cli_missing_required_args",
+    "cli_missing_mode_value",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
     "cli_extra_positional_args",
@@ -261,10 +242,10 @@ def require_current_helper_contract(text: str) -> None:
 def require_current_contract_checker(text: str) -> None:
     helper_cases = tuple(extract_literal_assignment(text, "HELPER_SELF_TEST_CASES", CONTRACT_CHECKER.as_posix()))
     if helper_cases != CONTRACT_HELPER_SELF_TEST_CASES:
-        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 21-case helper replay catalog")
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 23-case helper replay catalog")
     base_cases = tuple(extract_literal_assignment(text, "BASE_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if base_cases != CONTRACT_BASE_CASES:
-        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case base contract catalog")
+        raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 25-case base contract catalog")
     repeat_cases = tuple(extract_literal_assignment(text, "REPEAT_CONTRACT_CASES", CONTRACT_CHECKER.as_posix()))
     if repeat_cases != CONTRACT_REPEAT_CASES:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 5-case repeat contract catalog")
@@ -344,6 +325,7 @@ def fixture_root(root: Path) -> None:
     write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
     write(root / VALIDATOR_REPLAYS, "# validator replay placeholder\n")
+    write(root / VALIDATOR, "# validator placeholder\n")
     write(root / DIRECT_HELPER, helper_fixture_text())
     write(root / CONTRACT_CHECKER, contract_fixture_text())
     write(root / SELF_PATH, "# current checker\n")
@@ -367,7 +349,7 @@ def self_test() -> None:
         covered.append("round_trip")
 
         fixture_root(root)
-        write(root / SURVEY, read(root, SURVEY).replace("current direct-readback helper-and-contract packet", "current helper-and-contract packet", 1))
+        write(root / SURVEY, read(root, SURVEY).replace("current direct-readback helper-contract-and-validator packet", "current helper-contract-and-validator packet", 1))
         covered.append(expect_failure(root, "survey_marker_drift"))
 
         fixture_root(root)
@@ -399,7 +381,7 @@ def self_test() -> None:
         covered.append(expect_failure(root, "contract_catalog_drift"))
 
         fixture_root(root)
-        (root / VALIDATOR_REPLAYS).unlink()
+        (root / VALIDATOR).unlink()
         covered.append(expect_failure(root, "direct_packet_missing"))
 
     if tuple(covered) != EXPECTED_SELF_TEST_CASES:
