@@ -120,10 +120,15 @@ EXPECTED_FD_TRAILING_ZIG_MARKERS = {
 EXPECTED_FD_EXACT_CURSOR_ZIG_MARKERS = {
     "fd_exact_cursor_empty": 'test "fd-backed exact empty input leaves the cursor at zero" {',
     "fd_exact_cursor_truncated": 'test "fd-backed exact truncated input leaves the cursor at the truncated byte count" {',
+    "fd_exact_cursor_near_full": 'test "fd-backed one-byte-short input leaves the cursor at fifteen bytes" {',
     "fd_exact_cursor_elf32": 'test "fd-backed exact 32-bit ELF input leaves the cursor at the full header" {',
+    "fd_exact_cursor_elf32_trailing": 'test "fd-backed exact 32-bit ELF input with trailing bytes still leaves the cursor at the full header" {',
     "fd_exact_cursor_elf64": 'test "fd-backed exact 64-bit ELF input leaves the cursor at the full header" {',
+    "fd_exact_cursor_elf64_trailing": 'test "fd-backed exact 64-bit ELF input with trailing bytes still leaves the cursor at the full header" {',
     "fd_exact_cursor_invalid_class": 'test "fd-backed exact invalid-class input leaves the cursor at the full header" {',
+    "fd_exact_cursor_invalid_class_trailing": 'test "fd-backed exact invalid-class input with trailing bytes still leaves the cursor at the full header" {',
     "fd_exact_cursor_not_elf": 'test "fd-backed exact non-ELF input leaves the cursor at the full header" {',
+    "fd_exact_cursor_not_elf_trailing": 'test "fd-backed exact non-ELF input with trailing bytes still leaves the cursor at the full header" {',
 }
 EXPECTED_WORKFLOW_LINES = (
     "      - name: Self-test current Phase 2 mk_elfconfig checker",
