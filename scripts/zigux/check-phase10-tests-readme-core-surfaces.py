@@ -56,6 +56,12 @@ TESTS_ROOT_REQUIRED_MARKERS = (
     "Keep the returned checker-backed build gate explicit through `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/tests/phase10_build.zig`",
     "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.",
     "Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.",
+    "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
+    "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_registration_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
+    "queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here",
+    "without widening into input registration lifecycle closure, transport callbacks, IRQ delivery, or DMA behavior",
 )
 
 SCRIPTS_ROOT_REQUIRED_MARKERS = (
@@ -143,6 +149,10 @@ Keep the returned checker-backed build gate explicit through `scripts/zigux/chec
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.
 
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
+
+Keep the bounded input packet explicit too through `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `zigux/tests/phase10_virtio_input_manifest.json`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` so the tests-root reminder stays aligned with the same bounded input packet already carried by the survey, slice, module-slice, checker, closure manifest, and shared build gate instead of collapsing it back into core-only closure wording.
+
+Keep the queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here so the current tests-root packet still records queue-readiness ordering, registration blockers, in-memory status reclamation, and teardown-reset parity without widening into input registration lifecycle closure, transport callbacks, IRQ delivery, or DMA behavior.
 """
     good_scripts_root = """# scripts/zigux
 
@@ -194,6 +204,18 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
         assert "tests-root-readme" in str(exc)
     else:
         raise AssertionError("expected tests-root build gate failure")
+
+    bad_tests_root_input = good_tests_root.replace(
+        "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
+        "`drivers/virtio/virtio_input_queue_callback_preflight_missing.zig`",
+        1,
+    )
+    try:
+        check_tests_root_readme(bad_tests_root_input)
+    except SystemExit as exc:
+        assert "tests-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected tests-root input packet marker failure")
 
     missing_tests_root_checker = good_tests_root.replace(
         "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -280,7 +302,7 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
