@@ -141,6 +141,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(samples_readme, "* `*rbtree*`");
     try expectContains(samples_readme, "* `*kasprintf*`");
     try expectContains(samples_readme, "* `*strarray*`");
+    try expectContains(samples_readme, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
