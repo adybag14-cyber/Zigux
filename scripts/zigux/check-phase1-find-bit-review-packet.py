@@ -104,14 +104,15 @@ EXPECTED_CLOSURE_PARAGRAPH = (
     "`tools/lib/find_bit.zig` parked unless a fresh reread finds drift in the manifest-backed same-word "
     "start-mask, head-word or tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-`nbits`, "
     "`clump8`, `getValue8()`, `findLastBit()`, underscore-alias, Linux-style alias, or tail-word skip anchors, "
-    "or drift in the already-committed tail-clamped replay fields, and do not reopen older validator-first cues or "
+    "or drift in the already-committed tail-clamped or tail-inclusive-boundary replay fields, and do not reopen older validator-first cues or "
     "neighboring helper families by default. Current `master` still keeps the helper-local byte-clump, backward-scan, "
     "alias, and shipped `find_*andnot*` entry-point packet directly in `tools/lib/find_bit.zig`, and the manifest-backed "
-    "review surface together with `Documentation/zigux/phase1-host-helper-lane-sequencing.md` and "
-    "`scripts/zigux/check-phase1-find-bit-review-packet.py` keep that helper-local progress review-visible beside the "
-    "narrower closure validator. Current `master` also now spells the lead direct anchor as `find first and next set "
-    "bits across words, with andnot gaps explicit` and names the underscore and Linux-style alias anchors `including "
-    "andnot`, so leave `find_bit` parked unless one of those direct anchors or committed replay fields drifts."
+    "review surface together with `Documentation/zigux/phase1-host-helper-lane-sequencing.md` keep that helper-local "
+    "progress review-visible beside the narrower closure validator. That direct packet now also includes the explicit "
+    "`clump8 past-end scans return without reading bitmap words` no-read anchor, so the byte-clump coverage is not "
+    "limited to in-range or zero-bit windows. Current `master` also now spells the lead direct anchor as `find first "
+    "and next set bits across words, with andnot gaps explicit` and names the underscore and Linux-style alias anchors "
+    "`including andnot`, so leave `find_bit` parked unless one of those direct anchors or committed replay fields drifts."
 )
 
 EXPECTED_CLOSURE_NO_READ_SENTENCE = (
@@ -274,7 +275,7 @@ def build_sample_repo(root: Path) -> None:
     write_text(
         root,
         CLOSURE_NOTE_REL,
-        "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n" + EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
+        "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n",
     )
     write_text(
         root,
@@ -294,14 +295,14 @@ def run_self_test() -> int:
         ("missing_direct_owner_line", "lane_line:- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`:expected=1:actual=0"),
         ("missing_next_safe_step_line", "lane_line:- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families`:expected=1:actual=0"),
         ("missing_symbol", "helper_symbol:pub fn findLastBit(addr: []const Word, nbits: usize) usize {:expected=1:actual=0"),
-        ("missing_anchor", "helper_anchor:test \"clump8 scans mask tail bits beyond nbits\":expected=1:actual=0"),
+        ("missing_anchor", "helper_anchor:test \\\"clump8 scans mask tail bits beyond nbits\\\":expected=1:actual=0"),
         ("missing_closure_paragraph", "closure_paragraph:expected=1:actual=0"),
         ("missing_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=0"),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
         ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
         ("tail_boundary_fixture_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
-        ("duplicate_anchor", "helper_anchor:test \"clump8 scans mask tail bits beyond nbits\":expected=1:actual=2"),
-        ("duplicate_source_only_anchor", "helper_source_only_anchor:test \"clump8 past-end scans return without reading bitmap words\":expected=1:actual=2"),
+        ("duplicate_anchor", "helper_anchor:test \\\"clump8 scans mask tail bits beyond nbits\\\":expected=1:actual=2"),
+        ("duplicate_source_only_anchor", "helper_source_only_anchor:test \\\"clump8 past-end scans return without reading bitmap words\\\":expected=1:actual=2"),
         ("duplicate_lane_paragraph", "lane_paragraph:expected=1:actual=2"),
         ("duplicate_closure_paragraph", "closure_paragraph:expected=1:actual=2"),
         ("duplicate_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=2"),
@@ -346,7 +347,7 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-review:self-test:missing_closure_paragraph")
 
         build_sample_repo(tmp_root)
-        closure_text = load_text(tmp_root, CLOSURE_NOTE_REL).replace(EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n", "", 1)
+        closure_text = load_text(tmp_root, CLOSURE_NOTE_REL).replace(EXPECTED_CLOSURE_NO_READ_SENTENCE, "", 1)
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
         if cases[6][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_closure_no_read_sentence")
@@ -413,8 +414,8 @@ def run_self_test() -> int:
         build_sample_repo(tmp_root)
         closure_text = load_text(tmp_root, CLOSURE_NOTE_REL)
         closure_text = closure_text.replace(
-            EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
-            EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n" + EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
+            EXPECTED_CLOSURE_NO_READ_SENTENCE,
+            EXPECTED_CLOSURE_NO_READ_SENTENCE + " " + EXPECTED_CLOSURE_NO_READ_SENTENCE,
             1,
         )
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
