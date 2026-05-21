@@ -131,17 +131,17 @@ Use the shared docs to preserve these bounded cues:
 
 ## Ownership and lifetime posture
 
-The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback directly returned the survey note, sample root, focused test, and manifest-backed contract again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` still need public-tree fallback in this runtime.
+The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback in this runtime directly returned only `zigux/tests/phase5_kobject_example.zig`, while fresh public current-`master` GitHub file readback still kept `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` visible beside that focused replay.
 
-Authenticated contents readback now directly returns these kobject packet members:
+Authenticated contents readback now directly returns this kobject packet member:
 
-* `Documentation/zigux/phase5-kobject-sample-survey.md`
-* `samples/zigux/kobject_example.zig`
 * `zigux/tests/phase5_kobject_example.zig`
-* `zigux/tests/phase5_kobject_example_manifest.json`
 
 Fresh public current-`master` fallback still carries these companion paths:
 
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `samples/zigux/kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
 * `zigux/tests/phase5_kobject_example_survey.zig`
 * `zigux/tests/phase5_build.zig`
 
@@ -150,7 +150,7 @@ Keep shared contributor guidance honest about that split instead of flattening t
 Use the shared docs to preserve these bounded cues while that mixed packet remains in place:
 
 * Phase 5 still owns the roadmap-backed `samples/kobject/kobject-example.c` anchor
-* `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence
+* `zigux/tests/phase5_kobject_example.zig` is current direct focused-test evidence again, while `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence
 * the lane still stays non-runtime and should not widen into sysfs creation, `kernel_kobj` integration, uevents, or module-registration claims
 * same-lane follow-through should repair one shared reminder surface at a time instead of recreating missing sample-local ownership checklists from historical wording alone
 
@@ -158,15 +158,15 @@ Use the shared docs to preserve these bounded cues while that mixed packet remai
 
 When shared contributor guidance needs the current kobject packet, keep this mixed direct-plus-public-tree-backed packet explicit.
 
-The directly readable packet members are:
+The directly readable packet member is:
 
-* `Documentation/zigux/phase5-kobject-sample-survey.md`
-* `samples/zigux/kobject_example.zig`
 * `zigux/tests/phase5_kobject_example.zig`
-* `zigux/tests/phase5_kobject_example_manifest.json`
 
 The current public-tree-backed companions are:
 
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `samples/zigux/kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
 * `zigux/tests/phase5_kobject_example_survey.zig`
 * `zigux/tests/phase5_build.zig`
 
@@ -212,7 +212,7 @@ Avoid:
 * treating the restored direct bytestream sample-plus-tests packet as permission to promote the shared `zigux/tests/phase5_build.zig` route into direct authenticated proof
 * treating the narrower trace-events packet as either fully absent or fully direct authenticated sample proof when current `master` still keeps the bounded formatting companion direct, the older broader sample-local companion paths missing from authenticated contents reread, and the shared `zigux/tests/phase5_build.zig` route in support-material posture
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has repo-reality-gap or historical-support wording for that shared build route
-* treating the whole `kobject` packet as fully direct authenticated proof when current rereads still leave `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` in the public-tree-backed companion bucket
+* treating the whole `kobject` packet as fully direct authenticated proof when current rereads still leave `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` in the public-tree-backed companion bucket and only `zigux/tests/phase5_kobject_example.zig` on the direct authenticated path
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, ring-buffer, or other runtime-substrate claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
