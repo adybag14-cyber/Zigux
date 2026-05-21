@@ -41,6 +41,7 @@
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "zigux/tests/build.zig",
+    "zigux/tests/README.md",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -51,7 +52,8 @@
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
-    "zigux/tests/phase3_low_level_wrappers_build.zig"
+    "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zigux/Makefile"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
@@ -71,7 +73,8 @@
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
-    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "make -C zigux phase3-low-level-wrappers-test"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again"
