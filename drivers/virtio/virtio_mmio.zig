@@ -43,6 +43,21 @@ pub const ConfigWriteDispositionSummary = struct {
     has_changes: bool,
 };
 
+pub const ConfigWriteApplyObservationSummary = struct {
+    anchor: []const u8,
+    relative_offset: u32,
+    absolute_offset: u32,
+    relative_end_offset: u32,
+    absolute_end_offset: u32,
+    previous_value: u32,
+    planned_value: u32,
+    config_generation: u32,
+    touched_byte_mask: u4,
+    changed_byte_mask: u4,
+    changed_byte_count: u3,
+    applies_changes: bool,
+};
+
 pub const ConfigWritePlanAvailability = enum {
     unavailable,
     fresh,
@@ -268,6 +283,24 @@ pub const VirtioMmioLab = struct {
             .config_generation = plan.config_generation,
             .changed_byte_mask = changed_byte_mask,
             .has_changes = changed_byte_mask != 0,
+        };
+    }
+
+    pub fn configWriteApplyObservationSummary(self: *const Self) !ConfigWriteApplyObservationSummary {
+        const disposition = try self.configWriteDispositionSummary();
+        return .{
+            .anchor = disposition.anchor,
+            .relative_offset = disposition.relative_offset,
+            .absolute_offset = disposition.absolute_offset,
+            .relative_end_offset = disposition.relative_end_offset,
+            .absolute_end_offset = disposition.absolute_end_offset,
+            .previous_value = disposition.previous_value,
+            .planned_value = disposition.planned_value,
+            .config_generation = disposition.config_generation,
+            .touched_byte_mask = 0b1111,
+            .changed_byte_mask = disposition.changed_byte_mask,
+            .changed_byte_count = @as(u3, @popCount(disposition.changed_byte_mask)),
+            .applies_changes = disposition.has_changes,
         };
     }
 
@@ -777,4 +810,37 @@ test "phase10 virtio mmio disposition reports byte-level deltas without mutating
     try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
     try std.testing.expect(!no_op.has_changes);
     try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+}
+
+test "phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes" {
+    var device = try VirtioMmioLab.init(99, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+    const before = device.config_bytes;
+
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0203_0907);
+    const changed = try device.configWriteApplyObservationSummary();
+    try std.testing.expectEqualStrings(anchor_path, changed.anchor);
+    try std.testing.expectEqual(@as(u32, 4), changed.relative_offset);
+    try std.testing.expectEqual(@as(u32, mmio_window_bytes + 4), changed.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 7), changed.relative_end_offset);
+    try std.testing.expectEqual(@as(u32, mmio_window_bytes + 7), changed.absolute_end_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), changed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0907), changed.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), changed.config_generation);
+    try std.testing.expectEqual(@as(u4, 0b1111), changed.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0b0011), changed.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 2), changed.changed_byte_count);
+    try std.testing.expect(changed.applies_changes);
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0203_0405);
+    const no_op = try device.configWriteApplyObservationSummary();
+    try std.testing.expectEqual(@as(u4, 0b1111), no_op.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 0), no_op.changed_byte_count);
+    try std.testing.expect(!no_op.applies_changes);
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteApplyObservationSummary());
 }
