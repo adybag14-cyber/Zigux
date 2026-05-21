@@ -124,6 +124,27 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype case normalization preserves hex digits and documents latin1 uppercase collapse" {
+    try std.testing.expect(islower(0xDF));
+    try std.testing.expectEqual(@as(u8, 0xBF), toupper(0xDF));
+    try std.testing.expect(ispunct(toupper(0xDF)));
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const lowered = tolower(byte);
+        const uppered = toupper(byte);
+
+        try std.testing.expectEqual(isalpha(byte), isalpha(lowered));
+        if (byte != 0xDF) {
+            try std.testing.expectEqual(isalpha(byte), isalpha(uppered));
+        }
+        try std.testing.expectEqual(isxdigit(byte), isxdigit(lowered));
+        try std.testing.expectEqual(isxdigit(byte), isxdigit(uppered));
+        try std.testing.expectEqual(uppered, toupper(lowered));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
