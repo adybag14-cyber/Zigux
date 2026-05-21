@@ -68,6 +68,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+    "run: make -C zigux phase6-validate",
+    "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
 )
