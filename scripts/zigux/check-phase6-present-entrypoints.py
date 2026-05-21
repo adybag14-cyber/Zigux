@@ -21,13 +21,14 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-20"
-EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-20"
+EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-21"
+EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-21"
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -41,16 +42,14 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
-EXPECTED_PUBLIC_TREE_COMPANIONS = [
-    "Documentation/zigux/phase6-perf-gate-survey.md",
-]
+EXPECTED_PUBLIC_TREE_COMPANIONS = []
 EXPECTED_DOCS_README_SNIPPETS = [
     "authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, while `Documentation/zigux/phase6-perf-gate-survey.md` still needs public-tree fallback in this runtime, so keep the helper-parity catalog inside the current docs-root evidence packet and keep the broader perf-note surface framed as public-tree-backed companion evidence rather than direct docs-root proof until a fresh authenticated reread recovers that note too.",
     "current `master` directly serves the four roadmap-backed helper anchors through `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`, their focused `zigux/tests/phase6_*` helper and perf replays, the restored `zigux/tests/phase6_build.zig` foothold, and the current `zigux/Makefile` wrapper family, so keep the docs-root reminder reviewable through that returned helper-evidence packet instead of restating helper-local semantics here.",
 ]
 EXPECTED_CATALOG_SNIPPETS = [
-    "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`,",
+    "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
+    "this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`,",
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
