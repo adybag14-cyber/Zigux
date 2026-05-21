@@ -87,7 +87,12 @@ REQUIRED_SNIPPETS = {
         "avg_compare_calls",
         "max_compare_calls",
         "max_compare_budget",
-        "try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);",
+        "compareCountedDescending",
+        "compareCountedOpaqueDescending",
+        "populateDescending(descending_values, ascending_values);",
+        "const descending_witness = try runWitnessCases(",
+        "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
+        "try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);",
     ],
     LOWER_BOUND_TEST_PATH: [
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
@@ -163,6 +168,20 @@ SELF_TEST_CASES = [
     ),
     (FIXTURES_PATH, "pub const query_count: usize = 16;", "pub const query_count: usize = 15;"),
     (PERF_TEST_PATH, "avg_compare_calls", "avg_probe_calls"),
+    (PERF_TEST_PATH, "compareCountedDescending", "compareCountedReverse"),
+    (PERF_TEST_PATH, "compareCountedOpaqueDescending", "compareCountedOpaqueReverse"),
+    (PERF_TEST_PATH, "populateDescending(descending_values, ascending_values);", "populateDescendingPerf(descending_values, ascending_values);"),
+    (PERF_TEST_PATH, "const descending_witness = try runWitnessCases(", "const alternate_witness = try runWitnessCases("),
+    (
+        PERF_TEST_PATH,
+        "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
+        "for (ascending_queries, descending_expected_hits) |query, expected_hit| {",
+    ),
+    (
+        PERF_TEST_PATH,
+        "try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(descending_witness.max_compare_calls < max_compare_budget);",
+    ),
     (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
 ]
 
