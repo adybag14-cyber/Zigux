@@ -53,7 +53,7 @@ REQUIRED_MARKERS = {
     ),
     POLICY_SLICE_PATH: (
         "PHASE3_POLICY_SLICE_FILE_COUNT=current master now carries one bounded policy helper slice with shared ABI bindings, three helper-local decoders, one reusable layout guard, one cross-check narrow-surface decoder plus whole-policy and byte-level review entry points, one machine-readable manifest, one focused self-check replay route, one focused dump replay route, one dump expectation fixture, and one dedicated dump validator",
-        "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims",
+        "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims",
         "zigux/tests/phase3_policy_dump.zig",
         "zigux/tests/phase3_policy_dump_build.zig",
         "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
@@ -62,13 +62,16 @@ REQUIRED_MARKERS = {
         "the helper-local `zigux/helpers/unsafe_policy.zig` decoder remains the main replay route",
     ),
     LOW_LEVEL_WRAPPER_PATH: (
-        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one shared tests-root reminder, and one returned shared Makefile replay gate",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the shared tests-root reminder, the direct zig build phase3-low-level-wrappers-test replay route, and the returned Makefile replay gate while the adjacent catalog-selftest guard stays outside this wrapper packet",
         "`zigux/helpers/mmio.zig`",
         "`zigux/helpers/unsafe_policy.zig`",
         "`zigux/unsafe/narrow.zig`",
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
+        "`zigux/tests/README.md`",
+        "`zigux/Makefile`",
         "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`make -C zigux phase3-low-level-wrappers-test`",
     ),
     LAYOUT_ASSERT_PATH: (
         "pub fn assertInteropPolicyLayout() LayoutError!void {",
@@ -163,6 +166,8 @@ REQUIRED_MARKERS = {
         "owned_state={any}",
         "reset_on_init={any}",
         "unsafe={s}",
+        "bridge_read_ok={any}",
+        "bridge_write_ok={any}",
         "narrow={s}",
     ),
     POLICY_DUMP_BUILD_PATH: (
@@ -188,10 +193,10 @@ REQUIRED_MARKERS = {
 }
 
 EXPECTED_DUMP_LINES = (
-    "safe-default|panic=abort|allocator=caller_provided|init_flow=caller_prepared|explicit_caller=true|owned_state=false|reset_on_init=false|unsafe=none|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|narrow=none",
-    "mmio-bug|panic=bug|allocator=kernel_heap|init_flow=helper_owned|explicit_caller=false|owned_state=true|reset_on_init=false|unsafe=volatile_mmio|typed_only=false|global_fallback=true|warn_only=false|mmio=true|raw_bridge=false|audit=true|narrow=volatile_mmio",
-    "raw-bridge-warn|panic=warn|allocator=arena|init_flow=helper_owned_with_reset|explicit_caller=false|owned_state=true|reset_on_init=true|unsafe=raw_pointer_bridge|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|narrow=raw_pointer_bridge",
-    "reserved-invalid|panic=invalid|allocator=invalid|init_flow=invalid|explicit_caller=false|owned_state=false|reset_on_init=false|unsafe=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|narrow=invalid",
+    "safe-default|panic=abort|allocator=caller_provided|init_flow=caller_prepared|explicit_caller=true|owned_state=false|reset_on_init=false|unsafe=none|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=none",
+    "mmio-bug|panic=bug|allocator=kernel_heap|init_flow=helper_owned|explicit_caller=false|owned_state=true|reset_on_init=false|unsafe=volatile_mmio|typed_only=false|global_fallback=true|warn_only=false|mmio=true|raw_bridge=false|audit=true|bridge_read_ok=false|bridge_write_ok=false|narrow=volatile_mmio",
+    "raw-bridge-warn|panic=warn|allocator=arena|init_flow=helper_owned_with_reset|explicit_caller=false|owned_state=true|reset_on_init=true|unsafe=raw_pointer_bridge|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|bridge_read_ok=true|bridge_write_ok=true|narrow=raw_pointer_bridge",
+    "reserved-invalid|panic=invalid|allocator=invalid|init_flow=invalid|explicit_caller=false|owned_state=false|reset_on_init=false|unsafe=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=invalid",
 )
 
 SELF_TEST_CASES = (
@@ -218,15 +223,11 @@ SELF_TEST_CASES = (
     ),
     (
         POLICY_SLICE_PATH,
-        "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+        "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims",
     ),
     (
         LOW_LEVEL_WRAPPER_PATH,
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
-    ),
-    (
-        LOW_LEVEL_WRAPPER_PATH,
-        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the shared tests-root reminder, the direct zig build phase3-low-level-wrappers-test replay route, and the returned Makefile replay gate while the adjacent catalog-selftest guard stays outside this wrapper packet",
     ),
     (LAYOUT_ASSERT_PATH, "pub fn assertNotifierBlockLayout() LayoutError!void {"),
     (
@@ -280,6 +281,8 @@ SELF_TEST_CASES = (
         "PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass",
     ),
     (POLICY_DUMP_PATH, "raw-bridge-warn"),
+    (POLICY_DUMP_PATH, "bridge_read_ok={any}"),
+    (POLICY_DUMP_PATH, "bridge_write_ok={any}"),
     (
         POLICY_DUMP_BUILD_PATH,
         '.root_source_file = b.path("../unsafe/narrow.zig"),',
