@@ -267,6 +267,16 @@ pub const RuntimeBitmapSample = struct {
     }
 };
 
+fn expectSummaryStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary) !void {
+    try std.testing.expectEqual(before.first_set, after.first_set);
+    try std.testing.expectEqual(before.first_zero, after.first_zero);
+    try std.testing.expectEqual(before.weight, after.weight);
+    try std.testing.expectEqual(before.nbits, after.nbits);
+    try std.testing.expectEqual(before.init_runs, after.init_runs);
+    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
+    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
+}
+
 test "runtime bitmap sample review contract keeps bounded starter focus explicit" {
     const descriptor = RuntimeBitmapSample.descriptor();
     const contract = RuntimeBitmapSample.reviewContract();
@@ -342,4 +352,50 @@ test "runtime bitmap sample keeps selftest copy and exit lifecycle explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, source.setRange(1, 1));
     try std.testing.expectError(error.InvalidLifecycleTransition, source.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, source.exit());
+}
+
+test "runtime bitmap sample rejects re-selftest without disturbing lifecycle summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try expectSummaryStable(before_rejected_selftest, after_rejected_selftest);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+
+    try module.exit();
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_rejected_exit_selftest, after_rejected_exit_selftest);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
