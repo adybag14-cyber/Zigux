@@ -16,6 +16,7 @@ UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
 GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
+DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
@@ -29,6 +30,7 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
+        "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
@@ -39,6 +41,7 @@ REQUIRED_MARKERS = {
         "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
         "the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring",
         "the already-shipped starter `dev_t` validation relays, and the shared tests-root replay wiring explicit as shipped same-family evidence",
+        "the paired `include/zigux/dev_t.h` contract",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
@@ -82,6 +85,17 @@ REQUIRED_MARKERS = {
     GOVERNANCE_NOTE_PATH: (
         "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_ZIGUX_H_EXPORT_UAPI_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    ),
+    DEV_T_HEADER_PATH: (
+        "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
+        "#define ZIGUX_DEV_T_FIELDS_SIZE 8u",
+        "struct zigux_dev_t_fields {",
+        "static inline struct zigux_dev_t_fields zigux_dev_t_fields_make(",
+        "static inline uint32_t zigux_mkdev(uint32_t major, uint32_t minor)",
+        "static inline uint32_t zigux_major(uint32_t dev)",
+        "static inline uint32_t zigux_minor(uint32_t dev)",
+        "static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
+        "static inline int zigux_dev_t_fields_range_is_valid(",
     ),
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
@@ -173,6 +187,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
+            "expected missing shared dev_t header survey path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
             "expected missing shared tests build path marker was not reported",
         ),
@@ -185,6 +204,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
             "expected missing linux-facing dev_t wrapper survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "the paired `include/zigux/dev_t.h` contract",
+            "expected missing shared dev_t contract survey marker was not reported",
         ),
         (
             SURVEY_PATH,
@@ -230,6 +254,16 @@ def run_self_test() -> int:
             LINUX_HEADER_PATH,
             "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
             "expected missing linux-facing dev_t component wrapper marker was not reported",
+        ),
+        (
+            DEV_T_HEADER_PATH,
+            "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
+            "expected missing shared dev_t header abi-version marker was not reported",
+        ),
+        (
+            DEV_T_HEADER_PATH,
+            "static inline int zigux_dev_t_fields_range_is_valid(",
+            "expected missing shared dev_t header range-validation marker was not reported",
         ),
         (
             BINDING_VERSION_PATH,
