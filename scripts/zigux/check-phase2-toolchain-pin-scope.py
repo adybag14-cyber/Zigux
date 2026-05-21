@@ -26,6 +26,7 @@ DOCS_ROOT_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
@@ -38,6 +39,7 @@ REVIEW_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
@@ -52,6 +54,7 @@ TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
 )
@@ -60,6 +63,7 @@ BOOTSTRAP_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`third_party/README.md`",
     "pinned-archive integrity paths",
 )
