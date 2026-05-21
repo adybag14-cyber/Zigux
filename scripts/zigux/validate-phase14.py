@@ -108,7 +108,7 @@ REQUIRED_MARKERS = {
         "    * `zigux/tests/phase14_ring_buffer_survey.zig`",
         "  * executable packet members still unrecovered through this lane's exact contents path:",
         "    * `zigux/tests/phase14_build.zig`",
-        "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+        "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json` through the current contents path",
         "    * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     ],
     RELEASE_BOUNDARY_PATH: [
