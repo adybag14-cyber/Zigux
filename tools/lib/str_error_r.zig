@@ -224,3 +224,32 @@ test "strErrorR reuses offset caller slices after tiny generated renders" {
     try std.testing.expectEqual(@as(u8, 0), storage[22]);
     try std.testing.expectEqual(@as(u8, 0xcc), storage[23]);
 }
+
+test "strErrorR respects nested offset subslices inside offset caller views" {
+    var storage = [_]u8{0xdd} ** 64;
+    const view = storage[5..23];
+
+    const exact_known = strErrorR(13, view);
+    try std.testing.expectEqual(@intFromPtr(&storage[5]), @intFromPtr(exact_known.ptr));
+    try std.testing.expectEqualStrings("Permission denied", exact_known);
+    try std.testing.expectEqual(@as(u8, 0xdd), storage[4]);
+    try std.testing.expectEqual(@as(u8, 0), storage[22]);
+    try std.testing.expectEqual(@as(u8, 0xdd), storage[23]);
+
+    const nested_view = view[4..10];
+    var nested_expected_storage: [64]u8 = undefined;
+    const nested_expected = try std.fmt.bufPrint(
+        &nested_expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, nested_view.len },
+    );
+
+    const nested_rendered = strErrorR(4096, nested_view);
+    try std.testing.expectEqual(@intFromPtr(&storage[9]), @intFromPtr(nested_rendered.ptr));
+    try std.testing.expectEqualStrings(nested_expected[0 .. nested_view.len - 1], nested_rendered);
+    try std.testing.expectEqual(@as(u8, 'm'), storage[8]);
+    try std.testing.expectEqual(@as(u8, 0), storage[14]);
+    try std.testing.expectEqual(@as(u8, ' '), storage[15]);
+    try std.testing.expectEqual(@as(u8, 0), storage[22]);
+    try std.testing.expectEqualStrings("Perm", view[0..4]);
+}
