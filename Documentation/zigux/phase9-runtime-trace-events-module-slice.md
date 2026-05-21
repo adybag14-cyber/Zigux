@@ -26,6 +26,7 @@ The direct sample still exposes `.provides_selftest_hook = true` together with i
 Those cues are still sample-local pilot-module reviewability, not promoted family-local runtime-loader parity.
 The shared `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard keeps that initialized, selftest_complete, and exited sample-local lifecycle tracking anchored alongside the slice packet.
 The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
+The direct sample also keeps rejected re-selftest rollback explicit: `test "trace-events sample keeps rejected re-selftest rollback explicit"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.
 The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.
 The fail-closed companion keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay by proving `error.OutstandingRegistration` leaves the selftest_complete summary unchanged until the function thread unregisters and clean exit succeeds.
@@ -43,6 +44,7 @@ Current `master` proves a sample-local cold-stage guard plus init and function-t
 - `exit()` still only accepts `.initialized` or `.selftest_complete` with zero registration depth and then moves the sample to `.exited`.
 - the direct cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` keeps `runSelftest()` and `exit()` rejected before `init()` materializes the module state
 - the direct initialized-stage exit proof keeps zero selftest runs explicit and shows that later lifecycle calls stay rejected without changing the exited summary
+- the direct rejected re-selftest rollback proof keeps `runSelftest()` fail-closed after both the selftest_complete and exited summaries so later selftest retries cannot mutate either lifecycle checkpoint
 - the registration-reentry companion's initialized direct-activity exit proof keeps one main replay plus one function-thread replay explicit before clean exit and shows that the same initialized summary survives through exit without any selftest run
 - duplicate registration still fails with `error.FunctionThreadAlreadyRegistered`
 - unregistered function-thread emission still fails with `error.FunctionThreadNotRegistered`
