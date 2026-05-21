@@ -59,6 +59,8 @@ REQUIRED_MARKERS = {
         "shared build, validator, and workflow evidence",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
+        'print("PHASE7_RBTREE_PARITY=pass")',
+        'print(f"PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")',
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
         '"Documentation/zigux/phase7-rbtree-slice.md",',
         '"tools/lib/rbtree.zig",',
@@ -112,7 +114,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 32
+SELF_TEST_CASE_COUNT = 34
 
 
 def read_text(path: Path) -> str:
@@ -429,6 +431,26 @@ def run_self_test() -> None:
             "missing_manifest_public_fallback_next_step_marker",
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'print("PHASE7_RBTREE_PARITY=pass")'
+        checker_path.write_text(read_text(checker_path).replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_checker_pass_output_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'print(f"PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")'
+        checker_path.write_text(read_text(checker_path).replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_checker_required_file_count_output_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
