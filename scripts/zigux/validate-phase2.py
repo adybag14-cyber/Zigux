@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 66
+EXPECTED_SELF_TEST_CASE_COUNT = 69
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -349,6 +349,13 @@ def capture_run_validator(root: Path) -> tuple[int, str]:
     return result, stdout.getvalue()
 
 
+def assert_run_validator_output_contains(root: Path, expected_fragment: str) -> None:
+    result, output = capture_run_validator(root)
+    assert result == 1, output
+    assert "PHASE2_VALIDATION=fail" in output, output
+    assert expected_fragment in output, output
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validator_selftest_") as tmp_dir:
@@ -370,11 +377,17 @@ def run_self_test() -> int:
                 f"{EXPECTED_CHECKER_RELATIVE_PATHS[0]}:count=2",
             ) in issues
             checks_run += 1
+            assert_run_validator_output_contains(root, "MISSING_CHECKER_ENTRY_START")
+            checks_run += 1
+            assert_run_validator_output_contains(root, "DUPLICATE_CHECKER_ENTRY_START")
+            checks_run += 1
 
             globals()["CHECKERS"] = original_checkers + (ROOT / "scripts/zigux/unexpected.py",)
             issues = collect_issues(root)
             assert ("UNEXPECTED_CHECKER_ENTRY", "scripts/zigux/unexpected.py:count=1") in issues
             assert ("MISSING_CHECKER", "scripts/zigux/unexpected.py") in issues
+            checks_run += 1
+            assert_run_validator_output_contains(root, "UNEXPECTED_CHECKER_ENTRY_START")
             checks_run += 1
 
             globals()["CHECKERS"] = original_checkers[:-1] + ("scripts/zigux/unexpected.py",)
