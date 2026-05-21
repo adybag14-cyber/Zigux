@@ -50,13 +50,16 @@ packet below:
 
 The returned driver, focused register-device glue proof, plus the paired module
 slice, teardown note, and remove-handoff note keep the bounded
-`descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
+`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
+`probeSummary()`, `descriptorRequestSummary()`,
+`timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `nowayoutPolicySummary()`, `registrationHandoffSummary()`,
 `registrationPlanSummary()`, `registerDeviceCallSummary()`,
-`registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()`
-checkpoint names reviewable as driver-backed teardown and failure-mode surfaces.
+`registerDeviceFailureSummary()`, `requestStop()`, and
+`summarizeTeardown()` checkpoint names reviewable as driver-backed teardown and
+failure-mode surfaces.
 
 ## Teardown And Failure-Mode Review Surface
 
