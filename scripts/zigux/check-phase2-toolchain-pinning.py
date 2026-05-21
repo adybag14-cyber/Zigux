@@ -207,7 +207,7 @@ EXPECTED_POLICY = {
     "phase": "Phase 2",
     "channel_minimum_lockstep": True,
     "archive_target_scope": ["x86_64-linux"],
-    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
 }
 
 EXPECTED_TOOL_MANIFEST = {
