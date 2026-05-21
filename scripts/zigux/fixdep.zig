@@ -40,9 +40,16 @@ fn lineContinuationLen(bytes: []const u8, index: usize) ?usize {
     if (bytes[index] != '\\' or index + 1 >= bytes.len) return null;
     return switch (bytes[index + 1]) {
         '\n' => 2,
-        '\r' => if (index + 2 < bytes.len and bytes[index + 2] == '\n') 3 else 2,
+        '\r' => if (index + 2 < bytes.len and bytes[index + 2] == '\n') 3 else null,
         else => null,
     };
+}
+
+fn isBareCarriageReturnEscape(bytes: []const u8, index: usize) bool {
+    return bytes[index] == '\\' and
+        index + 1 < bytes.len and
+        bytes[index + 1] == '\r' and
+        (index + 2 >= bytes.len or bytes[index + 2] != '\n');
 }
 
 fn describeFileReadError(err: anyerror) []const u8 {
@@ -256,6 +263,10 @@ const Processor = struct {
                             index += continuation_len;
                             continue;
                         }
+                        if (isBareCarriageReturnEscape(dep_text, index)) {
+                            index += 1;
+                            continue;
+                        }
                         index += 1;
                     }
                     continue;
@@ -267,6 +278,10 @@ const Processor = struct {
                 '\\' => {
                     if (lineContinuationLen(dep_text, index)) |continuation_len| {
                         index += continuation_len;
+                        continue;
+                    }
+                    if (isBareCarriageReturnEscape(dep_text, index)) {
+                        index += 1;
                         continue;
                     }
                 },
@@ -288,7 +303,7 @@ const Processor = struct {
             var cursor = index;
             while (cursor < dep_text.len and dep_text[cursor] != ' ' and dep_text[cursor] != '\t' and dep_text[cursor] != '\n' and dep_text[cursor] != '\r' and dep_text[cursor] != '#' and dep_text[cursor] != ':') {
                 if (dep_text[cursor] == '\\') {
-                    if (lineContinuationLen(dep_text, cursor) != null) {
+                    if (lineContinuationLen(dep_text, cursor) != null or isBareCarriageReturnEscape(dep_text, cursor)) {
                         break;
                     }
                     if (cursor + 1 < dep_text.len and (dep_text[cursor + 1] == '#' or dep_text[cursor + 1] == ':')) {
@@ -750,6 +765,52 @@ test "dep parsing accepts CRLF lines and continuations" {
         "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
             "  dep-first.so \\\n" ++
             "  dep-second.so \\\n" ++
+            "\n" ++
+            "continued.o: $(deps_continued.o)\n\n" ++
+            "$(deps_continued.o):\n",
+        capture.list.items,
+    );
+}
+
+test "dep parsing does not continue bare carriage-return lines" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 224),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "continued.o: continued.rmeta dep-first.so \\\rmodule/continued.o: ignored.rmeta later.so\r",
+        "continued.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
+            "  dep-first.so \\\n" ++
+            "  later.so \\\n" ++
             "\n" ++
             "continued.o: $(deps_continued.o)\n\n" ++
             "$(deps_continued.o):\n",
