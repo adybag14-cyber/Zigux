@@ -43,7 +43,7 @@ Keep these shared reminder surfaces aligned when broad Phase 13 wording changes:
 - `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `python3 scripts/zigux/validate-phase13-release.py`
 
-The shared reminder packet is largely aligned on current `master`, but one broader scripts-root follow-through intentionally remains parked outside this lane step: `scripts/zigux/README.md` still needs to keep `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_libfs_addressability.zig`, and the shared `zigux/tests/phase13_build.zig` route explicit as repo-reality gaps beside the shipped `Documentation/zigux/phase13-libfs-slice.md` packet. Keep `python3 scripts/zigux/validate-phase13-release.py` explicit as shipped release-discipline support for that shared reminder set instead of leaving it implied behind the tests-root companion.
+The shared reminder packet is aligned on current `master` for the shipped `libfs` slice and its still-missing survey, addressability, and shared-build-route companions. Keep `python3 scripts/zigux/validate-phase13-release.py` explicit as shipped release-discipline support for that shared reminder set instead of leaving it implied behind the tests-root companion.
 
 shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
@@ -59,7 +59,7 @@ do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zig
 2. Treat adjacent notifier evidence as release-surface support, not as an extra shared replay step.
 3. Use the shared-summary guard, the tests-root alignment companion, and the release-discipline validator before widening contributor wording across the packet.
 4. Keep the Makefile-backed route family recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
-5. Leave broader docs-root and tests-root refresh for a separate same-lane follow-up, and keep the parked scripts-root `libfs` reminder drift explicit as a separate developer-enablement follow-through until that one-file README repair lands.
+5. Leave broader docs-root and tests-root refresh for a separate same-lane follow-up, and treat any future scripts-root or tests-root drift as a fresh reread task instead of carrying the already-cleared `libfs` README repair forward.
 6. If a shared reminder surface starts treating the still-missing Landlock syscall survey, direct replay, reviewability replay, or manifest as shipped current-`master` evidence, correct that in this shared sequencing lane instead of reopening the syscall helper lanes.
 
 ## Non-Goals
