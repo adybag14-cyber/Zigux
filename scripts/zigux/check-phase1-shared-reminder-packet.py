@@ -35,6 +35,7 @@ MARKERS = {
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
+        "`zigux/Makefile` is current repo evidence again because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14.",
     ),
     "Documentation/zigux/phase1-closure.md": (
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
@@ -156,6 +157,7 @@ FORBIDDEN_FRAGMENTS = (
     "python3 scripts/zigux/validate-phase1.py --self-test",
     "python3 scripts/zigux/validate-phase1.py",
     "repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "`zigux/Makefile` is current repo evidence again because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12.",
 )
 
 
