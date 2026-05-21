@@ -137,3 +137,60 @@ test "hweight helpers scale with repeated byte patterns" {
     try std.testing.expectEqual(@as(usize, byte_weight) * lane_count, hweightLong(repeated_long));
     try std.testing.expectEqual(@as(usize, byte_weight) * lane_count, hweight_long(repeated_long));
 }
+
+test "hweight helpers satisfy inclusion exclusion across overlapping masks" {
+    const left8: u32 = 0b1011_0110;
+    const right8: u32 = 0b0110_1101;
+    try std.testing.expectEqual(
+        swHweight8(left8) + swHweight8(right8),
+        swHweight8(left8 | right8) + swHweight8(left8 & right8),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight8(left8) + __sw_hweight8(right8),
+        __sw_hweight8(left8 | right8) + __sw_hweight8(left8 & right8),
+    );
+
+    const left16: u32 = 0xb60d;
+    const right16: u32 = 0x6db3;
+    try std.testing.expectEqual(
+        swHweight16(left16) + swHweight16(right16),
+        swHweight16(left16 | right16) + swHweight16(left16 & right16),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight16(left16) + __sw_hweight16(right16),
+        __sw_hweight16(left16 | right16) + __sw_hweight16(left16 & right16),
+    );
+
+    const left32: u32 = 0xb60d_f00f;
+    const right32: u32 = 0x6db3_0ff0;
+    try std.testing.expectEqual(
+        swHweight32(left32) + swHweight32(right32),
+        swHweight32(left32 | right32) + swHweight32(left32 & right32),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight32(left32) + __sw_hweight32(right32),
+        __sw_hweight32(left32 | right32) + __sw_hweight32(left32 & right32),
+    );
+
+    const left64: u64 = 0xb60d_f00f_1357_9bdf;
+    const right64: u64 = 0x6db3_0ff0_2468_ace0;
+    try std.testing.expectEqual(
+        swHweight64(left64) + swHweight64(right64),
+        swHweight64(left64 | right64) + swHweight64(left64 & right64),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight64(left64) + __sw_hweight64(right64),
+        __sw_hweight64(left64 | right64) + __sw_hweight64(left64 & right64),
+    );
+
+    const left_long: usize = if (@sizeOf(usize) == 4) left32 else left64;
+    const right_long: usize = if (@sizeOf(usize) == 4) right32 else right64;
+    try std.testing.expectEqual(
+        hweightLong(left_long) + hweightLong(right_long),
+        hweightLong(left_long | right_long) + hweightLong(left_long & right_long),
+    );
+    try std.testing.expectEqual(
+        hweight_long(left_long) + hweight_long(right_long),
+        hweight_long(left_long | right_long) + hweight_long(left_long & right_long),
+    );
+}
