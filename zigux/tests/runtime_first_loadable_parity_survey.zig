@@ -22,6 +22,12 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(parity_note);
 
+    const manifest = try readRepoFileAlloc(
+        "runtime_bitmap_manifest.json",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(manifest);
+
     const phase9_build = try readRepoFileAlloc(
         "phase9_build.zig",
         16 * 1024,
@@ -30,7 +36,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L02`");
-    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-20-first-loadable-parity-partial-readback`");
+    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-bitmap-manifest-readback`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
     try expectContains(parity_note, "`zigux/tests/runtime_atomic64_module.zig`");
@@ -39,6 +45,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
+    try expectContains(parity_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
@@ -48,10 +55,10 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_diff.zig`");
-    try expectContains(parity_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
-    try expectContains(parity_note, "`phase9-runtime-atomic64-diff`");
+    try expectContains(parity_note, "manifest-backed ownership packet");
+    try expectContains(parity_note, "phase9-runtime-atomic64-diff");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
     try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
@@ -66,6 +73,14 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         "must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.",
     );
     try expectContains(parity_note, "Leave `P9-L02` parked after this shared note refresh");
+
+    try expectContains(manifest, "\"phase\": \"Phase 9\"");
+    try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
+    try expectContains(manifest, "\"status\": \"active\"");
+    try expectContains(manifest, "\"surveyed_commit\": \"2026-05-21-runtime-bitmap-manifest-restored\"");
+    try expectContains(manifest, "\"sample_path\": \"samples/zigux/runtime_bitmap.zig\"");
+    try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
+    try expectContains(manifest, "\"top_bit_path\": \"samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
 
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
