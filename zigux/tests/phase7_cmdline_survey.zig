@@ -94,6 +94,9 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");
     try expectContains(checker, "\"Documentation/zigux/phase7-cmdline-slice.md\",");
     try expectContains(checker, "\"lib/cmdline.zig\",");
+    try expectContains(checker, "test \\\"nextArg keeps quoted bare tokens together and preserves the following remainder\\\" {");
+    try expectContains(checker, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");
+    try expectContains(checker, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_anchor`");
     try expectContains(slice_note, "`PHASE7_SLICE=cmdline-runtime-leaf`");
