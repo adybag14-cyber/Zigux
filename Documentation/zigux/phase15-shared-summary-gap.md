@@ -17,12 +17,14 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the previously parked focused review-process replay companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
-This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-20 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the stay-in-C lane-owner companion, the focused checklist-specific study-only alignment checker, the focused review-process build-file replay, the focused tests-root alignment guard, and the focused handoff-note checker, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
+This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-20 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the stay-in-C lane-owner companion, the focused checklist-specific study-only alignment checker, the focused review-process build-file replay, the focused tests-root alignment guard, the focused handoff-note checker, and the Architecture Council review-process owner note plus decision-record template, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
 
 ## Materialized Phase 15 governance assets
 
 The following paths now count as present governance evidence on current `master` and must stay explicit in this shared-gap packet:
 
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
@@ -63,6 +65,8 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
@@ -73,6 +77,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
@@ -87,7 +92,7 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 - if a materialized Phase 15 governance asset, the dedicated handoff manifest, or a materialized focused review-process companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
 - do not treat the still-missing broader validator-first companions as shipped evidence until direct current-tree reads recover them
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
-- if docs-root, checklist, scripts-root, tests-root, handoff-note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, handoff-note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
 
 ## Non-goals
@@ -101,4 +106,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, the dedicated handoff manifest, the checklist-specific study-only anchor summary boundary, or the stay-in-C companion changes enough to force a smaller shared-summary refresh, or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
+Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, the Architecture Council review-process owner note, the decision-record template, the dedicated handoff manifest, the checklist-specific study-only anchor summary boundary, or the stay-in-C companion changes enough to force a smaller shared-summary refresh, or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
