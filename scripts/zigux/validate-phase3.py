@@ -333,6 +333,24 @@ def _append_duplicate_list_entry_issues(
         )
 
 
+def _append_missing_packet_file_issues(
+    repo_root: Path,
+    packet_files: list[object],
+    issues: list[str],
+) -> None:
+    for entry in packet_files:
+        if not isinstance(entry, str):
+            issues.append(
+                f"phase3_abi_manifest.json packet_files has non-string entry: {entry!r}"
+            )
+            continue
+        if not (repo_root / entry).is_file():
+            issues.append(
+                "phase3_abi_manifest.json packet_files entry missing on disk: "
+                f"{entry}"
+            )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     texts: dict[Path, str] = {}
@@ -379,6 +397,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                         issues.append(
                             f"phase3_abi_manifest.json missing packet_files entry: {entry}"
                         )
+                _append_missing_packet_file_issues(repo_root, packet_files, issues)
 
             if not isinstance(replay_routes, list):
                 issues.append("phase3_abi_manifest.json replay_routes is not a list")
@@ -447,6 +466,13 @@ def _populate_repo(root: Path) -> None:
         "next_safe_step": CURRENT_NEXT_SAFE_STEP,
     }
     _write(root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+
+    for rel_path in REQUIRED_MANIFEST_PACKET_FILES:
+        path = root / rel_path
+        if path.exists():
+            continue
+        suffix = "\n" if path.suffix else ""
+        _write(path, "// packet file self-test placeholder" + suffix)
 
 
 def run_self_test() -> int:
@@ -546,8 +572,20 @@ def run_self_test() -> int:
             print("expected duplicate pub fn issue was not reported")
             return 1
 
+        _populate_repo(repo_root)
+        (repo_root / "zigux/kernel/export_shim.zig").unlink()
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json packet_files entry missing on disk: "
+            "zigux/kernel/export_shim.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing on-disk packet-file issue was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
