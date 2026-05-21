@@ -143,7 +143,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 144
+EXPECTED_SELF_TEST_CASE_COUNT = 146
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -772,6 +772,8 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("UNEXPECTED_MANIFEST_FIELD", "unexpected") in collect_issues(root)
         checks_run += 1
+        assert_run_validator_output_contains(root, "UNEXPECTED_MANIFEST_FIELD_START")
+        checks_run += 1
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
@@ -820,6 +822,8 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in issues
         assert ("MISSING_FILE_ALREADY_PRESENT_ON_BRANCH", EXPECTED_PRESENT_FILES[0]) in issues
+        checks_run += 1
+        assert_run_validator_output_contains(root, "MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING_START")
         checks_run += 1
 
         build_self_test_root(root)
