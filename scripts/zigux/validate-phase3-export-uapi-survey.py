@@ -68,6 +68,7 @@ REQUIRED_MARKERS = {
     ),
     UAPI_VERSION_PATH: (
         "pub fn matchesCurrent(version: Version) bool {",
+        "pub fn validate(version: Version) abi.ExportStatus {",
         'test "version helpers keep current compatibility explicit" {',
     ),
     UAPI_DEV_T_PATH: (
@@ -279,6 +280,11 @@ def run_self_test() -> int:
             UAPI_VERSION_PATH,
             "pub fn matchesCurrent(version: Version) bool {",
             "expected missing uapi version compatibility marker was not reported",
+        ),
+        (
+            UAPI_VERSION_PATH,
+            "pub fn validate(version: Version) abi.ExportStatus {",
+            "expected missing uapi version status-validation marker was not reported",
         ),
         (
             UAPI_DEV_T_PATH,
