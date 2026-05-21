@@ -87,9 +87,14 @@ MANIFEST_MARKERS = [
     '"freeze_restore_lifecycle"',
     '"architecture_council_reopen_required": true',
     '"architecture_council_reopen_attached": false',
+    '"id": "phase10-mmio-transport-identity-helper"',
+    '"id": "phase10-mmio-probe-preflight-helper"',
+    '"id": "phase10-mmio-selected-queue-readiness-helper"',
     '"id": "phase10-mmio-interrupt-ack-disposition-helper"',
     '"id": "phase10-mmio-feature-negotiation-summary-helper"',
     '"id": "phase10-mmio-config-write-plan-freshness-helper"',
+    '"id": "phase10-mmio-config-write-disposition-helper"',
+    '"id": "phase10-mmio-verify-replay"',
     '"id": "phase10-virtio-mmio-lab-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_mmio.zig"',
     '"id": "phase10-virtio-mmio-survey-gate"',
@@ -281,9 +286,14 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "missing"', 'manifest:"freeze_boundary_status": "aligned"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"forbidden_transport_claims": [', '"forbidden_transport_claims_missing": [', 'manifest:"forbidden_transport_claims": [')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_reset_execution"', '"queue_reset_execution_missing"', 'manifest:"queue_reset_execution"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-transport-identity-helper"', '"id": "phase10-mmio-transport-identity-missing"', 'manifest:"id": "phase10-mmio-transport-identity-helper"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-probe-preflight-helper"', '"id": "phase10-mmio-probe-preflight-missing"', 'manifest:"id": "phase10-mmio-probe-preflight-helper"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-selected-queue-readiness-helper"', '"id": "phase10-mmio-selected-queue-readiness-missing"', 'manifest:"id": "phase10-mmio-selected-queue-readiness-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-interrupt-ack-disposition-helper"', '"id": "phase10-mmio-ack-missing"', 'manifest:"id": "phase10-mmio-interrupt-ack-disposition-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-feature-negotiation-summary-helper"', '"id": "phase10-mmio-feature-negotiation-missing"', 'manifest:"id": "phase10-mmio-feature-negotiation-summary-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-plan-freshness-helper"', '"id": "phase10-mmio-config-write-plan-freshness-missing"', 'manifest:"id": "phase10-mmio-config-write-plan-freshness-helper"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-disposition-helper"', '"id": "phase10-mmio-config-write-disposition-missing"', 'manifest:"id": "phase10-mmio-config-write-disposition-helper"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-verify-replay"', '"id": "phase10-mmio-verify-missing"', 'manifest:"id": "phase10-mmio-verify-replay"')
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "available_for_disposition = availability == .fresh,", "available_for_disposition = availability == .stale_generation,", "helper:available_for_disposition = availability == .fresh,")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub const ConfigWritePlanFreshnessSummary = struct {", "pub const ConfigWritePlanFreshnessMissing = struct {", "helper:pub const ConfigWritePlanFreshnessSummary = struct {")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub fn interruptAckDispositionSummary(", "pub fn interruptAckDispositionMissing(", "helper:pub fn interruptAckDispositionSummary(")
@@ -303,7 +313,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=34")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
