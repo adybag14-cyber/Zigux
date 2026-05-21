@@ -36,6 +36,9 @@ REQUIRED_MARKERS = {
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
+        "`zigux_uapi_boundary_header_extends_boundary()`, `zigux_uapi_boundary_header_requested_extra_bytes()`, and `zigux_uapi_boundary_header_canonicalize()`",
+        "the status-tagged `zigux_uapi_validate_boundary_header()` gate",
+        "the Linux-facing `zigux_boundary_header_extends_boundary()`, `zigux_boundary_header_requested_extra_bytes()`, and `zigux_boundary_header_canonicalize()` compatibility aliases",
         "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
         "Current `master` no longer shows the older packet-local compile-wiring gap",
         "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
@@ -78,6 +81,14 @@ REQUIRED_MARKERS = {
     ),
     LINUX_HEADER_PATH: (
         "static inline zigux_uapi_version zigux_uapi_version_current(void)",
+        "static inline int zigux_uapi_boundary_header_extends_boundary(zigux_boundary_header header)",
+        "static inline uint32_t zigux_uapi_boundary_header_requested_extra_bytes(",
+        "static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigux_boundary_header header)",
+        "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
+        "static inline struct zigux_export_status zigux_validate_boundary_header(",
+        "static inline int zigux_boundary_header_extends_boundary(zigux_boundary_header header)",
+        "static inline uint32_t zigux_boundary_header_requested_extra_bytes(",
+        "static inline zigux_boundary_header zigux_boundary_header_canonicalize(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
         "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
@@ -203,6 +214,21 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "`zigux_uapi_boundary_header_extends_boundary()`, `zigux_uapi_boundary_header_requested_extra_bytes()`, and `zigux_uapi_boundary_header_canonicalize()`",
+            "expected missing linux-facing extension-accounting survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "the status-tagged `zigux_uapi_validate_boundary_header()` gate",
+            "expected missing linux-facing boundary-header validation survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "the Linux-facing `zigux_boundary_header_extends_boundary()`, `zigux_boundary_header_requested_extra_bytes()`, and `zigux_boundary_header_canonicalize()` compatibility aliases",
+            "expected missing linux-facing compatibility-alias survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
             "expected missing linux-facing dev_t wrapper survey marker was not reported",
         ),
@@ -245,6 +271,46 @@ def run_self_test() -> int:
             EXPORT_SHIM_PATH,
             "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
             "expected missing export shim range relay marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline int zigux_uapi_boundary_header_extends_boundary(zigux_boundary_header header)",
+            "expected missing linux-facing extension-accounting helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline uint32_t zigux_uapi_boundary_header_requested_extra_bytes(",
+            "expected missing linux-facing extra-byte helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigux_boundary_header header)",
+            "expected missing linux-facing canonicalize helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
+            "expected missing linux-facing boundary-header validation helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline struct zigux_export_status zigux_validate_boundary_header(",
+            "expected missing linux-facing boundary-header validation relay marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline int zigux_boundary_header_extends_boundary(zigux_boundary_header header)",
+            "expected missing compatibility alias extension helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline uint32_t zigux_boundary_header_requested_extra_bytes(",
+            "expected missing compatibility alias extra-byte helper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline zigux_boundary_header zigux_boundary_header_canonicalize(",
+            "expected missing compatibility alias canonicalize helper marker was not reported",
         ),
         (
             LINUX_HEADER_PATH,
