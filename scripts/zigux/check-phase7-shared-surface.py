@@ -31,7 +31,6 @@ EXPECTED_COMPANIONS = [
     "zigux/tests/phase7_leaf_library_evidence_manifest.json",
     "zigux/Makefile",
     "lib/string_helpers.zig",
-    "lib/string_helpers_parse_int_array.zig",
     "lib/cmdline.zig",
     "lib/argv_split.zig",
 ]
@@ -58,8 +57,8 @@ EXPECTED_HELPERS = [
     ),
     (
         "string_helpers_parse_int_array",
-        "lib/string_helpers_parse_int_array.zig",
-        ["pub const ParseIntArrayResult", "pub fn parseIntArray"],
+        "lib/string_helpers.zig",
+        ["pub const ParseIntArrayError", "pub fn parseIntArray"],
     ),
     ("cmdline", "lib/cmdline.zig", ["pub fn parseOptionStr", "pub fn getOption"]),
     ("argv_split", "lib/argv_split.zig", ["pub const ArgvSplitResult", "pub fn argvSplit"]),
@@ -77,13 +76,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `scripts/zigux/check-phase7-build-wiring.py`",
     "- `scripts/zigux/README.md`",
     "- `zigux/tests/README.md`",
-    "- `lib/string_helpers_parse_int_array.zig`",
     "## Current replay inventory",
     "- `make -C zigux phase7-validate`",
     "## Current repo-reality gaps",
     "- `lib/rbtree.zig`",
     "`kstrdupQuotable()`",
     "`kstrdupQuotableCmdline()`",
+    "`parseIntArray()`",
 ]
 REQUIRED_MAKEFILE_SNIPPETS = [
     "phase7-validate:",
@@ -93,6 +92,17 @@ README_REQUIRED_RULES = [
     (DOCS_README_PATH, ["Phase 7 notes"]),
     (SCRIPTS_README_PATH, ["## Phase 7"]),
     (TESTS_README_PATH, ["## Phase 7"]),
+]
+REQUIRED_FILES = [
+    CATALOG_PATH,
+    MANIFEST_PATH,
+    MAKEFILE_PATH,
+    DOCS_README_PATH,
+    SCRIPTS_README_PATH,
+    TESTS_README_PATH,
+    Path("lib/string_helpers.zig"),
+    Path("lib/cmdline.zig"),
+    Path("lib/argv_split.zig"),
 ]
 SELF_TEST_CASE_COUNT = 12
 
@@ -120,6 +130,10 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 
 def validate(repo_root: Path) -> None:
+    missing = [str(rel) for rel in REQUIRED_FILES if not (repo_root / rel).is_file()]
+    if missing:
+        raise ValidationError("missing required files: " + ", ".join(missing))
+
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
 
@@ -191,7 +205,13 @@ def scaffold_repo(root: Path) -> None:
         "current_replay_inventory": EXPECTED_REPLAYS,
         "current_repo_reality_gaps": EXPECTED_GAPS,
     }, indent=2) + "\n")
+    marker_blocks = {}
     for _, rel_path, markers in EXPECTED_HELPERS:
+        marker_blocks.setdefault(rel_path, [])
+        for marker in markers:
+            if marker not in marker_blocks[rel_path]:
+                marker_blocks[rel_path].append(marker)
+    for rel_path, markers in marker_blocks.items():
         write(root / rel_path, "\n".join(markers) + "\n")
 
 
@@ -242,16 +262,16 @@ def run_self_test() -> None:
             '"scripts/zigux/check-phase7-build-route.py",',
         ),
         (
-            "missing_manifest_phase7_test_gap",
+            "missing_manifest_repo_gap_entry",
             MANIFEST_PATH,
-            "make -C zigux phase7-test",
-            "make -C zigux phase7-run",
+            '"zigux/tests/phase7_build.zig"',
+            '"zigux/tests/phase7_rbtree.zig"',
         ),
         (
             "missing_helper_parse_int_array_entry",
             MANIFEST_PATH,
-            '"string_helpers_parse_int_array"',
-            '"string_helpers_parse_int_array_missing"',
+            '"pub const ParseIntArrayError"',
+            '"pub const ParseIntArrayMissing"',
         ),
     ]
     unexpected_marker_cases = [
