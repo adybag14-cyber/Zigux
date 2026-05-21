@@ -58,6 +58,7 @@
       "evidence": [
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
         "zigux/tests/phase10_build.zig",
+        "drivers/virtio/virtio_verify.zig",
         "zigux/tests/phase10_virtio_core.zig",
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
