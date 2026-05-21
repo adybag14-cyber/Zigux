@@ -6,6 +6,7 @@
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase7-shared-surface.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
