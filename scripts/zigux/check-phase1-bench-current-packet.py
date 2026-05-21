@@ -327,6 +327,10 @@ EXPECTED_ASSERT_BLOCKS = {
         ),
         (
             "for key, value, expected_kind in (",
+            '("PHASE1_BENCH_STRING_CHECKSUM", "5", "missing_string_exact_checksums"),',
+            '("PHASE1_BENCH_HWEIGHT_CHECKSUM", "6", "missing_hweight_exact_checksums"),',
+            '("PHASE1_BENCH_LIST_SORT_CHECKSUM", "7", "missing_list_sort_exact_checksums"),',
+            "):",
             'missing_output = ok_output.replace(f"\\n{key}={value}", "")',
             'kind, payload = validate_output(expectations, missing_output)',
             "assert kind == expected_kind",
