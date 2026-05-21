@@ -46,6 +46,7 @@ test "fd-backed trailing 32-bit ELF input exits with stdout" {
     try std.testing.expectEqual(@as(u8, 0), exit_code);
     try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
     try std.testing.expectEqualStrings("", stderr.list.items);
+    try std.testing.expectEqual(@as(usize, 16), std.os.linux.lseek(file.handle, 0, std.posix.SEEK.CUR));
 }
 
 test "fd-backed trailing 64-bit ELF input exits with stdout" {
@@ -69,6 +70,7 @@ test "fd-backed trailing 64-bit ELF input exits with stdout" {
     try std.testing.expectEqual(@as(u8, 0), exit_code);
     try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
     try std.testing.expectEqualStrings("", stderr.list.items);
+    try std.testing.expectEqual(@as(usize, 16), std.os.linux.lseek(file.handle, 0, std.posix.SEEK.CUR));
 }
 
 test "fd-backed trailing invalid-class input exits silently" {
@@ -92,6 +94,7 @@ test "fd-backed trailing invalid-class input exits silently" {
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings("", stderr.list.items);
+    try std.testing.expectEqual(@as(usize, 16), std.os.linux.lseek(file.handle, 0, std.posix.SEEK.CUR));
 }
 
 test "fd-backed trailing non-ELF input exits with stderr" {
@@ -115,4 +118,5 @@ test "fd-backed trailing non-ELF input exits with stderr" {
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+    try std.testing.expectEqual(@as(usize, 16), std.os.linux.lseek(file.handle, 0, std.posix.SEEK.CUR));
 }
