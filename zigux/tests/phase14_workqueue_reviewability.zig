@@ -158,7 +158,8 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
         smoke_survey,
         "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `none currently recorded`, blocked `phase14-workqueue-live-execution-blocker`",
     ) != null);
-    try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "boundary-map-and-reviewability foothold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "`make -C zigux phase14-validate`") != null);
 
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
