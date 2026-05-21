@@ -76,6 +76,11 @@ REQUIRED_MARKERS = {
         "pub fn add",
         "pub fn findAdd",
         "pub fn rb_find_add_cached",
+        "pub fn eraseInit(node: *Node, root: *Root) void {",
+        "pub fn last(root: *const Root) ?*Node {",
+        "pub fn rb_last(root: *const Root) ?*Node {",
+        "pub fn prev(node: *const Node) ?*Node {",
+        "pub fn rb_prev(node: *const Node) ?*Node {",
         "pub fn firstPostorder",
         "pub fn rb_first_postorder",
         "pub fn nextPostorder",
@@ -85,10 +90,17 @@ REQUIRED_MARKERS = {
         'const rbtree = @import("../../tools/lib/rbtree.zig");',
         'test "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers" {',
         'test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries" {',
+        'test "phase 7 rbtree companion replays plain erase-init ownership boundaries" {',
         'test "phase 7 rbtree companion replays postorder aliases and null-stop handling" {',
+        'test "phase 7 rbtree companion replays reverse traversal aliases and detached null stops" {',
         "rbtree.matchIterator",
-        "rbtree.eraseInitCached",
+        "rbtree.eraseInit(&root_entry.node, &root);",
+        "rbtree.eraseInitCached(&entries[1].node, &root);",
         "rbtree.rb_erase_init_cached",
+        "rbtree.last(&root)",
+        "rbtree.rb_last(&root)",
+        "rbtree.prev(alias_last)",
+        "rbtree.rb_prev(alias_last)",
         "rbtree.firstPostorder",
         "rbtree.rb_first_postorder",
         "rbtree.nextPostorder",
@@ -132,7 +144,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 46
+SELF_TEST_CASE_COUNT = 58
 
 
 def read_text(path: Path) -> str:
@@ -320,6 +332,36 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_marker = "pub fn eraseInit(node: *Node, root: *Root) void {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_erase_init", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn last(root: *const Root) ?*Node {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_last", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn rb_last(root: *const Root) ?*Node {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_last_alias", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn prev(node: *const Node) ?*Node {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_prev", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn rb_prev(node: *const Node) ?*Node {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_prev_alias", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         helper_marker = "pub fn firstPostorder"
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_first_postorder", tmp_root, f"tools/lib/rbtree.zig: {helper_marker}")
@@ -365,10 +407,30 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        companion_marker = "rbtree.eraseInitCached"
+        companion_marker = 'test "phase 7 rbtree companion replays plain erase-init ownership boundaries" {'
         companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_companion_cached_erase_helper",
+            "missing_companion_plain_erase_init_replay",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.eraseInit(&root_entry.node, &root);"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_erase_init_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.eraseInitCached(&entries[1].node, &root);"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_cached_erase_init_helper",
             tmp_root,
             f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
         )
@@ -379,6 +441,56 @@ def run_self_test() -> None:
         companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_companion_postorder_replay",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = 'test "phase 7 rbtree companion replays reverse traversal aliases and detached null stops" {'
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_reverse_traversal_replay",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.last(&root)"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_last_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.rb_last(&root)"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_last_alias",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.prev(alias_last)"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_prev_helper",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_marker = "rbtree.rb_prev(alias_last)"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_prev_alias",
             tmp_root,
             f"zigux/tests/phase7_rbtree.zig: {companion_marker}",
         )
