@@ -58,8 +58,12 @@ EXPECTED_BASE64_LABELS = [
     "IMAP_NO_PAD",
 ]
 EXPECTED_BSEARCH_LABELS = ["len15", "len64", "len1024"]
+EXPECTED_BSEARCH_C_ABI_REPLAYS = [
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -115,6 +119,11 @@ def require_checker_surfaces(
             raise ValidationError(f"{key} checker surface drifted: {surface}")
 
 
+def require_string_list(value: object, label: str, expected: list[str]) -> None:
+    if value != expected:
+        raise ValidationError(f"{label} drifted")
+
+
 def validate_evidence_manifest(path: Path) -> None:
     manifest = load_manifest(path)
     if manifest.get("packet") != "phase6-helper-evidence":
@@ -139,6 +148,11 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError("bsearch dedicated_slowdown_replay drifted")
     require_checker_surfaces(base64, "base64", REQUIRED_BASE64_CHECKER_SURFACES)
     require_checker_surfaces(bsearch, "bsearch", REQUIRED_BSEARCH_CHECKER_SURFACES)
+    require_string_list(
+        bsearch.get("focused_c_abi_replays"),
+        "bsearch focused_c_abi_replays",
+        EXPECTED_BSEARCH_C_ABI_REPLAYS,
+    )
 
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
@@ -189,6 +203,11 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("bsearch query count drifted")
     if bsearch_perf.get("bound_budget_formula") != "std.math.log2_int_ceil(len) + 1":
         raise ValidationError("bsearch bound budget formula drifted")
+    require_string_list(
+        bsearch_perf.get("runtime_selected_c_abi_replays"),
+        "bsearch runtime_selected_c_abi_replays",
+        EXPECTED_BSEARCH_C_ABI_REPLAYS,
+    )
     bsearch_routes = bsearch_perf.get("linux_style_rerun_routes")
     if not isinstance(bsearch_routes, list):
         raise ValidationError("bsearch rerun routes missing")
@@ -230,6 +249,7 @@ def scaffold_repo(root: Path) -> None:
                         "key": "bsearch",
                         "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
+                        "focused_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                     },
                 ],
                 "current_shared_replay_inventory": REQUIRED_SHARED_REPLAYS,
@@ -265,6 +285,7 @@ def scaffold_repo(root: Path) -> None:
                             "case_labels": EXPECTED_BSEARCH_LABELS,
                             "query_count": 16,
                             "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+                            "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-bsearch-perf",
                                 "make -C zigux phase6-perf",
@@ -345,10 +366,10 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
-                '"current_direct_readback_companions": [\n    "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"\n  ]',
-                '"current_direct_readback_companions": [\n    "scripts/zigux/check-phase6-present-entrypoints.py"\n  ]',
+                "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
+                "scripts/zigux/check-phase6-shared-surface.py",
             ),
-            "check-phase6-base64-bsearch-perf-markers.py",
+            "missing direct readback companion",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -357,8 +378,8 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
-                '"dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig"',
-                '"dedicated_slowdown_replay": "zigux/tests/phase6_base64.zig"',
+                "zigux/tests/phase6_base64_perf.zig",
+                "zigux/tests/phase6_base64.zig",
             ),
             "base64 dedicated_slowdown_replay drifted",
         )
@@ -369,20 +390,8 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
-                '"scripts/zigux/check-phase6-present-entrypoints.py"',
-            ),
-            "base64 checker surface drifted",
-        )
-        cases_run += 1
-        scaffold_repo(root)
-
-        expect_failure(
-            root,
-            lambda: mutate_text(
-                root / EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
-                '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
+                "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+                "scripts/zigux/check-phase6-shared-surface.py",
             ),
             "bsearch checker surface drifted",
         )
@@ -392,11 +401,35 @@ def run_self_test() -> None:
         expect_failure(
             root,
             lambda: mutate_text(
-                root / PARITY_MANIFEST_PATH,
-                '"IMAP_NO_PAD"',
-                '"IMAP_NOPAD"',
+                root / EVIDENCE_MANIFEST_PATH,
+                "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                "zigux/tests/phase6_bsearch_lower_bound.zig",
             ),
-            "base64 perf labels drifted",
+            "bsearch focused_c_abi_replays drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                "make -C zigux phase6-bsearch-perf",
+                "make -C zigux phase6-bsearch-test",
+            ),
+            "missing shared replay inventory marker",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"packet": "phase6-helper-parity"',
+                '"packet": "phase6-helper-evidence"',
+            ),
+            "unexpected packet id",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -406,7 +439,7 @@ def run_self_test() -> None:
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
                 '"max_decode_slowdown_pct": 325',
-                '"max_decode_slowdown_pct": 350',
+                '"max_decode_slowdown_pct": 400',
             ),
             "base64 decode threshold drifted",
         )
@@ -418,7 +451,7 @@ def run_self_test() -> None:
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
                 '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
-                '"bound_budget_formula": "std.math.log2_int_floor(len) + 1"',
+                '"bound_budget_formula": "len"',
             ),
             "bsearch bound budget formula drifted",
         )
@@ -428,11 +461,11 @@ def run_self_test() -> None:
         expect_failure(
             root,
             lambda: mutate_text(
-                root / EVIDENCE_MANIFEST_PATH,
-                '"packet": "phase6-helper-evidence"',
-                '"packet": "phase6-helper-parity"',
+                root / PARITY_MANIFEST_PATH,
+                "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                "zigux/tests/phase6_bsearch_lower_bound.zig",
             ),
-            "unexpected packet id",
+            "bsearch runtime_selected_c_abi_replays drifted",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -441,17 +474,27 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
-                '"query_count": 16',
-                '"query_count": 8',
+                "make -C zigux phase6-bsearch-perf",
+                "make -C zigux phase6-bsearch-test",
             ),
-            "bsearch query count drifted",
+            "bsearch rerun route missing phase6-bsearch-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"case_labels": [\n          "len15",\n          "len64",\n          "len1024"\n        ]',
+                '"case_labels": ["len15", "len64"]',
+            ),
+            "bsearch perf labels drifted",
         )
         cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
-            raise AssertionError(
-                f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}"
-            )
+            raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
 
     print("PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST=pass")
     print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
@@ -459,17 +502,8 @@ def run_self_test() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=Path("."),
-        help="repository root to validate",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run the built-in self-test",
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path("."))
+    parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
 
