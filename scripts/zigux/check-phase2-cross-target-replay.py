@@ -20,6 +20,12 @@ EXPECTED_PHASE = "Phase 2"
 EXPECTED_STATUS = "active"
 EXPECTED_ROUTE = "make -C zigux phase2-cross"
 EXPECTED_TARGET_ORDER = ("x86_64-linux", "aarch64-linux")
+EXPECTED_FIXTURE_FIELDS = frozenset(
+    ("phase", "status", "route", "archive_target_scope", "cross_targets")
+)
+EXPECTED_CROSS_TARGET_FIELDS = frozenset(
+    ("target", "review_status", "validation_mode", "route")
+)
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 ZIG_TEST_FILES = (
     Path("scripts") / "zigux" / "kconfig" / "conf_bridge.zig",
@@ -111,6 +117,27 @@ def load_archive_target_scope(root: Path) -> list[str]:
     return normalized
 
 
+def describe_entry_label(index: int, entry: object) -> str:
+    if isinstance(entry, dict):
+        target = entry.get("target")
+        if isinstance(target, str) and target:
+            return target
+    return f"index={index}"
+
+
+def collect_field_set_issues(
+    actual_keys: set[str], expected_keys: frozenset[str], prefix: str, label: str
+) -> list[str]:
+    issues: list[str] = []
+    unexpected = sorted(actual_keys - expected_keys)
+    missing = sorted(expected_keys - actual_keys)
+    if unexpected:
+        issues.append(f"{prefix}:unexpected_fields:{label}:{unexpected!r}")
+    if missing:
+        issues.append(f"{prefix}:missing_fields:{label}:{missing!r}")
+    return issues
+
+
 def collect_fixture_issues(root: Path) -> list[str]:
     fixture_path = resolve_repo_path(root, FIXTURE)
     payload = load_json(fixture_path)
@@ -118,6 +145,10 @@ def collect_fixture_issues(root: Path) -> list[str]:
 
     if not isinstance(payload, dict):
         return [f"fixture:shape:{type(payload).__name__}"]
+
+    issues.extend(
+        collect_field_set_issues(set(payload.keys()), EXPECTED_FIXTURE_FIELDS, "fixture", "root")
+    )
 
     if payload.get("phase") != EXPECTED_PHASE:
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
@@ -143,6 +174,13 @@ def collect_fixture_issues(root: Path) -> list[str]:
         if not isinstance(entry, dict):
             issues.append(f"fixture:cross_target_entry:{index}:{type(entry).__name__}")
             continue
+
+        entry_label = describe_entry_label(index, entry)
+        issues.extend(
+            collect_field_set_issues(
+                set(entry.keys()), EXPECTED_CROSS_TARGET_FIELDS, "fixture:cross_target", entry_label
+            )
+        )
 
         target = entry.get("target")
         review_status = entry.get("review_status")
@@ -550,6 +588,32 @@ def run_self_test() -> int:
             assert "duplicate json key" in str(exc)
         else:
             raise AssertionError("expected duplicate fixture json key to fail closed")
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["unexpected"] = True
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "fixture:cross_target:unexpected_fields:x86_64-linux:['unexpected']"
+            in collect_fixture_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["extra_root"] = True
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:unexpected_fields:root:['extra_root']" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0].pop("route")
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_fixture_issues(root)
+        assert "fixture:cross_target:missing_fields:x86_64-linux:['route']" in issues
+        assert "fixture:cross_target_route:x86_64-linux:None" in issues
         checks_run += 1
 
         build_self_test_root(root)
