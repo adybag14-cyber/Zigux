@@ -39,7 +39,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current base64 helper surface exercised by this slice covers:
 
-- generic `chars`, `paddedChars`, `unpaddedChars`, `bytes`, `encode`, and `decode`
+- generic `chars`, `bytes`, `encode`, and `decode`
 - generic `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
 - variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
 - variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
