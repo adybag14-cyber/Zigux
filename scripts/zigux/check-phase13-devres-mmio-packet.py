@@ -104,7 +104,9 @@ SCATTERLIST_PLANNER_NOTE_MARKERS = [
     "lands one pure scatterlist lifetime planning surface in `lib/devres_scatterlist.zig`",
     "routes `planManagedScatterlistMap(...)` through one helper-local release-record outcome so retained cleanup ownership stays reviewable as its own shared helper step",
     "records whether a successful planned scatterlist map retains detach-time unmap ownership on success",
+    "records whether impossible over-mapped scatterlist results free the release record and avoid retaining detach-time unmap ownership",
     "routes `planManagedScatterlistUnmap(...)` through exact original-entry and mapped-entry matching so release drift stays reviewable without claiming live unmap side effects",
+    "records whether a release-count mismatch surfaces a warn-on-release-miss outcome without claiming live unmap side effects",
     "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership",
     "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`",
     "does not claim live DMA mapping side effects, scatterlist ownership mutation, IOMMU state, DMA attributes, or wider devres group teardown behavior",
@@ -133,9 +135,13 @@ SCATTERLIST_PLANNER_MANIFEST_MARKERS = [
     '"status": "starter_landed"',
     '"Documentation/zigux/phase13-devres-scatterlist-planner.md"',
     '"zigux/tests/phase13_devres_scatterlist_planner_manifest.json"',
+    '"overmapped_request_owner": "zigux/tests/phase13_devres_scatterlist.zig"',
+    '"warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig"',
     '"planManagedScatterlistMap"',
     '"scatterlistReleaseMatches"',
     '"planManagedScatterlistUnmap"',
+    '"impossible over-mapped scatterlist results free the release record"',
+    '"warn-on-release-miss outcome"',
     '"id": "phase13-devres-live-scatterlist-ownership"',
     '"id": "phase13-devres-live-sg-table-lifecycle"',
     '"id": "phase13-devres-generic-dma-map-family"',
@@ -184,8 +190,10 @@ SCATTERLIST_HELPER_MARKERS = [
 SCATTERLIST_REPLAY_MARKERS = [
     'test "phase13 devres descriptor records helper-first scatterlist planning" {',
     'test "phase13 devres retains the release record when helper-first scatterlist planning succeeds" {',
+    'test "phase13 devres frees the scatterlist release record when mapped segments exceed the original count" {',
     'test "phase13 devres rejects scatterlist planning when the release record cannot be allocated" {',
     'test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {',
+    'test "phase13 devres scatterlist unmap planning warns when release counts drift" {',
 ]
 
 SCATTERLIST_BUILD_MARKERS = [
@@ -368,16 +376,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SCATTERLIST_PLANNER_NOTE_MARKERS
-                if marker != "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership"
+                if marker != "records whether a release-count mismatch surfaces a warn-on-release-miss outcome without claiming live unmap side effects"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "scatterlist_planner_note:missing_marker:exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership"
+                "scatterlist_planner_note:missing_marker:records whether a release-count mismatch surfaces a warn-on-release-miss outcome without claiming live unmap side effects"
             ],
-            "scatterlist_planner_note_missing_release_match_failed",
+            "scatterlist_planner_note_missing_warn_marker_failed",
         )
         case_count += 1
 
@@ -404,16 +412,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SCATTERLIST_PLANNER_MANIFEST_MARKERS
-                if marker != '"id": "phase13-devres-live-sg-table-lifecycle"'
+                if marker != '"warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig"'
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                'scatterlist_planner_manifest:missing_marker:"id": "phase13-devres-live-sg-table-lifecycle"'
+                'scatterlist_planner_manifest:missing_marker:"warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig"'
             ],
-            "scatterlist_planner_manifest_missing_sg_table_gap_failed",
+            "scatterlist_planner_manifest_missing_warn_owner_failed",
         )
         case_count += 1
 
@@ -472,16 +480,16 @@ def run_self_test() -> int:
                 marker
                 for marker in SCATTERLIST_REPLAY_MARKERS
                 if marker
-                != 'test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {'
+                != 'test "phase13 devres scatterlist unmap planning warns when release counts drift" {'
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                'scatterlist_replay:missing_marker:test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {'
+                'scatterlist_replay:missing_marker:test "phase13 devres scatterlist unmap planning warns when release counts drift" {'
             ],
-            "scatterlist_replay_missing_release_match_failed",
+            "scatterlist_replay_missing_warn_test_failed",
         )
         case_count += 1
 
