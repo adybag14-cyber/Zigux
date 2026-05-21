@@ -64,7 +64,7 @@ EXPECTED_PHASE = "Phase 6"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
-EXPECTED_SHARED_PUBLIC_COMPANIONS = ["Documentation/zigux/phase6-perf-gate-survey.md"]
+EXPECTED_SHARED_PUBLIC_COMPANIONS = []
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "zigux/tests/phase6_helper_evidence_manifest.json",
@@ -139,7 +139,7 @@ REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
     "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
-    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
+    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
 ]
 
 REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
@@ -436,7 +436,9 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
-        parity_manifest["public_tree_backed_shared_companions"] = []
+        parity_manifest["public_tree_backed_shared_companions"] = [
+            "Documentation/zigux/phase6-perf-gate-survey.md"
+        ]
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
