@@ -13,6 +13,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+BSEARCH_PERF_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
@@ -33,6 +34,16 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-base64-perf:",
     "phase6-bsearch-perf:",
     "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
+]
+
+REQUIRED_BSEARCH_PERF_SNIPPETS = [
+    "fn compareCountedDescending(key: *const u32, item: *const u32) i32 {",
+    "fn compareCountedOpaqueDescending(key: *const anyopaque, item: *const anyopaque) i32 {",
+    "populateDescending(descending_values, ascending_values);",
+    "const descending_witness = try runWitnessCases(",
+    "compareCountedDescending,",
+    "compareCountedOpaqueDescending,",
+    "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
 ]
 
 REQUIRED_SHARED_REPLAYS = [
@@ -63,7 +74,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -219,6 +230,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
+    require_snippets(repo_root / BSEARCH_PERF_PATH, REQUIRED_BSEARCH_PERF_SNIPPETS)
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
@@ -232,6 +244,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
+    write(root / BSEARCH_PERF_PATH, "\n".join(REQUIRED_BSEARCH_PERF_SNIPPETS) + "\n")
     write(
         root / EVIDENCE_MANIFEST_PATH,
         json.dumps(
@@ -358,6 +371,42 @@ def run_self_test() -> None:
                 "phase6-bsearch-test:",
             ),
             "phase6-bsearch-perf:",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / BSEARCH_PERF_PATH,
+                "fn compareCountedDescending(key: *const u32, item: *const u32) i32 {",
+                "fn compareCounted(key: *const u32, item: *const u32) i32 {",
+            ),
+            "compareCountedDescending",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / BSEARCH_PERF_PATH,
+                "populateDescending(descending_values, ascending_values);",
+                "populateDescending(ascending_values, descending_values);",
+            ),
+            "populateDescending(descending_values, ascending_values);",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / BSEARCH_PERF_PATH,
+                "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
+                "for (ascending_queries, ascending_expected_hits) |query, expected_hit| {",
+            ),
+            "descending_queries",
         )
         cases_run += 1
         scaffold_repo(root)
