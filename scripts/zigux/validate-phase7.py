@@ -18,6 +18,7 @@ MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
+MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -84,6 +85,7 @@ REQUIRED_FILES = [
     MAKEFILE_PATH,
     CHECKER_PATH,
     BUILD_WIRING_CHECKER_PATH,
+    MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
@@ -98,7 +100,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 class ValidationError(RuntimeError):
@@ -171,6 +173,7 @@ def validate(root: Path) -> None:
 
     run_checker(root, CHECKER_PATH)
     run_checker(root, BUILD_WIRING_CHECKER_PATH)
+    run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
 
 
@@ -281,10 +284,11 @@ def scaffold_repo(root: Path) -> None:
         (Path("lib/argv_split.zig"), "pub const ArgvSplitResult = struct {};\npub fn argvSplit() void {}\n"),
     ]:
         write(root / rel_path, content)
-    for checker_path, success_marker in [
-        (CHECKER_PATH, "PHASE7_SHARED_SURFACE=pass"),
-        (BUILD_WIRING_CHECKER_PATH, "PHASE7_BUILD_WIRING=pass"),
-        (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass"),
+    for checker_path, success_marker, root_flag in [
+        (CHECKER_PATH, "PHASE7_SHARED_SURFACE=pass", "--repo-root"),
+        (BUILD_WIRING_CHECKER_PATH, "PHASE7_BUILD_WIRING=pass", "--repo-root"),
+        (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass", "--root"),
+        (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass", "--repo-root"),
     ]:
         write(
             root / checker_path,
@@ -294,7 +298,7 @@ def scaffold_repo(root: Path) -> None:
             "from pathlib import Path\n\n"
             "def main() -> int:\n"
             "    parser = argparse.ArgumentParser()\n"
-            "    parser.add_argument('--repo-root', type=Path, default=Path('.'))\n"
+            f"    parser.add_argument('{root_flag}', type=Path, default=Path('.'))\n"
             "    parser.parse_args()\n"
             f"    print('{success_marker}')\n"
             "    return 0\n\n"
@@ -336,6 +340,7 @@ def run_self_test() -> None:
             (Path("lib/argv_split.zig"), "pub fn argvSplit", False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
+            (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
             (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
