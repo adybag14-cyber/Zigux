@@ -274,7 +274,6 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        (root / "Documentation/zigux/phase12-virtio-net-survey.md").writeText if False else None
         (root / "Documentation/zigux/phase12-virtio-net-survey.md").write_text("broken\n", encoding="utf-8")
         try:
             run_check(root)
