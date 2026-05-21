@@ -33,10 +33,12 @@ REQUIRED_MARKERS = {
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+        "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
+        "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
         "Current `master` no longer shows the older packet-local compile-wiring gap",
         "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
         "the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring",
-        "the shared tests-root replay wiring explicit as shipped same-family evidence",
+        "the already-shipped starter `dev_t` validation relays, and the shared tests-root replay wiring explicit as shipped same-family evidence",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
@@ -47,6 +49,7 @@ REQUIRED_MARKERS = {
     EXPORT_SHIM_PATH: (
         "pub fn versionMatchesCurrent(candidate: Version) bool {",
         "pub fn validateVersion(candidate: Version) ExportStatus {",
+        "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
     ),
@@ -71,6 +74,8 @@ REQUIRED_MARKERS = {
     ),
     LINUX_HEADER_PATH: (
         "static inline zigux_uapi_version zigux_uapi_version_current(void)",
+        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
+        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
         "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
     ),
@@ -173,6 +178,16 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
+            "expected missing export shim field-validation survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
+            "expected missing linux-facing dev_t wrapper survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "Current `master` no longer shows the older packet-local compile-wiring gap",
             "expected missing shared-route-aligned survey marker was not reported",
         ),
@@ -198,8 +213,23 @@ def run_self_test() -> int:
         ),
         (
             EXPORT_SHIM_PATH,
+            "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
+            "expected missing export shim field-validation relay marker was not reported",
+        ),
+        (
+            EXPORT_SHIM_PATH,
             "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
             "expected missing export shim range relay marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
+            "expected missing linux-facing dev_t field wrapper marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
+            "expected missing linux-facing dev_t component wrapper marker was not reported",
         ),
         (
             BINDING_VERSION_PATH,
