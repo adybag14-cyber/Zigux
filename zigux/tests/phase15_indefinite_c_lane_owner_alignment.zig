@@ -20,6 +20,10 @@ test "phase 15 indefinite-C lane owner alignment stays coupled to the direct pol
     const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 16 * 1024);
     defer std.testing.allocator.free(decision_record_template);
 
+    const manifest_json = try readRepoFile("zigux/tests/phase15_indefinite_c_policy.json", 24 * 1024);
+    defer std.testing.allocator.free(manifest_json);
+
+    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(policy_note, "same reviewable ownership vocabulary");
     try expectContains(policy_note, "lane owner");
@@ -39,4 +43,7 @@ test "phase 15 indefinite-C lane owner alignment stays coupled to the direct pol
     try expectContains(decision_record_template, "current status bucket:");
     try expectContains(decision_record_template, "requested decision bucket:");
     try expectContains(decision_record_template, "retired_from_active_discussion");
+
+    try expectContains(manifest_json, "\"lane_key\": \"P15-L16\"");
+    try expectContains(manifest_json, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
 }
