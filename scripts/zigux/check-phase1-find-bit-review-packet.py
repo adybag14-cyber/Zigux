@@ -114,6 +114,11 @@ EXPECTED_CLOSURE_PARAGRAPH = (
     "andnot`, so leave `find_bit` parked unless one of those direct anchors or committed replay fields drifts."
 )
 
+EXPECTED_CLOSURE_NO_READ_SENTENCE = (
+    "That direct packet now also includes the explicit `clump8 past-end scans return without reading bitmap words` "
+    "no-read anchor, so the byte-clump coverage is not limited to in-range or zero-bit windows."
+)
+
 EXPECTED_MANIFEST_PACKET = {
     "helper_test_anchors": EXPECTED_HELPER_TEST_ANCHORS,
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
@@ -225,6 +230,13 @@ def collect_failures(root: Path) -> list[str]:
     failures.extend(
         require_exact_occurrence(closure_text, "closure_paragraph", EXPECTED_CLOSURE_PARAGRAPH)
     )
+    failures.extend(
+        require_exact_occurrence(
+            closure_text,
+            "closure_no_read_sentence",
+            EXPECTED_CLOSURE_NO_READ_SENTENCE,
+        )
+    )
 
     review_anchors = manifest.get("review_anchors") if isinstance(manifest, dict) else None
     if not isinstance(review_anchors, dict):
@@ -259,7 +271,11 @@ def build_sample_repo(root: Path) -> None:
         LANE_NOTE_REL,
         "# sample\n\n" + "\n".join(EXPECTED_LANE_LINES + [EXPECTED_LANE_PARAGRAPH]) + "\n",
     )
-    write_text(root, CLOSURE_NOTE_REL, "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n")
+    write_text(
+        root,
+        CLOSURE_NOTE_REL,
+        "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n" + EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
+    )
     write_text(
         root,
         MANIFEST_REL,
@@ -280,6 +296,7 @@ def run_self_test() -> int:
         ("missing_symbol", "helper_symbol:pub fn findLastBit(addr: []const Word, nbits: usize) usize {:expected=1:actual=0"),
         ("missing_anchor", "helper_anchor:test \"clump8 scans mask tail bits beyond nbits\":expected=1:actual=0"),
         ("missing_closure_paragraph", "closure_paragraph:expected=1:actual=0"),
+        ("missing_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=0"),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
         ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
         ("tail_boundary_fixture_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
@@ -287,6 +304,7 @@ def run_self_test() -> int:
         ("duplicate_source_only_anchor", "helper_source_only_anchor:test \"clump8 past-end scans return without reading bitmap words\":expected=1:actual=2"),
         ("duplicate_lane_paragraph", "lane_paragraph:expected=1:actual=2"),
         ("duplicate_closure_paragraph", "closure_paragraph:expected=1:actual=2"),
+        ("duplicate_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=2"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -328,24 +346,30 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-review:self-test:missing_closure_paragraph")
 
         build_sample_repo(tmp_root)
+        closure_text = load_text(tmp_root, CLOSURE_NOTE_REL).replace(EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n", "", 1)
+        write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
+        if cases[6][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:missing_closure_no_read_sentence")
+
+        build_sample_repo(tmp_root)
         manifest = load_json(tmp_root, MANIFEST_REL)
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["review_packet_summary"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[6][1] not in collect_failures(tmp_root):
+        if cases[7][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:manifest_drift")
 
         build_sample_repo(tmp_root)
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["find_bit"]["tail_clamped_last"] = 0
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[7][1] not in collect_failures(tmp_root):
+        if cases[8][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_drift")
 
         build_sample_repo(tmp_root)
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["find_bit"]["tail_inclusive_boundary_and"] = 0
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[8][1] not in collect_failures(tmp_root):
+        if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:tail_boundary_fixture_drift")
 
         build_sample_repo(tmp_root)
@@ -353,7 +377,7 @@ def run_self_test() -> int:
         duplicated = EXPECTED_HELPER_TEST_ANCHORS[17]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[9][1] not in collect_failures(tmp_root):
+        if cases[10][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_anchor")
 
         build_sample_repo(tmp_root)
@@ -361,7 +385,7 @@ def run_self_test() -> int:
         duplicated = EXPECTED_SOURCE_ONLY_ANCHORS[0]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[10][1] not in collect_failures(tmp_root):
+        if cases[11][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_source_only_anchor")
 
         build_sample_repo(tmp_root)
@@ -372,7 +396,7 @@ def run_self_test() -> int:
             1,
         )
         write_text(tmp_root, LANE_NOTE_REL, lane_text)
-        if cases[11][1] not in collect_failures(tmp_root):
+        if cases[12][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_lane_paragraph")
 
         build_sample_repo(tmp_root)
@@ -383,11 +407,22 @@ def run_self_test() -> int:
             1,
         )
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
-        if cases[12][1] not in collect_failures(tmp_root):
+        if cases[13][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_closure_paragraph")
 
+        build_sample_repo(tmp_root)
+        closure_text = load_text(tmp_root, CLOSURE_NOTE_REL)
+        closure_text = closure_text.replace(
+            EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
+            EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n" + EXPECTED_CLOSURE_NO_READ_SENTENCE + "\n",
+            1,
+        )
+        write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
+        if cases[14][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:duplicate_closure_no_read_sentence")
+
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
