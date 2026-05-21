@@ -13,10 +13,11 @@ NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
-    '("ARTIFACT_DIFF_HELPER_SELF_TEST_CHECK", ["scripts/zigux/artifact_diff.py", "--self-test"], "ARTIFACT_DIFF_SELF_TEST=pass"),',
-    '("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),',
-    '("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", ["scripts/zigux/check-artifact-diff-contract.py", "--self-test"], "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),',
-    '("ARTIFACT_DIFF_CONTRACT_CHECK", ["scripts/zigux/check-artifact-diff-contract.py"], "ARTIFACT_DIFF_CONTRACT=pass"),',
+    'CheckSpec(\n        "phase4-artifact-diff-helper-self-test",\n        ("python", "scripts/zigux/artifact_diff.py", "--self-test"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-contract-self-test",\n        ("python", "scripts/zigux/check-artifact-diff-contract.py", "--self-test"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-contract",\n        ("python", "scripts/zigux/check-artifact-diff-contract.py"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-determinism-self-test",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"),\n    ),',
+    'CheckSpec(\n        "phase4-artifact-diff-determinism",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py"),\n    ),',
 ]
 
 EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
