@@ -27,6 +27,8 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
+    "drivers/virtio/virtio_verify.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
@@ -41,8 +43,11 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
@@ -52,17 +57,25 @@ CORE_TRUE_SUMMARY_KEYS = (
     "preexisting_phase10_build_present",
     "preexisting_virtio_core_zig_present",
     "preexisting_virtio_core_test_present",
+    "preexisting_virtio_core_reset_queue_test_present",
+    "preexisting_virtio_driver_id_zig_present",
+    "preexisting_virtio_driver_id_test_present",
     "preexisting_virtio_core_slice_note_present",
 )
 
-CORE_FALSE_SUMMARY_KEYS = (
-    "preexisting_virtio_driver_id_zig_present",
-    "preexisting_virtio_driver_id_test_present",
-)
+CORE_FALSE_SUMMARY_KEYS = ()
 
 CORE_EXPECTED_GAPS = {
+    "phase10-build-gate": "starter_landed",
+    "phase10-driver-id-helper": "starter_landed",
+    "phase10-driver-id-coverage-disposition-helper": "starter_landed",
+    "phase10-virtio-core-reset-queue-gate": "starter_landed",
+    "phase10-virtio-core-slice-note": "starter_landed",
+    "phase10-virtio-core-survey-gate": "starter_landed",
     "phase10-virtio-core-survey-note": "starter_landed",
+    "phase10-virtio-core-verify-replay": "starter_landed",
     "phase10-core-lab-validation-evidence": "starter_landed",
+    "phase10-interrupt-compound-ack-gate": "starter_landed",
     "phase10-core-dual-implementation-bridge": "blocked_on_risky_transport",
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
@@ -75,10 +88,10 @@ CORE_SURVEY_REQUIRED_MARKERS = (
 )
 
 CORE_SURVEY_DRIVER_ID_MARKERS = (
-    "the narrower driver-id packet is the remaining same-lane visibility mismatch",
+    "phase10-driver-id-helper",
+    "phase10-driver-id-coverage-disposition-helper",
     "`drivers/virtio/virtio_driver_id.zig`",
     "`zigux/tests/phase10_virtio_driver_id.zig`",
-    "can no longer treat that helper-and-replay pair as landed evidence on the live branch",
 )
 
 CORE_SURVEY_STALE_GUARDRAIL_MARKERS = (
@@ -218,9 +231,17 @@ def collect_core_packet_issues(root: Path) -> list[str]:
     build_text = read_text(root, "zigux/tests/phase10_build.zig")
     for marker in (
         "phase10-virtio-core-tests",
+        "phase10-virtio-core-interrupt-compound-ack-tests",
+        "phase10-virtio-core-reset-queue-tests",
+        "phase10-virtio-core-verify-tests",
         "phase10-virtio-core-survey-tests",
+        "phase10-virtio-driver-id-tests",
         "run_phase10_virtio_core_tests",
+        "run_phase10_virtio_core_interrupt_compound_ack_tests",
+        "run_phase10_virtio_core_reset_queue_tests",
+        "run_phase10_virtio_core_verify_tests",
         "run_phase10_virtio_core_survey_tests",
+        "run_phase10_virtio_driver_id_tests",
     ):
         if marker not in build_text:
             issues.append(f"phase10_core_packet:build:{marker}")
@@ -307,13 +328,22 @@ def build_sample_repo(root: Path) -> None:
             "preexisting_phase10_build_present": True,
             "preexisting_virtio_core_zig_present": True,
             "preexisting_virtio_core_test_present": True,
+            "preexisting_virtio_core_reset_queue_test_present": True,
+            "preexisting_virtio_driver_id_zig_present": True,
+            "preexisting_virtio_driver_id_test_present": True,
             "preexisting_virtio_core_slice_note_present": True,
-            "preexisting_virtio_driver_id_zig_present": False,
-            "preexisting_virtio_driver_id_test_present": False,
         },
         "gaps": [
+            {"id": "phase10-build-gate", "status": "starter_landed"},
+            {"id": "phase10-driver-id-helper", "status": "starter_landed"},
+            {"id": "phase10-driver-id-coverage-disposition-helper", "status": "starter_landed"},
+            {"id": "phase10-virtio-core-reset-queue-gate", "status": "starter_landed"},
+            {"id": "phase10-virtio-core-slice-note", "status": "starter_landed"},
+            {"id": "phase10-virtio-core-survey-gate", "status": "starter_landed"},
             {"id": "phase10-virtio-core-survey-note", "status": "starter_landed"},
+            {"id": "phase10-virtio-core-verify-replay", "status": "starter_landed"},
             {"id": "phase10-core-lab-validation-evidence", "status": "starter_landed"},
+            {"id": "phase10-interrupt-compound-ack-gate", "status": "starter_landed"},
             {"id": "phase10-core-dual-implementation-bridge", "status": "blocked_on_risky_transport"},
             {"id": "phase10-core-probe-remove-lifecycle", "status": "blocked_on_risky_transport"},
         ],
@@ -325,10 +355,13 @@ def build_sample_repo(root: Path) -> None:
             "- lane: `P10-L01`\n"
             "- surveyed packet commit recorded by the live core manifest: c11221dc7a68d7511ae1c69d64b3f08528287ed8\n"
             "- scripts/zigux/validate-phase10.py\n"
+            "- phase10-driver-id-helper\n"
+            "- phase10-driver-id-coverage-disposition-helper\n"
             "- phase10-core-lab-validation-evidence\n"
             "- phase10-core-probe-remove-lifecycle\n"
             "- stale guardrail reference drift: `scripts/zigux/check-phase10-core-packet.py` does not materialize on `master`\n"
-            "- the narrower driver-id packet is the remaining same-lane visibility mismatch because `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` still fail exact rereads, so the note can no longer treat that helper-and-replay pair as landed evidence on the live branch\n"
+            "- `drivers/virtio/virtio_driver_id.zig`\n"
+            "- `zigux/tests/phase10_virtio_driver_id.zig`\n"
         ),
         "Documentation/zigux/phase10-virtio-core-slice.md": (
             "# Phase 10 Virtio Core Slice\n"
@@ -342,8 +375,12 @@ def build_sample_repo(root: Path) -> None:
         "zigux/Makefile": "phase10-validate:\n\t@true\n\nphase10-test:\n\t@true\n\nphase10:\n\t@true\n",
         "zigux/tests/phase10_build.zig": (
             "const run_phase10_virtio_core_tests = 1;\n"
+            "const run_phase10_virtio_core_interrupt_compound_ack_tests = 1;\n"
+            "const run_phase10_virtio_core_reset_queue_tests = 1;\n"
+            "const run_phase10_virtio_core_verify_tests = 1;\n"
             "const run_phase10_virtio_core_survey_tests = 1;\n"
-            "const names = .{\"phase10-virtio-core-tests\", \"phase10-virtio-core-survey-tests\"};\n"
+            "const run_phase10_virtio_driver_id_tests = 1;\n"
+            "const names = .{\"phase10-virtio-core-tests\", \"phase10-virtio-core-interrupt-compound-ack-tests\", \"phase10-virtio-core-reset-queue-tests\", \"phase10-virtio-core-verify-tests\", \"phase10-virtio-core-survey-tests\", \"phase10-virtio-driver-id-tests\"};\n"
         ),
         "zigux/tests/phase10_virtio_core.zig": "test \"sample\" {}\n",
         "zigux/tests/phase10_virtio_core_survey.zig": "test \"sample survey\" {}\n",
@@ -409,6 +446,18 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["preexisting_virtio_driver_id_zig_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:summary:preexisting_virtio_driver_id_zig_present" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:driver_id_summary_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         survey_text = survey_path.read_text(encoding="utf-8").replace(
             "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
@@ -427,17 +476,32 @@ def run_self_test() -> int:
         build_path = root / "zigux/tests/phase10_build.zig"
         build_path.write_text("const only_core = 1;\n", encoding="utf-8")
         issues = collect_issues(root)
-        if "phase10_core_packet:build:phase10-virtio-core-survey-tests" not in issues:
+        if "phase10_core_packet:build:phase10-virtio-core-reset-queue-tests" not in issues:
             raise SystemExit(
                 "phase10-validate-self-test:core_build_marker_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
         build_sample_repo(root)
+        manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = [
+            gap for gap in manifest["gaps"]
+            if gap["id"] != "phase10-virtio-core-verify-replay"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        if "phase10_core_packet:gap_missing:phase10-virtio-core-verify-replay" not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:core_gap_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         survey_text = survey_path.read_text(encoding="utf-8").replace(
-            "can no longer treat that helper-and-replay pair as landed evidence on the live branch",
-            "still treats that helper-and-replay pair as landed evidence on the live branch",
+            "phase10-driver-id-coverage-disposition-helper",
+            "phase10-driver-id-coverage-removed",
             1,
         )
         survey_path.write_text(survey_text, encoding="utf-8")
@@ -464,7 +528,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
