@@ -420,6 +420,47 @@ test "phase3 mmio helper gates volatile access through interop policy records" {
     try std.testing.expectEqual(@as(u16, 0xF00F), register);
 }
 
+test "phase3 mmio helper keeps whole-record interop-policy writes side-effect free when denied" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const no_unsafe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const raw_pointer_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    var register: u32 = 0x1234_5678;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, writeInteropPolicy(u32, no_unsafe_policy, register_ptr, 0xAAAA_5555));
+    try std.testing.expectError(error.UnsafeScopeDenied, exchangeInteropPolicy(u32, raw_pointer_policy, register_ptr, 0xCAFE_BABE));
+    try std.testing.expectError(error.InvalidInteropPolicy, writeInteropPolicy(u32, reserved_policy, register_ptr, 0x0BAD_C0DE));
+    try std.testing.expectError(error.InvalidInteropPolicy, exchangeInteropPolicy(u32, reserved_policy, register_ptr, 0xFACE_CAFE));
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
+
+    try writeInteropPolicy(u32, mmio_policy, register_ptr, 0xAAAA_5555);
+    try std.testing.expectEqual(@as(u32, 0xAAAA_5555), register);
+    try std.testing.expectEqual(@as(u32, 0xAAAA_5555), try exchangeInteropPolicy(u32, mmio_policy, register_ptr, 0xCAFE_BABE));
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), register);
+}
+
 test "phase3 mmio helper keeps scoped masked writes and byte-policy exchanges explicit" {
     const mmio_policy = abi.InteropPolicy{
         .panic_mode = 0,
