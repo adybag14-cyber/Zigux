@@ -113,11 +113,15 @@ REQUIRED_SNIPPETS = {
     ],
     BSEARCH_PERF_PATH: [
         "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;",
-        "var queries: [fixtures.query_count]u32 = undefined;",
-        "fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);",
-        "try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);",
+        "var ascending_queries: [fixtures.query_count]u32 = undefined;",
+        "fixtures.seedDeterministicQueries(case.len, ascending_values, &ascending_queries, &ascending_expected_hits);",
+        "var descending_queries: [fixtures.query_count]u32 = undefined;",
+        "fixtures.seedDeterministicQueries(case.len, descending_values, &descending_queries, &descending_expected_hits);",
+        "const descending_witness = try runWitnessCases(",
+        "try std.testing.expect(ascending_witness.max_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);",
         "try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));",
-        "try std.testing.expect(worst_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(perf_stats.max_compare_calls <= max_compare_budget);",
         "witness_max_compare_calls={} witness_case_count={}",
     ],
     CHECKSUM_VECTORS_PATH: [
@@ -214,8 +218,28 @@ SELF_TEST_CASES = [
     ),
     (
         BSEARCH_PERF_PATH,
-        "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;",
-        "const max_compare_budget = std.math.log2_int_floor(usize, case.len) + 1;",
+        "var ascending_queries: [fixtures.query_count]u32 = undefined;",
+        "var perf_queries: [fixtures.query_count]u32 = undefined;",
+    ),
+    (
+        BSEARCH_PERF_PATH,
+        "fixtures.seedDeterministicQueries(case.len, ascending_values, &ascending_queries, &ascending_expected_hits);",
+        "fixtures.seedDeterministicQueries(case.len, values, &ascending_queries, &ascending_expected_hits);",
+    ),
+    (
+        BSEARCH_PERF_PATH,
+        "const descending_witness = try runWitnessCases(",
+        "const alternate_witness = try runWitnessCases(",
+    ),
+    (
+        BSEARCH_PERF_PATH,
+        "try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(descending_witness.max_compare_calls < max_compare_budget);",
+    ),
+    (
+        BSEARCH_PERF_PATH,
+        "try std.testing.expect(perf_stats.max_compare_calls <= max_compare_budget);",
+        "try std.testing.expect(worst_compare_calls <= max_compare_budget);",
     ),
     (
         CHECKSUM_VECTORS_PATH,
