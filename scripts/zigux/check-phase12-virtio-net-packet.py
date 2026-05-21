@@ -40,8 +40,14 @@ MANIFEST_MARKERS = [
     '"status": "split_helper_packet_direct_replays_present_shared_route_quintet_complete"',
     '"id": "phase12-build-gate"',
     '"status": "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays"',
+    '"id": "phase12-virtio-net-queue-resume-followup"',
+    '"zigux_destination": "drivers/net/virtio_net_queue_resume.zig"',
     '"id": "phase12-virtio-net-receive-refill-replay-followup"',
     '"zigux_destination": "drivers/net/virtio_net_receive_refill_replay.zig"',
+    '"id": "phase12-virtio-net-transmit-recycle-followup"',
+    '"zigux_destination": "drivers/net/virtio_net_transmit_recycle.zig"',
+    '"id": "phase12-virtio-net-post-reset-replay-followup"',
+    '"zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig"',
     '"id": "phase12-virtio-net-throughput-parity-followup"',
     '"zigux_destination": "drivers/net/virtio_net_throughput_parity.zig"',
     '"id": "phase12-virtio-net-runtime-data-path"',
@@ -51,7 +57,12 @@ MANIFEST_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`",
     "lane owner: `P12-L04`",
+    "verified head: `6c941cb561420120b8e1d5a07e8a44e1c918a5f2`",
+    "scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity review packet truthful without reopening live runtime data-path work",
+    "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_receive_refill_replay.zig",
+    "drivers/net/virtio_net_transmit_recycle.zig",
+    "drivers/net/virtio_net_post_reset_replay.zig",
     "drivers/net/virtio_net_throughput_parity.zig",
     "summarizeReceiveRefillReplay()",
     "summarizeThroughputParity()",
@@ -75,6 +86,7 @@ SURVEY_GATE_MARKERS = [
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays"',
     'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only");',
     'try expectContains(survey_note, "lane owner: `P12-L04`");',
+    'try expectContains(survey_note, "6c941cb561420120b8e1d5a07e8a44e1c918a5f2");',
     'try expectContains(build_zig, "phase12_virtio_net_receive_refill_replay.zig");',
     'try expectContains(build_zig, "phase12-virtio-net-receive-refill-replay-tests");',
     'try expectContains(build_zig, "phase12-virtio-net-post-reset-replay-tests");',
@@ -82,6 +94,7 @@ SURVEY_GATE_MARKERS = [
     'try std.testing.expect(!try pathExists("drivers/net/virtio_net.zig"));',
     'try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net.zig"));',
     'try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
+    'try expectNotContains(makefile, "phase12-validate:");',
 ]
 
 BUILD_MARKERS = [
@@ -124,6 +137,11 @@ STALE_BUILD_MARKERS = [
     "phase12-virtio-net-tests",
     '"phase12_virtio_net_syntax_lab.zig"',
     "phase12-virtio-net-syntax-lab-tests",
+]
+
+STALE_MAKEFILE_MARKERS = [
+    "phase12-validate:",
+    "phase12: phase12-validate phase12-smoke phase12-test",
 ]
 
 
@@ -182,6 +200,11 @@ def run_check(root: Path) -> None:
 
     makefile_text = read_text(root, "zigux/Makefile")
     require_markers(makefile_text, "zigux/Makefile", MAKEFILE_MARKERS)
+    for stale_marker in STALE_MAKEFILE_MARKERS:
+        if stale_marker in makefile_text:
+            raise CheckError(
+                f"zigux/Makefile: stale Phase 12 wrapper marker still present {stale_marker!r}"
+            )
 
 
 def make_fixture_tree(root: Path) -> None:
@@ -222,8 +245,23 @@ def make_fixture_tree(root: Path) -> None:
                         "status": "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_and_throughput_replays",
                     },
                     {
+                        "id": "phase12-virtio-net-queue-resume-followup",
+                        "zigux_destination": "drivers/net/virtio_net_queue_resume.zig",
+                        "status": "landed_on_master",
+                    },
+                    {
                         "id": "phase12-virtio-net-receive-refill-replay-followup",
                         "zigux_destination": "drivers/net/virtio_net_receive_refill_replay.zig",
+                        "status": "landed_on_master",
+                    },
+                    {
+                        "id": "phase12-virtio-net-transmit-recycle-followup",
+                        "zigux_destination": "drivers/net/virtio_net_transmit_recycle.zig",
+                        "status": "landed_on_master",
+                    },
+                    {
+                        "id": "phase12-virtio-net-post-reset-replay-followup",
+                        "zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig",
                         "status": "landed_on_master",
                     },
                     {
@@ -344,6 +382,21 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected makefile marker failure")
+        case_count += 1
+
+        root = fresh_root()
+        makefile = root / "zigux/Makefile"
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8") + "phase12-validate:\n",
+            encoding="utf-8",
+        )
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "zigux/Makefile" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected stale makefile wrapper failure")
         case_count += 1
     finally:
         for tmp in roots:
