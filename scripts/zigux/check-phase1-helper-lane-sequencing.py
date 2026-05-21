@@ -91,17 +91,25 @@ def load_json_without_duplicates(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=hook)
 
 
+def add_path_issue(path: Path, rel: Path, prefix: str, issues: list[str]) -> bool:
+    if path.is_dir():
+        issues.append(f"{prefix}:directory={rel.as_posix()}")
+        return True
+    if not path.is_file():
+        issues.append(f"missing:{rel.as_posix()}")
+        return True
+    return False
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
     readme_path = root / README_REL
     manifest_path = root / MANIFEST_REL
 
-    if not readme_path.is_file():
-        issues.append(f"missing:{README_REL.as_posix()}")
+    if add_path_issue(readme_path, README_REL, "readme", issues):
         return issues
-    if not manifest_path.is_file():
-        issues.append(f"missing:{MANIFEST_REL.as_posix()}")
+    if add_path_issue(manifest_path, MANIFEST_REL, "manifest", issues):
         return issues
 
     readme_lines = readme_path.read_text(encoding="utf-8").splitlines()
@@ -241,6 +249,13 @@ def run_self_test() -> None:
 
     expect_failure(wrong_direct_line)
 
+    def readme_directory(root: Path) -> None:
+        path = root / README_REL
+        path.unlink()
+        path.mkdir()
+
+    expect_failure(readme_directory)
+
     def wrong_partition(root: Path) -> None:
         path = root / MANIFEST_REL
         manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -248,6 +263,19 @@ def run_self_test() -> None:
         path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     expect_failure(wrong_partition)
+
+    def manifest_directory(root: Path) -> None:
+        path = root / MANIFEST_REL
+        path.unlink()
+        path.mkdir()
+
+    expect_failure(manifest_directory)
+
+    def invalid_json(root: Path) -> None:
+        path = root / MANIFEST_REL
+        path.write_text("{\n", encoding="utf-8")
+
+    expect_failure(invalid_json)
 
     def duplicate_key(root: Path) -> None:
         path = root / MANIFEST_REL
@@ -263,6 +291,14 @@ def run_self_test() -> None:
 
     expect_failure(missing_review_summary)
 
+    def missing_next_safe_step(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(missing_next_safe_step)
+
     def wrong_helper_count(root: Path) -> None:
         path = root / MANIFEST_REL
         manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -272,7 +308,7 @@ def run_self_test() -> None:
     expect_failure(wrong_helper_count)
 
     print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST=pass")
-    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=10")
 
 
 def main() -> int:
