@@ -6,7 +6,7 @@ This document tracks the current bounded runtime bitmap slice.
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-partial-slice`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-partial-return`
+- `PHASE9_SURVEYED_COMMIT=2026-05-20-runtime-bitmap-loader-partial-return`
 - scope: partial runtime bitmap reminder packet, direct sample proof, direct loader proof, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim
 
 ## Current visible slice
