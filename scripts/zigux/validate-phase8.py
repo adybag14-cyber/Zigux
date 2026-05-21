@@ -25,6 +25,7 @@ VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
 VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/verify.zig")
 CPU_MASK_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask.zig")
+CPU_MASK_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask_verify.zig")
 LOGGING_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
@@ -64,6 +65,7 @@ REQUIRED_FILES = (
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     VERIFY_SEGMENT,
     CPU_MASK_SEGMENT,
+    CPU_MASK_VERIFY_SEGMENT,
     LOGGING_SEGMENT,
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
@@ -118,6 +120,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     LIBBPF_SEGMENT_SURVEY: (
         "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/cpu_mask_verify.zig`",
         "`tools/lib/bpf/zigux_segments/logging_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
@@ -129,6 +132,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names_verify.zig`",
         "The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/cpu_mask_verify.zig` now keeps direct parse, string-backed summary, reader-backed summary, auto-count, and fail-closed cpu-mask outputs explicit beside that same stable-output helper packet.",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
         "standalone timer or clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
@@ -209,6 +213,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn parseCpuMaskString(",
         "pub fn summarizePossibleCpusFromReader(",
         "pub fn derivePerfBufferAutoCpuCountFromReader(",
+    ),
+    CPU_MASK_VERIFY_SEGMENT: (
+        "phase8 cpu-mask helper entrypoints stay explicit",
+        "derivePerfBufferAutoCpuCountFromReader",
+        "phase8 cpu-mask helpers keep invalid direct and reader-backed inputs fail-closed",
     ),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"): (
         "pub const BufferFdLookupDisposition = enum {",
@@ -417,6 +426,7 @@ def _passing_fixture(root: Path) -> None:
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
     for helper in (
+        CPU_MASK_VERIFY_SEGMENT,
         LOGGING_VERIFY_SEGMENT,
         ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
         PIN_PATH_VERIFY_SEGMENT,
@@ -549,6 +559,21 @@ def run_self_test() -> int:
             raise AssertionError("expected missing timer/clockevent survey marker to be reported")
         survey.write_text(original_survey, encoding="utf-8")
 
+        cpu_mask_verify_survey_marker = (
+            "`tools/lib/bpf/zigux_segments/cpu_mask_verify.zig` now keeps direct parse, string-backed summary, reader-backed summary, auto-count, and fail-closed cpu-mask outputs explicit beside that same stable-output helper packet."
+        )
+        survey.write_text(
+            original_survey.replace(cpu_mask_verify_survey_marker, "", 1),
+            encoding="utf-8",
+        )
+        missing_cpu_mask_verify_survey_marker = validate_root(root)
+        expected_cpu_mask_verify_survey_marker = (
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:" + cpu_mask_verify_survey_marker
+        )
+        if expected_cpu_mask_verify_survey_marker not in missing_cpu_mask_verify_survey_marker.missing_markers:
+            raise AssertionError("expected missing cpu-mask verify survey marker to be reported")
+        survey.write_text(original_survey, encoding="utf-8")
+
         build_file = root / "zigux/tests/phase8_build.zig"
         original_build_file = _read(build_file)
         build_file.write_text(
@@ -626,6 +651,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing cpu-mask helper file to be reported")
         _write(cpu_mask_helper, "\n".join(FILE_MARKERS[CPU_MASK_SEGMENT]) + "\n")
 
+        cpu_mask_verify = root / CPU_MASK_VERIFY_SEGMENT
+        cpu_mask_verify.unlink()
+        missing_cpu_mask_verify = validate_root(root)
+        if CPU_MASK_VERIFY_SEGMENT.as_posix() not in missing_cpu_mask_verify.missing_files:
+            raise AssertionError("expected missing cpu-mask verify file to be reported")
+        _write(cpu_mask_verify, "\n".join(FILE_MARKERS[CPU_MASK_VERIFY_SEGMENT]) + "\n")
+
         logging_helper = root / LOGGING_SEGMENT
         logging_helper.unlink()
         missing_logging_helper = validate_root(root)
@@ -672,7 +704,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
