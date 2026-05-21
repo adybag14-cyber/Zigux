@@ -129,8 +129,10 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(manifest, "\"validation_entrypoint\": \"phase9-runtime-bitmap-tests\"");
     try expectContains(manifest, "\"descriptor_and_anchor\"");
     try expectContains(manifest, "\"sample_re_selftest_summary_stability\"");
+    try expectContains(manifest, "\"sample_direct_exit_summary_stability\"");
     try expectContains(manifest, "\"loader_payload_and_invalid_payload\"");
     try expectContains(manifest, "\"top_bit_contract\"");
+    try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "\"loadable runtime bitmap module parity\"");
     try expectContains(manifest, "\"shared runtime-loader command-name or argv-policy controls\"");
 
@@ -172,6 +174,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(sample_file, "pub fn reviewContract() ReviewContract");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
     try expectContains(sample_file, "runtime bitmap sample rejects re-selftest without disturbing lifecycle summaries");
+    try expectContains(sample_file, "runtime bitmap sample keeps initialized summary stable across direct exit without selftest");
 
     try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
     try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
