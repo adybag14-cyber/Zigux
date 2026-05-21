@@ -38,17 +38,30 @@ HEADER_INCLUDE_MARKERS = (
 )
 HEADER_HELPERS = (
     "zigux_uapi_version_current",
+    "zigux_uapi_version_has_current_abi_major",
+    "zigux_uapi_version_has_current_abi_minor",
+    "zigux_uapi_version_has_current_header_family_revision",
     "zigux_uapi_version_matches_current",
     "zigux_uapi_boundary_header_current",
     "zigux_uapi_boundary_header_compatible",
+    "zigux_uapi_boundary_header_has_current_abi_version",
+    "zigux_uapi_boundary_header_is_canonical",
+    "zigux_uapi_boundary_header_is_compatible",
     "zigux_uapi_boundary_header_extends_boundary",
     "zigux_uapi_boundary_header_requested_extra_bytes",
     "zigux_uapi_boundary_header_canonicalize",
+    "zigux_uapi_validate_boundary_header",
     "zigux_boundary_header_make",
     "zigux_boundary_header_make_compatible",
+    "zigux_boundary_header_is_current_abi_version",
+    "zigux_boundary_header_is_compatible_size",
+    "zigux_boundary_header_is_canonical_size",
+    "zigux_boundary_header_is_compatible",
+    "zigux_boundary_header_is_canonical",
     "zigux_boundary_header_extends_boundary",
     "zigux_boundary_header_requested_extra_bytes",
     "zigux_boundary_header_canonicalize",
+    "zigux_validate_boundary_header",
     "zigux_uapi_dev_t_fields_is_valid",
     "zigux_uapi_dev_t_fields_range_is_valid",
 )
@@ -140,17 +153,30 @@ def run_self_test() -> int:
 #include <zigux/dev_t.h>
 
 static inline int zigux_uapi_version_current(void) { return 0; }
+static inline int zigux_uapi_version_has_current_abi_major(void) { return 0; }
+static inline int zigux_uapi_version_has_current_abi_minor(void) { return 0; }
+static inline int zigux_uapi_version_has_current_header_family_revision(void) { return 0; }
 static inline int zigux_uapi_version_matches_current(void) { return 0; }
 static inline int zigux_uapi_boundary_header_current(void) { return 0; }
 static inline int zigux_uapi_boundary_header_compatible(void) { return 0; }
+static inline int zigux_uapi_boundary_header_has_current_abi_version(void) { return 0; }
+static inline int zigux_uapi_boundary_header_is_canonical(void) { return 0; }
+static inline int zigux_uapi_boundary_header_is_compatible(void) { return 0; }
 static inline int zigux_uapi_boundary_header_extends_boundary(void) { return 0; }
 static inline int zigux_uapi_boundary_header_requested_extra_bytes(void) { return 0; }
 static inline int zigux_uapi_boundary_header_canonicalize(void) { return 0; }
+static inline int zigux_uapi_validate_boundary_header(void) { return 0; }
 static inline int zigux_boundary_header_make(void) { return 0; }
 static inline int zigux_boundary_header_make_compatible(void) { return 0; }
+static inline int zigux_boundary_header_is_current_abi_version(void) { return 0; }
+static inline int zigux_boundary_header_is_compatible_size(void) { return 0; }
+static inline int zigux_boundary_header_is_canonical_size(void) { return 0; }
+static inline int zigux_boundary_header_is_compatible(void) { return 0; }
+static inline int zigux_boundary_header_is_canonical(void) { return 0; }
 static inline int zigux_boundary_header_extends_boundary(void) { return 0; }
 static inline int zigux_boundary_header_requested_extra_bytes(void) { return 0; }
 static inline int zigux_boundary_header_canonicalize(void) { return 0; }
+static inline int zigux_validate_boundary_header(void) { return 0; }
 static inline int zigux_uapi_dev_t_fields_is_valid(void) { return 0; }
 static inline int zigux_uapi_dev_t_fields_range_is_valid(void) { return 0; }
 
@@ -225,6 +251,17 @@ keep them as thin named relays over the canonical ABI header and the shipped sta
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected include drift was not reported")
+        return 1
+
+    broken = validate_text(sample_note, sample_header.replace(
+        "static inline int zigux_boundary_header_is_current_abi_version(void) { return 0; }\n",
+        "",
+        1,
+    ))
+    expected = "header helper missing: zigux_boundary_header_is_current_abi_version"
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected header-helper drift was not reported")
         return 1
 
     broken = validate_text(sample_note.replace(sample_blob, "deadbeef", 1), sample_header)
