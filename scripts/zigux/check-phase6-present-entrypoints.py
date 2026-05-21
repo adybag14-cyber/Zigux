@@ -43,11 +43,13 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = []
+EXPECTED_CATALOG_SURVEYED_HEAD = "- surveyed head: `current-master-readback-2026-05-21`"
 EXPECTED_DOCS_README_SNIPPETS = [
     "authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, while `Documentation/zigux/phase6-perf-gate-survey.md` still needs public-tree fallback in this runtime, so keep the helper-parity catalog inside the current docs-root evidence packet and keep the broader perf-note surface framed as public-tree-backed companion evidence rather than direct docs-root proof until a fresh authenticated reread recovers that note too.",
     "current `master` directly serves the four roadmap-backed helper anchors through `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`, their focused `zigux/tests/phase6_*` helper and perf replays, the restored `zigux/tests/phase6_build.zig` foothold, and the current `zigux/Makefile` wrapper family, so keep the docs-root reminder reviewable through that returned helper-evidence packet instead of restating helper-local semantics here.",
 ]
 EXPECTED_CATALOG_SNIPPETS = [
+    EXPECTED_CATALOG_SURVEYED_HEAD,
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
     "this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`,",
 ]
@@ -145,7 +147,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 class ValidationError(RuntimeError):
@@ -437,6 +439,8 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
+        expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[2] + "\n", "", 1)))
+        cases_run += 1
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[1] + "\n", "", 1)))
@@ -518,7 +522,3 @@ def main() -> int:
         return 1
     print("PHASE6_PRESENT_ENTRYPOINTS=pass")
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
