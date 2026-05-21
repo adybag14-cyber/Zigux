@@ -117,6 +117,16 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     try std.testing.expectEqualStrings("+nope", no_conversion.rest);
 }
 
+test "phase 7 cmdline companion replays memparse signed clamp saturation" {
+    const positive = cmdline.memparse("9223372036854775808");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
+    try std.testing.expectEqualStrings("", positive.rest);
+
+    const negative = cmdline.memparse("-9223372036854775809");
+    try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
+    try std.testing.expectEqualStrings("", negative.rest);
+}
+
 test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {
     const leading = cmdline.nextArg(" \tmode=fast");
     try std.testing.expectEqualStrings("", leading.param);
