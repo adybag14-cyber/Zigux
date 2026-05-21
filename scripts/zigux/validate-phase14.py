@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -320,6 +322,15 @@ def fixture_text(rel_path: str) -> str:
         if title is not None:
             return marker_fixture(title, REQUIRED_MARKERS[rel_path])
         return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
+    if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if \"--self-test\" in sys.argv:\n"
+            "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass\")\n"
+            "else:\n"
+            "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL=pass\")\n"
+        )
     if rel_path.endswith(".py"):
         return "#!/usr/bin/env python3\n"
     if rel_path.endswith(".zig"):
@@ -327,6 +338,33 @@ def fixture_text(rel_path: str) -> str:
     if rel_path.endswith(".json"):
         return "{}\n"
     return ""
+
+
+def checker_script_path(root: Path) -> Path:
+    candidate = root / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+    if candidate.exists():
+        return candidate
+    return ROOT / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+
+
+def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
+    command = [sys.executable, str(checker_script_path(root))]
+    if self_test:
+        command.append("--self-test")
+    else:
+        command.extend(["--root", str(root)])
+
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode == 0:
+        return []
+
+    output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
+    if not output:
+        output = ["checker exited with no output"]
+    return [
+        f"subcheck_fail:{RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH}:{line}"
+        for line in output
+    ]
 
 
 def write_fixture_tree(root: Path) -> None:
@@ -357,6 +395,12 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
+        checker_failures = run_rcu_guardrail_checker(base, self_test=True)
+        if checker_failures:
+            raise SystemExit(
+                "fixture tree should pass the dedicated RCU rollback guardrail self-test "
+                f"but failed: {checker_failures!r}"
+            )
 
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
@@ -436,6 +480,8 @@ def main() -> int:
         return run_self_test()
 
     failures = validate(args.root)
+    if not failures:
+        failures.extend(run_rcu_guardrail_checker(args.root, self_test=False))
     if failures:
         print("PHASE14_VALIDATION=fail")
         print("PHASE14_PACKET_DRIFT_START")
