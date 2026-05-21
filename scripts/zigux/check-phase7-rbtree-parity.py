@@ -70,7 +70,9 @@ REQUIRED_MARKERS = {
         "rbtree.rb_erase_init_cached",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
+        'const direct_anchor_fallback_provenance_marker =',
         'try expectContains(slice_note, "The helper-local implementation remains rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence rather than proof that helper-local ownership has moved off the tool-root packet.");',
+        'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);',
         'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");',
         'try expectSliceNotContains(manifest.missing_paths, "lib/rbtree.zig");',
         'try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig` roadmap-path companion");',
@@ -92,7 +94,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -158,6 +160,13 @@ def run_self_test() -> None:
 
         path = root / "zigux/tests/phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        marker = 'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
