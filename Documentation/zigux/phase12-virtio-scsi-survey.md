@@ -5,7 +5,7 @@ This note records the current-master verification result for the bounded Phase 1
 ## Status
 * `PHASE12_STATUS=rollback-evidence-only-live-starter-missing`
 * `PHASE12_SLICE=virtio-scsi-roadmap-gap-survey`
-* `PHASE12_LANE=P12-L13`
+* `PHASE12_LANE=P12-L09`
 * scope: keep the virtio_scsi survey packet truthful when current `master` carries only survey, fallback, fixture, checker, and shared support-bundle evidence while the driver-local starter and replay gates are absent
 * verified on: `2026-05-20`
 * repo-truth boundary:
@@ -32,7 +32,7 @@ That anchor still needs DMA-safe abstractions, queueing correctness, throughput 
 * `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` now keep that rollback-only split machine-checkable
 
 ## Rollback and Reversible Delivery
-* rollback owner: `P12-L13` keeps the missing driver-local file family explicit while nearby shared Phase 12 build-bundle and release-checker maintenance stays in separate lanes
+* rollback owner: `P12-L09` keeps the missing driver-local file family explicit while nearby shared Phase 12 build-bundle and release-checker maintenance stays in separate lanes
 * fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the read-only degraded-read companion for the older direct replay packet and must not be treated as a current-master replay route
 * reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent
 * rollback drill: when this packet moves, reread the survey note, slice note, fallback catalog, fixture manifest, survey manifest, survey gate, shared build route, and `zigux/Makefile`, then rerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py`, `zig test zigux/tests/phase12_virtio_scsi_survey.zig`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12-smoke` before claiming that any driver-local replay surface has returned
