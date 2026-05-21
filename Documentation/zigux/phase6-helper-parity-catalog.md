@@ -2,7 +2,7 @@
 
 This survey records the broader helper-parity companion for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `current-master-readback-2026-05-20`
+- surveyed head: `current-master-readback-2026-05-21`
 - lane scope: public-tree-backed helper parity rows only
 - direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_parity_manifest.json`
@@ -41,9 +41,8 @@ The helper-evidence catalog already keeps the directly readable shared Phase 6 p
 - roadmap anchor: `lib/checksum.c`
 - landed Zig helper: `lib/checksum.zig`
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
-- helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`
-- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
-- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, checker, and slice note, while the exact missing direct companions above still returned 404 on 2026-05-20 and therefore remain outside shipped evidence
+- helper-evidence row: `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-corpus-evidence.py`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`
+- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work
 
 ### hexdump
 
