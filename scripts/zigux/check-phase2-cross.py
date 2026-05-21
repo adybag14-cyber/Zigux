@@ -666,6 +666,11 @@ def run_self_test() -> int:
             missing = require_files(root)
             assert ("required_file_unreadable", str(FIXTURE_REL)) in missing
             case_count += 1
+            assert_run_checker_output_contains(
+                root,
+                expected_fragment="PHASE2_CROSS_UNREADABLE_FILES_START",
+            )
+            case_count += 1
 
             build_self_test_root(root)
 
@@ -675,6 +680,14 @@ def run_self_test() -> int:
                 original_probe_required_file(path)
 
             globals()["probe_required_file"] = fail_fixdep_probe
+            missing = require_files(root)
+            assert ("required_file_unreadable", "scripts/zigux/fixdep.zig") in missing
+            case_count += 1
+            assert_run_checker_output_contains(
+                root,
+                expected_fragment="scripts/zigux/fixdep.zig",
+            )
+            case_count += 1
             result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
             assert result == 1
             assert "PHASE2_CROSS_FAILED_FILE=scripts/zigux/fixdep.zig" in output
