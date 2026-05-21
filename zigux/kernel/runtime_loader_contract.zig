@@ -130,3 +130,23 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
     drifted.init_flow.selftest_runs = 1;
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
 }
+
+test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract" {
+    const blocked_publication_fields = [_][]const u8{
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "module_symvers_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
+    inline for (blocked_publication_fields) |field| {
+        try std.testing.expect(!@hasField(LoadPlan, field));
+    }
+}
