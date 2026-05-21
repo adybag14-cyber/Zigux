@@ -94,7 +94,7 @@ BRIDGE_CHECKER_LINE_MARKERS = (
 )
 
 EXPECTED_SILENT_CONF_CASE_NAMES = ("listnewconfig", "helpnewconfig")
-EXPECTED_MODE_ARG_CASE_NAMES = ("savedefconfig",)
+EXPECTED_MODE_ARG_CASE_NAMES = ("defconfig", "savedefconfig")
 EXPECTED_ALLCONFIG_OVERRIDE_CASE_NAMES = ("allmodconfig", "randconfig")
 EXPECTED_SYNCCONFIG_ENV_CASE_NAMES = ("syncconfig",)
 EXPECTED_RANDCONFIG_ENV_CASE_NAMES = ("randconfig",)
@@ -160,6 +160,15 @@ VALID_CASES_PAYLOAD = {
             "seed": "0xC0FFEE",
             "probability": "15:25",
             "expected": "randconfig_expected.json",
+        },
+        {
+            "name": "defconfig",
+            "mode": "defconfig",
+            "kconfig": "Kconfig",
+            "config": "out/.config",
+            "arch": "arm64",
+            "mode_arg": "arch/arm64/configs/defconfig",
+            "expected": "defconfig_expected.json",
         },
         {
             "name": "savedefconfig",
@@ -549,7 +558,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CASES)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["conf_cases"][5].pop("silent")
+        payload["conf_cases"][6].pop("silent")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("CONF_CASE_SILENT_PACKET_MISMATCH", "actual=['listnewconfig']:expected=['listnewconfig', 'helpnewconfig']") in collect_issues(root)
         checks_run += 1
@@ -559,7 +568,7 @@ def run_self_test() -> int:
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["conf_cases"][3].pop("mode_arg")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("CONF_CASE_MODE_ARG_PACKET_MISMATCH", "actual=[]:expected=['savedefconfig']") in collect_issues(root)
+        assert ("CONF_CASE_MODE_ARG_PACKET_MISMATCH", "actual=['savedefconfig']:expected=['defconfig', 'savedefconfig']") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
