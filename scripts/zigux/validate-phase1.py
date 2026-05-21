@@ -121,6 +121,22 @@ OPTIONAL_CHECKS = (
         ),
     ),
     CheckSpec(
+        "phase1-helper-lane-sequencing",
+        "scripts/zigux/check-phase1-helper-lane-sequencing.py",
+        ("--self-test",),
+        ("--root", "{root}"),
+        required=False,
+        requires=(str(SCRIPTS_README_REL), str(PHASE1_HELPER_MANIFEST_REL)),
+    ),
+    CheckSpec(
+        "phase1-scripts-repo-reality",
+        "scripts/zigux/check-phase1-scripts-repo-reality.py",
+        ("--self-test",),
+        ("--root", "{root}"),
+        required=False,
+        requires=(str(SCRIPTS_README_REL),),
+    ),
+    CheckSpec(
         "phase1-scripts-readme-alignment",
         "scripts/zigux/check-phase1-scripts-readme-alignment.py",
         ("--self-test",),
