@@ -8,6 +8,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
+GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
+)
 
 REQUIRED_PATHS = (
     "Documentation/zigux/phase2-closure.md",
@@ -36,6 +49,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/genksyms.zig",
+    GENKSYMS_VERSION_SIDE_EFFECT_TEST,
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "third_party/README.md",
@@ -45,6 +59,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/cases.json",
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+    GENKSYMS_MANIFEST_FIXTURE,
     "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
@@ -53,6 +68,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+    *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
