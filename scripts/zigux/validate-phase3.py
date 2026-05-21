@@ -134,16 +134,20 @@ REQUIRED_SOURCE_MARKERS = {
         'print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")',
     ),
     TESTS_BUILD_PATH: (
+        "const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);",
         "const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);",
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
         "const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);",
+        'root_source_file = b.path("phase3_policy_starter_packet.zig"),',
         'root_source_file = b.path("phase3_abi.zig"),',
         'root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         'root_source_file = b.path("phase3_abi_dump_current.zig"),',
         'root_module.addImport("header_family_binding", header_family_binding);',
+        '"phase3-policy-starter-packet"',
         '"phase3-abi-core-packet"',
         '"phase3-export-uapi-layout"',
         '"phase3-dump"',
+        "phase3_test_step.dependOn(&phase3_policy_starter_packet.step);",
         "phase3_test_step.dependOn(&phase3_abi_core_packet.step);",
         "phase3_test_step.dependOn(&phase3_export_uapi_layout.step);",
         "phase3_dump_step.dependOn(&phase3_abi_dump.step);",
@@ -182,11 +186,16 @@ REQUIRED_SOURCE_MARKERS = {
         '"lane": "abi-runtime"',
         '"slug": "phase3-abi-packet"',
         '"status": "shared_abi_and_header_family_binding_surface_present"',
+        '"zigux/tests/phase3_policy_starter_packet.zig"',
+        '"zigux/tests/phase3_policy_starter_packet_build.zig"',
+        '"zigux/tests/phase3_policy_starter_packet_manifest.json"',
+        '"scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"zigux/tests/phase3_export_uapi_layout.zig"',
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
+        '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
@@ -238,6 +247,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -246,6 +256,9 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet_manifest.json",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
@@ -255,12 +268,15 @@ REQUIRED_MANIFEST_PACKET_FILES = (
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
@@ -435,6 +451,31 @@ def run_self_test() -> int:
         cases = (
             (
                 TESTS_BUILD_PATH,
+                "const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);\n",
+                "missing zigux/tests/build.zig marker: const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);",
+            ),
+            (
+                TESTS_BUILD_PATH,
+                'root_source_file = b.path("phase3_policy_starter_packet.zig"),\n',
+                'missing zigux/tests/build.zig marker: root_source_file = b.path("phase3_policy_starter_packet.zig"),',
+            ),
+            (
+                TESTS_BUILD_PATH,
+                "phase3_test_step.dependOn(&phase3_policy_starter_packet.step);\n",
+                "missing zigux/tests/build.zig marker: phase3_test_step.dependOn(&phase3_policy_starter_packet.step);",
+            ),
+            (
+                ABI_MANIFEST_PATH,
+                '"zigux/tests/phase3_policy_starter_packet_manifest.json",\n',
+                'missing zigux/tests/fixtures/phase3_abi_manifest.json marker: "zigux/tests/phase3_policy_starter_packet_manifest.json"',
+            ),
+            (
+                ABI_MANIFEST_PATH,
+                '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",\n',
+                'missing zigux/tests/fixtures/phase3_abi_manifest.json marker: "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
+            ),
+            (
+                TESTS_BUILD_PATH,
                 'root_module.addImport("header_family_binding", header_family_binding);\n',
                 'missing zigux/tests/build.zig marker: root_module.addImport("header_family_binding", header_family_binding);',
             ),
@@ -542,7 +583,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
