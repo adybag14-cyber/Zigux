@@ -14,6 +14,7 @@ class ValidationError(RuntimeError):
 
 SLICE_PATH = Path("Documentation/zigux/phase6-bsearch-slice.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+PARITY_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 LIB_PATH = Path("lib/bsearch.zig")
@@ -37,6 +38,10 @@ REQUIRED_SNIPPETS = {
         "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
         "- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
+    ],
+    PARITY_CATALOG_PATH: [
+        "- helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+        "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, checker, and slice note",
     ],
     HELPER_EVIDENCE_MANIFEST_PATH: [
         '"key": "bsearch"',
@@ -136,6 +141,11 @@ SELF_TEST_CASES = [
         'test "phase 6 bsearch direct descending bounds wrappers keep duplicate-span and write-through coverage aligned" {',
     ),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (
+        PARITY_CATALOG_PATH,
+        "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, checker, and slice note",
+        "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, and slice note",
+    ),
     (
         HELPER_EVIDENCE_MANIFEST_PATH,
         '"query_count": 16',
