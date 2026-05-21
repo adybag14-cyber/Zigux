@@ -10,15 +10,15 @@ ROOT = Path(__file__).resolve().parent
 NOTE_PATH = Path("Documentation/zigux/phase5-kobject-current-readback-note.md")
 
 DIRECT_PATHS = (
-    "Documentation/zigux/phase5-kobject-sample-survey.md",
     "samples/zigux/kobject_example.zig",
     "zigux/tests/phase5_kobject_example.zig",
-    "zigux/tests/phase5_kobject_example_manifest.json",
     "zigux/tests/phase5_build.zig",
     "samples/zigux/kobject_example_attr_group_contract.zig",
 )
 
 PUBLIC_PATHS = (
+    "Documentation/zigux/phase5-kobject-sample-survey.md",
+    "zigux/tests/phase5_kobject_example_manifest.json",
     "zigux/tests/phase5_kobject_example_survey.zig",
 )
 
@@ -34,17 +34,16 @@ GUIDANCE_PATHS = (
 
 NOTE_MARKERS = (
     "Authenticated contents readback in this run directly returned:",
-    "- `Documentation/zigux/phase5-kobject-sample-survey.md`",
     "- `samples/zigux/kobject_example.zig`",
     "- `zigux/tests/phase5_kobject_example.zig`",
-    "- `zigux/tests/phase5_kobject_example_manifest.json`",
     "- `zigux/tests/phase5_build.zig`",
     "Fresh sample-root reread in the same run also directly returned `samples/zigux/kobject_example_attr_group_contract.zig` as the bounded attr-group companion for the same anchor.",
-    "The same run still confirmed this current `master` packet member through public GitHub file readback:",
+    "The same run still confirmed these current `master` packet members through public GitHub file readback:",
+    "- `Documentation/zigux/phase5-kobject-sample-survey.md`",
+    "- `zigux/tests/phase5_kobject_example_manifest.json`",
     "- `zigux/tests/phase5_kobject_example_survey.zig`",
-    "- `zigux/tests/phase5_build.zig` remains part of the same packet on the direct authenticated contents route, and `zigux/tests/phase5_kobject_example_survey.zig` remains part of the same packet even when this run had to prove that survey replay through public current-`master` fallback instead of the authenticated contents route",
-    "`Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` already keep the current kobject survey-note inventory explicit, while `samples/zigux/README.md` still frames `zigux/tests/phase5_build.zig` as public-tree-backed companion evidence beside `zigux/tests/phase5_kobject_example_survey.zig` even though the newer guide and sequencing surfaces now treat that shared build route as directly readable for the current packet",
-    "`samples/zigux/README.md` as the first same-lane follow-through surface and `scripts/zigux/check-phase5-review-guide-surface.py` as the matching guard only if its `SAMPLE_ROOT_MARKERS[0]` still exact-requires the older sample-root sentence",
+    "- the direct sample-root file, focused tests-root replay, shared build route, and attr-group companion are readable through the authenticated contents route used here",
+    "- the dedicated survey note, manifest-backed contract, and survey replay remain visible on public current `master` even though this run's authenticated contents route returned `404` for those three packet members",
     "Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` the next time the lane reopens.",
 )
 
@@ -63,6 +62,7 @@ def _write(path: Path, text: str) -> None:
 
 def _placeholder_note() -> str:
     direct_lines = "\n".join(f"- `{path}`" for path in DIRECT_PATHS[:-1])
+    public_lines = "\n".join(f"- `{path}`" for path in PUBLIC_PATHS)
     guidance_inline = ", ".join(f"`{path}`" for path in GUIDANCE_PATHS)
     return f"""# Phase 5 Kobject Current Readback Note
 
@@ -70,19 +70,16 @@ def _placeholder_note() -> str:
 
 {direct_lines}
 
-{NOTE_MARKERS[6]}
+{NOTE_MARKERS[4]}
 
-{NOTE_MARKERS[7]}
+{NOTE_MARKERS[5]}
 
-{NOTE_MARKERS[8]}
+{public_lines}
 
 {NOTE_MARKERS[9]}
-
 {NOTE_MARKERS[10]}
 
 {NOTE_MARKERS[11]}
-
-{NOTE_MARKERS[12]}
 
 Guidance packet: {guidance_inline}
 """
@@ -141,10 +138,13 @@ def run_self_test() -> int:
         _seed(missing_public_marker_root)
         _write(
             missing_public_marker_root / NOTE_PATH,
-            _placeholder_note().replace(NOTE_MARKERS[8] + "\n\n", ""),
+            _placeholder_note().replace(NOTE_MARKERS[8] + "\n", ""),
         )
         failures = collect_failures(missing_public_marker_root)
-        expected = [f"note:missing_text:{NOTE_MARKERS[8]}"]
+        expected = [
+            f"note:missing_text:{NOTE_MARKERS[8]}",
+            f"note:missing_public_path:{PUBLIC_PATHS[2]}",
+        ]
         if failures != expected:
             raise AssertionError(f"unexpected public-marker failure: {failures}")
         checks_run += 1
@@ -153,30 +153,30 @@ def run_self_test() -> int:
         _seed(missing_guidance_marker_root)
         _write(
             missing_guidance_marker_root / NOTE_PATH,
-            _placeholder_note().replace(NOTE_MARKERS[10] + "\n\n", ""),
+            _placeholder_note().replace(NOTE_MARKERS[11] + "\n\n", ""),
         )
         failures = collect_failures(missing_guidance_marker_root)
-        expected = [f"note:missing_text:{NOTE_MARKERS[10]}"]
+        expected = [f"note:missing_text:{NOTE_MARKERS[11]}"]
         if failures != expected:
             raise AssertionError(f"unexpected guidance-marker failure: {failures}")
         checks_run += 1
 
         missing_direct_path_root = root / "missing_direct_path"
         _seed(missing_direct_path_root)
-        (missing_direct_path_root / DIRECT_PATHS[4]).unlink()
+        (missing_direct_path_root / DIRECT_PATHS[2]).unlink()
         failures = collect_failures(missing_direct_path_root)
-        expected = [f"repo:missing_path:{DIRECT_PATHS[4]}"]
+        expected = [f"repo:missing_path:{DIRECT_PATHS[2]}"]
         if failures != expected:
             raise AssertionError(f"unexpected direct-path failure: {failures}")
         checks_run += 1
 
-        missing_guidance_path_root = root / "missing_guidance_path"
-        _seed(missing_guidance_path_root)
-        (missing_guidance_path_root / GUIDANCE_PATHS[-1]).unlink()
-        failures = collect_failures(missing_guidance_path_root)
-        expected = [f"repo:missing_guidance_path:{GUIDANCE_PATHS[-1]}"]
+        missing_public_path_root = root / "missing_public_path"
+        _seed(missing_public_path_root)
+        (missing_public_path_root / PUBLIC_PATHS[0]).unlink()
+        failures = collect_failures(missing_public_path_root)
+        expected = [f"repo:missing_public_path:{PUBLIC_PATHS[0]}"]
         if failures != expected:
-            raise AssertionError(f"unexpected guidance-path failure: {failures}")
+            raise AssertionError(f"unexpected public-path failure: {failures}")
         checks_run += 1
 
     if checks_run != expected_case_count:
@@ -202,6 +202,7 @@ def main() -> int:
         return 1
     print("PHASE5_KOBJECT_CURRENT_READBACK_NOTE=pass")
     print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_DIRECT_COUNT={len(DIRECT_PATHS)}")
+    print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_PUBLIC_COUNT={len(PUBLIC_PATHS)}")
     print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_GUIDANCE_COUNT={len(GUIDANCE_PATHS)}")
     return 0
 
