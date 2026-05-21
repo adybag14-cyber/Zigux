@@ -11,17 +11,19 @@ SELF_PATH = Path(__file__).resolve()
 SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 
 REQUIRED_MARKERS = [
-    "shared runtime-loader allocator/init-flow packet has returned",
-    "`zigux/tests/phase9_build.zig` now names `runtime_loader_allocator_init_flow.zig` through the dedicated `phase9-runtime-loader-allocator-init-flow-tests` test and keeps that replay inside the shared `phase9-runtime-bitmap-tests` bundle",
-    "`scripts/zigux/README.md` still keeps the narrower trace-events-only Phase 9 summary and therefore remains the smallest stale shared reminder surface in this lane",
-    "`scripts/zigux/check-phase9-build-only-surface.py` is part of the current shared packet and already guards the review-first allocator/init-flow bundle rather than a removed wider-family reminder",
-    "keep the bounded `zigux/tests/phase9_build.zig` bundle explicit without treating it as proof that every deeper runtime-publication surface is complete",
-    "do not treat the partial runtime bitmap reminder packet as full sample-family return",
+    "### 2. The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
+    "Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.",
+    "`zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`, which keeps the shared request-contract boundary tied to the same loader shard instead of drifting into the trace-events family-local packet",
+    "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig` keeps the command/environment guard reviewable on current `master` by fail-closing when argv or environment control markers bleed into `zigux/kernel/runtime_loader.zig` or `zigux/kernel/runtime_loader_contract.zig`",
+    "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
+    "current `master` therefore still supports only a partial runtime bitmap reminder packet, and that partial bitmap visibility must not be used to imply that the broader bitmap family or blocked publication boundaries returned",
+    "3. the bitmap side is still only partially materialized on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned",
 ]
 
 FORBIDDEN_MARKERS = [
     "the broader runtime-loader packet is absent",
     "does not currently expose the broader shared runtime-loader packet",
+    "full publication completion",
 ]
 
 
