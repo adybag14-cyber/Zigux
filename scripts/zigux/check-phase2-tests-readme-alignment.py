@@ -175,6 +175,8 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+    except IsADirectoryError as exc:
+        raise SystemExit(f"required path is not a file: {path}") from exc
 
 
 def read_json(path: Path) -> object:
@@ -306,7 +308,7 @@ def run_self_test() -> int:
         + len(FORBIDDEN_TESTS_README_MARKERS)
         + len(REQUIRED_DOCS_ROOT_MARKERS)
         + len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)
-        + 6
+        + 9
     )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -388,6 +390,20 @@ def run_self_test() -> int:
                 checks_run += 1
             else:
                 raise AssertionError(f"missing file did not abort: {path}")
+        for path in (TESTS_README, DOCS_ROOT_README, PHASE2_TOOL_MANIFEST):
+            build_self_test_root(root)
+            resolved_path = resolve_path(root, path)
+            resolved_path.unlink()
+            resolved_path.mkdir(parents=True)
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required path is not a file" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"directory-shaped path did not abort: {path}")
+            finally:
+                resolved_path.rmdir()
     assert checks_run == expected_case_count
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
