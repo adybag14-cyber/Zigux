@@ -114,6 +114,37 @@ test "phase10 virtio mmio survey gate keeps manifest lane identity, helper inven
     try expectContains(manifest, "\"id\": \"phase10-virtio-mmio-survey-gate\"");
 }
 
+test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {
+    const allocator = std.testing.allocator;
+
+    const helper_tests = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_mmio.zig",
+    );
+    defer allocator.free(helper_tests);
+
+    try expectContains(
+        helper_tests,
+        "test \"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "test \"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expect(!summary.bounded_queue_register_window_ready);",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expect(!summary.interrupt_ack_ready);",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expect(summary.queue_ready_for_handoff);",
+    );
+}
+
 test "phase10 virtio mmio survey note keeps risky transport work blocked" {
     const allocator = std.testing.allocator;
 
