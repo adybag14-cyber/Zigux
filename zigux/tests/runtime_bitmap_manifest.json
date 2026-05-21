@@ -1,0 +1,38 @@
+{
+  "phase": "Phase 9",
+  "lane_key": "P9-L08",
+  "status": "active",
+  "surveyed_commit": "2026-05-21-runtime-bitmap-manifest-restored",
+  "scope": "partial runtime bitmap reminder packet, direct sample proof, direct loader proof, manifest-backed ownership packet, top-bit companion proof, and blocked module-side follow-through only",
+  "sample_path": "samples/zigux/runtime_bitmap.zig",
+  "loader_path": "samples/zigux/runtime_bitmap_loader.zig",
+  "top_bit_path": "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+  "survey_path": "zigux/tests/runtime_bitmap_survey.zig",
+  "survey_note_path": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+  "module_slice_note_path": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+  "build_path": "zigux/tests/phase9_build.zig",
+  "validation_entrypoint": "phase9-runtime-bitmap-tests",
+  "review_prompts": [
+    "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.",
+    "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, and top-bit packet only.",
+    "Keep module and diff follow-through blocked until those files are directly readable again."
+  ],
+  "exact_checks": [
+    "descriptor_and_anchor",
+    "summary_replay",
+    "sparse_iteration",
+    "parse_and_print",
+    "range_mutation_and_copy",
+    "selftest_lifecycle",
+    "exit_lifecycle_and_guards",
+    "loader_payload_and_invalid_payload",
+    "top_bit_contract",
+    "shared_build_route_visibility"
+  ],
+  "non_goals": [
+    "loadable runtime bitmap module parity",
+    "shared runtime-loader command-name or argv-policy controls",
+    "real runtime execution through a live substrate",
+    "full lib/test_bitmap.c parity beyond the bounded starter packet"
+  ]
+}
