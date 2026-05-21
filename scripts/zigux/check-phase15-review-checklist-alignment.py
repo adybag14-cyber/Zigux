@@ -16,6 +16,7 @@ STUDY_ONLY_ACCOUNTING_PATH = Path("Documentation/zigux/phase15-study-only-anchor
 
 ENTRY_REVIEW_PROMPT = "if a freeze-map anchor is entering Architecture Council status review"
 STUDY_ONLY_PROMPT = "if a shared reminder surface summarizes the study-only freeze-map anchors"
+PHASE15_PACKET_PROMPT = "if the change touches the shared Phase 15 governance packet"
 
 ENTRY_REVIEW_MARKERS = (
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
@@ -34,6 +35,21 @@ STUDY_ONLY_MARKERS = (
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
     "study-only boundary context rather than runtime-substrate or bridge-readiness evidence",
+)
+
+PHASE15_PACKET_MARKERS = (
+    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+    "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_handoff_next_steps.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_build.zig`",
+    "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only boundary anchors rather than delivery-ready runtime evidence",
 )
 
 FREEZE_MAP_MARKERS = (
@@ -55,6 +71,8 @@ REVIEW_PROCESS_MARKERS = (
     "the retained `freeze_in_c` decision",
     "the automatic return-to-blocked trigger",
     "the exact reopen trigger being exercised",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
 )
 
 DECISION_TEMPLATE_MARKERS = (
@@ -122,6 +140,14 @@ def collect_failures(root: Path) -> list[str]:
             if marker not in study_only_line:
                 failures.append(f"study-only prompt missing marker: {marker}")
 
+    phase15_packet_line = _line_with(review_checklist, PHASE15_PACKET_PROMPT)
+    if phase15_packet_line is None:
+        failures.append("review checklist is missing the shared Phase 15 governance packet prompt")
+    else:
+        for marker in PHASE15_PACKET_MARKERS:
+            if marker not in phase15_packet_line:
+                failures.append(f"phase15 governance prompt missing marker: {marker}")
+
     for marker in FREEZE_MAP_MARKERS:
         if marker not in freeze_map:
             failures.append(f"freeze map missing governance marker: {marker}")
@@ -150,6 +176,7 @@ def _sample_review_checklist() -> str:
 
   * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording?
   * if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
+  * if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-handoff-note-alignment.py`, `scripts/zigux/check-phase15-readiness-gate-packet.py`, `zigux/tests/phase15_architecture_council_review_process_build.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` still agree on the current maintenance-mode governance packet, keep `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` framed as repo-reality gaps until direct current-`master` rereads restore them, keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only boundary anchors rather than delivery-ready runtime evidence, and avoid implying any Architecture Council approval or freeze-map status change that the current packet does not record?
 """
 
 
@@ -175,6 +202,8 @@ def _sample_review_process() -> str:
 - the retained `freeze_in_c` decision
 - the automatic return-to-blocked trigger
 - the exact reopen trigger being exercised
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
 """
 
 
@@ -285,6 +314,43 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-study-route failure: {failures}")
+        case_count += 1
+
+        missing_phase15_packet_root = root / "missing_phase15_packet"
+        _seed_repo(missing_phase15_packet_root)
+        _write(
+            missing_phase15_packet_root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(
+                "`scripts/zigux/check-phase15-review-process-handoff.py`, ",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_phase15_packet_root)
+        expected = [
+            "phase15 governance prompt missing marker: `scripts/zigux/check-phase15-review-process-handoff.py`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-phase15-packet failure: {failures}")
+        case_count += 1
+
+        missing_gap_marker_root = root / "missing_gap_marker"
+        _seed_repo(missing_gap_marker_root)
+        _write(
+            missing_gap_marker_root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(
+                "keep `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` framed as repo-reality gaps until direct current-`master` rereads restore them, ",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_gap_marker_root)
+        expected = [
+            "phase15 governance prompt missing marker: `scripts/zigux/validate-phase15.py`",
+            "phase15 governance prompt missing marker: `zigux/tests/phase15_build.zig`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-gap-marker failure: {failures}")
         case_count += 1
 
         missing_freeze_map_rule_root = root / "missing_freeze_map_rule"
