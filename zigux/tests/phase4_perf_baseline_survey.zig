@@ -16,12 +16,14 @@ fn requireMarkerCount(marker: []const u8, expected: usize) !void {
     try std.testing.expectEqual(expected, count);
 }
 
-test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
+test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {
     try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
     try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
     try requireMarkerCount("\"sample_count_note\": \"seven monotonic samples\"", 2);
     try requireMarkerCount("\"acceptable_limit_status\": \"approved_local_only\"", 2);
     try requireMarkerCount("\"acceptable_limit_metric\": \"median_elapsed_ns\"", 2);
+    try requireMarkerCount("\"iterations\": 1", 2);
+    try requireMarkerCount("\"iterations\": 4", 2);
     try std.testing.expectEqual(@as(u64, 4), @as(u64, 4));
     try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));
 }
