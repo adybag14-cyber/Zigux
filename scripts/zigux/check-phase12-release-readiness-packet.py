@@ -155,6 +155,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
+        "Shared fallback and anti-overlap packet: keep `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the same active smoke-first packet, the same one-catalog plus one-gap-note plus two-anchor fallback split, and the same release-planning-only boundary.",
         "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
         "The active shared build packet is the returned five-file `virtio_net` quintet only:",
@@ -453,7 +454,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes."))
+    parser = argparse.ArgumentParser(description(("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes.")))
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate. Defaults to the script directory.")
     parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
     args = parser.parse_args()
