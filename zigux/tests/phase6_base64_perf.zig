@@ -75,6 +75,9 @@ fn validatePerfMatrix() !void {
         if (!std.mem.eql(u8, fixtures.perf_payload, actual.payload)) {
             return error.Base64PerfMatrixMismatch;
         }
+        if (fixtures.perf_encoded_buf_size < base64.chars(actual.payload.len, actual.padding)) {
+            return error.Base64PerfMatrixMismatch;
+        }
     }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
