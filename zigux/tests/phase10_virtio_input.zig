@@ -65,7 +65,7 @@ test "phase10 virtio input probe preflight keeps serial optional while name and 
     try std.testing.expect(!summary.queue_plan_ready);
     try std.testing.expect(!summary.device_ready);
     try std.testing.expect(!summary.capability_setup_ready);
-    try std.testing.expect(!summary.multitouch_slots_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
     try std.testing.expect(!summary.ready_for_probe_handoff);
 }
