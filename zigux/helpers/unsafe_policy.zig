@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const narrow = @import("../unsafe/narrow.zig");
 
 pub const AccessBoundary = enum {
     typed_safe,
@@ -9,274 +10,272 @@ pub const AccessBoundary = enum {
 
 pub const UnsafeScopeError = error{UnsafeScopeDenied};
 
-pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.UnsafeScope {
-    if (reserved != 0) return null;
-    return switch (mode) {
-        @intFromEnum(abi.UnsafeScope.none) => .none,
-        @intFromEnum(abi.UnsafeScope.volatile_mmio) => .volatile_mmio,
-        @intFromEnum(abi.UnsafeScope.raw_pointer_bridge) => .raw_pointer_bridge,
-        else => null,
-    };
-}
-
-pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
-    return modeFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
-}
-
-pub fn modeFromByte(mode: u8) ?abi.UnsafeScope {
-    return modeFromInteropPolicyBytes(mode, 0);
-}
-
-pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {
-    return modeFromInteropPolicyBytes(scope, reserved);
-}
-
-pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
-    return modeFromInteropPolicy(policy);
-}
-
-pub fn scopeFromByte(scope: u8) ?abi.UnsafeScope {
-    return modeFromByte(scope);
-}
-
-pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {
-    return modeFromInteropPolicyBytes(mode, reserved) != null;
-}
-
-pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
-    return modeFromInteropPolicy(policy) != null;
-}
-
-pub fn recognizesByte(mode: u8) bool {
-    return recognizesInteropPolicyBytes(mode, 0);
-}
-
-pub fn accessBoundaryFor(mode: abi.UnsafeScope) AccessBoundary {
-    return switch (mode) {
-        .none => .typed_safe,
-        .volatile_mmio => .volatile_mmio_window,
+fn fromNarrowAccessBoundary(boundary: narrow.AccessBoundary) AccessBoundary {
+    return switch (boundary) {
+        .typed_safe => .typed_safe,
+        .volatile_mmio_window => .volatile_mmio_window,
         .raw_pointer_bridge => .raw_pointer_bridge,
     };
 }
 
+pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.UnsafeScope {
+    return narrow.scopeFromInteropPolicyBytes(mode, reserved);
+}
+
+pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
+    return narrow.scopeFromInteropPolicy(policy);
+}
+
+pub fn modeFromByte(mode: u8) ?abi.UnsafeScope {
+    return narrow.scopeFromByte(mode);
+}
+
+pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {
+    return narrow.scopeFromInteropPolicyBytes(scope, reserved);
+}
+
+pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
+    return narrow.scopeFromInteropPolicy(policy);
+}
+
+pub fn scopeFromByte(scope: u8) ?abi.UnsafeScope {
+    return narrow.scopeFromByte(scope);
+}
+
+pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {
+    return narrow.recognizesInteropPolicyBytes(mode, reserved);
+}
+
+pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
+    return narrow.recognizesInteropPolicy(policy);
+}
+
+pub fn recognizesByte(mode: u8) bool {
+    return narrow.recognizesByte(mode);
+}
+
+pub fn accessBoundaryFor(mode: abi.UnsafeScope) AccessBoundary {
+    return fromNarrowAccessBoundary(narrow.accessBoundaryFor(mode));
+}
+
 pub fn accessBoundaryFromInteropPolicyBytes(scope: u8, reserved: u8) ?AccessBoundary {
-    return accessBoundaryFor(scopeFromInteropPolicyBytes(scope, reserved) orelse return null);
+    return fromNarrowAccessBoundary(narrow.accessBoundaryFromInteropPolicyBytes(scope, reserved) orelse return null);
 }
 
 pub fn accessBoundaryFromInteropPolicy(policy: abi.InteropPolicy) ?AccessBoundary {
-    return accessBoundaryFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return fromNarrowAccessBoundary(narrow.accessBoundaryFromInteropPolicy(policy) orelse return null);
 }
 
 pub fn accessBoundaryFromByte(scope: u8) ?AccessBoundary {
-    return accessBoundaryFromInteropPolicyBytes(scope, 0);
+    return fromNarrowAccessBoundary(narrow.accessBoundaryFromByte(scope) orelse return null);
 }
 
 pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {
-    return accessBoundaryFor(mode) == .typed_safe;
+    return narrow.allowsTypedOnlyAccess(mode);
 }
 
 pub fn permitsNoUnsafe(mode: abi.UnsafeScope) bool {
-    return allowsTypedOnlyAccess(mode);
+    return narrow.permitsNoUnsafe(mode);
 }
 
 pub fn requireNoUnsafe(mode: abi.UnsafeScope) UnsafeScopeError!void {
-    if (!permitsNoUnsafe(mode)) return error.UnsafeScopeDenied;
+    if (!narrow.permitsNoUnsafe(mode)) return error.UnsafeScopeDenied;
 }
 
 pub fn isUnsafe(mode: abi.UnsafeScope) bool {
-    return !allowsTypedOnlyAccess(mode);
+    return narrow.isUnsafe(mode);
 }
 
 pub fn isUnsafePolicyBytes(scope: u8, reserved: u8) bool {
-    return isUnsafe(modeFromInteropPolicyBytes(scope, reserved) orelse return false);
+    return narrow.isUnsafePolicyBytes(scope, reserved);
 }
 
 pub fn isUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return isUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.isUnsafeInteropPolicy(policy);
 }
 
 pub fn isUnsafeByte(scope: u8) bool {
-    return isUnsafePolicyBytes(scope, 0);
+    return narrow.isUnsafePolicyBytes(scope, 0);
 }
 
 pub fn requiresDedicatedAudit(mode: abi.UnsafeScope) bool {
-    return isUnsafe(mode);
+    return narrow.requiresDedicatedAudit(mode);
 }
 
 pub fn requiresVolatileMmioAccess(mode: abi.UnsafeScope) bool {
-    return accessBoundaryFor(mode) == .volatile_mmio_window;
+    return narrow.permitsVolatileMmio(mode);
 }
 
 pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {
-    return requiresVolatileMmioAccess(mode);
+    return narrow.permitsVolatileMmio(mode);
 }
 
 pub fn allowsVolatileMmio(mode: abi.UnsafeScope) bool {
-    return permitsVolatileMmio(mode);
+    return narrow.allowsVolatileMmio(mode);
 }
 
 pub fn requireVolatileMmio(mode: abi.UnsafeScope) UnsafeScopeError!void {
-    if (!permitsVolatileMmio(mode)) return error.UnsafeScopeDenied;
+    if (!narrow.permitsVolatileMmio(mode)) return error.UnsafeScopeDenied;
 }
 
 pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {
-    return accessBoundaryFor(mode) == .raw_pointer_bridge;
+    return narrow.permitsRawPointerBridge(mode);
 }
 
 pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {
-    return requiresRawPointerBridge(mode);
+    return narrow.permitsRawPointerBridge(mode);
 }
 
 pub fn allowsRawPointerBridge(mode: abi.UnsafeScope) bool {
-    return permitsRawPointerBridge(mode);
+    return narrow.allowsRawPointerBridge(mode);
 }
 
 pub fn requireRawPointerBridge(mode: abi.UnsafeScope) UnsafeScopeError!void {
-    if (!permitsRawPointerBridge(mode)) return error.UnsafeScopeDenied;
+    if (!narrow.permitsRawPointerBridge(mode)) return error.UnsafeScopeDenied;
 }
 
 pub fn allowsTypedOnlyAccessPolicyBytes(mode: u8, reserved: u8) bool {
-    return allowsTypedOnlyAccess(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+    return narrow.permitsNoUnsafePolicyBytes(mode, reserved);
 }
 
 pub fn allowsTypedOnlyAccessInteropPolicy(policy: abi.InteropPolicy) bool {
-    return allowsTypedOnlyAccessPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.permitsNoUnsafeInteropPolicy(policy);
 }
 
 pub fn allowsTypedOnlyAccessByte(mode: u8) bool {
-    return allowsTypedOnlyAccessPolicyBytes(mode, 0);
+    return narrow.permitsNoUnsafePolicyBytes(mode, 0);
 }
 
 pub fn permitsNoUnsafePolicyBytes(scope: u8, reserved: u8) bool {
-    return allowsTypedOnlyAccessPolicyBytes(scope, reserved);
+    return narrow.permitsNoUnsafePolicyBytes(scope, reserved);
 }
 
 pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return allowsTypedOnlyAccessInteropPolicy(policy);
+    return narrow.permitsNoUnsafeInteropPolicy(policy);
 }
 
 pub fn permitsNoUnsafeByte(scope: u8) bool {
-    return allowsTypedOnlyAccessByte(scope);
+    return narrow.permitsNoUnsafePolicyBytes(scope, 0);
 }
 
 pub fn requireNoUnsafePolicyBytes(scope: u8, reserved: u8) UnsafeScopeError!void {
-    return requireNoUnsafe(modeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
+    return narrow.requireNoUnsafePolicyBytes(scope, reserved);
 }
 
 pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireNoUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.requireNoUnsafeInteropPolicy(policy);
 }
 
 pub fn requireNoUnsafeByte(scope: u8) UnsafeScopeError!void {
-    return requireNoUnsafePolicyBytes(scope, 0);
+    return narrow.requireNoUnsafePolicyBytes(scope, 0);
 }
 
 pub fn requiresDedicatedAuditPolicyBytes(scope: u8, reserved: u8) bool {
-    return requiresDedicatedAudit(modeFromInteropPolicyBytes(scope, reserved) orelse return false);
+    return narrow.requiresDedicatedAuditPolicyBytes(scope, reserved);
 }
 
 pub fn requiresDedicatedAuditInteropPolicy(policy: abi.InteropPolicy) bool {
-    return requiresDedicatedAuditPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.requiresDedicatedAuditInteropPolicy(policy);
 }
 
 pub fn requiresDedicatedAuditByte(scope: u8) bool {
-    return requiresDedicatedAuditPolicyBytes(scope, 0);
+    return narrow.requiresDedicatedAuditPolicyBytes(scope, 0);
 }
 
 pub fn requiresVolatileMmioAccessPolicyBytes(mode: u8, reserved: u8) bool {
-    return requiresVolatileMmioAccess(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+    return narrow.permitsVolatileMmioPolicyBytes(mode, reserved);
 }
 
 pub fn requiresVolatileMmioAccessInteropPolicy(policy: abi.InteropPolicy) bool {
-    return requiresVolatileMmioAccessPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.permitsVolatileMmioInteropPolicy(policy);
 }
 
 pub fn requiresVolatileMmioAccessByte(mode: u8) bool {
-    return requiresVolatileMmioAccessPolicyBytes(mode, 0);
+    return narrow.permitsVolatileMmioPolicyBytes(mode, 0);
 }
 
 pub fn permitsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {
-    return requiresVolatileMmioAccessPolicyBytes(scope, reserved);
+    return narrow.permitsVolatileMmioPolicyBytes(scope, reserved);
 }
 
 pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
-    return requiresVolatileMmioAccessInteropPolicy(policy);
+    return narrow.permitsVolatileMmioInteropPolicy(policy);
 }
 
 pub fn permitsVolatileMmioByte(scope: u8) bool {
-    return requiresVolatileMmioAccessByte(scope);
+    return narrow.permitsVolatileMmioPolicyBytes(scope, 0);
 }
 
 pub fn allowsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {
-    return permitsVolatileMmioPolicyBytes(scope, reserved);
+    return narrow.allowsVolatileMmioPolicyBytes(scope, reserved);
 }
 
 pub fn allowsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
-    return permitsVolatileMmioInteropPolicy(policy);
+    return narrow.allowsVolatileMmioInteropPolicy(policy);
 }
 
 pub fn allowsVolatileMmioByte(scope: u8) bool {
-    return permitsVolatileMmioByte(scope);
+    return narrow.allowsVolatileMmioPolicyBytes(scope, 0);
 }
 
 pub fn requireVolatileMmioPolicyBytes(scope: u8, reserved: u8) UnsafeScopeError!void {
-    return requireVolatileMmio(modeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
+    return narrow.requireVolatileMmioPolicyBytes(scope, reserved);
 }
 
 pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireVolatileMmioPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.requireVolatileMmioInteropPolicy(policy);
 }
 
 pub fn requireVolatileMmioByte(scope: u8) UnsafeScopeError!void {
-    return requireVolatileMmioPolicyBytes(scope, 0);
+    return narrow.requireVolatileMmioPolicyBytes(scope, 0);
 }
 
 pub fn requiresRawPointerBridgePolicyBytes(mode: u8, reserved: u8) bool {
-    return requiresRawPointerBridge(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+    return narrow.permitsRawPointerBridgePolicyBytes(mode, reserved);
 }
 
 pub fn requiresRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return requiresRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.permitsRawPointerBridgeInteropPolicy(policy);
 }
 
 pub fn requiresRawPointerBridgeByte(mode: u8) bool {
-    return requiresRawPointerBridgePolicyBytes(mode, 0);
+    return narrow.permitsRawPointerBridgePolicyBytes(mode, 0);
 }
 
 pub fn permitsRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {
-    return requiresRawPointerBridgePolicyBytes(scope, reserved);
+    return narrow.permitsRawPointerBridgePolicyBytes(scope, reserved);
 }
 
 pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return requiresRawPointerBridgeInteropPolicy(policy);
+    return narrow.permitsRawPointerBridgeInteropPolicy(policy);
 }
 
 pub fn permitsRawPointerBridgeByte(scope: u8) bool {
-    return requiresRawPointerBridgeByte(scope);
+    return narrow.permitsRawPointerBridgePolicyBytes(scope, 0);
 }
 
 pub fn allowsRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {
-    return permitsRawPointerBridgePolicyBytes(scope, reserved);
+    return narrow.allowsRawPointerBridgePolicyBytes(scope, reserved);
 }
 
 pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return permitsRawPointerBridgeInteropPolicy(policy);
+    return narrow.allowsRawPointerBridgeInteropPolicy(policy);
 }
 
 pub fn allowsRawPointerBridgeByte(scope: u8) bool {
-    return permitsRawPointerBridgeByte(scope);
+    return narrow.allowsRawPointerBridgePolicyBytes(scope, 0);
 }
 
 pub fn requireRawPointerBridgePolicyBytes(scope: u8, reserved: u8) UnsafeScopeError!void {
-    return requireRawPointerBridge(modeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
+    return narrow.requireRawPointerBridgePolicyBytes(scope, reserved);
 }
 
 pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.requireRawPointerBridgeInteropPolicy(policy);
 }
 
 pub fn requireRawPointerBridgeByte(scope: u8) UnsafeScopeError!void {
-    return requireRawPointerBridgePolicyBytes(scope, 0);
+    return narrow.requireRawPointerBridgePolicyBytes(scope, 0);
 }
 
 test "phase3 unsafe policy keeps access boundaries explicit" {
