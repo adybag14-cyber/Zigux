@@ -37,13 +37,16 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `summarizeTeardown()` and the bounded stop-request outcomes it records
 - `requestStop()` and the split between watchdog-core stop policy and hardware
   `always-running` behavior
+- `nowayoutPolicySummary()` as a driver-local checkpoint that matches the same
+  bounded stop-policy split already proved directly through `requestStop()` and
+  `summarizeTeardown()`, rather than through a standalone nowayout-only replay
 - `registerDeviceFailureSummary()` and the teardown-facing failure-mode cues
   that stay reviewable without claiming live remove-hook or reboot-backed
   shutdown execution
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig` as the direct
-  proof surface that keeps the first bounded register-device request and the
-  paired failure summary tied to the reboot-glue boundary without claiming live
-  watchdog-core registration
+  proof surface that keeps the first bounded register-device request, the paired
+  failure summary, and the teardown-facing stop-policy split tied to the
+  reboot-glue boundary without claiming live watchdog-core registration
 - `timeoutPropertyCheckpointSummary()` and
   `platformDrvdataCheckpointSummary()` as the ordering anchors that still feed
   the bounded register-device and teardown summaries
