@@ -86,6 +86,43 @@ test "runtime bitmap loader keeps loaded cross-word summary stable through selft
     try std.testing.expect(module.isSet(127));
 }
 
+test "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(load_plan.source_bit_list);
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(load_plan.expected_first_set, before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 1), before_exit.first_zero);
+    try std.testing.expectEqual(load_plan.expected_weight, before_exit.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.nbits);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_exit, after_exit);
+    try std.testing.expectEqual(@as(usize, 0), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 63), module.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, 64), module.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(5, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(63, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
+
 test "runtime bitmap loader rejects malformed loader payloads without leaving initialized state" {
     var invalid = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0,,64"));
