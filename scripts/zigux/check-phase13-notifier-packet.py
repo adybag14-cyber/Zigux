@@ -44,10 +44,12 @@ REQUIRED_MARKERS = {
         "\"current_phase13_notifier_list_reviewability_present\": true",
         "\"current_list_view_present\": true",
         "\"current_hlist_view_present\": true",
+        "\"current_phase13_release_validator_present\": true",
         "\"current_phase13_build_present\": false",
         "\"id\": \"phase13-notifier-list-view-helper\"",
         "\"id\": \"phase13-notifier-hlist-view-helper\"",
         "\"id\": \"phase13-notifier-focused-packet-checker\"",
+        "\"id\": \"phase13-notifier-release-validator-companion\"",
         "\"id\": \"phase13-notifier-reviewability-gate\"",
         "\"id\": \"phase13-notifier-priority-signal-gap\"",
         "\"id\": \"phase13-notifier-chain-helper-gap\"",
@@ -202,7 +204,7 @@ def run_self_test() -> int:
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
-                '"id": "phase13-notifier-hlist-view-helper"\n',
+                '\"id\": \"phase13-notifier-hlist-view-helper\"\n',
                 "",
                 1,
             ),
@@ -219,7 +221,41 @@ def run_self_test() -> int:
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
-                '"current_phase13_build_present": false\n',
+                '\"current_phase13_release_validator_present\": true\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"current_phase13_release_validator_present": true'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                '\"id\": \"phase13-notifier-release-validator-companion\"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"id": "phase13-notifier-release-validator-companion"'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                '\"current_phase13_build_present\": false\n',
                 "",
                 1,
             ),
