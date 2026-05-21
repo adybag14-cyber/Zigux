@@ -434,6 +434,29 @@ def run_self_test() -> int:
             raise AssertionError("expected inventory workflow step validation to fail")
 
         make_fixture(temp_dir)
+        inventory_path.write_text("{not json}\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError as exc:
+            if "is not valid JSON" not in str(exc):
+                raise
+            total_cases += 1
+        else:
+            raise AssertionError("expected invalid inventory JSON validation to fail")
+
+        make_fixture(temp_dir)
+        missing_packet_file = temp_dir / "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+        missing_packet_file.unlink()
+        try:
+            validate(temp_dir)
+        except ValidationError as exc:
+            if "missing required Phase 11 HVC targetless-unregister witness packet files" not in str(exc):
+                raise
+            total_cases += 1
+        else:
+            raise AssertionError("expected missing packet file validation to fail")
+
+        make_fixture(temp_dir)
         validate_script = temp_dir / "scripts/zigux/validate-phase11.py"
         validate_script.write_text("# validate\n", encoding="utf-8")
         try:
