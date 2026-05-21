@@ -32,6 +32,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-closure-matrix.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
@@ -371,7 +372,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, fixdep, and closure-matrix support packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
