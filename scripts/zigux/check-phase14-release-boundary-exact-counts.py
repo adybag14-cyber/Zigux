@@ -4,9 +4,10 @@
 Fail-closed checker for the current Phase 14 release-boundary count posture.
 
 This guard keeps the release-boundary packet honest around the exact manifest-
-backed compile-shard counts and the still-unreadable executable-layer gap while
-cross-reading the shared smoke survey markers that define the returned
-Phase 14 route split and exact-readback gap list.
+backed compile-shard counts, the returned manifest posture in the shared smoke
+survey, and the still-unreadable build-side or broader executable-layer gap
+while cross-reading the shared smoke survey markers that define the current
+Phase 14 route split.
 """
 
 from __future__ import annotations
@@ -43,11 +44,12 @@ RELEASE_BOUNDARY_TEXT_MARKERS = [
 ]
 
 SURVEY_EXACT_LINE_SNIPPETS = [
+    "  * directly readable current-`master` companion surfaces in this lane's current evidence split:",
+    "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json` through the current contents path",
     "  * exact-readback gaps that still belong to this shared note:",
     "    * `zigux/tests/phase14_build.zig`",
-    "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "    * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
-    "    * broad reminder text should therefore frame that build-side and executable layer as exact-readback gaps rather than as directly recovered shared-smoke proof",
+    "    * broad reminder text should therefore frame that build-side and broader executable layer as exact-readback gaps rather than as directly recovered shared-smoke proof",
     "    * the current readable route layer still stops at `make -C zigux phase14-validate`; no current attached-toolchain `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux phase14` fallback is usable from this note because the readable `zigux/Makefile` body still omits those targets",
 ]
 
@@ -192,10 +194,10 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
-        remove_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[0])
-        if not any(SURVEY_EXACT_LINE_SNIPPETS[0] in error for error in check(base)):
+        remove_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[1])
+        if not any(SURVEY_EXACT_LINE_SNIPPETS[1] in error for error in check(base)):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected missing survey marker drift to fail")
+            print("expected missing returned-manifest marker drift to fail")
             return 1
 
         write_fixture_tree(base)
