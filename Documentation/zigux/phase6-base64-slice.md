@@ -58,7 +58,7 @@ The current tests check:
 - standard RFC 4648 decode vectors with and without padding
 - variant alphabet parity for URL-safe and IMAP output
 - variant alphabet parity for URL-safe and IMAP output with and without padding
-- one-byte and two-byte URL-safe and IMAP tail parity with and without padding
+- one-byte and two-byte std, URL-safe, and IMAP tail parity with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - helper-local same-file sweeps for `paddedChars` and `unpaddedChars`, every one-byte and two-byte tail across std, URL-safe, and IMAP variants with and without padding, non-canonical tail-bit rejection, and reverse-map classification across all byte values
@@ -66,10 +66,10 @@ The current tests check:
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
-- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 12 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`
+- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 18 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`
 - exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate
 - helper-local corpus checker: `scripts/zigux/check-phase6-base64-corpus-determinism.py`
-- fixture-backed variant decode parity for URL-safe and IMAP sample payloads, including one-byte and two-byte tails with and without padding
+- fixture-backed variant decode parity for std, URL-safe, and IMAP sample payloads, including one-byte and two-byte tails with and without padding
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - the committed slowdown replay in `zigux/tests/phase6_base64_perf.zig`, which keeps the helper tied to the shared Phase 6 build foothold without widening into broader runtime-core work
