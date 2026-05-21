@@ -188,3 +188,30 @@ test "hweight helpers stay stable under byte swaps" {
         try std.testing.expectEqual(hweight_long(value), hweight_long(swapped));
     }
 }
+
+test "hweight helpers satisfy inclusion-exclusion for overlapping masks" {
+    const lhs8: u32 = 0b1110_0101;
+    const rhs8: u32 = 0b1011_1001;
+    try std.testing.expectEqual(swHweight8(lhs8) + swHweight8(rhs8), swHweight8(lhs8 ^ rhs8) + (2 * swHweight8(lhs8 & rhs8)));
+    try std.testing.expectEqual(__sw_hweight8(lhs8) + __sw_hweight8(rhs8), __sw_hweight8(lhs8 ^ rhs8) + (2 * __sw_hweight8(lhs8 & rhs8)));
+
+    const lhs16: u32 = 0xe5a3;
+    const rhs16: u32 = 0xb96d;
+    try std.testing.expectEqual(swHweight16(lhs16) + swHweight16(rhs16), swHweight16(lhs16 ^ rhs16) + (2 * swHweight16(lhs16 & rhs16)));
+    try std.testing.expectEqual(__sw_hweight16(lhs16) + __sw_hweight16(rhs16), __sw_hweight16(lhs16 ^ rhs16) + (2 * __sw_hweight16(lhs16 & rhs16)));
+
+    const lhs32: u32 = 0xe5a3_c69d;
+    const rhs32: u32 = 0xb96d_5a37;
+    try std.testing.expectEqual(swHweight32(lhs32) + swHweight32(rhs32), swHweight32(lhs32 ^ rhs32) + (2 * swHweight32(lhs32 & rhs32)));
+    try std.testing.expectEqual(__sw_hweight32(lhs32) + __sw_hweight32(rhs32), __sw_hweight32(lhs32 ^ rhs32) + (2 * __sw_hweight32(lhs32 & rhs32)));
+
+    const lhs64: u64 = 0xe5a3_c69d_f078_1b2c;
+    const rhs64: u64 = 0xb96d_5a37_c4ef_9235;
+    try std.testing.expectEqual(swHweight64(lhs64) + swHweight64(rhs64), swHweight64(lhs64 ^ rhs64) + (2 * swHweight64(lhs64 & rhs64)));
+    try std.testing.expectEqual(__sw_hweight64(lhs64) + __sw_hweight64(rhs64), __sw_hweight64(lhs64 ^ rhs64) + (2 * __sw_hweight64(lhs64 & rhs64)));
+
+    const lhs_long: usize = if (@sizeOf(usize) == 4) 0xe5a3_c69d else 0xe5a3_c69d_f078_1b2c;
+    const rhs_long: usize = if (@sizeOf(usize) == 4) 0xb96d_5a37 else 0xb96d_5a37_c4ef_9235;
+    try std.testing.expectEqual(hweightLong(lhs_long) + hweightLong(rhs_long), hweightLong(lhs_long ^ rhs_long) + (2 * hweightLong(lhs_long & rhs_long)));
+    try std.testing.expectEqual(hweight_long(lhs_long) + hweight_long(rhs_long), hweight_long(lhs_long ^ rhs_long) + (2 * hweight_long(lhs_long & rhs_long)));
+}
