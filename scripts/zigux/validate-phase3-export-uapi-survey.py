@@ -21,6 +21,8 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")
+C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
@@ -35,17 +37,21 @@ REQUIRED_MARKERS = {
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+        "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
+        "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+        "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
-        "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
-        "Current `master` no longer shows the older packet-local compile-wiring gap",
+        "the named C-facing boundary-header helpers, the exported boundary-header validation relay, the version relay, and the starter `dev_t` validation wrappers directly compile- and run-proofed",
+        "The packet now also keeps a direct C-facing smoke proof for the Linux-header relays",
         "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
         "the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring",
-        "the already-shipped starter `dev_t` validation relays, and the shared tests-root replay wiring explicit as shipped same-family evidence",
+        "the already-shipped starter boundary-header validation relay, the already-shipped starter `dev_t` validation relays, the shared tests-root replay wiring, and the direct C smoke replay explicit as shipped same-family evidence",
         "the paired `include/zigux/dev_t.h` contract",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
-        'TESTS_BUILD_PATH = Path("zigux/tests/build.zig")',
+        'C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
+        'C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
@@ -79,6 +85,8 @@ REQUIRED_MARKERS = {
     ),
     LINUX_HEADER_PATH: (
         "static inline zigux_uapi_version zigux_uapi_version_current(void)",
+        "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
+        "static inline struct zigux_export_status zigux_validate_boundary_header(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
         "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
@@ -114,8 +122,8 @@ REQUIRED_MARKERS = {
     LAYOUT_TEST_PATH: (
         'test "header-family binding keeps the bounded relay surface explicit" {',
         'test "export shim relays version compatibility without widening the boundary" {',
-        'test "export shim encodes starter dev_t numbers without widening the boundary" {',
         'test "export shim relays starter boundary-header validation through the focused replay" {',
+        'test "export shim encodes starter dev_t numbers without widening the boundary" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
     ),
     LAYOUT_BUILD_PATH: (
@@ -123,6 +131,35 @@ REQUIRED_MARKERS = {
         'header_family_binding.addImport("abi_bindings", abi_bindings);',
         'root_module.addImport("header_family_binding", header_family_binding);',
         '"phase3-export-uapi-layout-test"',
+    ),
+    C_HEADER_SMOKE_PATH: (
+        "#include <linux/zigux.h>",
+        "static int check_version_relays(void)",
+        "zigux_uapi_validate_version(",
+        "static int check_boundary_header_relays(void)",
+        "zigux_boundary_header_make(",
+        "zigux_boundary_header_make_compatible(",
+        "zigux_validate_boundary_header(",
+        "zigux_boundary_header_is_current_abi_version(",
+        "zigux_boundary_header_is_compatible_size(",
+        "zigux_boundary_header_is_canonical_size(",
+        "zigux_boundary_header_is_compatible(",
+        "zigux_boundary_header_is_canonical(",
+        "zigux_boundary_header_extends_boundary(",
+        "zigux_boundary_header_requested_extra_bytes(",
+        "zigux_boundary_header_canonicalize(",
+        "static int check_dev_t_relays(void)",
+        "zigux_uapi_validate_dev_t_fields(",
+        "zigux_uapi_validate_dev_t_components(",
+        "zigux_uapi_validate_dev_t_range(",
+        "int main(void)",
+    ),
+    C_HEADER_SMOKE_CHECK_PATH: (
+        '"""Compile and run the current Phase 3 export/UAPI C header smoke."""',
+        'SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
+        'LINUX_HEADER_PATH = Path("include/linux/zigux.h")',
+        'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")',
+        'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass")',
     ),
     CATALOG_HELPER_PATH: (
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
@@ -208,23 +245,18 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
-            "expected missing export shim field-validation survey marker was not reported",
+            "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
+            "expected missing c-header smoke path marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "the Linux-facing `zigux_uapi_validate_dev_t_fields()`, `zigux_uapi_validate_dev_t_components()`, and `zigux_uapi_validate_dev_t_range()` wrappers",
-            "expected missing linux-facing dev_t wrapper survey marker was not reported",
+            "the named C-facing boundary-header helpers, the exported boundary-header validation relay, the version relay, and the starter `dev_t` validation wrappers directly compile- and run-proofed",
+            "expected missing c-header smoke survey marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "the paired `include/zigux/dev_t.h` contract",
-            "expected missing shared dev_t contract survey marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "Current `master` no longer shows the older packet-local compile-wiring gap",
-            "expected missing shared-route-aligned survey marker was not reported",
+            "The packet now also keeps a direct C-facing smoke proof for the Linux-header relays",
+            "expected missing current-gap c-smoke marker was not reported",
         ),
         (
             MANIFEST_PATH,
@@ -285,6 +317,16 @@ def run_self_test() -> int:
             DEV_T_HEADER_PATH,
             "static inline int zigux_dev_t_fields_range_is_valid(",
             "expected missing shared dev_t header range-validation marker was not reported",
+        ),
+        (
+            C_HEADER_SMOKE_PATH,
+            "zigux_validate_boundary_header(",
+            "expected missing c-header smoke boundary-validation marker was not reported",
+        ),
+        (
+            C_HEADER_SMOKE_CHECK_PATH,
+            'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")',
+            "expected missing c-header smoke checker self-test marker was not reported",
         ),
         (
             BINDING_VERSION_PATH,
