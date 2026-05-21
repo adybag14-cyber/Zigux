@@ -5,9 +5,10 @@ Fail-closed checker for the current Phase 14 rollback-threshold packet.
 
 This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
-contract and on the current repo-reality split where the Makefile is readable,
-ships `phase14-validate`, and still does not ship the broader `phase14-smoke`,
-`phase14-test`, or `phase14` wrapper targets.
+contract, on the returned ring-buffer survey companion and shared smoke
+manifest, and on the current repo-reality split where the Makefile is
+readable, ships `phase14-validate`, and still does not ship the broader
+`phase14-smoke`, `phase14-test`, or `phase14` wrapper targets.
 """
 
 from __future__ import annotations
@@ -31,8 +32,10 @@ ROLLBACK_THRESHOLD_MARKER = (
     "  * rollback threshold: `0` tolerated same-packet drifts across the "
     "recovered documentation packet, the directly readable validator path, the "
     "readable current Makefile body, the directly readable release-boundary "
-    "exact-count guard, the directly readable workqueue boundary shard, and the "
-    "still-missing broader wrapper-backed rerun routes"
+    "exact-count guard, the directly readable workqueue boundary shard, the "
+    "directly readable ring-buffer survey companion, the directly readable "
+    "shared smoke manifest, and the still-missing broader wrapper-backed rerun "
+    "routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -47,6 +50,7 @@ ROLLBACK_TRIGGER_MARKERS = [
     "    * recovered documentation packet drift",
     "    * validator-versus-reminder-surface drift",
     "    * workqueue-boundary-shard drift",
+    "    * ring-buffer-survey drift",
     "    * wrapper-route drift",
     "    * build-side exact-readback-gap drift",
     "    * broader executable-layer exact-readback-gap drift",
@@ -269,7 +273,7 @@ def fixture_productization_gap() -> str:
         [
             "# Phase 14 Productization Gap Survey",
             "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
+            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, the directly readable ring-buffer survey companion, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
             "",
         ]
     )
@@ -318,6 +322,21 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * ring-buffer-survey drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("ring-buffer-survey drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected ring-buffer trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
         write(
             root,
             SMOKE_NOTE_PATH,
@@ -392,7 +411,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=7")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
