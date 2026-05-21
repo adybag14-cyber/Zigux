@@ -166,6 +166,7 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "drivers/virtio/virtio_ring_publish_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
@@ -690,6 +691,7 @@ def run_self_test() -> int:
             cases += 1
 
         replay_cases = [
+            ("drivers/virtio/virtio_ring_publish_readiness.zig", "missing"),
             ("zigux/tests/phase10_virtio_ring_notification_data_readiness.zig", "missing"),
             ("zigux/tests/phase10_virtio_core_reset_queue.zig", "missing"),
             ("zigux/tests/phase10_virtio_input_status_drain.zig", "missing"),
@@ -707,11 +709,11 @@ def run_self_test() -> int:
             cases += 1
 
         broken = json.loads(json.dumps(original))
-        broken["tests"] = [item for item in original["tests"] if item != "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig"]
+        broken["tests"] = [item for item in original["tests"] if item != "drivers/virtio/virtio_ring_publish_readiness.zig"]
         write_closure(broken)
         expect_contains(
             collect_manifest_drift(root),
-            "focused_harness_replays:zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig:not_listed_in_tests",
+            "focused_harness_replays:drivers/virtio/virtio_ring_publish_readiness.zig:not_listed_in_tests",
             "phase10-closure-self-test",
         )
         cases += 1
@@ -731,6 +733,7 @@ def run_self_test() -> int:
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_missing.json", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_manifest.json", "phase10-closure-self-test")
         cases += 1
+        closure_doc.writeText = None
         closure_doc.write_text(original_doc.replace("zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig", "phase10-closure-self-test")
         cases += 1
