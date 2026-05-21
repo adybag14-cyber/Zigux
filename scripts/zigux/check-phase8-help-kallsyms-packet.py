@@ -9,8 +9,8 @@ from pathlib import Path
 
 def _default_root() -> Path:
     resolved = Path(__file__).resolve()
-    if len(resolved.parents) >= 4:
-        return resolved.parents[3]
+    if len(resolved.parents) >= 3:
+        return resolved.parents[2]
     return resolved.parent
 
 
@@ -148,6 +148,14 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase8-help-kallsyms-packet-selftest-") as tmp:
         root = Path(tmp)
         _passing_fixture(root)
+
+        expected_default_root = Path(__file__).resolve()
+        if len(expected_default_root.parents) >= 3:
+            expected_default_root = expected_default_root.parents[2]
+        else:
+            expected_default_root = expected_default_root.parent
+        if ROOT != expected_default_root:
+            raise AssertionError("expected default root to resolve to the repository root")
 
         passing = validate_root(root)
         if passing.missing_files or passing.missing_markers:
