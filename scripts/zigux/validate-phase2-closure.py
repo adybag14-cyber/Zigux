@@ -143,7 +143,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 146
+EXPECTED_SELF_TEST_CASE_COUNT = 148
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -836,8 +836,10 @@ def run_self_test() -> int:
         present_dir.unlink()
         present_dir.mkdir()
         assert ("PRESENT_FILE_NOT_FILE_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
-        present_dir.rmdir()
         checks_run += 1
+        assert_run_validator_output_contains(root, "PRESENT_FILE_NOT_FILE_ON_BRANCH_START")
+        checks_run += 1
+        present_dir.rmdir()
 
         build_self_test_root(root)
         write_text(root, Path(EXPECTED_MISSING_FILES[0]), "# restored on branch\n")
@@ -854,6 +856,8 @@ def run_self_test() -> int:
         missing_dir.parent.mkdir(parents=True, exist_ok=True)
         missing_dir.mkdir()
         assert ("MISSING_FILE_NOT_FILE_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+        assert_run_validator_output_contains(root, "MISSING_FILE_NOT_FILE_ON_BRANCH_START")
         checks_run += 1
 
         build_self_test_root(root)
