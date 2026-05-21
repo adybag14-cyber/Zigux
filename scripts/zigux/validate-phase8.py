@@ -18,6 +18,7 @@ def _default_root() -> Path:
 
 ROOT = _default_root()
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
+HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
@@ -51,6 +52,7 @@ REQUIRED_FILES = (
     REVIEW_CHECKLIST,
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
+    HELP_KALLSYMS_PACKET_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
     Path("zigux/Makefile"),
@@ -355,6 +357,7 @@ def validate_root(root: Path) -> ValidationResult:
     if not missing_files and not missing_markers:
         for checker in (
             TESTS_ALIGNMENT_CHECKER,
+            HELP_KALLSYMS_PACKET_CHECKER,
             PERF_BUFFER_POLL_GATE_CHECKER,
             LIBBPF_SHARD_ROUTES_CHECKER,
         ):
@@ -393,7 +396,7 @@ def emit_result(result: ValidationResult) -> int:
     print("PHASE8_VALIDATION=pass")
     print(f"PHASE8_SHARED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE8_MARKER_COUNT={sum(len(markers) for markers in FILE_MARKERS.values())}")
-    print("PHASE8_CHECKER_COUNT=3")
+    print("PHASE8_CHECKER_COUNT=4")
     return 0
 
 
@@ -427,6 +430,7 @@ def _passing_fixture(root: Path) -> None:
     for relative_path, markers in FILE_MARKERS.items():
         _write(root / relative_path, "\n".join(markers) + "\n")
     _write(root / TESTS_ALIGNMENT_CHECKER, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
+    _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
     _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
@@ -465,6 +469,22 @@ def run_self_test() -> int:
         if not checker_output or "resolveReadyBufferFdAtAttempt" not in "\n".join(checker_output):
             raise AssertionError("expected checker failure output to be reported")
         _write(broken_checker, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
+
+        help_kallsyms_checker = root / HELP_KALLSYMS_PACKET_CHECKER
+        _write(
+            help_kallsyms_checker,
+            _failing_checker(
+                "PHASE8_HELP_KALLSYMS_PACKET",
+                "missing_marker:zigux/tests/phase8_help_kallsyms_only_build.zig:phase8_kallsyms.zig",
+            ),
+        )
+        failing_help_kallsyms_checker = validate_root(root)
+        help_kallsyms_output = failing_help_kallsyms_checker.checker_failures.get(
+            HELP_KALLSYMS_PACKET_CHECKER.as_posix()
+        )
+        if not help_kallsyms_output or "phase8_kallsyms.zig" not in "\n".join(help_kallsyms_output):
+            raise AssertionError("expected help+kallsyms checker failure output to be reported")
+        _write(help_kallsyms_checker, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
 
         makefile = root / "zigux/Makefile"
         original_makefile = _read(makefile)
@@ -694,6 +714,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing verify-routing build shard to be reported")
         _write(verify_build, "\n".join(FILE_MARKERS[VERIFY_ROUTING_GAP_BUILD]) + "\n")
 
+        help_kallsyms_checker = root / HELP_KALLSYMS_PACKET_CHECKER
+        help_kallsyms_checker.unlink()
+        missing_help_kallsyms_checker = validate_root(root)
+        if HELP_KALLSYMS_PACKET_CHECKER.as_posix() not in missing_help_kallsyms_checker.missing_files:
+            raise AssertionError("expected missing help+kallsyms checker file to be reported")
+        _write(help_kallsyms_checker, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+
         type_names_helper = root / TYPE_NAMES_SEGMENT
         type_names_helper.unlink()
         missing_type_names_helper = validate_root(root)
@@ -709,7 +736,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
