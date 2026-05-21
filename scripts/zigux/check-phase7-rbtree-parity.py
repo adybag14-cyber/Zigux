@@ -20,6 +20,14 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
+DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (
+    "Machine-readable fallback provenance stays explicit through "
+    "`public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, "
+    "which currently names only `zigux/tests/phase7_build.zig` because the other listed "
+    "shared or roadmap-aligned non-owner surfaces still rematerialized through authenticated "
+    "rereads in this slot."
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`",
@@ -36,7 +44,7 @@ REQUIRED_MARKERS = {
         "Fresh current-master reread in this slot also confirmed these shared or roadmap-aligned non-owner surfaces:",
         "- `lib/rbtree.zig`",
         "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot",
-        "public_fallback_non_owner_paths",
+        DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER,
         "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion surfaces:",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
@@ -46,6 +54,7 @@ REQUIRED_MARKERS = {
         'print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")',
         '"Documentation/zigux/phase7-rbtree-slice.md": [',
         '"zigux/tests/phase7_rbtree_manifest.json": [',
+        "DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (",
     ],
     "tools/lib/rbtree.zig": [
         "pub const Node = struct {",
@@ -56,9 +65,9 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_rbtree.zig": [
         'const rbtree = @import("../../tools/lib/rbtree.zig");',
-        'phase 7 rbtree companion replays ordered traversal and duplicate-range helpers',
-        'phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries',
-        'rbtree.rb_erase_init_cached',
+        "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers",
+        "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries",
+        "rbtree.rb_erase_init_cached",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         'try expectContains(slice_note, "The helper-local implementation remains rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence rather than proof that helper-local ownership has moved off the tool-root packet.");',
@@ -171,8 +180,8 @@ def run_self_test() -> None:
         write_fixture_root(root)
 
         path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
-        marker = "public_fallback_non_owner_paths"
-        path.write_text(read_text(path).replace(marker, "", 1), encoding="utf-8")
+        marker = DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md", marker)
         cases += 1
         write_fixture_root(root)
