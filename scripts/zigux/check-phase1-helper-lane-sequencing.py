@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import tempfile
+
+
+README_REL = Path("scripts/zigux/README.md")
+MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+
+EXPECTED_HELPERS = [
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+]
+
+EXPECTED_PARKED_HELPERS = [
+    "tools/lib/argv_split.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+]
+
+EXPECTED_DIRECT_HELPERS = [
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/string.zig",
+]
+
+EXPECTED_RULE_SUMMARY = (
+    "Phase 1 helper follow-up stays parked on shared replay for the nine helpers "
+    "above, while bitmap, find_bit, rbtree, and string keep the only bounded direct "
+    "helper-local follow-up anchors on current master."
+)
+
+EXPECTED_ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
+    "helpers reopen only for their existing helper-local anchors or "
+    "already-committed shared fixture keys."
+)
+
+EXPECTED_PHASE1_FLOW_LINE = (
+    "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper "
+    "tranche reviewable through the live owner-map and string-review guards instead "
+    "of rebuilding the broader installer-backed closure packet from older missing "
+    "routes"
+)
+
+EXPECTED_DIRECT_ANCHOR_LINE = (
+    "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, "
+    "rbtree, and string reopen only inside their existing helper-local anchors or "
+    "already-committed shared fixture keys, while the other nine closed helpers stay "
+    "parked unless the shared replay or reminder packet drifts"
+)
+
+
+def repo_root_from_arg(root_arg: str | None) -> Path:
+    if root_arg:
+        return Path(root_arg).resolve()
+    return Path(__file__).resolve().parents[2]
+
+
+def load_json_without_duplicates(path: Path) -> dict:
+    def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        result: dict[str, object] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate key {key!r}")
+            result[key] = value
+        return result
+
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=hook)
+
+
+def add_path_issue(path: Path, rel: Path, prefix: str, issues: list[str]) -> bool:
+    if path.is_dir():
+        issues.append(f"{prefix}:directory={rel.as_posix()}")
+        return True
+    if not path.is_file():
+        issues.append(f"missing:{rel.as_posix()}")
+        return True
+    return False
+
+
+def collect_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    readme_path = root / README_REL
+    manifest_path = root / MANIFEST_REL
+
+    if add_path_issue(readme_path, README_REL, "readme", issues):
+        return issues
+    if add_path_issue(manifest_path, MANIFEST_REL, "manifest", issues):
+        return issues
+
+    readme_lines = readme_path.read_text(encoding="utf-8").splitlines()
+    if EXPECTED_PHASE1_FLOW_LINE not in readme_lines:
+        issues.append("readme:phase1_flow_line")
+    if EXPECTED_DIRECT_ANCHOR_LINE not in readme_lines:
+        issues.append("readme:direct_anchor_line")
+
+    try:
+        manifest = load_json_without_duplicates(manifest_path)
+    except Exception as exc:
+        issues.append(f"manifest:parse={exc}")
+        return issues
+
+    if manifest.get("phase") != "Phase 1":
+        issues.append("manifest:phase")
+    if manifest.get("status") != "closed":
+        issues.append("manifest:status")
+    if manifest.get("helper_count") != len(EXPECTED_HELPERS):
+        issues.append("manifest:helper_count")
+    if manifest.get("helpers") != EXPECTED_HELPERS:
+        issues.append("manifest:helpers")
+
+    lane_sequencing = manifest.get("lane_sequencing")
+    if not isinstance(lane_sequencing, dict):
+        issues.append("manifest:lane_sequencing")
+        return issues
+
+    if lane_sequencing.get("shared_replay_parked_helpers") != EXPECTED_PARKED_HELPERS:
+        issues.append("manifest:shared_replay_parked_helpers")
+    if lane_sequencing.get("direct_anchor_followup_helpers") != EXPECTED_DIRECT_HELPERS:
+        issues.append("manifest:direct_anchor_followup_helpers")
+    if lane_sequencing.get("rule_summary") != EXPECTED_RULE_SUMMARY:
+        issues.append("manifest:rule_summary")
+    if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+        issues.append("manifest:anti_overlap_rule")
+
+    combined = lane_sequencing.get("shared_replay_parked_helpers", []) + lane_sequencing.get(
+        "direct_anchor_followup_helpers", []
+    )
+    if sorted(combined) != sorted(EXPECTED_HELPERS):
+        issues.append("manifest:helper_partition")
+    if len(set(combined)) != len(EXPECTED_HELPERS):
+        issues.append("manifest:helper_partition_duplicates")
+
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        issues.append("manifest:review_anchors")
+        return issues
+
+    for helper in EXPECTED_DIRECT_HELPERS:
+        anchor = review_anchors.get(helper)
+        if not isinstance(anchor, dict):
+            issues.append(f"manifest:missing_direct_review_anchor={helper}")
+            continue
+        summary = anchor.get("review_packet_summary")
+        if not isinstance(summary, str) or not summary.strip():
+            issues.append(f"manifest:review_packet_summary={helper}")
+        next_step = anchor.get("next_safe_step_note")
+        if not isinstance(next_step, str) or not next_step.strip():
+            issues.append(f"manifest:next_safe_step_note={helper}")
+
+    return issues
+
+
+def make_sample_root(root: Path) -> None:
+    readme_path = root / README_REL
+    manifest_path = root / MANIFEST_REL
+    readme_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    readme_path.write_text(
+        "\n".join(
+            [
+                "# scripts/zigux",
+                "",
+                "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
+                "",
+                "## Phase 1",
+                "",
+                EXPECTED_PHASE1_FLOW_LINE,
+                EXPECTED_DIRECT_ANCHOR_LINE,
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    review_anchors = {
+        helper: {
+            "review_packet_summary": f"{helper} stays reviewable through its helper-local anchors.",
+            "next_safe_step_note": f"{helper} reopens only on direct-anchor or shared-packet drift.",
+        }
+        for helper in EXPECTED_DIRECT_HELPERS
+    }
+
+    manifest = {
+        "phase": "Phase 1",
+        "status": "closed",
+        "helper_count": len(EXPECTED_HELPERS),
+        "helpers": EXPECTED_HELPERS,
+        "lane_sequencing": {
+            "shared_replay_parked_helpers": EXPECTED_PARKED_HELPERS,
+            "direct_anchor_followup_helpers": EXPECTED_DIRECT_HELPERS,
+            "rule_summary": EXPECTED_RULE_SUMMARY,
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+        },
+        "review_anchors": review_anchors,
+    }
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def expect_failure(mutator) -> None:
+    with tempfile.TemporaryDirectory(prefix="phase1-helper-lane-") as tmp_dir:
+        root = Path(tmp_dir)
+        make_sample_root(root)
+        mutator(root)
+        issues = collect_issues(root)
+        if not issues:
+            raise AssertionError("expected failure but checker passed")
+
+
+def run_self_test() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase1-helper-lane-") as tmp_dir:
+        root = Path(tmp_dir)
+        make_sample_root(root)
+        issues = collect_issues(root)
+        if issues:
+            raise AssertionError(f"sample root should pass, got {issues}")
+
+    expect_failure(lambda root: (root / README_REL).write_text("# scripts/zigux\n", encoding="utf-8"))
+
+    def wrong_direct_line(root: Path) -> None:
+        path = root / README_REL
+        path.write_text(path.read_text(encoding="utf-8").replace("the other nine", "the other eight"), encoding="utf-8")
+
+    expect_failure(wrong_direct_line)
+
+    def readme_directory(root: Path) -> None:
+        path = root / README_REL
+        path.unlink()
+        path.mkdir()
+
+    expect_failure(readme_directory)
+
+    def wrong_partition(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["lane_sequencing"]["shared_replay_parked_helpers"] = EXPECTED_PARKED_HELPERS[:-1]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(wrong_partition)
+
+    def manifest_directory(root: Path) -> None:
+        path = root / MANIFEST_REL
+        path.unlink()
+        path.mkdir()
+
+    expect_failure(manifest_directory)
+
+    def invalid_json(root: Path) -> None:
+        path = root / MANIFEST_REL
+        path.write_text("{\n", encoding="utf-8")
+
+    expect_failure(invalid_json)
+
+    def duplicate_key(root: Path) -> None:
+        path = root / MANIFEST_REL
+        path.write_text('{"phase":"Phase 1","phase":"duplicate"}\n', encoding="utf-8")
+
+    expect_failure(duplicate_key)
+
+    def missing_review_summary(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/string.zig"]["review_packet_summary"]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(missing_review_summary)
+
+    def missing_next_safe_step(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(missing_next_safe_step)
+
+    def wrong_helper_count(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["helper_count"] = 12
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(wrong_helper_count)
+
+    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST=pass")
+    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=10")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", help="Repository root to inspect.")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
+    parser.add_argument(
+        "--write-sample-root",
+        help="Write a current-master-shaped sample root for replay validation.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    if args.write_sample_root:
+        make_sample_root(Path(args.write_sample_root).resolve())
+        return 0
+
+    root = repo_root_from_arg(args.root)
+    issues = collect_issues(root)
+    if issues:
+        print("PHASE1_HELPER_LANE_SEQUENCING=fail")
+        for issue in issues:
+            print(f"PHASE1_HELPER_LANE_SEQUENCING_ISSUE={issue}")
+        return 1
+
+    print("PHASE1_HELPER_LANE_SEQUENCING=pass")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_HELPER_COUNT={len(EXPECTED_HELPERS)}")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_PARKED_COUNT={len(EXPECTED_PARKED_HELPERS)}")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
+    print("PHASE1_HELPER_LANE_SEQUENCING_README_MARKER_COUNT=2")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_REVIEW_ANCHOR_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
