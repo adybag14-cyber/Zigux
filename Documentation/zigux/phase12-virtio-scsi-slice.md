@@ -1,6 +1,6 @@
 # Phase 12 virtio_scsi Slice
 - `PHASE12_SLICE=virtio-scsi-rollback-evidence`
-- reread against live `master` and the current `P12-L13` survey packet on `2026-05-20`
+- reread against live `master` and the current `P12-L09` survey packet on `2026-05-20`
 - lane: `complex-drivers-infra`
 - anchor: `drivers/scsi/virtio_scsi.c`
 
