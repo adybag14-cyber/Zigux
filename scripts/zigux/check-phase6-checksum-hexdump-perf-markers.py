@@ -32,9 +32,14 @@ REQUIRED_CATALOG_SNIPPETS = [
 ]
 
 REQUIRED_SURVEY_SNIPPETS = [
+    "`64B` at `iterations = 200_000` with `max_slowdown_pct = 150`",
     "`1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`",
+    "`IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`",
+    "`IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`",
     "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`",
     "`16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`",
+    "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`",
+    "`16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`",
     "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
 ]
 
@@ -71,7 +76,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -412,6 +417,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / SURVEY_PATH,
+                "`64B` at `iterations = 200_000` with `max_slowdown_pct = 150`",
+                "`64B` at `iterations = 180_000` with `max_slowdown_pct = 150`",
+            ),
+            "64B",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
                 "`1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`",
                 "`1501B` at `iterations = 16_000` with `max_slowdown_pct = 150`",
             ),
@@ -424,10 +441,34 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / SURVEY_PATH,
+                "`IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`",
+                "`IPV4_20B` with `iterations = 550_000` and `max_slowdown_pct = 100`",
+            ),
+            "IPV4_20B",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
                 "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`",
                 "`16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 650`",
             ),
             "16B-ascii-g8",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`",
+                "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 575`",
+            ),
+            "32B-ascii-g2",
         )
         cases_run += 1
         scaffold_repo(root)
