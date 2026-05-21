@@ -12,10 +12,12 @@
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase7_leaf_library_evidence_manifest.json`
+- `zigux/tests/phase7_build.zig`
 - `zigux/Makefile`
 - `lib/string_helpers.zig`
 - `lib/cmdline.zig`
 - `lib/argv_split.zig`
+- `lib/rbtree.zig`
 
 ## Roadmap anchors
 
@@ -29,22 +31,29 @@
 - `lib/string_helpers.zig` keeps the returned string-unit, escape, unescape, `kasprintf`, `kstrdupQuotable()`, `kstrdupQuotableCmdline()`, and `parseIntArray()` support packet readable on current `master`.
 - `lib/cmdline.zig` keeps the current option parsing, `memparse`, and integer-range handling packet readable on current `master`.
 - `lib/argv_split.zig` keeps the current whitespace-tokenization helper family readable on current `master`.
+- `lib/rbtree.zig` now keeps the returned tree-node, cached-root, insertion, and cached-find helper surface readable on current `master`.
 
 ## Current replay inventory
 
 - `python3 scripts/zigux/check-phase7-shared-surface.py`
 - `python3 scripts/zigux/check-phase7-shared-surface.py --self-test`
+- `python3 scripts/zigux/check-phase7-build-wiring.py`
+- `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/validate-phase7.py --self-test`
 - `make -C zigux phase7-validate`
 
+## Current build-wiring evidence
+
+- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.
+- `zigux/tests/phase7_build.zig` still exposes the dedicated helper and survey routes through `phase7-string-helpers-test`, `phase7-cmdline-test`, `phase7-argv-split-test`, and `phase7-rbtree-test`.
+- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.
+
 ## Current repo-reality gaps
 
-- `lib/rbtree.zig`
-- `zigux/tests/phase7_build.zig`
+- none currently
 
 ## Review posture
 
-- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated `check-phase7-build-wiring.py` guard, and one Makefile-backed validation foothold
-- do not present the missing `lib/rbtree.zig` roadmap anchor or `zigux/tests/phase7_build.zig` as landed work
-- do not widen this packet into new helper semantics, closure claims, or deeper runtime-family validation routes until those remaining missing anchors land
+- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, and one Makefile-backed validation foothold
+- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes
