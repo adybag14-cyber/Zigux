@@ -32,7 +32,7 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
     "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
     "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
-    "`.provides_selftest_hook = true`",
+    ".provides_selftest_hook = true",
     "initialized, selftest_complete, and exited lifecycle tracking",
     "failed-exit rollback explicit after reusable selftest replay",
     "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest",
@@ -59,12 +59,16 @@ DOCS_README_REQUIRED_MARKERS = [
 ]
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
-    "Trusted mixed rereads on 2026-05-20 confirm three distinct current-master Phase 9 packets.",
-    "The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence",
-    "`zigux/tests/phase9_build.zig` currently exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
-    "the review-first allocator/init-flow packet remains current shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded `phase9-runtime-loader-shared-tests` build shard, and the public-tree fallback loader surfaces",
-    "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow packet; the bitmap-side gaps should not be used to deny the allocator/init-flow packet that has already returned through the shared loader surfaces",
-    "keep the partial runtime bitmap reminder packet explicit without overstating what has actually returned",
+    "Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 9 postures.",
+    "The shared runtime-loader allocator/init-flow and command/environment boundary packet remains mixed-source shared-owner evidence",
+    "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+    "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
+    "`phase9-runtime-loader-command-env-boundary-guard-tests`",
+    "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
+    "keep the Phase 8 command and environment ownership boundary explicit",
+    "deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`",
+    "`LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
+    "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet",
     "Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
 ]
 
@@ -269,8 +273,9 @@ def main() -> int:
         description=(
             "Check that the current Phase 9 reviewer-facing packet keeps the surviving "
             "trace-events runtime family, the returned shared loader packet, the "
-            "partial runtime bitmap reminder packet, and the no-Phase-9-Makefile-route "
-            "boundary explicit across the key reviewer-facing surfaces."
+            "command/environment boundary guard, the partial runtime bitmap reminder "
+            "packet, and the no-Phase-9-Makefile-route boundary explicit across the "
+            "key reviewer-facing surfaces."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
