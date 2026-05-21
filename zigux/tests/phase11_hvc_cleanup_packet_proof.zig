@@ -138,6 +138,51 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
     );
 }
 
+test "phase11 hvc cleanup packet proof keeps standalone targetless witness packet explicit" {
+    const survey_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const cleanup_companion = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(cleanup_companion);
+
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    const witness_checker = try readRepoFileAlloc(
+        std.testing.allocator,
+        "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(witness_checker);
+
+    try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
+    try expectContains(survey_doc, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
+    try expectContains(survey_doc, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
+    try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stays");
+    try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
+    try expectContains(cleanup_companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
+    try expectContains(cleanup_companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
+    try expectContains(cleanup_companion, "separate failure-mode replay");
+    try expectContains(matrix_doc, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
+    try expectContains(matrix_doc, "witness shard now rereads the live starter and the boundary note together");
+    try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");
+    try expectContains(witness_checker, "\"\"\"Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet.\"\"\"");
+    try expectContains(witness_checker, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"");
+    try expectContains(witness_checker, "print(\"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass\")");
+}
+
 test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {
     const matrix_doc = try readRepoFileAlloc(
         std.testing.allocator,
