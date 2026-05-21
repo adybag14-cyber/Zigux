@@ -692,7 +692,7 @@ test "bitmap zero-bit logical helpers stay explicit" {
     try std.testing.expect(empty(lhs[0..0], 0));
     try std.testing.expect(full(lhs[0..0], 0));
     try std.testing.expectEqual(@as(usize, 0), weight(lhs[0..0], 0));
-    try std.testing.expectEqual(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
 
