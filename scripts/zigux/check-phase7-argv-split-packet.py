@@ -100,7 +100,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 42
 
 
 def read_text(path: Path) -> str:
@@ -183,6 +183,13 @@ def run_self_test() -> None:
         slice_marker = "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins"
         slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_leading_nul_blank_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
+        write_fixture_root(tmp_root)
+
+        checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
+        checker_text = read_text(checker_path)
+        checker_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
+        checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_checker_fixture_marker", tmp_root, f"scripts/zigux/check-phase7-argv-split-packet.py: {checker_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
@@ -379,6 +386,15 @@ def run_self_test() -> None:
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_companion_fixture_backed_packet_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         write_fixture_root(tmp_root)
+
+        samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_text = read_text(samples_path)
+        samples_marker = "* `*argv*`"
+        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_argv_boundary", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        write_fixture_root(tmp_root)
+
+        assert SELF_TEST_CASE_COUNT == 42
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
