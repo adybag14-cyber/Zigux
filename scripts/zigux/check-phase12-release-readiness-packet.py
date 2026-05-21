@@ -149,6 +149,12 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
+        "  * current contents-bridge shared support bundle during degraded contents reads:",
+        "    * `scripts/zigux/validate-phase12.py`",
+        "    * `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "    * `.github/workflows/zigux-bootstrap.yml`",
+        "    * `scripts/zigux/README.md`",
+        "    * `zigux/Makefile`",
         "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
     ],
@@ -249,6 +255,12 @@ EXACT_COUNT_MARKERS = {
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
+        "  * current contents-bridge shared support bundle during degraded contents reads:": 1,
+        "    * `scripts/zigux/validate-phase12.py`": 1,
+        "    * `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
+        "    * `.github/workflows/zigux-bootstrap.yml`": 1,
+        "    * `scripts/zigux/README.md`": 1,
+        "    * `zigux/Makefile`": 1,
         "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime": 1,
     },
     SCRIPTS_README_PATH: {
