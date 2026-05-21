@@ -96,7 +96,7 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-20", manifest.verified_on);
@@ -174,7 +174,7 @@ test "phase12 virtio scsi fixture manifest keeps rollback-only presence and abse
     defer parsed.deinit();
     const fixture = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L13", fixture.lane_key);
+    try std.testing.expectEqualStrings("P12-L09", fixture.lane_key);
     try std.testing.expectEqualStrings("rollback_evidence_presence_manifest", fixture.fixture_kind);
     try std.testing.expectEqualStrings("2026-05-20", fixture.verified_on);
     try std.testing.expect(fixture.required_paths.len >= 8);
@@ -187,7 +187,7 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=rollback-evidence-only-live-starter-missing") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-20`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "receive-refill replay") != null);
