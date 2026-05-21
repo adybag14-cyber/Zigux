@@ -142,6 +142,10 @@ FILE_EXPECTATIONS = (
             WITNESS_PATH,
             WITNESS_BUILD_PATH,
             "phase11-hvc-cleanup-current-head",
+            '"phase11-hvc-targetless-unregister-witness-self-test",',
+            '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+            '"phase11-hvc-targetless-unregister-witness",',
+            '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
             "phase11-hvc-targetless-unregister-gap-build",
         ),
     ),
@@ -396,6 +400,10 @@ def make_fixture(root: Path) -> None:
                 WITNESS_PATH,
                 WITNESS_BUILD_PATH,
                 "phase11-hvc-cleanup-current-head",
+                '"phase11-hvc-targetless-unregister-witness-self-test",',
+                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+                '"phase11-hvc-targetless-unregister-witness",',
+                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
                 "phase11-hvc-targetless-unregister-gap-build",
             )
         )
@@ -624,6 +632,70 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected validate-phase11 fragment validation to fail")
+
+        make_fixture(temp_dir)
+        validate_script = temp_dir / VALIDATE_PHASE11_PATH
+        validate_script.write_text(
+            read_text(temp_dir, VALIDATE_PHASE11_PATH).replace(
+                '"phase11-hvc-targetless-unregister-witness-self-test",', "", 1
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected validate-phase11 witness self-test name validation to fail")
+
+        make_fixture(temp_dir)
+        validate_script = temp_dir / VALIDATE_PHASE11_PATH
+        validate_script.write_text(
+            read_text(temp_dir, VALIDATE_PHASE11_PATH).replace(
+                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected validate-phase11 witness self-test command validation to fail")
+
+        make_fixture(temp_dir)
+        validate_script = temp_dir / VALIDATE_PHASE11_PATH
+        validate_script.write_text(
+            read_text(temp_dir, VALIDATE_PHASE11_PATH).replace(
+                '"phase11-hvc-targetless-unregister-witness",', "", 1
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected validate-phase11 witness live name validation to fail")
+
+        make_fixture(temp_dir)
+        validate_script = temp_dir / VALIDATE_PHASE11_PATH
+        validate_script.write_text(
+            read_text(temp_dir, VALIDATE_PHASE11_PATH).replace(
+                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected validate-phase11 witness live command validation to fail")
 
         make_fixture(temp_dir)
         makefile = temp_dir / MAKEFILE_PATH
