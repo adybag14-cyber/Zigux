@@ -63,11 +63,13 @@ REQUIRED_MARKERS = {
         'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
         'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
         'test "getOptions expands negative ranges and negative upper bounds" {',
+        'test "parseOptionStr matches only exact bare options" {',
     ],
     "zigux/tests/phase7_cmdline.zig": [
         'const cmdline = @import("cmdline");',
         'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
         'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+        'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));',
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
         'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
@@ -119,7 +121,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 50
+SELF_TEST_CASE_COUNT = 52
 
 
 def read_text(path: Path) -> str:
@@ -312,6 +314,10 @@ def run_self_test() -> None:
                 "missing_helper_negative_range_marker",
                 'test "getOptions expands negative ranges and negative upper bounds" {',
             ),
+            (
+                "missing_helper_exact_bare_option_marker",
+                'test "parseOptionStr matches only exact bare options" {',
+            ),
         ]
         for case, marker in helper_markers:
             remove_once(helper_path, marker)
@@ -394,6 +400,10 @@ def run_self_test() -> None:
             (
                 "missing_companion_first_nul_bare_option_marker",
                 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+            ),
+            (
+                "missing_companion_non_bare_option_guard_marker",
+                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));',
             ),
             (
                 "missing_companion_option_decoding_marker",
