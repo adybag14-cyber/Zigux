@@ -26,7 +26,7 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(20 * 1024),
     );
     defer std.testing.allocator.free(sample_root_readme);
 
@@ -42,8 +42,12 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         "`samples/zigux/README.md`",
         "`samples/zigux/bytestream_fifo.zig`",
         "`samples/zigux/kobject_example.zig`",
+        "`samples/zigux/kobject_example_attr_group_contract.zig`",
         "`samples/zigux/kretprobe_example.zig`",
         "`samples/zigux/trace_events_string_formatting_sample.zig`",
+        "`samples/zigux/runtime_bitmap.zig`",
+        "`samples/zigux/runtime_bitmap_loader.zig`",
+        "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
         "`samples/zigux/runtime_trace_events.zig`",
         "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
         "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
@@ -65,11 +69,12 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
     }
 
     const sample_root_markers = [_][]const u8{
-        "Current repo reality on `master`",
+        "Fresh mixed readback on 2026-05-21 confirmed these current sample-root files on `master`:",
         "Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.",
-        "Current `master` keeps the kobject sample-root port directly readable in `samples/zigux/` through `samples/zigux/kobject_example.zig`.",
+        "Current `master` keeps the kobject sample-root port directly readable in `samples/zigux/` through `samples/zigux/kobject_example.zig`, while `samples/zigux/kobject_example_attr_group_contract.zig` stays a bounded companion inside the same approved anchor rather than a fifth sample family.",
         "Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.",
-        "For the trace-events anchor, current `master` keeps the direct non-runtime sample packet reviewable through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, while `samples/zigux/trace_events_string_formatting_sample.zig` remains a bounded formatting companion inside the same approved anchor rather than a fifth sample.",
+        "For the trace-events anchor, current `master` keeps the direct non-runtime evidence narrowed to the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet carried by `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
+        "Keep `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as repo-reality-gap, historical-support, or public-tree-backed companion references until a fresh authenticated reread proves they returned directly.",
         "Keep the shared `zigux/tests/phase5_build.zig` route framed as companion evidence rather than direct authenticated proof.",
         "Separate helper-backed sample packet",
         "`samples/zigux/string_helpers_sample.zig`",
@@ -79,6 +84,9 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         "Current `master` still ships no standalone `samples/zigux/*cmdline*`, `samples/zigux/*argv*`, or `samples/zigux/*rbtree*` Phase 5 reference sample.",
         "Current `master` does carry one bounded `*string*` and `*format*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace-events` anchor and its selected-string plus `iter=%d` formatting cue instead of treating it as standalone string-helper delivery.",
         "Phase 9 runtime pilot family",
+        "`samples/zigux/runtime_bitmap.zig`",
+        "`samples/zigux/runtime_bitmap_loader.zig`",
+        "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
         "Keep those files in the separate Phase 9 runtime packet instead of counting them as extra Phase 5 samples.",
     };
     for (sample_root_markers) |marker| {
