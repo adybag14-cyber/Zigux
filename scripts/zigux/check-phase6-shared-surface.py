@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 HELPER_EVIDENCE_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_PARITY_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
@@ -66,6 +67,9 @@ REQUIRED_DOCS_README_SNIPPETS = [
     "authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, while `Documentation/zigux/phase6-perf-gate-survey.md` still needs public-tree fallback in this runtime, so keep the helper-parity catalog inside the current docs-root evidence packet and keep the broader perf-note surface framed as public-tree-backed companion evidence rather than direct docs-root proof until a fresh authenticated reread recovers that note too.",
     "`python3 scripts/zigux/check-phase6-shared-surface.py --self-test`, `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test`, `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-perf` replay the bounded current Phase 6 reminder packet without widening it into missing parity companions or helper-local implementation follow-through.",
 ]
+REQUIRED_SCRIPTS_README_SNIPPETS = [
+    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-perf-gate-survey.md`, but authenticated current-master rereads now directly recover `Documentation/zigux/phase6-helper-parity-catalog.md`, so keep the helper-parity catalog inside the current directly readable shared packet and treat the broader perf reminder path as current public-tree-backed companion evidence rather than as direct scripts-root proof",
+]
 REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Current public raw readback still helps recover `Documentation/zigux/phase6-perf-gate-survey.md`, but that broader perf note is now aligned again on the currently readable bsearch, checksum, and hexdump measurement packet. Keep that broader perf note as a public-tree-backed shared companion rather than as direct authenticated shared-packet proof in this runtime.",
     "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.",
@@ -90,7 +94,7 @@ REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile.",
 ]
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -149,6 +153,7 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity follow-through gaps drift")
 
     require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_README_SNIPPETS)
+    require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_EVIDENCE_CATALOG_SNIPPETS)
     require_snippets(repo_root / HELPER_PARITY_CATALOG_PATH, REQUIRED_PARITY_CATALOG_SNIPPETS)
     require_snippets(repo_root / VALIDATOR_PATH, REQUIRED_VALIDATOR_SNIPPETS)
@@ -171,6 +176,7 @@ def write(path: Path, content: str) -> None:
 
 def scaffold_repo(root: Path) -> None:
     write(root / DOCS_README_PATH, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
+    write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_EVIDENCE_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_PARITY_CATALOG_PATH, "\n".join(REQUIRED_PARITY_CATALOG_SNIPPETS) + "\n")
     write(
@@ -236,6 +242,8 @@ def run_self_test() -> None:
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_DOCS_README_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_DOCS_README_SNIPPETS[2] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / SCRIPTS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_SCRIPTS_README_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
