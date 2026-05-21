@@ -151,6 +151,11 @@ REQUIRED_MARKERS = {
         "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
         "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
+        "ring lane `P10-L10` owns the queue-local wrapper packet",
+        "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+        "queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims",
+    ],
     "drivers/virtio/virtio_ring.zig": [
         "pub const QueueShapeSummary = struct {",
         "pub const NotificationDataSummary = struct {",
@@ -251,6 +256,11 @@ REQUIRED_MARKERS = {
         'try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");',
         'try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");',
         'test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {',
+        'test "phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11" {',
+        "const lane_note = try readRepoRelative(",
+        'try expectContains(lane_note, "ring lane `P10-L10` owns the queue-local wrapper packet");',
+        'try expectContains(lane_note, "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md");',
+        '"queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims",',
     ],
 }
 
@@ -499,6 +509,8 @@ def run_self_test() -> int:
             ("Documentation/zigux/phase10-virtio-ring-slice.md", "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`"),
             ("Documentation/zigux/phase10-virtio-ring-slice.md", "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice"),
             ("Documentation/zigux/phase10-virtio-ring-slice.md", "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice"),
+            ("Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "ring lane `P10-L10` owns the queue-local wrapper packet"),
+            ("Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims"),
             ("drivers/virtio/virtio_ring.zig", "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {"),
             ("drivers/virtio/virtio_ring_verify.zig", "pub fn summarizeNotificationState("),
             ("drivers/virtio/virtio_ring_verify.zig", 'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {'),
@@ -514,6 +526,8 @@ def run_self_test() -> int:
             ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
             ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");'),
             ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");'),
+            ("zigux/tests/phase10_virtio_ring_survey.zig", 'test "phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11" {'),
+            ("zigux/tests/phase10_virtio_ring_survey.zig", 'try expectContains(lane_note, "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md");'),
             ("zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig", "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));"),
         ]
         for rel_path, marker in cases:
@@ -556,9 +570,10 @@ def run_self_test() -> int:
 
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
         expect_missing_file(root, "drivers/virtio/virtio_ring_publish_readiness.zig")
+        expect_missing_file(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={len(cases) + len(forbidden_cases) + len(manifest_field_cases) + 2}")
+    print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={len(cases) + len(forbidden_cases) + len(manifest_field_cases) + 3}")
     return 0
 
 
