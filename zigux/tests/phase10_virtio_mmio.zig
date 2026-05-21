@@ -217,6 +217,44 @@ test "phase10 virtio mmio keeps stale config-write plans unavailable after gener
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
 
+test "phase10 virtio mmio refreshes config-write plans after generation drift" {
+    var device = try virtio_mmio.VirtioMmioLab.init(99, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    const stale_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    device.bumpConfigGeneration();
+
+    var freshness = device.configWritePlanFreshnessSummary();
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(!freshness.plan_matches_generation);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.stale_generation, freshness.availability);
+    try std.testing.expectEqual(stale_plan.relative_offset, freshness.relative_offset);
+    try std.testing.expectEqual(stale_plan.absolute_offset, freshness.absolute_offset);
+    try std.testing.expectEqual(stale_plan.planned_value, freshness.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), freshness.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), freshness.current_generation);
+    try std.testing.expect(!freshness.available_for_disposition);
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+
+    const refreshed_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0409);
+    freshness = device.configWritePlanFreshnessSummary();
+    try std.testing.expect(freshness.plan_present);
+    try std.testing.expect(freshness.plan_matches_generation);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.fresh, freshness.availability);
+    try std.testing.expectEqual(refreshed_plan.relative_offset, freshness.relative_offset);
+    try std.testing.expectEqual(refreshed_plan.absolute_offset, freshness.absolute_offset);
+    try std.testing.expectEqual(refreshed_plan.planned_value, freshness.planned_value);
+    try std.testing.expectEqual(@as(u32, 1), freshness.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), freshness.current_generation);
+    try std.testing.expect(freshness.available_for_disposition);
+
+    const disposition = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), disposition.previous_value);
+    try std.testing.expectEqual(refreshed_plan.planned_value, disposition.planned_value);
+    try std.testing.expectEqual(@as(u4, 0b0001), disposition.changed_byte_mask);
+    try std.testing.expect(disposition.has_changes);
+}
+
 test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {
     var device = try virtio_mmio.VirtioMmioLab.init(94, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
