@@ -51,7 +51,25 @@
         "scripts/zigux/check-phase6-base64-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-      "current_review_posture": "direct-helper-readback-restored"
+      "current_review_posture": "direct-helper-readback-restored",
+      "current_perf_evidence": {
+        "case_labels": [
+          "STD_PAD",
+          "STD_NO_PAD",
+          "URLSAFE_PAD",
+          "URLSAFE_NO_PAD",
+          "IMAP_PAD",
+          "IMAP_NO_PAD"
+        ],
+        "iterations": 12000,
+        "max_encode_slowdown_pct": 150,
+        "max_decode_slowdown_pct": 325,
+        "linux_style_rerun_routes": [
+          "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-base64-perf",
+          "make -C zigux phase6-perf"
+        ]
+      }
     },
     {
       "key": "bsearch",
