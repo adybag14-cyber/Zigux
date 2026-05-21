@@ -15,6 +15,7 @@
   "review_prompts": [
     "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.",
     "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, and top-bit packet only.",
+    "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep module and diff follow-through blocked until those files are directly readable again."
   ],
@@ -25,6 +26,7 @@
     "parse_and_print",
     "range_mutation_and_copy",
     "selftest_lifecycle",
+    "sample_re_selftest_summary_stability",
     "exit_lifecycle_and_guards",
     "loader_payload_and_invalid_payload",
     "loader_reinit_and_re_selftest_guards",
