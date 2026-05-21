@@ -62,7 +62,7 @@ The current tests and fixtures check:
 
 This slice does not yet claim:
 
-- broader shared Phase 6 perf survey recovery
+- broader shared Phase 6 reminder-surface churn outside the checksum-local packet
 - any hexdump, base64, or bsearch packet changes
 
 ## Next bounded step
