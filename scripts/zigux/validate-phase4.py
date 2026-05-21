@@ -184,6 +184,19 @@ REQUIRED_ARTIFACT_DOC_MARKERS = [
     "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES",
 ]
 
+REQUIRED_ARTIFACT_MATRIX_MARKERS = [
+    "`MODE=...`",
+    "`EXPECTED_EXISTS=...`",
+    "`ACTUAL_EXISTS=...`",
+]
+
+SAMPLE_PHASE4_VALIDATION_MATRIX_LINES = [
+    "# Phase 4 Validation Matrix",
+    "## Lab And CI Matrix",
+    "* `scripts/zigux/check-artifact-diff-contract.py` currently keeps the external artifact-diff replay exact.",
+    "* The existing external artifact-diff replay now names `MODE=...`, `EXPECTED_EXISTS=...`, and `ACTUAL_EXISTS=...` alongside the already-published JSON, SHA-256, and exit-code evidence.",
+]
+
 
 def command_for(spec: CheckSpec, root: Path) -> list[str]:
     command = list(spec.command)
@@ -236,6 +249,18 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         issues.extend(
             f"artifact_doc_marker_missing:{marker}"
             for marker in missing_artifact_doc_markers
+        )
+
+    artifact_matrix_text = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(
+        encoding="utf-8"
+    )
+    missing_artifact_matrix_markers = [
+        marker for marker in REQUIRED_ARTIFACT_MATRIX_MARKERS if marker not in artifact_matrix_text
+    ]
+    if missing_artifact_matrix_markers:
+        issues.extend(
+            f"artifact_matrix_marker_missing:{marker}"
+            for marker in missing_artifact_matrix_markers
         )
 
     for spec in CHECKS:
@@ -334,6 +359,13 @@ def build_sample_repo(root: Path) -> None:
         write_text(path, f"sample:{rel}\n")
 
 
+def write_matrix_fixture(root: Path) -> None:
+    write_text(
+        root / "Documentation/zigux/phase4-validation-matrix.md",
+        "\n".join(SAMPLE_PHASE4_VALIDATION_MATRIX_LINES) + "\n",
+    )
+
+
 def run_self_test() -> int:
     original_path = os.environ.get("PATH", "")
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validate_") as tmp_dir:
@@ -345,6 +377,7 @@ def run_self_test() -> int:
         def reset_fixture(*, fail_build_file: str | None = None) -> None:
             build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
+            write_matrix_fixture(root)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
 
@@ -391,6 +424,27 @@ def run_self_test() -> int:
         if expected_missing not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:artifact_doc_marker_missing_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(
+            root / "Documentation/zigux/phase4-validation-matrix.md",
+            "\n".join(
+                line for line in SAMPLE_PHASE4_VALIDATION_MATRIX_LINES if "`EXPECTED_EXISTS=...`" not in line
+            ) + "\n",
+        )
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        issues = collect_issues(root)
+        expected_missing = "artifact_matrix_marker_missing:`EXPECTED_EXISTS=...`"
+        if expected_missing not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:artifact_matrix_marker_missing_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -611,7 +665,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
