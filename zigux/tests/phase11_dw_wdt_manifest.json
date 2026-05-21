@@ -113,7 +113,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/watchdog/dw_wdt_pm.zig",
-      "why_now": "The bounded PM helper now keeps suspend and resume handoff reviewable across missing-drvdata blocks, running-hardware suspend stop intent, imported-running resume recovery, and timeout-reprogram blocks before live MMIO-backed PM work lands."
+      "why_now": "The bounded PM helper now keeps suspend, resume, and shutdown handoff reviewable across missing-drvdata blocks, running-hardware suspend stop intent, idle suspend without teardown hooks, imported-running resume recovery, idle restore hooks, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup before live MMIO-backed PM work lands."
     },
     {
       "id": "phase11-dw-wdt-live-mmio-validation",
