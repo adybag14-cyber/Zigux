@@ -80,6 +80,7 @@ EXPECTED_ZIG_MARKERS = {
     "readheader_exact_invalid_class_failure": 'test "readHeader keeps exact invalid-class bytes when the next read would fail" {',
     "readheader_exact_not_elf_failure": 'test "readHeader keeps exact non-ELF bytes when the next read would fail" {',
     "readheader_near_full_failure": 'test "readHeader keeps fifteen bytes when a later read fails one byte before the full header" {',
+    "readheader_near_full_eof": 'test "readHeader preserves fifteen-byte count at EOF one byte before the full header" {',
     "readheader_split_fill": 'test "readHeader stops after filling the first ELF header across split reads" {',
     "readheader_split_truncated_count": 'test "readHeader preserves truncated byte count across split reads" {',
     "readheader_immediate_error": 'test "readHeader treats an immediate read error like truncated input" {',
@@ -106,6 +107,7 @@ EXPECTED_ZIG_MARKERS = {
     "split_exact_not_elf": 'test "split-read exact non-ELF header exits with stderr at EOF" {',
     "split_exact_not_elf_failure": 'test "split-read exact non-ELF header ignores later read failure and exits with stderr" {',
     "split_truncated_eof": 'test "split-read truncated input exits with stderr after final EOF read" {',
+    "split_near_full_eof": 'test "split-read one byte short of a full header exits with truncated stderr at EOF" {',
     "split_truncated_failure": 'test "split-read truncated input keeps stderr when a later read fails" {',
 }
 EXPECTED_FD_TRAILING_ZIG_MARKERS = {
