@@ -32,6 +32,8 @@ Fresh current-master reread in this slot also confirmed these shared non-owner s
 
 `zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.
 
+Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed shared non-owner surfaces still rematerialized through authenticated rereads in this slot.
+
 Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion or roadmap-path surfaces:
 
 - `lib/rbtree.zig`
