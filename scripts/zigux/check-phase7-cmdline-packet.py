@@ -38,7 +38,7 @@ REQUIRED_MARKERS = {
     "scripts/zigux/check-phase7-cmdline-packet.py": [
         "--self-test",
         "PHASE7_CMDLINE_PACKET_SELF_TEST=pass",
-        "\"Documentation/zigux/phase7-cmdline-slice.md\",",
+        '"Documentation/zigux/phase7-cmdline-slice.md",',
         "FORBIDDEN_MARKERS = {",
     ],
     "lib/cmdline.zig": [
@@ -51,49 +51,52 @@ REQUIRED_MARKERS = {
         "pub fn nextArg",
         "pub const next_arg = nextArg;",
         "pub fn memparse",
-        "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {",
-        "test \"nextArg keeps leading equals tokens as bare parameters\" {",
-        "test \"nextArg keeps quoted leading equals tokens as bare parameters\" {",
-        "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
-        "test \"getOption preserves incomplete hex-prefix and descending-range behavior\" {",
-        "test \"getOptions expands negative ranges and negative upper bounds\" {",
+        'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {',
+        'test "nextArg keeps leading equals tokens as bare parameters" {',
+        'test "nextArg keeps quoted leading equals tokens as bare parameters" {',
+        'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {',
+        'test "nextArg keeps quoted empty values explicit without swallowing the next token" {',
+        'test "nextArg keeps unterminated quoted values inside the current token" {',
+        'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
+        'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
+        'test "getOptions expands negative ranges and negative upper bounds" {',
     ],
     "zigux/tests/phase7_cmdline.zig": [
-        "const cmdline = @import(\"cmdline\");",
-        "test \"phase 7 cmdline companion replays exact bare-option matching boundaries\" {",
+        'const cmdline = @import("cmdline");',
+        'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {',
         'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
-        "test \"phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture\" {",
-        "test \"phase 7 cmdline companion replays incomplete-hex and descending-range boundaries\" {",
-        "test \"phase 7 cmdline companion replays negative range expansion and negative upper-bound posture\" {",
-        "test \"phase 7 cmdline companion replays validator-only getOption cursor movement\" {",
-        "test \"phase 7 cmdline companion replays quoted argument splitting and memparse boundaries\" {",
-        "test \"phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries\" {",
-        "test \"phase 7 cmdline companion replays bare leading-equals ownership\" {",
-        "test \"nextArg keeps empty input borrowed from the caller slice\" {",
-        "test \"nextArg stays inside the first NUL for bare and key value tokens\" {",
-        "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {",
-        "test \"phase 7 cmdline companion replays bare quoted-empty-token ownership\" {",
-        "test \"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\" {",
-        "test \"phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries\" {",
-        "test \"phase 7 cmdline companion replays quoted-value borrowed slice ownership\" {",
+        'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
+        'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+        'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
+        'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
+        'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
+        'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+        'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
+        'test "nextArg keeps empty input borrowed from the caller slice" {',
+        'test "nextArg stays inside the first NUL for bare and key value tokens" {',
+        'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
+        'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
+        'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
+        'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
+        'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
-        "\"anchor\": \"lib/cmdline.c\"",
-        "\"current_master_state\": \"helper_slice_test_survey_manifest_anchor\"",
-        "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
+        '"anchor": "lib/cmdline.c"',
+        '"current_master_state": "helper_slice_test_survey_manifest_anchor"',
+        '"scripts/zigux/check-phase7-cmdline-packet.py"',
         "helper-local survey-manifest-checker truthfulness packet",
         "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
         "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
-        "test \"phase 7 cmdline survey keeps the returned helper-local packet truthful\" {",
-        "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_anchor\", manifest.current_master_state);",
-        "const checker = try readRepoFile(allocator, checker_path);",
-        "try expectContains(helper, \"test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {\");",
-        "try expectContains(helper, \"test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {\");",
-        "try expectContains(helper, \"test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {\");",
-        "try expectContains(helper_companion, \"phase 7 cmdline companion replays bare leading-equals ownership\");",
-        "try expectContains(helper_companion, \"try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));\");",
+        'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
+        'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
+        'const checker = try readRepoFile(allocator, checker_path);',
+        'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
+        'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
+        'try expectContains(helper, "test \\"nextArg keeps rest and remaining as the same borrowed suffix view\\" {");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
+        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\"quiet,debug\\\\x00,nohlt\\", \\"nohlt\\"));");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -110,11 +113,21 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 41
+SELF_TEST_CASE_COUNT = 44
 
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def write_fixture_root(tmp_root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        write(tmp_root / rel, "\n".join(REQUIRED_MARKERS[rel]) + "\n")
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -148,16 +161,6 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     return missing_files, collect_missing_markers(root), collect_forbidden_markers(root)
 
 
-def write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def write_fixture_root(tmp_root: Path) -> None:
-    for rel in REQUIRED_FILES:
-        write(tmp_root / rel, "\n".join(REQUIRED_MARKERS[rel]) + "\n")
-
-
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers, forbidden_markers = validate(tmp_root)
     assert missing_markers == [], case
@@ -179,6 +182,15 @@ def expect_forbidden_marker(case: str, tmp_root: Path, marker: str) -> None:
     assert forbidden_markers == [marker], case
 
 
+def remove_once(path: Path, marker: str) -> None:
+    text = read_text(path)
+    if marker + "\n" in text:
+        text = text.replace(marker + "\n", "", 1)
+    else:
+        text = text.replace(marker, "", 1)
+    path.write_text(text, encoding="utf-8")
+
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_cmdline_packet_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -188,21 +200,13 @@ def run_self_test() -> None:
 
         companion_path = tmp_root / "zigux" / "tests" / "phase7_cmdline.zig"
         companion_path.unlink()
-        expect_missing_file(
-            "missing_cmdline_companion",
-            tmp_root,
-            "zigux/tests/phase7_cmdline.zig",
-        )
+        expect_missing_file("missing_cmdline_companion", tmp_root, "zigux/tests/phase7_cmdline.zig")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
-        sequencing_text = read_text(sequencing_path)
         sequencing_marker = "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;"
-        sequencing_path.write_text(
-            sequencing_text.replace(sequencing_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
+        remove_once(sequencing_path, sequencing_marker)
         expect_missing_marker(
             "missing_sequencing_owner_marker",
             tmp_root,
@@ -211,24 +215,19 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        sequencing_text = read_text(sequencing_path)
-        sequencing_samples_marker = "  - `samples/zigux/README.md`"
-        sequencing_path.write_text(
-            sequencing_text.replace(sequencing_samples_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
+        sequencing_marker = "  - `samples/zigux/README.md`"
+        remove_once(sequencing_path, sequencing_marker)
         expect_missing_marker(
             "missing_sequencing_samples_boundary_marker",
             tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_samples_marker}",
+            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
-        slice_text = read_text(slice_path)
         slice_marker = "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof."
-        slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        remove_once(slice_path, slice_marker)
         expect_missing_marker(
             "missing_slice_next_step_marker",
             tmp_root,
@@ -237,9 +236,8 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        slice_text = read_text(slice_path)
         forbidden_fixture_marker = "phase7_cmdline_next_arg_vectors"
-        slice_path.write_text(slice_text + forbidden_fixture_marker + "\n", encoding="utf-8")
+        slice_path.write_text(read_text(slice_path) + forbidden_fixture_marker + "\n", encoding="utf-8")
         expect_forbidden_marker(
             "stale_slice_fixture_marker",
             tmp_root,
@@ -249,9 +247,8 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-cmdline-packet.py"
-        checker_text = read_text(checker_path)
         checker_marker = "PHASE7_CMDLINE_PACKET_SELF_TEST=pass"
-        checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_selftest_pass_marker",
             tmp_root,
@@ -261,152 +258,45 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "cmdline.zig"
-        helper_text = read_text(helper_path)
-        helper_marker = "pub fn nextArg"
-        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_helper_nextarg_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_alias_marker = "pub const next_arg = nextArg;"
-        helper_path.write_text(
-            helper_text.replace(helper_alias_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_nextarg_alias_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_alias_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
+        helper_markers = [
+            ("missing_helper_nextarg_marker", "pub fn nextArg"),
+            ("missing_helper_nextarg_alias_marker", "pub const next_arg = nextArg;"),
+            ("missing_helper_whitespace_only_sentinel_marker", 'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {'),
+            ("missing_helper_bare_leading_equals_marker", 'test "nextArg keeps leading equals tokens as bare parameters" {'),
+            ("missing_helper_quoted_leading_equals_marker", 'test "nextArg keeps quoted leading equals tokens as bare parameters" {'),
+            ("missing_helper_quoted_bare_token_marker", 'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {'),
+            ("missing_helper_quoted_empty_value_marker", 'test "nextArg keeps quoted empty values explicit without swallowing the next token" {'),
+            ("missing_helper_unterminated_quoted_value_marker", 'test "nextArg keeps unterminated quoted values inside the current token" {'),
+            ("missing_helper_borrowed_suffix_marker", 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'),
+            ("missing_helper_incomplete_hex_descending_marker", 'test "getOption preserves incomplete hex-prefix and descending-range behavior" {'),
+            ("missing_helper_negative_range_marker", 'test "getOptions expands negative ranges and negative upper bounds" {'),
+        ]
+        for case, marker in helper_markers:
+            remove_once(helper_path, marker)
+            expect_missing_marker(case, tmp_root, f"lib/cmdline.zig: {marker}")
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
-        helper_text = read_text(helper_path)
-        helper_whitespace_marker = 'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {'
-        helper_path.write_text(
-            helper_text.replace(helper_whitespace_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_whitespace_only_sentinel_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_whitespace_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
+        manifest_markers = [
+            ("missing_manifest_checker_marker", '"scripts/zigux/check-phase7-cmdline-packet.py"'),
+            (
+                "missing_manifest_nextarg_ownership_marker",
+                "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+            ),
+            (
+                "missing_manifest_memparse_ownership_marker",
+                "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+            ),
+        ]
+        for case, marker in manifest_markers:
+            remove_once(manifest_path, marker)
+            expect_missing_marker(case, tmp_root, f"zigux/tests/phase7_cmdline_manifest.json: {marker}")
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
-        helper_text = read_text(helper_path)
-        helper_leading_equals_marker = 'test "nextArg keeps leading equals tokens as bare parameters" {'
-        helper_path.write_text(
-            helper_text.replace(helper_leading_equals_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_bare_leading_equals_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_leading_equals_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_quoted_leading_equals_marker = 'test "nextArg keeps quoted leading equals tokens as bare parameters" {'
-        helper_path.write_text(
-            helper_text.replace(helper_quoted_leading_equals_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_quoted_leading_equals_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_quoted_leading_equals_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_borrowed_suffix_marker = 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'
-        helper_path.write_text(
-            helper_text.replace(helper_borrowed_suffix_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_borrowed_suffix_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_borrowed_suffix_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_incomplete_hex_marker = 'test "getOption preserves incomplete hex-prefix and descending-range behavior" {'
-        helper_path.write_text(
-            helper_text.replace(helper_incomplete_hex_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_incomplete_hex_descending_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_incomplete_hex_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_negative_range_marker = 'test "getOptions expands negative ranges and negative upper bounds" {'
-        helper_path.write_text(
-            helper_text.replace(helper_negative_range_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_helper_negative_range_marker",
-            tmp_root,
-            f"lib/cmdline.zig: {helper_negative_range_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        manifest_text = read_text(manifest_path)
-        manifest_marker = '"scripts/zigux/check-phase7-cmdline-packet.py"'
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_manifest_checker_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        manifest_text = read_text(manifest_path)
-        manifest_marker = "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_manifest_nextarg_ownership_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        manifest_text = read_text(manifest_path)
-        manifest_marker = "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_manifest_memparse_ownership_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        manifest_text = read_text(manifest_path)
         manifest_forbidden_marker = "phase7_cmdline_next_arg_vectors"
-        manifest_path.write_text(manifest_text + manifest_forbidden_marker + "\n", encoding="utf-8")
+        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_marker + "\n", encoding="utf-8")
         expect_forbidden_marker(
             "stale_manifest_fixture_marker",
             tmp_root,
@@ -416,255 +306,62 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_survey.zig"
-        survey_text = read_text(survey_path)
-        survey_marker = 'const checker = try readRepoFile(allocator, checker_path);'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_checker_reader",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
+        survey_markers = [
+            ("missing_survey_checker_reader", 'const checker = try readRepoFile(allocator, checker_path);'),
+            (
+                "missing_survey_helper_whitespace_only_marker",
+                'try expectContains(helper, "test \\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\" {");',
+            ),
+            (
+                "missing_survey_helper_leading_equals_marker",
+                'try expectContains(helper, "test \\"nextArg keeps leading equals tokens as bare parameters\\" {");',
+            ),
+            (
+                "missing_survey_helper_borrowed_suffix_marker",
+                'try expectContains(helper, "test \\"nextArg keeps rest and remaining as the same borrowed suffix view\\" {");',
+            ),
+            (
+                "missing_survey_companion_leading_equals_marker",
+                'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
+            ),
+            (
+                "missing_survey_companion_first_nul_bare_option_marker",
+                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\"quiet,debug\\\\x00,nohlt\\", \\"nohlt\\"));");',
+            ),
+        ]
+        for case, marker in survey_markers:
+            remove_once(survey_path, marker)
+            expect_missing_marker(case, tmp_root, f"zigux/tests/phase7_cmdline_survey.zig: {marker}")
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_helper_whitespace_only_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_helper_leading_equals_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_helper_borrowed_suffix_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_companion_leading_equals_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_companion_first_nul_bare_option_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_exact_bare_option_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_first_nul_bare_option_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_option_decoding_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_incomplete_hex_descending_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_validator_only_cursor_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_negative_range_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_quoted_argument_memparse_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_leading_whitespace_boundary_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = 'test "phase 7 cmdline companion replays bare leading-equals ownership" {'
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_bare_leading_equals_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {companion_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        empty_input_marker = 'test "nextArg keeps empty input borrowed from the caller slice" {'
-        companion_path.write_text(companion_text.replace(empty_input_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_empty_input_borrow_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {empty_input_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        first_nul_marker = 'test "nextArg stays inside the first NUL for bare and key value tokens" {'
-        companion_path.write_text(companion_text.replace(first_nul_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_first_nul_boundary_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {first_nul_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        borrowed_suffix_marker = 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'
-        companion_path.write_text(companion_text.replace(borrowed_suffix_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_borrowed_suffix_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {borrowed_suffix_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        quoted_empty_marker = 'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {'
-        companion_path.write_text(companion_text.replace(quoted_empty_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_quoted_empty_token_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {quoted_empty_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        quoted_bare_grouping_marker = 'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {'
-        companion_path.write_text(companion_text.replace(quoted_bare_grouping_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_quoted_bare_grouping_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {quoted_bare_grouping_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        quoted_equals_marker = 'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {'
-        companion_path.write_text(companion_text.replace(quoted_equals_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_companion_quoted_equals_and_unterminated_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {quoted_equals_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        quoted_value_borrow_marker = 'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {'
-        companion_path.write_text(
-            companion_text.replace(quoted_value_borrow_marker + "\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_companion_quoted_value_borrow_marker",
-            tmp_root,
-            f"zigux/tests/phase7_cmdline.zig: {quoted_value_borrow_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
+        companion_markers = [
+            ("missing_companion_exact_bare_option_marker", 'test "phase 7 cmdline companion replays exact bare-option matching boundaries" {'),
+            ("missing_companion_first_nul_bare_option_marker", 'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));'),
+            ("missing_companion_option_decoding_marker", 'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {'),
+            ("missing_companion_incomplete_hex_descending_marker", 'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {'),
+            ("missing_companion_validator_only_cursor_marker", 'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {'),
+            ("missing_companion_negative_range_marker", 'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {'),
+            ("missing_companion_quoted_argument_memparse_marker", 'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {'),
+            ("missing_companion_leading_whitespace_boundary_marker", 'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {'),
+            ("missing_companion_bare_leading_equals_marker", 'test "phase 7 cmdline companion replays bare leading-equals ownership" {'),
+            ("missing_companion_empty_input_borrow_marker", 'test "nextArg keeps empty input borrowed from the caller slice" {'),
+            ("missing_companion_first_nul_boundary_marker", 'test "nextArg stays inside the first NUL for bare and key value tokens" {'),
+            ("missing_companion_borrowed_suffix_marker", 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {'),
+            ("missing_companion_quoted_empty_token_marker", 'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {'),
+            ("missing_companion_quoted_bare_grouping_marker", 'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {'),
+            ("missing_companion_quoted_equals_and_unterminated_marker", 'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {'),
+            ("missing_companion_quoted_value_borrow_marker", 'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {'),
+        ]
+        for case, marker in companion_markers:
+            remove_once(companion_path, marker)
+            expect_missing_marker(case, tmp_root, f"zigux/tests/phase7_cmdline.zig: {marker}")
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
-        samples_text = read_text(samples_path)
         samples_marker = "* `*cmdline*`"
-        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        remove_once(samples_path, samples_marker)
         expect_missing_marker(
             "missing_samples_cmdline_boundary",
             tmp_root,
