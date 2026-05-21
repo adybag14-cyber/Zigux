@@ -19,6 +19,7 @@ def _default_root() -> Path:
 ROOT = _default_root()
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
+LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
@@ -51,6 +52,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
+    LIBBPF_SHARD_ROUTES_CHECKER,
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
@@ -85,6 +87,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
         "phase8-help-kallsyms-test:",
+        "phase8-libbpf-segments-test:",
         "phase8-file-path-handle-bridge-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8-test:",
@@ -353,6 +356,7 @@ def validate_root(root: Path) -> ValidationResult:
         for checker in (
             TESTS_ALIGNMENT_CHECKER,
             PERF_BUFFER_POLL_GATE_CHECKER,
+            LIBBPF_SHARD_ROUTES_CHECKER,
         ):
             output = _run_checker(root, checker)
             if output:
@@ -389,7 +393,7 @@ def emit_result(result: ValidationResult) -> int:
     print("PHASE8_VALIDATION=pass")
     print(f"PHASE8_SHARED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE8_MARKER_COUNT={sum(len(markers) for markers in FILE_MARKERS.values())}")
-    print("PHASE8_CHECKER_COUNT=2")
+    print("PHASE8_CHECKER_COUNT=3")
     return 0
 
 
@@ -424,6 +428,7 @@ def _passing_fixture(root: Path) -> None:
         _write(root / relative_path, "\n".join(markers) + "\n")
     _write(root / TESTS_ALIGNMENT_CHECKER, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
+    _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
     _write(root / PERF_BUFFER_READY_WINDOW_SEGMENT, "pub fn placeholder() void {}\n")
     for helper in (
         CPU_MASK_VERIFY_SEGMENT,
@@ -704,7 +709,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
