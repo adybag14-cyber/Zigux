@@ -151,6 +151,11 @@ DRIVER_MARKERS = (
     "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
     "pub const CleanupHandoffRequest = struct {",
     "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+    "pub const HangupDisconnectRequest = struct {",
+    "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {",
+    "pub const CleanupPrerequisiteRequest = struct {",
+    "pub fn summarizeCleanupPrerequisite(",
+    "error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {",
     "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
     "targetless_unregister_request_sanitized: bool,",
     ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
@@ -159,6 +164,12 @@ DRIVER_MARKERS = (
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
     'test "phase11 hvc console keeps flush intent summary reviewable" {',
     'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {',
+    'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {',
+    'test "phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable" {',
+    'test "phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable" {',
+    'test "phase11 hvc console keeps cleanup prerequisite combined trigger reviewable" {',
+    'test "phase11 hvc console rejects cleanup without final-close or hangup evidence" {',
+    'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {',
     'test "phase11 hvc console keeps remove handoff summary reviewable" {',
     'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
     'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
@@ -528,13 +539,24 @@ def run_self_test() -> int:
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
             (MATRIX_PATH, "the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` plus `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` witness shard now rereads the live starter and the boundary note together"),
             (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
-            (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\""),
+            (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"") ,
             (DRIVER_PATH, "pub const FlushIntentRequest = struct {"),
             (DRIVER_PATH, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {"),
             (DRIVER_PATH, "pub const CloseTeardownRequest = struct {"),
             (DRIVER_PATH, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {"),
+            (DRIVER_PATH, "pub const HangupDisconnectRequest = struct {"),
+            (DRIVER_PATH, "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {"),
+            (DRIVER_PATH, "pub const CleanupPrerequisiteRequest = struct {"),
+            (DRIVER_PATH, "pub fn summarizeCleanupPrerequisite("),
+            (DRIVER_PATH, "error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps flush intent summary reviewable" {'),
             (DRIVER_PATH, 'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps cleanup prerequisite combined trigger reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console rejects cleanup without final-close or hangup evidence" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {'),
             (DRIVER_PATH, "targetless_unregister_request_sanitized: bool,"),
             (DRIVER_PATH, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {'),
@@ -562,7 +584,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=37")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=48")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
