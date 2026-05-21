@@ -4,7 +4,7 @@ const cpu_mask = @import("cpu_mask.zig");
 const cpu_mask_verify = @import("cpu_mask_verify.zig");
 const logging = @import("logging.zig");
 const logging_verify = @import("logging_verify.zig");
-const online_cpu_routing = @import("online_cpu_routing_verify.zig");
+const online_cpu_routing = @import("online_cpu_routing.zig");
 const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");
@@ -19,6 +19,33 @@ const type_names_verify = @import("type_names_verify.zig");
 
 fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
     try std.testing.expect(@hasDecl(Module, decl_name));
+}
+
+const CpuMaskReaderContext = struct {
+    input: []const u8,
+    cursor: usize = 0,
+};
+
+fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    const typed_context: *CpuMaskReaderContext = @ptrCast(@alignCast(context.?));
+    if (typed_context.cursor >= typed_context.input.len) return null;
+
+    const remaining = typed_context.input.len - typed_context.cursor;
+    const count = @min(buffer.len, remaining);
+    @memcpy(buffer[0..count], typed_context.input[typed_context.cursor .. typed_context.cursor + count]);
+    typed_context.cursor += count;
+    return count;
+}
+
+fn readZeroCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    _ = buffer;
+    return 0;
+}
+
+fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    return buffer.len + 1;
 }
 
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
