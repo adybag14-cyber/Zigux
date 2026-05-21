@@ -429,6 +429,9 @@ REQUIRED_PACKET_FILES = (
     "zigux/bindings/header_family.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/layout_assert.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-abi.py",
@@ -749,6 +752,22 @@ def run_self_test() -> int:
             _write(root / populate_path, "\n".join(markers) + "\n")
         _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["packet_files"].remove("zigux/helpers/allocator_policy.zig")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_missing_packet_file = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "zigux/helpers/allocator_policy.zig"
+        )
+        if expected_missing_packet_file not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected missing packet_files entry was not reported")
+            return 1
+
+        for populate_path, markers in REQUIRED_MARKERS.items():
+            _write(root / populate_path, "\n".join(markers) + "\n")
+        _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["repo_reality_gaps"].append(BINDING_ABI.as_posix())
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -762,7 +781,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SEMANTIC_SELF_TEST_CASES) + 3}")
+    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SEMANTIC_SELF_TEST_CASES) + 4}")
     return 0
 
 
