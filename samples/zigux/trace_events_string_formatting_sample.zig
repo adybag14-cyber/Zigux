@@ -22,7 +22,7 @@ pub const SampleDescriptor = struct {
 };
 
 pub const RenderedText = struct {
-    bytes: [16]u8 = [_]u8{0} ** 16,
+    bytes: [40]u8 = [_]u8{0} ** 40,
     len: usize = 0,
 };
 
@@ -33,6 +33,7 @@ pub const ReplaySummary = struct {
     main_iteration_count: i32,
     selected_string: []const u8,
     formatted_message: RenderedText,
+    selected_iteration_message: RenderedText,
     checked_focus: []const SampleFocus,
 };
 
@@ -48,6 +49,7 @@ pub const StringFormattingCase = struct {
     iteration_count: i32,
     selected_string: []const u8,
     formatted_message: RenderedText,
+    selected_iteration_message: RenderedText,
 };
 
 pub const StringFormattingCycleSummary = struct {
@@ -94,6 +96,20 @@ pub const TraceEventsStringFormattingSample = struct {
         return std.fmt.bufPrint(destination, "iter={d}", .{iteration_count});
     }
 
+    pub fn formatSelectedIterationMessageInto(
+        self: *const Self,
+        iteration_count: i32,
+        destination: []u8,
+    ) ![]const u8 {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (iteration_count < 0) return error.InvalidIterationCount;
+        return std.fmt.bufPrint(
+            destination,
+            "{s} iter={d}",
+            .{ selectedStringForIteration(iteration_count), iteration_count },
+        );
+    }
+
     pub fn runAnchorReplay(self: *Self, iteration_count: i32) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
         if (iteration_count < 0) return error.InvalidIterationCount;
@@ -107,6 +123,13 @@ pub const TraceEventsStringFormattingSample = struct {
         );
         rendered.len = rendered_slice.len;
 
+        var selected_iteration_message = RenderedText{};
+        const selected_iteration_slice = try self.formatSelectedIterationMessageInto(
+            iteration_count,
+            &selected_iteration_message.bytes,
+        );
+        selected_iteration_message.len = selected_iteration_slice.len;
+
         self.replay_runs += 1;
         self.stage_state = .replay_complete;
 
@@ -117,6 +140,7 @@ pub const TraceEventsStringFormattingSample = struct {
             .main_iteration_count = iteration_count,
             .selected_string = selected_string,
             .formatted_message = rendered,
+            .selected_iteration_message = selected_iteration_message,
             .checked_focus = &.{
                 .string_selection,
                 .formatted_message,
@@ -137,10 +161,19 @@ pub const TraceEventsStringFormattingSample = struct {
                 &rendered.bytes,
             );
             rendered.len = rendered_slice.len;
+
+            var selected_iteration_message = RenderedText{};
+            const selected_iteration_slice = try self.formatSelectedIterationMessageInto(
+                @intCast(i),
+                &selected_iteration_message.bytes,
+            );
+            selected_iteration_message.len = selected_iteration_slice.len;
+
             cases[i] = .{
                 .iteration_count = @intCast(i),
                 .selected_string = expected_string,
                 .formatted_message = rendered,
+                .selected_iteration_message = selected_iteration_message,
             };
         }
 
@@ -192,6 +225,12 @@ test "phase 5 trace-events formatting companion keeps the selected-string cue re
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
     try std.testing.expectEqual(@as(usize, 6), replay.formatted_message.len);
     try std.testing.expectEqualSlices(u8, "iter=7", replay.formatted_message.bytes[0..replay.formatted_message.len]);
+    try std.testing.expectEqual(@as(usize, 14), replay.selected_iteration_message.len);
+    try std.testing.expectEqualSlices(
+        u8,
+        "Gandalf iter=7",
+        replay.selected_iteration_message.bytes[0..replay.selected_iteration_message.len],
+    );
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
 
@@ -213,8 +252,14 @@ test "phase 5 trace-events formatting companion keeps the modulo-selected string
 
     for (random_strings, 0..) |expected_string, i| {
         const current = cycle.cases[i];
-        var expected_message: [16]u8 = undefined;
+        var expected_message: [40]u8 = undefined;
+        var expected_selected_iteration_message: [40]u8 = undefined;
         const rendered = try std.fmt.bufPrint(&expected_message, "iter={d}", .{i});
+        const selected_iteration_rendered = try std.fmt.bufPrint(
+            &expected_selected_iteration_message,
+            "{s} iter={d}",
+            .{ expected_string, i },
+        );
 
         try std.testing.expectEqual(@as(i32, @intCast(i)), current.iteration_count);
         try std.testing.expectEqualStrings(expected_string, current.selected_string);
@@ -223,6 +268,12 @@ test "phase 5 trace-events formatting companion keeps the modulo-selected string
             u8,
             rendered,
             current.formatted_message.bytes[0..current.formatted_message.len],
+        );
+        try std.testing.expectEqual(selected_iteration_rendered.len, current.selected_iteration_message.len);
+        try std.testing.expectEqualSlices(
+            u8,
+            selected_iteration_rendered,
+            current.selected_iteration_message.bytes[0..current.selected_iteration_message.len],
         );
     }
 }
@@ -258,5 +309,21 @@ test "phase 5 trace-events formatting companion keeps bounded destination failur
     var exact_destination: [7]u8 = undefined;
     const rendered = try sample.formatIterationMessageInto(12, &exact_destination);
     try std.testing.expectEqualStrings("iter=12", rendered);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+
+    var short_selected_destination: [11]u8 = undefined;
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatSelectedIterationMessageInto(3, &short_selected_destination),
+    );
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+
+    var exact_selected_destination: [12]u8 = undefined;
+    const selected_rendered = try sample.formatSelectedIterationMessageInto(
+        3,
+        &exact_selected_destination,
+    );
+    try std.testing.expectEqualStrings("Frodo iter=3", selected_rendered);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 }
