@@ -32,6 +32,16 @@ pub fn expectFieldLayout(
     try expectOffset(T, field_name, expected_offset);
 }
 
+fn expectComptimeByteValue(
+    comptime actual: comptime_int,
+    comptime expected: comptime_int,
+    comptime label: []const u8,
+) void {
+    if (actual != expected) {
+        @compileError(label);
+    }
+}
+
 pub fn assertBoundaryHeaderLayout() LayoutError!void {
     try expectLayout(abi.BoundaryHeader, 8, 4);
     try expectFieldLayout(abi.BoundaryHeader, "size", 0);
@@ -46,7 +56,15 @@ pub fn assertExportStatusLayout() LayoutError!void {
     try expectFieldLayout(abi.ExportStatus, "flags", 6);
 }
 
+pub fn assertInteropPolicyEnumLayouts() LayoutError!void {
+    try expectLayout(abi.PanicMode, 1, 1);
+    try expectLayout(abi.AllocatorMode, 1, 1);
+    try expectLayout(abi.UnsafeScope, 1, 1);
+}
+
 pub fn assertInteropPolicyLayout() LayoutError!void {
+    try assertInteropPolicyEnumLayouts();
+    assertInteropPolicyModeValues();
     try expectLayout(abi.InteropPolicy, 4, 1);
     try expectFieldLayout(abi.InteropPolicy, "panic_mode", 0);
     try expectFieldLayout(abi.InteropPolicy, "allocator_mode", 1);
@@ -157,15 +175,17 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
 }
 
 pub fn assertInteropPolicyModeValues() void {
-    std.debug.assert(abi.PANIC_ABORT == @intFromEnum(abi.PanicMode.abort));
-    std.debug.assert(abi.PANIC_BUG == @intFromEnum(abi.PanicMode.bug));
-    std.debug.assert(abi.PANIC_WARN == @intFromEnum(abi.PanicMode.warn));
-    std.debug.assert(abi.ALLOC_CALLER_PROVIDED == @intFromEnum(abi.AllocatorMode.caller_provided));
-    std.debug.assert(abi.ALLOC_KERNEL_HEAP == @intFromEnum(abi.AllocatorMode.kernel_heap));
-    std.debug.assert(abi.ALLOC_ARENA == @intFromEnum(abi.AllocatorMode.arena));
-    std.debug.assert(abi.UNSAFE_NONE == @intFromEnum(abi.UnsafeScope.none));
-    std.debug.assert(abi.UNSAFE_VOLATILE_MMIO == @intFromEnum(abi.UnsafeScope.volatile_mmio));
-    std.debug.assert(abi.UNSAFE_RAW_POINTER_BRIDGE == @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));
+    comptime {
+        expectComptimeByteValue(abi.PANIC_ABORT, @intFromEnum(abi.PanicMode.abort), "abi panic abort byte drifted");
+        expectComptimeByteValue(abi.PANIC_BUG, @intFromEnum(abi.PanicMode.bug), "abi panic bug byte drifted");
+        expectComptimeByteValue(abi.PANIC_WARN, @intFromEnum(abi.PanicMode.warn), "abi panic warn byte drifted");
+        expectComptimeByteValue(abi.ALLOC_CALLER_PROVIDED, @intFromEnum(abi.AllocatorMode.caller_provided), "abi allocator caller byte drifted");
+        expectComptimeByteValue(abi.ALLOC_KERNEL_HEAP, @intFromEnum(abi.AllocatorMode.kernel_heap), "abi allocator heap byte drifted");
+        expectComptimeByteValue(abi.ALLOC_ARENA, @intFromEnum(abi.AllocatorMode.arena), "abi allocator arena byte drifted");
+        expectComptimeByteValue(abi.UNSAFE_NONE, @intFromEnum(abi.UnsafeScope.none), "abi unsafe none byte drifted");
+        expectComptimeByteValue(abi.UNSAFE_VOLATILE_MMIO, @intFromEnum(abi.UnsafeScope.volatile_mmio), "abi unsafe mmio byte drifted");
+        expectComptimeByteValue(abi.UNSAFE_RAW_POINTER_BRIDGE, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), "abi unsafe raw-pointer byte drifted");
+    }
 }
 
 pub fn assertNotifierResultValues() void {
