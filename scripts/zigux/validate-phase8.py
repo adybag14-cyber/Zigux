@@ -506,6 +506,38 @@ def run_self_test() -> int:
             raise AssertionError("expected help+kallsyms checker failure output to be reported")
         _write(help_kallsyms_checker, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
 
+        tests_alignment_checker = root / TESTS_ALIGNMENT_CHECKER
+        _write(
+            tests_alignment_checker,
+            _failing_checker(
+                "PHASE8_TESTS_README_ALIGNMENT",
+                "missing-marker:zigux/tests/README.md:`make -C zigux phase8-test`",
+            ),
+        )
+        failing_tests_alignment_checker = validate_root(root)
+        tests_alignment_output = failing_tests_alignment_checker.checker_failures.get(
+            TESTS_ALIGNMENT_CHECKER.as_posix()
+        )
+        if not tests_alignment_output or "phase8-test" not in "\n".join(tests_alignment_output):
+            raise AssertionError("expected tests-readme checker failure output to be reported")
+        _write(tests_alignment_checker, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
+
+        libbpf_shard_routes_checker = root / LIBBPF_SHARD_ROUTES_CHECKER
+        _write(
+            libbpf_shard_routes_checker,
+            _failing_checker(
+                "PHASE8_LIBBPF_SHARD_ROUTES",
+                "missing-marker:zigux/Makefile:phase8-libbpf-segments-test:",
+            ),
+        )
+        failing_libbpf_shard_routes_checker = validate_root(root)
+        libbpf_shard_routes_output = failing_libbpf_shard_routes_checker.checker_failures.get(
+            LIBBPF_SHARD_ROUTES_CHECKER.as_posix()
+        )
+        if not libbpf_shard_routes_output or "phase8-libbpf-segments-test" not in "\n".join(libbpf_shard_routes_output):
+            raise AssertionError("expected libbpf-shard-routes checker failure output to be reported")
+        _write(libbpf_shard_routes_checker, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
+
         makefile = root / "zigux/Makefile"
         original_makefile = _read(makefile)
         makefile.write_text(
@@ -662,7 +694,7 @@ def run_self_test() -> int:
         missing_route_fd_wrapper = validate_root(root)
         expected_route_fd_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveNextOnlineCpuRouteBufferFdReturnAtIndex"
         if expected_route_fd_wrapper not in missing_route_fd_wrapper.missing_markers:
-            raise AssertionError("expected missing aggregate verifier route-fd wrapper marker to be reported")
+            raise AssertionError("expected missing aggregate verifier route-fd wrapper to be reported")
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         verify_file.write_text(
@@ -672,7 +704,7 @@ def run_self_test() -> int:
         missing_ready_buffer_fd_wrapper = validate_root(root)
         expected_ready_buffer_fd_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferFdLookupReturnAtAttempt"
         if expected_ready_buffer_fd_wrapper not in missing_ready_buffer_fd_wrapper.missing_markers:
-            raise AssertionError("expected missing aggregate verifier ready-buffer fd wrapper marker to be reported")
+            raise AssertionError("expected missing aggregate verifier ready-buffer fd wrapper to be reported")
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         verify_file.write_text(
@@ -692,7 +724,7 @@ def run_self_test() -> int:
         missing_ready_buffer_window_wrapper = validate_root(root)
         expected_ready_buffer_window_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferWindowLookupReturnAtAttempt"
         if expected_ready_buffer_window_wrapper not in missing_ready_buffer_window_wrapper.missing_markers:
-            raise AssertionError("expected missing aggregate verifier ready-buffer window wrapper marker to be reported")
+            raise AssertionError("expected missing aggregate verifier ready-buffer window wrapper to be reported")
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         verify_file.write_text(
@@ -702,7 +734,7 @@ def run_self_test() -> int:
         missing_type_formatter = validate_root(root)
         expected_type_formatter = "tools/lib/bpf/zigux_segments/verify.zig:formatLibbpfBpfLinkType"
         if expected_type_formatter not in missing_type_formatter.missing_markers:
-            raise AssertionError("expected missing aggregate verifier type-name formatter marker to be reported")
+            raise AssertionError("expected missing aggregate verifier type-name formatter to be reported")
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         logging_verify = root / LOGGING_VERIFY_SEGMENT
@@ -828,7 +860,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=35")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
