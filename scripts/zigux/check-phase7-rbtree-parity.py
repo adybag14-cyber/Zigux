@@ -122,6 +122,16 @@ REQUIRED_MARKERS = {
         'try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`");',
         'try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");',
         'try expectSliceNotContains(manifest.public_fallback_non_owner_paths, "scripts/zigux/check-phase7-build-wiring.py");',
+        'try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");',
+        'try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-survey:");',
+        'try expectSliceContains(manifest.absent_makefile_markers, "phase7-test:");',
+        'try expectSliceContains(manifest.absent_makefile_markers, "phase7:");',
+        'try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");',
+        'try expectSliceContains(manifest.absent_workflow_markers, "Run Phase 7 runtime helper tests");',
+        'try expectSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-test");',
+        'try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");',
+        'try expectNotContains(workflow, "Run Phase 7 runtime helper tests");',
+        'try expectNotContains(workflow, "make -C zigux phase7-test");',
         'try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed shared-control surfaces still rematerialized through authenticated rereads");',
         'try expectContains(build_file, "../../lib/rbtree.zig");',
         'try expectContains(manifest.next_bounded_step, "public-fallback provenance");',
@@ -152,7 +162,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 64
+SELF_TEST_CASE_COUNT = 67
 
 
 def read_text(path: Path) -> str:
@@ -600,6 +610,36 @@ def run_self_test() -> None:
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_public_fallback_owner_boundary_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_absent_makefile_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_absent_workflow_marker",
+            tmp_root,
+            f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectNotContains(workflow, "make -C zigux phase7-test");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_workflow_absence_guard",
             tmp_root,
             f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
         )
