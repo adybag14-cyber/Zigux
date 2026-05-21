@@ -58,12 +58,13 @@ CORE_TRUE_SUMMARY_KEYS = (
     "preexisting_virtio_core_zig_present",
     "preexisting_virtio_core_test_present",
     "preexisting_virtio_core_reset_queue_test_present",
-    "preexisting_virtio_driver_id_zig_present",
-    "preexisting_virtio_driver_id_test_present",
     "preexisting_virtio_core_slice_note_present",
 )
 
-CORE_FALSE_SUMMARY_KEYS = ()
+CORE_FALSE_SUMMARY_KEYS = (
+    "preexisting_virtio_driver_id_zig_present",
+    "preexisting_virtio_driver_id_test_present",
+)
 
 CORE_EXPECTED_GAPS = {
     "phase10-build-gate": "starter_landed",
@@ -329,8 +330,8 @@ def build_sample_repo(root: Path) -> None:
             "preexisting_virtio_core_zig_present": True,
             "preexisting_virtio_core_test_present": True,
             "preexisting_virtio_core_reset_queue_test_present": True,
-            "preexisting_virtio_driver_id_zig_present": True,
-            "preexisting_virtio_driver_id_test_present": True,
+            "preexisting_virtio_driver_id_zig_present": False,
+            "preexisting_virtio_driver_id_test_present": False,
             "preexisting_virtio_core_slice_note_present": True,
         },
         "gaps": [
@@ -448,7 +449,7 @@ def run_self_test() -> int:
         build_sample_repo(root)
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["preexisting_virtio_driver_id_zig_present"] = False
+        manifest["survey_summary"]["preexisting_virtio_driver_id_zig_present"] = True
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         if "phase10_core_packet:summary:preexisting_virtio_driver_id_zig_present" not in issues:
@@ -457,7 +458,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
         survey_text = survey_path.read_text(encoding="utf-8").replace(
             "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
