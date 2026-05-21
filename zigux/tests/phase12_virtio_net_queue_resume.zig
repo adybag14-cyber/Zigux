@@ -30,3 +30,21 @@ test "phase12 virtio net queue resume stays lab-only and fail-closed" {
     try std.testing.expect(ready.resumes_receive_submission);
     try std.testing.expect(ready.resumes_transmit_submission);
 }
+
+test "phase12 virtio net queue resume keeps control queue restore optional when the device has no control queue" {
+    const summary = try queue_resume.summarizeQueueResume(.{
+        .reset_generation = 3,
+        .receive_queue_pairs = 2,
+        .refill_replay_ready = true,
+        .control_queue_restored = false,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = true,
+        .requires_control_queue_restore = false,
+    });
+
+    try std.testing.expectEqual(queue_resume.QueueResumeBlocker.none, summary.blocker);
+    try std.testing.expect(!summary.requires_control_queue_restore);
+    try std.testing.expect(summary.can_resume_queues);
+    try std.testing.expect(summary.resumes_receive_submission);
+    try std.testing.expect(summary.resumes_transmit_submission);
+}
