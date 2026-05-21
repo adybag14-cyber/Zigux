@@ -207,3 +207,56 @@ test "phase 7 rbtree companion replays postorder aliases and null-stop handling"
     try std.testing.expect(rbtree.nextPostorder(null) == null);
     try std.testing.expect(rbtree.rb_next_postorder(null) == null);
 }
+
+test "phase 7 rbtree companion replays reverse traversal aliases and detached null stops" {
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+        .{ .key = 4 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    try std.testing.expectEqual(rbtree.last(&root), rbtree.rb_last(&root));
+
+    var order: [entries.len]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.last(&root);
+    while (current) |node| : (current = rbtree.prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(entries.len, count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 3, 2, 1 }, order[0..count]);
+
+    const alias_last = rbtree.rb_last(&root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(rbtree.prev(alias_last), rbtree.rb_prev(alias_last));
+
+    const first_node = rbtree.first(&root) orelse return error.TestUnexpectedResult;
+    try std.testing.expect(rbtree.prev(first_node) == null);
+    try std.testing.expect(rbtree.rb_prev(first_node) == null);
+
+    var detached = rbtree.Node.init();
+    rbtree.clearNode(&detached);
+    try std.testing.expect(rbtree.prev(&detached) == null);
+    try std.testing.expect(rbtree.rb_prev(&detached) == null);
+}
