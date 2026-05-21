@@ -317,7 +317,7 @@ def archive_name_has_duplicate_suffix(path_name: str, expected_filename: str) ->
 
 
 def archive_name_matches_policy(path_name: str, expected_filename: str) -> bool:
-    return path_name == expected_filename or archive_name_has_duplicate_suffix(path_name, expected_filename)
+    return path_name == expected_filename
 
 
 def describe_missing_archive(
@@ -374,14 +374,6 @@ def iter_repo_local_archive_candidates(
             if path not in seen:
                 candidates.append((str(target), path))
                 seen.add(path)
-            if not base.exists():
-                continue
-            for child in sorted(base.iterdir()):
-                if child in seen or not child.is_file():
-                    continue
-                if archive_name_has_duplicate_suffix(child.name, expected_filename):
-                    candidates.append((str(target), child))
-                    seen.add(child)
     return candidates
 
 
@@ -563,7 +555,7 @@ def run_self_test() -> int:
         )
     )
     expect_true(
-        archive_name_matches_policy(
+        not archive_name_matches_policy(
             "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (2).tar.xz",
             "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
         )
@@ -756,10 +748,15 @@ def run_self_test() -> int:
         )
         duplicate_archive_path.write_bytes(b"zigux-archive")
         workspace_archive_path.unlink()
-        expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", duplicate_archive_path))
+        expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", None))
         expect_equal(
             validate_policy_archive(duplicate_archive_path, "x86_64-linux", policy_path=policy_path),
-            ("present", None, expected_archive_sha, expected_archive_sha),
+            (
+                "mismatch",
+                "expected archive filename zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz for x86_64-linux, got zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz",
+                expected_archive_sha,
+                expected_archive_sha,
+            ),
         )
         renamed_archive_path = duplicate_archive_path.with_name("renamed-zig.tar.xz")
         renamed_archive_path.write_bytes(b"zigux-archive")
@@ -810,10 +807,10 @@ def run_self_test() -> int:
                 format_search_roots(iter_archive_search_roots(root)),
             ),
         )
-        duplicate_archive_path.write_bytes(b"zigux-archive-drift")
+        workspace_archive_path.write_bytes(b"zigux-archive-drift")
         drift_sha = hashlib.sha256(b"zigux-archive-drift").hexdigest()
         expect_equal(
-            validate_policy_archive(duplicate_archive_path, "x86_64-linux", policy_path=policy_path),
+            validate_policy_archive(workspace_archive_path, "x86_64-linux", policy_path=policy_path),
             (
                 "mismatch",
                 f"expected sha256 {expected_archive_sha} for x86_64-linux, got {drift_sha}",
