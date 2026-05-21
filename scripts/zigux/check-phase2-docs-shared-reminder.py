@@ -11,6 +11,7 @@ PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-no
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+THIRD_PARTY_README = ROOT / "third_party" / "README.md"
 
 DOCS_README_MARKERS = (
     "Phase 2 notes",
@@ -200,6 +201,22 @@ TESTS_README_EXACT_COUNT_MARKERS = (
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
 )
 
+THIRD_PARTY_README_MARKERS = (
+    "# Zigux third-party archives",
+    "## Validation",
+    "- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` when that pinned archive is present.",
+    "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt` before the direct `ziglang.org` download URL.",
+    "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
+)
+
+THIRD_PARTY_README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+
+THIRD_PARTY_README_EXACT_COUNT_MARKERS = (
+    "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt` before the direct `ziglang.org` download URL.",
+    "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
+)
+
 
 def read_text(path: Path) -> str:
     try:
@@ -239,6 +256,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
+    third_party_readme_text = read_text(resolve_path(root, THIRD_PARTY_README))
     issues.extend(
         collect_missing_markers(
             docs_readme_text,
@@ -330,6 +348,27 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "FORBIDDEN_TESTS_README_MARKERS",
         )
     )
+    issues.extend(
+        collect_missing_markers(
+            third_party_readme_text,
+            THIRD_PARTY_README_MARKERS,
+            "MISSING_THIRD_PARTY_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_exact_count_markers(
+            third_party_readme_text,
+            THIRD_PARTY_README_EXACT_COUNT_MARKERS,
+            "EXACT_COUNT_THIRD_PARTY_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            third_party_readme_text,
+            THIRD_PARTY_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_THIRD_PARTY_README_MARKERS",
+        )
+    )
     return issues
 
 
@@ -357,6 +396,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, THIRD_PARTY_README), "\n".join(THIRD_PARTY_README_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -382,7 +422,10 @@ def run_self_test() -> int:
         + len(TESTS_README_MARKERS)
         + len(TESTS_README_EXACT_COUNT_MARKERS)
         + len(TESTS_README_FORBIDDEN_MARKERS)
-        + 5
+        + len(THIRD_PARTY_README_MARKERS)
+        + len(THIRD_PARTY_README_EXACT_COUNT_MARKERS)
+        + len(THIRD_PARTY_README_FORBIDDEN_MARKERS)
+        + 6
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_") as tmp_dir:
         root = Path(tmp_dir)
@@ -494,7 +537,31 @@ def run_self_test() -> int:
             assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
 
-        for rel_path in (DOCS_README, PHASE2_NOTES, REVIEW_CHECKLIST, SCRIPTS_README, TESTS_README):
+        for marker in THIRD_PARTY_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, THIRD_PARTY_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_THIRD_PARTY_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in THIRD_PARTY_README_EXACT_COUNT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, THIRD_PARTY_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_THIRD_PARTY_README_MARKERS", f"2::{marker}") in issues
+            checks_run += 1
+
+        for marker in THIRD_PARTY_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, THIRD_PARTY_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_THIRD_PARTY_README_MARKERS", marker) in issues
+            checks_run += 1
+
+        for rel_path in (DOCS_README, PHASE2_NOTES, REVIEW_CHECKLIST, SCRIPTS_README, TESTS_README, THIRD_PARTY_README):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             try:
@@ -514,7 +581,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the shared Phase 2 notes, checklist, docs-root, scripts-root, and tests-root reminder packet aligned to current repo reality."
+        description="Keep the shared Phase 2 notes, checklist, docs-root, scripts-root, tests-root, and third-party reminder packet aligned to current repo reality."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run the built-in contract self-test")
@@ -530,15 +597,15 @@ def main() -> int:
     print("PHASE2_DOCS_SHARED_REMINDER=pass")
     print(
         "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
-        f"{len(DOCS_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS)}"
+        f"{len(DOCS_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(THIRD_PARTY_README_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_EXACT_COUNT_MARKER_COUNT="
-        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(TESTS_README_EXACT_COUNT_MARKERS)}"
+        f"{len(PHASE2_NOTES_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(TESTS_README_EXACT_COUNT_MARKERS) + len(THIRD_PARTY_README_EXACT_COUNT_MARKERS)}"
     )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
-        f"{len(DOCS_README_FORBIDDEN_MARKERS) + len(PHASE2_NOTES_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS) + len(TESTS_README_FORBIDDEN_MARKERS)}"
+        f"{len(DOCS_README_FORBIDDEN_MARKERS) + len(PHASE2_NOTES_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS) + len(TESTS_README_FORBIDDEN_MARKERS) + len(THIRD_PARTY_README_FORBIDDEN_MARKERS)}"
     )
     return 0
 
