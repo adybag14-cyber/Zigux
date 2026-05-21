@@ -23,10 +23,12 @@ The helper packet now consists of:
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
 - `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
+- `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`
 
 Fixture governance stays helper-local:
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, missing-release-record, detach-cleanup, and warn-on-release-miss fixture coverage for `planManagedReleaseRecordLifetime(...)`, `planManagedReleaseCall(...)`, `planManagedDmamAllocCoherent(...)`, and `planManagedDmamFreeCoherent(...)`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper and planner replay
+- `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py` is the packet-local fail-closed checker and should stay aligned with the helper, planner note, manifest, and replay
 - `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the release-record lifetime, release-call, or detach-cleanup fixture for this planner packet
 
 Adjacent boundary evidence stays unchanged:
@@ -36,4 +38,5 @@ Adjacent boundary evidence stays unchanged:
 
 Standalone replay handles:
 - `zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig`
+- `python3 scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`
 - `zig test zigux/tests/phase13_devres_dma_coherent.zig`
