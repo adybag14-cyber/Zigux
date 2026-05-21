@@ -97,6 +97,7 @@ REQUIRED_MARKERS = {
         "helper-local survey-manifest-checker truthfulness packet",
         "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
         "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+        "while shared-control routes stay parked outside this helper-local lane.",
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
@@ -128,7 +129,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 58
+SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -346,6 +347,10 @@ def run_self_test() -> None:
             (
                 "missing_manifest_memparse_ownership_marker",
                 "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+            ),
+            (
+                "missing_manifest_shared_control_boundary_marker",
+                "while shared-control routes stay parked outside this helper-local lane.",
             ),
         ]
         for case, marker in manifest_markers:
