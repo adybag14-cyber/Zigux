@@ -53,6 +53,11 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
     "diff_text(zig_actual, zig_repeat)",
     "diff_text(c_actual_stderr, c_repeat_stderr)",
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
+    'C_FIXDEP = ROOT / "scripts" / "basic" / "fixdep.c"',
+    'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
+    'EXPECTED_C_FIXDEP = ROOT / "scripts" / "basic" / "fixdep.c"',
+    'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
+    "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     'print("FIXDEP_DIFF=pass")',
     'print("FIXDEP_DETERMINISM=pass")',
 )
