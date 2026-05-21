@@ -99,7 +99,7 @@ VALIDATOR_REQUIRED_SNIPPETS = [
 ]
 
 VALIDATOR_REQUIRED_LINES = [
-    "ARGV_SPLIT_PACKET_CHECKER_PATH = Path(\"scripts/zigux/check-phase7-argv-split-packet.py\")",
+    'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
 ]
 
 MAKEFILE_REQUIRED_LINES = [
@@ -113,7 +113,7 @@ MAKEFILE_FORBIDDEN_LINES = [
     "phase7:",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -159,6 +159,12 @@ def require_absent_lines(path: Path, markers: list[str]) -> None:
             raise ValidationError(f"unexpected stale line in {path.as_posix()}: {marker}")
 
 
+def require_absent_paths(root: Path, rel_paths: list[str]) -> None:
+    for rel_path in rel_paths:
+        if (root / rel_path).exists():
+            raise ValidationError(f"unexpected rematerialized repo-gap path: {rel_path}")
+
+
 def validate(root: Path) -> None:
     missing = [str(rel) for rel in REQUIRED_FILES if not (root / rel).is_file()]
     if missing:
@@ -169,6 +175,7 @@ def validate(root: Path) -> None:
     require_exact_lines(root / VALIDATOR_PATH, VALIDATOR_REQUIRED_LINES)
     require_exact_lines(root / MAKEFILE_PATH, MAKEFILE_REQUIRED_LINES)
     require_absent_lines(root / MAKEFILE_PATH, MAKEFILE_FORBIDDEN_LINES)
+    require_absent_paths(root, EXPECTED_REPO_GAPS)
 
     manifest = read_json(root / MANIFEST_PATH)
     if manifest.get("packet") != EXPECTED_PACKET:
@@ -198,8 +205,8 @@ def build_fixture_root(root: Path) -> None:
         "\n".join(
             [
                 "#!/usr/bin/env python3",
-                "ARGV_SPLIT_PACKET_CHECKER_PATH = Path(\"scripts/zigux/check-phase7-argv-split-packet.py\")",
-                "make = \"make -C zigux phase7-validate\"",
+                'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
+                'make = "make -C zigux phase7-validate"',
             ]
         )
         + "\n",
@@ -322,6 +329,15 @@ def run_self_test() -> None:
             cases += 1
         else:
             raise AssertionError("expected failure for repo-gap drift")
+
+        build_fixture_root(root)
+        write(root / Path("zigux/tests/phase7_build.zig"), "// rematerialized parked build file\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases += 1
+        else:
+            raise AssertionError("expected failure for rematerialized parked build file")
 
         build_fixture_root(root)
         (root / VALIDATOR_PATH).unlink()
