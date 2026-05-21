@@ -18,7 +18,7 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "b3f62265a004289ea7b5e257737cefbb9db0c11c"
+      "blob_sha": "3a16c23f5f7a200f45c61e994179da7240938bfa"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
@@ -30,22 +30,22 @@
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "c7d81e8a672eaad3509d6040d01c470652bb7161"
+      "blob_sha": "1499109e6357e47849130115a1fd81d698f4b8a5"
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-21T08:04:51Z",
+    "checked_at_utc": "2026-05-21T19:25:10Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
-      "blob_sha": "f053b309655901f6f42f05cc734b8ca52689dfdf",
-      "modified_at_utc": "2026-05-20T19:01:00Z",
-      "self_test_case_count": 24
+      "blob_sha": "44af0de3d192ab22f29fbfd7978a4f3fa815cef0",
+      "modified_at_utc": "2026-05-21T18:54:51Z",
+      "self_test_case_count": 28
     },
     "current_note_blobs": [
       {
         "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "blob_sha": "b3f62265a004289ea7b5e257737cefbb9db0c11c"
+        "blob_sha": "3a16c23f5f7a200f45c61e994179da7240938bfa"
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
@@ -57,7 +57,7 @@
       },
       {
         "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-        "blob_sha": "c7d81e8a672eaad3509d6040d01c470652bb7161"
+        "blob_sha": "1499109e6357e47849130115a1fd81d698f4b8a5"
       }
     ]
   }
