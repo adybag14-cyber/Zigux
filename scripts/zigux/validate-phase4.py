@@ -19,6 +19,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "Documentation/zigux/review-checklist.md",
@@ -26,8 +27,13 @@ REQUIRED_PATHS = (
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "scripts/zigux/check-phase4-repo-reality-warning.py",
+    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-tests-readme-packet.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -57,6 +63,30 @@ class CheckSpec:
 
 CHECKS = (
     CheckSpec(
+        "phase4-repo-reality-warning-self-test",
+        ("python", "scripts/zigux/check-phase4-repo-reality-warning.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase4-repo-reality-warning",
+        ("python", "scripts/zigux/check-phase4-repo-reality-warning.py"),
+    ),
+    CheckSpec(
+        "phase4-reversible-delivery-pins-self-test",
+        ("python", "scripts/zigux/check-phase4-reversible-delivery-pins.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase4-reversible-delivery-pins",
+        ("python", "scripts/zigux/check-phase4-reversible-delivery-pins.py"),
+    ),
+    CheckSpec(
+        "phase4-tests-readme-packet-self-test",
+        ("python", "scripts/zigux/check-phase4-tests-readme-packet.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase4-tests-readme-packet",
+        ("python", "scripts/zigux/check-phase4-tests-readme-packet.py"),
+    ),
+    CheckSpec(
         "phase4-artifact-diff-helper-self-test",
         ("python", "scripts/zigux/artifact_diff.py", "--self-test"),
     ),
@@ -77,12 +107,28 @@ CHECKS = (
         ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py"),
     ),
     CheckSpec(
+        "phase4-artifact-diff-validator-replays-self-test",
+        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase4-artifact-diff-validator-replays",
+        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py"),
+    ),
+    CheckSpec(
         "phase4-gate-evidence-self-test",
         ("python", "scripts/zigux/check-phase4-gate-evidence.py", "--self-test"),
     ),
     CheckSpec(
         "phase4-gate-evidence",
         ("python", "scripts/zigux/check-phase4-gate-evidence.py"),
+    ),
+    CheckSpec(
+        "phase4-perf-baseline-packet-self-test",
+        ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase4-perf-baseline-packet",
+        ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py"),
     ),
     CheckSpec(
         "phase4-remaining-gap-matrix-self-test",
@@ -266,13 +312,46 @@ def run_self_test() -> int:
             raise SystemExit("phase4-validate-self-test:baseline_failed:" + ",".join(baseline_issues))
 
         reset_fixture()
-        missing = root / "Documentation/zigux/phase4-validation-matrix.md"
+        missing = root / "Documentation/zigux/phase4-reversible-delivery-evidence.md"
         missing.unlink()
         issues = collect_issues(root)
-        expected_missing = "missing_required_path:Documentation/zigux/phase4-validation-matrix.md"
+        expected_missing = "missing_required_path:Documentation/zigux/phase4-reversible-delivery-evidence.md"
         if expected_missing not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:missing_required_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        repo_reality = root / "scripts/zigux/check-phase4-repo-reality-warning.py"
+        build_stub_script(repo_reality, self_test_exit_code=1, live_exit_code=0)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-repo-reality-warning-self-test:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:repo_reality_warning_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        pins = root / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
+        build_stub_script(pins, self_test_exit_code=1, live_exit_code=0)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-reversible-delivery-pins-self-test:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:reversible_delivery_pins_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        tests_readme = root / "scripts/zigux/check-phase4-tests-readme-packet.py"
+        build_stub_script(tests_readme, self_test_exit_code=0, live_exit_code=1)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-tests-readme-packet:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:tests_readme_packet_failure_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -310,6 +389,17 @@ def run_self_test() -> int:
             )
 
         reset_fixture()
+        validator_replays = root / "scripts/zigux/check-phase4-artifact-diff-validator-replays.py"
+        build_stub_script(validator_replays, self_test_exit_code=0, live_exit_code=1)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-artifact-diff-validator-replays:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:artifact_diff_validator_replays_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
         gate = root / "scripts/zigux/check-phase4-gate-evidence.py"
         build_stub_script(gate, self_test_exit_code=0, live_exit_code=1)
         issues = collect_issues(root)
@@ -317,6 +407,17 @@ def run_self_test() -> int:
         if expected not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:gate_evidence_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        perf_baseline = root / "scripts/zigux/check-phase4-perf-baseline-packet.py"
+        build_stub_script(perf_baseline, self_test_exit_code=0, live_exit_code=1)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-perf-baseline-packet:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:perf_baseline_packet_failure_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -360,7 +461,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
