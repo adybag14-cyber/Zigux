@@ -485,6 +485,17 @@ test "collectExeclArgs keeps the command head and first null terminator" {
     try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
 }
 
+test "collectExeclArgs rejects a tail that never terminates with null" {
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            &[_]?[]const u8{ "-a", "--call-graph" },
+        ),
+    );
+}
+
 test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     const config = Config{
         .exec_name = "perf",
