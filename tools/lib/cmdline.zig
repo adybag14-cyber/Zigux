@@ -337,3 +337,10 @@ test "nextArg preserves empty quoted values" {
     try std.testing.expectEqualStrings("", trailing.value.?);
     try std.testing.expectEqualStrings("", trailing.remaining);
 }
+
+test "nextArg keeps unterminated quoted values aligned" {
+    const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", unterminated.param);
+    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
+    try std.testing.expectEqualStrings("", unterminated.remaining);
+}
