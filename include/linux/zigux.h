@@ -107,6 +107,22 @@ static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigu
     return header;
 }
 
+static inline struct zigux_export_status zigux_uapi_validate_boundary_header(
+    zigux_boundary_header header)
+{
+    if (zigux_uapi_boundary_header_is_compatible(header))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
+static inline struct zigux_export_status zigux_validate_boundary_header(
+    zigux_boundary_header header)
+{
+    return zigux_uapi_validate_boundary_header(header);
+}
+
 static inline zigux_boundary_header zigux_boundary_header_make(uint16_t flags)
 {
     return zigux_uapi_boundary_header_current(flags);
