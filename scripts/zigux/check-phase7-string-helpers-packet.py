@@ -100,16 +100,16 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_string_helpers_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");',
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
-        'try expectContains(manifest, "\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\"");',
+        'try expectContains(manifest, "\\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\");',
+        'try expectContains(manifest, "\\\\\\\"next_bounded_step\\\\\\\": \\\\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
         'try expectNotContains(helper_tests, "devmKasprintfStrarray");',
         'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
-        'try expectNotContains(manifest, "\\\\\"devmKasprintfStrarray\\\\\"");',
-        'try expectNotContains(manifest, "\\\\\"devm_kasprintf_strarray\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"devmKasprintfStrarray\\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"devm_kasprintf_strarray\\\\\\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-string-sample policy lane-local",
@@ -156,7 +156,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 37
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -260,95 +260,113 @@ def run_self_test() -> None:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [], [], [])
+        cases_run = 0
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-string-helpers-packet.py"
         checker_path.unlink()
         expect_missing_file("missing_checker", tmp_root, "scripts/zigux/check-phase7-string-helpers-packet.py")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-string-helpers-slice.md"
         slice_marker = "`scripts/zigux/check-phase7-string-helpers-packet.py`"
         slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_checker_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         slice_path.write_text(read_text(slice_path).replace(DEVM_FOLLOW_ON_MARKER + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_devm_follow_on_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {DEVM_FOLLOW_ON_MARKER}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "string_helpers.zig"
         helper_marker = "pub fn kstrdupQuotableCmdline("
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_cmdline_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_alias_marker = "pub fn kstrdup_quotable("
         helper_path.write_text(read_text(helper_path).replace(helper_alias_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_quotable_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_alias_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_parse_alias_marker = "pub fn parse_int_array("
         helper_path.write_text(read_text(helper_path).replace(helper_parse_alias_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_parse_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_parse_alias_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers.zig"
         tests_marker = 'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {'
         tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_file_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_no_entry_marker = 'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {'
         tests_path.write_text(read_text(tests_path).replace(tests_no_entry_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_parse_no_entry_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_no_entry_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {'
         tests_path.write_text(read_text(tests_path).replace(tests_alloc_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_file_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_alloc_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_cmdline_alloc_marker = 'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {'
         tests_path.write_text(read_text(tests_path).replace(tests_cmdline_alloc_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_cmdline_alloc_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_alloc_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_special_quoted_marker = 'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {'
         tests_path.write_text(read_text(tests_path).replace(tests_special_quoted_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_special_quoted_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_special_quoted_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_cmdline_replay_marker = 'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {'
         tests_path.write_text(read_text(tests_path).replace(tests_cmdline_replay_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_cmdline_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_cmdline_replay_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_partial_cleanup_marker = 'test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {'
         tests_path.write_text(read_text(tests_path).replace(tests_partial_cleanup_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_partial_cleanup_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_partial_cleanup_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_overflow_marker = 'test "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view" {'
         tests_path.write_text(read_text(tests_path).replace(tests_overflow_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_overflow_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_overflow_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
         manifest_marker = "dedicated helper-local checker-backed packet reviewability"
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_checker_reviewability", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
         sample_boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
         sample_boundary_path.write_text(read_text(sample_boundary_path).replace(sample_boundary_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_sample_boundary_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
         samples_readme_marker = "* `*rbtree*`"
         samples_readme_path.write_text(read_text(samples_readme_path).replace(samples_readme_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_samples_readme_rbtree_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         sample_boundary_duplicate = DEVM_FOLLOW_ON_MARKER + "\n"
@@ -360,21 +378,27 @@ def run_self_test() -> None:
             + repr(DEVM_FOLLOW_ON_MARKER)
             + ", found 2",
         )
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         helper_forbidden_marker = "pub fn devmKasprintfStrarray("
         helper_path.write_text(read_text(helper_path) + helper_forbidden_marker + "\n", encoding="utf-8")
         expect_unexpected_marker("unexpected_helper_devm_marker", tmp_root, f"lib/string_helpers.zig: {helper_forbidden_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         tests_forbidden_marker = "devmKasprintfStrarray"
         tests_path.write_text(read_text(tests_path) + tests_forbidden_marker + "\n", encoding="utf-8")
         expect_unexpected_marker("unexpected_tests_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_forbidden_marker}")
+        cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_forbidden_marker = '"devmKasprintfStrarray"'
         manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_marker + "\n", encoding="utf-8")
         expect_unexpected_marker("unexpected_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_marker}")
+        cases_run += 1
+
+        assert cases_run == SELF_TEST_CASE_COUNT, cases_run
 
 
 def main() -> int:
