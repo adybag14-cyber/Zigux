@@ -41,6 +41,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
     "The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.",
 )
 
@@ -80,6 +81,7 @@ REQUIRED_FILE_MARKERS = {
 
 SELF_TEST_CASES = (
     ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[6], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
