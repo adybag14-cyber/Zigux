@@ -38,6 +38,27 @@ test "phase8 pin-path helpers keep stable map and program outputs explicit" {
     );
 }
 
+test "phase8 pin-path helpers keep slash-preserving and validated-root outputs explicit" {
+    var buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/root_map",
+        try pin_path.pathnameConcat(&buffer, "/", "root_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf/cache_map",
+        try pin_path.pathnameConcat(&buffer, "/tmp/bpf/", "cache_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/metrics.v1",
+        try pin_path.buildValidatedMapPinPath(&buffer, "/tmp/bpf.v1", "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/stats.map",
+        try pin_path.buildValidatedMapPinPath(&buffer, null, "stats.map"),
+    );
+}
+
 test "phase8 pin-path helpers keep validation failures explicit" {
     var buffer: [96]u8 = undefined;
 
@@ -45,6 +66,7 @@ test "phase8 pin-path helpers keep validation failures explicit" {
     try std.testing.expectError(error.InvalidName, pin_path.validatePinName("stats/map"));
     try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("tmp/bpf"));
     try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("/tmp/bpf/"));
+    try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("/tmp/bpf\x00tmp"));
 
     try std.testing.expectError(
         error.InvalidName,
@@ -52,6 +74,27 @@ test "phase8 pin-path helpers keep validation failures explicit" {
     );
     try std.testing.expectError(
         error.InvalidRootPath,
+        pin_path.buildValidatedMapPinPath(&buffer, "/tmp/bpf\x00tmp", "stats.map"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
         pin_path.buildValidatedSanitizedProgramPinPath(&buffer, "tmp/bpf", "xdp_dispatch.v1"),
+    );
+}
+
+test "phase8 pin-path helpers keep length failures explicit" {
+    var buffer: [16]u8 = undefined;
+
+    try std.testing.expectError(
+        error.NameTooLong,
+        pin_path.pathnameConcat(&buffer, "/sys/fs/bpf", "very_long_map_name"),
+    );
+    try std.testing.expectError(
+        error.NameTooLong,
+        pin_path.buildMapPinPath(&buffer, "/custom/root", "very_long_map_name"),
+    );
+    try std.testing.expectError(
+        error.NameTooLong,
+        pin_path.buildProgramPinPath(&buffer, "/custom/root", "very_long_program_name"),
     );
 }
