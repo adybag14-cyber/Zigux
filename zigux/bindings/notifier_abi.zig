@@ -115,7 +115,6 @@ pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
                 .actual_prev = cursor.prev,
             };
         }
-
         expected_prev = @intFromPtr(cursor);
         current_index += 1;
         cursor = listHeadFromRaw(cursor.next) orelse {
@@ -157,7 +156,6 @@ pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
                 .actual_pprev = node.pprev,
             };
         }
-
         expected_pprev = @intFromPtr(&node.next);
         current_index += 1;
         cursor = hlistNodeFromRaw(node.next);
@@ -183,7 +181,6 @@ test "notifier block layout stays aligned with the exported ABI header" {
         (@sizeOf(usize) * 2) + @sizeOf(i32),
         @alignOf(NotifierBlock),
     );
-
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
@@ -199,7 +196,10 @@ test "notifier block layout stays aligned with the exported ABI header" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierChainPriorityIncrease, "previous_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierChainPriorityIncrease, "current_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierChainPriorityIncrease, "previous_priority"));
-    try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(NotifierChainPriorityIncrease, "current_priority"));
+    try std.testing.expectEqual(
+        @as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)),
+        @offsetOf(NotifierChainPriorityIncrease, "current_priority"),
+    );
     try std.testing.expectEqual(increase_expected_size, @sizeOf(NotifierChainPriorityIncrease));
 }
 
@@ -355,11 +355,15 @@ test "list helper accepts a sentinel-only list" {
     try std.testing.expect(listHasConsistentBacklinks(&head));
 }
 
+test "list helper treats a null head as absent rather than consistent" {
+    try std.testing.expect(firstBrokenBacklink(null) == null);
+    try std.testing.expect(!listHasConsistentBacklinks(null));
+}
+
 test "list helper rejects a broken backlink" {
     var head = ListHead{ .next = 0, .prev = 0 };
     var first = ListHead{ .next = 0, .prev = 0 };
     var second = ListHead{ .next = 0, .prev = 0 };
-
     head.next = @intFromPtr(&first);
     head.prev = @intFromPtr(&second);
     first.next = @intFromPtr(&second);
@@ -376,15 +380,20 @@ test "list helper rejects a broken backlink" {
 
 test "hlist helper accepts an empty head" {
     const head = HListHead{ .first = 0 };
+
     try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
+}
+
+test "hlist helper treats a null head as absent rather than consistent" {
+    try std.testing.expect(firstBrokenPrevLink(null) == null);
+    try std.testing.expect(!hlistHasConsistentPrevLinks(null));
 }
 
 test "hlist helper rejects a broken prev-link" {
     var head = HListHead{ .first = 0 };
     var first = HListNode{ .next = 0, .pprev = 0 };
     var second = HListNode{ .next = 0, .pprev = 0 };
-
     head.first = @intFromPtr(&first);
     first.next = @intFromPtr(&second);
     first.pprev = @intFromPtr(&head.first);
