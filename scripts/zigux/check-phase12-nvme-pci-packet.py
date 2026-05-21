@@ -64,6 +64,7 @@ EXPECTED_ROADMAP_GAP_CHECK = {
         "status": "recovery_budget_summary_and_survey_gate_present_throughput_gate_missing",
         "current_surface_markers": (
             "reset freeze state",
+            "recovery reservation replay preflight",
             "PRP span pressure",
             "frozen queue-restore host-DMA budgeting",
         ),
