@@ -86,6 +86,56 @@ test "runtime bitmap loader keeps loaded cross-word summary stable through selft
     try std.testing.expect(module.isSet(127));
 }
 
+test "runtime bitmap loader rejects re-selftest without disturbing lifecycle summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(load_plan.source_bit_list);
+    _ = try module.runSelftest();
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try expectSummaryStable(before_rejected_selftest, after_rejected_selftest);
+    try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_selftest.exit_runs, after_rejected_selftest.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+
+    try module.exit();
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_rejected_exit_selftest, after_rejected_exit_selftest);
+    try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+}
+
 test "runtime bitmap loader rejects re-init after a loaded payload without disturbing the initialized summary" {
     var module = RuntimeBitmapSample{};
     try module.initFromBitList(load_plan.source_bit_list);
