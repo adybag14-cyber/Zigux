@@ -19,6 +19,14 @@ fn expectMissingPath(path: []const u8) !void {
     try std.testing.expectError(error.FileNotFound, readRepoFile(path));
 }
 
+fn expectOrderedMarkers(contents: []const u8, earlier: []const u8, later: []const u8) !void {
+    const earlier_index = std.mem.indexOf(u8, contents, earlier);
+    const later_index = std.mem.indexOf(u8, contents, later);
+    try std.testing.expect(earlier_index != null);
+    try std.testing.expect(later_index != null);
+    try std.testing.expect(earlier_index.? < later_index.?);
+}
+
 test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
     try expectExistingPath(".github/workflows/zigux-bootstrap.yml");
     try expectExistingPath("Documentation/zigux/README.md");
@@ -74,6 +82,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-exec-cmd-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-help-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase8: phase8-validate phase8-exec-cmd-test") != null);
 
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml");
     defer std.testing.allocator.free(workflow);
@@ -83,6 +92,8 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-exec-cmd-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase8-test") != null);
+    try expectOrderedMarkers(workflow, "make -C zigux phase8-validate", "Run focused Phase 8 exec-cmd tests");
+    try expectOrderedMarkers(workflow, "Run focused Phase 8 exec-cmd tests", "make -C zigux phase8-exec-cmd-test");
 }
 
 test "phase 8 exec-cmd review witness keeps the later workqueue study boundary explicit" {
