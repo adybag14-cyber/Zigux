@@ -89,6 +89,7 @@
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
