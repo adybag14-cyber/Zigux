@@ -25,6 +25,7 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-focused-packet-checker\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-release-validator-companion\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-reviewability-gate\"");
+    try requireContains(manifest_text, "\"id\": \"phase13-notifier-priority-signal-gap\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-chain-helper-gap\"");
     try requireContains(manifest_text, "\"id\": \"phase13-build-route-gap\"");
 }
@@ -44,6 +45,30 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "`scripts/zigux/validate-phase13-release.py`");
     try requireContains(survey, "`make -C zigux phase13-validate`");
     try requireContains(survey, "focused checker");
+    try requireContains(survey, "repo-reality gaps");
+}
+
+test "phase13 notifier summary gap and release validator keep the adjacent packet explicit" {
+    const summary_gap = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-notifier-summary-gap.md");
+    defer std.testing.allocator.free(summary_gap);
+
+    try requireContains(summary_gap, "`scripts/zigux/check-phase13-notifier-packet.py`");
+    try requireContains(summary_gap, "`zigux/tests/phase13_notifier_list_manifest.json`");
+    try requireContains(summary_gap, "`zigux/tests/phase13_notifier_list_reviewability.zig`");
+    try requireContains(summary_gap, "`zigux/helpers/list_view.zig`");
+    try requireContains(summary_gap, "`zigux/helpers/hlist_view.zig`");
+    try requireContains(summary_gap, "`zigux/helpers/notifier_chain_view.zig`");
+    try requireContains(summary_gap, "`scripts/zigux/validate-phase13-release.py`");
+    try requireContains(summary_gap, "`make -C zigux phase13-validate`");
+    try requireContains(summary_gap, "repo-reality gaps");
+
+    const release_validator = try readRepoFile(std.testing.allocator, "scripts/zigux/validate-phase13-release.py");
+    defer std.testing.allocator.free(release_validator);
+
+    try requireContains(release_validator, "Documentation/zigux/phase13-notifier-summary-gap.md");
+    try requireContains(release_validator, "`scripts/zigux/check-phase13-notifier-packet.py`");
+    try requireContains(release_validator, "`zigux/tests/phase13_notifier_list_manifest.json`");
+    try requireContains(release_validator, "`zigux/tests/phase13_notifier_list_reviewability.zig`");
 }
 
 test "phase13 notifier checker stays explicit in the focused reviewability gate" {
