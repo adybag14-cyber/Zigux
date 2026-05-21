@@ -348,6 +348,9 @@ Keep the directly readable tests-root Phase 15 governance packet explicit throug
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
@@ -361,6 +364,10 @@ Current `master` does materialize `zigux/tests/phase15_architecture_council_revi
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.
+
+Current `master` does materialize `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep that focused lane-sequencing manifest-plus-replay pair in the directly readable governance packet instead of leaving the Architecture Council maintenance route undercounted.
+
+Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, so keep that machine-readable parity scorecard companion explicit beside `zigux/tests/phase15_parity_scorecard.zig` in the directly readable governance packet instead of carrying the scorecard as replay-only evidence.
 
 Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
