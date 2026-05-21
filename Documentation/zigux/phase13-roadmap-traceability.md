@@ -38,6 +38,8 @@ When shared Phase 13 wording changes, keep these current reminder surfaces align
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/validate-phase13-release.py`
 
+Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the stable contributor-facing handle. Keep the broader docs-root, checklist, release-note, summary-gap, notifier-gap, contributor-sync, and tests-root companion packet aligned as supporting reminder surfaces instead of flattening that wider packet into the stable handle itself.
+
 Keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`. The returned file is current repo evidence again, but those route names still are not the stable shared Phase 13 handle.
 
 ## Traceability Snapshot
@@ -50,7 +52,7 @@ Use this compact reread before editing the broader Phase 13 packet.
 - shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`
 
-Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface.
+Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and keep the broader docs-root, checklist, release-note, shared-summary-gap, notifier-gap, contributor-sync, and tests-root companion packet explicit as supporting reminder surfaces.
 
 Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, and the surrounding shared reminder packet, while the Phase 13 Makefile route family still remains missing.
 
