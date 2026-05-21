@@ -73,6 +73,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "getValue8 reads aligned bytes from bitmap words"',
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
     'test "find last bit scans backward across words"',
     'test "find last bit ignores storage beyond an exact word boundary"',
     'test "find last bit clamps tail words to nbits"',
@@ -125,6 +126,7 @@ EXPECTED_MANIFEST_PACKET = {
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "single_word_tail_inclusive_boundary_anchor": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
     "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
     "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
     "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
@@ -157,7 +159,7 @@ EXPECTED_MANIFEST_PACKET = {
         "tail_inclusive_boundary_zero",
         "tail_inclusive_boundary_and",
     ],
-    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
+    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
     "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families.",
 }
 
@@ -289,19 +291,34 @@ def build_sample_repo(root: Path) -> None:
     )
 
 
+def mutate_remove_review_key(root: Path, helper: str, key: str) -> None:
+    manifest_path = root / MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    del manifest["review_anchors"][helper][key]
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def mutate_bad_review_value(root: Path, helper: str, key: str) -> None:
+    manifest_path = root / MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["review_anchors"][helper][key] = "drifted value"
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     cases = [
         ("missing_helper", "missing_file:tools/lib/find_bit.zig"),
         ("missing_direct_owner_line", "lane_line:- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`:expected=1:actual=0"),
         ("missing_next_safe_step_line", "lane_line:- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families`:expected=1:actual=0"),
         ("missing_symbol", "helper_symbol:pub fn findLastBit(addr: []const Word, nbits: usize) usize {:expected=1:actual=0"),
-        ('missing_anchor', 'helper_anchor:test "clump8 scans mask tail bits beyond nbits":expected=1:actual=0'),
+        ('missing_anchor', 'helper_anchor:test "single-word tail windows keep the last in-range next matches reachable from an inclusive start":expected=1:actual=0'),
         ("missing_closure_paragraph", "closure_paragraph:expected=1:actual=0"),
         ("missing_closure_no_read_sentence", "closure_no_read_sentence:expected=1:actual=0"),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
+        ("manifest_missing_single_word_tail_anchor", "manifest:single_word_tail_inclusive_boundary_anchor:expected_current_packet"),
         ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
         ("tail_boundary_fixture_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
-        ('duplicate_anchor', 'helper_anchor:test "clump8 scans mask tail bits beyond nbits":expected=1:actual=2'),
+        ('duplicate_anchor', 'helper_anchor:test "single-word tail windows keep the last in-range next matches reachable from an inclusive start":expected=1:actual=2'),
         ('duplicate_source_only_anchor', 'helper_source_only_anchor:test "clump8 past-end scans return without reading bitmap words":expected=1:actual=2'),
         ("duplicate_lane_paragraph", "lane_paragraph:expected=1:actual=2"),
         ("duplicate_closure_paragraph", "closure_paragraph:expected=1:actual=2"),
@@ -334,8 +351,8 @@ def run_self_test() -> int:
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
 
-        build_sample_repo(tmp_root)
-        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[17] + "\n", "", 1)
+        build_sampleRepo(tmp_root)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[23] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_anchor")
@@ -360,25 +377,30 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-review:self-test:manifest_drift")
 
         build_sample_repo(tmp_root)
+        mutate_remove_review_key(tmp_root, "tools/lib/find_bit.zig", "single_word_tail_inclusive_boundary_anchor")
+        if cases[8][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_missing_single_word_tail_anchor")
+
+        build_sample_repo(tmp_root)
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["find_bit"]["tail_clamped_last"] = 0
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[8][1] not in collect_failures(tmp_root):
+        if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_drift")
 
         build_sample_repo(tmp_root)
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["find_bit"]["tail_inclusive_boundary_and"] = 0
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[9][1] not in collect_failures(tmp_root):
+        if cases[10][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:tail_boundary_fixture_drift")
 
         build_sample_repo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL)
-        duplicated = EXPECTED_HELPER_TEST_ANCHORS[17]
+        duplicated = EXPECTED_HELPER_TEST_ANCHORS[23]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[10][1] not in collect_failures(tmp_root):
+        if cases[11][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_anchor")
 
         build_sample_repo(tmp_root)
@@ -386,7 +408,7 @@ def run_self_test() -> int:
         duplicated = EXPECTED_SOURCE_ONLY_ANCHORS[0]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[11][1] not in collect_failures(tmp_root):
+        if cases[12][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_source_only_anchor")
 
         build_sample_repo(tmp_root)
@@ -397,7 +419,7 @@ def run_self_test() -> int:
             1,
         )
         write_text(tmp_root, LANE_NOTE_REL, lane_text)
-        if cases[12][1] not in collect_failures(tmp_root):
+        if cases[13][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_lane_paragraph")
 
         build_sample_repo(tmp_root)
@@ -408,7 +430,7 @@ def run_self_test() -> int:
             1,
         )
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
-        if cases[13][1] not in collect_failures(tmp_root):
+        if cases[14][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_closure_paragraph")
 
         build_sample_repo(tmp_root)
@@ -419,11 +441,11 @@ def run_self_test() -> int:
             1,
         )
         write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
-        if cases[14][1] not in collect_failures(tmp_root):
+        if cases[15][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_closure_no_read_sentence")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
@@ -443,7 +465,7 @@ def main() -> int:
             print(failure)
         return 1
 
-    print(f"PHASE1_FIND_BIT_REVIEW_PACKET=pass")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET=pass")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_HELPER={HELPER_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_MANIFEST={MANIFEST_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_FIXTURE={FIXTURE_REL.as_posix()}")
