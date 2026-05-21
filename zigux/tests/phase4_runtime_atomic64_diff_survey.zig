@@ -176,7 +176,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     );
     try expectOrderedMarkersInSection(
         perf_baseline_manifest_source,
-        "\"atomic\": {",
+        "\"atomic64\": {",
         "\"bitmap\": {",
         &.{
             "\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
