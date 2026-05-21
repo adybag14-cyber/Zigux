@@ -55,11 +55,15 @@ slice, teardown note, and remove-handoff note keep the bounded
 `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
-`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
-`registrationPlanSummary()`, `registerDeviceCallSummary()`,
-`registerDeviceFailureSummary()`, `requestStop()`, and
-`summarizeTeardown()` checkpoint names reviewable as driver-backed teardown and
-failure-mode surfaces.
+`registrationHandoffSummary()`, `registrationPlanSummary()`,
+`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
+`requestStop()`, and `summarizeTeardown()` checkpoint names directly reviewable
+as driver-backed teardown and failure-mode surfaces.
+
+`nowayoutPolicySummary()` remains a current-head driver-local checkpoint that
+this packet can cite, but the focused proof currently exercises the same
+stop-policy split through `requestStop()` and `summarizeTeardown()` rather than
+through a standalone nowayout-only replay.
 
 ## Teardown And Failure-Mode Review Surface
 
@@ -69,9 +73,13 @@ failure-mode surfaces.
   and teardown checkpoint names directly readable without claiming live side
   effects.
 - direct proof anchor: `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
-  keeps the first bounded `devm_watchdog_register_device()` request surface and
-  its paired failure summary explicitly reviewable without claiming live
-  watchdog-core registration.
+  keeps the first bounded `devm_watchdog_register_device()` request surface,
+  the paired register-device failure summary, and the teardown-facing
+  stop-policy split explicit without claiming live watchdog-core registration.
+- nowayout evidence boundary: treat `nowayoutPolicySummary()` as driver-local
+  evidence for the current packet and treat `requestStop()` plus
+  `summarizeTeardown()` as the direct proof route for the bounded nowayout,
+  stopped, and kept-running split until a future gpio-only replay lands.
 - teardown handoff: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
   keeps the bounded stop-request split, reboot-glue transition, and
   register-device failure cues explicit without claiming live remove-hook or
@@ -96,6 +104,9 @@ failure-mode surfaces.
 - Keep teardown and failure-mode parity bounded to the current driver, direct
   proof, and directly coupled docs packet until a later repo change restores
   wider replay or build-route surfaces.
+- Do not describe the current packet as having a standalone nowayout-only replay
+  route. The current direct proof keeps that stop-policy split reviewable
+  through `requestStop()` and `summarizeTeardown()`.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
   `watchdog_stop_on_reboot()` execution,
