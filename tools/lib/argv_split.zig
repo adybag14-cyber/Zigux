@@ -55,6 +55,12 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
     var idx: usize = 0;
     var arg_idx: usize = 0;
+    errdefer {
+        for (argv[0..arg_idx]) |arg| {
+            allocator.free(arg);
+        }
+    }
+
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
         if (idx >= text.len) {
@@ -63,11 +69,6 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
         const end = skipArg(text, idx);
         argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
-        errdefer {
-            for (argv[0..arg_idx + 1]) |arg| {
-                allocator.free(arg);
-            }
-        }
         arg_idx += 1;
         idx = end;
     }
@@ -84,6 +85,11 @@ pub fn argvFree(result: *ArgvSplitResult) void {
 
 pub const argv_split = argvSplit;
 pub const argv_free = argvFree;
+
+fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const u8) !void {
+    var result = try argvSplit(allocator, text);
+    defer result.deinit();
+}
 
 test "argvSplit matches the phase 1 committed fixture shape" {
     var result = try argvSplit(std.testing.allocator, "alpha beta gamma");
@@ -112,4 +118,12 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
     defer argv_free(&only_spaces);
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
+}
+
+test "argvSplit frees duplicated arguments when a later allocation fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitWithFailingAllocator,
+        .{"alpha beta gamma"},
+    );
 }
