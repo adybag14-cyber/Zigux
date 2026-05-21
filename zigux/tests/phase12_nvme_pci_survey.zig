@@ -215,3 +215,22 @@ test "phase12 nvme pci survey gate keeps the make wrapper surface explicit" {
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-smoke phase12-test") != null);
 }
+
+test "phase12 nvme pci survey gate keeps the current recovery helper packet explicit" {
+    const helper_source = try readFileAlloc("drivers/nvme/host/pci.zig", 32 * 1024);
+    defer std.testing.allocator.free(helper_source);
+
+    const direct_replay = try readFileAlloc("zigux/tests/phase12_nvme_pci.zig", 32 * 1024);
+    defer std.testing.allocator.free(direct_replay);
+
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "planRecoveryReservationReplay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "recoveryReservationReplayDebtSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "recoveryQueueRestoreSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "summarizeDroppedIoRetirement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "recoveryRollbackGateSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "queueRestartSummary") == null);
+
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_replay, "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers") != null);
+}
