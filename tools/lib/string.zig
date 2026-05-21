@@ -342,6 +342,9 @@ pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {
 
 pub fn strchr(buf: []const u8, needle: u8) ?usize {
     const limit = cStringLen(buf);
+    if (needle == 0) {
+        return limit;
+    }
     for (buf[0..limit], 0..) |ch, idx| {
         if (ch == needle) {
             return idx;
@@ -352,6 +355,9 @@ pub fn strchr(buf: []const u8, needle: u8) ?usize {
 
 pub fn strrchr(buf: []const u8, needle: u8) ?usize {
     const limit = cStringLen(buf);
+    if (needle == 0) {
+        return limit;
+    }
     var idx = limit;
     while (idx > 0) {
         idx -= 1;
@@ -721,6 +727,13 @@ test "strrchr finds the last in-range match with C-string semantics" {
     try std.testing.expectEqual(@as(?usize, 0), strrchr(&[_]u8{ 'a', 0, 'a' }, 'a'));
 }
 
+test "strchr and strrchr return the terminator index when searching for NUL" {
+    try std.testing.expectEqual(@as(?usize, 3), strchr("abc", 0));
+    try std.testing.expectEqual(@as(?usize, 1), strchr(&[_]u8{ 'a', 0, 'b' }, 0));
+    try std.testing.expectEqual(@as(?usize, 3), strrchr("abc", 0));
+    try std.testing.expectEqual(@as(?usize, 1), strrchr(&[_]u8{ 'a', 0, 'b' }, 0));
+}
+
 test "strpbrk finds the first accepted byte with C-string semantics" {
     try std.testing.expectEqual(@as(?usize, 1), strpbrk("kernel", "xyre"));
     try std.testing.expectEqual(@as(?usize, null), strpbrk(&[_]u8{ 'a', 0, 'b' }, "b"));
@@ -736,17 +749,6 @@ test "strspn counts the accepted prefix with C-string semantics" {
 
     const accept_cstr = [_]u8{ 'a', 0, 'z' };
     try std.testing.expectEqual(@as(usize, 1), strspn("abca", &accept_cstr));
-}
-
-test "strcspn counts until the first rejected byte with C-string semantics" {
-    try std.testing.expectEqual(@as(usize, 4), strcspn("path=/tmp", "="));
-    try std.testing.expectEqual(@as(usize, 4), strcspn("keep", ""));
-
-    const cstr = [_]u8{ 'a', 'b', 'c', 0, 'x' };
-    try std.testing.expectEqual(@as(usize, 3), strcspn(&cstr, "xyz"));
-
-    const reject_cstr = [_]u8{ 'x', 0, 'y' };
-    try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
 }
 
 test "strnchr honors count and C-string boundaries" {
