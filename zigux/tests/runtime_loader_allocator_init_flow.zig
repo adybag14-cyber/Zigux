@@ -99,3 +99,28 @@ test "shared runtime loader keeps initialized-stage bitmap and kretprobe request
     try expectPreparedRequestStable(bitmap_request, bitmap_pending, .released_without_substrate);
     try expectPreparedRequestStable(kretprobe_request, kretprobe_pending, .released_without_substrate);
 }
+
+test "shared runtime loader keeps prepared init-flow counters from drifting before handoff" {
+    const kretprobe_plan = makeInitializedPlan(
+        "runtime_kretprobe",
+        "samples/kprobes/kretprobe_example.c",
+        "zigux_runtime_kretprobe_init",
+        "zigux_runtime_kretprobe_exit",
+        .caller_provided,
+    );
+
+    var request = try runtime_loader.prepareRequest(kretprobe_plan);
+
+    request.plan.init_flow.init_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedRequestStable(request, kretprobe_plan, .prepared);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, kretprobe_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, kretprobe_plan));
+
+    request.plan = kretprobe_plan;
+    request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedRequestStable(request, kretprobe_plan, .prepared);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, kretprobe_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, kretprobe_plan));
+}
