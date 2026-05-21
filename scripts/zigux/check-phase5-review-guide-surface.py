@@ -110,6 +110,7 @@ SAMPLE_ROOT_MARKERS = (
     "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet or a fifth Phase 5 sample.",
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
     "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
+    "Fresh trusted mixed reread on 2026-05-20 also restored a narrower runtime bitmap sample-side packet on current `master`: direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`, while `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the shared `zigux/tests/phase9_build.zig` bundle keep the same sample-side reminder packet explicit, and `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` still remain absent on the same trusted path. Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.",
 )
 
 FORBIDDEN_GUIDE_TEXT = (
@@ -221,7 +222,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 15
+    expected_case_count = 16
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -385,6 +386,7 @@ def run_self_test() -> int:
                     SAMPLE_ROOT_MARKERS[2],
                     SAMPLE_ROOT_MARKERS[3],
                     SAMPLE_ROOT_MARKERS[4],
+                    SAMPLE_ROOT_MARKERS[5],
                 ),
             ),
         )
@@ -405,6 +407,7 @@ def run_self_test() -> int:
                     SAMPLE_ROOT_MARKERS[1],
                     SAMPLE_ROOT_MARKERS[2],
                     SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[5],
                 ),
             ),
         )
@@ -412,6 +415,27 @@ def run_self_test() -> int:
         expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[4]}"]
         if failures != expected:
             raise AssertionError(f"unexpected sample-root bitmap failure: {failures}")
+        checks_run += 1
+
+        missing_sample_root_runtime_bitmap_packet_root = root / "missing_sample_root_runtime_bitmap_packet"
+        _seed(missing_sample_root_runtime_bitmap_packet_root)
+        _write(
+            missing_sample_root_runtime_bitmap_packet_root / SAMPLE_ROOT_PATH,
+            _placeholder_text(
+                SAMPLE_ROOT_PATH,
+                (
+                    SAMPLE_ROOT_MARKERS[0],
+                    SAMPLE_ROOT_MARKERS[1],
+                    SAMPLE_ROOT_MARKERS[2],
+                    SAMPLE_ROOT_MARKERS[3],
+                    SAMPLE_ROOT_MARKERS[4],
+                ),
+            ),
+        )
+        failures = collect_failures(missing_sample_root_runtime_bitmap_packet_root)
+        expected = [f"{SAMPLE_ROOT_PATH}:missing_text:{SAMPLE_ROOT_MARKERS[5]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected sample-root runtime-bitmap-packet failure: {failures}")
         checks_run += 1
 
         missing_direct_path_root = root / "missing_direct_path"
