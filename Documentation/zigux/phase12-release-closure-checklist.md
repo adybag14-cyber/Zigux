@@ -89,7 +89,9 @@ Before changing this checklist from open to closed, reread these files together:
 
 If the shared Phase 12 PMO packet drifts again, reread this checklist beside the shared release companions, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, current `zigux/Makefile`, the shared checker pair, and `.github/workflows/zigux-bootstrap.yml`, then refresh only the next smallest release-owned reminder or checker surface that understates the directly readable support bundle, the shipped `phase12-smoke`, `phase12-test`, and `phase12` wrapper split, or the docs-root and tests-root shared build gate while keeping `make -C zigux phase12-validate` framed as reminder-only vocabulary.
 
-Fresh repo-first rereads now keep the release-owned PMO notes current, so the next same-lane follow-through is checker-local exactness: harden `scripts/zigux/check-phase12-release-readiness-packet.py` if `Documentation/zigux/review-checklist.md` ever drops the shared fallback companion `Documentation/zigux/phase12-raw-github-coverage-survey.md` or the returned validator-side support bundle from the Phase 12 review prompt before reopening broader reminder wording.
+Fresh repo-first rereads now keep the review-checklist fallback and validator-bundle checker hardening current on `master`, so future same-lane follow-through should not loop back into that already-landed repair.
+
+The next honest same-lane follow-through is therefore reminder-side only: leave this checklist parked unless `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, or `zigux/tests/README.md` understates the directly readable support bundle, the shipped `phase12-smoke`, `phase12-test`, and `phase12` wrapper split, or the five-file shared `virtio_net` packet.
 
 If only `Documentation/zigux/phase12-raw-github-coverage-survey.md` needs exact readback evidence refresh, leave this checklist parked and let the neighboring `complex-drivers-infra` lane absorb that fallback-only follow-through first.
 
