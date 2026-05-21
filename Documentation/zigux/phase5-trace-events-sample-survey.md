@@ -5,7 +5,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 ## Status
 - `PHASE5_STATUS=verified-public-fallback-companion-truthfulness`
 - `PHASE5_SLICE=trace-events-reference-sample-readback`
-- `PHASE5_LANE_KEY=P5-L13`
+- `PHASE5_LANE_KEY=P5-L16`
 - `PHASE5_SURVEYED_COMMIT=51b8f2766be46cf0791ea33ca453d849777ecfba`
 - scope: keep the landed non-runtime trace-events packet reviewable through concrete sample evidence while recording which shared Phase 5 reminder surfaces are aligned on current `master` after the latest mixed reread
 
