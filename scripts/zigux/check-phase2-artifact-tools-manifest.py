@@ -265,8 +265,8 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
-        + len(EXPECTED_CONSUMER_MARKERS)
-        + len(EXPECTED_CONSUMER_MARKERS)
+        + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
+        + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
     )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
@@ -370,24 +370,26 @@ def run_self_test() -> int:
         checks_run += 1
 
         for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
-            build_self_test_root(root)
-            path = root / relative_path
-            path.write_text(path.read_text(encoding="utf-8").replace(markers[0], "", 1), encoding="utf-8")
-            assert ("MISSING_CONSUMER_MARKER", f"{relative_path}:{markers[0]}") in collect_issues(root)
-            checks_run += 1
+            for marker in markers:
+                build_self_test_root(root)
+                path = root / relative_path
+                path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
+                assert ("MISSING_CONSUMER_MARKER", f"{relative_path}:{marker}") in collect_issues(root)
+                checks_run += 1
 
         for relative_path, markers in EXPECTED_CONSUMER_MARKERS.items():
-            build_self_test_root(root)
-            path = root / relative_path
-            path.write_text(
-                path.read_text(encoding="utf-8").replace(markers[0], f"{markers[0]}\n{markers[0]}", 1),
-                encoding="utf-8",
-            )
-            assert (
-                "DUPLICATE_CONSUMER_MARKER",
-                f"{relative_path}:{markers[0]}:count=2",
-            ) in collect_issues(root)
-            checks_run += 1
+            for marker in markers:
+                build_self_test_root(root)
+                path = root / relative_path
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(marker, f"{marker}\n{marker}", 1),
+                    encoding="utf-8",
+                )
+                assert (
+                    "DUPLICATE_CONSUMER_MARKER",
+                    f"{relative_path}:{marker}:count=2",
+                ) in collect_issues(root)
+                checks_run += 1
 
         manifest_path.unlink()
         try:
