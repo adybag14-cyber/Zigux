@@ -112,7 +112,6 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
-        gap_path.writeText = None
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
                 "Fresh authenticated file checks in this run also show the scripts-root Phase 13 reminder is now the only remaining broader shared-surface drift.\n",
