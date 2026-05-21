@@ -884,7 +884,7 @@ def run_self_test() -> int:
             unreadable = resolve_path(root, path)
             unreadable.unlink()
             unreadable.mkdir(parents=True)
-            assert_systemExit_contains(lambda: collect_issues(root), "required file unreadable:")
+            assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
             unreadable.rmdir()
             checks_run += 1
 
