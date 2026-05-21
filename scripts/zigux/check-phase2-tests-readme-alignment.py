@@ -184,6 +184,13 @@ def read_json(path: Path) -> object:
         raise SystemExit(f"required json invalid: {path}: {exc}") from exc
 
 
+def read_manifest(path: Path) -> dict[str, object]:
+    payload = read_json(path)
+    if not isinstance(payload, dict):
+        raise SystemExit(f"required json has invalid top-level shape: {path}")
+    return payload
+
+
 def resolve_path(root: Path, path: Path) -> Path:
     try:
         rel = path.relative_to(ROOT)
@@ -236,7 +243,7 @@ def collect_missing_manifest_surfaces(strings: set[str]) -> list[tuple[str, str]
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
     docs_root_text = read_text(resolve_path(root, DOCS_ROOT_README))
-    phase2_tool_manifest = read_json(resolve_path(root, PHASE2_TOOL_MANIFEST))
+    phase2_tool_manifest = read_manifest(resolve_path(root, PHASE2_TOOL_MANIFEST))
     manifest_strings = collect_manifest_strings(phase2_tool_manifest)
     issues = collect_missing_markers(tests_readme_text, REQUIRED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS")
     issues.extend(collect_exact_count_markers(tests_readme_text, EXACT_COUNT_TESTS_README_MARKERS, "EXACT_COUNT_TESTS_README_MARKERS"))
@@ -299,7 +306,7 @@ def run_self_test() -> int:
         + len(FORBIDDEN_TESTS_README_MARKERS)
         + len(REQUIRED_DOCS_ROOT_MARKERS)
         + len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)
-        + 5
+        + 6
     )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -361,6 +368,16 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("invalid json did not abort")
+        build_self_test_root(root)
+        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
+        path.write_text("[]\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required json has invalid top-level shape" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid json shape did not abort")
         for path in (TESTS_README, DOCS_ROOT_README, PHASE2_TOOL_MANIFEST):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
