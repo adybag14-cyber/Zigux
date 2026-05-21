@@ -255,6 +255,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit",
         "resolveReadyBufferFdLookupReturnAtAttempt",
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit",
+        "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
         "resolveReadyBufferWindowLookupReturnAtAttempt",
         "materialized tools/lib/bpf Zigux segments keep stable libbpf type-name formatters explicit",
         "formatLibbpfBpfLinkType",
@@ -675,6 +676,16 @@ def run_self_test() -> int:
         verify_file.write_text(original_verify_file, encoding="utf-8")
 
         verify_file.write_text(
+            original_verify_file.replace("resolveReadyBufferWindowMappedSizeReturnAtAttempt", "", 1),
+            encoding="utf-8",
+        )
+        missing_ready_buffer_window_mapped_size_wrapper = validate_root(root)
+        expected_ready_buffer_window_mapped_size_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferWindowMappedSizeReturnAtAttempt"
+        if expected_ready_buffer_window_mapped_size_wrapper not in missing_ready_buffer_window_mapped_size_wrapper.missing_markers:
+            raise AssertionError("expected missing aggregate verifier ready-buffer window mapped-size wrapper marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
             original_verify_file.replace("resolveReadyBufferWindowLookupReturnAtAttempt", "", 1),
             encoding="utf-8",
         )
@@ -817,7 +828,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
