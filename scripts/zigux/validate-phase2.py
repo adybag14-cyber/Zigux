@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 69
+EXPECTED_SELF_TEST_CASE_COUNT = 71
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -398,6 +398,8 @@ def run_self_test() -> int:
                 EXPECTED_CHECKER_RELATIVE_PATHS[-1],
             ) in issues
             checks_run += 1
+            assert_run_validator_output_contains(root, "INVALID_CHECKER_ENTRY_TYPE_START")
+            checks_run += 1
 
             globals()["CHECKERS"] = original_checkers[:-1] + (Path("/tmp/outside.py"),)
             issues = collect_issues(root)
@@ -406,6 +408,8 @@ def run_self_test() -> int:
                 "MISSING_CHECKER_ENTRY",
                 EXPECTED_CHECKER_RELATIVE_PATHS[-1],
             ) in issues
+            checks_run += 1
+            assert_run_validator_output_contains(root, "CHECKER_OUTSIDE_ROOT_START")
             checks_run += 1
         finally:
             globals()["CHECKERS"] = original_checkers
