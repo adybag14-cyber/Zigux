@@ -148,6 +148,23 @@ test "top err_ptr encoding stays tagged and keeps value and pointer decoders clo
     try std.testing.expect(isTaggedInternalEntry(raw));
 }
 
+test "second rejected xa_value raw stays in the err lane" {
+    const overlapping_value = xa_value.safe_inline_limit + 2;
+    const raw = (overlapping_value << 1) | xa_value.value_tag_mask;
+    const slot = fromRaw(raw);
+
+    try std.testing.expect(!xa_value.canRepresent(overlapping_value));
+    try std.testing.expectEqual(err_ptr.err_floor + 2, raw);
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(!slot.isValue());
+    try std.testing.expect(slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?isize, -4093), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.value());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(raw));
+}
+
 test "constructor helpers keep each xarray slot lane explicit" {
     const null_slot = nullSlot();
     const value_slot = try fromValue(29);
