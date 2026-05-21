@@ -22,6 +22,7 @@ CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 HEXDUMP_PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+PHASE6_HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PHASE6_HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 
 REQUIRED_SNIPPETS = {
@@ -48,6 +49,23 @@ REQUIRED_SNIPPETS = {
     ],
     BASE64_SLICE_PATH: [
         "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+    ],
+    PHASE6_HELPER_EVIDENCE_MANIFEST_PATH: [
+        '      "key": "base64",',
+        '      "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",',
+        '        "scripts/zigux/check-phase6-base64-corpus-determinism.py"',
+        '      "current_perf_evidence": {',
+        '          "STD_PAD",',
+        '          "STD_NO_PAD",',
+        '          "URLSAFE_PAD",',
+        '          "URLSAFE_NO_PAD",',
+        '          "IMAP_PAD",',
+        '          "IMAP_NO_PAD"',
+        '        "iterations": 12000,',
+        '        "max_encode_slowdown_pct": 150,',
+        '        "max_decode_slowdown_pct": 325,',
+        '          "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",',
+        '          "make -C zigux phase6-base64-perf",',
     ],
     PHASE6_HELPER_PARITY_MANIFEST_PATH: [
         '      "key": "base64",',
@@ -185,6 +203,21 @@ SELF_TEST_CASES = [
         BASE64_SLICE_PATH,
         "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
         "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 16000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+    ),
+    (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '        "max_decode_slowdown_pct": 325,',
+        '        "max_decode_slowdown_pct": 350,',
+    ),
+    (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '          "IMAP_NO_PAD"',
+        '          "IMAP_NO_PADDING"',
+    ),
+    (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '          "make -C zigux phase6-base64-perf",',
+        '          "make -C zigux phase6-base64-benchmark",',
     ),
     (
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
