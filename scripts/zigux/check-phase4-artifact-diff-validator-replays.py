@@ -33,6 +33,8 @@ EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
 
 EXPECTED_WORKFLOW_REPLAY_MARKERS = [
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "run: python3 scripts/zigux/check-artifact-diff-contract.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
