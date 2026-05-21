@@ -10,8 +10,10 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 MAKEFILE = "zigux/Makefile"
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
+VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
+MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 
 CASE_FIXTURES = (
     {
@@ -79,6 +81,38 @@ EXPECTED_CASE_KEYS = tuple(
     (case["name"], case["expected_file"])
     for case in CASE_FIXTURES
 )
+EXPECTED_BRIDGE_EXPECTED_PACKET = tuple(case["expected_file"] for case in CASE_FIXTURES)
+EXPECTED_PROCESS_OUTPUT_PACKET = (
+    "abbreviated_version_expected.json",
+    "ambiguous_long_option_expected.json",
+    "invalid_option_expected.json",
+    "missing_long_dump_types_argument_expected.json",
+    "missing_long_reference_argument_expected.json",
+    "missing_reference_argument_expected.json",
+    "too_many_reference_files_expected.json",
+    "unsupported_long_option_expected.json",
+    "unexpected_long_help_argument_expected.json",
+)
+PROCESS_OUTPUT_FIXTURES = tuple(
+    f"zigux/tests/fixtures/genksyms_bridge/{name}"
+    for name in EXPECTED_PROCESS_OUTPUT_PACKET
+)
+EXPECTED_HELP_PACKET = ("help_expected.json",)
+EXPECTED_HELPER_LOCAL_ANCHORS = (
+    "genksyms bridge treats pure version requests as version command",
+    "genksyms bridge preserves repeated pure version invocations",
+    "genksyms bridge preserves empty inline long reference argument",
+    "genksyms bridge preserves empty inline abbreviated dump-types argument",
+    "parseArgs reports ambiguous abbreviated long options",
+    "genksyms bridge renders ambiguous long option failure like the fixture",
+    "genksyms bridge renders invalid short option failure like the fixture",
+    "genksyms bridge renders missing long option argument like the fixture",
+    "genksyms bridge renders missing short option argument like the fixture",
+    "genksyms bridge renders unexpected long option argument like the fixture",
+    "genksyms bridge appends usage after getopt-style parse failures",
+    "genksyms bridge leaves tool-local reference-limit failure message unchanged",
+    "genksyms bridge rejects more than sixteen reference files like the C harness",
+)
 
 HELP_USAGE = (
     "Usage:\n"
@@ -119,7 +153,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -252,6 +286,34 @@ def parse_args(argv: list[str]) -> dict[str, object]:
     }
 
 
+def build_expected_manifest() -> dict[str, object]:
+    return {
+        "tool": "scripts/zigux/genksyms.zig",
+        "status": "closed",
+        "mode": "bounded wrapper-first dual-implementation bridge",
+        "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
+        "fixture_case_source": CASES_FIXTURE,
+        "case_count": len(CASE_FIXTURES),
+        "cases": [case["name"] for case in CASE_FIXTURES],
+        "bridge_expected_packet": list(EXPECTED_BRIDGE_EXPECTED_PACKET),
+        "help_packet": list(EXPECTED_HELP_PACKET),
+        "process_output_packet": list(EXPECTED_PROCESS_OUTPUT_PACKET),
+        "helper_local_anchors": list(EXPECTED_HELPER_LOCAL_ANCHORS),
+    }
+
+
+def is_valid_process_output_payload(payload: object) -> bool:
+    if not isinstance(payload, dict):
+        return False
+    if set(payload.keys()) != {"stdout", "stderr", "exit_code"}:
+        return False
+    return (
+        isinstance(payload.get("stdout"), str)
+        and isinstance(payload.get("stderr"), str)
+        and isinstance(payload.get("exit_code"), int)
+    )
+
+
 def load_cases_payload(root: Path) -> tuple[list[dict[str, object]] | None, list[tuple[str, str]]]:
     raw_cases, read_issue = read_json(root, CASES_FIXTURE, "INVALID_CASES_FIXTURE_JSON")
     if read_issue is not None:
@@ -301,10 +363,42 @@ def load_cases_payload(root: Path) -> tuple[list[dict[str, object]] | None, list
     return validated_cases, []
 
 
+def validate_manifest_payload(payload: object) -> list[tuple[str, str]]:
+    if not isinstance(payload, dict):
+        return [("INVALID_MANIFEST_PAYLOAD", type(payload).__name__)]
+
+    expected = build_expected_manifest()
+    issues: list[tuple[str, str]] = []
+    for key in ("tool", "status", "mode", "fixture_root", "fixture_case_source", "case_count"):
+        if payload.get(key) != expected[key]:
+            issues.append(("MANIFEST_FIELD_MISMATCH", key))
+    if payload.get("cases") != expected["cases"]:
+        issues.append(("MANIFEST_CASE_PACKET_MISMATCH", MANIFEST_FIXTURE))
+    if payload.get("bridge_expected_packet") != expected["bridge_expected_packet"]:
+        issues.append(("MANIFEST_BRIDGE_EXPECTED_PACKET_MISMATCH", MANIFEST_FIXTURE))
+    if payload.get("help_packet") != expected["help_packet"]:
+        issues.append(("MANIFEST_HELP_PACKET_MISMATCH", MANIFEST_FIXTURE))
+    if payload.get("process_output_packet") != expected["process_output_packet"]:
+        issues.append(("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE))
+    if payload.get("helper_local_anchors") != expected["helper_local_anchors"]:
+        issues.append(("MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH", MANIFEST_FIXTURE))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for rel in (GENKSYMS_ZIG, HELP_FIXTURE, CASES_FIXTURE, *EXPECTED_FIXTURES, MAKEFILE, WORKFLOW):
+    for rel in (
+        GENKSYMS_ZIG,
+        VERSION_SIDE_EFFECT_TEST,
+        HELP_FIXTURE,
+        CASES_FIXTURE,
+        MANIFEST_FIXTURE,
+        *EXPECTED_FIXTURES,
+        *PROCESS_OUTPUT_FIXTURES,
+        MAKEFILE,
+        WORKFLOW,
+    ):
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
@@ -339,6 +433,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if help_payload != {"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}:
         issues.append(("HELP_FIXTURE_MISMATCH", HELP_FIXTURE))
 
+    manifest_payload, manifest_issue = read_json(root, MANIFEST_FIXTURE, "INVALID_MANIFEST_JSON")
+    if manifest_issue is not None:
+        issues.append(manifest_issue)
+        return issues
+    issues.extend(validate_manifest_payload(manifest_payload))
+    if issues:
+        return issues
+
     cases, case_issues = load_cases_payload(root)
     issues.extend(case_issues)
     if issues:
@@ -358,6 +460,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         actual_payload = parse_args(case["args"])
         if expected_payload != actual_payload:
             issues.append(("CASE_MISMATCH", case["name"]))
+
+    for rel in PROCESS_OUTPUT_FIXTURES:
+        payload, issue = read_json(root, rel, "INVALID_PROCESS_OUTPUT_FIXTURE_JSON")
+        if issue is not None:
+            issues.append(issue)
+            continue
+        if not is_valid_process_output_payload(payload):
+            issues.append(("PROCESS_OUTPUT_FIXTURE_PAYLOAD_MISMATCH", rel))
 
     return issues
 
@@ -401,11 +511,25 @@ def build_self_test_root(root: Path) -> None:
         GENKSYMS_ZIG,
         'const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");\n',
     )
+    write_text(
+        root,
+        VERSION_SIDE_EFFECT_TEST,
+        'test "genksyms bridge preserves version side effect before invalid long option" {}\n',
+    )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
     write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
+    write_text(root, MANIFEST_FIXTURE, json.dumps(build_expected_manifest(), indent=2) + "\n")
     for case in CASE_FIXTURES:
         rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
         write_text(root, rel, json.dumps(parse_args(case["args"]), indent=2) + "\n")
+    for rel in PROCESS_OUTPUT_FIXTURES:
+        exit_code = 0 if rel.endswith("abbreviated_version_expected.json") else 1
+        payload = {
+            "stdout": "",
+            "stderr": f"{Path(rel).name}\n",
+            "exit_code": exit_code,
+        }
+        write_text(root, rel, json.dumps(payload, indent=2) + "\n")
 
 
 def duplicate_exact_line(text: str, marker: str) -> str:
@@ -567,6 +691,28 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(root, MANIFEST_FIXTURE, "{broken\n")
+        assert ("INVALID_MANIFEST_JSON", MANIFEST_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        manifest = build_expected_manifest()
+        manifest["process_output_packet"] = manifest["process_output_packet"][:-1]
+        write_text(root, MANIFEST_FIXTURE, json.dumps(manifest, indent=2) + "\n")
+        assert ("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, PROCESS_OUTPUT_FIXTURES[0], "{broken\n")
+        assert ("INVALID_PROCESS_OUTPUT_FIXTURE_JSON", PROCESS_OUTPUT_FIXTURES[0]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, PROCESS_OUTPUT_FIXTURES[1], json.dumps({"stdout": "", "stderr": 7, "exit_code": 1}, indent=2) + "\n")
+        assert ("PROCESS_OUTPUT_FIXTURE_PAYLOAD_MISMATCH", PROCESS_OUTPUT_FIXTURES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         (root / HELP_FIXTURE).unlink()
         assert ("MISSING_REQUIRED_PATH", HELP_FIXTURE) in collect_issues(root)
         checks += 1
@@ -598,7 +744,7 @@ def main() -> int:
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + 5}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + len(PROCESS_OUTPUT_FIXTURES) + 7}")
     return 0
 
 
