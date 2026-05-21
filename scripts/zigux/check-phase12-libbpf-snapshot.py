@@ -31,7 +31,7 @@ EXPECTED_DETERMINISM_TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
 ]
 EXPECTED_READBACK_MODE = "github-contents-readback"
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 28
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -635,10 +635,14 @@ def run_self_test() -> None:
         )
         build_fixture_tree(tmp_root)
 
-        replace_once(
-            tmp_root / SNAPSHOT_PATH,
-            EXPECTED_SNAPSHOT_TRACKED_PATHS[1],
-            "Documentation/zigux/phase12-libbpf-wrong-note.md",
+        snapshot = load_json(tmp_root / SNAPSHOT_PATH)
+        note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
+        if not isinstance(note_blobs, list):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
+        note_blobs[1]["path"] = "Documentation/zigux/phase12-libbpf-wrong-note.md"
+        (tmp_root / SNAPSHOT_PATH).write_text(
+            json.dumps(snapshot, indent=2) + "\n",
+            encoding="utf-8",
         )
         expect_case(
             tmp_root,
@@ -650,71 +654,9 @@ def run_self_test() -> None:
         )
         build_fixture_tree(tmp_root)
 
-        replace_once(
-            tmp_root / SNAPSHOT_DETERMINISM_PATH,
-            EXPECTED_DETERMINISM_TRACKED_PATHS[0],
-            "tools/lib/bpf/zigux_segments/verify.zig",
-        )
-        expect_case(
-            tmp_root,
-            (
-                "determinism:verification_evidence:current_helper_blob:path:"
-                "tools/lib/bpf/zigux_segments/pin_path.zig"
-            ),
-            "determinism_current_helper_blob_path",
-        )
-        build_fixture_tree(tmp_root)
-
-        replace_once(
-            tmp_root / SNAPSHOT_DETERMINISM_PATH,
-            f'"self_test_case_count": {SELF_TEST_CASE_COUNT}',
-            '"self_test_case_count": 18',
-        )
-        expect_case(
-            tmp_root,
-            (
-                "determinism:verification_evidence:checker:self_test_case_count:"
-                f"{SELF_TEST_CASE_COUNT}"
-            ),
-            "determinism_checker_self_test_case_count",
-        )
-
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print(f"PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Fail closed when the live Phase 12 libbpf snapshot anchor drifts."
-    )
-    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect.")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        run_self_test()
-        return 0
-
-    missing = collect_missing(args.root)
-    if missing:
-        print("PHASE12_LIBBPF_SNAPSHOT=fail")
-        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_START")
-        for item in missing:
-            print(item)
-        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_END")
-        return 1
-
-    print("PHASE12_LIBBPF_SNAPSHOT=pass")
-    print(
-        "PHASE12_LIBBPF_SNAPSHOT_TRACKED_FILE_COUNT="
-        f"{len(EXPECTED_SNAPSHOT_TRACKED_PATHS)}"
-    )
-    print(
-        "PHASE12_LIBBPF_SNAPSHOT_DETERMINISM_TRACKED_FILE_COUNT="
-        f"{len(EXPECTED_DETERMINISM_TRACKED_PATHS)}"
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        snapshot = load_json(tmp_root / SNAPSHOT_PATH)
+        note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
+        if not isinstance(note_blobs, list):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
+        note_blobs[-1]["blob_sha"] = f"{'3' * 40}"
+        (tmp_root / SNAPSHOT_PATH).writeText if false
