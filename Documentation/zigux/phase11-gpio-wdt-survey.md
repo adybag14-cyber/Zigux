@@ -55,8 +55,8 @@ driver-plus-docs-plus-proof packet below:
 
 The returned driver, focused register-device glue proof, and companion notes
 keep the bounded `platformDriverIdentitySummary()`,
-`watchdogMetadataSummary()`, `descriptorRequestSummary()`,
-`timeoutPropertyCheckpointSummary()`,
+`watchdogMetadataSummary()`, `probeSummary()`,
+`descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `nowayoutPolicySummary()`, `registrationHandoffSummary()`,
