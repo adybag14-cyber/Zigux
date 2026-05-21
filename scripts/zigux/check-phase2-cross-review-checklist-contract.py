@@ -1,0 +1,582 @@
+#!/usr/bin/env python3
+"""Guard the review-checklist side of the rematerialized Phase 2 cross packet."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+MAKEFILE = ROOT / "zigux" / "Makefile"
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+
+ROUTE = "make -C zigux phase2-cross"
+SUPPORTED_TARGETS = ("x86_64-linux", "aarch64-linux")
+
+REVIEW_CHECKLIST_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`make -C zigux phase2-cross`",
+)
+
+PHASE2_NOTES_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit through the pinned `x86_64-linux` `archive_required` lane plus the `aarch64-linux` `route_contract_only` lane",
+    "`make -C zigux phase2-cross`",
+)
+
+SCRIPTS_README_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+)
+
+TESTS_README_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`make -C zigux phase2-cross`",
+)
+
+MAKEFILE_LINES = (
+    "phase2-cross:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
+)
+
+CHECKER_MARKERS = (
+    'ROUTE = "make -C zigux phase2-cross"',
+    'EXPECTED_FIXTURE_STATUS = "active"',
+    'ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")',
+    'print("PHASE2_DIRECT_CROSS_ROUTE=pass")',
+)
+
+ALIGNMENT_MARKERS = (
+    '`scripts/zigux/check-phase2-cross.py`',
+    '`scripts/zigux/check-phase2-cross-selftest-alignment.py`',
+    '`zigux/tests/fixtures/phase2_cross_targets.json`',
+)
+
+
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+
+
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def resolve_path(root: Path, path: Path) -> Path:
+    try:
+        return root / path.relative_to(ROOT)
+    except ValueError:
+        return root / path
+
+
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_exact_line_issues(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
+def load_expected_cross_contract(root: Path) -> tuple[list[str], dict[str, str]]:
+    payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+
+    archive_target_scope = upgrade_policy.get("archive_target_scope")
+    if not isinstance(archive_target_scope, list) or not archive_target_scope:
+        raise SystemExit(
+            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+        )
+
+    normalized_scope: list[str] = []
+    seen_scope: set[str] = set()
+    for value in archive_target_scope:
+        if not isinstance(value, str) or not value.strip():
+            raise SystemExit(
+                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        target = value.strip()
+        if target in seen_scope:
+            raise SystemExit(
+                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        if target not in SUPPORTED_TARGETS:
+            raise SystemExit(f"unsupported archive_target_scope target: {target}")
+        normalized_scope.append(target)
+        seen_scope.add(target)
+
+    expected_modes = {
+        target: ("archive_required" if target in seen_scope else "route_contract_only")
+        for target in SUPPORTED_TARGETS
+    }
+    return normalized_scope, expected_modes
+
+
+def collect_fixture_issues(root: Path) -> list[tuple[str, str]]:
+    archive_target_scope, expected_modes = load_expected_cross_contract(root)
+    payload = read_json(resolve_path(root, FIXTURE))
+    issues: list[tuple[str, str]] = []
+    if not isinstance(payload, dict):
+        return [("INVALID_FIXTURE_SHAPE", type(payload).__name__)]
+
+    if payload.get("phase") != "Phase 2":
+        issues.append(("INVALID_FIXTURE_FIELD", "phase"))
+    if payload.get("status") != "active":
+        issues.append(("INVALID_FIXTURE_FIELD", "status"))
+    if payload.get("route") != ROUTE:
+        issues.append(("INVALID_FIXTURE_FIELD", "route"))
+    if payload.get("archive_target_scope") != archive_target_scope:
+        issues.append(("INVALID_FIXTURE_FIELD", "archive_target_scope"))
+
+    cross_targets = payload.get("cross_targets")
+    if not isinstance(cross_targets, list) or not cross_targets:
+        issues.append(("INVALID_FIXTURE_FIELD", "cross_targets"))
+        return issues
+
+    actual_modes: dict[str, str] = {}
+    for entry in cross_targets:
+        if not isinstance(entry, dict):
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", type(entry).__name__))
+            continue
+        target = entry.get("target")
+        validation_mode = entry.get("validation_mode")
+        route = entry.get("route")
+        review_status = entry.get("review_status")
+        if not isinstance(target, str) or not target.strip():
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", "target"))
+            continue
+        target = target.strip()
+        if target in actual_modes:
+            issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
+        if route != ROUTE:
+            issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
+        if not isinstance(review_status, str) or not review_status.strip():
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+        if not isinstance(validation_mode, str) or not validation_mode:
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:validation_mode"))
+            continue
+        actual_modes[target] = validation_mode
+
+    if actual_modes != expected_modes:
+        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_modes, sort_keys=True)))
+    return issues
+
+
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, REVIEW_CHECKLIST)),
+            REVIEW_CHECKLIST_MARKERS,
+            "MISSING_REVIEW_CHECKLIST_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, PHASE2_NOTES)),
+            PHASE2_NOTES_MARKERS,
+            "MISSING_PHASE2_NOTES_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, SCRIPTS_README)),
+            SCRIPTS_README_MARKERS,
+            "MISSING_SCRIPTS_README_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, TESTS_README)),
+            TESTS_README_MARKERS,
+            "MISSING_TESTS_README_MARKER",
+        )
+    )
+    issues.extend(
+        collect_exact_line_issues(
+            read_text(resolve_path(root, MAKEFILE)),
+            MAKEFILE_LINES,
+            "MISSING_MAKEFILE_LINE",
+            "DUPLICATE_MAKEFILE_LINE",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, CHECKER)),
+            CHECKER_MARKERS,
+            "MISSING_CHECKER_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, ALIGNMENT_CHECKER)),
+            ALIGNMENT_MARKERS,
+            "MISSING_ALIGNMENT_MARKER",
+        )
+    )
+    issues.extend(collect_fixture_issues(root))
+    return issues
+
+
+def emit_issues(issues: list[tuple[str, str]]) -> int:
+    grouped: dict[str, list[str]] = {}
+    for code, value in issues:
+        grouped.setdefault(code, []).append(value)
+
+    print("PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT=fail")
+    for code, values in grouped.items():
+        print(f"{code}_START")
+        for value in values:
+            print(value)
+        print(f"{code}_END")
+    return 1
+
+
+def build_self_test_root(root: Path) -> None:
+    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_NOTES), "\n".join(PHASE2_NOTES_MARKERS) + "\n")
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
+    write_text(resolve_path(root, CHECKER), "\n".join(CHECKER_MARKERS) + "\n")
+    write_text(resolve_path(root, ALIGNMENT_CHECKER), "\n".join(ALIGNMENT_MARKERS) + "\n")
+    write_text(
+        resolve_path(root, TOOLCHAIN_POLICY),
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": ["x86_64-linux"],
+                    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    write_text(
+        resolve_path(root, FIXTURE),
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "status": "active",
+                "route": ROUTE,
+                "archive_target_scope": ["x86_64-linux"],
+                "cross_targets": [
+                    {
+                        "target": "x86_64-linux",
+                        "review_status": "pinned bootstrap archive",
+                        "validation_mode": "archive_required",
+                        "route": ROUTE,
+                    },
+                    {
+                        "target": "aarch64-linux",
+                        "review_status": "route contract only",
+                        "validation_mode": "route_contract_only",
+                        "route": ROUTE,
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+
+
+def remove_marker(text: str, marker: str) -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, "", 1)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def run_self_test() -> int:
+    checks_run = 0
+    expected_case_count = (
+        1
+        + len(REVIEW_CHECKLIST_MARKERS)
+        + len(PHASE2_NOTES_MARKERS)
+        + len(SCRIPTS_README_MARKERS)
+        + len(TESTS_README_MARKERS)
+        + len(MAKEFILE_LINES)
+        + len(MAKEFILE_LINES)
+        + len(CHECKER_MARKERS)
+        + len(ALIGNMENT_MARKERS)
+        + 16
+    )
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_review_checklist_") as tmp_dir:
+        root = Path(tmp_dir)
+
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_REVIEW_CHECKLIST_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in PHASE2_NOTES_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_NOTES)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_PHASE2_NOTES_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in SCRIPTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_SCRIPTS_README_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"),
+                encoding="utf-8",
+            )
+            assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in CHECKER_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, CHECKER)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_CHECKER_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in ALIGNMENT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, ALIGNMENT_CHECKER)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_ALIGNMENT_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["status"] = "closed"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_FIXTURE_FIELD", "status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["validation_mode"] = "archive_required"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["route"] = "make -C zigux phase2-toolchain"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ROUTE", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"].append(payload["cross_targets"][0].copy())
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("DUPLICATE_CROSS_TARGET_ENTRY", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
+        payload["archive_sha256"] = {"aarch64-linux": "3" * 64}
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        fixture_path = resolve_path(root, FIXTURE)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = ["aarch64-linux"]
+        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
+        fixture["cross_targets"][1]["validation_mode"] = "archive_required"
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
+        payload["archive_sha256"] = {"riscv64-linux": "3" * 64}
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "unsupported archive_target_scope target" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("unsupported archive target did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        path.write_text("{\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid fixture json did not abort")
+
+        build_self_test_root(root)
+        for path in (
+            REVIEW_CHECKLIST,
+            PHASE2_NOTES,
+            SCRIPTS_README,
+            TESTS_README,
+            MAKEFILE,
+            TOOLCHAIN_POLICY,
+            FIXTURE,
+            CHECKER,
+            ALIGNMENT_CHECKER,
+        ):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {path}")
+
+    assert checks_run == expected_case_count
+    print("PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT_SELF_TEST=pass")
+    print(f"PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Keep the review-checklist side of the current Phase 2 cross packet aligned."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="Write a current-like sample repository root and exit.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    if args.write_sample_root is not None:
+        build_self_test_root(args.write_sample_root.resolve())
+        return 0
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        return emit_issues(issues)
+
+    archive_target_scope, expected_modes = load_expected_cross_contract(args.root.resolve())
+    print("PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT=pass")
+    print(
+        "PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT_MARKER_COUNT="
+        f"{len(REVIEW_CHECKLIST_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_LINES) + len(CHECKER_MARKERS) + len(ALIGNMENT_MARKERS)}"
+    )
+    print(
+        "PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT_ARCHIVE_SCOPE_COUNT="
+        f"{len(archive_target_scope)}"
+    )
+    print(
+        "PHASE2_CROSS_REVIEW_CHECKLIST_CONTRACT_TARGET_COUNT="
+        f"{len(expected_modes)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
