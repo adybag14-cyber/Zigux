@@ -16,6 +16,8 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
+LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
+LIBBPF_SEGMENTS_BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 
 REQUIRED_FILES = (
@@ -28,6 +30,8 @@ REQUIRED_FILES = (
     MAKEFILE_PATH,
     BRIDGE_TEST_PATH,
     BOUNDARY_GUARD_PATH,
+    LIBBPF_SEGMENTS_TEST_PATH,
+    LIBBPF_SEGMENTS_BUILD_PATH,
     MANIFEST_PATH,
 )
 
@@ -100,6 +104,16 @@ REQUIRED_MARKERS = {
         "\"kind\\\": \\\"resource_boundary\\\"",
         "planTokenPreparation",
         "isMapReuseCompatible",
+    ),
+    LIBBPF_SEGMENTS_TEST_PATH: (
+        'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
+    ),
+    LIBBPF_SEGMENTS_BUILD_PATH: (
+        'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
+        '"phase8-libbpf-segment-verify-tests"',
+        '"Run focused Phase 8 libbpf segment verify build"',
     ),
     MANIFEST_PATH: (
         "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
