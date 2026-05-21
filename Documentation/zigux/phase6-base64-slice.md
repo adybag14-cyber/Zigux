@@ -39,7 +39,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current base64 helper surface exercised by this slice covers:
 
-- generic `chars`, `bytes`, `encode`, and `decode`
+- generic `chars`, `paddedChars`, `unpaddedChars`, `bytes`, `encode`, and `decode`
 - generic `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
 - variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
 - variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
@@ -62,9 +62,10 @@ The current tests check:
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - helper-local direct checks for `chars`, `bytes`, convenience-wrapper foreign-alphabet rejection, and exact-fit encode/decode buffer boundaries across the bounded std, URL-safe, and IMAP fixture packet
+- helper-local same-file sweeps for `paddedChars` and `unpaddedChars`
 - helper-local convenience parity between the generic and variant-pinned size, direct, slice, and allocator encode/decode entrypoints
 - destination-bounds failures before partial writes
-- exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
+- exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus the matching convenience-wrapper exact-fit and one-byte-short boundary proofs for std, URL-safe, and IMAP encode/decode wrappers before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 18 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`
 - exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate
