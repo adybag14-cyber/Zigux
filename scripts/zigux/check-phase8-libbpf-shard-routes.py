@@ -15,6 +15,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 
 REQUIRED_FILES = (
@@ -26,6 +27,7 @@ REQUIRED_FILES = (
     TESTS_README_PATH,
     MAKEFILE_PATH,
     BRIDGE_TEST_PATH,
+    BOUNDARY_GUARD_PATH,
     MANIFEST_PATH,
 )
 
@@ -90,6 +92,13 @@ REQUIRED_MARKERS = {
         "\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
         "\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
         "\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
+    ),
+    BOUNDARY_GUARD_PATH: (
+        "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge",
+        "\"slug\\\": \\\"file-path-and-handle-bridge\\\"",
+        "\"kind\\\": \\\"resource_boundary\\\"",
+        "planTokenPreparation",
+        "isMapReuseCompatible",
     ),
     MANIFEST_PATH: (
         "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
