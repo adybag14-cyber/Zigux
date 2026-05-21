@@ -17,6 +17,13 @@ const Manifest = struct {
     next_bounded_step: []const u8,
 };
 
+const direct_anchor_fallback_provenance_marker =
+    "Machine-readable fallback provenance stays explicit through " ++
+    "`public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, " ++
+    "which currently names only `zigux/tests/phase7_build.zig` because the other listed " ++
+    "shared or roadmap-aligned non-owner surfaces still rematerialized through authenticated " ++
+    "rereads in this slot.";
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -86,6 +93,7 @@ test "phase 7 rbtree survey keeps roadmap-path readback truthful without claimin
 
     try expectContains(direct_anchor_note, "Fresh current-master reread in this slot also confirmed these shared or roadmap-aligned non-owner surfaces:");
     try expectContains(direct_anchor_note, "- `lib/rbtree.zig`");
+    try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion surfaces:");
 
     try expectContains(helper, "pub fn rb_find_add_cached");
