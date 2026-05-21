@@ -76,6 +76,7 @@ BASE_CONTRACT_CASES = [
     "helper_self_test",
     "cli_help_output",
     "cli_missing_required_args",
+    "cli_missing_mode_value",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
     "cli_extra_positional_args",
@@ -321,6 +322,14 @@ def run_check(root: Path) -> int:
         write_text(expected, "alpha\nbeta\n")
         write_text(actual, "alpha\nbeta\n")
 
+        run_error_case(
+            root,
+            ["--mode"],
+            expected_exit=2,
+            expected_stdout=[],
+            expected_stderr=MISSING_ARGUMENT_ERROR,
+            repeat_count=2,
+        )
         run_error_case(
             root,
             ["--mode", "text", str(expected)],
