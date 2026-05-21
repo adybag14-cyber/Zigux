@@ -398,6 +398,43 @@ test "runGenksymsCrc preserves leading low control bytes in a visible split cont
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
 }
 
+test "runGenksymsCrc preserves leading low control bytes while trimming trailing carriage returns in a visible split continuation before the next line" {
+    var split_then_visible_controls_and_trailing_cr = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 10);
+    defer split_then_visible_controls_and_trailing_cr.deinit(std.testing.allocator);
+    try split_then_visible_controls_and_trailing_cr.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\x08');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\x0c');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\x01');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, 'b');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\r');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\r');
+    try split_then_visible_controls_and_trailing_cr.append(std.testing.allocator, '\n');
+    try split_then_visible_controls_and_trailing_cr.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(split_then_visible_controls_and_trailing_cr.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(split_then_visible_controls_and_trailing_cr.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const normalized_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("\x08\x0c\x01b")});
+    defer std.testing.allocator.free(normalized_crc);
+    const trailing_cr_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("\x08\x0c\x01b\r\r")});
+    defer std.testing.allocator.free(trailing_cr_crc);
+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(trimmed_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, normalized_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trailing_cr_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 3);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\b\\f\\u0001b\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\b\\f\\u0001b\\r\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
+}
+
 test "runGenksymsCrc preserves leading low control bytes in a visible EOF continuation" {
     var split_then_visible_controls = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 4);
     defer split_then_visible_controls.deinit(std.testing.allocator);
