@@ -42,25 +42,30 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L02`");
-    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-bitmap-manifest-readback`");
+    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-atomic64-direct-packet`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
+    try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
+    try expectContains(parity_note, "`samples/zigux/runtime_atomic64_loader.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_atomic64_module.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_atomic64_diff.zig`");
+    try expectContains(parity_note, "`zigux/tests/runtime_atomic64_survey.zig`");
+    try expectContains(parity_note, "`zigux/tests/runtime_atomic64_manifest.json`");
+    try expectContains(
+        parity_note,
+        "Current `master` now directly materializes the atomic64 sample, loader, survey, and manifest packet beside the already readable module, diff, and family-local note surfaces.",
+    );
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap.zig`");
+    try expectContains(parity_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
-    try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
-    try expectContains(parity_note, "`samples/zigux/runtime_atomic64_loader.zig`");
-    try expectContains(parity_note, "`zigux/tests/runtime_atomic64_survey.zig`");
-    try expectContains(parity_note, "`zigux/tests/runtime_atomic64_manifest.json`");
-    try expectContains(parity_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_diff.zig`");
+    try expectContains(parity_note, "These shared runtime-loader-facing surfaces are directly readable on current `master`:");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(parity_note, "manifest-backed ownership packet");
@@ -71,7 +76,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
     try expectContains(
         parity_note,
-        "those sample-test and loader-shared route names are reminder vocabulary rather than proof that the underlying packet returned",
+        "those surviving shared-loader and cross-family route names are reminder vocabulary rather than proof that the underlying Phase 9 parity target shipped",
     );
     try expectContains(parity_note, "does not yet materialize that target as a coherent cross-family packet");
     try expectContains(parity_note, "must not claim shipped cross-family loader parity");
@@ -79,7 +84,10 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         parity_note,
         "must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.",
     );
-    try expectContains(parity_note, "Leave `P9-L02` parked after this shared note refresh");
+    try expectContains(
+        parity_note,
+        "Leave `P9-L02` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet.",
+    );
 
     try expectContains(sample_root_readme, "Fresh trusted mixed reread on 2026-05-20 also restored a narrower runtime bitmap sample-side packet on current `master`");
     try expectContains(sample_root_readme, "direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `zigux/tests/runtime_bitmap_manifest.json`");
