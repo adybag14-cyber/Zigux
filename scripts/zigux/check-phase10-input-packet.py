@@ -283,7 +283,7 @@ CLOSURE_LAB_VALIDATION_EVIDENCE = [
 
 
 def read_text(root: Path, rel_path: str) -> str:
-    return (root /rel_path).read_text(encoding="utf-8")
+    return (root / rel_path).read_text(encoding="utf-8")
 
 
 def read_json(root: Path, rel_path: str) -> dict:
@@ -686,9 +686,10 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_file(root, "scripts/zigux/check-phase10-harness-coverage.py")
+        expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
