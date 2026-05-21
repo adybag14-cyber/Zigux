@@ -42,7 +42,7 @@ Keep the bounded destination discipline explicit in that same reminder packet to
 
 Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.
 
-Keep the sample-owned review contract explicit too: the broader companion packet now centralizes the exact `checked_focus` order `payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.
+Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.
 
 ## Exact checks run on 2026-05-20
 
@@ -57,7 +57,7 @@ The exact checks that passed were:
 
 Those checks confirmed this current sample behavior:
 
-- `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, renders `"iter=7"` with length `6`, and keeps the packet tied to the exact `checked_focus` order `payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime`.
+- `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, renders `"iter=7"` with length `6`, and keeps the packet tied to the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`.
 - `runStringFormattingCycleReplay()` now keeps the modulo-selected cycle directly reviewable too: it replays all five strings in order, renders `"iter=0"` through `"iter=4"`, stays in `.initialized`, and leaves `replay_runs` at `0`.
 - lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
 - bounded destination behavior is now directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage.
