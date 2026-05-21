@@ -52,7 +52,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
 REQUIRED_EVIDENCE_REPLAYS = [
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
-    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
 
