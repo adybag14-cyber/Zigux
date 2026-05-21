@@ -61,7 +61,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It records the 
     * the current shared smoke packet now has a directly readable release-facing exact-count checker, so later same-lane work should keep release-boundary wording aligned with the current route split instead of treating that guard as part of the missing executable layer
   * the directly readable workqueue boundary shard:
     * `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again on current `master`, so the shared smoke packet should keep the workqueue reviewability foothold explicit even while the broader executable layer stays partial
-    * workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `none currently recorded`, blocked `phase14-workqueue-live-execution-blocker`
+    * workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, current slice `phase14-workqueue-scheduler-visible-worker-state-refinement`, posture `blocked_maintenance`, blocked `phase14-workqueue-live-execution-blocker`
     * `phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`
   * the directly readable ring-buffer survey companion:
     * `zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again on current `master`, so the shared smoke packet should keep the study-only ring-buffer survey foothold explicit even while the build-side and broader executable layer stay partial
@@ -70,7 +70,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It records the 
     * broad reminder text should therefore frame that build-side and executable layer as exact-readback gaps rather than as directly recovered shared-smoke proof
   * packet-local command posture preserved by this note:
     * the current readable route layer still stops at `make -C zigux phase14-validate`; no current attached-toolchain `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux phase14` fallback is usable from this note because the readable `zigux/Makefile` body still omits those targets
-    * keep those older wrapper names recorded only as historical packet vocabulary until the same readback mode restores the broader Phase 14 Makefile routes on current `master`
+    * keep those older wrapper names recorded only as historical packet vocabulary until the same exact readback mode restores the missing broader Phase 14 Makefile routes on current `master`
   * current anchor posture reflected by the recovered documentation packet:
     * workqueue remains `Study / Boundary Only`
     * skbuff remains `Freeze In C Initially` and parked on `phase14-skbuff-live-ownership-blocker`
