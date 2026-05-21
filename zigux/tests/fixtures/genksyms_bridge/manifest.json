@@ -42,6 +42,8 @@
   "helper_local_anchors": [
     "genksyms bridge treats pure version requests as version command",
     "genksyms bridge preserves repeated pure version invocations",
+    "genksyms bridge preserves empty inline long reference argument",
+    "genksyms bridge preserves empty inline abbreviated dump-types argument",
     "parseArgs reports ambiguous abbreviated long options",
     "genksyms bridge renders ambiguous long option failure like the fixture",
     "genksyms bridge renders invalid short option failure like the fixture",
