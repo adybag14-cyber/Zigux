@@ -107,6 +107,31 @@ test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with res
     try std.testing.expectError(error.InvalidInteropPolicy, mmio.requireInteropPolicyBytes(1, 1));
 }
 
+test "phase3 low-level wrappers keep MMIO single-byte interop-policy shorthands explicit" {
+    var register: u32 = 0x00AA_5500;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    try std.testing.expectEqual(@as(u32, 0x00AA_5500), try mmio.readInteropPolicyByte(u32, 1, const_register_ptr));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readInteropPolicyByte(u32, 0, const_register_ptr));
+
+    try mmio.writeInteropPolicyByte(u32, 1, register_ptr, 0x1234_5678);
+    barrier.release();
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeInteropPolicyByte(u32, 2, register_ptr, 0));
+
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), try mmio.exchangeInteropPolicyByte(u32, 1, register_ptr, 0xCAFE_BABE));
+    barrier.acquireRelease();
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), register);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.exchangeInteropPolicyByte(u32, 0, register_ptr, 0));
+
+    const updated = try mmio.writeMaskedInteropPolicyByte(u32, 1, register_ptr, 0x00F0_0FF0, 0x000E_000E);
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0xCA0E_B00E), updated);
+    try std.testing.expectEqual(updated, register);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeMaskedInteropPolicyByte(u32, 2, register_ptr, 0xFFFF_0000, 0));
+}
+
 test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers explicit" {
     const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
     const mmio_policy = InteropPolicy{
