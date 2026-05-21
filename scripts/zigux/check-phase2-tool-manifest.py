@@ -299,6 +299,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             for entry in required_entries:
                 if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
+            if string_entries != list(required_entries):
+                issues.append(("SURFACE_ORDER_MISMATCH", category))
             for entry in string_entries:
                 if is_repo_relative_path(entry) and not (root / entry).exists():
                     issues.append(("MISSING_SURFACE_PATH", f"{category}:{entry}"))
@@ -317,6 +319,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
+        if string_notes != list(REQUIRED_NOTE_MARKERS):
+            issues.append(("NOTE_ORDER_MISMATCH", "notes"))
     return issues
 
 
@@ -361,14 +365,16 @@ def run_self_test() -> int:
         1
         + len(REQUIRED_TOP_LEVEL)
         + 1
-        + len(REQUIRED_PRESENT_SURFACES)
+        + sum(1 for entries in REQUIRED_PRESENT_SURFACES.values() if len(entries) > 1)
         + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
+        + len(REQUIRED_PRESENT_SURFACES)
         + len(REQUIRED_PRESENT_SURFACES)
         + len(REQUIRED_PRESENT_SURFACES)
         + len(iter_required_repo_paths())
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + 1
         + 1
         + 1
         + 1
@@ -426,6 +432,15 @@ def run_self_test() -> int:
                 write_text(root / entry, "present\n")
             assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
             checks_run += 1
+            if len(entries) > 1:
+                manifest = build_self_test_manifest()
+                reordered = manifest["present_surfaces"][category]
+                reordered[0], reordered[1] = reordered[1], reordered[0]
+                write_manifest(manifest_path, manifest)
+                for _, entry in iter_required_repo_paths():
+                    write_text(root / entry, "present\n")
+                assert ("SURFACE_ORDER_MISMATCH", category) in collect_issues(root)
+                checks_run += 1
 
         for category, entry in iter_required_repo_paths():
             build_self_test_root(root)
@@ -472,6 +487,14 @@ def run_self_test() -> int:
         for _, entry in iter_required_repo_paths():
             write_text(root / entry, "present\n")
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"][0], manifest["notes"][1] = manifest["notes"][1], manifest["notes"][0]
+        write_manifest(manifest_path, manifest)
+        for _, entry in iter_required_repo_paths():
+            write_text(root / entry, "present\n")
+        assert ("NOTE_ORDER_MISMATCH", "notes") in collect_issues(root)
         checks_run += 1
 
         manifest_path.unlink()
