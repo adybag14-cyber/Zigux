@@ -65,7 +65,7 @@ EXPECTED_INVALID_FIXTURE_SNIPPETS = [
 
 EXPECTED_PERF_TEST_SNIPPETS = [
     "fn validatePerfMatrix() !void {",
-    "const expected_payload_fingerprint: u64 = 0xcfb1_4153_5702_a392;",
+    "const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;",
     "for (expected, 0..) |want, idx| {",
     "for (fixtures.perf_cases, 0..) |case, idx| {",
     "try validatePerfMatrix();",
