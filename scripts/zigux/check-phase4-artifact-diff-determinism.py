@@ -10,6 +10,7 @@ from pathlib import Path
 
 SURVEY = Path("Documentation/zigux/phase4-artifact-diff-tooling-survey.md")
 PHASE4_NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+ARTIFACT_DIFF_NOTE = Path("Documentation/zigux/artifact-diff.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 REPO_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 PINS_CHECKER = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
@@ -42,6 +43,7 @@ EXPECTED_SELF_TEST_CASES = (
     "survey_packet_drift",
     "review_checklist_drift",
     "note_marker_drift",
+    "broader_note_marker_drift",
     "repo_warning_drift",
     "helper_mode_drift",
     "helper_catalog_drift",
@@ -50,9 +52,10 @@ EXPECTED_SELF_TEST_CASES = (
 )
 
 SURVEY_MARKERS = (
-    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_contract_and_validator_direct_readback_aligned_but_broader_note_still_partial_on_current_master",
+    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_contract_and_validator_direct_readback_aligned_broader_note_refreshed_via_public_raw_current_master",
     "current direct-readback helper-contract-and-validator packet:",
     "authenticated contents reads on current `master` still return missing for this broader artifact-diff companion:",
+    "public raw GitHub fallback still reaches `Documentation/zigux/artifact-diff.md`, and the broader note now matches the current 23-case helper / 25-base-case / 30-case contract packet even while authenticated contents reads still fail closed for that path",
     "`scripts/zigux/check-artifact-diff-contract.py` is directly readable again on current `master` and now exact-publishes the matching helper replay plus the 25-base-case / 30-case bytes-aware contract packet",
     "`scripts/zigux/validate-phase4.py` is directly readable again on current `master` and keeps the current artifact-diff helper, contract, determinism, and validator-replay checks explicit inside the shared Phase 4 validator packet.",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
@@ -69,6 +72,15 @@ NOTE_MARKERS = (
     "Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`, but public raw fallback rereads now return those files on current `master`, matching the broader review packet's recovered note-and-checker companions.",
     "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`",
+)
+
+ARTIFACT_DIFF_NOTE_MARKERS = (
+    "`scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.",
+    "`scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so the broader note, current 23-case helper self-test packet, current 25-base-case / 30-case contract packet, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.",
+    "`ARTIFACT_DIFF_SELF_TEST_BYTES` must prove both the shared digest pass line and the exact expected-vs-actual digest drift lines while the legacy `sha256` mode alias stays reviewable as a compatibility entrypoint",
+    "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23` and `ARTIFACT_DIFF_SELF_TEST_CASES` must stay aligned with the helper's published `--self-test` packet",
+    "`ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25`, `ARTIFACT_DIFF_CONTRACT_BASE_CASES`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASES`, `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30`, and `ARTIFACT_DIFF_CONTRACT_CASES` must stay aligned with the published contract replay packet",
+    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=11` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, review-note, broader-note, helper-summary, and contract-catalog drift coverage",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -272,6 +284,8 @@ def check(root: Path) -> None:
     require_paths_listed(survey, CURRENT_DIRECT_PACKET, SURVEY.as_posix())
     require_paths_listed(survey, AUTH_MISSING_BROADER_COMPANIONS, SURVEY.as_posix())
     require_markers(note, NOTE_MARKERS, PHASE4_NOTE.as_posix())
+    if (root / ARTIFACT_DIFF_NOTE).exists():
+        require_markers(read(root, ARTIFACT_DIFF_NOTE), ARTIFACT_DIFF_NOTE_MARKERS, ARTIFACT_DIFF_NOTE.as_posix())
     require_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, REVIEW_CHECKLIST.as_posix())
     require_markers(repo_warning, REPO_WARNING_MARKERS, REPO_WARNING.as_posix())
     require_current_helper_contract(helper_text)
@@ -321,6 +335,7 @@ def fixture_root(root: Path) -> None:
         + "\n",
     )
     write(root / PHASE4_NOTE, "\n".join(NOTE_MARKERS) + "\n")
+    write(root / ARTIFACT_DIFF_NOTE, "\n".join(ARTIFACT_DIFF_NOTE_MARKERS) + "\n")
     write(root / REVIEW_CHECKLIST, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
@@ -363,6 +378,10 @@ def self_test() -> None:
         fixture_root(root)
         write(root / PHASE4_NOTE, read(root, PHASE4_NOTE).replace("scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/not-the-right-checker.py", 1))
         covered.append(expect_failure(root, "note_marker_drift"))
+
+        fixture_root(root)
+        write(root / ARTIFACT_DIFF_NOTE, read(root, ARTIFACT_DIFF_NOTE).replace("`ARTIFACT_DIFF_SELF_TEST_BYTES`", "`ARTIFACT_DIFF_SELF_TEST_SHA256`", 1))
+        covered.append(expect_failure(root, "broader_note_marker_drift"))
 
         fixture_root(root)
         write(root / REPO_WARNING, read(root, REPO_WARNING).replace("scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/not-the-right-checker.py", 1))
