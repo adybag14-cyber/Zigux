@@ -89,6 +89,10 @@ README_WARNING_LINES = (
     "- `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`, so keep those installer and direct cross-route surfaces explicit beside the shipped toolchain and kbuild reminder packet instead of leaving them in repo-reality-gap wording",
 )
 
+README_WARNING_OCCURRENCE_MARKERS = tuple(
+    marker for marker in README_PRESENT_MARKERS if any(marker in line for line in README_WARNING_LINES)
+)
+
 README_FORBIDDEN_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so treat those installer and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/Makefile`",
@@ -112,6 +116,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(README_PRESENT_MARKERS)
     + len(README_PRESENT_MARKERS)
+    + len(README_WARNING_OCCURRENCE_MARKERS)
     + len(README_WARNING_LINES)
     + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
@@ -296,6 +301,15 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def replace_in_warning_line(text: str, marker: str, replacement: str) -> str:
+    for warning_line in README_WARNING_LINES:
+        if marker not in warning_line:
+            continue
+        updated_warning_line = warning_line.replace(marker, replacement, 1)
+        return text.replace(warning_line, updated_warning_line, 1)
+    raise AssertionError(f"warning-line marker not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kbuild_routes_") as tmp_dir:
@@ -335,6 +349,21 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             expected_count = expected_readme_present_count(marker) + 1
             assert ("DUPLICATE_README_PRESENT_MARKERS", f"{marker}:count={expected_count}") in issues
+            checks_run += 1
+
+        for marker in README_WARNING_OCCURRENCE_MARKERS:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(
+                replace_in_warning_line(
+                    readme_path.read_text(encoding="utf-8"),
+                    marker,
+                    "BROKEN_PRESENT_MARKER",
+                ),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
             checks_run += 1
 
         for marker in README_WARNING_LINES:
