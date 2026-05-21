@@ -200,6 +200,10 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
 
     try expectContains(matrix_doc, "flush intent");
     try expectContains(matrix_doc, "final-close teardown");
+    try expectContains(matrix_doc, "tty-registration handoff");
+    try expectContains(matrix_doc, "notifier-add open handoff");
+    try expectContains(matrix_doc, "khvcd polling-contract");
+    try expectContains(matrix_doc, "khvcd worker-entry");
     try expectContains(matrix_doc, "khvcd sleep-and-reschedule handoff");
     try expectContains(matrix_doc, "`__hvc_poll` drain-order");
     try expectContains(matrix_doc, "`hvc_hangup()` disconnect");
@@ -210,6 +214,10 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
 
     try expectContains(driver, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {");
     try expectContains(driver, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {");
+    try expectContains(driver, "pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {");
+    try expectContains(driver, "pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSummary {");
+    try expectContains(driver, "pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {");
+    try expectContains(driver, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {");
     try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");
     try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");
     try expectContains(driver, "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {");
@@ -224,6 +232,10 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
     try expectContains(driver, "test \"phase11 hvc console keeps flush intent summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps final-close teardown ownership summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps tty-registration handoff summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps notifier-add open handoff summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps khvcd polling-contract summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps khvcd worker-entry handoff reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
