@@ -168,7 +168,7 @@ REQUIRED_MARKERS = {
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
-        "- exact coverage evidence checked on `2026-05-20`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
+        "- exact coverage evidence checked on `2026-05-21`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
         *RAW_GITHUB_BRIDGE_MARKERS,
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, current Makefile, and current `zigux/tests/phase12_build.zig` as bounded reminder evidence only",
         "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
