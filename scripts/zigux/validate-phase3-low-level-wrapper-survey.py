@@ -190,7 +190,7 @@ REQUIRED_MARKERS = {
         "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
     ),
     MAKEFILE_PATH: (
-        "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-dump",
+        "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
         "phase3-low-level-wrappers-test:",
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     ),
