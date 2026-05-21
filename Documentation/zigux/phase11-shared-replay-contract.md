@@ -85,7 +85,11 @@ or `zigux/tests/phase11_build.zig` routes.
   HVC current-head continuity packet rather than a whole-Phase-11 replay roster
 - that inventory currently records 3 build test names, 0 shared
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
-  proof replays, 3 adjunct build replays, and 8 exact current-check commands
+  proof replays, 3 adjunct build replays, and 8 HVC current-head exact command
+  markers, while `scripts/zigux/validate-phase11.py` plus
+  `make -C zigux phase11-validate` keep the broader matrix-gap,
+  targetless-unregister, and DesignWare checker chain explicit beside that
+  narrower inventory packet
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
 
