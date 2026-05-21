@@ -72,6 +72,22 @@ test "phase10 virtio mmio survey packet keeps the config-write companion and sli
         companion_note,
         "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion",
     );
+    try expectContains(
+        companion_note,
+        "`previous_value` and `planned_value` so a reviewer can compare the staged write against the existing config bytes",
+    );
+    try expectContains(
+        companion_note,
+        "`changed_byte_mask` so byte-level deltas are visible without replaying the full word manually",
+    );
+    try expectContains(
+        companion_note,
+        "`has_changes` derived from the actual byte-delta mask rather than a blanket true result",
+    );
+    try expectContains(
+        companion_note,
+        "`error.ConfigWritePlanUnavailable` when no current staged plan is available",
+    );
     try expectContains(slice_note, "# Phase 10 Virtio MMIO Slice");
     try expectContains(slice_note, "scripts/zigux/check-phase10-mmio-packet.py");
     try expectContains(slice_note, "planning-only config-write observation");
