@@ -73,8 +73,9 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
 ]
+EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -164,6 +165,11 @@ def validate_evidence_manifest(path: Path) -> None:
         "bsearch focused_c_abi_replays",
         EXPECTED_BSEARCH_C_ABI_REPLAYS,
     )
+    bsearch_perf = bsearch.get("current_perf_evidence")
+    if not isinstance(bsearch_perf, dict):
+        raise ValidationError("bsearch current_perf_evidence missing from helper-evidence manifest")
+    if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_BUDGET_FORMULA:
+        raise ValidationError("bsearch evidence budget formula drifted")
 
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
@@ -263,6 +269,9 @@ def scaffold_repo(root: Path) -> None:
                         "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "focused_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
+                        "current_perf_evidence": {
+                            "budget_formula": EXPECTED_BSEARCH_BUDGET_FORMULA,
+                        },
                     },
                 ],
                 "current_shared_replay_inventory": REQUIRED_SHARED_REPLAYS,
@@ -455,6 +464,18 @@ def run_self_test() -> None:
                 "zigux/tests/phase6_bsearch_lower_bound.zig",
             ),
             "bsearch focused_c_abi_replays drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                EXPECTED_BSEARCH_BUDGET_FORMULA,
+                "len",
+            ),
+            "bsearch evidence budget formula drifted",
         )
         cases_run += 1
         scaffold_repo(root)
