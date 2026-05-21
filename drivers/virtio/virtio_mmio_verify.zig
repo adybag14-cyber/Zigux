@@ -6,6 +6,7 @@ pub const ProbePreflightSummary = virtio_mmio.ProbePreflightSummary;
 pub const SelectedQueueReadinessSummary = virtio_mmio.SelectedQueueReadinessSummary;
 pub const ConfigWritePlanSummary = virtio_mmio.ConfigWritePlanSummary;
 pub const ConfigWriteDispositionSummary = virtio_mmio.ConfigWriteDispositionSummary;
+pub const ConfigWriteApplyObservationSummary = virtio_mmio.ConfigWriteApplyObservationSummary;
 pub const ConfigWritePlanFreshnessSummary = virtio_mmio.ConfigWritePlanFreshnessSummary;
 pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;
 pub const InterruptAckDispositionSummary = virtio_mmio.InterruptAckDispositionSummary;
@@ -38,6 +39,10 @@ pub fn summarizeConfigWriteDisposition(device: *const virtio_mmio.VirtioMmioLab)
     return device.configWriteDispositionSummary();
 }
 
+pub fn summarizeConfigWriteApplyObservation(device: *const virtio_mmio.VirtioMmioLab) !ConfigWriteApplyObservationSummary {
+    return device.configWriteApplyObservationSummary();
+}
+
 pub fn summarizeConfigWritePlanFreshness(device: *const virtio_mmio.VirtioMmioLab) ConfigWritePlanFreshnessSummary {
     return device.configWritePlanFreshnessSummary();
 }
@@ -51,6 +56,10 @@ pub fn summarizeInterruptAckDisposition(
 
 pub fn changedByteCount(summary: ConfigWriteDispositionSummary) u3 {
     return @popCount(summary.changed_byte_mask);
+}
+
+pub fn applyObservationChangedByteCount(summary: ConfigWriteApplyObservationSummary) u3 {
+    return summary.changed_byte_count;
 }
 
 pub fn negotiatedFeatureBitCount(summary: FeatureNegotiationSummary) u6 {
@@ -77,6 +86,14 @@ pub fn configWritePlanWithinWindow(summary: ConfigWritePlanSummary) bool {
 
 pub fn hasFreshConfigWritePlan(summary: ConfigWritePlanFreshnessSummary) bool {
     return summary.available_for_disposition;
+}
+
+pub fn configWriteObservationTouchesFullWord(summary: ConfigWriteApplyObservationSummary) bool {
+    return summary.touched_byte_mask == 0b1111;
+}
+
+pub fn configWriteWouldApply(summary: ConfigWriteApplyObservationSummary) bool {
+    return summary.applies_changes;
 }
 
 test "phase10 virtio mmio verify keeps probe wrapper transitions explicit" {
@@ -258,6 +275,33 @@ test "phase10 virtio mmio verify counts changed config bytes without mutating st
     try std.testing.expectEqual(@as(u3, 2), changedByteCount(summary));
     try std.testing.expect(summary.has_changes);
     try std.testing.expectEqual(@as(u32, 0x0203_0405), summary.previous_value);
+}
+
+test "phase10 virtio mmio verify keeps config-write apply observation wrapper planning-only and explicit" {
+    var device = try virtio_mmio.VirtioMmioLab.init(90, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0907);
+    var summary = try summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
+    try std.testing.expect(configWriteObservationTouchesFullWord(summary));
+    try std.testing.expectEqual(@as(u4, 0b1111), summary.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0b0011), summary.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 2), applyObservationChangedByteCount(summary));
+    try std.testing.expect(configWriteWouldApply(summary));
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), summary.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0907), summary.planned_value);
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0405);
+    summary = try summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expect(configWriteObservationTouchesFullWord(summary));
+    try std.testing.expectEqual(@as(u4, 0b1111), summary.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0), summary.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 0), applyObservationChangedByteCount(summary));
+    try std.testing.expect(!configWriteWouldApply(summary));
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, summarizeConfigWriteApplyObservation(&device));
 }
 
 test "phase10 virtio mmio verify keeps interrupt-ack disposition below IRQ-delivery claims" {
