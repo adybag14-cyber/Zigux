@@ -89,8 +89,8 @@ REQUIRED_VALIDATOR_SNIPPETS = [
     'run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")',
 ]
 REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
-    "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_build.zig.",
-    "A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md again, but the broader shared helper-evidence and reminder packet still describes that survey as public-tree-backed companion evidence until its neighboring surfaces are refreshed.",
+    "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, and zigux/tests/phase6_build.zig.",
+    "A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_helper_evidence_manifest.json.",
     "The remaining direct-readback gaps still returning 404 were zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, scripts/zigux/check-phase6-base64-c-parity.py, zigux/tests/phase6_checksum_c_parity.zig, zigux/tests/fixtures/phase6_checksum_c_harness.c, and scripts/zigux/check-phase6-checksum-c-parity.py.",
 ]
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
