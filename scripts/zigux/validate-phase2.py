@@ -79,7 +79,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 64
+EXPECTED_SELF_TEST_CASE_COUNT = 66
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -488,6 +488,15 @@ def run_self_test() -> int:
             non_file.rmdir()
             checks_run += 1
 
+        build_self_test_root(root)
+        resolve_path(root, CLOSURE_DOC).unlink()
+        result, output = capture_run_validator(root)
+        assert result == 1
+        assert "PHASE2_VALIDATION=fail" in output
+        assert "MISSING_REQUIRED_FILE_START" in output
+        assert CLOSURE_DOC.relative_to(ROOT).as_posix() in output
+        checks_run += 1
+
         for path in CHECKERS:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
@@ -501,6 +510,18 @@ def run_self_test() -> int:
             assert ("CHECKER_NOT_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             non_file.rmdir()
             checks_run += 1
+
+        build_self_test_root(root)
+        non_file = resolve_path(root, CHECKERS[0])
+        non_file.unlink()
+        non_file.mkdir()
+        result, output = capture_run_validator(root)
+        assert result == 1
+        assert "PHASE2_VALIDATION=fail" in output
+        assert "CHECKER_NOT_FILE_START" in output
+        assert CHECKERS[0].relative_to(ROOT).as_posix() in output
+        non_file.rmdir()
+        checks_run += 1
 
         original_probe_required_file = globals()["probe_required_file"]
         try:
@@ -518,8 +539,7 @@ def run_self_test() -> int:
             assert "PHASE2_VALIDATION=fail" in output
             assert "REQUIRED_FILE_UNREADABLE_START" in output
             assert CLOSURE_DOC.relative_to(ROOT).as_posix() in output
-            checks_run += 1
-            checks_run += 1
+            checks_run += 2
 
             build_self_test_root(root)
 
@@ -536,8 +556,7 @@ def run_self_test() -> int:
             assert "PHASE2_VALIDATION=fail" in output
             assert "CHECKER_UNREADABLE_START" in output
             assert CHECKERS[0].relative_to(ROOT).as_posix() in output
-            checks_run += 1
-            checks_run += 1
+            checks_run += 2
         finally:
             globals()["probe_required_file"] = original_probe_required_file
 
