@@ -267,7 +267,9 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+    'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 
@@ -691,12 +693,22 @@ def run_self_test() -> int:
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")', "selftest driver"),
         (
             SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-selftest-surface.py")',
             "selftest driver",
         ),
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
             "selftest driver",
         ),
         (SELFTEST_DRIVER_PATH, "PHASE3_VALIDATE_SELFTEST=pass", "selftest driver"),
