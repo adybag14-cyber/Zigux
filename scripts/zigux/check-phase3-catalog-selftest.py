@@ -8,13 +8,17 @@ import tempfile
 from pathlib import Path
 
 CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
+RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
+SELFTEST_RUNNER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 EXPORT_UAPI_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 LOW_LEVEL_WRAPPER_SURVEY_PATH = Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")
 LOW_LEVEL_WRAPPER_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
 HEADER_FAMILY_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 HEADER_FAMILY_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
-LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
+LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH = Path(
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+)
 LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH = Path(
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
 )
@@ -63,6 +67,17 @@ REQUIRED_MARKERS = {
         '"make -C zigux phase3-validate"',
         '"make -C zigux phase3"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
+    ),
+    RUNNER_PATH: (
+        'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
+        '("validated Documentation/zigux/phase3-linux-zigux-header-governance.md",),',
+        '"expected missing linux-zigux header-governance output marker to fail the runner"',
+    ),
+    SELFTEST_RUNNER_PATH: (
+        'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
+        '("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),',
+        '"expected linux-zigux header governance validator omission was not reported"',
+        '"expected missing governance pass marker to fail the packet"',
     ),
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
@@ -296,6 +311,26 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"make -C zigux phase3"',
             "expected missing catalog aggregate phase3 Makefile route marker was not reported",
+        ),
+        (
+            RUNNER_PATH,
+            'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
+            "expected missing runner governance validator route marker was not reported",
+        ),
+        (
+            RUNNER_PATH,
+            '("validated Documentation/zigux/phase3-linux-zigux-header-governance.md",),',
+            "expected missing runner governance output marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
+            "expected missing selftest-packet governance validator route marker was not reported",
+        ),
+        (
+            SELFTEST_RUNNER_PATH,
+            '("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),',
+            "expected missing selftest-packet governance pass marker was not reported",
         ),
         (
             LOW_LEVEL_WRAPPER_SURVEY_PATH,
