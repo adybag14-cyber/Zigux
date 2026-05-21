@@ -902,7 +902,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
         resolve_path(root, MANIFEST).mkdir(parents=True)
-        assert_systemExit_contains(lambda: collect_issues(root), "manifest is unreadable:")
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is unreadable:")
         checks_run += 1
 
         build_self_test_root(root)
