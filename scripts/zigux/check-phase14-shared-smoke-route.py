@@ -4,17 +4,18 @@
 Fail-closed checker for the bounded Phase 14 shared smoke route.
 
 This guard exists for the lane-local executable path only. It validates that
- the current repo exposes a dedicated `phase14-validate` Makefile route, that
- the route reruns the shared smoke route checker plus the current tests-root
- smoke-summary checker, validator, and release-boundary checker packets, and
- that the bootstrap workflow reruns that same route, without claiming that the
- missing `phase14-smoke`, `phase14-test`, or full bundle wrappers have
- returned.
+the current repo exposes a dedicated `phase14-validate` Makefile route, that
+the route reruns the shared smoke route checker plus the current tests-root
+smoke-summary checker, validator, and release-boundary checker packets, that
+the bootstrap workflow reruns that same route, and that the shared smoke
+manifest records the same single-route split without claiming that the missing
+`phase14-smoke`, `phase14-test`, or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -23,6 +24,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=shared_smoke_route"
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 
 MAKEFILE_MARKERS = [
     ".PHONY:",
@@ -50,6 +52,17 @@ FORBIDDEN_WORKFLOW_MARKERS = [
     "run: make -C zigux phase14-test",
 ]
 
+REQUIRED_MANIFEST_VALUES = {
+    ("productization", "validation_gate"): "make -C zigux phase14-validate",
+    ("smoke_commands",): ["make -C zigux phase14-validate"],
+    ("smoke_shard_commands",): [],
+    ("survey_summary", "phase14_make_target_present"): True,
+    ("survey_summary", "phase14_make_smoke_target_present"): False,
+    ("survey_summary", "workflow_runs_phase14_validate"): True,
+    ("survey_summary", "workflow_runs_phase14_build"): False,
+    ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
+}
+
 
 def read_text(root: Path, rel: Path) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -73,9 +86,32 @@ def require_absent(errors: list[str], rel: Path, text: str, markers: list[str]) 
             errors.append(f"forbidden_marker:{rel.as_posix()}:{marker}")
 
 
+def lookup_path(payload: object, path: tuple[str, ...]) -> object:
+    current = payload
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            raise KeyError(".".join(path))
+        current = current[key]
+    return current
+
+
+def require_manifest_values(errors: list[str], manifest: object) -> None:
+    for path, expected in REQUIRED_MANIFEST_VALUES.items():
+        try:
+            actual = lookup_path(manifest, path)
+        except KeyError:
+            errors.append(f"missing_manifest_key:{'.'.join(path)}")
+            continue
+        if actual != expected:
+            errors.append(
+                "manifest_value_mismatch:"
+                f"{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
-    for rel in [MAKEFILE_PATH, WORKFLOW_PATH]:
+    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH]:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
     if errors:
@@ -83,10 +119,17 @@ def check(root: Path) -> list[str]:
 
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
-
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_MARKERS)
     require_markers(errors, WORKFLOW_PATH, workflow, WORKFLOW_MARKERS)
     require_absent(errors, WORKFLOW_PATH, workflow, FORBIDDEN_WORKFLOW_MARKERS)
+
+    manifest_text = read_text(root, MANIFEST_PATH)
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid_json:{MANIFEST_PATH.as_posix()}:{exc.msg}")
+        return errors
+    require_manifest_values(errors, manifest)
     return errors
 
 
@@ -129,11 +172,32 @@ jobs:
 """
 
 
+def fixture_manifest() -> str:
+    payload = {
+        "productization": {"validation_gate": "make -C zigux phase14-validate"},
+        "smoke_commands": ["make -C zigux phase14-validate"],
+        "smoke_shard_commands": [],
+        "survey_summary": {
+            "phase14_make_target_present": True,
+            "phase14_make_smoke_target_present": False,
+            "workflow_runs_phase14_validate": True,
+            "workflow_runs_phase14_build": False,
+            "workflow_runs_phase14_smoke_shard": False,
+        },
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, MAKEFILE_PATH, fixture_makefile())
     write_text(root, WORKFLOW_PATH, fixture_workflow())
+    write_text(root, MANIFEST_PATH, fixture_manifest())
+
+
+def write_fixture_manifest(root: Path, payload: object) -> None:
+    write_text(root, MANIFEST_PATH, json.dumps(payload, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -181,8 +245,26 @@ def run_self_test() -> int:
             print("expected forbidden workflow smoke wrapper failure")
             return 1
 
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["smoke_commands"] = ["make -C zigux phase14-smoke"]
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:smoke_commands" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected smoke command manifest drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["workflow_runs_phase14_build"] = True
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:survey_summary.workflow_runs_phase14_build" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected workflow summary manifest drift failure")
+            return 1
+
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=3")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -209,6 +291,7 @@ def main() -> int:
     print("PHASE14_SHARED_SMOKE_ROUTE=pass")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_WORKFLOW_MARKERS)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES)}")
     return 0
 
 
