@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=73092ab6b3d86d14c83c3bcc10e47e7abe7b6d0e`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=733becd1482b8a514ead992d1158a52a8c47e6c1`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
@@ -18,7 +18,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=80bb8185281d1495f8a4389002c0b83f4b0d574c`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
-- `PHASE3_UNSAFE_BLOB_SHA=086463703abc6b51b273545c71a790d7a88b3087`
+- `PHASE3_UNSAFE_BLOB_SHA=5134f64b89b1a2c7be8c32477ddf9888aba36cf6`
 - `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=630eb2a33947c8dd34c5e1af3e1022af9b777528`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=c20f557b3f043b0e723492205adbaf18d27ee6be`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
