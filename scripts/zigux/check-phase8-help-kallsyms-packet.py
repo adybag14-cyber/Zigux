@@ -59,6 +59,18 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
     ),
+    CHECKLIST: (
+        "if the change touches the parked Phase 8 `help` packet",
+        "`zigux/tests/phase8_help_only_build.zig`",
+        "`make -C zigux phase8-help-test`",
+        "if the change touches the parked Phase 8 `kallsyms` parser packet",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-kallsyms-test`",
+    ),
+    VALIDATOR: (
+        'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
+        "HELP_KALLSYMS_PACKET_CHECKER,",
+    ),
     MAKEFILE: (
         "phase8-help-kallsyms-test:",
         "zigux/tests/phase8_help_kallsyms_only_build.zig",
@@ -171,6 +183,31 @@ def run_self_test() -> int:
         if expected_help_slice_marker not in missing_help_slice_marker.missing_markers:
             raise AssertionError("expected missing help slice marker to be reported")
         help_slice.write_text(original_help_slice, encoding="utf-8")
+
+        checklist = root / CHECKLIST
+        original_checklist = _read(checklist)
+        checklist.write_text(original_checklist.replace("`make -C zigux phase8-help-test`", "", 1), encoding="utf-8")
+        missing_checklist_help_route = validate_root(root)
+        expected_checklist_help_route = "Documentation/zigux/review-checklist.md:`make -C zigux phase8-help-test`"
+        if expected_checklist_help_route not in missing_checklist_help_route.missing_markers:
+            raise AssertionError("expected missing checklist help route marker to be reported")
+        checklist.write_text(original_checklist, encoding="utf-8")
+
+        checklist.write_text(original_checklist.replace("`zigux/tests/phase8_kallsyms_only_build.zig`", "", 1), encoding="utf-8")
+        missing_checklist_kallsyms_build = validate_root(root)
+        expected_checklist_kallsyms_build = "Documentation/zigux/review-checklist.md:`zigux/tests/phase8_kallsyms_only_build.zig`"
+        if expected_checklist_kallsyms_build not in missing_checklist_kallsyms_build.missing_markers:
+            raise AssertionError("expected missing checklist kallsyms build marker to be reported")
+        checklist.write_text(original_checklist, encoding="utf-8")
+
+        validator = root / VALIDATOR
+        original_validator = _read(validator)
+        validator.write_text(original_validator.replace('HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")', "", 1), encoding="utf-8")
+        missing_validator_constant = validate_root(root)
+        expected_validator_constant = 'scripts/zigux/validate-phase8.py:HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")'
+        if expected_validator_constant not in missing_validator_constant.missing_markers:
+            raise AssertionError("expected missing validator checker constant to be reported")
+        validator.write_text(original_validator, encoding="utf-8")
 
         tests_readme = root / TESTS_README
         original_tests_readme = _read(tests_readme)
