@@ -44,6 +44,7 @@ RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+END_TO_END_SMOKE_MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 WORKQUEUE_BRIDGE_PATH = "kernel/workqueue_bridge.zig"
 WORKQUEUE_BRIDGE_TEST_PATH = "zigux/tests/phase14_workqueue_bridge.zig"
@@ -75,6 +76,7 @@ REQUIRED_FILES = [
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
+    END_TO_END_SMOKE_MANIFEST_PATH,
     WORKFLOW_PATH,
     WORKQUEUE_BRIDGE_PATH,
     WORKQUEUE_BRIDGE_TEST_PATH,
@@ -108,7 +110,6 @@ REQUIRED_MARKERS = {
         "    * `zigux/tests/phase14_ring_buffer_survey.zig`",
         "  * executable packet members still unrecovered through this lane's exact contents path:",
         "    * `zigux/tests/phase14_build.zig`",
-        "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json` through the current contents path",
         "    * `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
     ],
     RELEASE_BOUNDARY_PATH: [
@@ -219,6 +220,15 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase14.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    ],
+    END_TO_END_SMOKE_MANIFEST_PATH: [
+        "\"shared_smoke_surfaces\": [",
+        "\"Documentation/zigux/phase14-core-boundary-traceability.md\"",
+        "\"scripts/zigux/check-phase14-release-boundary-exact-counts.py\"",
+        "\"smoke_commands\": [",
+        "\"make -C zigux phase14-validate\"",
+        "\"smoke_shard_commands\": []",
+        "\"phase14_make_smoke_target_present\": false",
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 14 shared smoke route checker",
@@ -356,6 +366,7 @@ def run_self_test() -> int:
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
+            END_TO_END_SMOKE_MANIFEST_PATH,
             WORKFLOW_PATH,
             WORKQUEUE_MANIFEST_PATH,
             RING_BUFFER_MANIFEST_PATH,
@@ -383,6 +394,7 @@ def run_self_test() -> int:
             (SHARED_SMOKE_ROUTE_CHECKER_PATH, REQUIRED_MARKERS[SHARED_SMOKE_ROUTE_CHECKER_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][4]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][3]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
@@ -401,8 +413,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
-            "`phase14-validate` route, the shared route checker, the release-boundary "
-            "exact-count guard, the ring-buffer study-only packet, the dedicated "
+            "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
+            "the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
             "rollback-threshold sequencing checker, the dedicated RCU rollback "
             "guardrail, and the returned workqueue reviewability shard."
         )
