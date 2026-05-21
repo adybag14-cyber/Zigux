@@ -49,6 +49,29 @@ Keep these sample-backed cues explicit when the lane reopens:
 - `zigux/tests/phase5_build.zig` remains part of the same packet on the direct authenticated contents route
 - non-goals stay unchanged: no sysfs file creation parity, no `kernel_kobj` integration, no uevents, and no loadable module registration claim
 
+## Slot 425 Follow-Through
+
+Fresh same-slot rereads kept the direct-versus-public split above stable instead of widening it.
+
+The authenticated contents route still directly returned `zigux/tests/phase5_build.zig`, while separate same-slot direct reads still returned `404` for:
+
+- `Documentation/zigux/phase5-kobject-sample-survey.md`
+- `zigux/tests/phase5_kobject_example_manifest.json`
+- `zigux/tests/phase5_kobject_example_survey.zig`
+
+The same slot then compared the broader shared Phase 5 reminder packet against this note and found that these current shared surfaces still overstate the kobject packet in at least one of two ways: they either treat the survey note and manifest-backed contract as returned direct authenticated proof in this runtime, or they demote `zigux/tests/phase5_build.zig` back into public-tree-backed companion wording even though the authenticated contents route still returns that shared build file directly here.
+
+Those surviving shared-surface follow-through targets are:
+
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/README.md`
+
+The same slot also confirmed that `zigux/tests/README.md` already keeps the narrower kobject split closer to the live readback packet, so the next same-lane repair can stay outside the tests-root reminder unless a fresh reread reopens that surface too.
+
 ## Review posture
 
 When a future same-lane repair touches shared Phase 5 reminder surfaces, use this note to keep the kobject packet truthful in one bounded step at a time.
@@ -62,6 +85,6 @@ Avoid widening from this note into sample behavior changes unless the sample, fo
 
 ## Next bounded step
 
-Compare this note against `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` the next time the lane reopens.
+Compare this note against `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` the next time the lane reopens.
 
-If a fresh reread still leaves one shared reminder surface overstating the survey note, manifest, or survey replay as direct authenticated proof, reopen the lane for that one-file truthfulness repair only. Leave the lane parked if the shared packet has already caught up to this narrower direct-versus-public split.
+If a fresh reread still leaves one shared reminder surface overstating the survey note, manifest, or survey replay as direct authenticated proof, or still leaves `zigux/tests/phase5_build.zig` mislabeled as companion-only evidence, reopen the lane for that one-file truthfulness repair only. Leave the lane parked if the shared packet has already caught up to this narrower direct-versus-public split.
