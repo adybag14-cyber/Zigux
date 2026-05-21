@@ -26,6 +26,12 @@ PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 GATE_EVIDENCE = Path("Documentation/zigux/phase4-gate-evidence.md")
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+VALIDATOR = Path("scripts/zigux/validate-phase4.py")
+BUILD = Path("zigux/tests/phase4_build.zig")
+BITMAP_DIFF = Path("zigux/tests/bitmap_diff.zig")
+BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
+ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
+ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
 EXPECTED_PIN_SELF_TEST_CASES = 18
@@ -81,7 +87,7 @@ NOTE_REQ = (
 )
 
 TESTS_README_PHASE4_REQ = (
-    "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
+    "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
     "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "Current `master` keeps the shared Phase 4 rollback packet narrower than full exact-blob refresh rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still need fresh authenticated blob capture in this runtime, but current public raw fallback rereads return those files on `master`",
     "while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again",
@@ -124,6 +130,12 @@ REQUIRED_FILES = (
     WORKFLOW,
     ATOMIC64_DIFF,
     RUNTIME_ATOMIC64_DIFF,
+    VALIDATOR,
+    BUILD,
+    BITMAP_DIFF,
+    BITMAP_HELPER_REPLAY,
+    ATOMIC64_MANIFEST,
+    ATOMIC64_SURVEY,
 )
 
 
