@@ -40,7 +40,8 @@ SPLIT_READBACK_COMPANIONS = [
 REQUIRED_TEXT_MARKERS = [
     "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
     "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
-    "Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime, while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again.",
+    "Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime,",
+    "while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again.",
     "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
     "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
@@ -58,10 +59,10 @@ SELF_TEST_CASE_NAMES = [
     "missing_direct_readback_summary",
     "missing_recovered_packet_summary",
     "missing_split_readback_summary",
+    "missing_atomic64_current_head_evidence",
     "missing_local_perf_checker",
     "missing_local_perf_companions",
     "missing_owner_handoff",
-    "missing_atomic64_current_head_evidence",
 ]
 
 
@@ -131,18 +132,44 @@ def write_case(tmpdir: pathlib.Path, text: str) -> pathlib.Path:
 
 def run_self_test() -> int:
     baseline = "\n".join(REQUIRED_MARKERS) + "\n"
-    case_markers = [
-        REQUIRED_TEXT_MARKERS[0],
-        REQUIRED_TEXT_MARKERS[1],
-        REQUIRED_TEXT_MARKERS[2],
-        REQUIRED_TEXT_MARKERS[3],
-        REQUIRED_TEXT_MARKERS[4],
-        REQUIRED_TEXT_MARKERS[5],
-        "zigux/tests/atomic64_diff.zig",
+    cases = [
+        ("baseline_round_trip", baseline, []),
+        (
+            "missing_direct_readback_summary",
+            baseline.replace(REQUIRED_TEXT_MARKERS[0] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[0]],
+        ),
+        (
+            "missing_recovered_packet_summary",
+            baseline.replace(REQUIRED_TEXT_MARKERS[1] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[1]],
+        ),
+        (
+            "missing_split_readback_summary",
+            baseline.replace(REQUIRED_TEXT_MARKERS[2] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[2]],
+        ),
+        (
+            "missing_atomic64_current_head_evidence",
+            baseline.replace(REQUIRED_TEXT_MARKERS[3] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[3]],
+        ),
+        (
+            "missing_local_perf_checker",
+            baseline.replace(REQUIRED_TEXT_MARKERS[4] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[4]],
+        ),
+        (
+            "missing_local_perf_companions",
+            baseline.replace(REQUIRED_TEXT_MARKERS[5] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[5]],
+        ),
+        (
+            "missing_owner_handoff",
+            baseline.replace(REQUIRED_TEXT_MARKERS[6] + "\n", "", 1),
+            [REQUIRED_TEXT_MARKERS[6]],
+        ),
     ]
-    cases = [("baseline_round_trip", baseline, [])]
-    for name, marker in zip(SELF_TEST_CASE_NAMES[1:], case_markers, strict=True):
-        cases.append((name, baseline.replace(marker + "\n", "", 1), [marker]))
 
     with tempfile.TemporaryDirectory(prefix="phase4-tests-readme-packet-") as tmp:
         tmpdir = pathlib.Path(tmp)
