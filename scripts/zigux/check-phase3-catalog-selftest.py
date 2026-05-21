@@ -16,6 +16,8 @@ LOW_LEVEL_WRAPPER_SURVEY_PATH = Path("Documentation/zigux/phase3-low-level-wrapp
 LOW_LEVEL_WRAPPER_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
 HEADER_FAMILY_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 HEADER_FAMILY_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
+POLICY_UNSAFE_SURVEY_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
+POLICY_UNSAFE_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")
 LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH = Path(
     "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 )
@@ -28,24 +30,35 @@ REQUIRED_MARKERS = {
         'PHASE3_CATALOG_PHASE = "Phase 3"',
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
         'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+        'Path("scripts/zigux/check-phase3-policy-dump.py")',
+        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
+        'Path("zigux/tests/phase3_policy_dump.zig")',
+        'Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")',
         'Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
         'Path("zigux/Makefile")',
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi.py"',
+        '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-policy-starter-packet.py"',
+        '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-policy-dump.py"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
         '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
@@ -55,6 +68,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-xarray-slot.py --self-test"',
         '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
+        '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
+        '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
@@ -74,11 +89,19 @@ REQUIRED_MARKERS = {
     RUNNER_PATH: (
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
         '("validated Documentation/zigux/phase3-linux-zigux-header-governance.md",),',
+        'Path("scripts/zigux/check-phase3-policy-dump.py"),',
+        '("validated zigux/tests/phase3_policy_dump.zig",',
+        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
+        '("validated Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",',
         '"expected missing linux-zigux header-governance output marker to fail the runner"',
     ),
     SELFTEST_RUNNER_PATH: (
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),',
         '("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),',
+        'Path("scripts/zigux/check-phase3-policy-dump.py"),',
+        '("PHASE3_POLICY_DUMP_SELF_TEST=pass",',
+        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),',
+        '("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",',
         '"expected linux-zigux header governance validator omission was not reported"',
         '"expected missing governance pass marker to fail the packet"',
     ),
@@ -101,6 +124,14 @@ REQUIRED_MARKERS = {
     HEADER_FAMILY_VALIDATOR_PATH: (
         'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")',
+    ),
+    POLICY_UNSAFE_SURVEY_PATH: (
+        "PHASE3_POLICY_UNSAFE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+        "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
+    ),
+    POLICY_UNSAFE_VALIDATOR_PATH: (
+        'NOTE_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
+        'print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")',
     ),
     LINUX_ZIGUX_HEADER_GOVERNANCE_NOTE_PATH: (
         "Documentation/zigux/phase3-abi-slice.md",
@@ -172,6 +203,21 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
+            "expected missing catalog policy-unsafe survey note marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("scripts/zigux/check-phase3-policy-dump.py")',
+            "expected missing catalog policy-dump validator marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
+            "expected missing catalog policy-unsafe validator marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
             "expected missing catalog low-level-wrapper survey note marker was not reported",
         ),
@@ -184,6 +230,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("zigux/helpers/layout_assert.zig")',
             "expected missing catalog layout-assert helper marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/phase3_policy_dump.zig")',
+            "expected missing catalog phase3 policy dump replay marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")',
+            "expected missing catalog phase3 policy dump fixture marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -202,8 +258,38 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
+            "expected missing catalog policy starter self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-policy-starter-packet.py"',
+            "expected missing catalog policy starter route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+            "expected missing catalog policy-dump self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-policy-dump.py"',
+            "expected missing catalog policy-dump route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
             "expected missing catalog export-uapi c-header smoke route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
+            "expected missing catalog policy-unsafe survey self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
+            "expected missing catalog policy-unsafe survey route marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -259,6 +345,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
             "expected missing catalog xarray-slot dump route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
+            "expected missing catalog policy starter build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+            "expected missing catalog policy dump build route marker was not reported",
         ),
         (
             CATALOG_PATH,
@@ -369,6 +465,21 @@ def run_self_test() -> int:
             HEADER_FAMILY_VALIDATOR_PATH,
             'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
             "expected missing header-family validator catalog-selftest marker was not reported",
+        ),
+        (
+            POLICY_UNSAFE_SURVEY_PATH,
+            "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
+            "expected missing policy-unsafe survey policy-dump gate marker was not reported",
+        ),
+        (
+            POLICY_UNSAFE_VALIDATOR_PATH,
+            'NOTE_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
+            "expected missing policy-unsafe validator note path marker was not reported",
+        ),
+        (
+            POLICY_UNSAFE_VALIDATOR_PATH,
+            'print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")',
+            "expected missing policy-unsafe validator self-test marker was not reported",
         ),
         (
             LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH,
