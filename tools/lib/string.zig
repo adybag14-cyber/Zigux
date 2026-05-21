@@ -393,6 +393,19 @@ pub fn strspn(buf: []const u8, accept: []const u8) usize {
     return limit;
 }
 
+pub fn strcspn(buf: []const u8, reject: []const u8) usize {
+    const limit = cStringLen(buf);
+    const reject_len = cStringLen(reject);
+    for (buf[0..limit], 0..) |ch, idx| {
+        for (reject[0..reject_len]) |blocked| {
+            if (ch == blocked) {
+                return idx;
+            }
+        }
+    }
+    return limit;
+}
+
 pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     const limit = strnlen(buf, count);
     for (buf[0..limit], 0..) |ch, idx| {
@@ -723,6 +736,17 @@ test "strspn counts the accepted prefix with C-string semantics" {
 
     const accept_cstr = [_]u8{ 'a', 0, 'z' };
     try std.testing.expectEqual(@as(usize, 1), strspn("abca", &accept_cstr));
+}
+
+test "strcspn counts until the first rejected byte with C-string semantics" {
+    try std.testing.expectEqual(@as(usize, 4), strcspn("path=/tmp", "="));
+    try std.testing.expectEqual(@as(usize, 4), strcspn("keep", ""));
+
+    const cstr = [_]u8{ 'a', 'b', 'c', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 3), strcspn(&cstr, "xyz"));
+
+    const reject_cstr = [_]u8{ 'x', 0, 'y' };
+    try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
 }
 
 test "strnchr honors count and C-string boundaries" {
