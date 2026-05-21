@@ -198,7 +198,7 @@ EXPECTED_ASSERT_BLOCKS = {
         ),
         (
             "try:",
-            "text = path.read_text(encoding=\"utf-8\")",
+            'text = path.read_text(encoding="utf-8")',
             "except FileNotFoundError:",
             'return ("missing_bench_source_file", path)',
             "return validate_find_bit_bench_source(text)",
@@ -224,7 +224,7 @@ EXPECTED_ASSERT_BLOCKS = {
             'assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]',
         ),
         (
-            "with tempfile.TemporaryDirectory(prefix=\"phase1-bench-source-\") as tmp:",
+            'with tempfile.TemporaryDirectory(prefix="phase1-bench-source-") as tmp:',
             'missing_path = Path(tmp) / "phase1_bench.zig"',
             "kind, payload = load_runtime_bench_source(missing_path)",
             'assert kind == "missing_bench_source_file"',
@@ -233,7 +233,7 @@ EXPECTED_ASSERT_BLOCKS = {
         ),
         (
             'source_path = Path(tmp) / "phase1_bench.zig"',
-            "source_path.write_text(build_find_bit_bench_source(), encoding=\"utf-8\")",
+            'source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")',
             "kind, payload = load_runtime_bench_source(source_path)",
             'assert kind == "pass", (kind, payload)',
             "case_count += 1",
