@@ -325,11 +325,7 @@ pub fn getValue8(addr: []const Word, offset: usize) u8 {
     const shift = offset & (bits_per_long - 1);
     std.debug.assert(idx < addr.len);
 
-    var value = addr[idx] >> @intCast(shift);
-    if (shift > bits_per_long - 8 and idx + 1 < addr.len) {
-        value |= addr[idx + 1] << @intCast(bits_per_long - shift);
-    }
-
+    const value = addr[idx] >> @intCast(shift);
     return @as(u8, @intCast(value & 0xff));
 }
 
@@ -744,6 +740,17 @@ test "getValue8 reads aligned bytes from bitmap words" {
     try std.testing.expectEqual(@as(u8, 0x42), getValue8(&bitmap, 8));
     try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, 24));
     try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long + 8));
+}
+
+test "getValue8 reads the last aligned byte of a word without folding in the next word" {
+    const last_aligned_byte = bits_per_long - 8;
+    const bitmap = [_]Word{
+        @as(Word, 0xa5) << @intCast(last_aligned_byte),
+        @as(Word, 0x11),
+    };
+
+    try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, last_aligned_byte));
+    try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long));
 }
 
 test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
