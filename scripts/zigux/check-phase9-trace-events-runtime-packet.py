@@ -51,7 +51,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "initialized, selftest_complete, and exited lifecycle tracking",
         "The direct sample also now keeps initialized-stage clean exit explicit",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"`',
         "Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`",
         "`phase9-runtime-loader-allocator-init-flow-tests`",
         "`phase9-runtime-trace-events-loader-substrate-drift-tests`",
@@ -66,9 +66,9 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`zigux/tests/runtime_trace_events_survey.zig`",
         ".provides_selftest_hook = true",
         "initialized, selftest_complete, and exited lifecycle tracking",
-        "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`",
+        'The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"`',
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        'Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"`',
         "sample-local pilot-module reviewability",
         "broader shared runtime-loader packet",
         "`zigux/tests/phase9_build.zig`",
@@ -112,8 +112,8 @@ FILE_MARKERS: dict[str, list[str]] = {
     SAMPLE_PATH: [
         '.name = "runtime_trace_events"',
         '.anchor = "samples/trace_events/trace-events-sample.c"',
-        '.requires_runtime_substrate = true',
-        '.provides_selftest_hook = true',
+        ".requires_runtime_substrate = true",
+        ".provides_selftest_hook = true",
         'test "trace-events sample preserves initialized summary across direct exit without selftest" {',
         "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);",
         "try module.exit();",
@@ -150,6 +150,19 @@ FILE_MARKERS: dict[str, list[str]] = {
     ],
 }
 
+FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
+    SAMPLES_README_PATH: [
+        "Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.",
+        "Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.",
+        "Keep `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` explicit as the failed-exit rollback companion for the selftest-ready proof plus both the initialized no-direct-activity and initialized direct-activity lifecycle proofs in the same packet.",
+        "Keep `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit as the reusable registration-reentry companion, including the initialized direct-activity clean-exit proof without selftest.",
+    ],
+    WORKFLOW_PATH: [
+        "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+    ],
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -171,6 +184,14 @@ def tamper_marker_occurrences(content: str, marker: str) -> str:
     return content.replace(marker, break_marker(marker))
 
 
+def duplicate_marker_occurrence(content: str, marker: str) -> str:
+    return content.replace(marker, f"{marker}\n{marker}", 1)
+
+
+def count_exact_line_occurrences(content: str, marker: str) -> int:
+    return sum(1 for line in content.splitlines() if line == marker)
+
+
 def build_fixture_text(rel_path: str, markers: list[str]) -> str:
     if rel_path.endswith(".md"):
         return "\n".join(["# fixture", "", *markers, ""])
@@ -190,6 +211,14 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            count = count_exact_line_occurrences(text, marker)
+            if count != 1:
+                failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
+
     return failures
 
 
@@ -219,6 +248,13 @@ def run_self_test() -> int:
                 write_text(base / rel_path, tamper_marker_occurrences(current, marker))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
+        for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
+            for marker in markers:
+                seed_fixture_tree(base)
+                current = read_text(base, rel_path)
+                write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
+                expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
+
         for rel_path in FILE_MARKERS:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
@@ -226,6 +262,10 @@ def run_self_test() -> int:
 
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
+        print(
+            "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
+            f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
+        )
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -251,6 +291,10 @@ def main() -> int:
 
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
+    print(
+        "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
+    )
     return 0
 
 
