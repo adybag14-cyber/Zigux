@@ -29,6 +29,12 @@ LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
 )
+RELEASE_READINESS_SURVEY_PATH = (
+    "Documentation/zigux/phase12-release-readiness-survey.md"
+)
+RAW_GITHUB_COVERAGE_PATH = (
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+)
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
@@ -49,6 +55,8 @@ REQUIRED_FILES = [
     HEAVY_CONSUMER_LANE_PATH,
     LIBBPF_SEGMENT_SURVEY_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
+    RELEASE_READINESS_SURVEY_PATH,
+    RAW_GITHUB_COVERAGE_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     BUILD_ONLY_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
@@ -76,7 +84,15 @@ REQUIRED_MARKERS = {
         "- shared survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`",
         "- shared heavy-consumer anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`",
-        "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves",
+        "- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the reminder-only wrapper name `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves`",
+    ],
+    RELEASE_READINESS_SURVEY_PATH: [
+        "- adjacent release-planning surfaces that are present on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
+        "- Because the parked verify-shard note still governs the shared libbpf packet through public-tree readback, `zigux/tests/fixtures/phase12_libbpf_snapshot.json` remains the parked visibility anchor for the note-owned libbpf reviewability packet on current `master`, while `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remains the helper-local determinism companion for directly readable `tools/lib/bpf/zigux_segments/pin_path.zig`; the direct `phase12_libbpf_*` replay files remain note-owned or snapshot-backed boundaries and the directly readable `tools/lib/bpf/zigux_segments/verify.zig` shard remains helper footing rather than shipped shared-route evidence.",
+    ],
+    RAW_GITHUB_COVERAGE_PATH: [
+        "  * verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+        "  * reread this note beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` whenever fallback wording changes",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
@@ -111,6 +127,12 @@ REQUIRED_MARKERS = {
 EXACT_COUNT_MARKERS = {
     HEAVY_CONSUMER_LANE_PATH: {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
+    RELEASE_READINESS_SURVEY_PATH: {
+        "- adjacent release-planning surfaces that are present on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md`": 1,
+    },
+    RAW_GITHUB_COVERAGE_PATH: {
+        "  * verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
     },
     LIBBPF_VERIFY_SHARD_NOTE_PATH: {
         "- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`": 1,
@@ -172,6 +194,8 @@ def fixture_text(rel_path: str) -> str:
             HEAVY_CONSUMER_LANE_PATH: "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
             LIBBPF_SEGMENT_SURVEY_PATH: "# Phase 12 Libbpf Segment Survey",
             LIBBPF_VERIFY_SHARD_NOTE_PATH: "# Phase 12 Libbpf Verify Shard Note",
+            RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
+            RAW_GITHUB_COVERAGE_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
             LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3",
             SCRIPTS_README_PATH: "# scripts/zigux",
@@ -271,7 +295,8 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 12 libbpf heavy-consumer packet "
             "across the shared lane note, parked verify-shard note, survey, "
-            "snapshot checker, and shared reminder surfaces."
+            "release-readiness note, degraded-read note, snapshot checker, and "
+            "shared reminder surfaces."
         )
     )
     parser.add_argument(
