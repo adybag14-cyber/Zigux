@@ -160,6 +160,13 @@ test "phase11 hvc cleanup packet proof keeps standalone targetless witness packe
     );
     defer std.testing.allocator.free(matrix_doc);
 
+    const inventory = try readRepoFileAlloc(
+        std.testing.allocator,
+        "zigux/tests/fixtures/phase11_build_inventory.json",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(inventory);
+
     const witness_checker = try readRepoFileAlloc(
         std.testing.allocator,
         "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
@@ -178,6 +185,9 @@ test "phase11 hvc cleanup packet proof keeps standalone targetless witness packe
     try expectContains(matrix_doc, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
     try expectContains(matrix_doc, "witness shard now rereads the live starter and the boundary note together");
     try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");
+    try expectContains(inventory, "\"workflow_phase11_steps\": [");
+    try expectContains(inventory, "\"name\": \"Validate current Phase 11 support bundle\"");
+    try expectContains(inventory, "\"run\": \"make -C zigux phase11-validate\"");
     try expectContains(witness_checker, "\"\"\"Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet.\"\"\"");
     try expectContains(witness_checker, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"");
     try expectContains(witness_checker, "print(\"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass\")");
