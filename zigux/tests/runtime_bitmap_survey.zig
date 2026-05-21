@@ -87,6 +87,12 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     );
     defer std.testing.allocator.free(sample_file);
 
+    const loader_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_bitmap_loader.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(loader_file);
+
     const top_bit_file = try readRepoFileAlloc(
         "samples/zigux/runtime_bitmap_top_bit_contract.zig",
         32 * 1024,
@@ -164,6 +170,17 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(sample_file, ".top_bit_contract,");
     try expectContains(sample_file, "pub fn reviewContract() ReviewContract");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !SelftestSummary");
+
+    try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
+    try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
+    try expectContains(loader_file, "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest");
+    try expectContains(loader_file, "runtime bitmap loader rejects malformed loader payloads without leaving initialized state");
+    try expectContains(loader_file, ".source_bit_list = \"0, 63, 64, 127\",");
+    try expectContains(loader_file, ".formatted_bit_list = \"0,63,64,127\",");
+    try expectContains(loader_file, "try std.testing.expect(module.isSet(127));");
+    try expectContains(loader_file, "try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));");
+    try expectContains(loader_file, "try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList(\"0,,64\"));");
+    try expectContains(loader_file, "try std.testing.expectError(error.BitRangeOutOfBounds, out_of_bounds.initFromBitList(\"128\"));");
 
     try expectContains(top_bit_file, "runtime bitmap sample keeps the highest valid bit explicit");
     try expectContains(top_bit_file, "runtime bitmap sample keeps top-bit lifecycle mutation explicit");
