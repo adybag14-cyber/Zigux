@@ -477,6 +477,110 @@ EXPECTED_CONF_MANIFEST = {
     "randconfig_env_packet": ["randconfig_expected.json"],
 }
 
+EXPECTED_CONFDATA_CASE_DETAILS = [
+    {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
+    {"name": "escaped_strings", "input": "escaped_strings.config", "expected": "escaped_strings_expected.json"},
+    {"name": "escaped_control_sequences", "input": "escaped_control_sequences.config", "expected": "escaped_control_sequences_expected.json"},
+    {"name": "trailing_escaped_backslash", "input": "trailing_escaped_backslash.config", "expected": "trailing_escaped_backslash_expected.json"},
+    {"name": "sample_crlf", "input": "sample_crlf.config", "expected": "sample_crlf_expected.json"},
+    {"name": "explicit_n_tristate", "input": "explicit_n_tristate.config", "expected": "explicit_n_tristate_expected.json"},
+    {"name": "final_trailing_carriage_return", "input": "final_trailing_carriage_return.config", "expected": "final_trailing_carriage_return_expected.json"},
+    {"name": "final_unterminated_unset_comment", "input": "final_unterminated_unset_comment.config", "expected": "final_unterminated_unset_comment_expected.json"},
+    {"name": "uppercase_tristate", "input": "uppercase_tristate.config", "expected": "uppercase_tristate_expected.json"},
+    {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
+    {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
+    {"name": "malformed_unset_comment_tokens", "input": "malformed_unset_comment_tokens.config", "expected": "malformed_unset_comment_tokens_expected.json"},
+    {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
+    {"name": "duplicate_assignments", "input": "duplicate_assignments.config", "expected": "duplicate_assignments_expected.json"},
+    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
+]
+
+EXPECTED_CONFDATA_MANIFEST = {
+    "tool": "scripts/zigux/kconfig/confdata_bridge.zig",
+    "status": "closed",
+    "mode": "bounded config bridge",
+    "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+    "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    "case_count": 15,
+    "cases": [
+        "sample",
+        "escaped_strings",
+        "escaped_control_sequences",
+        "trailing_escaped_backslash",
+        "sample_crlf",
+        "explicit_n_tristate",
+        "final_trailing_carriage_return",
+        "final_unterminated_unset_comment",
+        "uppercase_tristate",
+        "non_config_lines",
+        "empty_config_symbol_names",
+        "malformed_unset_comment_tokens",
+        "last_state_transitions",
+        "duplicate_assignments",
+        "duplicate_malformed_quoted_assignment",
+    ],
+    "input_packet": [
+        "sample.config",
+        "escaped_strings.config",
+        "escaped_control_sequences.config",
+        "trailing_escaped_backslash.config",
+        "sample_crlf.config",
+        "explicit_n_tristate.config",
+        "final_trailing_carriage_return.config",
+        "final_unterminated_unset_comment.config",
+        "uppercase_tristate.config",
+        "non_config_lines.config",
+        "empty_config_symbol_names.config",
+        "malformed_unset_comment_tokens.config",
+        "last_state_transitions.config",
+        "duplicate_assignments.config",
+        "duplicate_malformed_quoted_assignment.config",
+    ],
+    "expected_packet": [
+        "sample_expected.json",
+        "escaped_strings_expected.json",
+        "escaped_control_sequences_expected.json",
+        "trailing_escaped_backslash_expected.json",
+        "sample_crlf_expected.json",
+        "explicit_n_tristate_expected.json",
+        "final_trailing_carriage_return_expected.json",
+        "final_unterminated_unset_comment_expected.json",
+        "uppercase_tristate_expected.json",
+        "non_config_lines_expected.json",
+        "empty_config_symbol_names_expected.json",
+        "malformed_unset_comment_tokens_expected.json",
+        "last_state_transitions_expected.json",
+        "duplicate_assignments_expected.json",
+        "duplicate_malformed_quoted_assignment_expected.json",
+    ],
+    "helper_local_anchors": [
+        "confdata bridge parses bounded config states",
+        "confdata bridge emits bounded json output",
+        "confdata bridge decodes escaped quoted strings",
+        "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
+        "confdata bridge escapes low control bytes in json output",
+        "confdata bridge accepts CRLF config lines",
+        "confdata bridge preserves trailing carriage return on final unterminated value line",
+        "confdata bridge ignores unterminated unset comment with trailing carriage return",
+        "confdata bridge ignores suffix bytes after an embedded NUL",
+        "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
+        "confdata bridge keeps explicit n assignments as tristate values",
+        "confdata bridge recognizes uppercase tristate assignments",
+        "confdata bridge ignores non-CONFIG lines like upstream confdata",
+        "confdata bridge ignores empty CONFIG symbol names",
+        "confdata bridge ignores malformed unset comments with extra tokens",
+        "confdata bridge keeps trailing escaped backslashes in quoted strings",
+        "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+        "confdata bridge ignores malformed quoted values like upstream confdata",
+        "confdata bridge emits no entries for empty CONFIG symbol names",
+        "confdata bridge keeps only the last assignment for duplicate symbols",
+        "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
+        "confdata bridge keeps only the last state across unset and set transitions",
+        "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
+        "confdata bridge releases appended entry ownership on index-allocation failure",
+    ],
+}
+
 def resolve(root: Path, rel: Path) -> Path:
     return root / rel
 
@@ -530,6 +634,20 @@ def collect_conf_packet_issues(issues: list[tuple[str, str]], kconfig_cases: obj
         if conf_manifest.get(key) != expected:
             issues.append(("CONF_MANIFEST_MISMATCH", key))
 
+def collect_confdata_packet_issues(issues: list[tuple[str, str]], kconfig_cases: object, confdata_manifest: object) -> None:
+    if not isinstance(kconfig_cases, dict):
+        issues.append(("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases"))
+        return
+    if not isinstance(confdata_manifest, dict):
+        issues.append(("CONFDATA_MANIFEST_MISMATCH", "root"))
+        return
+    confdata_cases = kconfig_cases.get("confdata_cases")
+    if confdata_cases != EXPECTED_CONFDATA_CASE_DETAILS:
+        issues.append(("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases"))
+    for key, expected in EXPECTED_CONFDATA_MANIFEST.items():
+        if confdata_manifest.get(key) != expected:
+            issues.append(("CONFDATA_MANIFEST_MISMATCH", key))
+
 def collect_genksyms_packet_issues(issues: list[tuple[str, str]], genksyms_cases: object) -> None:
     if genksyms_cases != EXPECTED_GENKSYMS_CASES:
         issues.append(("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
@@ -548,6 +666,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_json(resolve(root, MANIFEST_REL))
     kconfig_cases = read_json(resolve(root, KCONFIG_CASES_REL))
     conf_manifest = read_json(resolve(root, CONF_MANIFEST_REL))
+    confdata_manifest = read_json(resolve(root, CONFDATA_MANIFEST_REL))
     genksyms_cases = read_json(resolve(root, GENKSYMS_CASES_REL))
     if not isinstance(manifest, dict):
         issues.append(("INVALID_MANIFEST_SHAPE", "root"))
@@ -661,6 +780,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("MISSING_MANIFEST_SURFACE", f"archive_support:{marker}"))
 
     collect_conf_packet_issues(issues, kconfig_cases, conf_manifest)
+    collect_confdata_packet_issues(issues, kconfig_cases, confdata_manifest)
     collect_genksyms_packet_issues(issues, genksyms_cases)
     return issues
 
@@ -839,7 +959,7 @@ The current closure-side packet keeps the fixdep governance and parity checker p
             "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
         ],
     }
-    kconfig_cases = {"conf_cases": list(EXPECTED_CONF_CASE_DETAILS), "confdata_cases": []}
+    kconfig_cases = {"conf_cases": list(EXPECTED_CONF_CASE_DETAILS), "confdata_cases": list(EXPECTED_CONFDATA_CASE_DETAILS)}
 
     write_text(resolve(root, WORKFLOW_REL), "\n".join(workflow_lines) + "\n")
     write_text(resolve(root, PHASE2_CLOSURE_REL), closure_text)
@@ -878,7 +998,7 @@ The current closure-side packet keeps the fixdep governance and parity checker p
     write_text(resolve(root, CROSS_FIXTURE_REL), "{}\n")
     write_text(resolve(root, FIXDEP_CASES_REL), "{}\n")
     write_text(resolve(root, CONF_MANIFEST_REL), json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n")
-    write_text(resolve(root, CONFDATA_MANIFEST_REL), "{}\n")
+    write_text(resolve(root, CONFDATA_MANIFEST_REL), json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n")
     write_text(resolve(root, KCONFIG_CASES_REL), json.dumps(kconfig_cases, indent=2) + "\n")
     write_text(resolve(root, GENKSYMS_CASES_REL), json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n")
     write_text(resolve(root, GENKSYMS_HELP_REL), "{}\n")
@@ -992,6 +1112,22 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve(root, KCONFIG_CASES_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["expected"] = "broken_expected.json"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, CONFDATA_MANIFEST_REL)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["case_count"] = 14
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("CONFDATA_MANIFEST_MISMATCH", "case_count") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve(root, GENKSYMS_CASES_REL)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload[0]["expected_file"] = "other.json"
@@ -1021,7 +1157,6 @@ def main() -> int:
     print("PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure")
     print("PHASE2_CLOSURE_REMAINING_GAPS=")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
