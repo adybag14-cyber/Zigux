@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=split-helper-packet-present-shared-build-quintet-throughput-review-only`
 - `PHASE12_SLICE=virtio-net-survey`
-- lane owner: `P12-L04`
+- lane owner: `P12-L01`
 - scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity review packet truthful without reopening live runtime data-path work
 - verified head: `c36b21af252cf76160ba5ae9c8f84b2310f4b2e1`
 - repo-truth boundary:
@@ -67,7 +67,7 @@ The truthful current boundary is still intentionally narrow:
 
 ## Ownership and overlap
 
-`P12-L04` owns one bounded stale-scaffold, survey-gate, or performance-risk note cleanup step inside this queueing and throughput review packet.
+`P12-L01` owns one bounded stale-scaffold, survey-gate, or performance-risk note cleanup step inside this queueing and throughput review packet.
 
 That means this lane may:
 
