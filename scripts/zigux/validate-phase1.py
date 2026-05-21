@@ -349,12 +349,15 @@ def collect_issues(
             notes.append(skip_note)
             optional_skip_notes.append(skip_note)
             continue
-        optional_run_names.append(spec.name)
         result = run_command(command_for(spec, root, self_test=True), root)
         if result.returncode != 0:
             issues.append(f"optional_self_test_failed:{spec.name}:exit={result.returncode}")
             append_output(issues, f"optional_self_test_failed:{spec.name}", result)
+            skip_note = f"skipped_optional:{spec.name}:self_test_failed"
+            notes.append(skip_note)
+            optional_skip_notes.append(skip_note)
             continue
+        optional_run_names.append(spec.name)
         result = run_command(command_for(spec, root, self_test=False), root)
         if result.returncode != 0:
             issues.append(f"optional_live_failed:{spec.name}:exit={result.returncode}")
@@ -549,6 +552,20 @@ def run_self_test() -> int:
         assert "mandatory_self_test_failed:phase1-bench-self-test:exit=1" in issues, issues
         assert "skipped_mandatory_live:phase1-bench-self-test:self_test_failed" in notes, notes
         assert "phase1-bench-self-test" not in summary.mandatory_live_run_names, summary
+        case_count += 1
+
+        optional_self_test_fail_root = base / "optional_self_test_fail"
+        build_sample_repo(optional_self_test_fail_root)
+        build_stub_script(
+            optional_self_test_fail_root / "scripts/zigux/check-phase1-shared-helper-manifest-gate.py",
+            self_test_exit=1,
+        )
+        issues, notes, summary = collect_issues(optional_self_test_fail_root)
+        assert "optional_self_test_failed:phase1-shared-helper-manifest-gate:exit=1" in issues, issues
+        assert "skipped_optional:phase1-shared-helper-manifest-gate:self_test_failed" in notes, notes
+        assert "phase1-shared-helper-manifest-gate" not in summary.optional_run_names, summary
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
+        assert summary.optional_skip_count == 1, summary
         case_count += 1
 
         duplicate_optional_name_checks = OPTIONAL_CHECKS + (
