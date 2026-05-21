@@ -151,7 +151,8 @@ pub const perf_payload =
     "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
     "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
     "exercises repeated encode and decode work over a stable review fixture. " ++
-    "Zigux uses the same payload for padded and unpadded standard, urlsafe, and imap runs.";
+    "Zigux uses the same payload for padded and unpadded standard, urlsafe, and imap runs." ++
+    "\xfb\xff\xf0";
 
 pub const perf_cases = [_]PerfCase{
     .{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
@@ -164,6 +165,15 @@ pub const perf_cases = [_]PerfCase{
 
 pub const perf_payload_buf_size = perf_payload.len;
 pub const perf_encoded_buf_size = 512;
+
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
 
 fn encodedChars(nbytes: usize, padding: bool) usize {
     const full_groups = (nbytes / 3) * 4;
@@ -184,6 +194,8 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     const expected_iterations = 12_000;
     const expected_max_encode_slowdown_pct = 150;
     const expected_max_decode_slowdown_pct = 325;
+    const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;
+    const expected_suffix = [_]u8{ 0xfb, 0xff, 0xf0 };
 
     var saw_std_pad = false;
     var saw_std_no_pad = false;
@@ -194,6 +206,8 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
 
     try std.testing.expectEqual(expected_case_count, perf_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
+    try std.testing.expectEqual(expected_payload_fingerprint, perfPayloadFingerprint(perf_payload));
+    try std.testing.expect(std.mem.endsWith(u8, perf_payload, &expected_suffix));
 
     for (perf_cases, 0..) |case, idx| {
         try std.testing.expectEqualStrings(perf_payload, case.payload);
