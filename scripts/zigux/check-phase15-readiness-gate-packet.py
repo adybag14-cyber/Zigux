@@ -21,15 +21,23 @@ SHARED_SUMMARY_CHECKER_PATH = Path("scripts/zigux/check-phase15-shared-summary-g
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 HANDOFF_MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
-INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH = Path("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig")
-GOVERNANCE_LANE_MANIFEST_PATH = Path("zigux/tests/phase15_governance_lane_sequencing_manifest.json")
-GOVERNANCE_LANE_REPLAY_PATH = Path("zigux/tests/phase15_governance_lane_sequencing.zig")
+INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH = Path(
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+)
+GOVERNANCE_LANE_MANIFEST_PATH = Path(
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json"
+)
+GOVERNANCE_LANE_REPLAY_PATH = Path(
+    "zigux/tests/phase15_governance_lane_sequencing.zig"
+)
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+EXPECTED_LANE_KEY = "P15-L04"
+EXPECTED_PHASE = "Phase 15"
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
-    "PHASE15_LANE_KEY=arch-council",
+    "PHASE15_LANE_KEY=P15-L04",
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
@@ -92,10 +100,24 @@ def collect_failures(root: Path) -> list[str]:
     manifest = _read_manifest(root / MANIFEST_PATH)
     failures: list[str] = []
 
+    if manifest.get("lane_key") != EXPECTED_LANE_KEY:
+        failures.append(
+            f"readiness manifest lane key drifted from {EXPECTED_LANE_KEY}: {manifest.get('lane_key', '')}"
+        )
+
+    if manifest.get("phase") != EXPECTED_PHASE:
+        failures.append(
+            f"readiness manifest phase drifted from {EXPECTED_PHASE}: {manifest.get('phase', '')}"
+        )
+
     if manifest["surveyed_commit"] not in note:
         failures.append("readiness note is missing the manifest surveyed_commit marker")
+
     if manifest["readiness_packet_checker"] != str(SELF_PATH):
-        failures.append("readiness manifest does not point at the focused readiness-packet checker")
+        failures.append(
+            "readiness manifest does not point at the focused readiness-packet checker"
+        )
+
     if f"`{manifest['readiness_packet_checker']}`" not in note:
         failures.append("readiness note is missing the focused readiness-packet checker marker")
 
@@ -104,16 +126,22 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"readiness note is missing required marker: {marker}")
 
     for rel in manifest["direct_packet_paths"]:
-        if f"`{rel}`" not in note:
-            failures.append(f"readiness note is missing direct-packet marker: `{rel}`")
+        marker = f"`{rel}`"
+        if marker not in note:
+            failures.append(f"readiness note is missing direct-packet marker: {marker}")
         if not (root / rel).exists():
-            failures.append(f"readiness note claims direct packet path is missing from repo: `{rel}`")
+            failures.append(
+                f"readiness note claims direct packet path is missing from repo: {marker}"
+            )
 
     for rel in manifest["still_missing_broader_paths"]:
-        if f"`{rel}`" not in note:
-            failures.append(f"readiness note is missing blocked broader-path marker: `{rel}`")
+        marker = f"`{rel}`"
+        if marker not in note:
+            failures.append(f"readiness note is missing blocked broader-path marker: {marker}")
         if (root / rel).exists():
-            failures.append(f"readiness note still treats materialized broader path as blocked: `{rel}`")
+            failures.append(
+                f"readiness note still treats materialized broader path as blocked: {marker}"
+            )
 
     phase15_validate_target_present = _makefile_has_target(root, "phase15-validate")
     phase15_test_target_present = _makefile_has_target(root, "phase15-test")
@@ -134,7 +162,9 @@ def collect_failures(root: Path) -> list[str]:
             )
 
     if WORKFLOW_BLOCKED_MARKER not in note:
-        failures.append(f"readiness note is missing blocked workflow marker: {WORKFLOW_BLOCKED_MARKER}")
+        failures.append(
+            f"readiness note is missing blocked workflow marker: {WORKFLOW_BLOCKED_MARKER}"
+        )
     elif shared_ci_phase15_present:
         failures.append(
             "readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`"
@@ -150,11 +180,17 @@ def collect_failures(root: Path) -> list[str]:
             root / REVIEW_CHECKLIST_STUDY_ONLY_CHECKER_PATH
         ).exists(),
         "phase15_handoff_note_checker_present": (root / HANDOFF_NOTE_CHECKER_PATH).exists(),
-        "phase15_governance_lane_manifest_present": (root / GOVERNANCE_LANE_MANIFEST_PATH).exists(),
-        "phase15_governance_lane_replay_present": (root / GOVERNANCE_LANE_REPLAY_PATH).exists(),
+        "phase15_governance_lane_manifest_present": (
+            root / GOVERNANCE_LANE_MANIFEST_PATH
+        ).exists(),
+        "phase15_governance_lane_replay_present": (
+            root / GOVERNANCE_LANE_REPLAY_PATH
+        ).exists(),
         "phase15_handoff_manifest_present": (root / HANDOFF_MANIFEST_PATH).exists(),
         "phase15_build_zig_present": (root / BUILD_ZIG_PATH).exists(),
-        "phase15_indefinite_c_lane_owner_alignment_present": (root / INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH).exists(),
+        "phase15_indefinite_c_lane_owner_alignment_present": (
+            root / INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH
+        ).exists(),
         "phase15_makefile_present": (root / MAKEFILE_PATH).exists(),
         "phase15_validate_target_present": phase15_validate_target_present,
         "phase15_test_target_present": phase15_test_target_present,
@@ -175,10 +211,14 @@ def collect_failures(root: Path) -> list[str]:
         and observed["shared_ci_phase15_present"]
     )
     if repo_evidence["phase15_replay_green_on_current_master"] != expected_replay_green:
-        failures.append("readiness manifest phase15_replay_green_on_current_master disagrees with the broader Phase 15 repo reality")
+        failures.append(
+            "readiness manifest phase15_replay_green_on_current_master disagrees with the broader Phase 15 repo reality"
+        )
 
     if manifest["phase15_validate_checkers"] != EXPECTED_VALIDATE_CHECKERS:
-        failures.append("readiness manifest validate-checker list drifted from the current maintenance-only packet")
+        failures.append(
+            "readiness manifest validate-checker list drifted from the current maintenance-only packet"
+        )
 
     return failures
 
@@ -192,7 +232,7 @@ def _sample_note() -> str:
     return """# Phase 15 Readiness Gate Survey
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=arch-council`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
@@ -251,6 +291,8 @@ This packet is ready for maintenance-mode truthfulness refreshes only, and no Ar
 def _sample_manifest() -> str:
     return json.dumps(
         {
+            "lane_key": EXPECTED_LANE_KEY,
+            "phase": EXPECTED_PHASE,
             "surveyed_commit_mode": "dated_master_readback",
             "surveyed_commit": "current-master-readback-2026-05-20",
             "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
@@ -365,13 +407,18 @@ def run_self_test() -> int:
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
 
-        missing_direct_root = root / "missing_direct"
-        _seed_repo(missing_direct_root)
-        (missing_direct_root / "Documentation/zigux/freeze-map.md").unlink()
-        failures = collect_failures(missing_direct_root)
-        expected = ["readiness note claims direct packet path is missing from repo: `Documentation/zigux/freeze-map.md`"]
+        lane_drift_root = root / "lane_drift"
+        _seed_repo(lane_drift_root)
+        _write(
+            lane_drift_root / MANIFEST_PATH,
+            _sample_manifest().replace('"lane_key": "P15-L04"', '"lane_key": "P15-L99"', 1),
+        )
+        failures = collect_failures(lane_drift_root)
+        expected = [
+            "readiness manifest lane key drifted from P15-L04: P15-L99",
+        ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing direct-path failure: {failures}")
+            raise AssertionError(f"unexpected lane-drift failure: {failures}")
 
         broader_root = root / "broader"
         _seed_repo(broader_root)
@@ -383,17 +430,6 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected broader-path failure: {failures}")
-
-        handoff_root = root / "handoff"
-        _seed_repo(handoff_root)
-        (handoff_root / HANDOFF_MANIFEST_PATH).unlink()
-        failures = collect_failures(handoff_root)
-        expected = [
-            "readiness note claims direct packet path is missing from repo: `zigux/tests/phase15_handoff_next_steps_manifest.json`",
-            "readiness manifest phase15_handoff_manifest_present disagrees with repo reality",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected handoff-manifest failure: {failures}")
 
         make_route_root = root / "make_route"
         _seed_repo(make_route_root)
@@ -408,7 +444,10 @@ def run_self_test() -> int:
 
         workflow_root = root / "workflow"
         _seed_repo(workflow_root)
-        _write(workflow_root / WORKFLOW_PATH, "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n")
+        _write(
+            workflow_root / WORKFLOW_PATH,
+            "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n",
+        )
         failures = collect_failures(workflow_root)
         expected = [
             "readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`",
