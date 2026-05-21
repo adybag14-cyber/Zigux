@@ -34,6 +34,7 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -88,6 +89,13 @@ The directly readable HVC current-head packet also now includes the standalone
 keep that targetless-unregister failure-mode evidence explicit beside the
 narrower three-proof inventory instead of silently collapsing it into the shared
 proof-backed roster.
+The same narrower continuity packet also keeps the dedicated
+`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard
+explicit through
+`python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`
+and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
+so keep that focused witness-check route explicit beside the standalone witness
+pair instead of treating the pair as unchecked prose evidence.
 That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap
 on current `master`: the repo does not yet rematerialize a broader shared
 replay or survey route that would carry cross-driver public-struct ABI proof
@@ -105,6 +113,8 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `python3 scripts/zigux/validate-phase11.py`
 
@@ -132,6 +142,10 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
   The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   build shard also stay directly readable beside that smaller proof inventory.
+  The dedicated
+  `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also
+  stays directly readable beside that smaller proof inventory and standalone
+  witness pair.
 - `dw_wdt`: raw `master` fallback rereads rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` on current
   `master`, even though authenticated contents reads in this runtime still clip
@@ -152,8 +166,9 @@ matrix packet instead of leaving it implied by neighboring reminder surfaces.
   authenticated-contents rereads plus bcm2835 and DesignWare raw `master`
   fallback rereads, while preserving the narrower HVC build inventory, its
   adjunct build routes, the surviving `layout_assert`-backed ABI proof shards,
-  and the standalone targetless-unregister witness as adjacent continuity
-  evidence rather than a cross-driver replay roster.
+  the dedicated targetless-unregister witness checker route, and the standalone
+  targetless-unregister witness as adjacent continuity evidence rather than a
+  cross-driver replay roster.
 - Keep the roadmap-facing ABI proof gap explicit until current `master`
   rematerializes a broader shared replay or survey route that carries
   cross-driver public-struct ABI proof beyond the surviving HVC-centered
