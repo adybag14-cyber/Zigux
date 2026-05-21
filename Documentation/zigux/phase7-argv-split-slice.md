@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `argv_split` state on `master` now carries a bounded helper-local packet around argument counting, copied-storage tokenization, sentinel-terminated argv views, empty-input sentinel reuse, teardown ownership, allocator-failure cleanup, overflow rejection, and fixture-backed packet reviewability while keeping broader shared-control follow-ons outside this same helper family.
+The current `argv_split` state on `master` now carries a bounded helper-local packet around argument counting, copied-storage tokenization, sentinel-terminated argv views, empty-input sentinel reuse, teardown ownership, allocator-failure cleanup, overflow rejection, exported snake-case alias parity, and fixture-backed packet reviewability while keeping broader shared-control follow-ons outside this same helper family.
 
 This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `master` still ships no standalone `samples/zigux/*argv*` reference sample, so the dedicated boundary reminder should keep that separation explicit while the Phase 7 argv-split helper stays reviewable through helper-local surfaces only.
 
@@ -46,9 +46,13 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 The current helper-local packet on `master` covers:
 
 - `countArgc()`
+- `count_argc`
 - `argvSplit()`
+- `argv_split`
 - `argvSplitWithArgc()`
+- `argv_split_with_argc`
 - `argvFree()`
+- `argv_free`
 - `ArgvSplitResult.deinit()`
 - `ArgvSplitResult.cArgv()`
 
@@ -59,6 +63,7 @@ The current helper-local replay keeps these proofs explicit:
 - blank-input handling that keeps empty storage and sentinel argv views explicit
 - first-NUL truncation that keeps ignored tails outside the owned storage copy and sentinel-terminated argv view
 - caller-owned teardown, idempotent release behavior, and argc-preservation on allocation failure
+- exported snake-case alias parity that keeps `count_argc`, `argv_split`, `argv_split_with_argc`, and `argv_free` matched to the same count, split, and teardown behavior as the canonical helper exports
 - dedicated helper-local replay, fixture-vector, survey, and checker coverage rooted at `zigux/tests/phase7_argv_split.zig`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
