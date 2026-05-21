@@ -141,8 +141,9 @@ pub const RuntimeBitmapSample = struct {
 
     pub fn initFromBitList(self: *Self, bit_list: []const u8) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
-        self.words = [_]bitmap_view.Word{0} ** backing_word_count;
 
+        const parsed_words = [_]bitmap_view.Word{0} ** backing_word_count;
+        var parsed = Self{ .words = parsed_words };
         const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
         if (trimmed.len != 0) {
             var tokens = std.mem.splitScalar(u8, trimmed, ',');
@@ -151,10 +152,11 @@ pub const RuntimeBitmapSample = struct {
                 if (token.len == 0) return error.InvalidBitList;
                 const bit = std.fmt.parseUnsigned(u32, token, 10) catch return error.InvalidBitList;
                 if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
-                self.assignBit(bit, true);
+                parsed.assignBit(bit, true);
             }
         }
 
+        self.words = parsed.words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -258,3 +260,22 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "runtime bitmap sample leaves failed parsed init cold and empty" {
+    var module = RuntimeBitmapSample{};
+
+    try std.testing.expectError(error.InvalidBitList, module.initFromBitList("0,,64"));
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+
+    const summary = module.summary();
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(u32, 0), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+}
