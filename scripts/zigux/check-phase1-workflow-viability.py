@@ -61,6 +61,7 @@ REQUIRED_REVIEW_CHECKLIST_LINES = (
 )
 
 REQUIRED_NOTE_LINES = (
+    "- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
     "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
     "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "- `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
@@ -151,7 +152,7 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
 )
 
 
-def load_text(root: Path, relative_path: Path) -> str:
+def load_text(root: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
@@ -436,13 +437,27 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        broken_root = root / "missing-note-line"
+        broken_root = root / "missing-reminder-packet-line"
         write_sample_root(broken_root)
         note_text = load_text(broken_root, CLOSURE_NOTE_REL)
         write_text(
             broken_root,
             CLOSURE_NOTE_REL,
             rewrite_once(note_text, REQUIRED_NOTE_LINES[0] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if "closure_note:expected=1:actual=0" not in failures:
+            print("self-test:missing_reminder_packet_line_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "missing-note-line"
+        write_sample_root(broken_root)
+        note_text = load_text(broken_root, CLOSURE_NOTE_REL)
+        write_text(
+            broken_root,
+            CLOSURE_NOTE_REL,
+            rewrite_once(note_text, REQUIRED_NOTE_LINES[1] + "\n"),
         )
         failures = collect_failures(broken_root)
         if "closure_note:expected=1:actual=0" not in failures:
