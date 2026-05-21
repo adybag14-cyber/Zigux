@@ -40,6 +40,7 @@ REQUIRED_FILES = [
 TEXT_MARKERS = {
     SLICE_PATH: [
         "`PHASE12_SLICE=virtio-scsi-rollback-evidence`",
+        "active `P12-L13` survey packet",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "rollback evidence only",
     ],
@@ -47,6 +48,7 @@ TEXT_MARKERS = {
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-21`",
+        "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet",
         "receive-refill replay",
         "rollback-only split machine-checkable",
     ],
@@ -55,7 +57,8 @@ TEXT_MARKERS = {
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
-        "- survey gate: `zigux/tests/phase12_virtio_scsi_survey.zig`",
+        "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
+        "- survey gate: `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
         "- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`",
         "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
@@ -67,6 +70,7 @@ TEXT_MARKERS = {
         '"missing_on_master"',
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
+        '"rollback owner: `P12-L13` keeps the active virtio_scsi survey packet"',
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
