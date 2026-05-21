@@ -186,11 +186,11 @@ test "runtime bitmap loader rejects malformed loader payloads without leaving in
     try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0,,64"));
     try std.testing.expectEqual(ModuleStage.cold, invalid.stage());
     const invalid_summary = invalid.summary();
-    try std.testing.expectEqual(@as(u32, 0), invalid_summary.first_set);
-    try std.testing.expectEqual(@as(u32, 1), invalid_summary.first_zero);
-    try std.testing.expectEqual(@as(u32, 1), invalid_summary.weight);
+    try std.testing.expectEqual(@as(u32, RuntimeBitmapSample.bitmap_nbits), invalid_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), invalid_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), invalid_summary.weight);
     try std.testing.expectEqual(@as(usize, 0), invalid_summary.init_runs);
-    try std.testing.expect(invalid.isSet(0));
+    try std.testing.expect(!invalid.isSet(0));
 
     var out_of_bounds = RuntimeBitmapSample{};
     try std.testing.expectError(error.BitRangeOutOfBounds, out_of_bounds.initFromBitList("128"));
