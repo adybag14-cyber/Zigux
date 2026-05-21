@@ -13,7 +13,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 The roadmap's Phase 5 target is still "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the four approved Linux anchors.
 
 The bounded same-lane job here is not to widen runtime behavior.
-It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them, keep the shared `zigux/tests/phase5_build.zig` route visible only as shared companion evidence until direct reread returns it, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
+It is to keep the current sample-backed trace-events packet honest on current `master`: keep the bounded formatting companion explicit where direct reread still proves it, keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them, keep the shared `zigux/tests/phase5_build.zig` route explicit as a returned shared rerun handle now that direct reread serves it again, and avoid borrowing exact replay wording from sample-local files that this run could not re-read directly.
 
 ## Current repo reality on `master`
 Fresh mixed reread on 2026-05-20 still directly reconfirmed the roadmap anchor plus the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` through authenticated sample-root readback.
@@ -24,9 +24,9 @@ That same 2026-05-20 reread also kept the broader non-runtime trace-events sampl
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
-- `zigux/tests/phase5_build.zig`
 
-Authenticated contents readback still returned `404` for the five sample-local companion paths and the shared build route above on 2026-05-20.
+Authenticated contents readback still returned `404` for the five sample-local companion paths above on 2026-05-20.
+A fresh 2026-05-21 authenticated reread in this run also returned `zigux/tests/phase5_build.zig` directly again, including the focused `phase5-trace-events-sample-tests` and `phase5-trace-events-sample-survey-tests` routes beside the broader Phase 5 sample bundle.
 Fresh public current-`master` reread in this run also surfaced the broader sample-local companion paths again through their live GitHub blob pages:
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `samples/zigux/trace_events_sample.zig`
@@ -34,10 +34,10 @@ Fresh public current-`master` reread in this run also surfaced the broader sampl
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-This note should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support evidence rather than collapsing it into repo absence. The shared `zigux/tests/phase5_build.zig` route should stay framed separately as shared companion evidence only until a fresh authenticated reread returns that path directly again.
+This note should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support evidence rather than collapsing it into repo absence. The shared `zigux/tests/phase5_build.zig` route should stay framed separately as returned shared build-route evidence again rather than as companion-only support vocabulary.
 
 The bounded formatting companion is therefore the strongest direct sample-root trace-events evidence this run could reconfirm.
-Treat the focused `zig test` routes for the broader sample-local packet and the shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route as current public-tree-backed support vocabulary until a fresh reread returns those files directly again.
+Treat the focused `zig test` routes for the broader sample-local packet as current public-tree-backed support vocabulary until a fresh reread returns those files directly again. Treat `zig build test --build-file zigux/tests/phase5_build.zig --summary all` as a returned shared rerun handle again, not as the only proof of the broader sample-local replay family.
 
 ## Shared reminder posture
 The directly coupled trace-events packet is currently strongest in the bounded formatting companion and the shared reminder surfaces that keep its limits explicit.
@@ -60,10 +60,10 @@ A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-roo
 
 The tests-root shared reminder is only inventory-aligned in this run:
 - `zigux/tests/README.md` still names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
-- it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`
+- it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`, which this run could directly reread again even though the five broader sample-local companions still remained off the authenticated path
 - it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in the bounded formatting companion and the shared reminder packet, not in any broader sample-local file that this run could directly re-read
 
-Treat the tests-root reminder as packet-inventory support material on current `master`, not as proof that the broader sample-local trace-events replay files have returned through the same current read path.
+Treat the tests-root reminder as packet-inventory support material on current `master`, with the returned shared build route explicit again, not as proof that the broader sample-local trace-events replay files have returned through the same current read path.
 
 ## Landed cue posture
 Current direct evidence in this run is limited to the bounded formatting companion and the shared reminder packet that names it.
@@ -77,11 +77,11 @@ Broader helper-level trace-events cues from the older sample-local replay packet
 
 ## Recorded gap vs roadmap
 The precise current gap is not that Zigux lacks every trace-events reminder surface.
-The more accurate same-lane state on 2026-05-20 is:
+The more accurate same-lane state on 2026-05-21 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
 - the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` again through their live GitHub blob pages
-- the shared `zigux/tests/phase5_build.zig` route should remain companion evidence only until a fresh authenticated reread returns it directly
-- same-lane documentation should therefore keep the broader sample-local packet and shared build route framed as current public-tree-backed companion or historical-support references instead of calling them repo absence or directly readable proof
+- the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
+- same-lane documentation should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support references instead of calling it repo absence or directly readable proof, while keeping the returned shared build route classified separately from that still-missing authenticated sample-local set
 
 So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again.
 
