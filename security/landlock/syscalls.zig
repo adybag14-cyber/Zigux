@@ -615,7 +615,7 @@ test "landlock syscalls top-level wrapper keeps version query install planning n
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
-    try std.testing.expect(wrapper.reuses_createRuleset_validation);
+    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
     try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
