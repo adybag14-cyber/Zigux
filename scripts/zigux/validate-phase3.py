@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -227,7 +228,10 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
 REQUIRED_MANIFEST_REPO_REALITY_GAPS: tuple[str, ...] = ()
 
 SELF_TEST_SOURCE_TEXT = {
-    ABI_HEADER_PATH: "\n".join(REQUIRED_SOURCE_MARKERS[ABI_HEADER_PATH]) + "\n",
+    ABI_HEADER_PATH: (
+        "\n".join(REQUIRED_SOURCE_MARKERS[ABI_HEADER_PATH])
+        + "\n} zigux_boundary_header;\n"
+    ),
     ABI_BINDINGS_PATH: "\n".join(REQUIRED_SOURCE_MARKERS[ABI_BINDINGS_PATH]) + "\n",
     NOTIFIER_BINDINGS_PATH: "\n".join(REQUIRED_SOURCE_MARKERS[NOTIFIER_BINDINGS_PATH]) + "\n",
     ABI_CHECKER_PATH: "\n".join(REQUIRED_SOURCE_MARKERS[ABI_CHECKER_PATH]) + "\n",
@@ -249,6 +253,9 @@ SELF_TEST_MANIFEST = {
     "repo_reality_gaps": list(REQUIRED_MANIFEST_REPO_REALITY_GAPS),
     "next_safe_step": "keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again",
 }
+
+HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
+ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 
 def _read(path: Path) -> str:
@@ -328,6 +335,50 @@ def _validate_manifest(manifest_text: str) -> list[str]:
     return issues
 
 
+def _append_duplicate_name_issues(
+    rel_path: Path,
+    text: str,
+    pattern: re.Pattern[str],
+    label: str,
+    issues: list[str],
+) -> None:
+    first_lines: dict[str, int] = {}
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        match = pattern.match(line)
+        if match is None:
+            continue
+        name = match.group(1)
+        first_line = first_lines.get(name)
+        if first_line is None:
+            first_lines[name] = line_no
+            continue
+        issues.append(
+            f"duplicate {label}: {name} (first line {first_line}, duplicate line {line_no})"
+        )
+
+
+def _append_duplicate_abi_surface_issues(texts: dict[Path, str], issues: list[str]) -> None:
+    header_text = texts.get(ABI_HEADER_PATH)
+    if header_text is not None:
+        _append_duplicate_name_issues(
+            ABI_HEADER_PATH,
+            header_text,
+            HEADER_TYPEDEF_ALIAS_RE,
+            "ABI header typedef alias",
+            issues,
+        )
+
+    bindings_text = texts.get(ABI_BINDINGS_PATH)
+    if bindings_text is not None:
+        _append_duplicate_name_issues(
+            ABI_BINDINGS_PATH,
+            bindings_text,
+            ZIG_PUB_FN_RE,
+            "ABI binding pub fn",
+            issues,
+        )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     texts: dict[Path, str] = {}
@@ -336,6 +387,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     manifest_text = texts.get(ABI_MANIFEST_PATH)
     if manifest_text is not None:
         issues.extend(_validate_manifest(manifest_text))
+    _append_duplicate_abi_surface_issues(texts, issues)
 
     return issues
 
@@ -448,8 +500,46 @@ def run_self_test() -> int:
             print(f"expected issue was not reported: {expected_gap}")
             return 1
 
+        _write(
+            repo_root / ABI_MANIFEST_PATH,
+            json.dumps(SELF_TEST_MANIFEST, indent=2) + "\n",
+        )
+        current_header = _read(repo_root / ABI_HEADER_PATH)
+        _write(
+            repo_root / ABI_HEADER_PATH,
+            current_header
+            + "\ntypedef struct zigux_layout_alias {\n"
+            + "    int value;\n"
+            + "} zigux_boundary_header;\n",
+        )
+        issues = validate_repo(repo_root)
+        expected_duplicate_typedef = "duplicate ABI header typedef alias: zigux_boundary_header "
+        if not any(
+            issue.startswith(expected_duplicate_typedef) for issue in issues
+        ):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print(f"expected issue was not reported: {expected_duplicate_typedef}")
+            return 1
+
+        _write(repo_root / ABI_HEADER_PATH, current_header)
+        current_bindings = _read(repo_root / ABI_BINDINGS_PATH)
+        _write(
+            repo_root / ABI_BINDINGS_PATH,
+            current_bindings
+            + "\npub fn defaultHeader(flags: u16) BoundaryHeader {\n"
+            + "    _ = flags;\n"
+            + "    return undefined;\n"
+            + "}\n",
+        )
+        issues = validate_repo(repo_root)
+        expected_duplicate_pub_fn = "duplicate ABI binding pub fn: defaultHeader "
+        if not any(issue.startswith(expected_duplicate_pub_fn) for issue in issues):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print(f"expected issue was not reported: {expected_duplicate_pub_fn}")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
