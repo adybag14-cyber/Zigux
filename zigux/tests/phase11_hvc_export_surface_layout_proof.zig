@@ -177,9 +177,27 @@ test "phase11 HVC exported helper proof stays tied to the exported header signat
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 32 * 1024);
     defer std.testing.allocator.free(hvc_header);
 
+    try expectContains(hvc_header, "struct winsize {");
+    try expectContains(hvc_header, "uint16_t ws_row;");
+    try expectContains(hvc_header, "uint16_t ws_col;");
+    try expectContains(hvc_header, "uint16_t ws_xpixel;");
+    try expectContains(hvc_header, "uint16_t ws_ypixel;");
     try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
     try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
+    try expectContains(hvc_header, "int (*flush)(uint32_t vtermno, bool wait);");
+    try expectContains(hvc_header, "int (*notifier_add)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_del)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_hangup)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "int (*tiocmget)(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "int (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");
+    try expectContains(hvc_header, "void (*dtr_rts)(struct hvc_struct *hp, bool active);");
     try expectContains(hvc_header, "int hvc_instantiate(uint32_t vtermno, int index, const struct hv_ops *ops);");
     try expectContains(hvc_header, "struct hvc_struct *hvc_alloc(uint32_t vtermno, int data, const struct hv_ops *ops, int outbuf_size);");
+    try expectContains(hvc_header, "void hvc_remove(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "int hvc_poll(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "void hvc_kick(void);");
+    try expectContains(hvc_header, "void __hvc_resize(struct hvc_struct *hp, struct winsize ws);");
+    try expectContains(hvc_header, "int notifier_add_irq(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void notifier_del_irq(struct hvc_struct *hp, int irq);");
     try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");
 }
