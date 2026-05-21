@@ -27,6 +27,8 @@ REQUIRED_MARKERS = [
     "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
     "`python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
     "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`",
     "The reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "Authenticated contents reads in this run still do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master` fallback does",
@@ -40,6 +42,8 @@ REQUIRED_MARKERS = [
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+    "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "The dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also stays directly readable beside that smaller proof inventory and standalone witness pair",
     "The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory",
     "`bcm2835_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` on current `master`",
     "`gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`",
@@ -79,6 +83,8 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`, so the shared matrix packet should keep all four driver-local validation matrices explicit while recording that the contents bridge in this runtime still clips the bcm2835 and DesignWare notes.
 - The reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`.
 - Authenticated contents reads in this run still do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master` fallback does.
@@ -92,9 +98,11 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so keep that targetless-unregister failure-mode evidence explicit beside the narrower three-proof inventory instead of silently collapsing it into the shared proof-backed roster.
+- The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, so keep that focused witness-check route explicit beside the standalone witness pair instead of treating the pair as unchecked prose evidence.
 - `bcm2835_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` on current `master`
 - `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`
 - `hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- The dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also stays directly readable beside that smaller proof inventory and standalone witness pair.
 - The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard also stay directly readable beside that smaller proof inventory.
 - `dw_wdt`: raw `master` fallback rereads rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` on current `master`
 """
@@ -166,8 +174,10 @@ def run_self_test() -> None:
             REQUIRED_MARKERS[14],
             REQUIRED_MARKERS[20],
             REQUIRED_MARKERS[22],
-            REQUIRED_MARKERS[23],
+            REQUIRED_MARKERS[25],
             REQUIRED_MARKERS[26],
+            REQUIRED_MARKERS[27],
+            REQUIRED_MARKERS[28],
         )
         for index, marker in enumerate(required_self_test_markers, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
@@ -193,7 +203,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=14")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=16")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
