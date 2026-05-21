@@ -298,3 +298,100 @@ test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" 
     barrier.fullFence();
     try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), bridge_word);
 }
+
+test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const raw_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const denied_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.none),
+        .reserved = 0,
+    };
+    const reserved_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge),
+        .reserved = 1,
+    };
+
+    var bridge_words = [_]u32{ 0x0102_0304, 0x0506_0708 };
+    const bridge_addr = @intFromPtr(&bridge_words[0]);
+    const second_addr = @intFromPtr(&bridge_words[1]);
+
+    const direct_ptr = try narrow.pointerAtInteropPolicyBytes(
+        u32,
+        bridge_addr,
+        @sizeOf(u32),
+        raw_policy.unsafe_scope,
+        raw_policy.reserved,
+    );
+    try std.testing.expectEqual(@as(u32, 0x0102_0304), direct_ptr.*);
+
+    const direct_const_ptr = try narrow.constPointerAtInteropPolicyBytes(
+        u32,
+        bridge_addr,
+        raw_policy.unsafe_scope,
+        raw_policy.reserved,
+    );
+    try std.testing.expectEqual(@as(u32, 0x0102_0304), direct_const_ptr.*);
+
+    const policy_slice = try narrow.sliceAtInteropPolicy(u32, bridge_addr, bridge_words.len, raw_policy);
+    policy_slice[0] = 0x1122_3344;
+    barrier.release();
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), bridge_words[0]);
+
+    const const_policy_slice = try narrow.constSliceAtInteropPolicyBytes(
+        u32,
+        bridge_addr,
+        bridge_words.len,
+        raw_policy.unsafe_scope,
+        raw_policy.reserved,
+    );
+    try std.testing.expectEqual(@as(u32, 0x0506_0708), const_policy_slice[1]);
+
+    try narrow.writeValueAtInteropPolicyBytes(
+        u32,
+        bridge_addr,
+        0xFACE_CAFE,
+        raw_policy.unsafe_scope,
+        raw_policy.reserved,
+    );
+    try narrow.writeValueAtInteropPolicy(u32, second_addr, 0x0BAD_F00D, raw_policy);
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0xFACE_CAFE), bridge_words[0]);
+    try std.testing.expectEqual(@as(u32, 0x0BAD_F00D), bridge_words[1]);
+
+    try std.testing.expectEqual(
+        @as(u32, 0x0BAD_F00D),
+        (try narrow.constPointerAtInteropPolicy(u32, second_addr, raw_policy)).*,
+    );
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        narrow.pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), denied_policy),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        narrow.constPointerAtInteropPolicy(u32, bridge_addr, reserved_policy),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        narrow.sliceAtInteropPolicy(u32, bridge_addr, bridge_words.len, reserved_policy),
+    );
+    try std.testing.expectError(
+        error.ByteLengthTooSmall,
+        narrow.pointerAtInteropPolicyBytes(
+            u32,
+            bridge_addr,
+            @sizeOf(u16),
+            raw_policy.unsafe_scope,
+            raw_policy.reserved,
+        ),
+    );
+}
