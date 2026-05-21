@@ -234,6 +234,13 @@ test "phase10 virtio mmio keeps config-write disposition planning-only across re
     try std.testing.expect(disposition.has_changes);
     try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
 
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0405);
+    const no_op = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), no_op.previous_value);
+    try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
+    try std.testing.expect(!no_op.has_changes);
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 
