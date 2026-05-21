@@ -93,6 +93,30 @@ test "phase10 virtio ring publish-readiness wrapper blocks full queues until use
     try std.testing.expect(queueHasPublishCapacity(summary));
 }
 
+test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+
+    inline for (0..8) |_| {
+        try ring.publishDescriptorChain(4);
+    }
+    _ = try ring.prepareKick(4);
+    try ring.recordUsedChains(4, 3);
+
+    const summary = try summarizePublishReadiness(&ring, 4);
+    try std.testing.expectEqual(@as(u16, 5), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+
+    const reset_readiness = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!reset_readiness.reset_ready);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(reset_readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 3), reset_readiness.pending_used_chain_count);
+}
+
 test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(5, 8, .split, false, false);
