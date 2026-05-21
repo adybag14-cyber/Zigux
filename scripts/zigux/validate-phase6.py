@@ -61,6 +61,38 @@ REQUIRED_FILES = [
 EXPECTED_HELPER_EVIDENCE_PACKET = "phase6-helper-evidence"
 EXPECTED_HELPER_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
+EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-hexdump-slice.md",
+    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
+]
+EXPECTED_SHARED_DIRECT_EVIDENCE = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
@@ -153,7 +185,7 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 30
 
 
 class ValidationError(RuntimeError):
@@ -226,6 +258,10 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 helper parity packet drift")
     if helper_evidence_manifest.get("phase") != EXPECTED_PHASE or helper_parity_manifest.get("phase") != EXPECTED_PHASE:
         raise ValidationError("phase6 phase drift")
+    if helper_evidence_manifest.get("current_direct_readback_companions") != EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS:
+        raise ValidationError("phase6 helper evidence direct-readback companion drift")
+    if helper_parity_manifest.get("shared_direct_evidence") != EXPECTED_SHARED_DIRECT_EVIDENCE:
+        raise ValidationError("phase6 helper parity shared direct evidence drift")
     if helper_evidence_manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
         raise ValidationError("phase6 roadmap anchors drift")
     if helper_evidence_manifest.get("current_shared_replay_inventory") != EXPECTED_SHARED_REPLAY_INVENTORY:
@@ -287,12 +323,14 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_EVIDENCE_PACKET,
         "phase": EXPECTED_PHASE,
+        "current_direct_readback_companions": EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS,
         "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
         "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_INVENTORY,
     }, indent=2) + "\n")
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_PARITY_PACKET,
         "phase": EXPECTED_PHASE,
+        "shared_direct_evidence": EXPECTED_SHARED_DIRECT_EVIDENCE,
         "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
         "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
         "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
@@ -377,8 +415,20 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"] = []
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
