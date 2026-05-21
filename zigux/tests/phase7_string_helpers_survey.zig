@@ -80,6 +80,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContainsCount(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectContains(slice_note, "Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar");
     try expectContains(slice_note, "do not treat a standalone `lib/string_helpers_parse_int_array.zig` sidecar as part of the current helper-local packet");
+    try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet");
+    try expectContains(slice_note, "but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion under the non-runtime `trace_events` anchor");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
@@ -141,11 +143,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(samples_readme, "* `*rbtree*`");
     try expectContains(samples_readme, "* `*kasprintf*`");
     try expectContains(samples_readme, "* `*strarray*`");
+    try expectContains(samples_readme, "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`");
     try expectContains(samples_readme, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
-    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local");
     try expectContains(sample_boundary, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectNotContains(sample_boundary, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays");
