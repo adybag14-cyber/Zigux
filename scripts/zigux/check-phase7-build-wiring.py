@@ -25,6 +25,7 @@ EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase7-shared-surface.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -113,7 +114,7 @@ MAKEFILE_FORBIDDEN_LINES = [
     "phase7:",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -290,6 +291,11 @@ def run_self_test() -> None:
                 MAKEFILE_PATH,
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-shared-surface.py\n",
+            ),
+            (
+                MANIFEST_PATH,
+                '"scripts/zigux/check-phase7-build-wiring.py"',
+                '"scripts/zigux/check-phase7-shared-surface.py"',
             ),
         ]
         for rel, old, new in mutations:
