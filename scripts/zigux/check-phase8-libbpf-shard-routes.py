@@ -33,7 +33,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`zigux/tests/phase8_build.zig`",
-        "mixed authenticated-plus-public reread surface",
+        "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
     ),
     BRIDGE_BOUNDARY_SURVEY_PATH: (
         "deferred `perf-buffer-online-cpu-routing` packet",
