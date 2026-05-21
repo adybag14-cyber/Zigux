@@ -264,6 +264,18 @@ def assert_run_checker_note_contains(
     assert f"PHASE2_KCONFIG_README_ALIGNMENT_NOTE={expected_fragment}" in output, output
 
 
+def assert_run_checker_output_contains(
+    *,
+    root: Path | None,
+    readme: Path | None,
+    expected_fragment: str,
+) -> None:
+    exit_code, output = capture_run_checker(root=root, readme=readme)
+    assert exit_code == 1, output
+    assert "PHASE2_KCONFIG_README_ALIGNMENT=fail" in output, output
+    assert expected_fragment in output, output
+
+
 def run_self_test() -> int:
     checks_run = 0
     base_text = build_base_text()
@@ -348,7 +360,25 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
-    expected_case_count = 11 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
+        required_output_readme = root / "README.required-output.md"
+        required_output_readme.write_text(base_text.replace(REQUIRED_SNIPPETS[0], "", 1), encoding="utf-8")
+        assert_run_checker_output_contains(
+            root=root,
+            readme=required_output_readme,
+            expected_fragment=f"REQUIRED_SNIPPET_COUNT_MISMATCH={REQUIRED_SNIPPETS[0]}:actual=0:expected=1",
+        )
+        checks_run += 1
+
+        forbidden_output_readme = root / "README.forbidden-output.md"
+        forbidden_output_readme.write_text(base_text + "\n" + FORBIDDEN_SNIPPETS[0] + "\n", encoding="utf-8")
+        assert_run_checker_output_contains(
+            root=root,
+            readme=forbidden_output_readme,
+            expected_fragment=f"FORBIDDEN_SNIPPET_PRESENT={FORBIDDEN_SNIPPETS[0]}:actual=1:expected=0",
+        )
+        checks_run += 1
+
+    expected_case_count = 13 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
     if checks_run != expected_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
