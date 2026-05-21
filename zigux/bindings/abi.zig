@@ -32,6 +32,7 @@ pub const UNSAFE_NONE: u8 = 0;
 pub const UNSAFE_VOLATILE_MMIO: u8 = 1;
 pub const UNSAFE_RAW_POINTER_BRIDGE: u8 = 2;
 
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED: u32 = 1;
@@ -492,24 +493,32 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
 }
 
-test "abi binding notifier and list layouts stay aligned with the published abi packet" {
+test "abi binding notifier and list layouts stay aligned with the exported ABI header" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
-    const expected_notifier_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+    const expected_notifier_size = std.mem.alignForward(
+        usize,
+        raw_size,
+        @alignOf(NotifierBlock),
+    );
     const raw_increase_size = (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2);
-    const expected_increase_size = std.mem.alignForward(usize, raw_increase_size, @alignOf(usize));
+    const expected_increase_size = std.mem.alignForward(
+        usize,
+        raw_increase_size,
+        @alignOf(ChainPriorityIncrease),
+    );
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(expected_notifier_size, @sizeOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+    try std.testing.expectEqual(expected_notifier_size, @sizeOf(NotifierBlock));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ChainPriorityIncrease));
-    try std.testing.expectEqual(expected_increase_size, @sizeOf(ChainPriorityIncrease));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChainPriorityIncrease, "previous_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ChainPriorityIncrease, "current_index"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ChainPriorityIncrease, "previous_priority"));
     try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(ChainPriorityIncrease, "current_priority"));
+    try std.testing.expectEqual(expected_increase_size, @sizeOf(ChainPriorityIncrease));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
@@ -538,7 +547,7 @@ test "abi binding notifier and list layouts stay aligned with the published abi 
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
 }
 
-test "abi binding notifier helper logic stays explicit inside the shared packet" {
+test "abi binding notifier priority helpers stay explicit" {
     const third = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
@@ -571,7 +580,7 @@ test "abi binding notifier helper logic stays explicit inside the shared packet"
     try std.testing.expect(!chainHasNonincreasingPriority(&increasing_head));
 }
 
-test "abi binding keeps first priority increase and list relays explicit" {
+test "abi binding first priority increase and list helpers stay explicit" {
     const rising_tail = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
