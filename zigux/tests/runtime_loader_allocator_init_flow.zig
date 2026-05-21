@@ -4,7 +4,6 @@ const contract = @import("runtime_loader_contract");
 
 const AllocatorHandoff = contract.AllocatorHandoff;
 const HandoffStage = contract.HandoffStage;
-const InitFlow = contract.InitFlow;
 const LoadPlan = contract.LoadPlan;
 const PreparedRequest = runtime_loader.PreparedRequest;
 const RequestState = contract.RequestState;
