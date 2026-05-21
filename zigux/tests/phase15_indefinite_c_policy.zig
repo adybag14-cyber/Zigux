@@ -90,7 +90,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-20", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-21", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
@@ -112,7 +112,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
-    try expectContains(policy_note, "current-master-readback-2026-05-20");
+    try expectContains(policy_note, "current-master-readback-2026-05-21");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
     try expectContains(policy_note, "code that remains in C indefinitely");
