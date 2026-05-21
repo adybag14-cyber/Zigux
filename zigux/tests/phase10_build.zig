@@ -9,6 +9,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const virtio_driver_id_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_driver_id.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_driver_id_module.addImport("virtio_core", virtio_core_module);
     const virtio_core_verify_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_verify.zig"),
         .target = target,
@@ -233,6 +239,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase10_virtio_driver_id_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_driver_id.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_driver_id_module.addImport("virtio_core", virtio_core_module);
+    phase10_virtio_driver_id_module.addImport("virtio_driver_id", virtio_driver_id_module);
+
     const phase10_virtio_core_tests = b.addTest(.{
         .name = "phase10-virtio-core-tests",
         .root_module = phase10_virtio_core_module,
@@ -250,6 +264,12 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_core_survey_module,
     });
     const run_phase10_virtio_core_survey_tests = b.addRunArtifact(phase10_virtio_core_survey_tests);
+
+    const phase10_virtio_driver_id_tests = b.addTest(.{
+        .name = "phase10-virtio-driver-id-tests",
+        .root_module = phase10_virtio_driver_id_module,
+    });
+    const run_phase10_virtio_driver_id_tests = b.addRunArtifact(phase10_virtio_driver_id_tests);
 
     const phase10_virtio_input_tests = b.addTest(.{ .name = "phase10-virtio-input-tests", .root_module = phase10_virtio_input_module });
     const run_phase10_virtio_input_tests = b.addRunArtifact(phase10_virtio_input_tests);
@@ -324,10 +344,17 @@ pub fn build(b: *std.Build) void {
     );
     phase10_virtio_core_survey_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
 
+    const phase10_virtio_driver_id_step = b.step(
+        "phase10-virtio-driver-id-tests",
+        "Run the live Phase 10 virtio driver-id wrapper tests",
+    );
+    phase10_virtio_driver_id_step.dependOn(&run_phase10_virtio_driver_id_tests.step);
+
     const test_step = b.step("test", "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
+    test_step.dependOn(&run_phase10_virtio_driver_id_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_probe_preflight_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_queue_callback_preflight_tests.step);
