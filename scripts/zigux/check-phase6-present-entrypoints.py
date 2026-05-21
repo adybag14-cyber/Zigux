@@ -21,7 +21,7 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_EVIDENCE_SURVEYED_HEAD = "9ca34d1"
+EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-20"
 EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-20"
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
@@ -53,10 +53,16 @@ EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
 EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
 EXPECTED_HEXDUMP_CHECKER = "scripts/zigux/check-phase6-hexdump-packet.py"
-EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-readback-limited"
-EXPECTED_HEXDUMP_MISSING_COMPANIONS = [
-    "Documentation/zigux/phase6-hexdump-slice.md",
-    "Documentation/zigux/phase6-hexdump-perf-refresh.md",
+EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-helper-readback-restored"
+EXPECTED_CURRENT_REPO_REALITY_GAPS = [
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/phase6_checksum_c_parity.zig",
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
@@ -204,11 +210,8 @@ def validate(repo_root: Path) -> None:
     if hexdump_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
         raise ValidationError("phase6 hexdump perf rerun routes mismatch")
 
-    require_list_contains(
-        manifest.get("current_repo_reality_gaps"),
-        EXPECTED_HEXDUMP_MISSING_COMPANIONS,
-        "phase6 current repo reality gaps",
-    )
+    if manifest.get("current_repo_reality_gaps") != EXPECTED_CURRENT_REPO_REALITY_GAPS:
+        raise ValidationError("phase6 current repo reality gaps mismatch")
     require_list_contains(
         manifest.get("current_shared_replay_inventory"),
         EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
@@ -237,7 +240,7 @@ def scaffold_repo(root: Path) -> None:
                 "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
-                "current_repo_reality_gaps": EXPECTED_HEXDUMP_MISSING_COMPANIONS,
+                "current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS,
                 "current_shared_replay_inventory": EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
                 "helpers": [
                     {"key": "base64"},
@@ -333,7 +336,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-hexdump-perf")))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("Documentation/zigux/phase6-hexdump-perf-refresh.md")))
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
