@@ -10,7 +10,7 @@ test "phase10 virtio input registration preflight helper exposes blocker tags an
     try std.testing.expectEqualStrings("event_queue_unconfigured", registration.blockerTag(summary.blocker.?));
     try std.testing.expect(!registration.queuePlanReady(summary));
     try std.testing.expect(!registration.capabilitySetupReady(summary));
-    try std.testing.expect(!registration.multitouchSlotsReady(summary));
+    try std.testing.expect(registration.multitouchSlotsReady(summary));
     try std.testing.expect(!registration.waitingOnCapabilitySetup(summary));
     try std.testing.expect(!registration.waitingOnMultitouchSlots(summary));
     try std.testing.expect(!registration.readyForRegistration(summary));
