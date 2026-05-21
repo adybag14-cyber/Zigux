@@ -39,6 +39,16 @@
     "anti_overlap_rule": "Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys."
   },
   "review_anchors": {
+    "tools/lib/argv_split.zig": {
+      "helper_test_anchors": [
+        "test \"argvSplit matches the phase 1 committed fixture shape\"",
+        "test \"argvSplit collapses repeated whitespace and blank inputs to zero arguments\""
+      ],
+      "phase1_helper_replay_anchor": "test \"phase1 host-tools smoke exercises live helper behavior\"",
+      "shared_replay_summary": "the committed Phase 1 fixture and current host-tools smoke route still carry the baseline argv_split token-shape replay, while current master keeps repeated-whitespace collapse and blank-input behavior explicit at the helper surface for this reusable leaf helper",
+      "whitespace_anchor": "test \"argvSplit collapses repeated whitespace and blank inputs to zero arguments\"",
+      "next_safe_step_note": "If this helper lane reopens, keep argv_split parked unless a fresh reread finds drift in the committed argv_split replay fields, the shared host-tools smoke token-shape witness, or the helper-local whitespace-collapse and blank-input anchors; do not widen into neighboring shared-replay parked helpers by default."
+    },
     "tools/lib/bitmap.zig": {
       "helper_test_anchors": [
         "test \"bitmap set clear weight and empty full helpers\"",
