@@ -12,16 +12,17 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-- executable packet companions still missing through current contents-path readback:
+- executable packet companions confirmed on current `master` through public GitHub fallback:
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
+- authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker as the owner surface rather than claiming restored local replay or ownership
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 
 ## Why this packet exists
 The Phase 14 roadmap treats `kernel/rcu/tree.c` as a freeze-in-C anchor even while it recommends `kernel/rcu/tree_bridge.zig` as a possible long-horizon destination.
 
-This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, the exact dedicated note that remains directly readable on `master`, and the executable companions that still have not returned through the same contents-path readback. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
+This packet keeps that distinction honest: it records the current boundary evidence, the blocker that still keeps Tree RCU in C, the exact dedicated note that remains directly readable on `master`, and the executable companions that public GitHub fallback confirms are still live even while authenticated contents-path reads stay partial. This note stays narrow on purpose. It does not reopen the freeze decision, it does not claim active `kernel/rcu/tree_bridge.zig` ownership, and it does not widen into the shared Phase 14 smoke lane beyond the RCU packet it already depends on.
 
 ## Exact evidence captured
 - freeze-map posture:
@@ -31,13 +32,14 @@ This packet keeps that distinction honest: it records the current boundary evide
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/freeze-map.md`
-- executable packet companions still missing through current contents-path readback:
+- executable packet companions confirmed on current `master` through public GitHub fallback:
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
+- authenticated contents-path readback still stays partial for those executable companions, so the dedicated note continues to treat the freeze-in-C blocker and shared owner-map packet as the live owner surfaces for this lane
 - shared Phase 14 reminder surfaces that still carry the bounded owner-map tie-back:
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
-- packet-local rerun vocabulary that remains historical until the executable companions return:
+- packet-local rerun vocabulary that public fallback now corroborates, even though this lane still lacks a local exact-replay environment on current `master`:
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - dedicated rollback guard surface:
@@ -62,7 +64,7 @@ The current survey evidence still shows force-quiescent-state escalation, poll-c
 
 ## Rollback guardrail
 - manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
-- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, missing-companion wording, rollback owner, and required reopen evidence.
+- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, companion-readback wording, rollback owner, and required reopen evidence.
 - rollback owner: `Repo Tooling Pod`
 - required evidence before any status review:
   - `Architecture Council` reopen record linked from the active review packet
@@ -71,7 +73,7 @@ The current survey evidence still shows force-quiescent-state escalation, poll-c
 - automatic return-to-blocked triggers:
   - any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record
   - missing parity scorecard evidence, benchmark notes, or replay command in the active review packet
-  - freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the missing-companion warning, or the rollback owner
+  - freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the companion-readback warning, or the rollback owner
 
 ## Non-goals
 - any live `kernel/rcu/tree_bridge.zig` ownership claim
@@ -80,5 +82,5 @@ The current survey evidence still shows force-quiescent-state escalation, poll-c
 - any claim that Tree RCU is now a study-only anchor instead of a freeze-in-C anchor
 
 ## Next bounded step
-Keep this dedicated RCU packet aligned only when the dedicated note, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
-If the missing executable companions return through current contents-path readback, update this note and the dedicated checker together before restoring any stronger survey-backed wording.
+Keep this dedicated RCU packet aligned only when the dedicated note, the executable-companion readback, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
+If authenticated contents-path readback recovers for the executable companions too, update this note and the dedicated checker together before restoring any stronger exact-readback wording.
