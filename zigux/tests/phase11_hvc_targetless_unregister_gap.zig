@@ -1,13 +1,23 @@
 const std = @import("std");
 
-fn readRepoFile(path: []const u8) ![]u8 {
+fn readCandidateAlloc(
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
     const io = std.testing.io;
-    return std.Io.Dir.cwd().readFileAlloc(
-        io,
-        path,
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
+fn readRepoFile(path: []const u8) ![]u8 {
+    return readCandidateAlloc(std.testing.allocator, path, 128 * 1024) catch |err| switch (err) {
+        error.FileNotFound => {
+            const prefixed = try std.fmt.allocPrint(std.testing.allocator, "../../{s}", .{path});
+            defer std.testing.allocator.free(prefixed);
+            return readCandidateAlloc(std.testing.allocator, prefixed, 128 * 1024);
+        },
+        else => return err,
+    };
 }
 
 fn expectContains(contents: []const u8, needle: []const u8) !void {
@@ -24,12 +34,12 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(driver, ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,");
     try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");
     try expectContains(driver, ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,");
-    try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\\\" {");
     try expectContains(driver, "const targetless_sanitized = summarizeTargetlessNotifierEdge(.{");
     try expectContains(driver, "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);");
     try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");
     try expectContains(driver, "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);");
-    try expectContains(driver, "test \"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\\\" {");
     try expectContains(driver, "try std.testing.expect(!summary.unregister_requested);");
 
     const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");
