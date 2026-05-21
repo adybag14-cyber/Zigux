@@ -147,6 +147,13 @@ DRIVER_MARKERS = (
     "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {",
     "pub const CloseTeardownRequest = struct {",
     "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {",
+    "pub const TtyRegistrationRequest = struct {",
+    "pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {",
+    "pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSummary {",
+    "pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {",
+    "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {",
+    "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {",
+    "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {",
     "pub const RemoveHandoffRequest = struct {",
     "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
     "pub const CleanupHandoffRequest = struct {",
@@ -164,6 +171,12 @@ DRIVER_MARKERS = (
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
     'test "phase11 hvc console keeps flush intent summary reviewable" {',
     'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {',
+    'test "phase11 hvc console keeps tty-registration handoff summary reviewable" {',
+    'test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {',
+    'test "phase11 hvc console keeps khvcd polling-contract summary reviewable" {',
+    'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable" {',
+    'test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {',
+    'test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {',
     'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {',
     'test "phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable" {',
     'test "phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable" {',
@@ -217,6 +230,21 @@ PROOF_MARKERS = (
     'try expectContains(cleanup_companion, "separate failure-mode replay");',
     'try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
     'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {',
+    'try expectContains(matrix_doc, "tty-registration handoff");',
+    'try expectContains(matrix_doc, "khvcd polling-contract");',
+    'try expectContains(matrix_doc, "`__hvc_poll` drain-order");',
+    'try expectContains(driver, "pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {");',
+    'try expectContains(driver, "pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSummary {");',
+    'try expectContains(driver, "pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {");',
+    'try expectContains(driver, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {");',
+    'try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");',
+    'try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\" {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\" {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\" {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\" {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\" {");',
+    'try expectContains(driver, "test \\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\" {");',
 )
 
 BUILD_MARKERS = (
@@ -544,6 +572,13 @@ def run_self_test() -> int:
             (DRIVER_PATH, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {"),
             (DRIVER_PATH, "pub const CloseTeardownRequest = struct {"),
             (DRIVER_PATH, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {"),
+            (DRIVER_PATH, "pub const TtyRegistrationRequest = struct {"),
+            (DRIVER_PATH, "pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {"),
+            (DRIVER_PATH, "pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSummary {"),
+            (DRIVER_PATH, "pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {"),
+            (DRIVER_PATH, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {"),
+            (DRIVER_PATH, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {"),
+            (DRIVER_PATH, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {"),
             (DRIVER_PATH, "pub const HangupDisconnectRequest = struct {"),
             (DRIVER_PATH, "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {"),
             (DRIVER_PATH, "pub const CleanupPrerequisiteRequest = struct {"),
@@ -551,6 +586,12 @@ def run_self_test() -> int:
             (DRIVER_PATH, "error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {"),
             (DRIVER_PATH, 'test "phase11 hvc console keeps flush intent summary reviewable" {'),
             (DRIVER_PATH, 'test "phase11 hvc console keeps final-close teardown ownership summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps tty-registration handoff summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps notifier-add open handoff summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps khvcd polling-contract summary reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps khvcd worker-entry handoff reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable" {'),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps __hvc_poll drain-order summary reviewable" {'),
             (DRIVER_PATH, 'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {'),
             (DRIVER_PATH, 'test "phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable" {'),
             (DRIVER_PATH, 'test "phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable" {'),
@@ -564,6 +605,21 @@ def run_self_test() -> int:
             (PROOF_PATH, 'try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stays");'),
             (PROOF_PATH, 'try expectContains(cleanup_companion, "separate failure-mode replay");'),
             (PROOF_PATH, 'try expectContains(matrix_doc, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");'),
+            (PROOF_PATH, 'try expectContains(matrix_doc, "tty-registration handoff");'),
+            (PROOF_PATH, 'try expectContains(matrix_doc, "khvcd polling-contract");'),
+            (PROOF_PATH, 'try expectContains(matrix_doc, "`__hvc_poll` drain-order");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegistrationSummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeNotifierAddOutcome(request: NotifierAddRequest) NotifierAddSummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeKhvcdPollingContract(request: KhvcdPollingContractRequest) KhvcdPollingContractSummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\" {");'),
         ]
         for index, (rel, marker) in enumerate(cases, start=1):
             broken = tmpdir / f"broken_{index:02d}"
@@ -584,7 +640,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=48")
+        print(f"PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT={len(cases) + 2}")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
