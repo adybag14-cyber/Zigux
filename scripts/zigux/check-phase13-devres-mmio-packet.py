@@ -10,7 +10,9 @@ SLICE_PATH = Path("Documentation/zigux/phase13-devres-slice.md")
 SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 PLANNER_NOTE_PATH = Path("Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md")
 SCATTERLIST_SLICE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-slice.md")
+SCATTERLIST_PLANNER_NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
 PLANNER_MANIFEST_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json")
+SCATTERLIST_PLANNER_MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
 PLANNER_REPLAY_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
 HELPER_PATH = Path("lib/devres.zig")
@@ -23,7 +25,9 @@ REQUIRED_FILES = [
     SURVEY_PATH,
     PLANNER_NOTE_PATH,
     SCATTERLIST_SLICE_PATH,
+    SCATTERLIST_PLANNER_NOTE_PATH,
     PLANNER_MANIFEST_PATH,
+    SCATTERLIST_PLANNER_MANIFEST_PATH,
     PLANNER_REPLAY_PATH,
     DMA_REPLAY_PATH,
     HELPER_PATH,
@@ -37,17 +41,17 @@ SLICE_MARKERS = [
     "`Documentation/zigux/phase13-devres-survey.md` now records the current DMA and scatterlist boundary",
     "`lib/devres.zig` and `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` now provide one pure helper-first `dmam_alloc_coherent()` planning surface",
     "`scripts/zigux/check-phase13-devres-packet-alignment.py` stays in the same repo-reality gaps bucket",
-    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only",
-    "The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only",
+    "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap.",
 ]
 
 SURVEY_MARKERS = [
     "# Phase 13 devres DMA, scatterlist, and MMIO Boundary Survey",
     "This document records the bounded `P13-L01` survey lane around the current `lib/devres.c` helper packet on `master`: the shipped DMA and scatterlist boundary evidence, plus the still-missing MMIO and iomap safety gaps that remain open against the Phase 13 roadmap.",
     "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` marks the packet as `starter_landed`",
-    "`lib/devres.zig` now ships a pure `dmam_alloc_coherent()` planning surface through `DevresHelperLab.descriptor()`, `planManagedReleaseRecordLifetime(...)`, and `planManagedDmamAllocCoherent(...)`",
-    "`zigux/tests/phase13_devres_dma_coherent.zig` continues to fail-close on generic DMA and scatterlist ownership boundaries beside the new helper-first planner",
-    "`lib/devres_scatterlist.zig` and `zigux/tests/phase13_devres_scatterlist.zig` keep the helper-first scatterlist lifetime slice reviewable",
+    "`lib/devres.zig` ships a pure `dmam_alloc_coherent()` planning surface through `DevresHelperLab.descriptor()`, `planManagedReleaseRecordLifetime(...)`, `planManagedDmamAllocCoherent(...)`, and `planManagedDmamFreeCoherent(...)`, while keeping `.touches_live_dma = false` and `.touches_live_scatterlist = false`.",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` continues to fail closed on generic DMA and scatterlist ownership boundaries beside the new helper-first planner.",
+    "`lib/devres_scatterlist.zig` ships helper-first scatterlist lifetime planning through `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, and `planManagedScatterlistUnmap(...)`, and `zigux/tests/phase13_devres_scatterlist.zig` replays retained-release-record success, freed-release-record fallback, release-record-allocation failure, exact release-match behavior, and the dedicated planner note or manifest packet without widening into live DMA mapping or `sg_table` lifecycle control.",
     "there are no `devm_iounmap(`, `devm_ioremap_np(`, `devm_of_iomap(`, `devm_arch_phys_wc_add(`, or `devm_arch_io_reserve_memtype_wc(` markers in the live helper file.",
     "`zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain absent",
     "blocked `phase13-devres-live-dmam-alloc-side-effects`",
@@ -90,9 +94,20 @@ SCATTERLIST_SLICE_MARKERS = [
     "keep one reviewable scatterlist bookkeeping foothold without widening into live DMA-backed execution or live `sg_*` traversal",
     "`DevresScatterlistHelper.descriptor()` names the same `lib/devres.c` anchor while keeping `touches_live_dma = false` and `touches_live_scatterlist = false`",
     "`planManagedScatterlistMap()` models a helper-first retained-record decision around original segment count, mapped segment count, and detach-time unmap readiness",
-    "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped counts so the detach bookkeeping surface stays reviewable",
+    "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable",
     "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
     "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
+]
+
+SCATTERLIST_PLANNER_NOTE_MARKERS = [
+    "# Phase 13 devres scatterlist Planner",
+    "lands one pure scatterlist lifetime planning surface in `lib/devres_scatterlist.zig`",
+    "routes `planManagedScatterlistMap(...)` through one helper-local release-record outcome so retained cleanup ownership stays reviewable as its own shared helper step",
+    "records whether a successful planned scatterlist map retains detach-time unmap ownership on success",
+    "routes `planManagedScatterlistUnmap(...)` through exact original-entry and mapped-entry matching so release drift stays reviewable without claiming live unmap side effects",
+    "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership",
+    "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`",
+    "does not claim live DMA mapping side effects, scatterlist ownership mutation, IOMMU state, DMA attributes, or wider devres group teardown behavior",
 ]
 
 PLANNER_MANIFEST_MARKERS = [
@@ -110,6 +125,22 @@ PLANNER_MANIFEST_MARKERS = [
     '"status": "blocked_on_scatterlist_state"',
 ]
 
+SCATTERLIST_PLANNER_MANIFEST_MARKERS = [
+    '"lane_key": "P13-L08"',
+    '"phase": "Phase 13"',
+    '"anchor": "lib/devres.c"',
+    '"packet": "phase13-devres-scatterlist-planner"',
+    '"status": "starter_landed"',
+    '"Documentation/zigux/phase13-devres-scatterlist-planner.md"',
+    '"zigux/tests/phase13_devres_scatterlist_planner_manifest.json"',
+    '"planManagedScatterlistMap"',
+    '"scatterlistReleaseMatches"',
+    '"planManagedScatterlistUnmap"',
+    '"id": "phase13-devres-live-scatterlist-ownership"',
+    '"id": "phase13-devres-live-sg-table-lifecycle"',
+    '"id": "phase13-devres-generic-dma-map-family"',
+]
+
 PLANNER_REPLAY_MARKERS = [
     'test "phase13 devres descriptor records helper-first dmam_alloc_coherent planning" {',
     'test "phase13 devres dmam_alloc_coherent planner manifest records the landed helper-first dma scope" {',
@@ -120,7 +151,7 @@ PLANNER_REPLAY_MARKERS = [
 DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
     'test "phase13 devres dma coherent replay anchors the current slice reality" {',
-    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
+    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
 ]
 
 HELPER_REQUIRED_MARKERS = [
@@ -195,7 +226,9 @@ def validate(root: Path) -> list[str]:
         (SURVEY_PATH, SURVEY_MARKERS, "survey"),
         (PLANNER_NOTE_PATH, PLANNER_NOTE_MARKERS, "planner_note"),
         (SCATTERLIST_SLICE_PATH, SCATTERLIST_SLICE_MARKERS, "scatterlist_slice"),
+        (SCATTERLIST_PLANNER_NOTE_PATH, SCATTERLIST_PLANNER_NOTE_MARKERS, "scatterlist_planner_note"),
         (PLANNER_MANIFEST_PATH, PLANNER_MANIFEST_MARKERS, "planner_manifest"),
+        (SCATTERLIST_PLANNER_MANIFEST_PATH, SCATTERLIST_PLANNER_MANIFEST_MARKERS, "scatterlist_planner_manifest"),
         (PLANNER_REPLAY_PATH, PLANNER_REPLAY_MARKERS, "planner_replay"),
         (DMA_REPLAY_PATH, DMA_REPLAY_MARKERS, "dma_replay"),
         (HELPER_PATH, HELPER_REQUIRED_MARKERS, "helper"),
@@ -219,7 +252,9 @@ def seed_fixture_tree(root: Path) -> None:
         SURVEY_PATH: "\n".join(SURVEY_MARKERS) + "\n",
         PLANNER_NOTE_PATH: "\n".join(PLANNER_NOTE_MARKERS) + "\n",
         SCATTERLIST_SLICE_PATH: "\n".join(SCATTERLIST_SLICE_MARKERS) + "\n",
+        SCATTERLIST_PLANNER_NOTE_PATH: "\n".join(SCATTERLIST_PLANNER_NOTE_MARKERS) + "\n",
         PLANNER_MANIFEST_PATH: "\n".join(PLANNER_MANIFEST_MARKERS) + "\n",
+        SCATTERLIST_PLANNER_MANIFEST_PATH: "\n".join(SCATTERLIST_PLANNER_MANIFEST_MARKERS) + "\n",
         PLANNER_REPLAY_PATH: "\n".join(PLANNER_REPLAY_MARKERS) + "\n",
         DMA_REPLAY_PATH: "\n".join(DMA_REPLAY_MARKERS) + "\n",
         HELPER_PATH: "\n".join(HELPER_REQUIRED_MARKERS) + "\n",
@@ -263,14 +298,14 @@ def run_self_test() -> int:
                 marker
                 for marker in SLICE_MARKERS
                 if marker
-                != "The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay"
+                != "The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap."
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "slice:missing_marker:The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay"
+                "slice:missing_marker:The bounded current evidence is the survey note, the `dmam_alloc_coherent()` planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the dedicated helper-first scatterlist planner note, manifest, helper, and replay, while the broader direct helper packet stays an explicit repo-reality gap."
             ],
             "slice_missing_evidence_summary_failed",
         )
@@ -329,6 +364,25 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / SCATTERLIST_PLANNER_NOTE_PATH,
+            "\n".join(
+                marker
+                for marker in SCATTERLIST_PLANNER_NOTE_MARKERS
+                if marker != "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "scatterlist_planner_note:missing_marker:exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership"
+            ],
+            "scatterlist_planner_note_missing_release_match_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / PLANNER_MANIFEST_PATH,
             "\n".join(
                 marker
@@ -341,6 +395,25 @@ def run_self_test() -> int:
             validate(root),
             ['planner_manifest:missing_marker:"status": "starter_landed"'],
             "planner_manifest_missing_status_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SCATTERLIST_PLANNER_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in SCATTERLIST_PLANNER_MANIFEST_MARKERS
+                if marker != '"id": "phase13-devres-live-sg-table-lifecycle"'
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                'scatterlist_planner_manifest:missing_marker:"id": "phase13-devres-live-sg-table-lifecycle"'
+            ],
+            "scatterlist_planner_manifest_missing_sg_table_gap_failed",
         )
         case_count += 1
 
@@ -463,7 +536,9 @@ def main() -> int:
             + len(SURVEY_MARKERS)
             + len(PLANNER_NOTE_MARKERS)
             + len(SCATTERLIST_SLICE_MARKERS)
+            + len(SCATTERLIST_PLANNER_NOTE_MARKERS)
             + len(PLANNER_MANIFEST_MARKERS)
+            + len(SCATTERLIST_PLANNER_MANIFEST_MARKERS)
             + len(PLANNER_REPLAY_MARKERS)
             + len(DMA_REPLAY_MARKERS)
             + len(HELPER_REQUIRED_MARKERS)
