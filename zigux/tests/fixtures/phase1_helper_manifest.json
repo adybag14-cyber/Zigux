@@ -39,16 +39,6 @@
     "anti_overlap_rule": "Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys."
   },
   "review_anchors": {
-    "tools/lib/argv_split.zig": {
-      "helper_test_anchors": [
-        "test \"argvSplit matches the phase 1 committed fixture shape\"",
-        "test \"argvSplit collapses repeated whitespace and blank inputs to zero arguments\""
-      ],
-      "phase1_helper_replay_anchor": "test \"phase1 host-tools smoke exercises live helper behavior\"",
-      "shared_replay_summary": "the committed Phase 1 fixture and current host-tools smoke route still carry the baseline argv_split token-shape replay, while current master keeps repeated-whitespace collapse and blank-input behavior explicit at the helper surface for this reusable leaf helper",
-      "whitespace_anchor": "test \"argvSplit collapses repeated whitespace and blank inputs to zero arguments\"",
-      "next_safe_step_note": "If this helper lane reopens, keep argv_split parked unless a fresh reread finds drift in the committed argv_split replay fields, the shared host-tools smoke token-shape witness, or the helper-local whitespace-collapse and blank-input anchors; do not widen into neighboring shared-replay parked helpers by default."
-    },
     "tools/lib/bitmap.zig": {
       "helper_test_anchors": [
         "test \"bitmap set clear weight and empty full helpers\"",
@@ -57,37 +47,23 @@
         "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
         "test \"bitmap copy and extend handles zero and aligned counts\"",
         "test \"bitmap copy helpers keep zero-sized destination views untouched\"",
-        "test \"bitmap zero-bit logical helpers stay explicit\"",
-        "test \"bitmap equal fast path ignores storage beyond an exact word boundary\"",
         "test \"bitmap and andnot equal intersects subset\"",
         "test \"bitmap tail-masked helpers ignore out-of-range differences\"",
         "test \"bitmap full empty and weight ignore out-of-range tail bits\"",
         "test \"bitmap xor keeps caller-selected bit window\"",
         "test \"bitmap xor across a multiword tail still lets callers clamp the last word\"",
-        "test \"bitmap or keeps caller-selected bit window\"",
-        "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
-        "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
-        "test \"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
-        "test \"bitmap scnprintf keeps contiguous ranges merged across word boundaries\"",
         "test \"bitmap scnprintf truncates and keeps a terminator slot\"",
         "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
         "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
-        "test \"bitmap Linux-style aliases mirror copy logical range and format helpers\"",
-        "test \"bitmap Linux-style aliases mirror size state and allocation helpers\"",
         "test \"bitmap allocation helpers size zero fill and reset optionals\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers preserve edges across whole-word spans\"",
       "final_partial_word_anchor": "test \"bitmap range helpers preserve edges across whole-word spans\"",
       "fill_tail_clamp_anchor": "test \"bitmap full empty and weight ignore out-of-range tail bits\"",
-      "equal_fast_path_anchor": "test \"bitmap equal fast path ignores storage beyond an exact word boundary\"",
       "predicate_tail_mask_anchor": "test \"bitmap tail-masked helpers ignore out-of-range differences\"",
-      "or_window_anchor": "test \"bitmap or keeps caller-selected bit window\"",
-      "or_multiword_tail_anchor": "test \"bitmap or across a multiword tail still lets callers clamp the last word\"",
-      "weighted_tail_count_anchor": "test \"bitmap weighted or and xor clamp counts to the declared tail window\"",
-      "complement_tail_anchor": "test \"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
-      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.",
+      "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, and allocator optional-reset coverage.",
       "parity_fixture_keys": [
         "alloc_words",
         "zalloc_words",
@@ -112,14 +88,14 @@
         "test \"bitmap copy and extend handles zero and aligned counts\"",
         "test \"bitmap copy helpers keep zero-sized destination views untouched\""
       ],
-      "zero_bit_noop_anchor": "test \"bitmap zero-bit logical helpers stay explicit\"",
-      "zero_bit_binary_identity_anchor": "test \"bitmap zero-bit logical helpers stay explicit\"",
-      "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror copy logical range and format helpers\"",
-      "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through."
+      "zero_bit_noop_anchor": "",
+      "zero_bit_binary_identity_anchor": "",
+      "linux_alias_anchor": "",
+      "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, empty-buffer, and allocator-reset anchors here, while zero-bit and Linux-style alias follow-through no longer live in the helper-local packet, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through."
     },
     "tools/lib/find_bit.zig": {
       "helper_test_anchors": [
-        "test \"find first and next set bits across words, with andnot gaps explicit\"",
+        "test \"find first and next set bits across words\"",
         "test \"find zero bits respects the declared bit count\"",
         "test \"find and bit returns the first shared set bit\"",
         "test \"underscore entry points reuse the public helper behavior\"",
@@ -142,34 +118,23 @@
         "test \"getValue8 reads aligned bytes from bitmap words\"",
         "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
         "test \"tail-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
-        "test \"single-word tail windows keep the last in-range next matches reachable from an inclusive start\"",
         "test \"find last bit scans backward across words\"",
         "test \"find last bit ignores storage beyond an exact word boundary\"",
         "test \"find last bit clamps tail words to nbits\"",
         "test \"find last bit returns nbits when no set bits remain\"",
         "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
-        "test \"low-level underscore aliases mirror the primary find helpers, including andnot\"",
-        "test \"Linux-style aliases mirror the primary find helpers, including andnot\""
+        "test \"low-level underscore aliases mirror the primary find helpers\"",
+        "test \"Linux-style aliases mirror the primary find helpers\""
       ],
       "same_word_start_masks": "test \"single-word next scans honor start masks\"",
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "tail_word_inclusive_boundary_anchor": "test \"tail-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
-      "single_word_tail_inclusive_boundary_anchor": "test \"single-word tail windows keep the last in-range next matches reachable from an inclusive start\"",
       "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
       "zero_sized_short_circuit_anchor": "test \"zero-sized scans ignore populated backing words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
-      "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers, including andnot\"",
-      "linux_alias_anchor": "test \"Linux-style aliases mirror the primary find helpers, including andnot\"",
-      "andnot_scan_entrypoints": [
-        "findFirstAndNotBit",
-        "find_first_andnot_bit",
-        "_find_first_andnot_bit",
-        "findNextAndNotBit",
-        "find_next_andnot_bit",
-        "_find_next_andnot_bit"
-      ],
-      "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
+      "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
+      "linux_alias_anchor": "test \"Linux-style aliases mirror the primary find helpers\"",
       "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
       "tail_clamp_fixture_keys": [
@@ -182,13 +147,8 @@
         "tail_clamped_last",
         "tail_clamped_empty_last"
       ],
-      "tail_inclusive_boundary_fixture_keys": [
-        "tail_inclusive_boundary_next",
-        "tail_inclusive_boundary_zero",
-        "tail_inclusive_boundary_and"
-      ],
-      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
-      "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families."
+      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
+      "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias, or tail-word skip anchors, or committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families."
     },
     "tools/lib/rbtree.zig": {
       "helper_test_anchors": [
@@ -211,7 +171,7 @@
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
-      "phase1_helper_replay_anchor": "test \"phase1 host-tools smoke exercises live helper behavior\"",
+      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
         "empty_root",
         "insert_order",
@@ -226,12 +186,13 @@
         "find_first_serial",
         "next_match_serials",
         "match_iterator_serials",
+        "cached_leftmost_return_serials",
         "next_match_terminal_null"
       ],
       "cached_leftmost_fixture_keys": [
         "cached_leftmost_return_serials"
       ],
-      "shared_replay_summary": "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master",
+      "shared_replay_summary": "shared traversal, detached-node, duplicate-search, and iterator replay stay explicit through the Phase 1 fixture and replay, while current master also carries the parked `cached_leftmost_return_serials` parity-only witness in the committed shared fixture beside the direct cached-root packet",
       "traversal_replay_keys": [
         "empty_root",
         "insert_order",
@@ -250,7 +211,7 @@
         "match_iterator_serials",
         "next_match_terminal_null"
       ],
-      "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture",
+      "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while current master already ships and the shared Zig replay already consumes the parked `cached_leftmost_return_serials` witness as shared cached-root leftmost-return evidence",
       "ordered_alias_anchor": "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
       "low_level_alias_anchor": "test \"rbtree low-level Linux-style aliases mirror node-state helpers\"",
       "duplicate_search_anchors": [
@@ -269,8 +230,8 @@
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
       "cached_root_alias_anchor": "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
-      "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",
-      "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; the ordered Linux-style alias proof, dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors until another committed cached-root field lands."
+      "review_packet_summary": "shared find, first-match, next-match, and match-iterator duplicate-search parity stays explicit through the Phase 1 fixture and replay, and current master already consumes `cached_leftmost_return_serials` as shared cached-root leftmost-return evidence, while the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed review anchors stay explicit at the helper surface for any paths the shared replay still does not cover",
+      "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; until another committed cached-root field lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors."
     },
     "tools/lib/list_sort.zig": {
       "helper_test_anchors": [
@@ -282,6 +243,12 @@
         "test \"list sort preserves sorted unique input\"",
         "test \"list sort preserves stable bucket order across parity groups\"",
         "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+        "test \"list sort accepts non-unit comparator magnitudes\"",
+        "test \"list sort honors comparator context with non-unit magnitudes\"",
+        "test \"list sort reuses non-unit comparator context across repeated reordering\"",
+        "test \"list sort accepts signed subtractive comparator\"",
+        "test \"list sort reuses signed subtractive comparator context across repeated reordering\"",
+        "test \"list sort preserves current signed-subtractive order when a later pass ties everything\"",
         "test \"list sort preserves input order when every comparison ties\"",
         "test \"list sort handles empty and singleton lists\""
       ],
@@ -292,17 +259,23 @@
         "bool_sorted_keys",
         "bool_sorted_ordinals"
       ],
-      "shared_replay_summary": "the committed Phase 1 fixture still owns the tri-state and boolean-style comparator parity keys for list_sort, while current master keeps comparator-context handling, repeat-sort circular-list integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling explicit at the helper surface until the broader shared replay packet returns",
+      "shared_replay_summary": "the committed Phase 1 fixture still owns the tri-state and boolean-style comparator parity keys for list_sort, while current master keeps comparator-context handling, repeat-sort circular-list integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, and empty-or-singleton handling explicit at the helper surface until the broader shared replay packet returns",
       "comparator_context_anchor": "test \"list sort honors comparator context\"",
       "repeat_sort_anchor": "test \"list sort can reorder the same circular list twice\"",
       "reverse_link_anchor": "test \"list sort keeps reverse links aligned after reordering\"",
       "sorted_input_anchor": "test \"list sort preserves sorted unique input\"",
       "parity_bucket_anchor": "test \"list sort preserves stable bucket order across parity groups\"",
       "modulo_bucket_anchor": "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+      "non_unit_magnitude_anchor": "test \"list sort accepts non-unit comparator magnitudes\"",
+      "non_unit_context_anchor": "test \"list sort honors comparator context with non-unit magnitudes\"",
+      "non_unit_repeat_sort_anchor": "test \"list sort reuses non-unit comparator context across repeated reordering\"",
+      "signed_subtractive_anchor": "test \"list sort accepts signed subtractive comparator\"",
+      "signed_subtractive_repeat_sort_anchor": "test \"list sort reuses signed subtractive comparator context across repeated reordering\"",
+      "signed_subtractive_ties_anchor": "test \"list sort preserves current signed-subtractive order when a later pass ties everything\"",
       "all_ties_anchor": "test \"list sort preserves input order when every comparison ties\"",
       "empty_singleton_anchor": "test \"list sort handles empty and singleton lists\"",
-      "review_packet_summary": "keep list_sort parked in the shared-replay helper family for fixture ownership, but reread the helper-local proof packet before reopening the lane: current master already names direct witnesses for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling beside the committed parity keys",
-      "next_safe_step_note": "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current helper-local anchors for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, or empty-or-singleton handling; do not widen into the missing shared replay stack by default."
+      "review_packet_summary": "keep list_sort parked in the shared-replay helper family for fixture ownership, but reread the helper-local proof packet before reopening the lane: current master already names direct witnesses for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, and empty-or-singleton handling beside the committed parity keys",
+      "next_safe_step_note": "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current helper-local anchors for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, or empty-or-singleton handling; do not widen into the missing shared replay stack by default."
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
@@ -349,8 +322,6 @@
         "test \"strchr mirrors full-length C-string searches\"",
         "test \"strrchr finds the last in-range match with C-string semantics\"",
         "test \"strpbrk finds the first accepted byte with C-string semantics\"",
-        "test \"strspn counts the accepted prefix with C-string semantics\"",
-        "test \"strcspn counts until the first rejected byte with C-string semantics\"",
         "test \"strnchr honors count and C-string boundaries\"",
         "test \"strnlen honors count and C-string boundaries\"",
         "test \"strnchrNul returns the first match, NUL, or count boundary\""
@@ -397,14 +368,12 @@
         "test \"strchr mirrors full-length C-string searches\"",
         "test \"strrchr finds the last in-range match with C-string semantics\"",
         "test \"strpbrk finds the first accepted byte with C-string semantics\"",
-        "test \"strspn counts the accepted prefix with C-string semantics\"",
-        "test \"strcspn counts until the first rejected byte with C-string semantics\"",
         "test \"strnchr honors count and C-string boundaries\"",
         "test \"strnlen honors count and C-string boundaries\"",
         "test \"strnchrNul returns the first match, NUL, or count boundary\""
       ],
       "strnchrnul_review_anchor": "test \"strnchrNul returns the first match, NUL, or count boundary\"",
-      "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
+      "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
       "basename_review_anchor": "test \"kbasename returns the final path component with C-string semantics\"",
       "basename_review_summary": "helper-local basename path-tail anchor stays explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, so final path-component extraction at the first C-string terminator remains review-visible at the helper surface",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
