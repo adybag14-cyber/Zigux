@@ -119,15 +119,20 @@ FILE_EXPECTATIONS = (
     FileExpectation(
         DRIVER_PATH,
         (
+            "pub const TargetlessNotifierEdgeSummary = struct {",
             "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
             "targetless_no_unregister_edge: bool,",
             "targetless_unregister_request_sanitized: bool,",
+            "keeps_live_notifier_execution_out_of_scope: bool,",
             ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,",
             ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
             ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,",
             'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
             "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);",
+            "try std.testing.expect(!targetless_sanitized.unregister_requested);",
+            "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);",
             'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
+            "try std.testing.expect(!summary.unregister_requested);",
         ),
     ),
     FileExpectation(
@@ -164,10 +169,22 @@ FILE_EXPECTATIONS = (
             'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {',
             f'const driver = try readRepoFile("{DRIVER_PATH}");',
             f'const boundary = try readRepoFile("{VERIFY_BOUNDARY_PATH}");',
+            f'const companion = try readRepoFile("{CLEANUP_COMPANION_PATH}");',
+            f'const survey = try readRepoFile("{SURVEY_PATH}");',
             'try expectContains(driver, "targetless_no_unregister_edge: bool,");',
             'try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");',
+            'try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");',
+            'try expectContains(driver, "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);");',
             'try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");',
             'try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");',
+            'try expectContains(boundary, "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.");',
+            'try expectContains(boundary, "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit");',
+            'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
+            'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
+            'try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
+            'try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
+            'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
+            'try expectContains(matrix, "witness shard now rereads the live starter and the boundary note together");',
             'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
         ),
     ),
@@ -320,6 +337,7 @@ def make_fixture(root: Path) -> None:
                 WITNESS_PATH,
                 WITNESS_BUILD_PATH,
                 "make -C zigux phase11-validate",
+                "witness shard now rereads the live starter and the boundary note together",
                 "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
             )
         )
@@ -337,6 +355,7 @@ def make_fixture(root: Path) -> None:
                 WITNESS_PATH,
                 WITNESS_BUILD_PATH,
                 "standalone targetless-unregister witness pair",
+                "without promoting itself into the shared three-entry build inventory",
             )
         )
         + "\n",
@@ -360,15 +379,20 @@ def make_fixture(root: Path) -> None:
         DRIVER_PATH,
         "\n".join(
             (
+                "pub const TargetlessNotifierEdgeSummary = struct {",
                 "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
                 "targetless_no_unregister_edge: bool,",
                 "targetless_unregister_request_sanitized: bool,",
+                "keeps_live_notifier_execution_out_of_scope: bool,",
                 ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,",
                 ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
                 ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,",
                 "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {",
                 "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);",
+                "try std.testing.expect(!targetless_sanitized.unregister_requested);",
+                "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);",
                 "test \"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\" {",
+                "try std.testing.expect(!summary.unregister_requested);",
             )
         )
         + "\n",
@@ -424,10 +448,22 @@ def make_fixture(root: Path) -> None:
                 "test \"phase11 hvc notifier witness records current-head targetless unregister sanitizer\" {",
                 f"const driver = try readRepoFile(\"{DRIVER_PATH}\");",
                 f"const boundary = try readRepoFile(\"{VERIFY_BOUNDARY_PATH}\");",
+                f"const companion = try readRepoFile(\"{CLEANUP_COMPANION_PATH}\");",
+                f"const survey = try readRepoFile(\"{SURVEY_PATH}\");",
                 "try expectContains(driver, \"targetless_no_unregister_edge: bool,\");",
                 "try expectContains(driver, \".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,\");",
+                "try expectContains(driver, \"try std.testing.expect(!targetless_sanitized.unregister_requested);\");",
+                "try expectContains(driver, \"try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge\");",
                 "try expectContains(boundary, \"`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable\");",
+                "try expectContains(boundary, \"`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.\");",
+                "try expectContains(boundary, \"the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit\");",
+                "try expectContains(companion, \"`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`\");",
+                "try expectContains(companion, \"`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`\");",
+                "try expectContains(survey, \"`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`\");",
+                "try expectContains(survey, \"`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`\");",
+                "try expectContains(survey, \"without promoting itself into the shared three-entry build inventory\");",
+                "try expectContains(matrix, \"witness shard now rereads the live starter and the boundary note together\");",
                 "try expectContains(matrix, \"keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet\");",
             )
         )
@@ -483,6 +519,7 @@ def run_self_test() -> int:
 
         make_fixture(temp_dir)
         companion = temp_dir / CLEANUP_COMPANION_PATH
+        companion.writeText = None
         companion.write_text("# companion\n", encoding="utf-8")
         try:
             validate(temp_dir)
