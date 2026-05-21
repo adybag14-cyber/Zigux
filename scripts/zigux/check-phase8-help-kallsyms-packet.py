@@ -381,6 +381,27 @@ def run_self_test() -> int:
             raise AssertionError("expected missing kallsyms helper file to be reported")
         _write(missing_source, "tools/lib/symbol/kallsyms.zig\n")
 
+        missing_help_source = root / HELP_SOURCE
+        missing_help_source.unlink()
+        missing_help_source_result = validate_root(root)
+        if HELP_SOURCE.as_posix() not in missing_help_source_result.missing_files:
+            raise AssertionError("expected missing help helper file to be reported")
+        _write(missing_help_source, "tools/lib/subcmd/help.zig\n")
+
+        missing_shared_build = root / HELP_KALLSYMS_BUILD
+        missing_shared_build.unlink()
+        missing_shared_build_result = validate_root(root)
+        if HELP_KALLSYMS_BUILD.as_posix() not in missing_shared_build_result.missing_files:
+            raise AssertionError("expected missing shared help+kallsyms build shard to be reported")
+        _write(missing_shared_build, "\n".join(FILE_MARKERS[HELP_KALLSYMS_BUILD]) + "\n")
+
+        missing_kallsyms_build = root / KALLSYMS_BUILD
+        missing_kallsyms_build.unlink()
+        missing_kallsyms_build_result = validate_root(root)
+        if KALLSYMS_BUILD.as_posix() not in missing_kallsyms_build_result.missing_files:
+            raise AssertionError("expected missing kallsyms-only build shard to be reported")
+        _write(missing_kallsyms_build, "zigux/tests/phase8_kallsyms_only_build.zig\n")
+
         scripts_readme.unlink()
         missing_scripts_readme = validate_root(root)
         if SCRIPTS_README.as_posix() not in missing_scripts_readme.missing_files:
@@ -388,7 +409,7 @@ def run_self_test() -> int:
         _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
