@@ -28,7 +28,7 @@
     "last_closed_followup": "phase14-ring-buffer-maintenance-handoff",
     "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
     "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
-    "why_now": "The surviving ring-buffer packet still lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, and current public raw-file readback now recovers the dedicated survey companion plus the shared Phase 14 build shard even though the contents-path readback used elsewhere is still partial. The honest posture is therefore parked study-only governance maintained through the note-plus-manifest packet with replay wording narrowed to ring-buffer-local evidence rather than absence-only drift language or a parity claim."
+    "why_now": "The surviving ring-buffer packet still lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, reader-page, read-page, and tracefs reader-serialization audits, and current public raw-file readback now recovers the dedicated survey companion plus the shared Phase 14 build shard even though the contents-path readback used elsewhere is still partial. The honest posture is therefore parked study-only governance maintained through the note-plus-manifest packet with replay wording narrowed to ring-buffer-local replay evidence rather than absence-only drift language or a parity claim."
   },
   "maintenance_handoff": {
     "current_lane_posture": "maintenance_mode",
@@ -113,6 +113,27 @@
         "ring_buffer_consume"
       ],
       "rationale": "Reader-page acquisition can swap the out-of-ring reader page with the head page, publish lost-event deltas, and wait for writer-side commits, while both consuming reads and iterator start take reader-side locks and pin `resize_disabled`, so the current lane should record one combined handoff rather than imply a wrapper can own any one piece safely."
+    },
+    {
+      "id": "read-page-extraction-boundary",
+      "summary": "Keep read-page extraction, partial-copy fallback, and exported-page gating in C while the survey records their shared reader-state and resize boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "ring_buffer_alloc_read_page",
+        "ring_buffer_read_page"
+      ],
+      "rationale": "Read-page extraction still depends on reader-lock serialization, partial-copy versus page-swap decisions, commit-page visibility, and the `resize_disabled` handoff, so this lane should record one combined exported-page boundary rather than imply a wrapper can own the extraction path safely."
+    },
+    {
+      "id": "tracefs-reader-serialization-boundary",
+      "summary": "Keep tracefs reader serialization and consumed-page lifetime release in C while the survey records their shared access gate.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "trace_access_lock",
+        "tracing_buffers_read",
+        "tracing_buffers_splice_read"
+      ],
+      "rationale": "Tracefs readers still share one serialized access boundary while ordinary reads retain spare-page ownership and splice reads defer page release through pipe-buffer references, so the page lifetime split remains a C-owned contract rather than a wrapper-first seam."
     }
   ],
   "gaps": [
