@@ -42,6 +42,7 @@ REQUIRED_MARKERS = {
         "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`",
         "Fresh authenticated GitHub reread in this slot directly returned:",
         "- `Documentation/zigux/phase7-rbtree-slice.md`",
+        "- `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`",
         "- `scripts/zigux/check-phase7-rbtree-parity.py`",
         "- `tools/lib/rbtree.zig`",
         "- `zigux/tests/phase7_rbtree.zig`",
@@ -57,6 +58,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.",
+        "Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed shared non-owner surfaces still rematerialized through authenticated rereads in this slot.",
         "Keep the current Phase 7 rbtree reminder surface tied to the returned tool-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, and the parity checker",
         "shared build, validator, and workflow evidence",
     ],
@@ -150,7 +152,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 62
+SELF_TEST_CASE_COUNT = 64
 
 
 def read_text(path: Path) -> str:
@@ -235,6 +237,16 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        note_marker = "- `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`"
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_returned_note_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         note_marker = "- `tools/lib/rbtree.zig`"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
@@ -299,6 +311,16 @@ def run_self_test() -> None:
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_note_fallback_provenance_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        note_marker = "Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed shared non-owner surfaces still rematerialized through authenticated rereads in this slot."
+        note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_note_machine_readable_fallback_marker",
             tmp_root,
             f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {note_marker}",
         )
