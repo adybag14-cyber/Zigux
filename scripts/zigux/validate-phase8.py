@@ -172,7 +172,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "tools/lib/subcmd/exec-cmd.zig",
         "Run focused Phase 8 exec-cmd tests",
-        'expectMissingPath("tools/lib/subcmd/exec-cmd.zig")',
+        "expectMissingPath(\"tools/lib/subcmd/exec-cmd.zig\")",
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
@@ -181,8 +181,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
-        '"zigux/tests/README.md"',
-        '"scripts/zigux/README.md"',
+        "\"zigux/tests/README.md\"",
+        "\"scripts/zigux/README.md\"",
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
         "summarizePollExecutionResultFromWaitResult",
@@ -229,27 +229,46 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveReadyBufferFdAtAttempt(",
         "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
         "pub fn summarizeBufferWindowLookup(",
-        'test "phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing" {',
+        "test \"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\" {",
     ),
     VERIFY_SEGMENT: (
-        'const logging_verify = @import("logging_verify.zig");',
-        'const pin_path_verify = @import("pin_path_verify.zig");',
+        "const cpu_mask_verify = @import(\"cpu_mask_verify.zig\");",
+        "const logging_verify = @import(\"logging_verify.zig\");",
+        "const online_cpu_routing_verify = @import(\"online_cpu_routing_verify.zig\");",
+        "const pin_path_verify = @import(\"pin_path_verify.zig\");",
+        "const ready_buffer_attempt_verify = @import(\"ready_buffer_attempt_verify.zig\");",
+        "const ready_buffer_fd_verify = @import(\"ready_buffer_fd_verify.zig\");",
+        "const ready_buffer_window_verify = @import(\"ready_buffer_window_verify.zig\");",
+        "const type_names_verify = @import(\"type_names_verify.zig\");",
+        "std.testing.refAllDecls(cpu_mask_verify);",
         "std.testing.refAllDecls(logging_verify);",
+        "std.testing.refAllDecls(online_cpu_routing_verify);",
         "std.testing.refAllDecls(pin_path_verify);",
+        "std.testing.refAllDecls(ready_buffer_attempt_verify);",
+        "std.testing.refAllDecls(ready_buffer_fd_verify);",
+        "std.testing.refAllDecls(ready_buffer_window_verify);",
+        "std.testing.refAllDecls(type_names_verify);",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit",
+        "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
+        "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit",
+        "resolveReadyBufferFdLookupReturnAtAttempt",
+        "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit",
+        "resolveReadyBufferWindowLookupReturnAtAttempt",
+        "materialized tools/lib/bpf Zigux segments keep stable libbpf type-name formatters explicit",
+        "formatLibbpfBpfLinkType",
     ),
     ONLINE_CPU_ROUTING_SEGMENT: (
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
-        'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+        "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {",
     ),
     PIN_PATH_SEGMENT: (
-        'pub const default_bpf_fs_path = "/sys/fs/bpf";',
+        "pub const default_bpf_fs_path = \"/sys/fs/bpf\";",
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
-        'test "program pin-path helpers mirror the bounded libbpf program pin contract" {',
+        "test \"program pin-path helpers mirror the bounded libbpf program pin contract\" {",
     ),
     LOGGING_SEGMENT: (
         "pub fn parseLogLevelSetting(",
@@ -613,6 +632,68 @@ def run_self_test() -> int:
             raise AssertionError("expected missing ready-buffer window build marker to be reported")
         build_file.write_text(original_build_file, encoding="utf-8")
 
+        verify_file = root / VERIFY_SEGMENT
+        original_verify_file = _read(verify_file)
+        verify_file.write_text(
+            original_verify_file.replace('const cpu_mask_verify = @import("cpu_mask_verify.zig");\n', "", 1),
+            encoding="utf-8",
+        )
+        missing_verify_import = validate_root(root)
+        expected_verify_import = 'tools/lib/bpf/zigux_segments/verify.zig:const cpu_mask_verify = @import("cpu_mask_verify.zig");'
+        if expected_verify_import not in missing_verify_import.missing_markers:
+            raise AssertionError("expected missing aggregate verifier cpu-mask import to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
+            original_verify_file.replace("std.testing.refAllDecls(ready_buffer_window_verify);", "", 1),
+            encoding="utf-8",
+        )
+        missing_verify_refalldecls = validate_root(root)
+        expected_verify_refalldecls = "tools/lib/bpf/zigux_segments/verify.zig:std.testing.refAllDecls(ready_buffer_window_verify);"
+        if expected_verify_refalldecls not in missing_verify_refalldecls.missing_markers:
+            raise AssertionError("expected missing aggregate verifier ready-buffer-window refAllDecls marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
+            original_verify_file.replace("resolveNextOnlineCpuRouteBufferFdReturnAtIndex", "", 1),
+            encoding="utf-8",
+        )
+        missing_route_fd_wrapper = validate_root(root)
+        expected_route_fd_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveNextOnlineCpuRouteBufferFdReturnAtIndex"
+        if expected_route_fd_wrapper not in missing_route_fd_wrapper.missing_markers:
+            raise AssertionError("expected missing aggregate verifier route-fd wrapper marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
+            original_verify_file.replace("resolveReadyBufferFdLookupReturnAtAttempt", "", 1),
+            encoding="utf-8",
+        )
+        missing_ready_buffer_fd_wrapper = validate_root(root)
+        expected_ready_buffer_fd_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferFdLookupReturnAtAttempt"
+        if expected_ready_buffer_fd_wrapper not in missing_ready_buffer_fd_wrapper.missing_markers:
+            raise AssertionError("expected missing aggregate verifier ready-buffer fd wrapper marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
+            original_verify_file.replace("resolveReadyBufferWindowLookupReturnAtAttempt", "", 1),
+            encoding="utf-8",
+        )
+        missing_ready_buffer_window_wrapper = validate_root(root)
+        expected_ready_buffer_window_wrapper = "tools/lib/bpf/zigux_segments/verify.zig:resolveReadyBufferWindowLookupReturnAtAttempt"
+        if expected_ready_buffer_window_wrapper not in missing_ready_buffer_window_wrapper.missing_markers:
+            raise AssertionError("expected missing aggregate verifier ready-buffer window wrapper marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
+        verify_file.write_text(
+            original_verify_file.replace("formatLibbpfBpfLinkType", "", 1),
+            encoding="utf-8",
+        )
+        missing_type_formatter = validate_root(root)
+        expected_type_formatter = "tools/lib/bpf/zigux_segments/verify.zig:formatLibbpfBpfLinkType"
+        if expected_type_formatter not in missing_type_formatter.missing_markers:
+            raise AssertionError("expected missing aggregate verifier type-name formatter marker to be reported")
+        verify_file.write_text(original_verify_file, encoding="utf-8")
+
         logging_verify = root / LOGGING_VERIFY_SEGMENT
         logging_verify.unlink()
         missing_logging_verify = validate_root(root)
@@ -736,7 +817,7 @@ def run_self_test() -> int:
         _write(online_cpu_routing, "\n".join(FILE_MARKERS[ONLINE_CPU_ROUTING_SEGMENT]) + "\n")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE8_VALIDATE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
