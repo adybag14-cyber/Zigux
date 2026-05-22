@@ -280,7 +280,7 @@ def run_self_test() -> int:
                     encoding="utf-8",
                 )
             elif mutate == "duplicate_phase1_prompt":
-                checklist_path.writeText(
+                checklist_path.write_text(
                     checklist_text.replace(
                         REQUIRED_MARKERS["phase1_validation_prompt"],
                         REQUIRED_MARKERS["phase1_validation_prompt"]
