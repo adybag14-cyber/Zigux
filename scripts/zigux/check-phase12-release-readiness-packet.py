@@ -227,9 +227,10 @@ REQUIRED_MARKERS = {
     ],
     MAKEFILE_PATH: [
         "PHASE3_SCRIPT_ROOT := ../scripts/zigux",
+        "phase12-validate:",
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     TESTS_README_PATH: [
         "Keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the shared Phase 12 tests-root reminder packet.",
@@ -262,13 +263,6 @@ REQUIRED_MARKERS = {
         "- name: Run current Phase 12 throughput-parity anchor",
         "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     ],
-}
-
-FORBIDDEN_MARKERS = {
-    MAKEFILE_PATH: [
-        "phase12-validate:",
-        "phase12: phase12-validate phase12-smoke phase12-test",
-    ]
 }
 
 EXACT_LINE_MARKER_PATHS = {
@@ -312,6 +306,7 @@ EXACT_COUNT_MARKERS = {
     },
 }
 
+
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
         return marker in [line.lstrip() for line in text.splitlines()]
@@ -346,12 +341,6 @@ def validate(root: Path) -> list[str]:
                     "wrong_count:"
                     f"{rel_path}:{marker}:expected={expected_count}:actual={actual_count}"
                 )
-
-    for rel_path, markers in FORBIDDEN_MARKERS.items():
-        text = (root / rel_path).read_text(encoding="utf-8")
-        for marker in markers:
-            if marker in text:
-                failures.append(f"forbidden_marker:{rel_path}:{marker}")
 
     return failures
 
@@ -459,16 +448,10 @@ def run_self_test() -> int:
             write_fixture_tree(base)
             write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
             expect_failure(base, "wrong_count:" f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}")
-        forbidden_cases = [(MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]), (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][1])]
-        for rel_path, marker in forbidden_cases:
-            write_fixture_tree(base)
-            write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
-            expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
         case_count = (
             len(missing_file_cases)
             + len(marker_cases)
             + len(exact_count_cases)
-            + len(forbidden_cases)
         )
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(f"PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT={case_count}")
@@ -492,7 +475,7 @@ def main() -> int:
     print("PHASE12_RELEASE_READINESS_PACKET=pass")
     print(f"PHASE12_RELEASE_READINESS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print("PHASE12_RELEASE_READINESS_PACKET_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
-    print("PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
+    print("PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT=0")
     print("PHASE12_RELEASE_READINESS_PACKET_EXACT_COUNT_MARKER_COUNT=" f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}")
     return 0
 
