@@ -22,6 +22,8 @@ COUNT_FIELDS = {
 }
 
 REQUIRED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/check-phase10-closure-manifest-counts.py",
     "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
@@ -272,6 +274,18 @@ def run_self_test() -> int:
         broken["tests"] = []
         write_manifest(broken)
         expect_contains(validate(root)[1], "tests:missing", "phase10-manifest-counts-self-test")
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item for item in broken["exact_checks"] if item != "python3 scripts/zigux/check-phase10-core-packet.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'python3 scripts/zigux/check-phase10-core-packet.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
         cases += 1
 
         broken = dict(original)
