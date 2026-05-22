@@ -444,6 +444,54 @@ test "shared runtime loader keeps waiting selftest-hook and handoff-stage labels
     );
 }
 
+test "shared runtime loader keeps waiting init-flow counters from drifting before release" {
+    const bitmap_plan = makeInitializedPlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+    );
+    var bitmap_request = try runtime_loader.prepareRequest(bitmap_plan);
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+
+    bitmap_request.plan.init_flow.init_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    bitmap_request.plan = bitmap_pending;
+    bitmap_request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+
+    trace_events_request.plan.init_flow.selftest_runs = 2;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+}
+
 test "shared runtime loader keeps allocator handoff and anchor metadata from drifting before handoff" {
     const bitmap_plan = makeInitializedPlan(
         "runtime_bitmap",
