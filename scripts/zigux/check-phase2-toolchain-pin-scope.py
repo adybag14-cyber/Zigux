@@ -80,6 +80,9 @@ WORKFLOW_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: make -C zigux phase2-toolchain",
+    "run: make -C zigux phase2-cross",
+    "run: make -C zigux phase2-validate",
     "run: make -C zigux phase2-genksyms",
     "run: make -C zigux phase2-fixdep",
 )
