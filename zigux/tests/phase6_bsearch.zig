@@ -72,6 +72,14 @@ fn compareDirectDescendingInt(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDirectOrderInt(key: *const u32, item: *const u32) std.math.Order {
+    return std.math.order(key.*, item.*);
+}
+
+fn compareDirectDescendingOrderInt(key: *const u32, item: *const u32) std.math.Order {
+    return std.math.order(item.*, key.*);
+}
+
 fn compareCDirectInt(key: *const u32, item: *const u32) callconv(.c) c_int {
     return @as(c_int, compareDirectInt(key, item));
 }
@@ -90,6 +98,18 @@ fn compareDirectOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaqu
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
     return compareDirectDescendingInt(typed_key, typed_item);
+}
+
+fn compareDirectOpaqueOrderInt(key: *const anyopaque, item: *const anyopaque) std.math.Order {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDirectOrderInt(typed_key, typed_item);
+}
+
+fn compareDirectOpaqueDescendingOrderInt(key: *const anyopaque, item: *const anyopaque) std.math.Order {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDirectDescendingOrderInt(typed_key, typed_item);
 }
 
 fn compareSymbol(key: *const []const u8, item: *const []const u8) i32 {
@@ -411,6 +431,64 @@ test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" 
 
     for (cases) |case| {
         try expectTypedCAbiRange(case.items, case.target, case.expected, case.compare);
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected native order comparator pointers" {
+    const ascending_duplicates = fixtures.representative_duplicate_values;
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
+
+    const typed_cases = [_]struct {
+        items: []const u32,
+        target: u32,
+        expected: bsearch.IndexRange,
+        compare: *const fn (*const u32, *const u32) std.math.Order,
+    }{
+        .{ .items = ascending_duplicates[0..], .target = 21, .expected = .{ .lower = 4, .upper = 7 }, .compare = compareDirectOrderInt },
+        .{ .items = ascending_duplicates[0..], .target = 20, .expected = .{ .lower = 4, .upper = 4 }, .compare = compareDirectOrderInt },
+        .{ .items = descending_duplicates[0..], .target = 21, .expected = .{ .lower = 3, .upper = 6 }, .compare = compareDirectDescendingOrderInt },
+        .{ .items = descending_duplicates[0..], .target = 20, .expected = .{ .lower = 6, .upper = 6 }, .compare = compareDirectDescendingOrderInt },
+    };
+
+    for (typed_cases) |case| {
+        const found = bsearch.search(u32, u32, &case.target, case.items, case.compare);
+        if (case.expected.isEmpty()) {
+            try std.testing.expectEqual(@as(?*const u32, null), found);
+        } else {
+            const typed_found = found orelse return error.ExpectedMatch;
+            try std.testing.expectEqual(case.target, typed_found.*);
+        }
+
+        try std.testing.expectEqual(case.expected.lower, bsearch.lowerBoundIndex(u32, u32, &case.target, case.items, case.compare));
+        try std.testing.expectEqual(case.expected.upper, bsearch.upperBoundIndex(u32, u32, &case.target, case.items, case.compare));
+        try std.testing.expectEqual(case.expected, bsearch.equalRangeIndex(u32, u32, &case.target, case.items, case.compare));
+    }
+
+    const raw_cases = [_]struct {
+        items: []const u32,
+        target: u32,
+        expected: bsearch.IndexRange,
+        compare: *const fn (*const anyopaque, *const anyopaque) std.math.Order,
+    }{
+        .{ .items = ascending_duplicates[0..], .target = 21, .expected = .{ .lower = 4, .upper = 7 }, .compare = compareDirectOpaqueOrderInt },
+        .{ .items = ascending_duplicates[0..], .target = 20, .expected = .{ .lower = 4, .upper = 4 }, .compare = compareDirectOpaqueOrderInt },
+        .{ .items = descending_duplicates[0..], .target = 21, .expected = .{ .lower = 3, .upper = 6 }, .compare = compareDirectOpaqueDescendingOrderInt },
+        .{ .items = descending_duplicates[0..], .target = 20, .expected = .{ .lower = 6, .upper = 6 }, .compare = compareDirectOpaqueDescendingOrderInt },
+    };
+
+    for (raw_cases) |case| {
+        const found = bsearch.bsearch(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare);
+        if (case.expected.isEmpty()) {
+            try std.testing.expectEqual(@as(?*const anyopaque, null), found);
+        } else {
+            const opaque_found = found orelse return error.ExpectedMatch;
+            const typed_found: *const u32 = @ptrCast(@alignCast(opaque_found));
+            try std.testing.expectEqual(case.target, typed_found.*);
+        }
+
+        try std.testing.expectEqual(case.expected.lower, bsearch.bsearchLowerBoundIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare));
+        try std.testing.expectEqual(case.expected.upper, bsearch.bsearchUpperBoundIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare));
+        try std.testing.expectEqual(case.expected, bsearch.bsearchEqualRangeIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare));
     }
 }
 
