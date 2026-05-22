@@ -57,7 +57,7 @@ GUIDE_MARKERS = (
     "Treat those four anchors as the approved Phase 5 destination set unless the roadmap changes.",
     "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
     "Fresh public current-`master` fallback on 2026-05-19 also keeps the broader non-runtime trace-events sample packet visible",
-    "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit:",
+    "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback in this runtime directly returned `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and the shared build-route companion `zigux/tests/phase5_build.zig`, while the same reread also directly returned `samples/zigux/kobject_example_attr_group_contract.zig` as the bounded attr-group companion and fresh public current-`master` GitHub file readback kept `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` visible beside that direct packet.",
     "The same authenticated route also directly returns the shared build-route companion `zigux/tests/phase5_build.zig` for this packet.",
     "Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events cues carried by `samples/zigux/trace_events_string_formatting_sample.zig` and the shared reminder packet.",
 )
@@ -151,7 +151,8 @@ def _placeholder_text(path: Path, markers: tuple[str, ...]) -> str:
     extra_lines: list[str] = []
     if path == GUIDE_PATH:
         extra_lines.extend(f"`{rel}`" for rel in DIRECT_PACKET_PATHS)
-        extra_lines.extend(f"`{rel}`" for rel in PUBLIC_TREE_COMPANION_PATHS)
+        extraLines = [f"`{rel}`" for rel in PUBLIC_TREE_COMPANION_PATHS]
+        extra_lines.extend(extraLines)
     if path == APPROVED_IDIOM_PATH:
         extra_lines.extend(
             f"`{rel}`"
