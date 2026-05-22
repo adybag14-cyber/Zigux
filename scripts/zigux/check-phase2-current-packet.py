@@ -55,6 +55,21 @@ WORKFLOW_LINES = (
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-cross",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-validate",
+    "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 PHASE2_NOTES_MARKERS = (
