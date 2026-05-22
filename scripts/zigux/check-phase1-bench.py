@@ -390,7 +390,7 @@ def build_find_bit_bench_source(omit_label: str | None = None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def make_expectations(*, missing_exact: str | None = null, reordered_checksums: bool = False) -> dict[str, object]:
+def make_expectations(*, missing_exact: str | None = None, reordered_checksums: bool = False) -> dict[str, object]:
     exact_checksums = {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
         "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
