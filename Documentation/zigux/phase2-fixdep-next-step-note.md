@@ -11,19 +11,20 @@ Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-imple
 
 ## Current repo evidence
 
-- Current `master` directly serves `scripts/zigux/fixdep.zig`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/validate-phase2.py`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `Documentation/zigux/phase2-fixdep-next-step-note.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/fixtures/fixdep/cases.json`.
-- `scripts/basic/fixdep.c` remains reviewable on current `master` through the public raw GitHub fallback even though the same contents-API read path used by some scheduled rereads still returns that file as missing.
+- Current `master` directly serves `scripts/zigux/fixdep.zig`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/validate-phase2.py`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `Documentation/zigux/phase2-fixdep-next-step-note.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/README.md`, and `zigux/tests/fixtures/fixdep/cases.json`.
 - `zigux/tests/fixtures/fixdep/cases.json` currently inventories 13 external fixdep cases, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_double_backslash_comment`, and the current stdout-failure replay cases.
-- The live bootstrap workflow and `zigux/Makefile` still expose direct fixdep replay routes through `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig`.
+- The live bootstrap workflow and `zigux/Makefile` still expose direct fixdep replay routes through `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py`, `make -C zigux phase2-fixdep`, and `zig test scripts/zigux/fixdep.zig`.
+- The shared closure note and tests-root reminder both keep the fixdep helper, checker pair, fixture roster, and wrapper route explicit as current repo evidence.
+- Repeated exact-path contents reads still return missing for `scripts/basic/fixdep.c`, and `Documentation/zigux/artifact-diff.md` is still absent on current `master`.
 
 ## Survey result
 
-- The older same-lane reminder drift around a supposedly unreadable in-repo C anchor is now closed by current repo evidence: the direct contents read path still misses `scripts/basic/fixdep.c`, but current `master` does keep the authoritative C fixdep source reachable through raw GitHub fallback.
-- The fixdep helper, checker pair, external fixture roster, C anchor, and direct replay routes remain reviewable on current `master`.
-- Widening this lane into parser or new expected-output work would skip over the more honest result that the earlier checker-anchor reminder gap is no longer present.
+- The older same-lane reminder drift around supposedly missing fixdep governance, wrapper, and fixture coverage is now closed by current repo evidence.
+- The remaining same-family gap is narrower than parser work, new fixtures, or route maintenance: the dedicated parity checker still points at a C anchor that exact-path contents reads do not return, and the older reminder-side `Documentation/zigux/artifact-diff.md` companion is still absent.
+- Widening this lane into parser behavior, expected-output growth, or shared Phase 2 reminder maintenance would skip over the smaller still-open closure truthfulness result.
 
 ## Next safe step
 
-1. Keep `P2-L06` parked unless a fresh current-`master` reread finds a real checker, fixture, or route mismatch inside the live fixdep packet.
-2. If the fixdep family reopens, start with one smallest same-family follow-through that is proven by current repo evidence or a writable-checkout replay, such as a direct checker failure, fixture inventory mismatch, or route drift.
-3. Do not widen from this reminder lane into parser behavior, fixture expected outputs, genksyms, kconfig bridge, or the broader shared Phase 2 route inventory without a new same-family failure signal.
+1. Keep `P2-L06` parked unless a fresh current-`master` reread finds new drift inside the live fixdep helper, checker, fixture, or route packet.
+2. If the fixdep family reopens, start with one smallest same-family follow-through only: either restore a readable current-`master` C anchor for `scripts/basic/fixdep.c` that satisfies the direct parity-checker packet, or re-materialize `Documentation/zigux/artifact-diff.md` as the remaining reminder-side companion.
+3. Do not widen from this reminder lane into parser behavior, fixture expected outputs, genksyms, kconfig bridge, or the broader shared Phase 2 route inventory without a new direct fixdep failure signal.
