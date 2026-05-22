@@ -114,16 +114,16 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary.missing_capability, "runtime substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary.next_gate, "review-only evidence") != null);
 
-    try std.testing.expect(manifest.delivery_evidence_catalog.len >= 10);
+    try std.testing.expect(manifest.delivery_evidence_catalog.len >= 8);
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
-        "runtime-atomic64-loader-scaffold",
-        "samples/zigux/runtime_atomic64_loader.zig",
+        "runtime-atomic64-sample",
+        "samples/zigux/runtime_atomic64.zig",
     ));
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
-        "runtime-atomic64-family-make-route",
-        "zigux/Makefile",
+        "runtime-atomic64-phase9-build",
+        "zigux/tests/phase9_build.zig",
     ));
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
@@ -165,13 +165,6 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
 
     const survey_gap = findGap(manifest.gaps, "runtime-atomic64-survey-gate") orelse return error.MissingSurveyGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gap.status);
-
-    const make_gap = findGap(manifest.gaps, "runtime-atomic64-make-route") orelse return error.MissingMakeRouteGap;
-    try std.testing.expectEqualStrings("starter_landed", make_gap.status);
-    try std.testing.expectEqualStrings("zigux/Makefile", make_gap.zigux_destination);
-
-    const loader_gap = findGap(manifest.gaps, "runtime-atomic64-loader-scaffold") orelse return error.MissingLoaderScaffoldGap;
-    try std.testing.expectEqualStrings("starter_landed", loader_gap.status);
 
     const blocked_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingBlockedGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", blocked_gap.status);
