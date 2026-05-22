@@ -108,9 +108,11 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
-    try std.testing.expectEqual(@as(usize, 5), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try expectContains(manifest.maintenance_handoff.next_future_target, "Documentation/zigux/review-checklist.md");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-review-checklist-study-only-alignment.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "direct contents readback still resolves");
     try expectContains(manifest.maintenance_handoff.next_future_target, "still fail to materialize");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-validate, phase15-test, and phase15");
@@ -127,6 +129,11 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try std.testing.expectEqualStrings("materialized_in_contents_readback", lane_owner_gap.status);
     try std.testing.expectEqualStrings("shared_route_presence", lane_owner_gap.kind);
     try expectContains(lane_owner_gap.why_now, "Direct contents readback resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
+
+    const checklist_guard_gap = findGap(manifest.gaps, "phase15-review-checklist-study-only-boundary-guard") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("materialized_in_contents_readback", checklist_guard_gap.status);
+    try std.testing.expectEqualStrings("shared_route_presence", checklist_guard_gap.kind);
+    try expectContains(checklist_guard_gap.why_now, "Direct contents readback resolves scripts/zigux/check-phase15-review-checklist-study-only-alignment.py");
 
     const validator_gap = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("repo_reality_gap_confirmed", validator_gap.status);
@@ -155,6 +162,7 @@ test "phase 15 freeze-map governance doc records the refreshed route classificat
     try expectContains(governance_note, "lane `P14-L11`");
     try expectContains(governance_note, "phase14-skbuff-live-ownership-blocker");
     try expectContains(governance_note, "materialized_in_contents_readback `phase15-shared-lane-owner-readback`");
+    try expectContains(governance_note, "materialized_in_contents_readback `phase15-review-checklist-study-only-boundary-guard`");
     try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-validator-route-readback`");
     try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-build-route-readback`");
     try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-wrapper-route-readback`");
