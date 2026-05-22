@@ -132,6 +132,59 @@ Keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*ar
 Tests-root reviewer prompt:
 - Does the bounded Phase 5 reminder keep the direct bytestream and non-runtime kretprobe tests-root packet, the bounded trace-events formatting companion, the mixed kobject split, the shipped guide-surface guard, and the no-extra-sample boundary aligned without widening into runtime samples, module registration, or a fifth sample claim?
 
+## Phase 8 tooling packet
+
+Keep the current direct-readback Phase 8 anchors explicit through:
+
+- `scripts/zigux/check-phase8-tests-readme-alignment.py`
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+- `scripts/zigux/validate-phase8.py`
+- `zigux/tests/phase8_exec_cmd.zig`
+- `zigux/tests/phase8_exec_cmd_only_build.zig`
+- `zigux/tests/phase8_perf_buffer_poll.zig`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+
+Keep the current mixed-source file-path-handle bridge companions explicit too; they remain reviewable on current `master` through the public tree and the aligned reminder packet:
+
+- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
+- `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+- `scripts/zigux/validate-phase8.py`
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- `zigux/tests/phase8_file_path_handle_bridge.zig`
+- `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+- `zigux/tests/phase8_file_path_handle_boundary_guard.zig`
+- `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`
+- `zigux/tests/phase8_build.zig`
+- `make -C zigux phase8-exec-cmd-test`
+- `make -C zigux phase8-file-path-handle-bridge-test`
+
+current `zigux/tests/phase8_build.zig` also keeps the landed `zigux/tests/phase8_file_path_handle_boundary_guard.zig` and `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig` witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route
+
+repo-reality warning for the broader remaining Phase 8 tooling packet:
+
+- `Documentation/zigux/phase8-libbpf-segment-survey.md`
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+- `Documentation/zigux/phase8-help-slice.md`
+- `Documentation/zigux/phase8-kallsyms-slice.md`
+- `tools/lib/bpf/zigux_segments/verify.zig`
+- `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
+- `zigux/tests/phase8_help_kallsyms_only_build.zig`
+- `zigux/tests/phase8_libbpf_segments.zig`
+- `zigux/tests/phase8_libbpf_segments_only_build.zig`
+- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+- `zigux/Makefile`
+- `make -C zigux phase8-help-kallsyms-test`
+- `make -C zigux phase8-libbpf-segments-test`
+- `make -C zigux phase8-perf-buffer-poll-test`
+- `make -C zigux phase8-test`
+
+keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
+
+current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set
+
+if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
+
 ## Phase 15 governance packet
 
 Keep the current bounded Phase 15 governance reminder explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
