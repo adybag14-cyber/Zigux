@@ -111,6 +111,14 @@ CHECK_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"),
+        (),
+        (
+            "validated zigux/tests/phase3_export_uapi_c_header_smoke.c",
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
         (),
         (
@@ -162,11 +170,12 @@ SELF_TEST_MISSING_CASES = (
     (12, "expected catalog-selftest script omission was not reported"),
     (13, "expected validator-support script omission was not reported"),
     (14, "expected export-uapi survey script omission was not reported"),
-    (15, "expected abi-header-family survey script omission was not reported"),
-    (16, "expected policy-unsafe survey script omission was not reported"),
-    (17, "expected low-level-wrapper script omission was not reported"),
-    (18, "expected linux-zigux header-governance script omission was not reported"),
-    (19, "expected selftest-surface script omission was not reported"),
+    (15, "expected export-uapi c-header smoke omission was not reported"),
+    (16, "expected abi-header-family survey script omission was not reported"),
+    (17, "expected policy-unsafe survey script omission was not reported"),
+    (18, "expected low-level-wrapper script omission was not reported"),
+    (19, "expected linux-zigux header-governance script omission was not reported"),
+    (20, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -439,29 +448,40 @@ def run_self_test() -> int:
             print("expected missing wrapper-template pass marker to fail the runner")
             return 1
 
-        header_family_path = root / CHECK_COMMANDS[15][0]
+        c_header_smoke_path = root / CHECK_COMMANDS[15][0]
+        populate_repo()
+        _write_synthetic_script(
+            c_header_smoke_path,
+            (CHECK_COMMANDS[15][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing export-uapi c-header smoke pass marker to fail the runner")
+            return 1
+
+        header_family_path = root / CHECK_COMMANDS[16][0]
         populate_repo()
         _write_synthetic_script(
             header_family_path,
-            (CHECK_COMMANDS[15][2][0],),
+            (CHECK_COMMANDS[16][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing abi-header-family pass marker to fail the runner")
             return 1
 
-        low_level_wrapper_path = root / CHECK_COMMANDS[17][0]
+        low_level_wrapper_path = root / CHECK_COMMANDS[18][0]
         populate_repo()
         _write_synthetic_script(
             low_level_wrapper_path,
-            (CHECK_COMMANDS[17][2][0],),
+            (CHECK_COMMANDS[18][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing low-level-wrapper pass marker to fail the runner")
             return 1
 
-        linux_zigux_header_path = root / CHECK_COMMANDS[18][0]
+        linux_zigux_header_path = root / CHECK_COMMANDS[19][0]
         populate_repo()
         _write_synthetic_script(linux_zigux_header_path, ())
         if run_packet(root) != 1:
@@ -472,7 +492,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 13}"
+            f"{len(SELF_TEST_MISSING_CASES) + 14}"
         )
         return 0
 
