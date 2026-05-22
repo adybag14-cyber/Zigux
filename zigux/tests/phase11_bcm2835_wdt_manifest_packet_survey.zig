@@ -43,6 +43,9 @@ test "phase11 bcm2835 manifest packet survey keeps the blocker plan aligned with
     try expectContains(validation_plan, "PHASE11_BCM2835_WDT_PLATFORM_VALIDATION_PLAN=starter_boundary_recorded");
     try expectContains(validation_plan, "current directly readable packet remains `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig`, and `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`");
     try expectContains(validation_plan, "Do not fabricate current-head proof for a driver, verify helper, direct replay, slice note, teardown note, validation matrix");
+    try expectContains(validation_plan, "Do not use it to reopen `gpio_wdt`, `dw_wdt`, HVC, or shared Phase 11 wording.");
+    try expectContains(validation_plan, "Treat this as a validation-governance document, not proof that wider platform behavior is already implemented.");
+    try expectContains(validation_plan, "If a later lane cannot produce the required proof for one stage, keep that stage blocked and leave the reminder packet as the published boundary.");
     try expectContains(validation_plan, "The next honest bcm2835-only follow-through is one explicit driver-return or platform-registration planning step");
     try expectNotContains(validation_plan, "drivers/watchdog/bcm2835_wdt_verify.zig");
     try expectNotContains(validation_plan, "zigux/tests/phase11_bcm2835_wdt.zig");
