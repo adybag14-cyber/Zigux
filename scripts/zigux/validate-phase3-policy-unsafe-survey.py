@@ -228,7 +228,7 @@ def run_self_test() -> int:
                     return 1
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASES={len(SELF_TEST_CASES) + 1}")
+    print(f"PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 1}")
     return 0
 
 
