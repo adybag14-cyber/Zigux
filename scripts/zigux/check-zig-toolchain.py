@@ -414,9 +414,22 @@ def resolve_policy_archive(
     candidates = iter_repo_local_archive_candidates(root=root, policy_path=policy_path)
     if target is not None:
         candidates = [(candidate_target, candidate_path) for candidate_target, candidate_path in candidates if candidate_target == target]
-    for candidate_target, candidate_path in candidates:
-        if candidate_path.is_file():
-            return candidate_target, candidate_path
+    present_candidates = [(candidate_target, candidate_path) for candidate_target, candidate_path in candidates if candidate_path.is_file()]
+    if len(present_candidates) > 1:
+        present_targets = sorted({candidate_target for candidate_target, _ in present_candidates})
+        if target is None and len(present_targets) > 1:
+            raise ValueError(
+                "archive target must be explicit when multiple repo-local archive targets are present "
+                f"in {policy_path}: "
+                + ", ".join(present_targets)
+            )
+        duplicate_target = target or present_targets[0]
+        raise ValueError(
+            f"multiple repo-local archives match {duplicate_target} in {policy_path}: "
+            + ", ".join(str(candidate_path) for _, candidate_path in present_candidates)
+        )
+    if present_candidates:
+        return present_candidates[0]
 
     if target is None and len(archive_targets) == 1:
         target = archive_targets[0]
@@ -469,6 +482,7 @@ def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Pat
             actual_sha,
         )
     return "present", None, expected_sha, actual_sha
+
 
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
     try:
@@ -607,19 +621,21 @@ def run_self_test() -> int:
     expect_equal(
         evaluate_toolchain_version(
             "0.16.0",
-            "0.17.0-dev.87+9b177a7d2",
-            "0.17.0-dev.87+9b177a7d2",
+            "0.16.0",
         ),
+        ("present", None),
+    )
+    expect_equal(
+        evaluate_toolchain_version("0.15.9", "0.16.0"),
         ("too_old", None),
     )
 
+    expect_equal(load_min_version(policy_path=Path("/definitely/missing/toolchain.json"), fallback="0.15.0"), "0.15.0")
+    expect_equal(load_pinned_channel(policy_path=Path("/definitely/missing/toolchain.json")), None)
+
     with tempfile.TemporaryDirectory(prefix="zigux_toolchain_policy_") as tmp_dir:
-        root = Path(tmp_dir) / "workspace" / "repo"
-        root.mkdir(parents=True)
+        root = Path(tmp_dir)
         policy_path = root / "zig-toolchain-policy.json"
-        expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
-        expect_equal(load_pinned_channel(policy_path), None)
-        expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), (None, None))
         policy_path.write_text(
             json.dumps(
                 {
@@ -637,32 +653,48 @@ def run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
-        expect_equal(load_min_version(policy_path, "0.15.0"), "0.17.0-dev.87+9b177a7d2")
-        expect_equal(load_pinned_channel(policy_path), "0.17.0-dev.87+9b177a7d2")
-        toolchain_dir = root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
-        toolchain_dir.mkdir(parents=True)
-        pinned_zig = toolchain_dir / "zig"
-        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(pinned_zig))
-        alt_toolchain = root / ".zig-toolchain" / "fallback" / "bin"
-        alt_toolchain.mkdir(parents=True)
-        alt_zig = alt_toolchain / "zig"
-        alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        pinned_zig.unlink()
-        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(alt_zig))
-        explicit_zig = root / "custom-zig"
-        explicit_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        expect_equal(load_min_version(policy_path=policy_path, fallback="0.15.0"), "0.17.0-dev.87+9b177a7d2")
+        expect_equal(load_pinned_channel(policy_path=policy_path), "0.17.0-dev.87+9b177a7d2")
         expect_equal(
-            resolve_zig_executable(str(explicit_zig), root=root, policy_path=policy_path, which=lambda _: None),
-            str(explicit_zig),
+            load_policy(policy_path),
+            {
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": ["x86_64-linux"],
+                    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                },
+            },
         )
-        explicit_dir = root / "explicit-zig-dir"
-        explicit_dir.mkdir()
-        expect_raises(lambda: resolve_zig_executable(str(explicit_dir), root=root, policy_path=policy_path, which=lambda _: None), "expected an executable file")
-        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         expect_equal(
-            iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
-            [pinned_zig, toolchain_dir / "bin" / "zig"],
+            validate_policy_payload(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "4" * 64},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-cross"],
+                    },
+                },
+                policy_path,
+            ),
+            {
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "4" * 64},
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": ["x86_64-linux"],
+                    "required_make_routes": ["phase2-toolchain", "phase2-cross"],
+                },
+            },
         )
         expect_equal(
             iter_zig_search_roots(root)[:7],
@@ -676,14 +708,27 @@ def run_self_test() -> int:
                 root.parent.parent / "toolchains",
             ],
         )
-        parent_toolchain = root.parent / ".toolchains" / "lane03-followup"
-        parent_pinned_root = parent_toolchain / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
-        parent_pinned_root.mkdir(parents=True, exist_ok=True)
-        parent_pinned_zig = parent_pinned_root / "zig"
-        parent_pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        pinned_zig.unlink()
-        alt_zig.unlink()
-        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(parent_pinned_zig))
+        expect_equal(
+            iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:6],
+            [
+                root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig",
+                root / ".zig-toolchain" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "bin" / "zig",
+                root / "toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig",
+                root / "toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "bin" / "zig",
+                root / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig",
+                root / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "bin" / "zig",
+            ],
+        )
+        nested_toolchain = root.parent / ".toolchains" / "lane03" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        nested_toolchain.mkdir(parents=True)
+        nested_zig = nested_toolchain / "zig"
+        nested_zig.write_text("", encoding="utf-8")
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: None), str(nested_zig))
+        expect_equal(
+            normalize_explicit_zig_path(str(nested_zig)),
+            str(nested_zig),
+        )
+        expect_raises(lambda: normalize_explicit_zig_path(str(nested_toolchain)), "directory")
         expect_equal(
             describe_missing_zig(
                 pinned_channel="0.17.0-dev.87+9b177a7d2",
@@ -755,11 +800,64 @@ def run_self_test() -> int:
             "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz"
         )
         duplicate_archive_path.write_bytes(b"zigux-archive")
+        expect_raises(
+            lambda: resolve_policy_archive(root=root, policy_path=policy_path),
+            "multiple repo-local archives match x86_64-linux",
+        )
         workspace_archive_path.unlink()
         expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", duplicate_archive_path))
         expect_equal(
             validate_policy_archive(duplicate_archive_path, "x86_64-linux", policy_path=policy_path),
             ("present", None, expected_archive_sha, expected_archive_sha),
+        )
+        aarch64_archive_path = workspace_archive_path.with_name(
+            "zig-aarch64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        )
+        aarch64_archive_path.write_bytes(b"zigux-archive")
+        policy_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {
+                        "x86_64-linux": expected_archive_sha,
+                        "aarch64-linux": expected_archive_sha,
+                    },
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux", "aarch64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_raises(
+            lambda: resolve_policy_archive(root=root, policy_path=policy_path),
+            "archive target must be explicit when multiple repo-local archive targets are present",
+        )
+        expect_equal(
+            resolve_policy_archive(explicit_target="aarch64-linux", root=root, policy_path=policy_path),
+            ("aarch64-linux", aarch64_archive_path),
+        )
+        policy_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": expected_archive_sha},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
         )
         renamed_archive_path = duplicate_archive_path.with_name("renamed-zig.tar.xz")
         renamed_archive_path.write_bytes(b"zigux-archive")
