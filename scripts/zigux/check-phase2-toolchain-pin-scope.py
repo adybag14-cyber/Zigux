@@ -30,6 +30,8 @@ DOCS_ROOT_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "pinned archive-integrity replay",
     "pinned Zig toolchain",
 )
@@ -45,6 +47,8 @@ REVIEW_MARKERS = (
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2`",
     "same pinned toolchain",
 )
@@ -55,6 +59,8 @@ TESTS_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
 )
@@ -65,6 +71,8 @@ BOOTSTRAP_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`third_party/README.md`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "pinned-archive integrity paths",
 )
 
@@ -72,6 +80,8 @@ WORKFLOW_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-fixdep",
 )
 
 MAKEFILE_MARKERS = (
@@ -80,6 +90,8 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
+    "phase2-genksyms:",
+    "phase2-fixdep:",
 )
 
 TOOLCHAIN_CHECKER_MARKERS = (
