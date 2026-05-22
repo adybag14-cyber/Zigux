@@ -37,13 +37,15 @@ NOTE_MARKERS = [
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_verify.zig` keeps `test \"phase11 dw_wdt verify keeps registration-blocking failure paths explicit\"`",
     "- `drivers/watchdog/dw_wdt_pm.zig` keeps `test \"phase11 dw_wdt pm suspend keeps missing drvdata explicit\"`",
+    "`test \"phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore\"`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed instead of asserting the older returned validation-matrix stack",
 ]
 
 PLATFORM_PLAN_MARKERS = [
     "Current authenticated contents rereads in this run do not rematerialize",
-    "The live DesignWare packet is therefore no longer just a docs-only owner stack, but it is also not yet the broader direct-driver or replay-backed packet this note used to claim",
-    "the manifest-backed registration scaffold, the returned restart helper, the bounded PM helper pair, and the two current DesignWare truthfulness checkers",
+    "the broader direct-driver or replay-backed packet this note used to claim",
+    "the two current DesignWare truthfulness checkers",
     "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
 ]
 
@@ -340,6 +342,40 @@ def run_self_test() -> None:
         expect_failure(
             missing_pretimeout_mask,
             "missing marker in pm: try std.testing.expect(summary.pretimeout_mask_requested);",
+        )
+        case_count += 1
+
+        missing_note_timeout_reprogram = root / "missing-note-timeout-reprogram"
+        shutil.copytree(fixture, missing_note_timeout_reprogram)
+        note_path = missing_note_timeout_reprogram / FILES["note"]
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                NOTE_MARKERS[9] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_note_timeout_reprogram,
+            f"missing marker in note: {NOTE_MARKERS[9]}",
+        )
+        case_count += 1
+
+        missing_note_ready_next = root / "missing-note-ready-next"
+        shutil.copytree(fixture, missing_note_ready_next)
+        note_path = missing_note_ready_next / FILES["note"]
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                NOTE_MARKERS[10] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_note_ready_next,
+            f"missing marker in note: {NOTE_MARKERS[10]}",
         )
         case_count += 1
 
