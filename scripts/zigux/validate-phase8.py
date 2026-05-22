@@ -509,7 +509,7 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).writeText(original, encoding="utf-8")
+                (root / relative_path).write_text(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
@@ -534,7 +534,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         return run_self_test()
     return emit_result(validate_root(args.root))
