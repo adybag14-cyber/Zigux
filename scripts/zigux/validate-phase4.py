@@ -85,6 +85,50 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "forbidden_perf_baseline_dependency"
 )
 
+ARTIFACT_DIFF_HELPER_SELF_TEST_CASES = (
+    "text_pass,"
+    "text_mismatch,"
+    "json_pass,"
+    "json_mismatch,"
+    "json_invalid_expected,"
+    "json_invalid_actual,"
+    "json_invalid_both,"
+    "json_missing_expected,"
+    "json_missing_actual,"
+    "json_missing_both,"
+    "bytes_pass,"
+    "bytes_drift,"
+    "text_missing_expected,"
+    "text_missing_actual,"
+    "text_missing_both,"
+    "bytes_missing_expected,"
+    "bytes_missing_actual,"
+    "bytes_missing_both,"
+    "legacy_sha256_alias,"
+    "missing_mode_value_rejected,"
+    "missing_positional_arguments_rejected,"
+    "invalid_mode_rejected,"
+    "extra_positional_rejected"
+)
+
+PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
+    "baseline_round_trip,"
+    "missing_header,"
+    "missing_phase5_anchor,"
+    "stale_phase4_heading,"
+    "stale_phase4_note_reference,"
+    "stale_phase4_gate_evidence_note_reference,"
+    "stale_phase4_repo_reality_warning_reference,"
+    "stale_phase4_perf_manifest_reference,"
+    "stale_phase4_perf_reference,"
+    "stale_phase4_perf_make_route,"
+    "stale_phase4_gate_evidence_checker_reference,"
+    "stale_phase4_reversible_delivery_checker_reference,"
+    "stale_phase4_perf_checker_reference,"
+    "stale_phase4_bitmap_reference,"
+    "stale_phase4_tests_readme_checker_reference"
+)
+
 REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-repo-reality-warning-self-test": (
         (
@@ -111,6 +155,41 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-reversible-delivery-pins": (
         ("PHASE4_REVERSIBLE_DELIVERY_PINS", "PHASE4_REVERSIBLE_DELIVERY_PINS=pass"),
+    ),
+    "phase4-tests-readme-packet-self-test": (
+        (
+            "PHASE4_TESTS_README_PACKET_SELF_TEST",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
+        ),
+        (
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES="
+            + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES,
+        ),
+    ),
+    "phase4-tests-readme-packet": (
+        (
+            "PHASE4_TESTS_README_PACKET_CHECK",
+            "PHASE4_TESTS_README_PACKET_CHECK=pass",
+        ),
+    ),
+    "phase4-artifact-diff-helper-self-test": (
+        (
+            "ARTIFACT_DIFF_SELF_TEST",
+            "ARTIFACT_DIFF_SELF_TEST=pass",
+        ),
+        (
+            "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT",
+            "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
+        ),
+        (
+            "ARTIFACT_DIFF_SELF_TEST_CASES",
+            "ARTIFACT_DIFF_SELF_TEST_CASES=" + ARTIFACT_DIFF_HELPER_SELF_TEST_CASES,
+        ),
     ),
     "phase4-gate-evidence-self-test": (
         (
@@ -545,6 +624,24 @@ def configure_phase4_output_stubs(root: Path) -> None:
         live_stdout_lines=("PHASE4_REVERSIBLE_DELIVERY_PINS=pass",),
     )
     build_stub_script(
+        root / "scripts/zigux/check-phase4-tests-readme-packet.py",
+        self_test_stdout_lines=(
+            "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES="
+            + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES,
+        ),
+        live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/artifact_diff.py",
+        self_test_stdout_lines=(
+            "ARTIFACT_DIFF_SELF_TEST=pass",
+            "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
+            "ARTIFACT_DIFF_SELF_TEST_CASES=" + ARTIFACT_DIFF_HELPER_SELF_TEST_CASES,
+        ),
+    )
+    build_stub_script(
         root / "scripts/zigux/check-phase4-gate-evidence.py",
         self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",),
         live_stdout_lines=("phase4 gate evidence check passed",),
@@ -760,6 +857,59 @@ def run_self_test() -> int:
             "Current Phase 4 use",
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
+        tests_readme = root / "scripts/zigux/check-phase4-tests-readme-packet.py"
+        build_stub_script(
+            tests_readme,
+            self_test_stdout_lines=("PHASE4_TESTS_README_PACKET_SELF_TEST=pass",),
+            live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=pass",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-tests-readme-packet-self-test:"
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:tests_readme_packet_self_test_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        tests_readme = root / "scripts/zigux/check-phase4-tests-readme-packet.py"
+        build_stub_script(
+            tests_readme,
+            self_test_stdout_lines=(
+                "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
+                "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
+                "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES="
+                + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES,
+            ),
+            live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=drift",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-tests-readme-packet:"
+            "PHASE4_TESTS_README_PACKET_CHECK"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:tests_readme_packet_live_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
         helper = root / "scripts/zigux/artifact_diff.py"
         build_stub_script(helper, self_test_exit_code=1, live_exit_code=0)
         issues = collect_issues(root)
@@ -767,6 +917,26 @@ def run_self_test() -> int:
         if expected not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:artifact_diff_helper_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        helper = root / "scripts/zigux/artifact_diff.py"
+        build_stub_script(helper, self_test_stdout_lines=("ARTIFACT_DIFF_SELF_TEST=pass",))
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-artifact-diff-helper-self-test:"
+            "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:artifact_diff_helper_output_marker_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -1048,7 +1218,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
