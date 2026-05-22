@@ -30,7 +30,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase11 hvc cleanup packet proof keeps raw-fallback teardown anchors explicit" {
+test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {
     const survey_doc = try readRepoFileAlloc(
         std.testing.allocator,
         "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -54,7 +54,7 @@ test "phase11 hvc cleanup packet proof keeps raw-fallback teardown anchors expli
 
     try expectContains(survey_doc, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`");
     try expectContains(companion_doc, "`zigux/tests/phase11_hvc_console_manifest.json`");
-    try expectContains(matrix_doc, "teardown-parity evidence no longer needs");
+    try expectContains(matrix_doc, "repo-reality gaps instead of returned fallback evidence");
 }
 
 test "phase11 hvc cleanup packet proof keeps route boundaries explicit" {
