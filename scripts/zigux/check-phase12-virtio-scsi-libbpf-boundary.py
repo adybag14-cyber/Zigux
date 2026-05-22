@@ -30,6 +30,7 @@ LIBBPF_VERIFY_NOTE_PATH = "Documentation/zigux/phase12-libbpf-verify-shard-note.
 LIBBPF_HEAVY_CONSUMER_PATH = (
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 )
+LIBBPF_REVIEWABILITY_GATE_PATH = "zigux/tests/phase12_libbpf_reviewability.zig"
 
 REQUIRED_FILES = [
     VIRTIO_SCSI_SLICE_PATH,
@@ -42,6 +43,7 @@ REQUIRED_FILES = [
     LIBBPF_SURVEY_PATH,
     LIBBPF_VERIFY_NOTE_PATH,
     LIBBPF_HEAVY_CONSUMER_PATH,
+    LIBBPF_REVIEWABILITY_GATE_PATH,
 ]
 
 REQUIRED_MARKERS = {
@@ -75,10 +77,17 @@ REQUIRED_MARKERS = {
         "current `master` still exposes a bounded directly readable `zigux_segments` footing",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
         "older `manifest.json` catalog is no longer directly readable on current `master`",
+        "`zigux/tests/phase12_libbpf_reviewability.zig` gate still pins the legacy five-path reviewability packet on current `master`",
     ],
     LIBBPF_VERIFY_NOTE_PATH: [
         "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`",
         "the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`",
+    ],
+    LIBBPF_REVIEWABILITY_GATE_PATH: [
+        'test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact" {',
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+        'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);',
     ],
 }
 
@@ -142,9 +151,10 @@ def write_fixture_tree(root: Path) -> None:
         VIRTIO_SCSI_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "preexisting_phase12_direct_test_present": false,\n  "gaps": ["phase12-virtio-scsi-runtime-request-flow"]\n}\n',
         VIRTIO_SCSI_SURVEY_GATE_PATH: 'test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthful" {\n    _ = pathExists("drivers/scsi/virtio_scsi.zig");\n    _ = "Documentation/zigux/phase12-virtio-scsi-survey.md";\n}\n',
         COMPLEX_DRIVER_NOTE_PATH: "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`\nkeep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth\nshared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members\n",
-        LIBBPF_SURVEY_PATH: "current `master` still exposes a bounded directly readable `zigux_segments` footing\n`tools/lib/bpf/zigux_segments/verify.zig`\nolder `manifest.json` catalog is no longer directly readable on current `master`\n",
+        LIBBPF_SURVEY_PATH: "current `master` still exposes a bounded directly readable `zigux_segments` footing\n`tools/lib/bpf/zigux_segments/verify.zig`\nolder `manifest.json` catalog is no longer directly readable on current `master`\n`zigux/tests/phase12_libbpf_reviewability.zig` gate still pins the legacy five-path reviewability packet on current `master`\n",
         LIBBPF_VERIFY_NOTE_PATH: "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`\nthe direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`\n",
         LIBBPF_HEAVY_CONSUMER_PATH: "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing\n",
+        LIBBPF_REVIEWABILITY_GATE_PATH: 'test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact" {\n    _ = "Documentation/zigux/phase12-libbpf-segment-survey.md";\n    _ = "Documentation/zigux/phase12-libbpf-verify-shard-note.md";\n    try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n}\n',
     }
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, fixture_text[rel_path])
@@ -186,11 +196,16 @@ def run_self_test() -> int:
         write_text(tmp_root / LIBBPF_VERIFY_NOTE_PATH, read_text(tmp_root / LIBBPF_VERIFY_NOTE_PATH).replace("file_path_handle_bridge.zig", "file_path_handle_bridge_absent.zig", 1))
         if not any("missing marker in" in error and LIBBPF_VERIFY_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("expected libbpf verify-note marker failure")
+
+        write_fixture_tree(tmp_root)
+        write_text(tmp_root / LIBBPF_REVIEWABILITY_GATE_PATH, read_text(tmp_root / LIBBPF_REVIEWABILITY_GATE_PATH).replace("P12-L16", "P12-X16", 1))
+        if not any("missing marker in" in error and LIBBPF_REVIEWABILITY_GATE_PATH in error for error in check(tmp_root, source_text=MARKER)):
+            raise SystemExit("expected libbpf reviewability gate marker failure")
     finally:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=4")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=5")
     return 0
 
 
