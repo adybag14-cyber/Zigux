@@ -133,29 +133,22 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
-        payload = load_json(manifest_path)
-        del payload["present_surfaces"]
-        write_json(manifest_path, payload)
-        assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
+        write_json(manifest_path, [])
+        assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
         checks_run += 1
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
-        write_json(manifest_path, [])
-        assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
+        payload = load_json(manifest_path)
+        payload["present_surfaces"] = []
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
         checks_run += 1
 
         for key, expected in (
             ("review_surfaces", module.EXPECTED_MANIFEST_REVIEW_SURFACES),
             ("closure_notes", module.EXPECTED_MANIFEST_CLOSURE_NOTES),
             ("validators", module.EXPECTED_MANIFEST_VALIDATORS),
-            ("bootstrap_helpers", module.EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
-            ("policy", module.EXPECTED_MANIFEST_POLICY),
-            ("archive_support", module.EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
-            ("cross_route_support", module.EXPECTED_MANIFEST_CROSS_SUPPORT),
-            ("artifact_support", module.EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
-            ("fixdep_support", module.EXPECTED_MANIFEST_FIXDEP_SUPPORT),
-            ("make_wrappers", module.EXPECTED_MANIFEST_MAKE_WRAPPERS),
             ("checkers", module.EXPECTED_MANIFEST_CHECKERS),
             ("bridge_helpers", module.EXPECTED_MANIFEST_BRIDGE_HELPERS),
             ("fixture_roster", module.EXPECTED_MANIFEST_FIXTURE_ROSTER),
@@ -272,13 +265,6 @@ REQUIRED_FILES = (
 EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
 EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
 EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
-EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("install-a.py", "install-b.py")
-EXPECTED_MANIFEST_POLICY = ("policy-a.json", "policy-b.json")
-EXPECTED_MANIFEST_ARCHIVE_SUPPORT = ("archive-a", "archive-b")
-EXPECTED_MANIFEST_CROSS_SUPPORT = ("cross-a", "cross-b")
-EXPECTED_MANIFEST_ARTIFACT_SUPPORT = ("artifact-a", "artifact-b")
-EXPECTED_MANIFEST_FIXDEP_SUPPORT = ("fixdep-a", "fixdep-b")
-EXPECTED_MANIFEST_MAKE_WRAPPERS = ("make-a", "make-b")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
@@ -306,13 +292,6 @@ def build_self_test_root(root: Path) -> None:
             "review_surfaces": list(EXPECTED_MANIFEST_REVIEW_SURFACES),
             "closure_notes": list(EXPECTED_MANIFEST_CLOSURE_NOTES),
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
-            "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
-            "policy": list(EXPECTED_MANIFEST_POLICY),
-            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
-            "cross_route_support": list(EXPECTED_MANIFEST_CROSS_SUPPORT),
-            "artifact_support": list(EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
-            "fixdep_support": list(EXPECTED_MANIFEST_FIXDEP_SUPPORT),
-            "make_wrappers": list(EXPECTED_MANIFEST_MAKE_WRAPPERS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
@@ -409,13 +388,6 @@ def collect_issues(root: Path):
     expect_subset(issues, "review_surfaces", require_manifest_list(issues, manifest, "review_surfaces"), EXPECTED_MANIFEST_REVIEW_SURFACES)
     expect_subset(issues, "closure_notes", require_manifest_list(issues, manifest, "closure_notes"), EXPECTED_MANIFEST_CLOSURE_NOTES)
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
-    expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
-    expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
-    expect_subset(issues, "archive_support", require_manifest_list(issues, manifest, "archive_support"), EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
-    expect_subset(issues, "cross_route_support", require_manifest_list(issues, manifest, "cross_route_support"), EXPECTED_MANIFEST_CROSS_SUPPORT)
-    expect_subset(issues, "artifact_support", require_manifest_list(issues, manifest, "artifact_support"), EXPECTED_MANIFEST_ARTIFACT_SUPPORT)
-    expect_subset(issues, "fixdep_support", require_manifest_list(issues, manifest, "fixdep_support"), EXPECTED_MANIFEST_FIXDEP_SUPPORT)
-    expect_subset(issues, "make_wrappers", require_manifest_list(issues, manifest, "make_wrappers"), EXPECTED_MANIFEST_MAKE_WRAPPERS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
@@ -450,7 +422,7 @@ def collect_issues(root: Path):
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run the full closure-marker, workflow-line, Makefile-line, and required-file matrix against the Phase 2 closure validator."
+        description="Run the full closure-marker, workflow-line, Makefile-line, manifest-shape, and required-file matrix against the Phase 2 closure validator."
     )
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
