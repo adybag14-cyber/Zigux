@@ -87,12 +87,15 @@ def collect_tooling_entry_issues(root: Path, category: str, actual: object, expe
         issues.append(("INVALID_TOOLING_ENTRY", f"{category}:{entry}"))
 
     string_entries = [entry for entry in actual if isinstance(entry, str)]
+    expected_set = set(expected)
     for entry in find_duplicate_strings(string_entries):
         issues.append(("DUPLICATE_TOOLING_ENTRY", f"{category}:{entry}"))
     for entry in expected:
         if entry not in string_entries:
             issues.append(("TOOLING_MISMATCH", f"{category}:{entry}"))
     for entry in string_entries:
+        if entry not in expected_set:
+            issues.append(("UNEXPECTED_TOOLING_ENTRY", f"{category}:{entry}"))
         if not resolve_manifest_path(root, entry).exists():
             issues.append(("MISSING_TOOL_PATH", f"{category}:{entry}"))
     return issues
@@ -399,6 +402,19 @@ def run_self_test() -> int:
         write_manifest(manifest_path, manifest)
         assert ("INVALID_TOOLING_ENTRY", "consumers:123") in collect_issues(root)
         checks_run += 1
+
+        for category, entry in (
+            ("primary", "scripts/zigux/unexpected-primary-tool.py"),
+            ("consumers", "scripts/zigux/unexpected-consumer.py"),
+            ("checkers", "scripts/zigux/unexpected-checker.py"),
+        ):
+            build_self_test_root(root)
+            write_text(root / entry, "present\n")
+            manifest = build_self_test_manifest()
+            manifest["tooling"][category].append(entry)
+            write_manifest(manifest_path, manifest)
+            assert ("UNEXPECTED_TOOLING_ENTRY", f"{category}:{entry}") in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         write_text(root / PRIMARY_TOOL, 'MODE_CHOICES = ("json", "text", "bytes")\n')
