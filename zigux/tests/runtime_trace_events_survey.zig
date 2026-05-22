@@ -258,7 +258,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "`phase9-runtime-loader-allocator-init-flow-tests`");
-    try expectContains(survey_note, "`phase9-runtime-trace-events-loader-substrate-drift-tests`");
+    try expectContains(survey_note, "`phase9-runtime-loader-command-env-boundary-guard-tests`");
     try expectContains(survey_note, "`phase9-runtime-loader-shared-tests`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader_contract.zig`");
@@ -302,12 +302,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_top_bit_contract.zig");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-loader-command-env-boundary-guard-tests\"");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-loader-shared-tests\"");
+    try expectContains(phase9_build_file, ".name = \"phase9-runtime-trace-events-tests\"");
     try expectContains(phase9_build_file, "runtime_loader_allocator_init_flow.zig");
     try expectContains(phase9_build_file, "runtime_loader_command_env_boundary_guard.zig");
-    try expectContains(phase9_build_file, "runtime_trace_events_loader_substrate_drift.zig");
     try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_loader.zig");
     try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events.zig");
-    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events_loader.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events_unregistered_gate.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events_exit_rollback_guard.zig");
+    try expectContains(phase9_build_file, "../../samples/zigux/runtime_trace_events_registration_reentry_gate.zig");
 
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
