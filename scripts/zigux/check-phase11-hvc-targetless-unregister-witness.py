@@ -316,6 +316,10 @@ def run_self_test() -> int:
                 "standalone targetless-unregister witness",
             ),
             (
+                VALIDATION_MATRIX_PATH,
+                "make -C zigux phase11-validate",
+            ),
+            (
                 SURVEY_PATH,
                 "without promoting itself into the shared three-entry build inventory",
             ),
