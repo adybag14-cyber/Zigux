@@ -113,7 +113,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -143,6 +143,12 @@ def write_fixture_root(root: Path) -> None:
         write(root / rel, "\n".join(markers) + "\n")
 
 
+def expect_missing_file(root: Path, rel: str) -> None:
+    missing_files, missing_markers = validate(root)
+    assert missing_files == [rel]
+    assert missing_markers == []
+
+
 def expect_missing_marker(root: Path, rel: str, marker: str) -> None:
     missing_files, missing_markers = validate(root)
     assert missing_files == []
@@ -155,6 +161,12 @@ def run_self_test() -> None:
         write_fixture_root(root)
         assert validate(root) == ([], [])
         cases = 0
+
+        path = root / "zigux" / "tests" / "phase7_rbtree_manifest.json"
+        path.unlink()
+        expect_missing_file(root, "zigux/tests/phase7_rbtree_manifest.json")
+        cases += 1
+        write_fixture_root(root)
 
         path = root / "Documentation/zigux/phase7-rbtree-slice.md"
         marker = "roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence"
@@ -184,21 +196,21 @@ def run_self_test() -> None:
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
@@ -261,35 +273,35 @@ def run_self_test() -> None:
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectContains(makefile, "phase7-validate:");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectNotContains(makefile, "phase7-rbtree-test:");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
-        path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         marker = 'try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
