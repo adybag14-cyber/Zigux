@@ -224,5 +224,13 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     defer std.testing.allocator.free(build_file);
     try expectContains(build_file, "Run focused Phase 8 exec-cmd tests");
 
-    // Legacy validator breadcrumb: expectMissingPath("tools/lib/subcmd/exec-cmd.zig")
+    const helper_source = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/subcmd/exec-cmd.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(helper_source);
+    try expectContains(helper_source, "pub fn setupPathWithPwd(");
+    try expectContains(helper_source, "pub fn buildDeferredExeclCall(");
+    try expectContains(helper_source, "pub fn buildDeferredExecvCall(");
 }
