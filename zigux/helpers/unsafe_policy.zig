@@ -8,6 +8,8 @@ pub const AccessBoundary = enum {
     raw_pointer_bridge,
 };
 
+pub const Surface = narrow.Surface;
+
 pub const UnsafeScopeError = error{UnsafeScopeDenied};
 
 fn fromNarrowAccessBoundary(boundary: narrow.AccessBoundary) AccessBoundary {
@@ -68,6 +70,22 @@ pub fn accessBoundaryFromInteropPolicy(policy: abi.InteropPolicy) ?AccessBoundar
 
 pub fn accessBoundaryFromByte(scope: u8) ?AccessBoundary {
     return fromNarrowAccessBoundary(narrow.accessBoundaryFromByte(scope) orelse return null);
+}
+
+pub fn surfaceFor(mode: abi.UnsafeScope) Surface {
+    return narrow.surfaceFor(mode);
+}
+
+pub fn surfaceFromInteropPolicyBytes(scope: u8, reserved: u8) ?Surface {
+    return narrow.surfaceFromInteropPolicyBytes(scope, reserved);
+}
+
+pub fn surfaceFromInteropPolicy(policy: abi.InteropPolicy) ?Surface {
+    return narrow.surfaceFromInteropPolicy(policy);
+}
+
+pub fn surfaceFromByte(scope: u8) ?Surface {
+    return narrow.surfaceFromByte(scope);
 }
 
 pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {
@@ -283,6 +301,10 @@ test "phase3 unsafe policy keeps access boundaries explicit" {
     try std.testing.expectEqual(AccessBoundary.volatile_mmio_window, accessBoundaryFor(.volatile_mmio));
     try std.testing.expectEqual(AccessBoundary.raw_pointer_bridge, accessBoundaryFor(.raw_pointer_bridge));
 
+    try std.testing.expectEqual(Surface.safe_only, surfaceFor(.none));
+    try std.testing.expectEqual(Surface.mmio_only, surfaceFor(.volatile_mmio));
+    try std.testing.expectEqual(Surface.raw_pointer_bridge_only, surfaceFor(.raw_pointer_bridge));
+
     try std.testing.expect(allowsTypedOnlyAccess(.none));
     try std.testing.expect(permitsNoUnsafe(.none));
     try requireNoUnsafe(.none);
@@ -343,6 +365,11 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromByte(2));
     try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromByte(9));
 
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromByte(0));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromByte(1));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromByte(2));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromByte(9));
+
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), modeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), modeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), modeFromInteropPolicyBytes(2, 0));
@@ -360,6 +387,12 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicyBytes(2, 1));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -420,6 +453,12 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromInteropPolicy(raw_pointer_policy));
     try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(unknown_policy));
+
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromInteropPolicy(safe_policy));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromInteropPolicy(mmio_policy));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromInteropPolicy(raw_pointer_policy));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicy(unknown_policy));
 
     try std.testing.expect(recognizesInteropPolicy(safe_policy));
     try std.testing.expect(recognizesInteropPolicy(mmio_policy));
