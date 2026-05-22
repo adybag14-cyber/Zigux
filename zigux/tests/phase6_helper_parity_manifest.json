@@ -16,6 +16,7 @@
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/validate-phase6.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py"
   ],
   "public_tree_backed_shared_companions": [],
