@@ -74,9 +74,12 @@ FILE_EXPECTATIONS = {
         "separate failure-mode replay",
     ),
     VALIDATION_MATRIX_PATH: (
+        VERIFY_BOUNDARY_PATH,
         CLEANUP_COMPANION_PATH,
         CLEANUP_CHECKER_PATH,
+        "scripts/zigux/check-phase11-build-inventory.py",
         SELF_PATH,
+        INVENTORY_PATH,
         WITNESS_PATH,
         WITNESS_BUILD_PATH,
         "make -C zigux phase11-validate",
@@ -154,6 +157,9 @@ FILE_EXPECTATIONS = {
         'try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
         'try expectContains(survey, "standalone targetless-unregister witness pair likewise stays");',
         'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
+        'try expectContains(matrix, "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`");',
+        'try expectContains(matrix, "`scripts/zigux/check-phase11-build-inventory.py`");',
+        'try expectContains(matrix, "`zigux/tests/fixtures/phase11_build_inventory.json`");',
         'try expectContains(matrix, "witness shard now rereads the live starter and the boundary note together");',
         'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
     ),
@@ -326,6 +332,18 @@ def run_self_test() -> int:
             (
                 CLEANUP_COMPANION_PATH,
                 "standalone targetless-unregister witness",
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                VERIFY_BOUNDARY_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                "scripts/zigux/check-phase11-build-inventory.py",
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                INVENTORY_PATH,
             ),
             (
                 VALIDATION_MATRIX_PATH,
