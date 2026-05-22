@@ -58,6 +58,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `scripts/zigux/check-phase2-artifact-tools-manifest.py`
 - `scripts/zigux/check-phase2-required-make-routes.py`
 - `scripts/zigux/check-genksyms-bridge.py`
+- `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
 - `scripts/zigux/check-phase2-fixdep-gate.py`
 - `scripts/zigux/check-fixdep-diff.py`
 - `scripts/zigux/install-zig.py`
@@ -65,6 +66,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/genksyms.zig`
+- `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`
 - `scripts/zigux/fixdep.zig`
 - `scripts/zigux/zig-toolchain-policy.json`
 - `zigux/Makefile`
@@ -76,6 +78,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 - `zigux/tests/fixtures/genksyms_bridge/cases.json`
 - `zigux/tests/fixtures/genksyms_bridge/help_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/manifest.json`
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
@@ -106,14 +109,14 @@ keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootst
 
 current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket
 
-current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder
+current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zig test scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, dedicated selftest-alignment guard, standalone invalid-long-option version-side-effect proof, direct Zig replay, wrapper, and manifest-backed fixture roster explicit here instead of leaving those surfaces outside the tests-root reminder
 
 current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
 
-keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, dedicated genksyms selftest-alignment, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
+- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, dedicated genksyms selftest-alignment, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
 
 ## Phase 5 sample packet
 
