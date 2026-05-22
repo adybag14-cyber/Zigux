@@ -25,34 +25,35 @@ TARGETLESS_WITNESS_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-targetle
 
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
-    "public raw fallback readback also restores `drivers/tty/hvc/hvc_console_verify.zig`,",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "repo-reality gaps or archival vocabulary",
     "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`",
     "`make -C zigux phase11-validate`",
 )
 
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
-    "raw fallback readback also restores `drivers/tty/hvc/hvc_console_verify.zig`,",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "returned HVC validation matrix and build-inventory checker stay explicit",
     "proof-backed HVC continuity packet remains reviewable",
+    "repo-reality gaps or archival vocabulary",
 )
 
 MATRIX_MARKERS = (
     "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
-    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-validate`",
     "`make -C zigux phase11-hvc-survey`",
-    "teardown-parity evidence no longer needs",
-    "keep helper-local failure-mode edges reviewable through the verify boundary",
+    "repo-reality gaps instead of returned fallback evidence",
     "flush intent",
     "`hvc_install()` ownership",
     "`hvc_cleanup()` tty-port",
@@ -89,10 +90,10 @@ DRIVER_MARKERS = (
 )
 
 PROOF_MARKERS = (
-    'test "phase11 hvc cleanup packet proof keeps raw-fallback teardown anchors explicit" {',
+    'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {',
     'try expectContains(survey_doc, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`");',
     'try expectContains(companion_doc, "`zigux/tests/phase11_hvc_console_manifest.json`");',
-    'try expectContains(matrix_doc, "teardown-parity evidence no longer needs");',
+    'try expectContains(matrix_doc, "repo-reality gaps instead of returned fallback evidence");',
     'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {',
     'try expectContains(matrix_doc, "flush intent");',
     'try expectContains(matrix_doc, "`hvc_install()` ownership");',
@@ -128,7 +129,7 @@ def run_check(root: Path) -> None:
         root,
         TARGETLESS_WITNESS_CHECKER_PATH,
         "targetless witness checker",
-        ('PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass',),
+        ("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass",),
     )
 
     payload = json.loads(read_text(root / INVENTORY_PATH))
@@ -208,7 +209,7 @@ def run_self_test() -> int:
             (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
-            (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps raw-fallback teardown anchors explicit" {'),
+            (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {'),
         ]
 
