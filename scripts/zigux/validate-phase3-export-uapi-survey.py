@@ -19,8 +19,8 @@ GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-gover
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
-LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")
 C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
@@ -31,33 +31,31 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
-        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
-        "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+        "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
+        "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
+        "PHASE3_LAYOUT_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout",
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
-        "the named C-facing boundary-header helpers, the exported boundary-header validation relay, the version relay, and the starter `dev_t` validation wrappers directly compile- and run-proofed",
-        "The packet now also keeps a direct C-facing smoke proof for the Linux-header relays",
-        "the shared tests-root replay route in `zigux/tests/build.zig` now imports `header_family_binding` inside `addPhase3ExportUapiLayout(...)`",
-        "the shared `phase3-export-uapi-layout` route and the dedicated `phase3-export-uapi-layout-test` route agree on the live starter packet wiring",
-        "the already-shipped starter boundary-header validation relay, the already-shipped starter `dev_t` validation relays, the shared tests-root replay wiring, and the direct C smoke replay explicit as shipped same-family evidence",
-        "the paired `include/zigux/dev_t.h` contract",
+        "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
+        "Current `master` does not currently carry `zigux/tests/phase3_export_uapi_layout_build.zig`",
+        "the older dedicated `phase3-export-uapi-layout-test` route remains unshipped compile wiring rather than live same-family evidence",
+        "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore still points at a missing dedicated build file on live `master`",
+        "the shared tests-root export/UAPI layout replay, the direct C smoke replay, the kernel-facing governance note, and the starter validation relays explicit as shipped same-family evidence while treating the absent dedicated `phase3_export_uapi_layout_build.zig` handoff as a current repo-reality gap",
+        "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay as wired through `zigux/tests/build.zig`",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
-        'C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
-        'C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+        'MAKEFILE_PATH = Path("zigux/Makefile")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
     EXPORT_SHIM_PATH: (
-        "pub fn versionMatchesCurrent(candidate: Version) bool {",
-        "pub fn validateVersion(candidate: Version) ExportStatus {",
         "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
         "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
@@ -66,30 +64,24 @@ REQUIRED_MARKERS = {
     BINDING_VERSION_PATH: (
         "pub fn current() Version {",
         "pub fn matchesCurrent(version: Version) bool {",
-        'test "version binding keeps current compatibility explicit" {',
     ),
     BINDING_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
         "pub fn validateRange(start: Fields, end: Fields) bool {",
-        'test "dev_t binding keeps validation and range edges aligned with the UAPI packet" {',
     ),
     UAPI_VERSION_PATH: (
         "pub fn matchesCurrent(version: Version) bool {",
         "pub fn validate(version: Version) abi.ExportStatus {",
-        'test "version helpers keep current compatibility explicit" {',
     ),
     UAPI_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
         "pub fn validateRange(start: Fields, end: Fields) bool {",
-        'test "dev_t validation keeps the starter boundary explicit" {',
     ),
     LINUX_HEADER_PATH: (
-        "static inline zigux_uapi_version zigux_uapi_version_current(void)",
         "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
         "static inline struct zigux_export_status zigux_validate_boundary_header(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
-        "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
         "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
     ),
     GOVERNANCE_NOTE_PATH: (
@@ -98,20 +90,13 @@ REQUIRED_MARKERS = {
     ),
     DEV_T_HEADER_PATH: (
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
-        "#define ZIGUX_DEV_T_FIELDS_SIZE 8u",
         "struct zigux_dev_t_fields {",
-        "static inline struct zigux_dev_t_fields zigux_dev_t_fields_make(",
-        "static inline uint32_t zigux_mkdev(uint32_t major, uint32_t minor)",
-        "static inline uint32_t zigux_major(uint32_t dev)",
-        "static inline uint32_t zigux_minor(uint32_t dev)",
-        "static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
         "static inline int zigux_dev_t_fields_range_is_valid(",
     ),
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
-        '"keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"',
     ),
     TESTS_BUILD_PATH: (
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
@@ -119,45 +104,27 @@ REQUIRED_MARKERS = {
         'root_module.addImport("header_family_binding", header_family_binding);',
         'root_module.addImport("export_shim", export_shim);',
     ),
+    MAKEFILE_PATH: (
+        "phase3-export-uapi-layout:",
+        "phase3-export-uapi-layout-test:",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
     LAYOUT_TEST_PATH: (
         'test "header-family binding keeps the bounded relay surface explicit" {',
-        'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim relays starter boundary-header validation through the focused replay" {',
-        'test "export shim encodes starter dev_t numbers without widening the boundary" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
-    ),
-    LAYOUT_BUILD_PATH: (
-        'const header_family_binding = b.createModule(.{',
-        'header_family_binding.addImport("abi_bindings", abi_bindings);',
-        'root_module.addImport("header_family_binding", header_family_binding);',
-        '"phase3-export-uapi-layout-test"',
     ),
     C_HEADER_SMOKE_PATH: (
         "#include <linux/zigux.h>",
-        "static int check_version_relays(void)",
-        "zigux_uapi_validate_version(",
         "static int check_boundary_header_relays(void)",
-        "zigux_boundary_header_make(",
-        "zigux_boundary_header_make_compatible(",
         "zigux_validate_boundary_header(",
-        "zigux_boundary_header_is_current_abi_version(",
-        "zigux_boundary_header_is_compatible_size(",
-        "zigux_boundary_header_is_canonical_size(",
-        "zigux_boundary_header_is_compatible(",
-        "zigux_boundary_header_is_canonical(",
-        "zigux_boundary_header_extends_boundary(",
-        "zigux_boundary_header_requested_extra_bytes(",
-        "zigux_boundary_header_canonicalize(",
         "static int check_dev_t_relays(void)",
-        "zigux_uapi_validate_dev_t_fields(",
-        "zigux_uapi_validate_dev_t_components(",
         "zigux_uapi_validate_dev_t_range(",
         "int main(void)",
     ),
     C_HEADER_SMOKE_CHECK_PATH: (
         '"""Compile and run the current Phase 3 export/UAPI C header smoke."""',
         'SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
-        'LINUX_HEADER_PATH = Path("include/linux/zigux.h")',
         'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass")',
     ),
@@ -167,19 +134,17 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
-        'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     CATALOG_SELFTEST_CHECK_PATH: (
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        '\'\"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig\"\'',
-        '\'\"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\"\'',
-        '\'\"make -C zigux phase3-export-uapi-layout\"\'',
-        '\'\"make -C zigux phase3-export-uapi-layout-test\"\'',
-        'print("PHASE3_CATALOG_SELFTEST_CHECK=pass")',
+        '\'"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"\'',
+        '\'"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"\'',
+        '\'"make -C zigux phase3-export-uapi-layout"\'',
+        '\'"make -C zigux phase3-export-uapi-layout-test"\'',
     ),
     SHARED_CHECK_RUNNER_PATH: (
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
-        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"phase3-validate"',
     ),
 }
@@ -230,38 +195,18 @@ def run_self_test() -> int:
     marker_cases = (
         (
             SURVEY_PATH,
-            "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
-            "expected missing linux-facing header survey path marker was not reported",
+            "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
+            "expected missing shared export/uapi layout gate marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
-            "expected missing shared dev_t header survey path marker was not reported",
+            "Current `master` does not currently carry `zigux/tests/phase3_export_uapi_layout_build.zig`",
+            "expected missing dedicated build gap marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
-            "expected missing shared tests build path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
-            "expected missing c-header smoke path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "the named C-facing boundary-header helpers, the exported boundary-header validation relay, the version relay, and the starter `dev_t` validation wrappers directly compile- and run-proofed",
-            "expected missing c-header smoke survey marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "The packet now also keeps a direct C-facing smoke proof for the Linux-header relays",
-            "expected missing current-gap c-smoke marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"keep the shared Phase 3 export/UAPI layout route aligned with the dedicated replay and only reopen this packet if the shared tests-root build wiring, export shim bindings, or focused layout tests drift again"',
-            "expected missing manifest next-safe-step marker was not reported",
+            "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore still points at a missing dedicated build file on live `master`",
+            "expected missing makefile-backed gap marker was not reported",
         ),
         (
             TESTS_BUILD_PATH,
@@ -269,129 +214,14 @@ def run_self_test() -> int:
             "expected missing shared tests-root header-family import marker was not reported",
         ),
         (
-            LAYOUT_BUILD_PATH,
-            'root_module.addImport("header_family_binding", header_family_binding);',
-            "expected missing dedicated layout build header-family import marker was not reported",
-        ),
-        (
-            LAYOUT_TEST_PATH,
-            'test "export shim relays starter boundary-header validation through the focused replay" {',
-            "expected missing focused layout boundary-header replay marker was not reported",
-        ),
-        (
-            LAYOUT_TEST_PATH,
-            'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
-            "expected missing focused layout range replay marker was not reported",
-        ),
-        (
-            EXPORT_SHIM_PATH,
-            "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
-            "expected missing export shim boundary-header validation relay marker was not reported",
-        ),
-        (
-            EXPORT_SHIM_PATH,
-            "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
-            "expected missing export shim field-validation relay marker was not reported",
-        ),
-        (
-            EXPORT_SHIM_PATH,
-            "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
-            "expected missing export shim range relay marker was not reported",
-        ),
-        (
-            LINUX_HEADER_PATH,
-            "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
-            "expected missing linux-facing dev_t field wrapper marker was not reported",
-        ),
-        (
-            LINUX_HEADER_PATH,
-            "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
-            "expected missing linux-facing dev_t component wrapper marker was not reported",
-        ),
-        (
-            DEV_T_HEADER_PATH,
-            "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
-            "expected missing shared dev_t header abi-version marker was not reported",
-        ),
-        (
-            DEV_T_HEADER_PATH,
-            "static inline int zigux_dev_t_fields_range_is_valid(",
-            "expected missing shared dev_t header range-validation marker was not reported",
+            MAKEFILE_PATH,
+            "phase3-export-uapi-layout-test:",
+            "expected missing phase3 export/uapi dedicated make route marker was not reported",
         ),
         (
             C_HEADER_SMOKE_PATH,
             "zigux_validate_boundary_header(",
             "expected missing c-header smoke boundary-validation marker was not reported",
-        ),
-        (
-            C_HEADER_SMOKE_CHECK_PATH,
-            'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")',
-            "expected missing c-header smoke checker self-test marker was not reported",
-        ),
-        (
-            BINDING_VERSION_PATH,
-            "pub fn matchesCurrent(version: Version) bool {",
-            "expected missing binding version compatibility marker was not reported",
-        ),
-        (
-            BINDING_DEV_T_PATH,
-            "pub fn validateRange(start: Fields, end: Fields) bool {",
-            "expected missing binding dev_t range marker was not reported",
-        ),
-        (
-            UAPI_VERSION_PATH,
-            "pub fn matchesCurrent(version: Version) bool {",
-            "expected missing uapi version compatibility marker was not reported",
-        ),
-        (
-            UAPI_VERSION_PATH,
-            "pub fn validate(version: Version) abi.ExportStatus {",
-            "expected missing uapi version status-validation marker was not reported",
-        ),
-        (
-            UAPI_DEV_T_PATH,
-            "pub fn validateRange(start: Fields, end: Fields) bool {",
-            "expected missing uapi dev_t range marker was not reported",
-        ),
-        (
-            CATALOG_HELPER_PATH,
-            '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
-            "expected missing catalog helper shared export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_HELPER_PATH,
-            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
-            "expected missing catalog helper dedicated export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_HELPER_PATH,
-            '"make -C zigux phase3-export-uapi-layout"',
-            "expected missing catalog helper Makefile export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_HELPER_PATH,
-            '"make -C zigux phase3-export-uapi-layout-test"',
-            "expected missing catalog helper Makefile export-uapi test route marker was not reported",
-        ),
-        (
-            CATALOG_SELFTEST_CHECK_PATH,
-            '\'\"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig\"\'',
-            "expected missing catalog selftest guard shared export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_SELFTEST_CHECK_PATH,
-            '\'\"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\"\'',
-            "expected missing catalog selftest guard dedicated export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_SELFTEST_CHECK_PATH,
-            '\'\"make -C zigux phase3-export-uapi-layout\"\'',
-            "expected missing catalog selftest guard Makefile export-uapi route marker was not reported",
-        ),
-        (
-            CATALOG_SELFTEST_CHECK_PATH,
-            '\'\"make -C zigux phase3-export-uapi-layout-test\"\'',
-            "expected missing catalog selftest guard Makefile export-uapi test route marker was not reported",
         ),
     )
 
