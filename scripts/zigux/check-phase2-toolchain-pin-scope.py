@@ -119,6 +119,7 @@ TOOLCHAIN_CHECKER_MARKERS = (
     'parser.add_argument("--archive-only"',
     'parser.add_argument("--archive"',
     'parser.add_argument("--archive-target"',
+    'parser.add_argument("--zig"',
 )
 
 EXPECTED_PHASE = "Phase 2"
