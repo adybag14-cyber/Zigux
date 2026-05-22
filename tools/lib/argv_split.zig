@@ -32,24 +32,30 @@ fn skipArg(text: []const u8, start: usize) usize {
     return idx;
 }
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 fn countArgc(text: []const u8) usize {
+    const current = cStringPrefix(text);
     var idx: usize = 0;
     var count: usize = 0;
 
-    while (idx < text.len) {
-        idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+    while (idx < current.len) {
+        idx = skipSpaces(current, idx);
+        if (idx >= current.len) {
             break;
         }
         count += 1;
-        idx = skipArg(text, idx);
+        idx = skipArg(current, idx);
     }
 
     return count;
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
-    const argc = countArgc(text);
+    const current = cStringPrefix(text);
+    const argc = countArgc(current);
     var argv = try allocator.alloc([]u8, argc);
     errdefer allocator.free(argv);
 
@@ -61,14 +67,14 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
         }
     }
 
-    while (idx < text.len) {
-        idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+    while (idx < current.len) {
+        idx = skipSpaces(current, idx);
+        if (idx >= current.len) {
             break;
         }
 
-        const end = skipArg(text, idx);
-        argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
+        const end = skipArg(current, idx);
+        argv[arg_idx] = try allocator.dupe(u8, current[idx..end]);
         arg_idx += 1;
         idx = end;
     }
@@ -123,4 +129,21 @@ test "argvSplit frees duplicated args when a later dupe fails" {
             try std.testing.expectEqual(@as(usize, 3), result.argc());
         }
     }.run, .{});
+}
+
+test "argvSplit stops at the first embedded nul byte" {
+    var result = try argvSplit(std.testing.allocator, "alpha beta\x00gamma delta");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+}
+
+test "argvSplit treats a leading nul byte as blank input" {
+    var result = try argvSplit(std.testing.allocator, "\x00ignored tail");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
 }
