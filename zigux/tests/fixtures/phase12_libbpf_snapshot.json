@@ -38,9 +38,9 @@
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
-      "blob_sha": "44af0de3d192ab22f29fbfd7978a4f3fa815cef0",
+      "blob_sha": "1417191a6c6b82e1735c83ce759c5c63224b952f",
       "modified_at_utc": "2026-05-21T18:54:51Z",
-      "self_test_case_count": 28
+      "self_test_case_count": 29
     },
     "current_note_blobs": [
       {
