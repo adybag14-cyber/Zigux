@@ -189,7 +189,7 @@
           }
         ],
         "linux_style_rerun_routes": [
-          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
           "make -C zigux phase6-hexdump-perf",
           "make -C zigux phase6-perf"
         ]
