@@ -94,6 +94,16 @@ MAKEFILE_MARKERS = (
     "phase2-fixdep:",
 )
 
+MAKEFILE_VARIABLE_MARKERS = (
+    "ZIG_PINNED_TARGET := $(shell $(PYTHON) -c ",
+    '["upgrade_policy"]["archive_target_scope"][0]',
+    "ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)",
+    "ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))",
+    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
+    "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))",
+    "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
+)
+
 TOOLCHAIN_CHECKER_MARKERS = (
     'TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"',
     "def load_min_version(",
@@ -125,6 +135,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
+    + len(MAKEFILE_VARIABLE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + 13
     + 8
@@ -278,6 +289,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(
+            read_text(resolve_path(root, MAKEFILE)),
+            MAKEFILE_VARIABLE_MARKERS,
+            "MISSING_MAKEFILE_VARIABLE_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             read_text(resolve_path(root, TOOLCHAIN_CHECKER)),
             TOOLCHAIN_CHECKER_MARKERS,
             "MISSING_TOOLCHAIN_CHECKER_MARKERS",
@@ -315,7 +333,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(["# tests", *TESTS_MARKERS]) + "\n")
     write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(["# bootstrap", *BOOTSTRAP_MARKERS]) + "\n")
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
-    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
+    write_text(
+        resolve_path(root, MAKEFILE),
+        "\n".join([*MAKEFILE_VARIABLE_MARKERS, *MAKEFILE_MARKERS]) + "\n",
+    )
     write_text(
         resolve_path(root, TOOLCHAIN_CHECKER),
         "\n".join(["#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS]) + "\n",
@@ -411,6 +432,13 @@ def run_self_test() -> int:
             path = resolve_path(root, MAKEFILE)
             path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_VARIABLE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_MAKEFILE_VARIABLE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in TOOLCHAIN_CHECKER_MARKERS:
@@ -514,6 +542,7 @@ def main() -> int:
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_VARIABLE_MARKER_COUNT={len(MAKEFILE_VARIABLE_MARKERS)}")
     return 0
 
 
