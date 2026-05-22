@@ -171,4 +171,9 @@ test "phase14 ring-buffer survey note keeps the exact compile-route posture expl
     try std.testing.expect(std.mem.indexOf(u8, note, "returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-zig-port-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "checkout-capable attached-toolchain command examples") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "record the toolchain as environment context and do not claim a fresh local replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture") != null);
 }
