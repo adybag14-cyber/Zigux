@@ -45,6 +45,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "scripts/zigux/validate-phase11.py",
     "drivers/tty/hvc/hvc_console.h",
     "drivers/tty/hvc/hvc_console.zig",
     "drivers/watchdog/gpio_wdt.zig",
@@ -82,6 +83,10 @@ class CheckSpec:
 
 
 CHECKS = (
+    CheckSpec(
+        "phase11-validation-self-test",
+        ("python", "scripts/zigux/validate-phase11.py", "--self-test"),
+    ),
     CheckSpec(
         "phase11-build-inventory-self-test",
         ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
@@ -412,6 +417,7 @@ def run_self_test() -> int:
         case_count += 1
 
         for script_rel, spec_name in (
+            ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey-self-test"),
@@ -432,7 +438,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
+            expect_issue(f"live_failed:{spec.name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
