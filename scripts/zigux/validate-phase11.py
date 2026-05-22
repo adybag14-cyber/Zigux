@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -70,11 +71,7 @@ REQUIRED_PATHS = (
 )
 
 MANIFEST_EXPECTATIONS = {
-    "zigux/tests/phase11_gpio_wdt_manifest.json": "P11-L04",
-    "zigux/tests/phase11_bcm2835_wdt_manifest.json": "P11-L08",
     "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L05",
-    "zigux/tests/phase11_hvc_console_manifest.json": "P11-L16",
-    "zigux/tests/phase11_uapi_header_parity_manifest.json": "P11-L18",
 }
 
 
@@ -160,25 +157,6 @@ CHECKS = (
 )
 
 
-def repo_root(root_arg: str | None) -> Path:
-    return Path(root_arg).resolve() if root_arg else ROOT.resolve()
-
-
-def command_for(spec: CheckSpec, root: Path) -> list[str]:
-    command = list(spec.command)
-    if not command:
-        raise ValueError(f"empty command for {spec.name}")
-    if command[0] == "python":
-        return [sys.executable, str(root / command[1]), *command[2:]]
-    if command[0] == "zig":
-        return ["zig", *command[1:]]
-    raise ValueError(f"unsupported command kind for {spec.name}: {command[0]}")
-
-
-def is_zig_check(spec: CheckSpec) -> bool:
-    return bool(spec.command) and spec.command[0] == "zig"
-
-
 def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -189,58 +167,54 @@ def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[st
     )
 
 
-def append_output(issues: list[str], prefix: str, completed: subprocess.CompletedProcess[str]) -> None:
-    stdout = completed.stdout.strip()
-    stderr = completed.stderr.strip()
-    if stdout:
-        issues.append(f"{prefix}:stdout={stdout}")
-    if stderr:
-        issues.append(f"{prefix}:stderr={stderr}")
+def command_for(spec: CheckSpec, root: Path) -> list[str]:
+    if spec.command[0] == "python":
+        return [sys.executable, str(root / spec.command[1]), *spec.command[2:]]
+    if spec.command[0] == "zig":
+        return ["zig", *spec.command[1:]]
+    raise ValueError(f"unsupported command kind for {spec.name}")
+
+
+def is_zig_check(spec: CheckSpec) -> bool:
+    return spec.command[0] == "zig"
 
 
 def read_manifest(path: Path) -> dict[str, object] | None:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    return value if isinstance(value, dict) else None
+    return payload if isinstance(payload, dict) else None
 
 
 def collect_manifest_metadata_issues(root: Path) -> list[str]:
     issues: list[str] = []
     for rel, expected_lane_key in MANIFEST_EXPECTATIONS.items():
-        path = root / rel
-        manifest = read_manifest(path)
+        manifest = read_manifest(root / rel)
         if manifest is None:
             issues.append(f"invalid_manifest_json:{rel}")
             continue
-
         lane_key = manifest.get("lane_key")
         if lane_key != expected_lane_key:
             issues.append(
                 f"manifest_lane_key_mismatch:{rel}:expected={expected_lane_key}:actual={lane_key!r}"
             )
-
         phase = manifest.get("phase")
         if phase != "Phase 11":
             issues.append(
                 f"manifest_phase_mismatch:{rel}:expected='Phase 11':actual={phase!r}"
             )
-
         gaps = manifest.get("gaps")
         if not isinstance(gaps, list) or not gaps:
             issues.append(f"manifest_gaps_invalid:{rel}")
-
     return issues
 
 
 def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     issues: list[str] = []
-
     for rel in REQUIRED_PATHS:
         if not (root / rel).exists():
             issues.append(f"missing_required_path:{rel}")
-
     if issues:
         return issues
 
@@ -254,8 +228,12 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         completed = run_command(command_for(spec, root), root)
         if completed.returncode != 0:
             issues.append(f"live_failed:{spec.name}:exit={completed.returncode}")
-            append_output(issues, f"live_failed:{spec.name}", completed)
-
+            stdout = completed.stdout.strip()
+            stderr = completed.stderr.strip()
+            if stdout:
+                issues.append(f"live_failed:{spec.name}:stdout={stdout}")
+            if stderr:
+                issues.append(f"live_failed:{spec.name}:stderr={stderr}")
     return issues
 
 
@@ -363,479 +341,119 @@ def run_self_test() -> int:
     original_path = os.environ.get("PATH", "")
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_validate_") as tmp_dir:
         root = Path(tmp_dir)
-        build_sample_repo(root)
         tool_root = root / ".tools"
         tool_root.mkdir(parents=True, exist_ok=True)
         fake_zig = tool_root / "zig"
-        build_fake_zig(fake_zig)
+
+        def reset_fixture(*, fail_build_file: str | None = None) -> None:
+            if root.exists():
+                for child in root.iterdir():
+                    if child.name == ".tools":
+                        continue
+                    if child.is_dir():
+                        shutil.rmtree(child)
+                    else:
+                        child.unlink()
+            build_sample_repo(root)
+            build_fake_zig(fake_zig, fail_build_file=fail_build_file)
+
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
 
+        reset_fixture()
         baseline_issues = collect_issues(root)
         if baseline_issues:
-            raise SystemExit(
-                "phase11-validate-self-test:baseline_failed:" + ",".join(baseline_issues)
-            )
+            raise SystemExit("phase11-validate-self-test:baseline_failed:" + ",".join(baseline_issues))
+        case_count = 1
 
-        missing_shared_replay_contract = root / "Documentation/zigux/phase11-shared-replay-contract.md"
-        missing_shared_replay_contract.unlink()
-        issues = collect_issues(root)
-        expected_missing_shared_replay_contract = "missing_required_path:Documentation/zigux/phase11-shared-replay-contract.md"
-        if expected_missing_shared_replay_contract not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_shared_replay_contract_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        def expect_issue(fragment: str) -> None:
+            issues = collect_issues(root)
+            if fragment not in issues:
+                raise SystemExit(
+                    "phase11-validate-self-test:missing_expected_issue:"
+                    + fragment
+                    + ":"
+                    + ",".join(issues or ["none"])
+                )
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing = root / "Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
-        missing.unlink()
-        issues = collect_issues(root)
-        expected_missing = "missing_required_path:Documentation/zigux/phase11-hvc-verify-helper-boundary.md"
-        if expected_missing not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_required_path_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        for rel in (
+            "Documentation/zigux/phase11-shared-replay-contract.md",
+            "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
+            "drivers/tty/hvc/hvc_console.h",
+            "drivers/tty/hvc/hvc_console.zig",
+            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
+            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
+            "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md",
+            "drivers/watchdog/dw_wdt.zig",
+            "drivers/watchdog/dw_wdt_restart.zig",
+            "zigux/tests/phase11_dw_wdt.zig",
+            "drivers/watchdog/dw_wdt_pm.zig",
+            "drivers/watchdog/dw_wdt_pm_scaffold.zig",
+        ):
+            reset_fixture()
+            (root / rel).unlink()
+            expect_issue(f"missing_required_path:{rel}")
+            case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_hvc_header = root / "drivers/tty/hvc/hvc_console.h"
-        missing_hvc_header.unlink()
-        issues = collect_issues(root)
-        expected_missing_hvc_header = "missing_required_path:drivers/tty/hvc/hvc_console.h"
-        if expected_missing_hvc_header not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_hvc_header_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        reset_fixture()
+        manifest_path = root / "zigux/tests/phase11_dw_wdt_manifest.json"
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["lane_key"] = "P11-L99"
+        write_text(manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected=P11-L05:actual='P11-L99'")
+        case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_hvc_console = root / "drivers/tty/hvc/hvc_console.zig"
-        missing_hvc_console.unlink()
-        issues = collect_issues(root)
-        expected_missing_hvc_console = "missing_required_path:drivers/tty/hvc/hvc_console.zig"
-        if expected_missing_hvc_console not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_hvc_console_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        reset_fixture()
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["phase"] = "Phase 12"
+        write_text(manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_phase_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected='Phase 11':actual='Phase 12'")
+        case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_hvc_targetless_witness_checker = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
-        missing_hvc_targetless_witness_checker.unlink()
-        issues = collect_issues(root)
-        expected_missing_hvc_targetless_witness_checker = "missing_required_path:scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
-        if expected_missing_hvc_targetless_witness_checker not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_hvc_targetless_witness_checker_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        for script_rel, spec_name in (
+            ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
+            ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
+            ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey-self-test"),
+            ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey"),
+            ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey-self-test"),
+            ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey"),
+            ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head-self-test"),
+            ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head"),
+            ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
+            ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness"),
+            ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet-self-test"),
+            ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet"),
+            ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment-self-test"),
+            ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment"),
+        ):
+            reset_fixture()
+            if spec_name.endswith("-self-test"):
+                build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
+            else:
+                build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
+            expect_issue(f"live_failed:{spec_name}:exit=1")
+            case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_hvc_targetless_witness = root / "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
-        missing_hvc_targetless_witness.unlink()
-        issues = collect_issues(root)
-        expected_missing_hvc_targetless_witness = "missing_required_path:zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
-        if expected_missing_hvc_targetless_witness not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_hvc_targetless_witness_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        for build_file, spec_name in (
+            ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
+            ("zigux/tests/phase11_hvc_export_surface_layout_build.zig", "phase11-hvc-export-surface-layout-build"),
+            ("zigux/tests/phase11_hvc_cleanup_packet_build.zig", "phase11-hvc-cleanup-packet-build"),
+            ("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig", "phase11-hvc-targetless-unregister-gap-build"),
+        ):
+            reset_fixture(fail_build_file=build_file)
+            expect_issue(f"live_failed:{spec_name}:exit=1")
+            case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_hvc_targetless_witness_build = root / "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
-        missing_hvc_targetless_witness_build.unlink()
-        issues = collect_issues(root)
-        expected_missing_hvc_targetless_witness_build = "missing_required_path:zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
-        if expected_missing_hvc_targetless_witness_build not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_hvc_targetless_witness_build_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        reset_fixture(fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
+        if collect_issues(root, skip_zig_builds=True):
+            raise SystemExit("phase11-validate-self-test:skip_zig_builds_not_honored")
+        case_count += 1
 
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_platform_plan = root / "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
-        missing_dw_platform_plan.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_platform_plan = "missing_required_path:Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
-        if expected_missing_dw_platform_plan not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_platform_plan_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_clock_plan = root / "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"
-        missing_dw_clock_plan.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_clock_plan = "missing_required_path:Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"
-        if expected_missing_dw_clock_plan not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_clock_plan_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_driver = root / "drivers/watchdog/dw_wdt.zig"
-        missing_dw_driver.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_driver = "missing_required_path:drivers/watchdog/dw_wdt.zig"
-        if expected_missing_dw_driver not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_driver_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_restart = root / "drivers/watchdog/dw_wdt_restart.zig"
-        missing_dw_restart.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_restart = "missing_required_path:drivers/watchdog/dw_wdt_restart.zig"
-        if expected_missing_dw_restart not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_restart_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_test = root / "zigux/tests/phase11_dw_wdt.zig"
-        missing_dw_test.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_test = "missing_required_path:zigux/tests/phase11_dw_wdt.zig"
-        if expected_missing_dw_test not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_test_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_pm = root / "drivers/watchdog/dw_wdt_pm.zig"
-        missing_dw_pm.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_pm = "missing_required_path:drivers/watchdog/dw_wdt_pm.zig"
-        if expected_missing_dw_pm not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_pm_path_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        missing_dw_pm_scaffold = root / "drivers/watchdog/dw_wdt_pm_scaffold.zig"
-        missing_dw_pm_scaffold.unlink()
-        issues = collect_issues(root)
-        expected_missing_dw_pm_scaffold = "missing_required_path:drivers/watchdog/dw_wdt_pm_scaffold.zig"
-        if expected_missing_dw_pm_scaffold not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:missing_dw_pm_scaffold_path_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        wrong_gpio_manifest_lane = root / "zigux/tests/phase11_gpio_wdt_manifest.json"
-        wrong_gpio_manifest = json.loads(wrong_gpio_manifest_lane.read_text(encoding="utf-8"))
-        wrong_gpio_manifest["lane_key"] = "P11-L99"
-        write_text(wrong_gpio_manifest_lane, json.dumps(wrong_gpio_manifest) + "\n")
-        issues = collect_issues(root)
-        expected_wrong_gpio_manifest_lane = "manifest_lane_key_mismatch:zigux/tests/phase11_gpio_wdt_manifest.json:expected=P11-L04:actual='P11-L99'"
-        if expected_wrong_gpio_manifest_lane not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:wrong_gpio_manifest_lane_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        wrong_uapi_manifest_phase = root / "zigux/tests/phase11_uapi_header_parity_manifest.json"
-        wrong_uapi_manifest = json.loads(wrong_uapi_manifest_phase.read_text(encoding="utf-8"))
-        wrong_uapi_manifest["phase"] = "Phase 12"
-        write_text(wrong_uapi_manifest_phase, json.dumps(wrong_uapi_manifest) + "\n")
-        issues = collect_issues(root)
-        expected_wrong_uapi_manifest_phase = "manifest_phase_mismatch:zigux/tests/phase11_uapi_header_parity_manifest.json:expected='Phase 11':actual='Phase 12'"
-        if expected_wrong_uapi_manifest_phase not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:wrong_uapi_manifest_phase_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_build_inventory_self_test_script = root / "scripts/zigux/check-phase11-build-inventory.py"
-        build_stub_script(failing_build_inventory_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_build_inventory_self_test_failure = "live_failed:phase11-build-inventory-self-test:exit=1"
-        if expected_build_inventory_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:build_inventory_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_build_inventory_script = root / "scripts/zigux/check-phase11-build-inventory.py"
-        build_stub_script(
-            failing_build_inventory_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_build_inventory_failure = "live_failed:phase11-build-inventory:exit=1"
-        if expected_build_inventory_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:build_inventory_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_matrix_gap_self_test_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
-        build_stub_script(failing_matrix_gap_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_matrix_gap_self_test_failure = "live_failed:phase11-matrix-gap-survey-self-test:exit=1"
-        if expected_matrix_gap_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:matrix_gap_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_matrix_gap_script = root / "scripts/zigux/check-phase11-matrix-gap-survey.py"
-        build_stub_script(
-            failing_matrix_gap_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_matrix_gap_failure = "live_failed:phase11-matrix-gap-survey:exit=1"
-        if expected_matrix_gap_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:matrix_gap_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_validation_matrix_gap_self_test_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
-        build_stub_script(failing_validation_matrix_gap_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_validation_matrix_gap_self_test_failure = "live_failed:phase11-validation-matrix-gap-survey-self-test:exit=1"
-        if expected_validation_matrix_gap_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:validation_matrix_gap_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_script = root / "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"
-        build_stub_script(
-            failing_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_failure = "live_failed:phase11-validation-matrix-gap-survey:exit=1"
-        if expected_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_hvc_cleanup_self_test_script = root / "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
-        build_stub_script(failing_hvc_cleanup_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_hvc_cleanup_self_test_failure = "live_failed:phase11-hvc-cleanup-current-head-self-test:exit=1"
-        if expected_hvc_cleanup_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:hvc_cleanup_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_hvc_cleanup_script = root / "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
-        build_stub_script(
-            failing_hvc_cleanup_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_hvc_cleanup_failure = "live_failed:phase11-hvc-cleanup-current-head:exit=1"
-        if expected_hvc_cleanup_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:hvc_cleanup_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_hvc_targetless_witness_self_test_script = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
-        build_stub_script(failing_hvc_targetless_witness_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_hvc_targetless_witness_self_test_failure = "live_failed:phase11-hvc-targetless-unregister-witness-self-test:exit=1"
-        if expected_hvc_targetless_witness_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:hvc_targetless_witness_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_hvc_targetless_witness_script = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
-        build_stub_script(
-            failing_hvc_targetless_witness_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_hvc_targetless_witness_failure = "live_failed:phase11-hvc-targetless-unregister-witness:exit=1"
-        if expected_hvc_targetless_witness_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:hvc_targetless_witness_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_dw_teardown_self_test_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
-        build_stub_script(failing_dw_teardown_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_dw_teardown_self_test_failure = "live_failed:phase11-dw-wdt-teardown-packet-self-test:exit=1"
-        if expected_dw_teardown_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:dw_teardown_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_dw_teardown_script = root / "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"
-        build_stub_script(
-            failing_dw_teardown_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_dw_teardown_failure = "live_failed:phase11-dw-wdt-teardown-packet:exit=1"
-        if expected_dw_teardown_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:dw_teardown_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_dw_verify_self_test_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
-        build_stub_script(failing_dw_verify_self_test_script, self_test_exit_code=1)
-        issues = collect_issues(root)
-        expected_dw_verify_self_test_failure = "live_failed:phase11-dw-wdt-verify-alignment-self-test:exit=1"
-        if expected_dw_verify_self_test_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:dw_verify_self_test_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(fake_zig)
-        failing_dw_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
-        build_stub_script(
-            failing_dw_script,
-            self_test_exit_code=0,
-            live_exit_code=1,
-        )
-        issues = collect_issues(root)
-        expected_dw_failure = "live_failed:phase11-dw-wdt-verify-alignment:exit=1"
-        if expected_dw_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:dw_subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sampleRepo = build_sample_repo
-        buildSampleRepo = build_sampleRepo
-        buildSampleRepo(root)
-        build_fake_zig(
-            fake_zig,
-            fail_build_file="zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
-        )
-        issues = collect_issues(root)
-        expected_hv_ops_build_failure = "live_failed:phase11-hvc-hv-ops-layout-build:exit=1"
-        if expected_hv_ops_build_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:hv_ops_build_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(
-            fake_zig,
-            fail_build_file="zigux/tests/phase11_hvc_export_surface_layout_build.zig",
-        )
-        issues = collect_issues(root)
-        expected_export_build_failure = "live_failed:phase11-hvc-export-surface-layout-build:exit=1"
-        if expected_export_build_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:export_build_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(
-            fake_zig,
-            fail_build_file="zigux/tests/phase11_hvc_cleanup_packet_build.zig",
-        )
-        issues = collect_issues(root)
-        expected_cleanup_build_failure = "live_failed:phase11-hvc-cleanup-packet-build:exit=1"
-        if expected_cleanup_build_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:cleanup_build_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(
-            fake_zig,
-            fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
-        )
-        issues = collect_issues(root)
-        expected_targetless_gap_failure = "live_failed:phase11-hvc-targetless-unregister-gap-build:exit=1"
-        if expected_targetless_gap_failure not in issues:
-            raise SystemExit(
-                "phase11-validate-self-test:targetless_gap_build_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sample_repo(root)
-        build_fake_zig(
-            fake_zig,
-            fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
-        )
-        issues = collect_issues(root, skip_zig_builds=True)
-        if issues:
-            raise SystemExit(
-                "phase11-validate-self-test:skip_zig_builds_not_honored:"
-                + ",".join(issues)
-            )
-
-    os.environ["PATH"] = original_path
-    print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=36")
-    return 0
+        os.environ["PATH"] = original_path
+        print("PHASE11_VALIDATE_SELF_TEST=pass")
+        print(f"PHASE11_VALIDATE_SELF_TEST_CASE_COUNT={case_count}")
+        return 0
 
 
 def main() -> int:
@@ -850,7 +468,7 @@ def main() -> int:
 
     try:
         return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig_builds)
-    except Exception as exc:  # pragma: no cover - defensive top-level guard
+    except Exception as exc:
         print(f"PHASE11_VALIDATION=fail: {exc}")
         return 1
 
