@@ -21,6 +21,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
     "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md",
     "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "Documentation/zigux/phase11-dw-wdt-provenance-readback.md",
     "Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md",
@@ -46,6 +47,7 @@ REQUIRED_PATHS = (
     "drivers/tty/hvc/hvc_console.zig",
     "drivers/watchdog/gpio_wdt.zig",
     "drivers/watchdog/dw_wdt.zig",
+    "drivers/watchdog/dw_wdt_restart.zig",
     "drivers/watchdog/dw_wdt_verify.zig",
     "drivers/watchdog/dw_wdt_pm.zig",
     "drivers/watchdog/dw_wdt_pm_scaffold.zig",
@@ -408,6 +410,18 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        missing_dw_clock_plan = root / "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"
+        missing_dw_clock_plan.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_clock_plan = "missing_required_path:Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"
+        if expected_missing_dw_clock_plan not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_clock_plan_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         missing_dw_driver = root / "drivers/watchdog/dw_wdt.zig"
         missing_dw_driver.unlink()
         issues = collect_issues(root)
@@ -415,6 +429,18 @@ def run_self_test() -> int:
         if expected_missing_dw_driver not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:missing_dw_driver_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_dw_restart = root / "drivers/watchdog/dw_wdt_restart.zig"
+        missing_dw_restart.unlink()
+        issues = collect_issues(root)
+        expected_missing_dw_restart = "missing_required_path:drivers/watchdog/dw_wdt_restart.zig"
+        if expected_missing_dw_restart not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_dw_restart_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -718,7 +744,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
