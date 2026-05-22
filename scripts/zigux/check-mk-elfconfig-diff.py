@@ -71,7 +71,7 @@ EXPECTED_ZIG_MARKERS = {
     "elf32_trailing_direct": 'test "classifies 32-bit ELF input even when trailing bytes are present" {',
     "elf64_trailing_direct": 'test "classifies valid ELF input even when trailing bytes are present" {',
     "elf32_trailing_helper_stdout": 'test "32-bit ELF input with trailing bytes exits with stdout" {',
-    "elf64_trailing_helper_stdout": 'test "64-bit ELF input with trailing bytes exits with stdout" {',
+    "elf64_trailing_helper_stdout": 'test "valid ELF input with trailing bytes exits with stdout" {',
     "invalid_class_trailing": 'test "classifies unsupported ELF class with trailing bytes silently" {',
     "invalid_class_trailing_helper": 'test "invalid class with trailing bytes exits without stderr" {',
     "not_elf_trailing_direct": 'test "classifies non-ELF input with trailing bytes" {',
@@ -135,6 +135,7 @@ EXPECTED_FD_MULTI_HEADER_ZIG_MARKERS = {
     "fd_multi_exact_headers": 'test "fd-backed consecutive exact ELF headers advance one header per call" {',
     "fd_multi_not_elf_then_elf": 'test "fd-backed exact non-ELF header leaves a following ELF header for the next call" {',
     "fd_multi_invalid_class_then_elf": 'test "fd-backed exact invalid-class header leaves a following ELF header for the next call" {',
+    "fd_multi_double_not_elf": 'test "fd-backed consecutive exact non-ELF headers advance one header per call" {',
     "fd_multi_truncated_second": 'test "fd-backed truncated second packet keeps the first exact header cursor advance" {',
 }
 EXPECTED_WORKFLOW_LINES = (
@@ -177,10 +178,8 @@ int main(int argc, char **argv)
 }
 """
 
-
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
-
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -193,7 +192,6 @@ def find_zig(explicit: str | None) -> str:
         return path
     raise FileNotFoundError("no zig executable found; set --zig or ZIG")
 
-
 def find_compiler(explicit: str | None) -> str:
     if explicit:
         return explicit
@@ -202,7 +200,6 @@ def find_compiler(explicit: str | None) -> str:
         if path:
             return path
     raise FileNotFoundError("no C compiler found on PATH")
-
 
 def validate_fixture_inventory() -> None:
     actual_files = {path.name for path in FIXTURE_DIR.iterdir() if path.is_file()}
@@ -213,17 +210,14 @@ def validate_fixture_inventory() -> None:
     if unexpected:
         raise ValueError(f"{FIXTURE_DIR}:unexpected_fixtures:{','.join(unexpected)}")
 
-
 def validate_zig_source_markers(path: Path, markers: dict[str, str]) -> None:
     text = path.read_text(encoding="utf-8")
     for label, marker in markers.items():
         if marker not in text:
             raise ValueError(f"{path}:missing_marker:{label}")
 
-
 def load_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
-
 
 def validate_workflow_step_packet(path: Path) -> None:
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -237,7 +231,6 @@ def validate_workflow_step_packet(path: Path) -> None:
         positions.append(matches[0])
     if positions != sorted(positions):
         raise ValueError(f"{path}:workflow_line_order={positions!r}")
-
 
 def validate_cases(cases: object) -> list[dict[str, str]]:
     if not isinstance(cases, list) or not cases:
@@ -285,7 +278,6 @@ def validate_cases(cases: object) -> list[dict[str, str]]:
         raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
     return validated
 
-
 def validate_expected_result(path: Path) -> dict[str, object]:
     result = load_json(path)
     if not isinstance(result, dict):
@@ -303,7 +295,6 @@ def validate_expected_result(path: Path) -> dict[str, object]:
         raise ValueError(f"{path}:exit_code_not_int")
     return {"stdout": stdout, "stderr": stderr, "exit_code": exit_code}
 
-
 def decode_hex_input(path: Path) -> bytes:
     tokens = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -312,21 +303,17 @@ def decode_hex_input(path: Path) -> bytes:
             tokens.append(stripped)
     return bytes.fromhex(" ".join(tokens))
 
-
 def build_reference_c(compiler: str, output: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="mk-elfconfig-c-") as tmp_dir:
         source_path = Path(tmp_dir) / "mk_elfconfig.c"
         source_path.write_text(C_REFERENCE_SOURCE, encoding="utf-8")
         run([compiler, "-std=c99", "-Wall", "-Wextra", "-O2", "-o", str(output), str(source_path)])
 
-
 def build_zig_tool(zig: str, output: Path) -> None:
     run([zig, "build-exe", str(ZIG_TOOL), "-O", "Debug", f"-femit-bin={output}"])
 
-
 def run_zig_tests(zig: str, source: Path) -> None:
     run([zig, "test", str(source)])
-
 
 def run_tool(binary: Path, input_bytes: bytes) -> dict[str, object]:
     result = subprocess.run(
@@ -340,7 +327,6 @@ def run_tool(binary: Path, input_bytes: bytes) -> dict[str, object]:
         "stderr": result.stderr.decode("utf-8"),
         "exit_code": result.returncode,
     }
-
 
 def check_cases(*, zig: str, compiler: str) -> None:
     validate_fixture_inventory()
@@ -385,7 +371,6 @@ def check_cases(*, zig: str, compiler: str) -> None:
     print("MK_ELFCONFIG_DIFF=pass")
     print(f"MK_ELFCONFIG_CASE_COUNT={len(cases)}")
 
-
 def validate_self_test_case_count(cases: list[dict[str, str]]) -> int:
     expected_case_count = len(EXPECTED_CASES)
     actual_case_count = len(cases)
@@ -394,7 +379,6 @@ def validate_self_test_case_count(cases: list[dict[str, str]]) -> int:
             f"{CASES_PATH}:case_count={actual_case_count},expected_case_count={expected_case_count}"
         )
     return actual_case_count + 1
-
 
 def run_self_test() -> None:
     validate_fixture_inventory()
@@ -418,7 +402,6 @@ def run_self_test() -> None:
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Compare mk_elfconfig Zig behavior with the Linux C helper.")
     parser.add_argument("--zig", help="path to the Zig executable")
@@ -432,7 +415,6 @@ def main() -> int:
 
     check_cases(zig=find_zig(args.zig), compiler=find_compiler(args.cc))
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
