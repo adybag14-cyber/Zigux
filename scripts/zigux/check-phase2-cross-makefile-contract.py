@@ -46,10 +46,14 @@ WORKFLOW_LINES = (
 )
 
 VALIDATE_MARKERS = (
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+    '    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",',
+    '    "scripts/zigux/check-phase2-cross.py",',
+    '    "scripts/zigux/check-phase2-cross-selftest-alignment.py",',
+    '    "zigux/tests/fixtures/phase2_cross_targets.json",',
+    '    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",',
 )
 
 
@@ -378,11 +382,17 @@ def run_self_test() -> int:
         assert ("INVALID_FIXTURE_TARGET_ROUTE", "aarch64-linux") in collect_issues(root)
         checks_run += 1
 
-        build_sample_root(root)
         validate_path = resolve_path(root, VALIDATE)
-        validate_path.write_text(replace_exact_line(validate_path.read_text(encoding="utf-8"), VALIDATE_MARKERS[0], "# removed"), encoding="utf-8")
-        assert ("MISSING_VALIDATE_MARKER", VALIDATE_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
+        for marker in VALIDATE_MARKERS:
+            build_sample_root(root)
+            validate_text = validate_path.read_text(encoding="utf-8")
+            assert marker in validate_text
+            validate_path.write_text(
+                validate_text.replace(marker, "# removed", 1),
+                encoding="utf-8",
+            )
+            assert ("MISSING_VALIDATE_MARKER", marker) in collect_issues(root)
+            checks_run += 1
 
         build_sample_root(root)
         workflow_path.write_text(duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), WORKFLOW_LINES[0]), encoding="utf-8")
