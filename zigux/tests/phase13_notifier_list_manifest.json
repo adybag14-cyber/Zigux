@@ -19,7 +19,7 @@
   "exact_current_evidence": {
     "zigux/bindings/notifier_abi.zig": {
       "sha": "7e821f2498147db05b57c538e824cb2d76b84395",
-      "behavior": "Ships the bounded read-only notifier/list/hlist ABI foothold through NotifierBlock, NotifierChainPriorityIncrease, ListHead, HListHead, HListNode, chainHasNonincreasingPriority(), firstChainPriorityIncrease(), listHasConsistentBacklinks(), and hlistHasConsistentPrevLinks(), plus layout and witness tests."
+      "behavior": "Ships the bounded read-only notifier/list/hlist ABI foothold through NotifierBlock, NotifierChainPriorityIncrease, ListHead, HListHead, HListNode, chainHasNonincreasingPriority(), firstChainPriorityIncrease(), firstBrokenBacklink(), listHasConsistentBacklinks(), firstBrokenPrevLink(), and hlistHasConsistentPrevLinks(), plus layout and witness tests."
     },
     "zigux/helpers/list_view.zig": {
       "sha": "0d0400bb8f1239fdd0338e21dfc5323f5fda32c9",
@@ -31,7 +31,7 @@
     },
     "include/zigux/abi.h": {
       "sha": "a7a816e0f2b0810260cf881bbb550675f2373d55",
-      "behavior": "Mirrors the bounded C-side interop packet through zigux_notifier_block, zigux_list_head, zigux_hlist_head, zigux_notifier_first_chain_priority_increase(), zigux_list_has_consistent_backlinks(), and zigux_hlist_has_consistent_prev_links()."
+      "behavior": "Mirrors the bounded C-side interop packet through zigux_notifier_chain_has_nonincreasing_priority(), zigux_notifier_first_chain_priority_increase(), zigux_list_first_broken_backlink(), zigux_list_has_consistent_backlinks(), zigux_hlist_first_broken_prev_link(), and zigux_hlist_has_consistent_prev_links(), plus zigux_notifier_block, zigux_list_head, zigux_hlist_head, and zigux_hlist_node."
     },
     "drivers/tty/hvc/hvc_console.h": {
       "sha": "57f1542b3e6f1901f444bc2d94b5e438f14eb9b3",
@@ -60,7 +60,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "zigux/bindings/notifier_abi.zig",
-      "why_now": "Current master ships a bounded notifier/list ABI foothold that keeps notifier priority order plus list_head and hlist link truthfulness readable without claiming callback execution or registration behavior."
+      "why_now": "Current master ships a bounded notifier/list ABI foothold that keeps notifier priority order plus list_head and hlist link-truthfulness witnesses readable without claiming callback execution or registration behavior."
     },
     {
       "id": "phase13-notifier-list-view-helper",
