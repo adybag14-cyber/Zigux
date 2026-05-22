@@ -64,6 +64,7 @@
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
         "zigux/tests/phase10_virtio_core_survey.zig",
+        "zigux/tests/phase10_virtio_ring.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
@@ -216,6 +217,9 @@
     ],
     "zigux/tests/phase10_virtio_driver_id.zig": [
       "phase10 driver-id review path replay"
+    ],
+    "zigux/tests/phase10_virtio_ring.zig": [
+      "phase10 ring broader replay"
     ],
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
       "phase10 ring notification-data readiness replay"
