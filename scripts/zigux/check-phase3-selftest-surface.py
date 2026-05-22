@@ -272,6 +272,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass",
     "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
+    "PHASE3_WRAPPER_SELF_TEST=pass",
     "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
@@ -722,6 +723,11 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_WRAPPER_SELF_TEST=pass",
             "selftest driver",
         ),
         (
