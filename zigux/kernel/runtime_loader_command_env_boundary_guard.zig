@@ -22,6 +22,14 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_contract_source, "allocator_handoff");
     try expectContains(runtime_loader_contract_source, "init_flow");
     try expectContains(runtime_loader_contract_source, "pub const RequestState");
+    try expectContains(runtime_loader_contract_source, "LoadPlan keeps Phase 8 command and environment control fields out of the shared request contract");
+    try expectContains(runtime_loader_contract_source, "argv_policy");
+    try expectContains(runtime_loader_contract_source, "activation_env");
+    try expectContains(runtime_loader_contract_source, "command_env");
+    try expectContains(runtime_loader_contract_source, "command_name");
+    try expectContains(runtime_loader_contract_source, "exec_name");
+    try expectContains(runtime_loader_contract_source, "exec_path");
+    try expectContains(runtime_loader_contract_source, "exec_path_env");
 
     try expectContains(runtime_loader_source, "pub const PreparedRequest");
     try expectContains(runtime_loader_source, "pub fn prepareRequest");
@@ -31,7 +39,16 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
 }
 
 test "shared runtime loader surface rejects argv and environment control bleed-through" {
-    const forbidden_markers = [_][]const u8{
+    const contract_forbidden_markers = [_][]const u8{
+        "PERF_EXEC_PATH",
+        "setupPathWithPwd",
+        "planDeferredExeclCallWithPwd",
+        "planDeferredExecvCallWithPwd",
+        "\"PATH\"",
+        "\"LINES\"",
+        "\"COLUMNS\"",
+    };
+    const loader_forbidden_markers = [_][]const u8{
         "argv_policy",
         "activation_env",
         "command_env",
@@ -48,8 +65,10 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
         "\"COLUMNS\"",
     };
 
-    inline for (forbidden_markers) |marker| {
+    inline for (contract_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_contract_source, marker);
+    }
+    inline for (loader_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
 }
