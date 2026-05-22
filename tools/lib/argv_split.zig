@@ -147,3 +147,22 @@ test "argvSplit treats a leading nul byte as blank input" {
     try std.testing.expectEqual(@as(usize, 0), result.argc());
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
 }
+
+test "argvSplit reset state stays reusable after deinit and argv_free" {
+    var result = try argvSplit(std.testing.allocator, "alpha beta");
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+
+    result.deinit();
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    argv_free(&result);
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    const allocator = result.allocator;
+    result = try argvSplit(allocator, "gamma");
+    defer result.deinit();
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqualStrings("gamma", result.argv[0]);
+}
