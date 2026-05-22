@@ -162,6 +162,7 @@
     "current_lane_posture": "maintenance_mode",
     "replay_before_trusting": [
       "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+      "python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
       "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
       "python3 scripts/zigux/check-phase15-review-process-handoff.py",
       "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
@@ -172,7 +173,7 @@
       "the freeze-in-C or study-only anchor set changes in Documentation/zigux/freeze-map.md",
       "the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence archive, replay command, stay-in-C, or no-silent-exception posture recorded here"
     ],
-    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether current direct reads still fail to materialize scripts/zigux/validate-phase15.py and zigux/tests/phase15_build.zig, whether direct contents readback still resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether current direct reads still fail to materialize scripts/zigux/validate-phase15.py and zigux/tests/phase15_build.zig, whether direct contents readback still resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
   },
   "gaps": [
     {
@@ -258,6 +259,13 @@
       "kind": "shared_route_presence",
       "zigux_destination": "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
       "why_now": "Direct contents readback resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, so the freeze-map packet must keep the returned lane-owner replay visible as adjacent direct-readback evidence."
+    },
+    {
+      "id": "phase15-review-checklist-study-only-boundary-guard",
+      "status": "materialized_in_contents_readback",
+      "kind": "shared_route_presence",
+      "zigux_destination": "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+      "why_now": "Direct contents readback resolves scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, so the freeze-map packet must keep the checklist-specific study-only routing guard visible as adjacent direct-readback evidence with Documentation/zigux/review-checklist.md and Documentation/zigux/phase15-study-only-anchor-accounting.md."
     },
     {
       "id": "phase15-shared-validator-route-readback",
