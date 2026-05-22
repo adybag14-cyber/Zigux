@@ -158,7 +158,7 @@ EXPECTED_STRING_PACKET = {
         'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     ],
     "sysfs_review_summary": (
-        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the "
+        "helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the "
         "direct string tests because the shared Phase 1 replay still carries no dedicated sysfs "
         "fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and sysfs_match_string "
         "remain review-visible at the helper surface"
