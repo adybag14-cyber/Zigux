@@ -83,6 +83,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_c_header_smoke.c",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_shim_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
@@ -105,6 +106,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
@@ -244,6 +246,7 @@ def run_self_test() -> int:
         manifest_packet_cases = (
             "scripts/zigux/phase3_catalog.py",
             "scripts/zigux/check-phase3-abi-support-packet.py",
+            "zigux/tests/phase3_export_shim_build.zig",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
         )
         for entry in manifest_packet_cases:
@@ -262,6 +265,7 @@ def run_self_test() -> int:
         manifest_route_cases = (
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
             "make -C zigux phase3-low-level-wrappers-test",
         )
         for entry in manifest_route_cases:
