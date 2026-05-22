@@ -28,9 +28,14 @@ BENCH_FAILURE_MARKERS = (
     "        return 1",
 )
 
-WORKFLOW_MARKERS = (
+WORKFLOW_SELFTEST_SECTION = (
     "      - name: Self-test current Phase 1 bench checker",
     "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+)
+
+WORKFLOW_CHECK_SECTION = (
+    "      - name: Check Phase 1 helper benchmark output",
+    "        run: python3 scripts/zigux/check-phase1-bench.py",
 )
 
 
@@ -40,6 +45,13 @@ def read_text(path: Path) -> str:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...]) -> list[str]:
     return [marker for marker in markers if marker not in text]
+
+
+def collect_missing_section(text: str, section: tuple[str, ...]) -> list[str]:
+    block = "\n".join(section)
+    if block in text:
+        return []
+    return list(section)
 
 
 def run_check(root: Path) -> tuple[str, object]:
@@ -61,9 +73,13 @@ def run_check(root: Path) -> tuple[str, object]:
     if failure_missing:
         return ("bench_failure_markers", failure_missing)
 
-    workflow_missing = collect_missing_markers(workflow_text, WORKFLOW_MARKERS)
-    if workflow_missing:
-        return ("workflow_markers", workflow_missing)
+    workflow_selftest_missing = collect_missing_section(workflow_text, WORKFLOW_SELFTEST_SECTION)
+    if workflow_selftest_missing:
+        return ("workflow_selftest_markers", workflow_selftest_missing)
+
+    workflow_check_missing = collect_missing_section(workflow_text, WORKFLOW_CHECK_SECTION)
+    if workflow_check_missing:
+        return ("workflow_check_markers", workflow_check_missing)
 
     return (
         "pass",
@@ -71,7 +87,8 @@ def run_check(root: Path) -> tuple[str, object]:
             "required_file_count": 2,
             "bench_command_marker_count": len(BENCH_COMMAND_MARKERS),
             "bench_failure_marker_count": len(BENCH_FAILURE_MARKERS),
-            "workflow_marker_count": len(WORKFLOW_MARKERS),
+            "workflow_selftest_marker_count": len(WORKFLOW_SELFTEST_SECTION),
+            "workflow_check_marker_count": len(WORKFLOW_CHECK_SECTION),
         },
     )
 
@@ -112,6 +129,8 @@ def write_sample_root(root: Path) -> None:
                 "    steps:",
                 "      - name: Self-test current Phase 1 bench checker",
                 "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+                "      - name: Check Phase 1 helper benchmark output",
+                "        run: python3 scripts/zigux/check-phase1-bench.py",
                 "",
             )
         ),
@@ -137,7 +156,8 @@ def run_self_test() -> None:
             "required_file_count": 2,
             "bench_command_marker_count": len(BENCH_COMMAND_MARKERS),
             "bench_failure_marker_count": len(BENCH_FAILURE_MARKERS),
-            "workflow_marker_count": len(WORKFLOW_MARKERS),
+            "workflow_selftest_marker_count": len(WORKFLOW_SELFTEST_SECTION),
+            "workflow_check_marker_count": len(WORKFLOW_CHECK_SECTION),
         }
         case_count += 1
 
@@ -168,11 +188,20 @@ def run_self_test() -> None:
 
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
-            read_text(workflow_path).replace(WORKFLOW_MARKERS[1] + "\n", "", 1),
+            read_text(workflow_path).replace(WORKFLOW_SELFTEST_SECTION[1] + "\n", "", 1),
             encoding="utf-8",
         )
         kind, payload = run_check(root)
-        expect(kind, "workflow_markers", payload, [WORKFLOW_MARKERS[1]])
+        expect(kind, "workflow_selftest_markers", payload, list(WORKFLOW_SELFTEST_SECTION))
+        case_count += 1
+        write_sample_root(root)
+
+        workflow_path.write_text(
+            read_text(workflow_path).replace(WORKFLOW_CHECK_SECTION[1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        kind, payload = run_check(root)
+        expect(kind, "workflow_check_markers", payload, list(WORKFLOW_CHECK_SECTION))
         case_count += 1
 
     print("PHASE1_BENCH_COMMAND_FAILURE_PACKET_SELF_TEST=pass")
@@ -237,8 +266,13 @@ def main() -> int:
         )
     )
     print(
-        "PHASE1_BENCH_COMMAND_FAILURE_PACKET_WORKFLOW_MARKER_COUNT={}".format(
-            payload["workflow_marker_count"]
+        "PHASE1_BENCH_COMMAND_FAILURE_PACKET_WORKFLOW_SELFTEST_MARKER_COUNT={}".format(
+            payload["workflow_selftest_marker_count"]
+        )
+    )
+    print(
+        "PHASE1_BENCH_COMMAND_FAILURE_PACKET_WORKFLOW_CHECK_MARKER_COUNT={}".format(
+            payload["workflow_check_marker_count"]
         )
     )
     return 0
