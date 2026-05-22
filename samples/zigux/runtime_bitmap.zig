@@ -400,6 +400,33 @@ test "runtime bitmap sample rejects re-selftest without disturbing lifecycle sum
     try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
 
+test "runtime bitmap sample rejects re-init without disturbing initialized summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    const before_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_reinit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
+
+    const after_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try expectSummaryStable(before_reinit, after_reinit);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+}
+
 test "runtime bitmap sample keeps initialized summary stable across direct exit without selftest" {
     var module = RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
@@ -439,4 +466,33 @@ test "runtime bitmap sample keeps initialized summary stable across direct exit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(5, 1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(64, 1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
+
+test "runtime bitmap sample rejects re-init after exit without disturbing lifecycle summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+    try module.exit();
+
+    const before_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
+
+    const after_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_reinit, after_reinit);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
