@@ -54,6 +54,7 @@ The expanded starter packet on current `master` covers:
 - `sysfsStreq()` and `sysfs_streq()`
 - `matchString()` and `match_string()`
 - `sysfsMatchString()` and `__sysfs_match_string()`
+- `stringIsTerminated()` and `string_is_terminated()`
 - `stringGetSize()` and `string_get_size()`
 - `stringUnescape()` and `string_unescape()`
 - `stringUnescapeInplace()` and `string_unescape_inplace()`
@@ -82,6 +83,7 @@ The current starter replay keeps these proofs explicit:
 - leading whitespace skipping that stops at the first NUL
 - in-place leading and trailing trimming that preserves bytes beyond the first exported C-string prefix
 - newline-aware sysfs equality
+- bounded termination checks that fail closed for zero bounds, over-wide bounds, and missing NUL bytes
 - bounded null-sentinel table matching through the first NULL entry
 - bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting
 - bounded string unescaping across space, octal, hex, and special escape families, including in-place replays and unsupported-escape preservation
@@ -100,6 +102,7 @@ The current starter replay keeps these proofs explicit:
 The current starter replay also keeps these ownership-focused boundaries explicit:
 
 - `skipSpaces()`, `trimSpaces()`, and `strim()` stop at the exported C-string boundary and keep caller-provided slices visible
+- `stringIsTerminated()` and `string_is_terminated()` keep caller-provided bounds explicit and only scan inside the requested prefix
 - exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit
 - `stringEscapeMem()` keeps append-limited and dictionary-mode output accounting inside caller-owned storage
 - `stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage
