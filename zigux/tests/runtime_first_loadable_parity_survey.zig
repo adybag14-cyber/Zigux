@@ -41,7 +41,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     defer std.testing.allocator.free(phase9_build);
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
-    try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L02`");
+    try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L01`");
     try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-atomic64-direct-packet`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
@@ -86,7 +86,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     try expectContains(
         parity_note,
-        "Leave `P9-L02` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet.",
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet.",
     );
 
     try expectContains(sample_root_readme, "Fresh trusted mixed reread on 2026-05-20 also restored a narrower runtime bitmap sample-side packet on current `master`");
