@@ -3,7 +3,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 ## Status
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
-- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-shared-abi-replays`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-both-the-shared-abi-replays-and-the-focused-policy-starter-packet`
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=733becd1482b8a514ead992d1158a52a8c47e6c1`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
