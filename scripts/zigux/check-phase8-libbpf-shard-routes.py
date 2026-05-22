@@ -10,39 +10,39 @@ from pathlib import Path
 SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
-BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
-DOCS_README_PATH = "Documentation/zigux/README.md"
-TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
-BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
-BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
+VERIFY_ROUTING_GAP_TEST_PATH = "zigux/tests/phase8_verify_routing_gap.zig"
+VERIFY_ROUTING_GAP_BUILD_PATH = "zigux/tests/phase8_verify_routing_gap_only_build.zig"
 LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
 LIBBPF_SEGMENTS_BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
-MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
+VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
+ONLINE_CPU_ROUTING_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
+ONLINE_CPU_ROUTING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig"
 PERF_BUFFER_POLL_VERIFY_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig"
 READY_BUFFER_ATTEMPT_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig"
 READY_BUFFER_FD_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig"
 READY_BUFFER_WINDOW_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig"
+TYPE_NAMES_VERIFY_PATH = "tools/lib/bpf/zigux_segments/type_names_verify.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
     VALIDATOR_PATH,
     SURVEY_PATH,
-    BRIDGE_BOUNDARY_SURVEY_PATH,
-    DOCS_README_PATH,
-    TESTS_README_PATH,
     MAKEFILE_PATH,
     PHASE8_BUILD_PATH,
-    BRIDGE_TEST_PATH,
-    BOUNDARY_GUARD_PATH,
+    VERIFY_ROUTING_GAP_TEST_PATH,
+    VERIFY_ROUTING_GAP_BUILD_PATH,
     LIBBPF_SEGMENTS_TEST_PATH,
     LIBBPF_SEGMENTS_BUILD_PATH,
-    MANIFEST_PATH,
+    VERIFY_PATH,
+    ONLINE_CPU_ROUTING_PATH,
+    ONLINE_CPU_ROUTING_VERIFY_PATH,
     PERF_BUFFER_POLL_VERIFY_PATH,
     READY_BUFFER_ATTEMPT_VERIFY_PATH,
     READY_BUFFER_FD_VERIFY_PATH,
     READY_BUFFER_WINDOW_VERIFY_PATH,
+    TYPE_NAMES_VERIFY_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -55,121 +55,93 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path.zig`",
-        "`tools/lib/bpf/zigux_segments/manifest.json`",
-        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
-        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
-        "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
-        "`zigux/tests/phase8_build.zig`",
-        "`zigux/tests/phase8_verify_routing_gap.zig`",
-        "`zigux/tests/phase8_verify_routing_gap_only_build.zig`",
-        "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
-        "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig` now keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same stable-output helper packet.",
-        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
-        "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, perf-buffer wait-classification, poll-summary, execution-summary, and impossible-summary fail-closed outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
+        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
-        "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
-    ),
-    BRIDGE_BOUNDARY_SURVEY_PATH: (
-        "deferred `perf-buffer-online-cpu-routing` packet",
-        "`/sys/devices/system/cpu/online`",
-        "`libbpf_num_possible_cpus()`",
-        "online CPU filtering",
-        "`perf_event_open()` setup",
-        "`PERF_EVENT_IOC_ENABLE` enablement",
-        "epoll-backed perf FD registration",
-    ),
-    DOCS_README_PATH: (
-        "Phase 8 notes",
-        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
-        "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
-        "`scripts/zigux/validate-phase8.py`",
-        "`tools/lib/bpf/zigux_segments/verify.zig`",
-        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
-        "`zigux/tests/phase8_libbpf_segments.zig`",
-    ),
-    TESTS_README_PATH: (
-        "## Phase 8 review packet",
-        "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
-        "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
-        "`tools/lib/bpf/zigux_segments/verify.zig`",
-        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
-        "`zigux/tests/phase8_libbpf_segments.zig`",
-        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
-        "`make -C zigux phase8-libbpf-segments-test`",
-        "`make -C zigux phase8-perf-buffer-poll-test`",
-        "`make -C zigux phase8-test`",
+        "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
+        "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
+        "`tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and the focused libbpf bridge-side build companions are not currently materialized through the same direct-read path.",
+        "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
     ),
     MAKEFILE_PATH: (
         "phase8-libbpf-segments-test:",
         "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-        "phase8-perf-buffer-poll-test:",
-        "zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
         "phase8-test:",
         "zigux/tests/phase8_build.zig --summary all",
     ),
     PHASE8_BUILD_PATH: (
-        "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
-        "phase8-perf-buffer-ready-window-tests",
         "phase8-libbpf-segment-verify-tests",
         "phase8-libbpf-segment-compatibility-tests",
         "phase8-verify-routing-gap-tests",
         "Run the shared Phase 8 tooling tests.",
     ),
-    BRIDGE_TEST_PATH: (
-        "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
-        "\\\"slug\\\\\\\": \\\\\\\"fdinfo-map-info-helpers\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
-        "\\\"slug\\\\\\\": \\\\\\\"map-reuse-compatibility\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"starter_landed\\\\\\\"",
-        "\\\"slug\\\\\\\": \\\\\\\"file-path-and-handle-bridge\\\\\\\", \\\\\\\"status\\\\\\\": \\\\\\\"deferred_high_risk\\\\\\\", \\\\\\\"kind\\\\\\\": \\\\\\\"resource_boundary\\\\\\\"",
+    VERIFY_ROUTING_GAP_TEST_PATH: (
+        "phase 8 verify routing witness records the current CPU-index verifier closure",
+        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
+        "phase 8 verify routing witness records the current direct-readback libbpf survey packet",
     ),
-    BOUNDARY_GUARD_PATH: (
-        "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge",
-        "\\\"slug\\\\\\\": \\\\\\\"file-path-and-handle-bridge\\\\\\\"",
-        "\\\"kind\\\\\\\": \\\\\\\"resource_boundary\\\\\\\"",
-        "planTokenPreparation",
-        "isMapReuseCompatible",
+    VERIFY_ROUTING_GAP_BUILD_PATH: (
+        "phase8_verify_routing_gap.zig",
+        "phase8_verify_routing_gap",
+        "Run the phase 8 verify routing witness tests.",
     ),
     LIBBPF_SEGMENTS_TEST_PATH: (
         'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
         'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
-        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
     ),
     LIBBPF_SEGMENTS_BUILD_PATH: (
         'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
         '"phase8-libbpf-segment-verify-tests"',
         '"Run focused Phase 8 libbpf segment verify build"',
     ),
-    MANIFEST_PATH: (
-        '\\"slug\\": \\"fdinfo-map-info-helpers\\", \\"status\\": \\"starter_landed\\"',
-        '\\"slug\\": \\"map-reuse-compatibility\\", \\"status\\": \\"starter_landed\\"',
-        '\\"slug\\": \\"file-path-and-handle-bridge\\", \\"status\\": \\"deferred_high_risk\\", \\"kind\\": \\"resource_boundary\\"',
-        "direct procfs reads and descriptor ownership flow",
-        "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+    VERIFY_PATH: (
+        'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
+        "std.testing.refAllDecls(online_cpu_routing_verify);",
+        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
+        "resolveReadyBufferFdLookupReturnAtAttempt",
+    ),
+    ONLINE_CPU_ROUTING_PATH: (
+        "pub fn resolveNextOnlineCpuRouteCpuIndex(",
+        "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
+        'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+    ),
+    ONLINE_CPU_ROUTING_VERIFY_PATH: (
+        'test "phase8 online-cpu route helpers keep typed cpu-index wrappers stable" {',
+        "resolveNextOnlineCpuRouteCpuIndex(",
+        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
     ),
     PERF_BUFFER_POLL_VERIFY_PATH: (
-        "phase8 perf-buffer poll helper entrypoints stay explicit",
+        'test "phase8 perf-buffer poll helper entrypoints stay explicit" {',
         "summarizePollExecutionResultFromWaitResult",
-        "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits",
+        'test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {',
     ),
     READY_BUFFER_ATTEMPT_VERIFY_PATH: (
-        "phase8 ready-buffer attempt helper entrypoints stay explicit",
+        'test "phase8 ready-buffer attempt helper entrypoints stay explicit" {',
         "resolveReadyBufferAttemptLookupReturn",
-        "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
+        'test "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable" {',
     ),
     READY_BUFFER_FD_VERIFY_PATH: (
-        "phase8 ready-buffer fd helper entrypoints stay explicit",
+        'test "phase8 ready-buffer fd helper entrypoints stay explicit" {',
         "resolveReadyBufferFdAtAttempt",
-        "phase8 ready-buffer fd helpers keep errno-shaped outputs stable",
+        "resolveReadyBufferFdLookupReturnAtAttempt",
     ),
     READY_BUFFER_WINDOW_VERIFY_PATH: (
-        "phase8 ready-buffer window helper entrypoints stay explicit",
+        'test "phase8 ready-buffer window helper entrypoints stay explicit" {',
         "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
-        "phase8 ready-buffer window helpers keep lookup-return outputs stable",
+        "resolveReadyBufferWindowLookupReturnAtAttempt",
+    ),
+    TYPE_NAMES_VERIFY_PATH: (
+        'test "phase8 libbpf type-name helper entrypoints stay explicit" {',
+        "libbpfBpfMapTypeStr(27)",
+        "formatLibbpfBpfProgType(prog_buffer[0..], 33)",
     ),
 }
 
