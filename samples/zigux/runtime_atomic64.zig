@@ -388,3 +388,43 @@ test "runtime atomic64 sample keeps arithmetic and guard paths reviewable" {
     try std.testing.expect(inc_not_zero.changed);
     try std.testing.expectEqual(@as(i64, 15), inc_not_zero.previous);
 }
+
+test "runtime atomic64 sample rejects re-selftest without disturbing lifecycle summaries" {
+    var module = RuntimeAtomic64Sample{};
+    try module.init(23);
+    _ = try module.runSelftest();
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(i64, 23), before_rejected_selftest.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(before_rejected_selftest.counter_snapshot, after_rejected_selftest.counter_snapshot);
+    try std.testing.expectEqual(before_rejected_selftest.init_runs, after_rejected_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_selftest.exit_runs, after_rejected_selftest.exit_runs);
+
+    try module.exit();
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(i64, 23), before_rejected_exit_selftest.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(before_rejected_exit_selftest.counter_snapshot, after_rejected_exit_selftest.counter_snapshot);
+    try std.testing.expectEqual(before_rejected_exit_selftest.init_runs, after_rejected_exit_selftest.init_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
+}
