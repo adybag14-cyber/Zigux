@@ -4,6 +4,14 @@ source_sample_comment_continuation.o := zigux/tests/fixtures/fixdep/sample_comme
 
 deps_sample_comment_continuation.o := \
   zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so \
+  zigux/tests/fixtures/fixdep/shared#config.h \
+    $(wildcard include/config/ZIGUX_HASH) \
+    $(wildcard include/config/ZIGUX_SHARED) \
+  zigux/tests/fixtures/fixdep/shared:config.h \
+    $(wildcard include/config/ZIGUX_COLON) \
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \
+  zigux/tests/fixtures/fixdep/escaped\\ space-config.h \
+    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
 
 sample_comment_continuation.o: $(deps_sample_comment_continuation.o)
 
