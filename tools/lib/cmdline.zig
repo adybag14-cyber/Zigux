@@ -319,6 +319,13 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
+test "nextArg keeps unquoted leading equals tokens bare" {
+    const parsed = nextArg("=value tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("=value", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
 test "nextArg keeps quoted leading equals tokens bare" {
     const parsed = nextArg("\"=value\" tail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("=value", parsed.param);
