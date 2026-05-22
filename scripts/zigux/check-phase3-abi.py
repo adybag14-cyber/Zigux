@@ -156,7 +156,7 @@ REQUIRED_MARKERS = {
         "const policy = abi.defaultInteropPolicy();",
         'try stdout.print("  \\\"abi_version\\\": {},\\n", .{abi.ABI_VERSION});',
         'try stdout.print(',
-        '"  \\\"notifier\\\": {\\n',
+        '"  \\\"notifier\\\": {{\\n',
     ),
     EXPORT_UAPI_LAYOUT: (
         'const header_family = @import("header_family_binding");',
