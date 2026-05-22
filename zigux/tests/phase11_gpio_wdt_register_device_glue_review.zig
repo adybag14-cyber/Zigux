@@ -258,3 +258,42 @@ test "phase11 gpio watchdog keeps remove-handoff teardown reviewable without liv
     try std.testing.expect(guarded_teardown.register_device_failure_reviewable);
     try std.testing.expect(guarded_teardown.reboot_glue_checkpoint_reviewable);
 }
+
+test "phase11 gpio watchdog keeps a dedicated remove-handoff summary reviewable" {
+    var stoppable = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    _ = try stoppable.start();
+    const stoppable_handoff = stoppable.removeHandoffSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", stoppable_handoff.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, stoppable_handoff.hw_algo);
+    try std.testing.expect(!stoppable_handoff.always_running);
+    try std.testing.expect(!stoppable_handoff.nowayout);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, stoppable_handoff.stop_disposition);
+    try std.testing.expect(stoppable_handoff.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stoppable_handoff.driver_stop_invoked);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", stoppable_handoff.register_device_failure_stage);
+    try std.testing.expect(stoppable_handoff.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(stoppable_handoff.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(stoppable_handoff.remove_handoff_reviewable);
+    try std.testing.expect(stoppable_handoff.blocked_on_live_gpio_lookup);
+    try std.testing.expect(stoppable_handoff.blocked_on_platform_registration);
+    try std.testing.expect(stoppable_handoff.blocked_on_host_shutdown_execution);
+
+    var guarded = try gpio_wdt.GpioWatchdogLab.init(.level, 400, true);
+    _ = try guarded.start();
+    const guarded_handoff = guarded.removeHandoffSummary(true);
+
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, guarded_handoff.hw_algo);
+    try std.testing.expect(guarded_handoff.always_running);
+    try std.testing.expect(guarded_handoff.nowayout);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, guarded_handoff.stop_disposition);
+    try std.testing.expect(!guarded_handoff.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!guarded_handoff.driver_stop_invoked);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", guarded_handoff.register_device_failure_stage);
+    try std.testing.expect(guarded_handoff.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(guarded_handoff.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(guarded_handoff.remove_handoff_reviewable);
+    try std.testing.expect(guarded_handoff.blocked_on_live_gpio_lookup);
+    try std.testing.expect(guarded_handoff.blocked_on_platform_registration);
+    try std.testing.expect(guarded_handoff.blocked_on_host_shutdown_execution);
+}
