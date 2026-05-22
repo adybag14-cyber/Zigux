@@ -20,10 +20,13 @@ COMMON_DRIVER_MANIFEST_FILES = [
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+    "Documentation/zigux/review-checklist.md",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     *COMMON_DRIVER_MANIFEST_FILES,
@@ -129,6 +132,10 @@ TEXT_MARKERS = {
         '"kernel/sched/core.c"',
         '"net/core/skbuff.c"',
     ],
+    "Documentation/zigux/README.md": [
+        "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+    ],
     "Documentation/zigux/freeze-map.md": [
         "`kernel/sched/core.c`",
         "`mm/page_alloc.c`",
@@ -146,6 +153,15 @@ TEXT_MARKERS = {
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
+    ],
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md": [
+        "### `kernel/workqueue.c`",
+        "### `kernel/trace/ring_buffer.c`",
+        "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence",
     ],
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": [
         "PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c",
@@ -303,6 +319,8 @@ def build_fixture_files() -> dict[str, str]:
             TEXT_MARKERS["scripts/zigux/check-phase10-shared-freeze-boundary.py"]
         )
         + "\n",
+        "Documentation/zigux/README.md": "\n".join(TEXT_MARKERS["Documentation/zigux/README.md"])
+        + "\n",
         "Documentation/zigux/freeze-map.md": "\n".join(TEXT_MARKERS["Documentation/zigux/freeze-map.md"])
         + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
@@ -315,6 +333,14 @@ def build_fixture_files() -> dict[str, str]:
         + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(
             TEXT_MARKERS["Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"]
+        )
+        + "\n",
+        "Documentation/zigux/phase15-study-only-anchor-accounting.md": "\n".join(
+            TEXT_MARKERS["Documentation/zigux/phase15-study-only-anchor-accounting.md"]
+        )
+        + "\n",
+        "Documentation/zigux/review-checklist.md": "\n".join(
+            TEXT_MARKERS["Documentation/zigux/review-checklist.md"]
         )
         + "\n",
         "zigux/tests/phase10_closure_manifest.json": build_fixture_manifest(),
@@ -403,6 +429,12 @@ def run_self_test() -> int:
 
         cases = [
             (
+                "Documentation/zigux/README.md",
+                "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+                "`kernel/workqueue_bridge.zig` is Phase 9 runtime readiness evidence.",
+                "README.md:`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+            ),
+            (
                 "Documentation/zigux/phase10-closure-evidence.md",
                 "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain separate Phase 14 study-only anchors rather than Phase 10 closure evidence.",
                 "`kernel/workqueue_bridge.zig` remains Phase 10 closure evidence.",
@@ -419,6 +451,18 @@ def run_self_test() -> int:
                 "Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
                 "Move kernel/workqueue.c into the current Phase 10 packet",
                 "phase10-virtio-driver-lane-sequencing.md:Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
+            ),
+            (
+                "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+                "### `kernel/trace/ring_buffer.c`",
+                "### `kernel/trace/ring_buffer.zig`",
+                "phase15-study-only-anchor-accounting.md:### `kernel/trace/ring_buffer.c`",
+            ),
+            (
+                "Documentation/zigux/review-checklist.md",
+                "if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+                "if a shared reminder surface summarizes the study-only freeze-map anchors, direct routing is optional",
+                "review-checklist.md:if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
             ),
             (
                 "Documentation/zigux/freeze-map.md",
@@ -579,7 +623,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
