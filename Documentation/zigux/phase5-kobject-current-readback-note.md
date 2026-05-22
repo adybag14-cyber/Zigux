@@ -59,18 +59,12 @@ The authenticated contents route still directly returned `zigux/tests/phase5_bui
 - `zigux/tests/phase5_kobject_example_manifest.json`
 - `zigux/tests/phase5_kobject_example_survey.zig`
 
-The same slot then compared the broader shared Phase 5 reminder packet against this note and found that these current shared surfaces still overstate the kobject packet in at least one of two ways: they either treat the survey note and manifest-backed contract as returned direct authenticated proof in this runtime, or they demote `zigux/tests/phase5_build.zig` back into public-tree-backed companion wording even though the authenticated contents route still returns that shared build file directly here.
+The same slot then compared the broader shared Phase 5 reminder packet against this note and found that most shared reminder surfaces had already caught up to the narrower kobject split recorded here. `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep the direct sample-root file, focused tests-root replay, direct shared build-route companion, public-tree-backed survey note and manifest companions, and bounded attr-group companion aligned with this note.
 
-Those surviving shared-surface follow-through targets are:
+The surviving same-lane follow-through targets are now narrower:
 
-- `Documentation/zigux/README.md`
-- `Documentation/zigux/phase5-sample-review-guide.md`
-- `Documentation/zigux/phase5-sample-lane-sequencing.md`
-- `Documentation/zigux/review-checklist.md`
-- `samples/zigux/README.md`
-- `scripts/zigux/README.md`
-
-The same slot also confirmed that `zigux/tests/README.md` already keeps the narrower kobject split closer to the live readback packet, so the next same-lane repair can stay outside the tests-root reminder unless a fresh reread reopens that surface too.
+- `Documentation/zigux/review-checklist.md`, which still phrases `Documentation/zigux/phase5-kobject-sample-survey.md` and `zigux/tests/phase5_kobject_example_manifest.json` as current direct evidence in this runtime even though this note keeps them in the public-tree-backed companion bucket
+- `scripts/zigux/check-phase5-review-guide-surface.py`, which still exact-requires that older review-checklist wording instead of the narrower direct-versus-public split recorded here
 
 ## Review posture
 
@@ -78,13 +72,13 @@ When a future same-lane repair touches shared Phase 5 reminder surfaces, use thi
 
 Prefer follow-through in this order:
 
-1. one broader shared reminder-surface reread across `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py`, because fresh repo-first comparison in this run showed that some shared surfaces still speak about the kobject packet as if the survey note, manifest, or survey replay are direct authenticated proof in this runtime
-2. one dedicated shared reminder repair if that broader reread confirms the same mismatch, with whichever single shared surface still overstates `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, or `zigux/tests/phase5_kobject_example_survey.zig` as direct authenticated evidence chosen as the next bounded follow-through
+1. reread `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` together first, because the broader docs-root, guide, sequencing, sample-root, scripts-root, and tests-root packet has already caught up and the remaining drift is now concentrated in that checklist-plus-guard pair
+2. land one dedicated repair across that narrower pair only if a fresh reread still shows the checklist overstating `Documentation/zigux/phase5-kobject-sample-survey.md` or `zigux/tests/phase5_kobject_example_manifest.json` as direct authenticated evidence, or still leaves the shipped guard exact-requiring the older wording
 
 Avoid widening from this note into sample behavior changes unless the sample, focused test, manifest, or survey replay actually changes.
 
 ## Next bounded step
 
-Compare this note against `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` the next time the lane reopens.
+Compare this note against `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` first the next time the lane reopens.
 
-If a fresh reread still leaves one shared reminder surface overstating the survey note, manifest, or survey replay as direct authenticated proof, or still leaves `zigux/tests/phase5_build.zig` mislabeled as companion-only evidence, reopen the lane for that one-file truthfulness repair only. Leave the lane parked if the shared packet has already caught up to this narrower direct-versus-public split.
+If a fresh reread still leaves that checklist-plus-guard pair overstating the survey note or manifest-backed contract as direct authenticated proof, reopen the lane for that one bounded repair only. Leave the lane parked if those two surfaces catch up to the narrower split recorded here.
