@@ -94,6 +94,7 @@ REQUIRED_FILE_MARKERS = {
 SELF_TEST_CASES = (
     ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
     ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
+    ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
     ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
     ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[13], "marker"),
     (
