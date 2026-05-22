@@ -51,7 +51,11 @@ SURVEY_MARKERS = [
     "`zigux/tests/phase13_devres_iomap_planner_manifest.json` marks the packet as `starter_landed`",
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
+    "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
+    "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
     "blocked `phase13-devres-live-mmio-mapping-state`",
+    "blocked `phase13-devres-live-device-tree-walks`",
+    "blocked `phase13-devres-live-arch-memtype-mutation`",
 ]
 
 IOUNMAP_NOTE_MARKERS = [
@@ -100,8 +104,13 @@ IOMAP_MANIFEST_MARKERS = [
     "\"status\": \"starter_landed\"",
     "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
+    "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
+    "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
     "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
+    "\"id\": \"phase13-devres-live-device-tree-walks\"",
+    "\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
 ]
 
 IOMAP_REPLAY_MARKERS = [
@@ -220,6 +229,25 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / IOMAP_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in IOMAP_MANIFEST_MARKERS
+                if marker != "\"id\": \"phase13-devres-live-arch-memtype-mutation\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "iomap_manifest:missing_marker:\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
+            ],
+            "missing_iomap_arch_memtype_marker_failed",
+        )
         case_count += 1
 
         seed_fixture_tree(root)
