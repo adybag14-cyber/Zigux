@@ -98,6 +98,21 @@ pub const SchedulerVisibleWorkerStateHandoff = struct {
     next_focus: []const u8,
 };
 
+pub const WrapperCandidate = struct {
+    id: []const u8,
+    summary: []const u8,
+    ownership: Ownership,
+    anchor_symbols: []const []const u8,
+    blocked_by: []const u8,
+};
+
+pub const WrapperCandidatePacket = struct {
+    posture: []const u8,
+    candidates: []const WrapperCandidate,
+    current_slice_id: []const u8,
+    next_focus: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -343,6 +358,23 @@ const scheduler_visible_worker_state_observed_fields = [_][]const u8{
     "pool->flags",
 };
 
+const wrapper_candidates = [_]WrapperCandidate{
+    .{
+        .id = "submission-routing",
+        .summary = "Keep queue submission routing explicit as the smallest wrapper-first candidate packet without claiming live enqueue or wakeup ownership.",
+        .ownership = .boundary_map_only,
+        .anchor_symbols = &[_][]const u8{ "queue_work_on", "__queue_work" },
+        .blocked_by = "queue_work_on() and __queue_work() are still coupled to pending-bit claims, cross-pool reentrancy, pwq selection, and wakeup ownership under the live C lock model, so the current Zigux surface stays descriptive rather than becoming a live wrapper.",
+    },
+    .{
+        .id = "allocation-and-attrs",
+        .summary = "Keep allocation and attribute shaping explicit as a wrapper-first candidate packet without claiming allocator or rescuer ownership.",
+        .ownership = .boundary_map_only,
+        .anchor_symbols = &[_][]const u8{ "__alloc_workqueue", "devm_alloc_workqueue" },
+        .blocked_by = "__alloc_workqueue() and devm_alloc_workqueue() are still coupled to rescuer policy, affinity scopes, ordered-workqueue rules, lifetime ownership, and memory-ordering semantics in the current C runtime, so Zigux keeps them as reviewable metadata boundaries only.",
+    },
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -418,6 +450,15 @@ pub const WorkqueueBridgeLab = struct {
         };
     }
 
+    pub fn wrapperCandidatePacket() WrapperCandidatePacket {
+        return .{
+            .posture = descriptor().posture,
+            .candidates = wrapper_candidates[0..],
+            .current_slice_id = currentSliceId(),
+            .next_focus = maintenanceHandoff().next_future_target,
+        };
+    }
+
     pub fn stayInCDecisionCount() usize {
         var count: usize = 0;
         for (boundary_areas) |area| {
@@ -428,6 +469,10 @@ pub const WorkqueueBridgeLab = struct {
 
     pub fn auditCheckpointCount() usize {
         return audit_checkpoints.len;
+    }
+
+    pub fn wrapperCandidateCount() usize {
+        return wrapper_candidates.len;
     }
 
     pub fn currentSliceId() []const u8 {
@@ -476,6 +521,29 @@ test "workqueue bridge boundary map records blocked-maintenance stay-in-c areas"
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "__flush_work()") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "WORK_OFFQ_CANCELING") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "disable depth") != null);
+}
+
+test "workqueue bridge wrapper candidates stay explicit and non-executing" {
+    const packet = WorkqueueBridgeLab.wrapperCandidatePacket();
+
+    try std.testing.expectEqualStrings("boundary_map_only", packet.posture);
+    try std.testing.expectEqual(@as(usize, 2), packet.candidates.len);
+    try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.wrapperCandidateCount());
+    try std.testing.expectEqualStrings(WorkqueueBridgeLab.currentSliceId(), packet.current_slice_id);
+    try std.testing.expectEqualStrings("submission-routing", packet.candidates[0].id);
+    try std.testing.expect(packet.candidates[0].ownership == .boundary_map_only);
+    try std.testing.expectEqualStrings("queue_work_on", packet.candidates[0].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("__queue_work", packet.candidates[0].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, packet.candidates[0].blocked_by, "pending-bit claims") != null);
+    try std.testing.expect(std.mem.indexOf(u8, packet.candidates[0].blocked_by, "live wrapper") != null);
+    try std.testing.expectEqualStrings("allocation-and-attrs", packet.candidates[1].id);
+    try std.testing.expect(packet.candidates[1].ownership == .boundary_map_only);
+    try std.testing.expectEqualStrings("__alloc_workqueue", packet.candidates[1].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("devm_alloc_workqueue", packet.candidates[1].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, packet.candidates[1].blocked_by, "rescuer policy") != null);
+    try std.testing.expect(std.mem.indexOf(u8, packet.candidates[1].blocked_by, "ordered-workqueue rules") != null);
+    try std.testing.expect(std.mem.indexOf(u8, packet.next_focus, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, packet.next_focus, "shared reminder surface") != null);
 }
 
 test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
