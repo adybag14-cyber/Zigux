@@ -14,6 +14,7 @@ ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig.zig"
 FD_TRAILING_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_bytes_test.zig"
 FD_EXACT_CURSOR_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_exact_cursor_test.zig"
 FD_MULTI_HEADER_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_multi_header_cursor_test.zig"
+FD_TRAILING_SECOND_CALL_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_second_call_test.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "mk_elfconfig"
 CASES_PATH = FIXTURE_DIR / "cases.json"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -137,6 +138,11 @@ EXPECTED_FD_MULTI_HEADER_ZIG_MARKERS = {
     "fd_multi_invalid_class_then_elf": 'test "fd-backed exact invalid-class header leaves a following ELF header for the next call" {',
     "fd_multi_double_not_elf": 'test "fd-backed consecutive exact non-ELF headers advance one header per call" {',
     "fd_multi_truncated_second": 'test "fd-backed truncated second packet keeps the first exact header cursor advance" {',
+}
+EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS = {
+    "fd_trailing_second_call_elf32": 'test "fd-backed trailing 32-bit ELF input leaves only trailing bytes for the next call" {',
+    "fd_trailing_second_call_invalid_class": 'test "fd-backed trailing invalid-class input leaves only trailing bytes for the next call" {',
+    "fd_trailing_second_call_not_elf": 'test "fd-backed trailing non-ELF input leaves only trailing bytes for the next call" {',
 }
 EXPECTED_WORKFLOW_LINES = (
     "      - name: Self-test current Phase 2 mk_elfconfig checker",
@@ -340,11 +346,15 @@ def check_cases(*, zig: str, compiler: str) -> None:
     if not FD_MULTI_HEADER_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_MULTI_HEADER_ZIG_TOOL)
     validate_zig_source_markers(FD_MULTI_HEADER_ZIG_TOOL, EXPECTED_FD_MULTI_HEADER_ZIG_MARKERS)
+    if not FD_TRAILING_SECOND_CALL_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_TRAILING_SECOND_CALL_ZIG_TOOL)
+    validate_zig_source_markers(FD_TRAILING_SECOND_CALL_ZIG_TOOL, EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS)
     validate_workflow_step_packet(WORKFLOW_PATH)
     run_zig_tests(zig, ZIG_TOOL)
     run_zig_tests(zig, FD_TRAILING_ZIG_TOOL)
     run_zig_tests(zig, FD_EXACT_CURSOR_ZIG_TOOL)
     run_zig_tests(zig, FD_MULTI_HEADER_ZIG_TOOL)
+    run_zig_tests(zig, FD_TRAILING_SECOND_CALL_ZIG_TOOL)
     cases = validate_cases(load_json(CASES_PATH))
     for case in cases:
         validate_expected_result(FIXTURE_DIR / case["expected"])
@@ -398,6 +408,9 @@ def run_self_test() -> None:
     if not FD_MULTI_HEADER_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_MULTI_HEADER_ZIG_TOOL)
     validate_zig_source_markers(FD_MULTI_HEADER_ZIG_TOOL, EXPECTED_FD_MULTI_HEADER_ZIG_MARKERS)
+    if not FD_TRAILING_SECOND_CALL_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_TRAILING_SECOND_CALL_ZIG_TOOL)
+    validate_zig_source_markers(FD_TRAILING_SECOND_CALL_ZIG_TOOL, EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS)
     validate_workflow_step_packet(WORKFLOW_PATH)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
