@@ -92,3 +92,36 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers compose across natural lane splits" {
+    const value16: u32 = 0xb16c;
+    const low8: u32 = value16 & 0xff;
+    const high8: u32 = value16 >> 8;
+    try std.testing.expectEqual(swHweight16(value16), swHweight8(low8) + swHweight8(high8));
+    try std.testing.expectEqual(__sw_hweight16(value16), __sw_hweight8(low8) + __sw_hweight8(high8));
+
+    const value32: u32 = 0xa5c3_0f1e;
+    const low16: u32 = value32 & 0xffff;
+    const high16: u32 = value32 >> 16;
+    try std.testing.expectEqual(swHweight32(value32), swHweight16(low16) + swHweight16(high16));
+    try std.testing.expectEqual(__sw_hweight32(value32), __sw_hweight16(low16) + __sw_hweight16(high16));
+
+    const value64: u64 = 0xfedc_ba98_7654_3210;
+    const low32: u32 = @intCast(value64 & 0xffff_ffff);
+    const high32: u32 = @intCast(value64 >> 32);
+    try std.testing.expectEqual(swHweight64(value64), swHweight32(low32) + swHweight32(high32));
+    try std.testing.expectEqual(__sw_hweight64(value64), __sw_hweight32(low32) + __sw_hweight32(high32));
+
+    const long_value: usize = if (@sizeOf(usize) == 4)
+        0xa5c3_0f1e
+    else
+        0xfedc_ba98_7654_3210;
+    const split_count: usize = if (@sizeOf(usize) == 4)
+        @as(usize, swHweight16(@intCast(long_value & 0xffff))) +
+            @as(usize, swHweight16(@intCast(long_value >> 16)))
+    else
+        @as(usize, swHweight32(@intCast(long_value & 0xffff_ffff))) +
+            @as(usize, swHweight32(@intCast(long_value >> 32)));
+    try std.testing.expectEqual(hweightLong(long_value), split_count);
+    try std.testing.expectEqual(hweight_long(long_value), split_count);
+}
