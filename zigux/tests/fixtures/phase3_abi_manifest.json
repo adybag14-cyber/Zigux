@@ -61,7 +61,8 @@
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
-    "zigux/Makefile"
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
