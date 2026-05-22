@@ -614,13 +614,13 @@ def run_self_test() -> int:
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
             for marker in markers:
-                (root / relative_path).writeText(original.replace(marker, ""), encoding="utf-8")
+                (root / relative_path).write_text(original.replace(marker, ""), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).writeText(original, encoding="utf-8")
+                (root / relative_path).write_text(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
