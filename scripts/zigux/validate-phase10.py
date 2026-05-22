@@ -540,7 +540,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         slice_path = root / "Documentation/zigux/phase10-virtio-core-slice.md"
         slice_text = slice_path.read_text(encoding="utf-8").replace(
             "landed `virtio_driver_id` helper or replay coverage on current `master` while those exact paths stay unreadable as shipped evidence in this runtime",
