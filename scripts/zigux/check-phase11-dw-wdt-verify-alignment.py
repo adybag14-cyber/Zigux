@@ -256,6 +256,7 @@ def run_self_test() -> None:
         fixture = root / "fixture"
         build_fixture(fixture)
         run_check(fixture)
+        case_count = 1
 
         bad_lane = root / "bad-lane"
         shutil.copytree(fixture, bad_lane)
@@ -264,12 +265,14 @@ def run_self_test() -> None:
         manifest["lane_key"] = "P11-L10"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_lane, "manifest lane_key mismatch")
+        case_count += 1
 
         missing_marker = root / "missing-marker"
         shutil.copytree(fixture, missing_marker)
         note_path = missing_marker / FILES["note"]
         note_path.write_text("# Phase 11 DesignWare Verify Alignment Gap\n", encoding="utf-8")
         expect_failure(missing_marker, "missing marker in note")
+        case_count += 1
 
         missing_platform_plan_marker = root / "missing-platform-plan-marker"
         shutil.copytree(fixture, missing_platform_plan_marker)
@@ -286,6 +289,7 @@ def run_self_test() -> None:
             missing_platform_plan_marker,
             f"missing marker in platform_plan: {PLATFORM_PLAN_MARKERS[2]}",
         )
+        case_count += 1
 
         missing_verify_marker = root / "missing-verify-marker"
         shutil.copytree(fixture, missing_verify_marker)
@@ -302,6 +306,7 @@ def run_self_test() -> None:
             missing_verify_marker,
             f"missing marker in verify: {VERIFY_MARKERS[7]}",
         )
+        case_count += 1
 
         missing_idle_restore = root / "missing-idle-restore"
         shutil.copytree(fixture, missing_idle_restore)
@@ -318,6 +323,27 @@ def run_self_test() -> None:
             missing_idle_restore,
             'missing marker in pm: test "phase11 dw_wdt pm resume keeps idle restore path explicit" {',
         )
+        case_count += 1
+
+        missing_pretimeout_mask = root / "missing-pretimeout-mask"
+        shutil.copytree(fixture, missing_pretimeout_mask)
+        pm_path = missing_pretimeout_mask / FILES["pm"]
+        pm_path.write_text(
+            pm_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expect(summary.pretimeout_mask_requested);",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_pretimeout_mask,
+            "missing marker in pm: try std.testing.expect(summary.pretimeout_mask_requested);",
+        )
+        case_count += 1
+
+        print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST=pass")
+        print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST_CASE_COUNT={case_count}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -331,7 +357,6 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         run_self_test()
-        print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST=pass")
         return 0
 
     try:
