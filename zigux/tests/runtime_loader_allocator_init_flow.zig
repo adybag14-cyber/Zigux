@@ -383,3 +383,49 @@ test "shared runtime loader keeps prepared selftest-hook and handoff-stage label
         kretprobe_plan,
     ));
 }
+
+test "shared runtime loader keeps allocator handoff and anchor metadata from drifting before handoff" {
+    const bitmap_plan = makeInitializedPlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+    );
+
+    var request = try runtime_loader.prepareRequest(bitmap_plan);
+
+    request.plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
+
+    request.plan = bitmap_plan;
+    request.plan.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
+
+    request.plan = bitmap_plan;
+    request.plan.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
+
+    request.plan = bitmap_plan;
+    request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
+
+    request.plan = bitmap_plan;
+    request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
+}
