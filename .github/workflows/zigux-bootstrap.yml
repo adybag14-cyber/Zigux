@@ -453,6 +453,12 @@ jobs:
       - name: Check current Phase 9 trace-events runtime packet
         run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
 
+      - name: Self-test current Phase 9 trace-events direct-summary checker
+        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test
+
+      - name: Check current Phase 9 trace-events direct-summary packet
+        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py
+
       - name: Self-test current Phase 9 trace-events summary-preservation checker
         run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test
 
