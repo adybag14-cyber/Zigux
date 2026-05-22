@@ -57,10 +57,7 @@ EXPECTED_PARITY_DIRECT_EVIDENCE = [
 EXPECTED_PUBLIC_TREE_COMPANIONS = []
 EXPECTED_EVIDENCE_CURRENT_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
-    "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
-    "zigux/tests/fixtures/phase6_base64_c_harness.c",
-    "scripts/zigux/check-phase6-base64-c-parity.py",
 ]
 REQUIRED_DOCS_README_SNIPPETS = [
     "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/review-checklist.md` - `scripts/zigux/README.md` - `zigux/tests/README.md` - `zigux/tests/phase6_build.zig` - `zigux/tests/phase6_helper_evidence_manifest.json` - `zigux/tests/phase6_helper_parity_manifest.json` - `scripts/zigux/check-phase6-shared-surface.py` - `scripts/zigux/check-phase6-present-entrypoints.py` - `zigux/Makefile` keep the bounded Phase 6 docs-root packet explicit through the shared helper-evidence and helper-parity catalogs, the current scripts-root and tests-root reminders, the shared build foothold, the shared machine-readable manifests, the present-entrypoint guard, and the returned Makefile wrapper surface instead of leaving the active leaf-helper tranche implicit from neighboring reminder surfaces alone.",
@@ -91,8 +88,9 @@ REQUIRED_VALIDATOR_SNIPPETS = [
 ]
 REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
     "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check-phase6-shared-surface.py, scripts/zigux/validate-phase6.py, and zigux/tests/phase6_build.zig.",
-    "A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md, zigux/tests/phase6_helper_parity_manifest.json, and zigux/tests/phase6_helper_evidence_manifest.json.",
-    "The remaining direct-readback gaps still returning 404 were zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig, zigux/tests/phase6_base64_c_parity.zig, zigux/tests/phase6_base64_c_casegen.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, and scripts/zigux/check-phase6-base64-c-parity.py.",
+    "A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md, zigux/tests/phase6_helper_parity_manifest.json, zigux/tests/phase6_helper_evidence_manifest.json, and scripts/zigux/check-phase6-perf-threshold-markers.py.",
+    "A later authenticated current-master readback on 2026-05-22 directly recovered zigux/tests/phase6_base64_c_parity.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, and scripts/zigux/check-phase6-base64-c-parity.py.",
+    "The remaining direct-readback gaps still returning 404 were zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig and zigux/tests/phase6_base64_c_casegen.zig.",
 ]
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile.",
