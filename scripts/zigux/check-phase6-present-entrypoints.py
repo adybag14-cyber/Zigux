@@ -39,6 +39,7 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-present-entrypoints.py",
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
@@ -147,7 +148,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 31
 
 
 class ValidationError(RuntimeError):
@@ -455,6 +456,8 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
+        cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"current_review_posture": "drifted"})))
@@ -522,3 +525,7 @@ def main() -> int:
         return 1
     print("PHASE6_PRESENT_ENTRYPOINTS=pass")
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
