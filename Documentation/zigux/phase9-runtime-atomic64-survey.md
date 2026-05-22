@@ -17,7 +17,6 @@ Current `master` keeps these direct atomic64-facing packet files visible:
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
 - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
 - `samples/zigux/runtime_atomic64.zig`
-- `samples/zigux/runtime_atomic64_loader.zig`
 - `zigux/tests/runtime_atomic64_module.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_survey.zig`
@@ -44,9 +43,9 @@ That means the honest current packet is the direct atomic64 starter packet toget
 
 1. `zigux/tests/runtime_atomic64_module.zig` keeps the direct lifecycle packet reviewable.
 2. `zigux/tests/runtime_atomic64_diff.zig` keeps the `lib/atomic64_test.c` operation families machine-checkable.
-3. `zigux/tests/runtime_atomic64_survey.zig` and `zigux/tests/runtime_atomic64_manifest.json` keep the direct sample leg, loader scaffold leg, note packet, and exact bounded blocker wording fail-closed.
-4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-loader-tests`, and `phase9-runtime-loader-shared-tests` explicit, including `zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig`.
-5. `zigux/Makefile` keeps `make -C zigux phase9-runtime-atomic64-test` explicit beside the shared Phase 9 build bundle.
+3. `zigux/tests/runtime_atomic64_survey.zig` and `zigux/tests/runtime_atomic64_manifest.json` keep the direct sample leg, note packet, and exact bounded blocker wording fail-closed.
+4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit, including `zig build phase9-runtime-atomic64-sample-tests --build-file zigux/tests/phase9_build.zig`.
+5. The shared Phase 9 reminder packet keeps the broader runtime-substrate blocker explicit instead of being treated as proof that the missing runtime substrate has already landed.
 
 ## Loader Reminder Evidence
 
