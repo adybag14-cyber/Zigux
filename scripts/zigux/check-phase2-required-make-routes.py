@@ -99,13 +99,14 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(CURRENT_WORKFLOW_ROUTE_LINES)
     + len(CURRENT_WORKFLOW_ROUTE_LINES)
+    + 1
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
     + 1
     + len(CURRENT_REQUIRED_MAKE_ROUTES)
-    + 10
+    + 11
 )
 
 
@@ -171,6 +172,15 @@ def format_workflow_route_line(route: str) -> str:
     return f"run: make -C zigux {route}"
 
 
+def format_makefile_target_line(route: str) -> str:
+    return f"{route}:"
+
+
+def count_target_definitions(text: str, route: str) -> int:
+    prefix = format_makefile_target_line(route)
+    return sum(1 for line in text.splitlines() if line.strip().startswith(prefix))
+
+
 def format_policy_summary_line(routes: tuple[str, ...] | list[str]) -> str:
     joined = ", ".join(routes)
     return f"policy note keeps {joined} as {POLICY_SUMMARY_ANCHOR} when those routes are rematerialized."
@@ -215,6 +225,25 @@ def collect_policy_summary_issues(
     return issues
 
 
+def collect_required_route_makefile_issues(
+    makefile_text: str,
+    required_routes: tuple[str, ...],
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    phony_targets = phony_targets_present(makefile_text)
+    for route in required_routes:
+        if route not in phony_targets:
+            issues.append(("MISSING_REQUIRED_ROUTE_PHONY_TARGET", route))
+
+        target_line = format_makefile_target_line(route)
+        count = count_target_definitions(makefile_text, route)
+        if count == 0:
+            issues.append(("MISSING_REQUIRED_ROUTE_TARGET", target_line))
+        elif count != 1:
+            issues.append(("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{target_line}:count={count}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
@@ -244,6 +273,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count={count}"))
+    issues.extend(collect_required_route_makefile_issues(makefile_text, tuple(required_routes)))
 
     for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
         issues.extend(collect_surface_issues(root, path, gap_code, route_code, CURRENT_PACKET_ROUTE_MARKERS))
@@ -496,6 +526,43 @@ def run_self_test() -> int:
         assert ("MISSING_TESTS_ROUTE_MARKERS", f"`make -C zigux {extra_route}`") in issues
         assert ("MISSING_WORKFLOW_ROUTE_LINES", f"run: make -C zigux {extra_route}") in issues
         assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", extra_route) in issues
+        assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", extra_route) in issues
+        assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{extra_route}:") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        extra_route = "phase2-future"
+        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + f"{extra_route}:\n\t@true\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", extra_route) in issues
+        assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{extra_route}:") not in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        extra_route = "phase2-future"
+        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_text = makefile_path.read_text(encoding="utf-8")
+        makefile_text = replace_exact_line(
+            makefile_text,
+            REQUIRED_PHASE2_PHONY_LINE,
+            REQUIRED_PHASE2_PHONY_LINE + f" {extra_route}",
+        )
+        makefile_text += f"{extra_route}:\n\t@true\n{extra_route}:\n\t@true\n"
+        makefile_path.write_text(makefile_text, encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}::count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
