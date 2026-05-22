@@ -21,11 +21,6 @@
     "python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig"
   ],
-  "repo_reality_gaps": [
-    "scripts/zigux/validate-phase3.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "zigux/kernel/export_shim.zig",
-    "zigux/tests/phase3_export_uapi_layout.zig"
-  ],
+  "repo_reality_gaps": [],
   "next_safe_step": "keep the new dump parity packet helper-local and fixture-backed until the separate shared tests-root and reminder-surface lanes are clear"
 }
