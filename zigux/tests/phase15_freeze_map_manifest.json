@@ -1,9 +1,9 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-21",
+  "surveyed_commit": "current-master-readback-2026-05-22",
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit_mode_reason": "This freeze-map packet now records a dated current-master readback after a fresh reread confirmed that the lane-owner replay is directly readable again while the validator-first, dedicated-build, and wrapper routes still remain broader repo-reality gaps.",
+  "surveyed_commit_mode_reason": "This freeze-map packet now records a dated current-master readback after a fresh reread confirmed that the lane-owner replay and validator-first companion are directly readable again while the dedicated-build and wrapper routes still remain broader repo-reality gaps.",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -150,25 +150,25 @@
     {
       "anchor": "kernel/sched/core.c",
       "roadmap_basis": "Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower scheduler seam earns Architecture Council review.",
-      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for scheduler core, but current direct reads still do not materialize scripts/zigux/validate-phase15.py or zigux/tests/phase15_build.zig, the neighboring shared-summary and tests-root governance reminders still keep those two paths in broader repo-reality-gap vocabulary, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes, and there is still no bounded scheduler seam.",
+      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for scheduler core, direct reads now materialize scripts/zigux/validate-phase15.py while zigux/tests/phase15_build.zig still does not materialize, the neighboring shared-summary and tests-root governance reminders still keep the shared build companion in broader repo-reality-gap vocabulary, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes, and there is still no bounded scheduler seam.",
       "current_blocker": "blocked_no_bounded_scheduler_seam"
     },
     {
       "anchor": "mm/page_alloc.c",
       "roadmap_basis": "Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower allocator seam earns Architecture Council review.",
-      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for page allocator core, but current direct reads still do not materialize scripts/zigux/validate-phase15.py or zigux/tests/phase15_build.zig, the neighboring shared-summary and tests-root governance reminders still keep those two paths in broader repo-reality-gap vocabulary, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes, and there is still no bounded allocator seam.",
+      "repo_reality": "Current master still carries the freeze map, the dedicated freeze-map governance packet, and the parity scorecard baseline for page allocator core, direct reads now materialize scripts/zigux/validate-phase15.py while zigux/tests/phase15_build.zig still does not materialize, the neighboring shared-summary and tests-root governance reminders still keep the shared build companion in broader repo-reality-gap vocabulary, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes, and there is still no bounded allocator seam.",
       "current_blocker": "blocked_no_bounded_allocator_seam"
     },
     {
       "anchor": "kernel/rcu/tree.c",
       "roadmap_basis": "Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while current direct reads still do not materialize scripts/zigux/validate-phase15.py or zigux/tests/phase15_build.zig, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while direct reads now materialize scripts/zigux/validate-phase15.py while zigux/tests/phase15_build.zig still does not materialize, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes.",
       "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
     },
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records live blocker phase14-skbuff-live-ownership-blocker while keeping the skbuff packet review-first and boundary_map_only, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture; current direct reads still do not materialize scripts/zigux/validate-phase15.py or zigux/tests/phase15_build.zig, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records live blocker phase14-skbuff-live-ownership-blocker while keeping the skbuff packet review-first and boundary_map_only, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture; direct reads now materialize scripts/zigux/validate-phase15.py while zigux/tests/phase15_build.zig still does not materialize, direct contents readback now resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
@@ -187,7 +187,7 @@
       "the freeze-in-C or study-only anchor set changes in Documentation/zigux/freeze-map.md",
       "the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence archive, replay command, stay-in-C, or no-silent-exception posture recorded here"
     ],
-    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether current direct reads still fail to materialize scripts/zigux/validate-phase15.py and zigux/tests/phase15_build.zig, whether direct contents readback still resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether current direct reads still materialize scripts/zigux/validate-phase15.py, whether zigux/tests/phase15_build.zig still fails to materialize, whether direct contents readback still resolves zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
   },
   "gaps": [
     {
@@ -202,7 +202,7 @@
       "status": "landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now reflects the narrower current route picture: lane-owner replay readable again, validator-first and dedicated-build companions still absent, and wrapper routes still missing."
+      "why_now": "The freeze-map-specific lane note now reflects the narrower current route picture: lane-owner replay and validator-first companion readable again, dedicated-build companion still absent, and wrapper routes still missing."
     },
     {
       "id": "phase15-freeze-map-manifest",
@@ -283,10 +283,10 @@
     },
     {
       "id": "phase15-shared-validator-route-readback",
-      "status": "repo_reality_gap_confirmed",
-      "kind": "shared_route_gap",
+      "status": "materialized_in_contents_readback",
+      "kind": "shared_route_presence",
       "zigux_destination": "scripts/zigux/validate-phase15.py",
-      "why_now": "Current direct reads still do not materialize scripts/zigux/validate-phase15.py, and neighboring shared-summary and tests-root governance reminders still keep it in broader repo-reality-gap vocabulary rather than landed freeze-map evidence."
+      "why_now": "Current direct reads now materialize scripts/zigux/validate-phase15.py, so the freeze-map packet must keep the returned validator-first companion visible as adjacent direct-readback evidence instead of stale gap vocabulary."
     },
     {
       "id": "phase15-shared-build-route-readback",
