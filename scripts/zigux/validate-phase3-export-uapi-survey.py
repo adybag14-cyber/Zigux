@@ -35,6 +35,7 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
+        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -172,15 +173,12 @@ REQUIRED_MARKERS = {
     ),
 }
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -196,11 +194,9 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
     return issues
 
-
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
         _write(root / relative_path, "\n".join(markers) + "\n")
-
 
 def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message: str) -> int:
     target = root / relative_path
@@ -213,9 +209,13 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
         return 1
     return 0
 
-
 def run_self_test() -> int:
     marker_cases = (
+        (
+            SURVEY_PATH,
+            "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
+            "expected missing linux zigux header governance note marker was not reported",
+        ),
         (
             SURVEY_PATH,
             "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -292,7 +292,6 @@ def run_self_test() -> int:
     print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 3 export/UAPI packet.")
     parser.add_argument(
@@ -317,7 +316,6 @@ def main() -> int:
     print(f"validated {args.repo_root / SURVEY_PATH}")
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
