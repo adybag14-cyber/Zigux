@@ -23,6 +23,7 @@ PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-pol
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
+LIBBPF_SEGMENT_MANIFEST = Path("tools/lib/bpf/zigux_segments/manifest.json")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
@@ -59,6 +60,7 @@ REQUIRED_FILES = (
     Path("Documentation/zigux/README.md"),
     EXEC_CMD_SLICE,
     LIBBPF_SEGMENT_SURVEY,
+    LIBBPF_SEGMENT_MANIFEST,
     REVIEW_CHECKLIST,
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
@@ -148,6 +150,14 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "standalone timer or clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
     ),
+    LIBBPF_SEGMENT_MANIFEST: (
+        '"lane_key": "P8-L15"',
+        '"phase": "Phase 8"',
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+        '"why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."',
+    ),
     REVIEW_CHECKLIST: (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
         "`make -C zigux phase8-validate`",
@@ -234,7 +244,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "tools/lib/subcmd/exec-cmd.zig",
         "Run focused Phase 8 exec-cmd tests",
-        "expectMissingPath(\"tools/lib/subcmd/exec-cmd.zig\")",
+        'expectMissingPath("tools/lib/subcmd/exec-cmd.zig")',
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
@@ -247,15 +257,15 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST: (
         'test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {',
-        "\"slug\": \"fdinfo-map-info-helpers\"",
-        "\"slug\": \"file-path-and-handle-bridge\"",
+        '"slug": "fdinfo-map-info-helpers"',
+        '"slug": "file-path-and-handle-bridge"',
         "planTokenPreparation",
     ),
     FILE_PATH_HANDLE_BRIDGE_MANIFEST_SYNC_TEST: (
         'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
-        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
-        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
-        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
     ),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"): (
         "phase8_file_path_handle_bridge.zig",
@@ -263,19 +273,19 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "Run the phase 8 file-path-handle bridge tests.",
     ),
     LIBBPF_SEGMENTS_TEST: (
-        "test \"phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible\" {",
-        "test \"phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit\" {",
-        "test \"phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible\" {",
+        'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
     ),
     LIBBPF_SEGMENTS_BUILD: (
-        "b.path(\"../../tools/lib/bpf/zigux_segments/verify.zig\")",
-        "\"phase8-libbpf-segment-verify-tests\"",
-        "\"Run focused Phase 8 libbpf segment verify build\"",
+        'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
+        '"phase8-libbpf-segment-verify-tests"',
+        '"Run focused Phase 8 libbpf segment verify build"',
     ),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
         "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
-        "\"zigux/tests/README.md\"",
-        "\"scripts/zigux/README.md\"",
+        '"zigux/tests/README.md"',
+        '"scripts/zigux/README.md"',
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
         "summarizePollExecutionResultFromWaitResult",
@@ -330,7 +340,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     ),
     PIN_PATH_SEGMENT: (
-        "pub const default_bpf_fs_path = \"/sys/fs/bpf\";",
+        'pub const default_bpf_fs_path = "/sys/fs/bpf";',
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
         "test \"program pin-path helpers mirror the bounded libbpf program pin contract\" {",
@@ -378,14 +388,14 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "formatLibbpfBpfProgType",
     ),
     VERIFY_SEGMENT: (
-        "const cpu_mask_verify = @import(\"cpu_mask_verify.zig\");",
-        "const logging_verify = @import(\"logging_verify.zig\");",
-        "const online_cpu_routing_verify = @import(\"online_cpu_routing_verify.zig\");",
-        "const pin_path_verify = @import(\"pin_path_verify.zig\");",
-        "const ready_buffer_attempt_verify = @import(\"ready_buffer_attempt_verify.zig\");",
-        "const ready_buffer_fd_verify = @import(\"ready_buffer_fd_verify.zig\");",
-        "const ready_buffer_window_verify = @import(\"ready_buffer_window_verify.zig\");",
-        "const type_names_verify = @import(\"type_names_verify.zig\");",
+        'const cpu_mask_verify = @import("cpu_mask_verify.zig");',
+        'const logging_verify = @import("logging_verify.zig");',
+        'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
+        'const pin_path_verify = @import("pin_path_verify.zig");',
+        'const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");',
+        'const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");',
+        'const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");',
+        'const type_names_verify = @import("type_names_verify.zig");',
         "std.testing.refAllDecls(cpu_mask_verify);",
         "std.testing.refAllDecls(logging_verify);",
         "std.testing.refAllDecls(online_cpu_routing_verify);",
@@ -632,7 +642,7 @@ def run_self_test() -> int:
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
             for marker in markers:
-                (root / relative_path).write_text(original.replace(marker, ""), encoding="utf-8")
+                (root / relative_path).writeText(original.replace(marker, ""), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
