@@ -106,7 +106,7 @@ test "phase 7 rbtree survey keeps roadmap-path readback truthful without claimin
 
     try expectContains(helper, "pub fn rb_find_add_cached");
     try expectContains(roadmap_helper, "pub fn rb_find_add_cached");
-    try expectContains(helper_companion, "../../tools/lib/rbtree.zig");
+    try expectContains(helper_companion, "../../lib/rbtree.zig");
     try expectContains(build_file, "../../lib/rbtree.zig");
 
     try expectContains(makefile, "phase7-validate:");
