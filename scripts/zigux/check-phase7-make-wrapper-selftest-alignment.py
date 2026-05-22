@@ -18,6 +18,7 @@ PARKED_PATHS = (
 REQUIRED_CHECKER_MARKERS = (
     "PARKED_SHARED_CONTROL_PATHS = [",
     '"scripts/zigux/check-phase7-make-wrapper.py",',
+    "READABLE_NON_OWNER_FILES = [",
     '"zigux/tests/phase7_build.zig",',
     '"scripts/zigux/validate-phase7.py",',
     'print("PHASE7_SHARED_CONTROL_GAP_SELF_TEST=pass")',
@@ -29,6 +30,7 @@ REQUIRED_SEQUENCING_MARKERS = (
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
+    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -212,9 +214,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / SEQUENCING_NOTE
-        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_SEQUENCING_MARKERS[3] + "\n", "", 1), encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_SEQUENCING_MARKERS[4] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_SEQUENCING_MARKERS", REQUIRED_SEQUENCING_MARKERS[3]) in issues
+        assert ("MISSING_SEQUENCING_MARKERS", REQUIRED_SEQUENCING_MARKERS[4]) in issues
         cases += 1
 
         for marker in REQUIRED_WORKFLOW_LINES[:2]:
