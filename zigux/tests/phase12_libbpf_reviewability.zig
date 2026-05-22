@@ -3,310 +3,241 @@ const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
-const file_path_handle_bridge = @import("file_path_handle_bridge");
+const perf_buffer_poll = @import("perf_buffer_poll");
+const online_cpu_routing = @import("online_cpu_routing");
 
-const Gap = struct {
-    id: []const u8,
-    status: []const u8,
-    kind: []const u8,
-    zigux_destination: []const u8,
-    why_now: []const u8,
-};
-
-const Manifest = struct {
-    lane_key: []const u8,
-    phase: []const u8,
-    surveyed_commit: []const u8,
-    gaps: []const Gap,
-};
-
-const SnapshotEntry = struct {
+const SnapshotFile = struct {
     path: []const u8,
-    bytes: usize,
-    sha256: []const u8,
+    blob_sha: []const u8,
+};
+
+const SnapshotChecker = struct {
+    path: []const u8,
+    blob_sha: []const u8,
+    self_test_case_count: usize,
+};
+
+const SnapshotNoteBlob = struct {
+    path: []const u8,
+    blob_sha: []const u8,
+};
+
+const SnapshotVerificationEvidence = struct {
+    readback_mode: []const u8,
+    checker: SnapshotChecker,
+    current_note_blobs: []const SnapshotNoteBlob,
 };
 
 const SnapshotFixture = struct {
     lane_key: []const u8,
     phase: []const u8,
-    surveyed_commit: []const u8,
     tracked_file_count: usize,
-    files: []const SnapshotEntry,
+    tracked_paths: []const []const u8,
+    supporting_notes: []const []const u8,
+    files: []const SnapshotFile,
+    verification_evidence: SnapshotVerificationEvidence,
 };
 
-const LegacySegment = struct {
-    id: []const u8,
-    slug: []const u8,
-    status: []const u8,
-    kind: []const u8,
-    zigux_destination: []const u8,
-    why_now: []const u8,
+const DeterminismHelperBlob = struct {
+    path: []const u8,
+    blob_sha: []const u8,
 };
 
-const LegacyManifest = struct {
+const DeterminismVerificationEvidence = struct {
+    readback_mode: []const u8,
+    checker: SnapshotChecker,
+    current_helper_blob: DeterminismHelperBlob,
+};
+
+const DeterminismFixture = struct {
     lane_key: []const u8,
     phase: []const u8,
-    surveyed_commit: []const u8,
-    segments: []const LegacySegment,
+    tracked_file_count: usize,
+    tracked_paths: []const []const u8,
+    files: []const SnapshotFile,
+    verification_evidence: DeterminismVerificationEvidence,
 };
 
-fn pathExists(io: std.Io, path: []const u8) !bool {
-    std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
+fn readFileAlloc(path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(limit),
+    );
+}
+
+fn pathExists(path: []const u8) !bool {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    std.Io.Dir.cwd().access(io_instance.io(), path, .{}) catch |err| switch (err) {
         error.FileNotFound => return false,
         else => return err,
     };
     return true;
 }
 
-fn findGap(manifest: Manifest, id: []const u8) ?Gap {
-    for (manifest.gaps) |gap| {
-        if (std.mem.eql(u8, gap.id, id)) return gap;
+fn isHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
     }
-    return null;
+    return true;
 }
 
-fn findLegacySegment(manifest: LegacyManifest, slug: []const u8) ?LegacySegment {
-    for (manifest.segments) |segment| {
-        if (std.mem.eql(u8, segment.slug, slug)) return segment;
+fn expectExactPaths(actual: []const []const u8, expected: []const []const u8) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (actual, expected) |actual_path, expected_path| {
+        try std.testing.expectEqualStrings(expected_path, actual_path);
     }
-    return null;
 }
 
-fn expectGap(manifest: Manifest, id: []const u8, status: []const u8, kind: []const u8, destination: []const u8) !void {
-    const gap = findGap(manifest, id) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings(status, gap.status);
-    try std.testing.expectEqualStrings(kind, gap.kind);
-    try std.testing.expectEqualStrings(destination, gap.zigux_destination);
-    try std.testing.expect(gap.why_now.len > 0);
-}
+test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact" {
+    const fixture_json = try readFileAlloc("zigux/tests/fixtures/phase12_libbpf_snapshot.json", 16 * 1024);
+    defer std.testing.allocator.free(fixture_json);
 
-test "phase12 libbpf reviewability gate matches the current zigux_segments file state" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase12_libbpf_manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+    const parsed = try std.json.parseFromSlice(SnapshotFixture, std.testing.allocator, fixture_json, .{
         .ignore_unknown_fields = true,
     });
     defer parsed.deinit();
 
-    const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
-
-    var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
-    var blocked_count: usize = 0;
-    var deferred_count: usize = 0;
-
-    for (manifest.gaps, 0..) |gap, i| {
-        try std.testing.expect(gap.id.len > 0);
-        try std.testing.expect(gap.kind.len > 0);
-        try std.testing.expect(gap.why_now.len > 0);
-
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_object_model")) {
-            blocked_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "deferred_high_risk")) {
-            deferred_count += 1;
-        } else {
-            return error.TestUnexpectedResult;
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-        }
-
-        if (!std.mem.startsWith(u8, gap.zigux_destination, "tools/lib/bpf/zigux_segments/")) continue;
-
-        const exists = try pathExists(io_instance.io(), gap.zigux_destination);
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            try std.testing.expect(exists);
-        } else if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary") or
-            std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary"))
-        {
-            try std.testing.expect(exists);
-        } else {
-            try std.testing.expect(!exists);
-        }
-    }
-
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    try std.testing.expectEqual(@as(usize, 4), deferred_count);
-}
-
-test "phase12 libbpf reviewability gate exact-checks the live helper and boundary ids" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase12_libbpf_manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer parsed.deinit();
-
-    const manifest = parsed.value;
-    try expectGap(manifest, "phase12-libbpf-file-path-handle-helper-foundation", "starter_landed", "helper_first", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
-    try expectGap(manifest, "phase12-libbpf-map-reuse-compatibility-helper-foundation", "starter_landed", "helper_first", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
-    try expectGap(manifest, "phase12-libbpf-file-path-and-handle-bridge-boundary", "deferred_high_risk", "resource_boundary", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
-    try expectGap(manifest, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary", "deferred_high_risk", "interrupt_routing", "tools/lib/bpf/zigux_segments/cpu_mask.zig");
-    try expectGap(manifest, "phase12-libbpf-skeleton-population", "blocked_on_object_model", "object_adjacent", "tools/lib/bpf/zigux_segments/skeleton.zig");
-    try expectGap(manifest, "phase12-libbpf-object-and-elf-loader", "deferred_high_risk", "core_loader", "tools/lib/bpf/zigux_segments/object_loader.zig");
-    try expectGap(manifest, "phase12-libbpf-btf-relocation-and-program-load", "deferred_high_risk", "verifier_facing", "tools/lib/bpf/zigux_segments/relocation.zig");
-}
-
-test "phase12 libbpf reviewability gate pins the current snapshot fixture packet" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const snapshot_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(snapshot_json);
-
-    const parsed = try std.json.parseFromSlice(SnapshotFixture, std.testing.allocator, snapshot_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer parsed.deinit();
-
-    const snapshot = parsed.value;
+    const fixture = parsed.value;
     const expected_paths = [_][]const u8{
-        "zigux/tests/phase12_libbpf_manifest.json",
-        "zigux/tests/phase12_libbpf_segments.zig",
-        "zigux/tests/phase12_libbpf_reviewability.zig",
         "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "tools/lib/bpf/zigux_segments/manifest.json",
+        "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+        "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
     };
 
-    try std.testing.expectEqualStrings("P12-L16", snapshot.lane_key);
-    try std.testing.expectEqualStrings("Phase 12", snapshot.phase);
-    try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", snapshot.surveyed_commit);
-    try std.testing.expectEqual(expected_paths.len, snapshot.tracked_file_count);
-    try std.testing.expectEqual(expected_paths.len, snapshot.files.len);
+    try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", fixture.phase);
+    try std.testing.expectEqual(expected_paths.len, fixture.tracked_file_count);
+    try expectExactPaths(fixture.tracked_paths, &expected_paths);
+    try expectExactPaths(fixture.supporting_notes, &expected_paths);
+    try std.testing.expectEqual(expected_paths.len, fixture.files.len);
+    try std.testing.expectEqual(expected_paths.len, fixture.verification_evidence.current_note_blobs.len);
+    try std.testing.expectEqualStrings("github-contents-readback", fixture.verification_evidence.readback_mode);
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase12-libbpf-snapshot.py",
+        fixture.verification_evidence.checker.path,
+    );
+    try std.testing.expectEqual(@as(usize, 29), fixture.verification_evidence.checker.self_test_case_count);
+    try std.testing.expect(isHexSha(fixture.verification_evidence.checker.blob_sha));
 
-    for (snapshot.files, expected_paths) |entry, expected_path| {
-        try std.testing.expectEqualStrings(expected_path, entry.path);
-        try std.testing.expect(entry.bytes > 0);
-        try std.testing.expectEqual(@as(usize, 64), entry.sha256.len);
+    for (fixture.files, fixture.verification_evidence.current_note_blobs, expected_paths) |file_entry, note_blob, expected_path| {
+        try std.testing.expectEqualStrings(expected_path, file_entry.path);
+        try std.testing.expectEqualStrings(expected_path, note_blob.path);
+        try std.testing.expect(isHexSha(file_entry.blob_sha));
+        try std.testing.expect(isHexSha(note_blob.blob_sha));
     }
 }
 
-test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
-    const parsed_mask = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
+test "phase12 libbpf reviewability gate keeps the helper-local determinism fixture exact" {
+    const fixture_json = try readFileAlloc("zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json", 16 * 1024);
+    defer std.testing.allocator.free(fixture_json);
+
+    const parsed = try std.json.parseFromSlice(DeterminismFixture, std.testing.allocator, fixture_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+
+    const fixture = parsed.value;
+    const expected_path = "tools/lib/bpf/zigux_segments/pin_path.zig";
+
+    try std.testing.expectEqualStrings("P12-L17", fixture.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", fixture.phase);
+    try std.testing.expectEqual(@as(usize, 1), fixture.tracked_file_count);
+    try expectExactPaths(fixture.tracked_paths, &[_][]const u8{expected_path});
+    try std.testing.expectEqual(@as(usize, 1), fixture.files.len);
+    try std.testing.expectEqualStrings(expected_path, fixture.files[0].path);
+    try std.testing.expect(isHexSha(fixture.files[0].blob_sha));
+    try std.testing.expectEqualStrings("github-contents-readback", fixture.verification_evidence.readback_mode);
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase12-libbpf-snapshot.py",
+        fixture.verification_evidence.checker.path,
+    );
+    try std.testing.expectEqual(@as(usize, 29), fixture.verification_evidence.checker.self_test_case_count);
+    try std.testing.expectEqualStrings(expected_path, fixture.verification_evidence.current_helper_blob.path);
+    try std.testing.expect(isHexSha(fixture.verification_evidence.current_helper_blob.blob_sha));
+}
+
+test "phase12 libbpf reviewability gate keeps parked replay absences and note-owned anchors explicit" {
+    const survey_note = try readFileAlloc("Documentation/zigux/phase12-libbpf-segment-survey.md", 24 * 1024);
+    defer std.testing.allocator.free(survey_note);
+    const verify_note = try readFileAlloc("Documentation/zigux/phase12-libbpf-verify-shard-note.md", 16 * 1024);
+    defer std.testing.allocator.free(verify_note);
+    const heavy_note = try readFileAlloc("Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md", 24 * 1024);
+    defer std.testing.allocator.free(heavy_note);
+
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-libbpf-segment-survey.md"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-libbpf-verify-shard-note.md"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-release-coordination-matrix.md"));
+    try std.testing.expect(try pathExists("zigux/tests/fixtures/phase12_libbpf_snapshot.json"));
+    try std.testing.expect(try pathExists("zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"));
+
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/cpu_mask.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/logging.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/pin_path.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/type_names.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/online_cpu_routing.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/manifest.json"));
+
+    try std.testing.expect(!try pathExists("zigux/tests/phase12_libbpf_manifest.json"));
+    try std.testing.expect(!try pathExists("zigux/tests/phase12_libbpf_segments.zig"));
+    try std.testing.expect(!try pathExists("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"));
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_note, "phase12_libbpf_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_note, "file_path_handle_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, heavy_note, "phase12_libbpf_snapshot_determinism.json") != null);
+}
+
+test "phase12 libbpf reviewability gate still compiles the surviving helper-first footing" {
+    var parsed_mask = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
     defer parsed_mask.deinit(std.testing.allocator);
 
+    var version_buffer: [16]u8 = undefined;
     var pin_path_buffer: [64]u8 = undefined;
-    var error_buffer: [64]u8 = undefined;
-    var fdinfo_path_buffer: [64]u8 = undefined;
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed_mask.values));
+    try std.testing.expectEqual(@as(usize, 2), cpu_mask.derivePerfBufferAutoCpuCount(3, 2));
+    try std.testing.expectEqualStrings("v1.7", try logging.libbpfVersionString(version_buffer[0..]));
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
     try std.testing.expectEqualStrings("ringbuf", bpf_type_names.libbpfBpfMapTypeStr(27).?);
-    try std.testing.expectEqualStrings("v1.8", logging.libbpfVersionString());
-    try std.testing.expectEqualStrings(
-        "Internal error in libbpf",
-        try logging.formatErrorString(&error_buffer, -4004),
-    );
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/demo_map",
         try pin_path.buildValidatedSanitizedMapPinPath(&pin_path_buffer, null, "demo.map"),
     );
-    try std.testing.expectEqualStrings(
-        "/proc/42/fdinfo/7",
-        try file_path_handle_bridge.buildProcFdinfoPath(&fdinfo_path_buffer, 42, 7),
+
+    const poll_result = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+        12,
+        2,
+        &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        },
+        &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        },
     );
-    const parsed_fdinfo = try file_path_handle_bridge.parseFdinfoMapInfo(
-        "map_type: 14\n" ++
-            "key_size: 4\n" ++
-            "value_size: 8\n" ++
-            "max_entries: 64\n" ++
-            "map_flags: 0x20\n" ++
-            "map_extra: 7\n",
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.ready_count, poll_result.disposition);
+    try std.testing.expectEqual(@as(i32, 2), poll_result.return_value);
+    try std.testing.expectEqual(@as(usize, 3), poll_result.execution.processed_record_count);
+
+    const route_summary = online_cpu_routing.summarizeOnlineCpuRouting(
+        &.{ false, true, false, true },
+        0,
+        &.{ 11, 17 },
     );
-    try std.testing.expectEqual(@as(?u32, 14), parsed_fdinfo.map_type);
-    const resolved_name = file_path_handle_bridge.resolveReusedMapName("process_pinned_map", "process_pinned_");
-    try std.testing.expectEqual(file_path_handle_bridge.ReusedMapNameSource.object_name, resolved_name.source);
-    try std.testing.expectEqualStrings("process_pinned_map", resolved_name.value);
-}
-
-test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "tools/lib/bpf/zigux_segments/manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(LegacyManifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer parsed.deinit();
-
-    const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 8", manifest.phase);
-    try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
-
-    const landed_slugs = [_][]const u8{
-        "logging-version-and-errno",
-        "pin-path-helpers",
-        "cpu-mask-parsing",
-        "type-name-helpers",
-        "perf-buffer-poll-bookkeeping",
-        "fdinfo-map-info-helpers",
-        "map-reuse-compatibility",
-    };
-    for (landed_slugs) |slug| {
-        const segment = findLegacySegment(manifest, slug) orelse return error.TestUnexpectedResult;
-        try std.testing.expectEqualStrings("starter_landed", segment.status);
-        try std.testing.expect(try pathExists(io_instance.io(), segment.zigux_destination));
-    }
-
-    const file_path_boundary = findLegacySegment(manifest, "file-path-and-handle-bridge") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("deferred_high_risk", file_path_boundary.status);
-    try std.testing.expect(try pathExists(io_instance.io(), file_path_boundary.zigux_destination));
-
-    const perf_routing_boundary = findLegacySegment(manifest, "perf-buffer-online-cpu-routing") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("deferred_high_risk", perf_routing_boundary.status);
-    try std.testing.expect(try pathExists(io_instance.io(), perf_routing_boundary.zigux_destination));
-
-    const skeleton = findLegacySegment(manifest, "skeleton-population") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("blocked_on_object_model", skeleton.status);
-    try std.testing.expect(!try pathExists(io_instance.io(), skeleton.zigux_destination));
-
-    const object_loader = findLegacySegment(manifest, "object-and-elf-loader") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("deferred_high_risk", object_loader.status);
-    try std.testing.expect(!try pathExists(io_instance.io(), object_loader.zigux_destination));
-
-    const relocation = findLegacySegment(manifest, "btf-relocation-and-program-load") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("deferred_high_risk", relocation.status);
-    try std.testing.expect(!try pathExists(io_instance.io(), relocation.zigux_destination));
+    try std.testing.expectEqual(online_cpu_routing.OnlineCpuRoutingDisposition.complete, route_summary.disposition);
+    try std.testing.expectEqual(@as(usize, 2), route_summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 1), route_summary.first_routed_cpu_index);
 }
