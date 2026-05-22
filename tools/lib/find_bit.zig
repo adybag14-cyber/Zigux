@@ -251,6 +251,40 @@ pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize
     return findNextAndBit(addr1, addr2, nbits, start);
 }
 
+pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
+    if (start >= nbits) {
+        return nbits;
+    }
+
+    assertBitmapLen(addr1, nbits);
+    assertBitmapLen(addr2, nbits);
+
+    if (nbits <= bits_per_long) {
+        return singleWordBitIndex(addr1[0] | addr2[0], nbits, start);
+    }
+
+    var idx = start / bits_per_long;
+    var value = maskWordInRange(idx, addr1[idx] | addr2[idx], nbits) & firstWordMask(start);
+
+    while (value == 0) {
+        idx += 1;
+        if (idx * bits_per_long >= nbits) {
+            return nbits;
+        }
+        value = maskWordInRange(idx, addr1[idx] | addr2[idx], nbits);
+    }
+
+    return bitIndex(idx, value, nbits);
+}
+
+pub fn find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
+    return findNextOrBit(addr1, addr2, nbits, start);
+}
+
+pub fn _find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
+    return findNextOrBit(addr1, addr2, nbits, start);
+}
+
 pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
     if (start >= nbits) {
         return nbits;
@@ -453,6 +487,8 @@ test "underscore entry points reuse the public helper behavior" {
     const zero_map = [_]Word{ ~(@as(Word, 1) << 7), ~@as(Word, 0) };
     const and_lhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 3 };
     const and_rhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 3 };
+    const or_lhs = [_]Word{ (@as(Word, 1) << 5), @as(Word, 1) << 3 };
+    const or_rhs = [_]Word{ (@as(Word, 1) << 9), 0 };
     const andnot_lhs = [_]Word{ (@as(Word, 1) << 7) | (@as(Word, 1) << 11), (@as(Word, 1) << 2) | (@as(Word, 1) << 5) };
     const andnot_rhs = [_]Word{ (@as(Word, 1) << 11), @as(Word, 1) << 5 };
 
@@ -463,6 +499,7 @@ test "underscore entry points reuse the public helper behavior" {
     try std.testing.expectEqual(findNextBit(&set_map, nbits, 6), _find_next_bit(&set_map, nbits, 6));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 7), _find_next_zero_bit(&zero_map, nbits, 7));
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, 10), _find_next_and_bit(&and_lhs, &and_rhs, nbits, 10));
+    try std.testing.expectEqual(findNextOrBit(&or_lhs, &or_rhs, nbits, 6), _find_next_or_bit(&or_lhs, &or_rhs, nbits, 6));
     try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 8), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, 8));
     try std.testing.expectEqual(findLastBit(&set_map, nbits), _find_last_bit(&set_map, nbits));
 }
@@ -473,6 +510,8 @@ test "single-word next scans honor start masks" {
     const zero_bits = [_]Word{~((@as(Word, 1) << 4) | (@as(Word, 1) << 9))};
     const and_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 9) | (@as(Word, 1) << 12)};
     const and_rhs = [_]Word{(@as(Word, 1) << 0) | (@as(Word, 1) << 9) | (@as(Word, 1) << 12)};
+    const or_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 12)};
+    const or_rhs = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 12)};
     const andnot_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 9) | (@as(Word, 1) << 12)};
     const andnot_rhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 12)};
 
@@ -482,11 +521,14 @@ test "single-word next scans honor start masks" {
     try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));
     try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));
     try std.testing.expectEqual(@as(usize, 12), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));
+    try std.testing.expectEqual(@as(usize, 4), findNextOrBit(&or_lhs, &or_rhs, nbits, 2));
+    try std.testing.expectEqual(@as(usize, 12), findNextOrBit(&or_lhs, &or_rhs, nbits, 5));
     try std.testing.expectEqual(@as(usize, 9), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 2));
     try std.testing.expectEqual(nbits, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 10));
     try std.testing.expectEqual(nbits, findNextBit(&set_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextZeroBit(&zero_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextAndBit(&and_lhs, &and_rhs, nbits, nbits));
+    try std.testing.expectEqual(nbits, findNextOrBit(&or_lhs, &or_rhs, nbits, 13));
     try std.testing.expectEqual(nbits, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, nbits));
 }
 
@@ -549,6 +591,14 @@ test "word-boundary next scans start fresh on the next word" {
         (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
     };
     const and_rhs = and_lhs;
+    const or_lhs = [_]Word{
+        @as(Word, 1) << @intCast(bits_per_long - 1),
+        @as(Word, 1) << 5,
+    };
+    const or_rhs = [_]Word{
+        0,
+        @as(Word, 1) << 0,
+    };
     const andnot_lhs = [_]Word{
         @as(Word, 1) << @intCast(bits_per_long - 1),
         (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
@@ -564,6 +614,8 @@ test "word-boundary next scans start fresh on the next word" {
     try std.testing.expectEqual(boundary + 5, findNextZeroBit(&zero_map, nbits, boundary + 1));
     try std.testing.expectEqual(boundary, findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
     try std.testing.expectEqual(boundary + 5, findNextAndBit(&and_lhs, &and_rhs, nbits, boundary + 1));
+    try std.testing.expectEqual(boundary, findNextOrBit(&or_lhs, &or_rhs, nbits, boundary));
+    try std.testing.expectEqual(boundary + 5, findNextOrBit(&or_lhs, &or_rhs, nbits, boundary + 1));
     try std.testing.expectEqual(boundary, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));
 }
@@ -596,6 +648,8 @@ test "next scans past nbits return without reading bitmap words" {
     try std.testing.expectEqual(@as(usize, 7), findNextZeroBit(&empty, 7, 11));
     try std.testing.expectEqual(@as(usize, 7), findNextAndBit(&empty, &empty, 7, 7));
     try std.testing.expectEqual(@as(usize, 7), findNextAndBit(&empty, &empty, 7, 11));
+    try std.testing.expectEqual(@as(usize, 7), findNextOrBit(&empty, &empty, 7, 7));
+    try std.testing.expectEqual(@as(usize, 7), findNextOrBit(&empty, &empty, 7, 11));
     try std.testing.expectEqual(@as(usize, 7), findNextAndNotBit(&empty, &empty, 7, 7));
     try std.testing.expectEqual(@as(usize, 7), findNextAndNotBit(&empty, &empty, 7, 11));
 }
@@ -864,6 +918,8 @@ test "tail-word next zero and shared scans skip earlier in-range matches before 
     };
     const tail_and_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
     const tail_and_rhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const tail_or_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const tail_or_rhs = [_]Word{ 0, @as(Word, 1) << 4 };
 
     try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 1));
     try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 2));
@@ -872,6 +928,9 @@ test "tail-word next zero and shared scans skip earlier in-range matches before 
     try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 1));
     try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 2));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 5));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 5));
 }
 
 test "low-level underscore aliases mirror the primary find helpers, including andnot" {
@@ -880,6 +939,8 @@ test "low-level underscore aliases mirror the primary find helpers, including an
     const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
     const and_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    const or_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) };
+    const or_rhs = [_]Word{ (@as(Word, 1) << 9), 0 };
     const andnot_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const andnot_rhs = [_]Word{ @as(Word, 1) << 5, @as(Word, 1) << 9 };
     const clump_map = [_]Word{@as(Word, 1)};
@@ -890,6 +951,7 @@ test "low-level underscore aliases mirror the primary find helpers, including an
     try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), _find_first_zero_bit(&zero_map, nbits));
     try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), _find_next_bit(&bitmap, nbits, 8));
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), _find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
+    try std.testing.expectEqual(findNextOrBit(&or_lhs, &or_rhs, nbits, 6), _find_next_or_bit(&or_lhs, &or_rhs, nbits, 6));
     try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), _find_next_zero_bit(&zero_map, nbits, 5));
     try std.testing.expectEqual(findLastBit(&bitmap, nbits), _find_last_bit(&bitmap, nbits));
@@ -908,6 +970,8 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
     const and_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    const or_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) };
+    const or_rhs = [_]Word{ (@as(Word, 1) << 9), 0 };
     const andnot_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const andnot_rhs = [_]Word{ @as(Word, 1) << 5, @as(Word, 1) << 9 };
 
@@ -917,6 +981,7 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), find_first_zero_bit(&zero_map, nbits));
     try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), find_next_bit(&bitmap, nbits, 8));
     try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
+    try std.testing.expectEqual(findNextOrBit(&or_lhs, &or_rhs, nbits, 6), find_next_or_bit(&or_lhs, &or_rhs, nbits, 6));
     try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), find_next_zero_bit(&zero_map, nbits, 5));
     try std.testing.expectEqual(findLastBit(&bitmap, nbits), find_last_bit(&bitmap, nbits));
