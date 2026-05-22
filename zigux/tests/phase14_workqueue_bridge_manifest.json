@@ -3,6 +3,21 @@
   "phase": "Phase 14",
   "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
   "anchor": "kernel/workqueue.c",
+  "freeze_map_bucket": "Study / Boundary Only",
+  "roadmap_alignment": {
+    "required_features": [
+      "boundary maps",
+      "concurrency audits",
+      "explicit stay-in-C decisions where warranted",
+      "wrapper-first or study-only posture"
+    ],
+    "current_packet_coverage": [
+      "kernel/workqueue_bridge.zig records boundary-map-only queue submission and allocation entrypoints",
+      "the bridge-local concurrency audit keeps manager, pending-bit, delayed-work, flush-drain, rescuer, hotplug, and scheduler-visible worker-state seams explicit in review-only form",
+      "the blocked-maintenance handoff keeps callback dispatch, flush, drain, cancellation completion, delayed requeue control, rescuer execution, and topology rebinding in C",
+      "the live packet remains tied to the freeze map's Study / Boundary Only posture and direct reviewability reruns rather than runtime ownership claims"
+    ]
+  },
   "roadmap_destinations": [
     "kernel/workqueue_bridge.zig",
     "zigux/tests/",
