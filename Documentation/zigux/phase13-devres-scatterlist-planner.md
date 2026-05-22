@@ -16,13 +16,15 @@ The planner stays intentionally narrow:
 
 The helper packet now consists of:
 - `lib/devres_scatterlist.zig`
-- `zigux/tests/phase13_devres_scatterlist.zig`
 - `Documentation/zigux/phase13-devres-scatterlist-planner.md`
 - `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`
+- `zigux/tests/phase13_devres_scatterlist.zig`
+- `scripts/zigux/check-phase13-devres-scatterlist-planner.py`
 
 Fixture governance stays helper-local:
 - `zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, and warn-on-release-miss fixture coverage for `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, and `planManagedScatterlistUnmap(...)`
-- `zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper and scatterlist replay
+- `scripts/zigux/check-phase13-devres-scatterlist-planner.py` is the packet-local validation guard for the helper, note, manifest, and replay
+- `zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper, checker, and scatterlist replay
 - `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the helper-local scatterlist fixture packet
 
 Adjacent boundary evidence stays unchanged:
@@ -32,4 +34,6 @@ Adjacent boundary evidence stays unchanged:
 
 Standalone replay handles:
 - `zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig`
+- `python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py`
+- `python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py --self-test`
 - `zig test zigux/tests/phase13_devres_dma_coherent.zig`
