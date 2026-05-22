@@ -14,7 +14,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
-MANIFEST_SURFACE_EXPECTATION_ATTRS = (
+EXTRA_REQUIRED_FILES = (
+    Path("scripts/zigux/artifact_diff.py"),
+)
+VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),
     ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),
     ("validators", "EXPECTED_MANIFEST_VALIDATORS"),
@@ -23,6 +26,48 @@ MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),
     ("policy", "EXPECTED_MANIFEST_POLICY"),
 )
+DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
+    "bootstrap_helpers": (
+        "scripts/zigux/install-zig.py",
+    ),
+    "archive_support": (
+        "third_party/README.md",
+        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+    ),
+    "cross_route_support": (
+        "scripts/zigux/check-phase2-cross.py",
+        "zigux/tests/fixtures/phase2_cross_targets.json",
+    ),
+    "artifact_support": (
+        "scripts/zigux/artifact_diff.py",
+        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    ),
+    "fixdep_support": (
+        "scripts/basic/fixdep.c",
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py",
+        "scripts/zigux/fixdep.zig",
+        "zigux/tests/fixtures/fixdep/cases.json",
+        "zigux/tests/fixtures/fixdep/sample-config.h",
+        "zigux/tests/fixtures/fixdep/sample.c",
+        "zigux/tests/fixtures/fixdep/sample.d",
+        "zigux/tests/fixtures/fixdep/sample.h",
+        "zigux/tests/fixtures/fixdep/sample.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_expected.txt",
+    ),
+    "make_wrappers": (
+        "zigux/Makefile",
+        "make -C zigux phase2-toolchain",
+        "make -C zigux phase2-tools",
+        "make -C zigux phase2-kconfig",
+        "make -C zigux phase2-cross",
+        "make -C zigux phase2-genksyms",
+        "make -C zigux phase2-fixdep",
+        "make -C zigux phase2-validate",
+        "make -C zigux phase2",
+    ),
+}
 
 
 def load_validator(root: Path):
@@ -62,8 +107,59 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def load_json(path: Path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json(path: Path, payload: object) -> None:
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def validator_expected_keys(module) -> set[str]:
+    keys: set[str] = set()
+    for key, attr in VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS:
+        if getattr(module, attr, None) is not None:
+            keys.add(key)
+    return keys
+
+
+def collect_direct_manifest_issues(module, root: Path) -> list[tuple[str, str]]:
+    manifest_path = module.resolve(root, module.MANIFEST_REL)
+    manifest = load_json(manifest_path)
+    if not isinstance(manifest, dict):
+        return []
+
+    surfaces = manifest.get("present_surfaces")
+    if not isinstance(surfaces, dict):
+        return []
+
+    issues: list[tuple[str, str]] = []
+    for key, expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.items():
+        if key in validator_expected_keys(module):
+            continue
+        value = surfaces.get(key)
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            issues.append(("INVALID_MANIFEST_SHAPE", key))
+            continue
+        for marker in expected:
+            if marker not in value:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"{key}:{marker}"))
+    return issues
+
+
+def collect_checker_issues(module, root: Path) -> list[tuple[str, str]]:
+    issues = list(module.collect_issues(root))
+    for rel in EXTRA_REQUIRED_FILES:
+        if not module.resolve(root, rel).exists():
+            issues.append(("MISSING_REQUIRED_FILE", rel.as_posix()))
+    if any(code == "MISSING_REQUIRED_FILE" and value == module.MANIFEST_REL.as_posix() for code, value in issues):
+        return issues
+    issues.extend(collect_direct_manifest_issues(module, root))
+    return issues
+
+
 def assert_issue(module, root: Path, expected: tuple[str, str]) -> None:
-    issues = module.collect_issues(root)
+    issues = collect_checker_issues(module, root)
     if expected not in issues:
         raise AssertionError(f"missing expected issue {expected!r}; saw {issues!r}")
 
@@ -80,23 +176,22 @@ def assert_system_exit_contains(action, expected_substring: str) -> None:
     raise AssertionError(f"expected SystemExit containing {expected_substring!r}")
 
 
+def iter_required_files(module) -> set[Path]:
+    return {*module.REQUIRED_FILES, *EXTRA_REQUIRED_FILES}
+
+
+def iter_seed_files(module) -> set[Path]:
+    return {VALIDATOR_REL, *iter_required_files(module)}
+
+
 def seed_materialized_root(module, root: Path, source_root: Path) -> None:
-    paths_to_copy = {VALIDATOR_REL, *module.REQUIRED_FILES}
-    for rel in paths_to_copy:
+    for rel in iter_seed_files(module):
         source_path = source_root / rel
         if not source_path.exists():
             raise AssertionError(f"source path missing: {source_path}")
         destination_path = root / rel
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_path, destination_path)
-
-
-def load_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def write_json(path: Path, payload: object) -> None:
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
@@ -108,22 +203,50 @@ def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[t
         raise AssertionError("manifest present_surfaces must stay a dict in the seeded baseline")
 
     expectations: list[tuple[str, tuple[str, ...]]] = []
-    for key, attr in MANIFEST_SURFACE_EXPECTATION_ATTRS:
+    merged: dict[str, tuple[str, ...]] = {}
+
+    for key, attr in VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS:
         expected = getattr(module, attr, None)
         if expected is None:
             continue
         if not isinstance(expected, tuple) or not all(isinstance(item, str) for item in expected):
             raise AssertionError(f"validator surface expectation must stay tuple[str, ...]: {attr}")
+        merged[key] = tuple(expected)
 
+    for key, expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.items():
+        if key in merged:
+            merged[key] = tuple(dict.fromkeys([*merged[key], *expected]))
+        else:
+            merged[key] = expected
+
+    for key, expected in merged.items():
         value = surfaces.get(key)
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise AssertionError(f"manifest surface must stay a list[str] in the seeded baseline: {key}")
-
         missing = [marker for marker in expected if marker not in value]
         if missing:
             raise AssertionError(f"manifest surface baseline drifted for {key}: {missing!r}")
-        expectations.append((key, tuple(expected)))
+        expectations.append((key, expected))
+
     return expectations
+
+
+def augment_self_test_seed_root(module, root: Path) -> None:
+    for rel in EXTRA_REQUIRED_FILES:
+        path = module.resolve(root, rel)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("present\n", encoding="utf-8")
+
+    manifest_path = module.resolve(root, module.MANIFEST_REL)
+    payload = load_json(manifest_path)
+    if not isinstance(payload, dict):
+        raise AssertionError("self-test manifest root must stay a dict")
+    surfaces = payload.setdefault("present_surfaces", {})
+    if not isinstance(surfaces, dict):
+        raise AssertionError("self-test manifest present_surfaces must stay a dict")
+    for key, expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.items():
+        surfaces.setdefault(key, list(expected))
+    write_json(manifest_path, payload)
 
 
 def run_matrix(module, seed_root) -> int:
@@ -131,7 +254,7 @@ def run_matrix(module, seed_root) -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_") as tmp_dir:
         root = Path(tmp_dir)
         seed_root(root)
-        if module.collect_issues(root) != []:
+        if collect_checker_issues(module, root) != []:
             raise AssertionError("expected clean baseline self-test root")
         checks_run += 1
 
@@ -193,8 +316,6 @@ def run_matrix(module, seed_root) -> int:
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
         checks_run += 1
 
-        seed_root(root)
-        manifest_path = module.resolve(root, module.MANIFEST_REL)
         for rel in (
             module.MANIFEST_REL,
             module.KCONFIG_CASES_REL,
@@ -207,11 +328,13 @@ def run_matrix(module, seed_root) -> int:
             path = module.resolve(root, rel)
             path.write_text("{\n", encoding="utf-8")
             assert_system_exit_contains(
-                lambda: module.collect_issues(root),
+                lambda: collect_checker_issues(module, root),
                 f"invalid json in required file: {path}:",
             )
             checks_run += 1
 
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
         for key, expected in collect_manifest_surface_expectations(module, manifest_path):
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
@@ -292,7 +415,7 @@ def run_matrix(module, seed_root) -> int:
         assert_issue(module, root, ("GENKSYMS_MANIFEST_MISMATCH", "root"))
         checks_run += 1
 
-        for rel in module.REQUIRED_FILES:
+        for rel in iter_required_files(module):
             seed_root(root)
             path = module.resolve(root, rel)
             path.unlink()
@@ -365,7 +488,6 @@ def build_self_test_root(root: Path) -> None:
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
-            "archive_support": ["archive-a.tar.xz"],
         },
     }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
@@ -493,6 +615,7 @@ def collect_issues(root: Path):
         validator_path.write_text(fake_validator, encoding="utf-8")
         module = load_validator(root)
         module.build_self_test_root(root)
+        augment_self_test_seed_root(module, root)
         checks_run += run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, root))
 
         missing_validator_root = root / "missing-validator-root"
