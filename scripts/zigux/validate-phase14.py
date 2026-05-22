@@ -28,6 +28,7 @@ SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 RELEASE_BOUNDARY_PATH = "Documentation/zigux/phase14-release-boundary-survey.md"
 PRODUCTIZATION_GAP_PATH = "Documentation/zigux/phase14-productization-gap-survey.md"
 SHARED_SMOKE_GAP_PATH = "Documentation/zigux/phase14-shared-smoke-current-master-gap.md"
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 ATTACHED_TOOLCHAIN_GUIDANCE_PATH = "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
 CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 WORKQUEUE_SLICE_PATH = "Documentation/zigux/phase14-workqueue-bridge-slice.md"
@@ -62,6 +63,7 @@ REQUIRED_FILES = [
     RELEASE_BOUNDARY_PATH,
     PRODUCTIZATION_GAP_PATH,
     SHARED_SMOKE_GAP_PATH,
+    FREEZE_MAP_PATH,
     ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
     CORE_BOUNDARY_TRACEABILITY_PATH,
     WORKQUEUE_SLICE_PATH,
@@ -130,6 +132,13 @@ REQUIRED_MARKERS = {
         "the now-aligned raw-manifest posture",
         "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
         "`zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again through the current contents path as a ring-buffer-local survey companion",
+    ],
+    FREEZE_MAP_PATH: [
+        "## Study / Boundary Only",
+        "- `kernel/workqueue.c`",
+        "- `kernel/trace/ring_buffer.c`",
+        "shared reminder surfaces that summarize freeze posture, especially `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`, must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md` when they summarize that boundary set",
+        "study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md` so the `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` inventory does not drift from this file",
     ],
     CORE_BOUNDARY_TRACEABILITY_PATH: [
         "`kernel/workqueue.c`: `Study / Boundary Only`",
@@ -309,6 +318,7 @@ def fixture_text(rel_path: str) -> str:
         RELEASE_BOUNDARY_PATH: "# Phase 14 Release Boundary Survey",
         PRODUCTIZATION_GAP_PATH: "# Phase 14 Productization Gap Survey",
         SHARED_SMOKE_GAP_PATH: "# Phase 14 Shared Smoke Current-Master Gap",
+        FREEZE_MAP_PATH: "# Zigux Freeze Map",
         ATTACHED_TOOLCHAIN_GUIDANCE_PATH: "# Phase 14 Attached Toolchain Guidance Gap",
         CORE_BOUNDARY_TRACEABILITY_PATH: "# Phase 14 Core Boundary Traceability",
         WORKQUEUE_SLICE_PATH: "# Phase 14 Workqueue Bridge Slice",
@@ -418,6 +428,7 @@ def run_self_test() -> int:
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
             END_TO_END_SMOKE_MANIFEST_PATH,
+            FREEZE_MAP_PATH,
             WORKFLOW_PATH,
             WORKQUEUE_MANIFEST_PATH,
             RING_BUFFER_MANIFEST_PATH,
@@ -434,6 +445,7 @@ def run_self_test() -> int:
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][3]),
             (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][3]),
+            (FREEZE_MAP_PATH, REQUIRED_MARKERS[FREEZE_MAP_PATH][3]),
             (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
@@ -466,7 +478,7 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
-            "the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
+            "the freeze-map study-only inventory, the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
             "rollback-threshold sequencing checker, the dedicated RCU rollback "
             "guardrail, and the returned workqueue reviewability shard."
         )
