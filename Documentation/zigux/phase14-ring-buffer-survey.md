@@ -81,6 +81,12 @@ When missed events exist, `ring_buffer_map_get_reader()` tries to encode them in
 - The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details.
 Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
 
+## Remote-reader metadata audit
+- `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` do not open a detached import seam for Zigux. They extend the same reader-visible state machine into the remote-reader path.
+- `rb_read_remote_meta_page()` refreshes the exported meta page with the remote CPU buffer's current entries, overrun accounting, read count, and `reader.id`, so the remote path still publishes the same reader-facing accounting contract that local mmap readers depend on.
+- `__rb_get_reader_page_from_remote()` is also more than a pointer handoff. It can pull the current reader page back out of the local page ring, import a remote `reader_page`, reset the imported page's commit or write positions, and zero the external `reader_page` storage before the remote transition is complete.
+- Those steps remain coupled to the same page-link, reader-page, and loss-accounting invariants that govern local readers. Remote readers may cross CPU ownership, but they still reuse the core C-owned head-page and metadata choreography, so this lane should keep remote-reader metadata refresh and page import explicitly in C instead of implying a wrapper-safe bridge.
+
 ## Reader-page consume audit
 - `__rb_get_reader_page()` is already a stay-in-C state machine, not a lightweight accessor.
 Under local IRQ disable and `cpu_buffer->lock`, it returns the current reader page only when unread bytes remain, otherwise it zeroes the out-of-ring reader page, splices that page around the current head, retries while writers are moving the head marker, and only then updates `reader_page`, `read_stamp`, and page counters.
@@ -122,7 +128,7 @@ The tracefs helpers share the same serialization gate, but one path keeps a file
 - reopen only when one of the packet-local conditions below becomes true:
   - the dedicated survey note or manifest drift on surveyed commit, blocked gap, last closed follow-up, replay-route wording, or returned executable-companion truthfulness
   - the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch
-  - genuinely narrower stay-in-C evidence appears around reserve or commit publication, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
+  - genuinely narrower stay-in-C evidence appears around reserve or commit publication, remote-reader metadata, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
 - next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`; while the contents-path readback remains partial, keep the returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence instead of shared parity proof
 
 ## Attached Toolchain and Environment Guidance
@@ -143,6 +149,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
+- landed `phase14-ring-buffer-remote-reader-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-extraction-followup`
 - landed `phase14-ring-buffer-tracefs-reader-serialization-followup`
