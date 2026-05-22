@@ -38,18 +38,22 @@ EXPECTED_STRING_CLOSURE_NOTE = (
     "A third current helper-family tie-breaker inside that packet is the `string` "
     "direct-anchor route: keep `tools/lib/string.zig` parked unless a fresh reread "
     "finds drift in the helper-local `strscpy()` or `strscpyPad()` copy-and-pad "
-    "anchors, memparse safety, matched-prefix or suffix boundaries, sysfs "
-    "newline-aware equality or lookup order through `sysfsStreq()`, `sysfs_streq()`, "
-    "`sysfsMatchString()`, and `sysfs_match_string()`, `matchString()` or "
-    "`match_string()` C-string lookup order, counted-search `strnchr()`, "
-    "accepted-prefix `strspn()`, or `strnchrNul()` boundary behavior, embedded-NUL "
-    "trim preservation, or moving earliest-dirty-byte `memchrInv()` coverage, or "
-    "drift in the already-committed `replaceChar` parity fields and current string "
-    "fixture keys. Current `master` still keeps the helper-local sysfs review anchors "
-    "explicit in `tools/lib/string.zig`, the committed manifest, and "
+    "anchors, memparse safety anchors, matched-prefix-length or suffix-boundary "
+    "anchors, sysfs newline-aware equality or lookup-order anchors through "
+    "`sysfsStreq()`, `sysfs_streq()`, `sysfsMatchString()`, and `sysfs_match_string()`, "
+    "C-string list lookup anchors through `matchString()` and `match_string()`, "
+    "lexical-compare and search-or-length boundary anchors through `strcmp()`, "
+    "`strlen()`, `strnlen()`, `strchr()`, `strrchr()`, `strchrNul()`, and "
+    "`strchrnul()`, counted-search anchors through `strpbrk()`, `strcspn()`, "
+    "`strnchr()`, `strnchrNul()` or `strnchrnul()`, and `strspn()`, embedded-NUL "
+    "trim preservation, or moving-earliest-dirty-byte `memchrInv()` coverage, or "
+    "unless committed `replaceChar` parity bytes or current string fixture keys drift; "
+    "do not reopen missing closure-side validator names by default. Current `master` "
+    "still keeps that broader string review packet explicit in `tools/lib/string.zig`, "
+    "the committed manifest, `scripts/zigux/check-phase1-string-review-packet.py`, and "
     "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, so leave string "
-    "parked unless those direct surfaces drift or dedicated shared sysfs fixture keys "
-    "land."
+    "parked unless those direct string review surfaces drift, committed `replaceChar` "
+    "parity bytes drift, or dedicated shared string fixture keys land."
 )
 
 EXPECTED_STRING_SYSFS_MARKER = (
@@ -76,9 +80,9 @@ EXPECTED_RBTREE_NEXT_SAFE_STEP = (
 )
 
 EXPECTED_STRING_SYSFS_REVIEW_SUMMARY = (
-    "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit "
-    "through the direct string tests because the shared Phase 1 replay still carries "
-    "no dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus "
+    "helper-local string sysfs newline-aware equality and lookup-order anchors stay "
+    "explicit through the direct string tests because the shared Phase 1 replay still "
+    "carries no dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus "
     "sysfsMatchString and sysfs_match_string remain review-visible at the helper "
     "surface"
 )
@@ -88,6 +92,25 @@ EXPECTED_STRING_NEXT_SAFE_STEP = (
     "sysfs fixture keys land; do not reopen missing closure-side validator names by "
     "default."
 )
+EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY = (
+    "the direct counted-search and C-string search-length follow-up stays explicit "
+    "because the shared Phase 1 replay still does not carry dedicated counted-search "
+    "or search-length fixture keys, so strchr() or strrchr() full-length C-string "
+    "searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix "
+    "scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, "
+    "strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL "
+    "boundary behavior remain owned by the helper-local anchors"
+)
+EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS = [
+    'test "strchr mirrors full-length C-string searches"',
+    'test "strrchr finds the last in-range match with C-string semantics"',
+    'test "strpbrk finds the first accepted byte with C-string semantics"',
+    'test "strspn counts the accepted prefix with C-string semantics"',
+    'test "strcspn counts until the first rejected byte with C-string semantics"',
+    'test "strnchr honors count and C-string boundaries"',
+    'test "strnlen honors count and C-string boundaries"',
+    'test "strnchrNul returns the first match, NUL, or count boundary"',
+]
 
 
 def repo_root(override: str | None) -> Path:
@@ -198,6 +221,27 @@ def collect_failures(root: Path) -> list[str]:
             EXPECTED_STRING_NEXT_SAFE_STEP,
         )
     )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.{STRING_KEY}:counted_search_review_summary",
+            string_review.get("strnchr_review_summary"),
+            EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.{STRING_KEY}:counted_search_review_anchors",
+            string_review.get("counted_search_review_anchors"),
+            EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS,
+        )
+    )
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.{STRING_KEY}:strnchrnul_review_anchor",
+            string_review.get("strnchrnul_review_anchor"),
+            'test "strnchrNul returns the first match, NUL, or count boundary"',
+        )
+    )
 
     return failures
 
@@ -232,6 +276,9 @@ def make_fixture_tree(root: Path) -> None:
                     STRING_KEY: {
                         "sysfs_review_summary": EXPECTED_STRING_SYSFS_REVIEW_SUMMARY,
                         "next_safe_step_note": EXPECTED_STRING_NEXT_SAFE_STEP,
+                        "strnchr_review_summary": EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY,
+                        "counted_search_review_anchors": EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS,
+                        "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
                     },
                 }
             },
@@ -278,8 +325,8 @@ def run_self_test() -> int:
             lambda root: write_text(
                 root / CLOSURE_NOTE_REL,
                 load_text(root, CLOSURE_NOTE_REL).replace(
-                    "dedicated shared sysfs fixture keys land",
-                    "older shared sysfs cue returns",
+                    "`strspn()`",
+                    "`strspnOld()`",
                     1,
                 ),
             ),
@@ -321,6 +368,36 @@ def run_self_test() -> int:
                 lambda manifest: manifest["review_anchors"][STRING_KEY].__setitem__(
                     "next_safe_step_note",
                     "drifted string note",
+                ),
+            ),
+        ),
+        (
+            "bad_string_manifest_counted_search_summary",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["review_anchors"][STRING_KEY].__setitem__(
+                    "strnchr_review_summary",
+                    "drifted counted-search summary",
+                ),
+            ),
+        ),
+        (
+            "bad_string_manifest_counted_search_anchor_list",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["review_anchors"][STRING_KEY].__setitem__(
+                    "counted_search_review_anchors",
+                    EXPECTED_STRING_COUNTED_SEARCH_REVIEW_ANCHORS[:-1],
+                ),
+            ),
+        ),
+        (
+            "bad_string_manifest_match_or_nul_anchor",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["review_anchors"][STRING_KEY].__setitem__(
+                    "strnchrnul_review_anchor",
+                    'test "strnchrNul drifts"',
                 ),
             ),
         ),
