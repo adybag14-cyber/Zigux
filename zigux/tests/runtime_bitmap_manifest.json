@@ -2,11 +2,12 @@
   "phase": "Phase 9",
   "lane_key": "P9-L08",
   "status": "active",
-  "surveyed_commit": "2026-05-22-runtime-bitmap-module-restored",
-  "scope": "partial runtime bitmap reminder packet, direct sample proof, direct loader proof, direct module proof, manifest-backed ownership packet, top-bit companion proof, and blocked diff-side follow-through only",
+  "surveyed_commit": "2026-05-22-runtime-bitmap-diff-returned",
+  "scope": "partial runtime bitmap reminder packet, direct sample proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader shared runtime-loader parity claim",
   "sample_path": "samples/zigux/runtime_bitmap.zig",
   "loader_path": "samples/zigux/runtime_bitmap_loader.zig",
   "module_path": "zigux/tests/runtime_bitmap_module.zig",
+  "diff_path": "zigux/tests/runtime_bitmap_diff.zig",
   "top_bit_path": "samples/zigux/runtime_bitmap_top_bit_contract.zig",
   "survey_path": "zigux/tests/runtime_bitmap_survey.zig",
   "survey_note_path": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
@@ -15,15 +16,15 @@
   "validation_entrypoint": "phase9-runtime-bitmap-tests",
   "review_prompts": [
     "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.",
-    "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, and top-bit packet only; the restored module-side proof sits adjacent to that route.",
+    "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, diff, and top-bit packet only; the direct module proof sits adjacent to that route.",
     "Keep the direct sample duplicate bit-list normalization and malformed-bit-list cold-state guards explicit when the manifest summarizes parse-and-print evidence.",
     "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.",
-    "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the restored direct module packet.",
-    "Keep diff follow-through blocked until that file is directly readable again."
+    "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.",
+    "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet."
   ],
   "exact_checks": [
     "descriptor_and_anchor",
@@ -48,6 +49,9 @@
     "module_initialized_exit_summary_stability",
     "module_post_selftest_mutation_and_copy",
     "module_source_target_lifecycle_guards",
+    "diff_summary_replay",
+    "diff_copy_tail_clearing",
+    "diff_exit_lifecycle_guards",
     "top_bit_contract",
     "shared_build_route_visibility"
   ],
