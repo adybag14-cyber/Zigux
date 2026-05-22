@@ -212,7 +212,7 @@ EXPECTED_BITMAP_REVIEW_ANCHORS = {
     "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
     "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
     "review_packet_summary": "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.",
-    "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here, and if the separate bitmap closure-validator anchor-sync repair is still outstanding, treat that as the only other bitmap follow-through.",
+    "next_safe_step_note": "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here; do not reopen older closure-side or validator-route cue names by default.",
 }
 
 EXPECTED_STRING_REVIEW_ANCHORS = {
@@ -348,10 +348,10 @@ def collect_failures(root: Path) -> list[str]:
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.bitmap.zig", review_anchors.get("tools/lib/bitmap.zig"), EXPECTED_BITMAP_REVIEW_ANCHORS))
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib/find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.string.zig", review_anchors.get("tools/lib/string.zig"), EXPECTED_STRING_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig", review_anchors.get("tools/lib/bitmap.zig"), EXPECTED_BITMAP_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig", review_anchors.get("tools/lib/find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig", review_anchors.get("tools/lib/string.zig"), EXPECTED_STRING_REVIEW_ANCHORS))
 
     for script_rel, label in DELEGATED_CHECKERS:
         failures.extend(run_checker(root, script_rel, label))
