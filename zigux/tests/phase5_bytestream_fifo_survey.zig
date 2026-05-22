@@ -135,9 +135,9 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "StorageBacking.embedded_fixed_buffer",
         "reviewContract().focus",
         "keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`",
-        "draining `\\\"hello\\\"` into a three-byte buffer yields `\\\"hel\\\"`",
+        "draining `\"hello\"` into a three-byte buffer yields `\"hel\"`",
         "partial `enqueueSlice()` truncation at the last two slots",
-        "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_build.zig`",
+        "authenticated GitHub contents reads in this environment now recover `zigux/tests/phase5_build.zig` directly again",
         "current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
     };
     for (required_mentions) |needle| {
@@ -169,9 +169,9 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
     defer std.testing.allocator.free(survey_note);
 
     const required_markers = [_][]const u8{
-        "Fresh repo-first inspection on 2026-05-21 confirmed these same-lane facts:",
-        "## Exact checks verified on 2026-05-21",
-        "Fresh direct sample and tests readback on 2026-05-21 showed this exact packet on current `master`:",
+        "Fresh repo-first inspection on 2026-05-22 confirmed these same-lane facts:",
+        "## Exact checks verified on 2026-05-22",
+        "Fresh direct sample and tests readback on 2026-05-22 showed this exact packet on current `master`:",
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
         "the fixed-buffer storage backing",
         "the ten-item `reviewContract().focus` order",
@@ -185,7 +185,7 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
         "`occupancySummary()` keeps that preview state explicit at `queue_len = 10`, `available = 22`, and `wrapped = false`",
         "`writableSpanSummary()` keeps the same preview boundary explicit at `tail_index = 17`, `writable_count = 22`, `first_window_len = 15`, `second_window_len = 7`, and `wraps = true`",
         "`runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`",
-        "short-drain `\\\"hel\\\"` / `\\\"lo\\\"` helper boundary",
+        "short-drain `\"hel\"` / `\"lo\"` helper boundary",
         "invalid post-exit replay rejection",
     };
     for (required_markers) |needle| {
