@@ -37,6 +37,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/check-phase10-closure-manifest-counts.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -132,6 +133,10 @@ CHECKS = (
     CheckSpec(
         "phase10-tests-readme-core-surfaces",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    ),
+    CheckSpec(
+        "phase10-closure-manifest-counts",
+        "scripts/zigux/check-phase10-closure-manifest-counts.py",
     ),
     CheckSpec("phase10-closure", "scripts/zigux/validate-phase10-closure.py"),
 )
@@ -535,7 +540,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         slice_path = root / "Documentation/zigux/phase10-virtio-core-slice.md"
         slice_text = slice_path.read_text(encoding="utf-8").replace(
             "landed `virtio_driver_id` helper or replay coverage on current `master` while those exact paths stay unreadable as shipped evidence in this runtime",
