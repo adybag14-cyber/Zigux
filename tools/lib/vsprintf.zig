@@ -183,6 +183,20 @@ test "scnprintfPad zero logical size on offset caller slices clears only the vie
     try std.testing.expectEqual(@as(u8, 0xdd), backing[9]);
 }
 
+test "scnprintfPad respects smaller logical sizes on offset caller slices" {
+    var backing = [_]u8{0xee} ** 12;
+    const view = backing[2..9];
+
+    const written = scnprintfPad(view, 4, "{s}", .{"id"});
+    try std.testing.expectEqual(@as(usize, 4), written);
+    try std.testing.expectEqualStrings("id  ", view[0..written]);
+    try std.testing.expectEqual(@as(u8, 0), view[written]);
+    try std.testing.expectEqual(@as(u8, 0xee), backing[1]);
+    try std.testing.expectEqual(@as(u8, 0xee), view[written + 1]);
+    try std.testing.expectEqual(@as(u8, 0xee), view[written + 2]);
+    try std.testing.expectEqual(@as(u8, 0xee), backing[9]);
+}
+
 test "scnprintf family respects offset caller slices and leaves neighboring bytes untouched" {
     var scn_backing = [_]u8{0xaa} ** 10;
     const scn_view = scn_backing[2..8];
