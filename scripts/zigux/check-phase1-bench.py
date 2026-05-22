@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 from pathlib import Path
 import shutil
@@ -148,6 +150,14 @@ def load_runtime_expectations(path: Path) -> tuple[str, object]:
     if kind != "pass":
         return (kind, payload)
     return ("pass", expectations)
+
+
+def emit_expectations_json_error(exc: json.JSONDecodeError) -> None:
+    print("PHASE1_BENCH_CHECK=fail")
+    print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
+    print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
+    print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
+    print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
 
 
 def validate_expectations(expectations: object) -> tuple[str, object]:
@@ -453,6 +463,24 @@ def run_self_test() -> None:
         kind, payload = load_runtime_bench_source(source_path)
         assert kind == "bench_source_missing_markers"
         assert payload == ["find_edge_checksum_print"]
+        case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-expectations-") as tmp:
+        expectations_path = Path(tmp) / "phase1_bench_expectations.json"
+        expectations_path.write_text('{"status": "pass",', encoding="utf-8")
+        kind, payload = load_runtime_expectations(expectations_path)
+        assert kind == "expectations_json_error"
+        assert isinstance(payload, json.JSONDecodeError)
+        rendered = io.StringIO()
+        with contextlib.redirect_stdout(rendered):
+            emit_expectations_json_error(payload)
+        assert rendered.getvalue().splitlines() == [
+            "PHASE1_BENCH_CHECK=fail",
+            "PHASE1_BENCH_CHECK_REASON=expectations_json_error",
+            f"EXPECTATIONS_JSON_ERROR={payload.msg}",
+            f"EXPECTATIONS_JSON_LINE={payload.lineno}",
+            f"EXPECTATIONS_JSON_COLUMN={payload.colno}",
+        ]
         case_count += 1
 
     duplicate_top_level_text = """{
@@ -1054,10 +1082,7 @@ def main() -> int:
     if kind == "expectations_json_error":
         exc = payload
         assert isinstance(exc, json.JSONDecodeError)
-        print("PHASE1_BENCH_CHECK=fail")
-        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
-        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
-        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
+        emit_expectations_json_error(exc)
         return 1
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
@@ -1086,9 +1111,9 @@ def main() -> int:
         print("PHASE1_BENCH_CHECK=fail")
         print(f"BENCH_COMMAND_EXIT={result.returncode}")
         if result.stdout:
-            print(result.stdout.rstrip("\n"))
+            print(result.stdout.rstrip("\\n"))
         if result.stderr:
-            print(result.stderr.rstrip("\n"))
+            print(result.stderr.rstrip("\\n"))
         return 1
 
     kind, payload = validate_output(expectations, result.stdout)
