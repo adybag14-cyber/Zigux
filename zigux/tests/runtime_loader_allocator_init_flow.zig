@@ -554,3 +554,50 @@ test "shared runtime loader keeps initialized-stage waiting metadata from drifti
     try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
     try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
 }
+
+test "shared runtime loader keeps selftest-complete waiting metadata from drifting before release" {
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+
+    trace_events_request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+}
