@@ -54,6 +54,62 @@ REQUIRED_PATHS = (
     "zigux/tests/runtime_atomic64_diff.zig",
 )
 
+WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
+    "baseline_round_trip,"
+    "workflow_order_drift,"
+    "missing_make_artifact_diff_contract_selftest_command,"
+    "missing_make_route_counts_command,"
+    "missing_make_reversible_delivery_selftest_command,"
+    "missing_make_reversible_delivery_command,"
+    "missing_make_remaining_gap_command,"
+    "missing_make_validator_replays_selftest_command,"
+    "missing_make_validator_replays_command,"
+    "missing_make_perf_baseline_command,"
+    "missing_workflow_validate_route,"
+    "missing_workflow_test_route,"
+    "missing_workflow_artifact_diff_helper_selftest,"
+    "missing_workflow_artifact_diff_contract_selftest,"
+    "missing_workflow_artifact_diff_contract_check,"
+    "missing_workflow_artifact_diff_determinism_selftest,"
+    "missing_workflow_artifact_diff_determinism_check,"
+    "missing_workflow_artifact_diff_validator_replays_selftest,"
+    "missing_workflow_artifact_diff_validator_replays_check,"
+    "missing_matrix_remaining_gap_marker,"
+    "missing_gate_evidence_bitmap_build_route,"
+    "missing_gate_evidence_bitmap_wrapper,"
+    "missing_tests_readme_perf_make_route,"
+    "missing_build_test_fsmount_route,"
+    "missing_build_bitmap_diff_route,"
+    "missing_build_bitmap_diff_survey_route,"
+    "missing_build_bitmap_live_helper_replay_route,"
+    "forbidden_perf_baseline_dependency"
+)
+
+REQUIRED_COMMAND_OUTPUT_MARKERS = {
+    "phase4-workflow-route-counts-self-test": (
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+        ),
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES="
+            + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
+        ),
+    ),
+    "phase4-workflow-route-counts": (
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
+        ),
+        ("PHASE4_WORKFLOW_ROUTE_COUNTS", "PHASE4_WORKFLOW_ROUTE_COUNTS=pass"),
+    ),
+}
+
 
 @dataclass(frozen=True)
 class CheckSpec:
@@ -232,6 +288,15 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
         issues.append(f"{prefix}:stderr={stderr}")
 
 
+def ensure_command_output_markers(
+    spec: CheckSpec, completed: subprocess.CompletedProcess[str], issues: list[str]
+) -> None:
+    stdout = completed.stdout
+    for label, marker in REQUIRED_COMMAND_OUTPUT_MARKERS.get(spec.name, ()):
+        if marker not in stdout:
+            issues.append(f"output_marker_missing:{spec.name}:{label}")
+
+
 def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     issues: list[str] = []
     for rel in REQUIRED_PATHS:
@@ -270,6 +335,8 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         if completed.returncode != 0:
             issues.append(f"live_failed:{spec.name}:exit={completed.returncode}")
             append_output(issues, f"live_failed:{spec.name}", completed)
+            continue
+        ensure_command_output_markers(spec, completed, issues)
 
     return issues
 
@@ -300,8 +367,12 @@ def build_stub_script(
     *,
     self_test_exit_code: int = 0,
     live_exit_code: int | None = None,
+    self_test_stdout_lines: tuple[str, ...] = (),
+    live_stdout_lines: tuple[str, ...] = (),
 ) -> None:
     live_exit_literal = self_test_exit_code if live_exit_code is None else live_exit_code
+    self_test_stdout_literal = repr(list(self_test_stdout_lines))
+    live_stdout_literal = repr(list(live_stdout_lines))
     write_text(
         path,
         "\n".join(
@@ -314,6 +385,11 @@ def build_stub_script(
                 "args = parser.parse_args()",
                 f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
                 f"LIVE_EXIT_CODE = {live_exit_literal}",
+                f"SELF_TEST_STDOUT_LINES = {self_test_stdout_literal}",
+                f"LIVE_STDOUT_LINES = {live_stdout_literal}",
+                "lines = SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES",
+                "for line in lines:",
+                "    print(line)",
                 "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
             ]
         )
@@ -366,6 +442,22 @@ def write_matrix_fixture(root: Path) -> None:
     )
 
 
+def configure_workflow_route_stub(root: Path) -> None:
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-workflow-route-counts.py",
+        self_test_stdout_lines=(
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES="
+            + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
+        ),
+        live_stdout_lines=(
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
+        ),
+    )
+
+
 def run_self_test() -> int:
     original_path = os.environ.get("PATH", "")
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validate_") as tmp_dir:
@@ -378,6 +470,7 @@ def run_self_test() -> int:
             build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
             write_matrix_fixture(root)
+            configure_workflow_route_stub(root)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
 
@@ -643,12 +736,56 @@ def run_self_test() -> int:
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
         routes = root / "scripts/zigux/check-phase4-workflow-route-counts.py"
-        build_stub_script(routes, self_test_exit_code=1, live_exit_code=0)
+        build_stub_script(
+            routes,
+            self_test_exit_code=1,
+            live_exit_code=0,
+            self_test_stdout_lines=(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES="
+                + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
+            ),
+            live_stdout_lines=(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
+            ),
+        )
         issues = collect_issues(root)
         expected = "live_failed:phase4-workflow-route-counts-self-test:exit=1"
         if expected not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:workflow_route_counts_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        routes = root / "scripts/zigux/check-phase4-workflow-route-counts.py"
+        build_stub_script(
+            routes,
+            self_test_stdout_lines=(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+            ),
+            live_stdout_lines=(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
+            ),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-workflow-route-counts-self-test:"
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:workflow_route_counts_self_test_catalog_marker_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -682,7 +819,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
