@@ -44,6 +44,7 @@ EXPECTED_SELF_TEST_CASES = (
     "review_checklist_drift",
     "note_marker_drift",
     "broader_note_marker_drift",
+    "broader_note_stale_packet_drift",
     "repo_warning_drift",
     "helper_mode_drift",
     "helper_catalog_drift",
@@ -81,6 +82,10 @@ ARTIFACT_DIFF_NOTE_MARKERS = (
     "`scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together",
     "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_SELF_TEST_CASES` must stay aligned with the helper's published `--self-test` packet",
     "`ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_BASE_CASES`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASES`, `ARTIFACT_DIFF_CONTRACT_CASE_COUNT`, and `ARTIFACT_DIFF_CONTRACT_CASES` must stay aligned with the published contract replay packet",
+    "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19`",
+    "`ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`, and `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`",
+    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=25`",
+    "`PHASE4_ARTIFACT_DIFF_HELPER_SELF_TEST_CASE_COUNT=19`, `PHASE4_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24`, and `PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28`",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -382,6 +387,17 @@ def self_test() -> None:
         fixture_root(root)
         write(root / ARTIFACT_DIFF_NOTE, read(root, ARTIFACT_DIFF_NOTE).replace("shared host-side comparison helper", "stale helper", 1))
         covered.append(expect_failure(root, "broader_note_marker_drift"))
+
+        fixture_root(root)
+        write(
+            root / ARTIFACT_DIFF_NOTE,
+            read(root / ARTIFACT_DIFF_NOTE).replace(
+                "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19`",
+                "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23`",
+                1,
+            ),
+        )
+        covered.append(expect_failure(root, "broader_note_stale_packet_drift"))
 
         fixture_root(root)
         write(root / REPO_WARNING, read(root, REPO_WARNING).replace("scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/not-the-right-checker.py", 1))
