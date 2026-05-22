@@ -16,7 +16,7 @@
   "validation_entrypoint": "phase9-runtime-bitmap-tests",
   "review_prompts": [
     "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.",
-    "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, diff, and top-bit packet only; the direct module proof sits adjacent to that route.",
+    "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, module, survey, diff, and top-bit packet only; it still does not prove the broader runtime bitmap packet or shared runtime-loader parity.",
     "Keep the direct sample duplicate bit-list normalization and malformed-bit-list cold-state guards explicit when the manifest summarizes parse-and-print evidence.",
     "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
