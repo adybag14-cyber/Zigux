@@ -65,8 +65,8 @@ EXPECTED_INVALID_FIXTURE_SNIPPETS = [
 
 EXPECTED_PERF_TEST_SNIPPETS = [
     "fn validatePerfMatrix() !void {",
-    "const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;",
-    "for (expected, 0..) |want, idx| {",
+    "if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size) {",
+    "if (fixtures.perf_encoded_buf_size < base64.chars(case.payload.len, case.padding)) {",
     "for (fixtures.perf_cases, 0..) |case, idx| {",
     "try validatePerfMatrix();",
 ]
@@ -335,7 +335,7 @@ def run_self_test() -> None:
             root,
             PERF_TEST_PATH,
             EXPECTED_PERF_TEST_SNIPPETS[1],
-            "const expected_payload_fingerprint: u64 = 0xdead_beef_dead_beef;",
+            "if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size + 1) {",
         )
         expect_failure(
             root,
