@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L18",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-21",
+  "surveyed_commit": "master-readback-2026-05-22",
   "anchor": "drivers/tty/hvc/hvc_console.h",
   "roadmap_position": "adjacent notifier/list_head evidence beside the Phase 13 shared-helper anchors",
   "survey_summary": {
@@ -30,7 +30,7 @@
       "behavior": "Ships a read-only hlist view with isEmpty(), first(), len(), firstPprevMatchesHead(), hasConsistentPrevLinks(), firstBrokenPrevLink(), and tailNextIsNull()."
     },
     "include/zigux/abi.h": {
-      "sha": "a7a816e0f2b0810260cf881bbb550675f2373d55",
+      "sha": "bf54fd9503bb5106fde8ba30705f36d7f4527acb",
       "behavior": "Mirrors the bounded C-side interop packet through zigux_notifier_chain_has_nonincreasing_priority(), zigux_notifier_first_chain_priority_increase(), zigux_list_first_broken_backlink(), zigux_list_has_consistent_backlinks(), zigux_hlist_first_broken_prev_link(), and zigux_hlist_has_consistent_prev_links(), plus zigux_notifier_block, zigux_list_head, zigux_hlist_head, and zigux_hlist_node."
     },
     "drivers/tty/hvc/hvc_console.h": {
@@ -38,19 +38,19 @@
       "behavior": "Keeps the adjacent HVC notifier declarations visible through notifier_add_irq, notifier_del_irq, notifier_hangup_irq, and the hv_ops notifier callbacks."
     },
     "scripts/zigux/check-phase13-notifier-packet.py": {
-      "sha": "d80bdb58fefdb110872efc9de7b92b0354dd420a",
+      "sha": "e1f20086652c55b4deb366f372bb81ddda7a4bae",
       "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, HVC declarations, and repo-reality-gap wording."
     },
     "zigux/tests/phase13_notifier_list_reviewability.zig": {
-      "sha": "7b62256190263e285cbd8ebc3d5911f91e5f9f41",
+      "sha": "63990a06c3bbdefdf0363e2babc05d1b88f9d376",
       "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, and HVC-header markers visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
-      "sha": "519fb5d7a820d0a705ca4786f886df1e85679554",
+      "sha": "557b0ff722a87c31f06829a255b18e550cce1a21",
       "behavior": "Keeps the shared Phase 13 release reminder packet aligned while treating the missing notifier-chain helper, dedicated notifier ABI header, and missing shared build-route names as repo-reality gaps."
     },
     "zigux/Makefile": {
-      "sha": "2123cbb48f7bb32293c1bb3dead619e6d437923b",
+      "sha": "73e62472ae62a7d3b1e5ec773af5c7b5d35ec0d8",
       "behavior": "The file is present on current master, but it still does not expose make -C zigux phase13-validate or make -C zigux phase13 as shipped adjacent-packet routes."
     }
   },
