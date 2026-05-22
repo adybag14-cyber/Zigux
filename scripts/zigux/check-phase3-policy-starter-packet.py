@@ -21,6 +21,10 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 TEST_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
+DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
+DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
+DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
+DUMP_CHECKER_PATH = Path("scripts/zigux/check-phase3-policy-dump.py")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 
 EXPECTED_MANIFEST_FIELDS = {
@@ -46,13 +50,20 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
+    "zigux/tests/phase3_policy_dump.zig",
+    "zigux/tests/phase3_policy_dump_build.zig",
+    "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "scripts/zigux/check-phase3-policy-dump.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-dump.py",
+    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
 )
 
 UPDATED_SHARED_REMINDER_MARKER = (
@@ -78,8 +89,14 @@ REQUIRED_MARKERS = {
         "zigux/helpers/unsafe_policy.zig",
         "zigux/unsafe/narrow.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
+        "zigux/tests/phase3_policy_dump.zig",
+        "zigux/tests/phase3_policy_dump_build.zig",
+        "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+        "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+        "python3 scripts/zigux/check-phase3-policy-dump.py",
+        "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
         "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`",
     ),
     VALIDATOR_NOTE_PATH: (
@@ -92,8 +109,13 @@ REQUIRED_MARKERS = {
         "zigux/unsafe/narrow.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-policy-starter-packet.py",
+        "zigux/tests/phase3_policy_dump.zig",
+        "zigux/tests/phase3_policy_dump_build.zig",
+        "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+        "scripts/zigux/check-phase3-policy-dump.py",
         "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3.py",
+        "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.",
     ),
     SHARED_REMINDER_GAP_PATH: (
         UPDATED_SHARED_REMINDER_MARKER,
@@ -169,20 +191,37 @@ REQUIRED_MARKERS = {
         'root_module.addImport("narrow_surface", narrow_surface);',
         '"phase3-policy-starter-packet-test"',
     ),
+    DUMP_CHECKER_PATH: (
+        'DOC_PATH = Path("Documentation/zigux/phase3-policy-slice.md")',
+        'DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")',
+        'BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")',
+        'EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")',
+        '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+        '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+    ),
     MANIFEST_PATH: (
         '"slug": "phase3-policy-starter-packet"',
         '"status": "policy_slice_present"',
         '"zigux/helpers/layout_assert.zig"',
         '"zigux/unsafe/narrow.zig"',
+        '"zigux/tests/phase3_policy_dump.zig"',
+        '"zigux/tests/phase3_policy_dump_build.zig"',
+        '"zigux/tests/fixtures/phase3_policy_dump_expected.txt"',
+        '"scripts/zigux/check-phase3-policy-dump.py"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+        '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
     ),
 }
 
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims"),
+    (POLICY_NOTE_PATH, "zigux/tests/phase3_policy_dump.zig"),
+    (POLICY_NOTE_PATH, "python3 scripts/zigux/check-phase3-policy-dump.py --self-test"),
     (POLICY_NOTE_PATH, "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`"),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
+    (VALIDATOR_NOTE_PATH, "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership."),
     (SHARED_REMINDER_GAP_PATH, UPDATED_SHARED_REMINDER_MARKER),
     (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
     (LAYOUT_ASSERT_PATH, "pub fn assertInteropPolicyLayout() LayoutError!void {"),
@@ -192,6 +231,8 @@ SELF_TEST_CASES = (
     (TEST_PATH, 'test "policy starter packet keeps narrow byte and denial symmetry explicit" {'),
     (TEST_PATH, 'test "policy starter packet keeps unsafe require gates explicit on shared records" {'),
     (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
+    (DUMP_CHECKER_PATH, 'EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")'),
+    (MANIFEST_PATH, '"zigux/tests/phase3_policy_dump.zig"'),
 )
 
 
@@ -361,8 +402,9 @@ def main() -> int:
             print(issue)
         return 1
 
-    print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
+    print(f"validated {args.repo_root / DUMP_CHECKER_PATH}")
+    print(f"validated {args.repo_root / TEST_PATH}")
     return 0
 
 
