@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-21",
+  "surveyed_commit": "master-readback-2026-05-22",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-scatterlist-planner",
   "status": "starter_landed",
@@ -9,13 +9,15 @@
     "lib/devres_scatterlist.zig",
     "Documentation/zigux/phase13-devres-scatterlist-planner.md",
     "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
-    "zigux/tests/phase13_devres_scatterlist.zig"
+    "zigux/tests/phase13_devres_scatterlist.zig",
+    "scripts/zigux/check-phase13-devres-scatterlist-planner.py"
   ],
   "fixture_governance": {
     "scatterlist_lifetime_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "release_match_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "overmapped_request_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "validation_guard": "scripts/zigux/check-phase13-devres-scatterlist-planner.py",
     "owner_map": "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "zigux/tests/phase13_devres_dma_coherent.zig"
