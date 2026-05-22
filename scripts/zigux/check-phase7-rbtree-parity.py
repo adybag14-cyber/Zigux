@@ -120,7 +120,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -172,6 +172,13 @@ def run_self_test() -> None:
         path = root / "zigux" / "tests" / "phase7_rbtree_manifest.json"
         path.unlink()
         expect_missing_file(root, "zigux/tests/phase7_rbtree_manifest.json")
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase7-rbtree-slice.md"
+        marker = "`PHASE7_LANE_KEY=P7-L13`"
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "Documentation/zigux/phase7-rbtree-slice.md", marker)
         cases += 1
         write_fixture_root(root)
 
