@@ -3,7 +3,7 @@
 ## Status
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
-- `PHASE9_LANE_KEY=P9-L02`
+- `PHASE9_LANE_KEY=P9-L01`
 - `PHASE9_SURVEYED_COMMIT=2026-05-21-first-loadable-parity-atomic64-direct-packet`
 - scope: cross-family repo-reality survey for the bounded atomic64 direct packet, the partial bitmap reminder packet, and the shared loader contract surfaces only
 
@@ -59,6 +59,6 @@ Keep this note lane-local and repo-reality-first:
 - do not infer real runtime execution, depmod publication, or live registration control from the currently readable partial pilot packet
 
 ## Next Bounded Step
-Leave `P9-L02` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet.
+Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet.
 If only one family gains or loses trusted-path coverage, hand the repair back to that owning family lane.
 If the shared runtime-loader substrate returns more than the visible note-and-contract pair, hand the loader-side proof back to the shared loader lane before reviving cross-family parity claims here.
