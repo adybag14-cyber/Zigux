@@ -330,6 +330,24 @@ pub const TeardownSummary = struct {
     reboot_glue_checkpoint_reviewable: bool,
 };
 
+pub const RemoveHandoffSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    stop_disposition: StopDisposition,
+    platform_drvdata_owner_identity: []const u8,
+    watchdog_drvdata_owner_identity: []const u8,
+    register_device_failure_stage: []const u8,
+    request_stop_reviewable: bool,
+    register_device_failure_reviewable: bool,
+    reboot_glue_checkpoint_reviewable: bool,
+    blocked_on_platform_cleanup_callback: bool,
+    blocked_on_platform_driver_remove: bool,
+    blocked_on_watchdog_core_unregister: bool,
+    blocked_on_host_shutdown_execution: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -795,6 +813,28 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn summarizeRemoveHandoff(self: *Self, nowayout: bool) RemoveHandoffSummary {
+        const teardown = self.teardownCheckpointSummary(nowayout);
+        const teardown_summary = self.summarizeTeardown(nowayout);
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .stop_disposition = teardown_summary.stop_disposition,
+            .platform_drvdata_owner_identity = teardown.platform_drvdata_owner_identity,
+            .watchdog_drvdata_owner_identity = teardown.watchdog_drvdata_owner_identity,
+            .register_device_failure_stage = teardown.register_device_failure_stage,
+            .request_stop_reviewable = teardown_summary.request_stop_reviewable,
+            .register_device_failure_reviewable = teardown_summary.register_device_failure_reviewable,
+            .reboot_glue_checkpoint_reviewable = teardown_summary.reboot_glue_checkpoint_reviewable,
+            .blocked_on_platform_cleanup_callback = true,
+            .blocked_on_platform_driver_remove = true,
+            .blocked_on_watchdog_core_unregister = true,
+            .blocked_on_host_shutdown_execution = teardown.blocked_on_host_shutdown_execution,
+        };
+    }
+
     fn disable(self: *Self) void {
         self.disable_count += 1;
         self.line_state = true;
@@ -893,4 +933,37 @@ test "teardown checkpoint keeps ownership and failure ordering explicit" {
     try std.testing.expect(!blocked_teardown.driver_stop_invoked);
     try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.platform_drvdata_owner_identity);
     try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.watchdog_drvdata_owner_identity);
+}
+
+test "remove handoff summary stays bounded before live unregister behavior" {
+    var stoppable = try GpioWatchdogLab.init(.toggle, 60, false);
+    _ = try stoppable.start();
+    const remove_handoff = stoppable.summarizeRemoveHandoff(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", remove_handoff.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, remove_handoff.hw_algo);
+    try std.testing.expect(!remove_handoff.always_running);
+    try std.testing.expect(!remove_handoff.nowayout);
+    try std.testing.expectEqual(StopDisposition.stopped, remove_handoff.stop_disposition);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", remove_handoff.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", remove_handoff.watchdog_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", remove_handoff.register_device_failure_stage);
+    try std.testing.expect(remove_handoff.request_stop_reviewable);
+    try std.testing.expect(remove_handoff.register_device_failure_reviewable);
+    try std.testing.expect(remove_handoff.reboot_glue_checkpoint_reviewable);
+    try std.testing.expect(remove_handoff.blocked_on_platform_cleanup_callback);
+    try std.testing.expect(remove_handoff.blocked_on_platform_driver_remove);
+    try std.testing.expect(remove_handoff.blocked_on_watchdog_core_unregister);
+    try std.testing.expect(remove_handoff.blocked_on_host_shutdown_execution);
+
+    var guarded = try GpioWatchdogLab.init(.level, 64, true);
+    _ = try guarded.start();
+    const guarded_remove_handoff = guarded.summarizeRemoveHandoff(true);
+
+    try std.testing.expect(guarded_remove_handoff.always_running);
+    try std.testing.expect(guarded_remove_handoff.nowayout);
+    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, guarded_remove_handoff.stop_disposition);
+    try std.testing.expect(guarded_remove_handoff.request_stop_reviewable);
+    try std.testing.expect(guarded_remove_handoff.register_device_failure_reviewable);
+    try std.testing.expect(guarded_remove_handoff.reboot_glue_checkpoint_reviewable);
 }
