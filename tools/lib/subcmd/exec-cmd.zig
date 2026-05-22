@@ -516,6 +516,18 @@ test "collectExeclArgs rejects a tail that never terminates with null" {
     );
 }
 
+test "collectExeclArgs rejects a null terminator that lands in MAX_ARGS" {
+    var argv_tail = [_]?[]const u8{null} ** (max_execl_slots - 1);
+    for (argv_tail[0 .. argv_tail.len - 1]) |*slot| {
+        slot.* = "--stdio";
+    }
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        collectExeclArgs(std.testing.allocator, "record", argv_tail[0..]),
+    );
+}
+
 test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     const config = Config{
         .exec_name = "perf",
