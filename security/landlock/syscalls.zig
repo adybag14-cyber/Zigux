@@ -86,6 +86,8 @@ pub const GetRulesetFromFdRequest = struct {
     ruleset_fops_present: bool = true,
     private_data_present: bool = true,
     ruleset_present: bool = true,
+    file_mode_bits: u32 = FMODE_CAN_READ | FMODE_CAN_WRITE,
+    required_mode_bits: ?u32 = null,
 };
 
 pub const GetRulesetFromFdPlan = struct {
@@ -93,6 +95,8 @@ pub const GetRulesetFromFdPlan = struct {
     validates_ruleset_fd: bool,
     obtains_file_from_fd: bool,
     validates_file_operations_binding: bool,
+    validates_required_mode_bits: bool,
+    required_mode_bits: ?u32,
     reads_file_private_data: bool,
     validates_ruleset_presence: bool,
     returns_ruleset_handle: bool,
@@ -147,6 +151,8 @@ pub const AddRulePlan = struct {
 pub const AddRuleSyscallRequest = struct {
     initialized: bool = true,
     attr_present: bool = true,
+    flags: u32 = 0,
+    ruleset_fd_mode_bits: u32 = FMODE_CAN_WRITE,
     ruleset_fd: GetRulesetFromFdRequest = .{},
     input: AddRuleInput = .{},
 };
@@ -155,6 +161,9 @@ pub const AddRuleSyscallPlan = struct {
     anchor: []const u8,
     checks_initialization_gate: bool,
     checks_attr_presence_before_copy_from_user: bool,
+    requires_zero_flags: bool,
+    validates_ruleset_fd_write_mode: bool,
+    required_ruleset_fd_mode_bits: u32,
     reuses_add_rule_validation: bool,
     add_rule_plan: AddRulePlan,
 };
@@ -328,6 +337,11 @@ pub const SyscallsHelperLab = struct {
         if (!request.ruleset_fops_present) {
             return error.MissingRulesetFileOperations;
         }
+        if (request.required_mode_bits) |required_mode_bits| {
+            if ((request.file_mode_bits & required_mode_bits) != required_mode_bits) {
+                return error.InsufficientRulesetFdMode;
+            }
+        }
         if (!request.private_data_present or !request.ruleset_present) {
             return error.MissingRuleset;
         }
@@ -337,6 +351,8 @@ pub const SyscallsHelperLab = struct {
             .validates_ruleset_fd = true,
             .obtains_file_from_fd = true,
             .validates_file_operations_binding = true,
+            .validates_required_mode_bits = request.required_mode_bits != null,
+            .required_mode_bits = request.required_mode_bits,
             .reads_file_private_data = true,
             .validates_ruleset_presence = true,
             .returns_ruleset_handle = true,
@@ -413,13 +429,27 @@ pub const SyscallsHelperLab = struct {
         if (!request.attr_present) {
             return error.BadUserPointer;
         }
+        if (request.flags != 0) {
+            return error.UnsupportedAddRuleFlags;
+        }
 
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
+            .requires_zero_flags = true,
+            .validates_ruleset_fd_write_mode = true,
+            .required_ruleset_fd_mode_bits = FMODE_CAN_WRITE,
             .reuses_add_rule_validation = true,
-            .add_rule_plan = try planAddRule(request.input, request.ruleset_fd),
+            .add_rule_plan = try planAddRule(request.input, .{
+                .ruleset_fd_present = request.ruleset_fd.ruleset_fd_present,
+                .file_present = request.ruleset_fd.file_present,
+                .ruleset_fops_present = request.ruleset_fd.ruleset_fops_present,
+                .private_data_present = request.ruleset_fd.private_data_present,
+                .ruleset_present = request.ruleset_fd.ruleset_present,
+                .file_mode_bits = request.ruleset_fd_mode_bits,
+                .required_mode_bits = FMODE_CAN_WRITE,
+            }),
         };
     }
 
@@ -693,12 +723,24 @@ test "landlock syscalls ruleset-fd lookup keeps file, fops, and private-data han
     try std.testing.expect(plan.validates_ruleset_fd);
     try std.testing.expect(plan.obtains_file_from_fd);
     try std.testing.expect(plan.validates_file_operations_binding);
+    try std.testing.expect(!plan.validates_required_mode_bits);
+    try std.testing.expectEqual(@as(?u32, null), plan.required_mode_bits);
     try std.testing.expect(plan.reads_file_private_data);
     try std.testing.expect(plan.validates_ruleset_presence);
     try std.testing.expect(plan.returns_ruleset_handle);
 }
 
-test "landlock syscalls ruleset-fd lookup rejects missing fd file fops and ruleset state" {
+test "landlock syscalls ruleset-fd lookup can require write mode for mutating callers" {
+    const plan = try SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode_bits = FMODE_CAN_READ | FMODE_CAN_WRITE,
+        .required_mode_bits = FMODE_CAN_WRITE,
+    });
+
+    try std.testing.expect(plan.validates_required_mode_bits);
+    try std.testing.expectEqual(@as(?u32, FMODE_CAN_WRITE), plan.required_mode_bits);
+}
+
+test "landlock syscalls ruleset-fd lookup rejects missing fd file fops mode and ruleset state" {
     try std.testing.expectError(error.MissingRulesetFd, SyscallsHelperLab.planGetRulesetFromFd(.{
         .ruleset_fd_present = false,
     }));
@@ -707,6 +749,10 @@ test "landlock syscalls ruleset-fd lookup rejects missing fd file fops and rules
     }));
     try std.testing.expectError(error.MissingRulesetFileOperations, SyscallsHelperLab.planGetRulesetFromFd(.{
         .ruleset_fops_present = false,
+    }));
+    try std.testing.expectError(error.InsufficientRulesetFdMode, SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode_bits = FMODE_CAN_READ,
+        .required_mode_bits = FMODE_CAN_WRITE,
     }));
     try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planGetRulesetFromFd(.{
         .private_data_present = false,
@@ -804,8 +850,9 @@ test "landlock syscalls add-rule rejects missing ruleset fds before branch plann
     }, .{ .ruleset_fd_present = false }));
 }
 
-test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot gates explicit" {
+test "landlock syscalls add-rule top-level wrapper keeps zero flags and write mode explicit" {
     const wrapper = try SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd_mode_bits = FMODE_CAN_READ | FMODE_CAN_WRITE,
         .input = .{
             .search_key_data = 41,
             .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
@@ -815,12 +862,17 @@ test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.requires_zero_flags);
+    try std.testing.expect(wrapper.validates_ruleset_fd_write_mode);
+    try std.testing.expectEqual(@as(u32, FMODE_CAN_WRITE), wrapper.required_ruleset_fd_mode_bits);
     try std.testing.expect(wrapper.reuses_add_rule_validation);
     try std.testing.expect(wrapper.add_rule_plan.performs_copy_from_user);
     try std.testing.expect(wrapper.add_rule_plan.reuses_ruleset_fd_lookup_planning);
+    try std.testing.expect(wrapper.add_rule_plan.ruleset_fd_lookup_plan.validates_required_mode_bits);
+    try std.testing.expectEqual(@as(?u32, FMODE_CAN_WRITE), wrapper.add_rule_plan.ruleset_fd_lookup_plan.required_mode_bits);
 }
 
-test "landlock syscalls add-rule top-level wrapper rejects disabled boot and missing attr" {
+test "landlock syscalls add-rule top-level wrapper rejects disabled boot missing attr nonzero flags and non-writable rulesets" {
     try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockAddRule(.{
         .initialized = false,
         .input = .{
@@ -833,9 +885,21 @@ test "landlock syscalls add-rule top-level wrapper rejects disabled boot and mis
             .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
         },
     }));
+    try std.testing.expectError(error.UnsupportedAddRuleFlags, SyscallsHelperLab.planLandlockAddRule(.{
+        .flags = 1,
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    }));
+    try std.testing.expectError(error.InsufficientRulesetFdMode, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd_mode_bits = FMODE_CAN_READ,
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    }));
 }
 
-test "landlock syscalls ruleset fd install keeps anon inode label, fops binding, and failure release explicit" {
+test "landlock syscalls ruleset fd install keeps anon inode label fops binding and failure release explicit" {
     const plan = try SyscallsHelperLab.planInstallRulesetFd(.{});
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
