@@ -1,5 +1,5 @@
 const std = @import("std");
-const rbtree = @import("../../lib/rbtree.zig");
+const rbtree = @import("rbtree");
 
 test "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers" {
     const Entry = struct {
