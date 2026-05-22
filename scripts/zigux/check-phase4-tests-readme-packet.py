@@ -38,6 +38,7 @@ SELF_TEST_CASE_NAMES = (
     "stale_phase4_heading",
     "stale_phase4_note_reference",
     "stale_phase4_gate_evidence_note_reference",
+    "stale_phase4_repo_reality_warning_reference",
     "stale_phase4_perf_manifest_reference",
     "stale_phase4_perf_reference",
     "stale_phase4_perf_make_route",
@@ -150,6 +151,11 @@ def run_self_test() -> int:
             "stale_phase4_gate_evidence_note_reference",
             baseline + FORBIDDEN_PHASE4_MARKERS[2] + "\n",
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[2]}"],
+        ),
+        (
+            "stale_phase4_repo_reality_warning_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[3] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[3]}"],
         ),
         (
             "stale_phase4_perf_manifest_reference",
