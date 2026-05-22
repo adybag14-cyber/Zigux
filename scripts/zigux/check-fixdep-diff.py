@@ -123,7 +123,7 @@ EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        r"escaped\\ space-config.h",
+        r"escaped\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -272,6 +272,38 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:unexpected_name:{name}")
 
         validated_case = dict(raw_case)
+
+        depfile = validated_case.get("depfile")
+        if not isinstance(depfile, str) or not depfile:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
+
+        target = validated_case.get("target")
+        if not isinstance(target, str) or not target:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_target")
+
+        cmdline = validated_case.get("cmdline")
+        if not isinstance(cmdline, str) or not cmdline:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_cmdline")
+
+        expected_stdout_name = validated_case.get("expected", validated_case.get("expected_stdout"))
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
+
+        expected_exit_code = validated_case.get("expected_exit_code", 0)
+        if not isinstance(expected_exit_code, int):
+            raise ValueError(
+                f"{CASES_PATH}:{name}:expected_exit_code_type="
+                f"{type(expected_exit_code).__name__},expected=int"
+            )
+        if expected_exit_code != 0:
+            expected_stderr_name = validated_case.get("expected_stderr")
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
+
+        stdout_mode = validated_case.get("stdout_mode")
+        if stdout_mode not in (None, "dev_full"):
+            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
+
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
             if actual_value != expected_value:
@@ -279,29 +311,14 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
                     f"{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
                 )
 
-        depfile = validated_case.get("depfile")
-        if not isinstance(depfile, str) or not depfile:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
         if not (FIXTURE_DIR / depfile).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_depfile:{depfile}")
 
-        expected_stdout_name = validated_case.get("expected_stdout", validated_case.get("expected"))
-        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
         if not (FIXTURE_DIR / expected_stdout_name).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_expected_output:{expected_stdout_name}")
 
-        expected_exit_code = int(validated_case.get("expected_exit_code", 0))
-        if expected_exit_code != 0:
-            expected_stderr_name = validated_case.get("expected_stderr")
-            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
-                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
-            if not (FIXTURE_DIR / expected_stderr_name).exists():
-                raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
-
-        stdout_mode = validated_case.get("stdout_mode")
-        if stdout_mode not in (None, "dev_full"):
-            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
+        if expected_exit_code != 0 and not (FIXTURE_DIR / expected_stderr_name).exists():
+            raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
 
         validated.append(validated_case)
 
@@ -399,48 +416,70 @@ def run_self_test() -> int:
     expect_failure(
         "missing_expected_stderr",
         lambda: validate_cases(missing_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='sample_comment_only_expected.stderr.txt'",
+        f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
     )
 
-    missing_expected_stderr_fixture = FIXTURE_DIR / "sample_comment_only_expected.stderr.txt"
-    with temporarily_hidden_file(missing_expected_stderr_fixture):
-        expect_failure(
-            "missing_expected_stderr_fixture",
-            lambda: validate_cases(valid_cases),
-            f"{CASES_PATH}:missing_expected_stderr:{missing_expected_stderr_fixture.name}",
-        )
-
-    missing_expected_output_fixture = FIXTURE_DIR / "sample_expected.txt"
-    with temporarily_hidden_file(missing_expected_output_fixture):
-        expect_failure(
-            "missing_expected_output_fixture",
-            lambda: validate_cases(valid_cases),
-            f"{CASES_PATH}:missing_expected_output:{missing_expected_output_fixture.name}",
-        )
+    missing_expected_output_cases = copy_valid_cases(valid_cases)
+    find_case(missing_expected_output_cases, "sample").pop("expected", None)
+    expect_failure(
+        "missing_expected_output_field",
+        lambda: validate_cases(missing_expected_output_cases),
+        f"{CASES_PATH}:sample:missing_expected_output",
+    )
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
     expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
+        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
     )
 
     missing_depfile_cases = copy_valid_cases(valid_cases)
-    find_case(missing_depfile_cases, "sample")["depfile"] = "missing_depfile.d"
+    find_case(missing_depfile_cases, "sample").pop("depfile", None)
     expect_failure(
-        "missing_depfile",
+        "missing_non_empty_depfile",
         lambda: validate_cases(missing_depfile_cases),
-        f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
+        f"{CASES_PATH}:sample:missing_non_empty_depfile",
     )
+
+    missing_target_cases = copy_valid_cases(valid_cases)
+    find_case(missing_target_cases, "sample").pop("target", None)
+    expect_failure(
+        "missing_non_empty_target",
+        lambda: validate_cases(missing_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+
+    empty_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(empty_cmdline_cases, "sample")["cmdline"] = ""
+    expect_failure(
+        "missing_non_empty_cmdline",
+        lambda: validate_cases(empty_cmdline_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
+    )
+
+    with temporarily_hidden_file(FIXTURE_DIR / "sample_comment_only_expected.stderr.txt"):
+        expect_failure(
+            "missing_expected_stderr_fixture",
+            lambda: validate_cases(valid_cases),
+            f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
+        )
+
+    with temporarily_hidden_file(FIXTURE_DIR / "sample_expected.txt"):
+        expect_failure(
+            "missing_expected_output_fixture",
+            lambda: validate_cases(valid_cases),
+            f"{CASES_PATH}:missing_expected_output:sample_expected.txt",
+        )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
@@ -450,21 +489,21 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
-            f"{fixture_dir}:missing_fixtures:escaped\\\\ space-config.h",
+            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
@@ -476,7 +515,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 15}")
     return 0
 
 
