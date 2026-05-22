@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
+    "zigux/Makefile",
 ]
 
 DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (
@@ -62,6 +63,8 @@ REQUIRED_MARKERS = {
         'print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")',
         '"Documentation/zigux/phase7-rbtree-slice.md": [',
         '"zigux/tests/phase7_rbtree_manifest.json": [',
+        '"zigux/Makefile": [',
+        '"phase7-validate:"',
         "DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (",
         "OWNERSHIP_FOCUS_FALLBACK_MARKER = (",
     ],
@@ -105,9 +108,12 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
         OWNERSHIP_FOCUS_FALLBACK_MARKER,
     ],
+    "zigux/Makefile": [
+        "phase7-validate:",
+    ],
 }
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -273,6 +279,13 @@ def run_self_test() -> None:
         marker = 'try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "zigux/Makefile"
+        marker = "phase7-validate:"
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "zigux/Makefile", marker)
         cases += 1
 
         assert cases == SELF_TEST_CASE_COUNT, cases
