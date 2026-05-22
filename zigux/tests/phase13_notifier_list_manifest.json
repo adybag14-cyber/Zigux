@@ -42,8 +42,8 @@
       "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, HVC declarations, and repo-reality-gap wording."
     },
     "zigux/tests/phase13_notifier_list_reviewability.zig": {
-      "sha": "63990a06c3bbdefdf0363e2babc05d1b88f9d376",
-      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, and HVC-header markers visible without widening into the shared Phase 13 build shard."
+      "sha": "a21c7f7deb7a5240e775c193edc224f409d6d64e",
+      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
       "sha": "557b0ff722a87c31f06829a255b18e550cce1a21",
@@ -95,7 +95,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
-      "why_now": "A focused Zig reviewability gate now keeps the adjacent packet readable through exact manifest, survey, and checker markers without widening the shared Phase 13 replay bundle."
+      "why_now": "A focused Zig reviewability gate now keeps the adjacent packet readable through exact manifest, survey, checker, and returned-Makefile-versus-missing-route markers without widening the shared Phase 13 replay bundle."
     },
     {
       "id": "phase13-notifier-chain-helper-gap",
