@@ -30,24 +30,24 @@ It is the current-master gap-note companion for the shipped NVMe foothold, not a
 
 ## Current-Master Evidence Snapshot
 
-- exact coverage evidence refreshed on `2026-05-21` against live current `master`
+- exact coverage evidence refreshed on `2026-05-22` against live current `master`
 - current `master` still carries `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
 - current `master` also directly reads the shared support bundle through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig`
-- current `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while still omitting `make -C zigux phase12-validate`
+- current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again
 - current authoritative packet truth therefore stays split: this NVMe note is the bounded current-master gap-note companion for the driver-local foothold, while the shared release packet and degraded-read support bundle stay owned by the Phase 12 release companions listed above
 
 ## Shared Release-Order Reminder
 
 Keep the current validator-first then smoke-first Phase 12 order explicit beside this driver-local gap note too:
 
-1. reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
+1. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
 2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 3. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`
 4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 5. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
 6. shipped wrapper evidence on current `master`: `make -C zigux phase12`
 
-If `zig` is unavailable on `PATH`, keep that same order explicit and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the same reminder-only validator route plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused NVMe-only replay route or another unshipped shared route.
+If `zig` is unavailable on `PATH`, keep that same order explicit and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the same shipped validator wrapper plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused NVMe-only replay route or another unshipped shared route.
 
 ## Boundary
 
