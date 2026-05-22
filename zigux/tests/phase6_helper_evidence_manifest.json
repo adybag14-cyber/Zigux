@@ -116,7 +116,8 @@
         "zigux/tests/fixtures/phase6_checksum_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
+        "scripts/zigux/check-phase6-checksum-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
