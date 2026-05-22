@@ -95,7 +95,8 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectNotContains(checker, "\"Documentation/zigux/phase7-helper-lane-sequencing.md\",");
     try expectContains(checker, "phase7_argv_split_vectors = [_]ArgvSplitVector{");
     try expectContains(checker, "test \\\"phase 7 argv split companion replays repeated blank-result sentinel reuse\\\" {");
-    try expectContains(checker, "test \\\"phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries\\\" {");
+    try expectContains(checker, "test \\\"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\\\" {");
+    try expectContains(checker, "test \\\"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\\\" {");
 
     try expectContains(fixture_vectors, "pub const ArgvSplitVector = struct {");
     try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
@@ -129,7 +130,8 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
     try expectContains(helper_companion, "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation");
     try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");
-    try expectContains(helper_companion, "phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries");
+    try expectContains(helper_companion, "phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse");
+    try expectContains(helper_companion, "phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries");
     try expectContains(helper_companion, "phase 7 argv split companion replays non-blank cross-call ownership independence");
     try expectContains(helper_companion, "phase 7 argv split companion replays caller-owned teardown and failure boundaries");
 
