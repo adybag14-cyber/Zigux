@@ -292,7 +292,6 @@ def run_self_test() -> int:
 
         build_good_tree(root)
         tests_readme_path = root / TESTS_README_REL
-        tests_readme_path.writeText = None
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[1], "", 1),
             encoding="utf-8",
