@@ -57,7 +57,6 @@ FILE_MARKERS: dict[str, list[str]] = {
         "Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`",
         "`phase9-runtime-loader-allocator-init-flow-tests`",
         "`phase9-runtime-loader-command-env-boundary-guard-tests`",
-        "`phase9-runtime-trace-events-loader-substrate-drift-tests`",
         "`phase9-runtime-loader-shared-tests`",
         "`zigux/kernel/runtime_loader.zig`",
         "`zigux/kernel/runtime_loader_contract.zig`",
@@ -116,13 +115,10 @@ FILE_MARKERS: dict[str, list[str]] = {
     PHASE9_BUILD_PATH: [
         '.name = "phase9-runtime-loader-allocator-init-flow-tests"',
         '.name = "phase9-runtime-loader-command-env-boundary-guard-tests"',
-        '.name = "phase9-runtime-trace-events-loader-substrate-drift-tests"',
         '.name = "phase9-runtime-loader-shared-tests"',
         '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
         "runtime_loader_allocator_init_flow.zig",
-        "runtime_trace_events_loader_substrate_drift.zig",
         "../../samples/zigux/runtime_trace_events.zig",
-        "../../samples/zigux/runtime_trace_events_loader.zig",
     ],
     SAMPLE_PATH: [
         '.name = "runtime_trace_events"',
