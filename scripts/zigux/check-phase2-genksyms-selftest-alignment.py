@@ -96,9 +96,6 @@ EXPECTED_PROCESS_OUTPUT_PAYLOADS = {
     },
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
-
-
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -351,31 +348,45 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        workflow_path = root / WORKFLOW.relative_to(ROOT)
-        workflow_path.write_text(replace_exact_line(workflow_path.read_text(encoding="utf-8"), WORKFLOW_LINES[0], "run: python3 broken.py"), encoding="utf-8")
-        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[0]) in collect_issues(root)
-        checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = root / WORKFLOW.relative_to(ROOT)
+            workflow_path.write_text(
+                replace_exact_line(workflow_path.read_text(encoding="utf-8"), marker, "run: python3 broken.py"),
+                encoding="utf-8",
+            )
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        workflow_path = root / WORKFLOW.relative_to(ROOT)
-        workflow_path.write_text(duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), WORKFLOW_LINES[4]), encoding="utf-8")
-        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[4]}:count=2") in collect_issues(root)
-        checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = root / WORKFLOW.relative_to(ROOT)
+            workflow_path.write_text(
+                duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        makefile_path = root / MAKEFILE.relative_to(ROOT)
-        makefile_path.write_text(replace_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_LINES[3], "$(PYTHON) broken.py"), encoding="utf-8")
-        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[3]) in collect_issues(root)
-        checks_run += 1
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = root / MAKEFILE.relative_to(ROOT)
+            makefile_path.write_text(
+                replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, "$(PYTHON) broken.py"),
+                encoding="utf-8",
+            )
+            assert ("MISSING_MAKEFILE_HOOKS", marker) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        makefile_path = root / MAKEFILE.relative_to(ROOT)
-        makefile_path.write_text(
-            duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_LINES[4]),
-            encoding="utf-8",
-        )
-        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[4]}:count=2") in collect_issues(root)
-        checks_run += 1
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = root / MAKEFILE.relative_to(ROOT)
+            makefile_path.write_text(
+                duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         cases_path = root / CASES_FIXTURE.relative_to(ROOT)
@@ -415,17 +426,31 @@ def run_self_test() -> int:
         assert any(code == "MANIFEST_FIELD_MISMATCH" and value.startswith("standalone_proof_packet:") for code, value in collect_issues(root))
         checks_run += 1
 
-        build_self_test_root(root)
-        version_path = root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
-        version_path.write_text(version_path.read_text(encoding="utf-8").replace('test "genksyms bridge preserves version side effect before invalid long option" {\n', '', 1), encoding="utf-8")
-        assert any(code == "MISSING_VERSION_SIDE_EFFECT_TEST_LINE" for code, _ in collect_issues(root))
-        checks_run += 1
+        for marker in (
+            'test "genksyms bridge preserves version side effect before invalid long option" {',
+            'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
+        ):
+            build_self_test_root(root)
+            version_path = root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
+            version_path.write_text(
+                version_path.read_text(encoding="utf-8").replace(f"{marker}\n", "", 1),
+                encoding="utf-8",
+            )
+            assert ("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        version_path = root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
-        version_path.write_text(duplicate_exact_line(version_path.read_text(encoding="utf-8"), 'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {'), encoding="utf-8")
-        assert any(code == "DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE" for code, _ in collect_issues(root))
-        checks_run += 1
+        for marker in (
+            'test "genksyms bridge preserves version side effect before invalid long option" {',
+            'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
+        ):
+            build_self_test_root(root)
+            version_path = root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
+            version_path.write_text(
+                duplicate_exact_line(version_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         (root / HELP_FIXTURE.relative_to(ROOT)).unlink()
@@ -462,6 +487,27 @@ def run_self_test() -> int:
     print("PHASE2_GENKSYMS_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
+
+
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(WORKFLOW_LINES)
+    + len(WORKFLOW_LINES)
+    + len(MAKEFILE_LINES)
+    + len(MAKEFILE_LINES)
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 2
+    + 2
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+)
 
 
 def main() -> int:
