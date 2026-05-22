@@ -114,6 +114,18 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const runtime_bitmap_diff_module = b.createModule(.{
+        .root_source_file = b.path("runtime_bitmap_diff.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_diff_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
+
+    const runtime_bitmap_diff_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-diff-tests",
+        .root_module = runtime_bitmap_diff_module,
+    });
+
     const runtime_bitmap_top_bit_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),
         .target = target,
@@ -205,6 +217,7 @@ pub fn build(b: *std.Build) void {
     const run_runtime_bitmap_sample_tests = b.addRunArtifact(runtime_bitmap_sample_tests);
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
     const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
+    const run_runtime_bitmap_diff_tests = b.addRunArtifact(runtime_bitmap_diff_tests);
     const run_runtime_bitmap_top_bit_tests = b.addRunArtifact(runtime_bitmap_top_bit_tests);
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
         runtime_loader_allocator_init_flow_tests,
@@ -263,6 +276,12 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_bitmap_loader.dependOn(&run_runtime_bitmap_loader_tests.step);
 
+    const phase9_runtime_bitmap_diff = b.step(
+        "phase9-runtime-bitmap-diff-tests",
+        "Run the Phase 9 runtime bitmap differential replay tests.",
+    );
+    phase9_runtime_bitmap_diff.dependOn(&run_runtime_bitmap_diff_tests.step);
+
     const phase9_runtime_bitmap_top_bit = b.step(
         "phase9-runtime-bitmap-top-bit-tests",
         "Run the Phase 9 runtime bitmap top-bit contract tests.",
@@ -271,11 +290,12 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_bitmap = b.step(
         "phase9-runtime-bitmap-tests",
-        "Run the Phase 9 runtime bitmap sample, loader, survey, and top-bit tests.",
+        "Run the Phase 9 runtime bitmap sample, loader, survey, diff, and top-bit tests.",
     );
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_sample_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_loader_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_survey_tests.step);
+    phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_diff_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
     const phase9_runtime_loader_command_env_boundary_guard = b.step(
