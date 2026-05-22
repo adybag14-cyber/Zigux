@@ -73,6 +73,7 @@ The broader shared reminder packet now keeps the narrower shared-owner split ali
 - `Documentation/zigux/README.md` and `zigux/tests/README.md` now frame the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references as historical wider-family vocabulary rather than current direct evidence
 - trusted current-`master` rereads for this survey still only recover the narrower shared loader surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` shard, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` companion on the same trusted path
 - treat any future docs-root or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or a broader checklist rewrite inside this lane
+- a fresh 2026-05-22 reread also showed that `Documentation/zigux/README.md` now undercounts the shared Phase 9 packet by omitting `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, so the next same-lane reminder repair should start there before widening any checker work
 
 This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the partial bitmap reminder packet explicit, keep the broader docs-root and tests-root reminders aligned with that narrower split, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
 
@@ -115,8 +116,8 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 
 ## Recommended next-step order
 
-1. Start with `scripts/zigux/README.md` and `Documentation/zigux/review-checklist.md` only if a fresh reread shows either shared reminder drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the partial bitmap split confirmed here on current `master`.
-2. Re-read `Documentation/zigux/README.md` and `zigux/tests/README.md` only if that broader reminder pair drifts again from the same narrower shared-owner split or the current historical-loader-gap vocabulary.
+1. Start with `Documentation/zigux/README.md` if a fresh reread still omits `scripts/zigux/check-phase9-trace-events-runtime-packet.py` from the shared Phase 9 packet or otherwise drifts from the narrower shared-owner split confirmed here on current `master`.
+2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the partial bitmap split confirmed here on current `master`.
 3. If the broader shared runtime-loader family changes again, widen this note only after an exact reread proves the specific returned file family or blocked-boundary vocabulary moved.
 4. If the still-missing bitmap module and diff legs return later, widen the bitmap-side reminder packet only after the trusted direct read path returns those exact files.
 
