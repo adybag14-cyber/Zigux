@@ -317,7 +317,7 @@ def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) ->
 def load_index(channel: str) -> dict:
     try:
         return read_index()
-    except (TimeoutError, urllib.error.URLError):
+    except (TimeoutError, urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError):
         if not is_explicit_version(channel):
             raise
         return {}
@@ -415,6 +415,38 @@ def run_self_test() -> int:
             pass
         else:
             raise AssertionError('expected non-explicit channel timeout to fail')
+    finally:
+        globals()['read_index'] = original_read_index
+
+    try:
+        globals()['read_index'] = lambda: (_ for _ in ()).throw(
+            urllib.error.HTTPError(
+                url=INDEX_URL,
+                code=503,
+                msg='Service Unavailable',
+                hdrs={},
+                fp=None,
+            )
+        )
+        assert load_index('0.17.0-dev.87+9b177a7d2') == {}
+        try:
+            load_index('master')
+        except urllib.error.HTTPError as exc:
+            assert exc.code == 503
+        else:
+            raise AssertionError('expected non-explicit channel HTTP failure to fail')
+    finally:
+        globals()['read_index'] = original_read_index
+
+    try:
+        globals()['read_index'] = lambda: (_ for _ in ()).throw(json.JSONDecodeError('bad json', '', 0))
+        assert load_index('0.17.0-dev.87+9b177a7d2') == {}
+        try:
+            load_index('master')
+        except json.JSONDecodeError:
+            pass
+        else:
+            raise AssertionError('expected non-explicit channel JSON decode failure to fail')
     finally:
         globals()['read_index'] = original_read_index
 
@@ -693,7 +725,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=39')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=41')
     return 0
 
 
