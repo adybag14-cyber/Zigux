@@ -26,6 +26,21 @@
     "replay_before_trusting": [
       "zig test zigux/tests/phase14_workqueue_reviewability.zig"
     ],
+    "productization_posture": "shared_packet_local_only",
+    "productization_exact_checks": [
+      "python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
+      "python3 scripts/zigux/check-phase14-shared-smoke-route.py",
+      "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+      "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+      "python3 scripts/zigux/validate-phase14.py --self-test",
+      "python3 scripts/zigux/validate-phase14.py",
+      "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
+      "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+      "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+      "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+      "make -C zigux phase14-validate"
+    ],
+    "productization_behavior_note": "These checks verify shared packet-local productization behavior around the current phase14-validate route and its reminder surfaces. They do not replace the direct workqueue reviewability replay as the bridge-local trust gate.",
     "reopen_conditions": [
       "the bridge, dedicated workqueue test, survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording",
       "the lane-local handoff wording stops matching kernel/workqueue_bridge.zig's blocked-maintenance next-step guidance for the workqueue anchor",
