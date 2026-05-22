@@ -58,6 +58,9 @@ REQUIRED_FILE_MARKERS = {
     ),
     ALLOCATOR_POLICY_PATH: (
         "pub const InitFlow = enum {",
+        "pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {",
+        "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
+        "pub fn initializesOwnedStatePolicyBytes(mode: u8, reserved: u8) bool {",
         "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.AllocatorMode {",
         "pub fn requiresResetOnInitInteropPolicy(policy: abi.InteropPolicy) bool {",
     ),
@@ -90,6 +93,7 @@ SELF_TEST_CASES = (
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
     ),
     ("panic marker drift", PANIC_POLICY_PATH, REQUIRED_FILE_MARKERS[PANIC_POLICY_PATH][2], "marker"),
+    ("allocator ownership marker drift", ALLOCATOR_POLICY_PATH, REQUIRED_FILE_MARKERS[ALLOCATOR_POLICY_PATH][3], "marker"),
 )
 
 SAMPLE_FILE_TEXT = {
