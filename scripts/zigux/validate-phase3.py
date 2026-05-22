@@ -18,6 +18,10 @@ RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 HEADER_GOVERNANCE_VALIDATOR_PATH = Path(
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
 )
+KERNEL_EXPORT_SHIM_GOVERNANCE_PATH = Path(
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md"
+)
+SHARED_TESTS_ROUTES_PATH = Path("scripts/zigux/check-phase3-shared-tests-routes.py")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
 ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
@@ -132,6 +136,19 @@ REQUIRED_SOURCE_MARKERS = {
         'NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
         'print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")',
     ),
+    KERNEL_EXPORT_SHIM_GOVERNANCE_PATH: (
+        'PHASE3_KERNEL_EXPORT_SHIM_SCOPE=current master now exposes one bounded kernel-facing export shim companion',
+        '`zigux/kernel/export_shim.zig`',
+        '`zigux/tests/phase3_export_uapi_layout.zig`',
+        '`zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`',
+    ),
+    SHARED_TESTS_ROUTES_PATH: (
+        'BUILD_PATH = Path("zigux/tests/build.zig")',
+        '"fn addPhase3ExportUapiLayout("',
+        '"phase3-export-uapi-layout-test:"',
+        '"- name: Run current Phase 3 export/UAPI layout replay"',
+        '"run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+    ),
     TESTS_BUILD_PATH: (
         "const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);",
         "const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);",
@@ -207,8 +224,10 @@ REQUIRED_SOURCE_MARKERS = {
         '"scripts/zigux/check-phase3-abi-support-packet.py"',
         '"scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"scripts/zigux/check-phase3-shared-tests-routes.py"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
+        '"Documentation/zigux/phase3-kernel-export-shim-governance.md"',
         '"zigux/tests/README.md"',
         '"zigux/tests/phase3_export_uapi_c_header_smoke.c"',
         '"zigux/tests/phase3_policy_starter_packet.zig"',
@@ -220,6 +239,8 @@ REQUIRED_SOURCE_MARKERS = {
         '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-shared-tests-routes.py"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
@@ -246,8 +267,11 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
     "include/zigux/abi.h",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
@@ -274,10 +298,14 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "scripts/zigux/check-phase3-shared-tests-routes.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/validate_phase3_selftest.py",
     "zigux/tests/build.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase3_abi.zig",
@@ -301,6 +329,10 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
@@ -571,6 +603,16 @@ def run_self_test() -> int:
                 'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")\n',
                 'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
             ),
+            (
+                KERNEL_EXPORT_SHIM_GOVERNANCE_PATH,
+                '`zigux/tests/phase3_export_uapi_layout.zig`\n',
+                'missing Documentation/zigux/phase3-kernel-export-shim-governance.md marker: `zigux/tests/phase3_export_uapi_layout.zig`',
+            ),
+            (
+                SHARED_TESTS_ROUTES_PATH,
+                '"- name: Run current Phase 3 export/UAPI layout replay"\n',
+                'missing scripts/zigux/check-phase3-shared-tests-routes.py marker: "- name: Run current Phase 3 export/UAPI layout replay"',
+            ),
         )
 
         for rel_path, needle, expected in cases:
@@ -610,6 +652,22 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print("expected shared ABI support-checker replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove(
+            "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"
+        )
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected shared tests-root replay drift was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -711,7 +769,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
