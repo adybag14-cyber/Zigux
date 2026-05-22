@@ -205,7 +205,8 @@
       "phase10-mmio-interrupt-ack-disposition-helper",
       "phase10-mmio-feature-negotiation-summary-helper",
       "phase10-mmio-config-write-plan-freshness-helper",
-      "phase10-mmio-config-write-disposition-helper"
+      "phase10-mmio-config-write-disposition-helper",
+      "phase10-mmio-config-write-apply-observation-helper"
     ]
   },
   "focused_harness_replays": {
