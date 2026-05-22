@@ -13,12 +13,12 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-21T19:54:58Z",
+    "checked_at_utc": "2026-05-22T18:40:00Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
       "blob_sha": "1417191a6c6b82e1735c83ce759c5c63224b952f",
-      "modified_at_utc": "2026-05-21T18:54:51Z",
+      "modified_at_utc": "2026-05-22T11:09:00Z",
       "self_test_case_count": 29
     },
     "current_helper_blob": {
