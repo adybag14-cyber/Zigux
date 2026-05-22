@@ -388,6 +388,12 @@ SELF_TEST_MUTATIONS = [
     ),
     (
         "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_ring_publish_readiness_tests.step",
+        "run_phase10_virtio_ring_publish_readiness_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_ring_publish_readiness_tests.step",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
         "zigux/tests/phase10_build.zig:forbidden:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
