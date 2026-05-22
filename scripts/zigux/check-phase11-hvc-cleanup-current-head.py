@@ -211,6 +211,8 @@ def run_self_test() -> int:
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass"),
+            (BUILD_PATH, 'phase11-hvc-cleanup-packet-proof'),
         ]
 
         for index, (rel, needle) in enumerate(cases, start=1):
