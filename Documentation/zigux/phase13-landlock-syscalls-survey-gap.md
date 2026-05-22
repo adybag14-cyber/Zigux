@@ -8,6 +8,7 @@ The Phase 13 roadmap still keeps `security/landlock/syscalls.c` inside bounded s
 
 - `security/landlock/syscalls.zig` keeps the create-ruleset, restrict-self, add-rule, ruleset-fd install, ruleset-fd stub, and `fop_ruleset_release()` planners explicit without claiming live FD installation, credential mutation, or enforcement
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md` and `Documentation/zigux/phase13-landlock-syscalls-governance.md` now match that helper boundary and truthfully record the absent direct survey, replay, reviewability, manifest, and shared-build companions as repo-reality gaps
+- `scripts/zigux/check-phase13-landlock-syscalls-packet.py` now keeps the materialized helper-local packet companions honest without treating the still-missing direct survey or replay paths as shipped evidence
 - the broader shared Phase 13 reminder packet already keeps those same direct syscall companions parked as repo-reality gaps instead of presenting them as shipped evidence
 
 ## Remaining Gaps
