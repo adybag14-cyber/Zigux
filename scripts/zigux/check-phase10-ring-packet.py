@@ -83,9 +83,10 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
-        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
+        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
         "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
         "the ring survey, slice, and freeze-boundary notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`,",
+        "the returned broader ring companion `zigux/tests/phase10_virtio_ring.zig` kept explicit inside that same direct-readback packet",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "ring lane `P10-L10` owns the queue-local wrapper packet",
@@ -153,16 +154,17 @@ FORBIDDEN_MARKERS = {
         "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
         "the broader ring replay still remains outside direct current-head evidence in this slice",
     ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it",
+    ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
         "try expectContains(slice_note, \"public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice\");",
         "try expectContains(freeze_note, \"public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder\");",
     ],
 }
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
-
 
 def validate_manifest_fields(root: Path) -> list[str]:
     manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -198,7 +200,6 @@ def validate_manifest_fields(root: Path) -> list[str]:
             )
     return problems
 
-
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_MARKERS if not (root / path).exists()]
     if missing_files:
@@ -217,7 +218,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 problems.append(f"{rel_path}:forbidden:{marker}")
     problems.extend(validate_manifest_fields(root))
     return [], problems
-
 
 def fixture_manifest() -> dict[str, object]:
     gaps = []
@@ -252,7 +252,7 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
-
+}
 
 def write_fixture(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
@@ -261,7 +261,6 @@ def write_fixture(root: Path) -> None:
         target.write_text("\n".join(markers) + "\n", encoding="utf-8")
     manifest_path = root / MANIFEST_PATH
     manifest_path.write_text(json.dumps(fixture_manifest(), indent=2) + "\n")
-
 
 def expect_problem(root: Path, mutate, expected: str) -> None:
     mutate(root)
@@ -272,7 +271,6 @@ def expect_problem(root: Path, mutate, expected: str) -> None:
     if expected not in problems:
         actual = ",".join(problems) if problems else "none"
         raise SystemExit(f"phase10-ring-self-test:expected={expected}:actual={actual}")
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_") as tmp_dir:
@@ -508,7 +506,6 @@ def run_self_test() -> int:
     print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current directly re-readable Phase 10 virtio ring packet.")
     parser.add_argument("--self-test", action="store_true")
@@ -517,7 +514,6 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
-
     missing_files, problems = validate(Path(args.root))
     if missing_files:
         print("PHASE10_RING_PACKET=fail")
