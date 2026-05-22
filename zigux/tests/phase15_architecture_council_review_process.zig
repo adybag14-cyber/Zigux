@@ -19,6 +19,8 @@ const ReviewProcessManifest = struct {
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
     supporting_context_fields: []const []const u8,
+    review_outcome_fields: []const []const u8,
+    review_outcome_markers: []const []const u8,
     indefinite_c_policy_required_markers: []const []const u8,
     decision_record_template_required_markers: []const []const u8,
     study_only_anchor_review_markers: []const []const u8,
@@ -80,6 +82,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.supporting_context_fields.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_fields.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
@@ -89,6 +93,12 @@ test "phase 15 review-process manifest records the focused replay as materialize
 
     try expectSliceContains(manifest.supporting_context_fields, "governance lane sequencing link or explicit scope note");
     try expectSliceContains(manifest.supporting_context_fields, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
+    try expectSliceContains(manifest.review_outcome_fields, "closeout result");
+    try expectSliceContains(manifest.review_outcome_fields, "follow-up owner");
+    try expectSliceContains(manifest.review_outcome_fields, "next bounded step");
+    try expectSliceContains(manifest.review_outcome_markers, "keep the anchor in `freeze_in_c`");
+    try expectSliceContains(manifest.review_outcome_markers, "reopen review later with narrower evidence");
+    try expectSliceContains(manifest.review_outcome_markers, "approve a status-bucket change in a separately linked decision record");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "required approver set");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "automatic return-to-blocked trigger");
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "trigger-specific evidence refresh");
@@ -169,6 +179,12 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     for (manifest.supporting_context_fields) |field| {
         try expectContains(review_process, field);
         try expectContains(decision_record_template, field);
+    }
+    for (manifest.review_outcome_fields) |field| {
+        try expectContains(decision_record_template, field);
+    }
+    for (manifest.review_outcome_markers) |marker| {
+        try expectContains(review_process, marker);
     }
     for (manifest.indefinite_c_policy_required_markers) |marker| {
         try expectContains(indefinite_c_policy, marker);
