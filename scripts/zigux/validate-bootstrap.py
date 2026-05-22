@@ -18,6 +18,9 @@ REQUIRED_PATHS = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
@@ -66,6 +69,11 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
@@ -267,6 +275,9 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(root, "scripts/zigux/check-zig-toolchain.py", "present\n")
     write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
+    write_text(root, "scripts/zigux/install-zig.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
     write_text(root, "zigux/tests/README.md", "present\n")
@@ -323,11 +334,14 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                REQUIRED_WORKFLOW_LINES[-1],
+                "run: python3 scripts/zigux/install-zig.py --self-test",
                 "run: python3 scripts/zigux/other.py",
             ),
         )
-        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[-1]) in collect_issues(root)
+        assert (
+            "MISSING_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/install-zig.py --self-test",
+        ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -338,6 +352,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-zig-toolchain.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-zig-toolchain.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/install-zig.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
         checks += 1
 
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
