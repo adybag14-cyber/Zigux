@@ -20,8 +20,11 @@ PACKET_FILES = {
     ],
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig": [
         'const hvc_console = @import("hvc_console");',
-        'layout_assert.assertSize(HvOpsLayout, 72);',
-        'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
+        'test "phase11 HVC exported helper proof keeps imported winsize field types tied to current module" {',
+        '@FieldType(hvc_console.Winsize, "ws_row")',
+        '@FieldType(hvc_console.Winsize, "ws_ypixel")',
+        'layout_assert.expectSize(HvOpsLayout, 72);',
+        'layout_assert.expectOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
         'assertExactType(',
         '@FieldType(HvOpsLayout, "get_chars")',
         '@FieldType(HvcExportSurface, "hvc_alloc")',
@@ -128,8 +131,8 @@ def run_self_test() -> int:
         broken_path = broken_root / "zigux/tests/phase11_hvc_export_surface_layout_proof.zig"
         broken_text = broken_path.read_text(encoding="utf-8")
         broken_text = broken_text.replace(
-            'try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);',
-            'try std.testing.expectEqual(@as(u32, 17), hvc_console.MAX_NR_HVC_CONSOLES);',
+            '@FieldType(hvc_console.Winsize, "ws_row")',
+            '@FieldType(hvc_console.Winsize, "ws_col")',
             1,
         )
         broken_path.write_text(broken_text, encoding="utf-8")
@@ -137,8 +140,8 @@ def run_self_test() -> int:
         missing, _ = check_root(broken_root)
         case_count += 1
         expect(
-            any('try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);' in item for item in missing),
-            "expected exported constant drift to fail",
+            any('@FieldType(hvc_console.Winsize, "ws_row")' in item for item in missing),
+            "expected imported winsize field-type drift to fail",
         )
 
         absent_root = tempdir / "absent"
