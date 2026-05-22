@@ -13,6 +13,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
+RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 
 REQUIRED_MARKERS = {
     DOCS_README_PATH: [
@@ -57,6 +58,16 @@ REQUIRED_MARKERS = {
         'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);',
         'phase9_runtime_loader_shared.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);',
+    ],
+    RUNTIME_LOADER_CONTRACT_PATH: [
+        'test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract"',
+        '"modinfo"',
+        '"module_alias"',
+        '"modules_alias_path"',
+        '"module_symvers_path"',
+        '"depmod_script"',
+        '"depmod_manifest"',
+        '"depmod_aliases"',
     ],
 }
 
@@ -177,9 +188,10 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Check that the current Phase 9 build-only packet keeps the shared "
             "runtime-loader allocator/init-flow shard, the command/environment "
-            "boundary guard, and the aligned docs and checklist reminders "
-            "explicit across the docs, review checklist, lane sequencing note, "
-            "and phase9_build rerun surface."
+            "boundary guard, the blocked depmod-boundary contract, and the "
+            "aligned docs and checklist reminders explicit across the docs, "
+            "review checklist, lane sequencing note, contract, and phase9_build "
+            "rerun surface."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
