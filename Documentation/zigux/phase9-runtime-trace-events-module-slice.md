@@ -52,7 +52,7 @@ Current `master` proves a sample-local cold-stage guard plus init and function-t
 
 The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` now keeps that pilot-module story directly reviewable under `zigux/tests/runtime_*` again without pretending the wider loader-backed family returned.
 That paired survey packet stays adjacent to the shared repo-level rerun guard in `.github/workflows/zigux-bootstrap.yml`, which reruns `zig test samples/zigux/runtime_trace_events.zig`, `zig test samples/zigux/runtime_trace_events_unregistered_gate.zig`, `zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, and `zig test zigux/tests/runtime_trace_events_survey.zig` without turning the workflow into dedicated family-local loader parity proof.
-The adjacent shared build shard in `zigux/tests/phase9_build.zig` now names `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, aggregate `phase9-runtime-loader-shared-tests`, and the broader `phase9-first-loadable-runtime-module-parity-survey-tests` route, but those loader-backed and shared-control rerun routes remain neighboring shared-owner evidence instead of expanding this module slice into returned family-local runtime-loader parity.
+The adjacent shared build shard in `zigux/tests/phase9_build.zig` now names `phase9-runtime-trace-events-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, aggregate `phase9-runtime-loader-shared-tests`, and the broader `phase9-first-loadable-runtime-module-parity-survey-tests` route, but those rerun routes remain neighboring shared-owner evidence instead of expanding this module slice into returned family-local runtime-loader parity.
 
 ## Keep earlier-phase references in their own lanes:
 
@@ -64,8 +64,7 @@ The adjacent shared build shard in `zigux/tests/phase9_build.zig` now names `pha
 
 Current `master` still does not expose, inside this family-local trace-events proof packet itself:
 
-- a dedicated trace-events-only build route in `zigux/tests/phase9_build.zig`
-- a family-local loader parity witness beyond the adjacent shared allocator/init-flow and command/environment boundary packet
+- a family-local loader parity witness beyond the dedicated `phase9-runtime-trace-events-tests` rerun route and the adjacent shared allocator/init-flow and command/environment boundary packet
 - shipped runtime publication, install-root, or depmod-visible proof for the broader loader family
 
 Current `master` does now expose the shared loader-backed surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold through the adjacent `phase9-runtime-loader-shared-tests` shard in `zigux/tests/phase9_build.zig`, but that shard still stays neighboring shared-owner evidence rather than returned family-local trace-events proof.
@@ -79,7 +78,7 @@ So this slice must keep saying plainly that the broader shared runtime-loader pa
 2. Keep the surviving four-file sample family explicit as current sample-local pilot-module proof.
 3. Keep `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` paired with this slice as family-local review witnesses.
 4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `.github/workflows/zigux-bootstrap.yml`, and the adjacent shared loader shard in `zigux/tests/phase9_build.zig` as neighboring reminder, workflow, or build surfaces rather than re-owned here.
-5. Keep `zigux/tests/phase9_build.zig` framed as a shared Phase 9 loader-handoff shard plus bounded bitmap and atomic64 rerun bundle rather than trace-events packet proof or a returned family-local runtime-loader build route.
+5. Keep `zigux/tests/phase9_build.zig` framed as a shared Phase 9 loader-handoff shard plus bounded trace-events, bitmap, and atomic64 rerun bundle rather than trace-events packet proof or a returned family-local runtime-loader build route.
 6. Do not treat the broader shared runtime-loader packet as returned family-local trace-events evidence.
 7. Do not invent `validate-phase9.py`, a trace-events-only validator, or a loader-backed runtime-substrate claim that current `master` does not expose.
 
