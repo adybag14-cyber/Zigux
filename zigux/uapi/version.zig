@@ -13,11 +13,19 @@ pub const Version = extern struct {
     header_family_revision: u32,
 };
 
+pub const Header = abi.BoundaryHeader;
+
 pub const version_size: usize = @sizeOf(Version);
 pub const version_align: usize = @alignOf(Version);
 pub const abi_major_offset: usize = @offsetOf(Version, "abi_major");
 pub const abi_minor_offset: usize = @offsetOf(Version, "abi_minor");
 pub const header_family_revision_offset: usize = @offsetOf(Version, "header_family_revision");
+
+pub const header_size: u32 = @sizeOf(Header);
+pub const header_align: usize = @alignOf(Header);
+pub const header_size_offset: usize = @offsetOf(Header, "size");
+pub const header_abi_version_offset: usize = @offsetOf(Header, "abi_version");
+pub const header_flags_offset: usize = @offsetOf(Header, "flags");
 
 pub fn current() Version {
     return .{
@@ -56,12 +64,62 @@ pub fn validate(version: Version) abi.ExportStatus {
     return abi.makeStatus(invalid_argument, .kernel);
 }
 
+pub fn boundaryHeader(flags: u16) Header {
+    return abi.defaultHeader(flags);
+}
+
+pub fn compatibleHeader(size: u32, flags: u16) Header {
+    return abi.compatibleHeader(size, flags);
+}
+
+pub fn hasCurrentAbiVersion(value: u16) bool {
+    return abi.headerHasCurrentAbiVersion(value);
+}
+
+pub fn isCanonicalSize(value: u32) bool {
+    return value == header_size;
+}
+
+pub fn isCompatibleSize(value: u32) bool {
+    return value >= header_size;
+}
+
+pub fn isCanonical(header: Header) bool {
+    return abi.headerIsCanonical(header);
+}
+
+pub fn isCompatible(header: Header) bool {
+    return abi.headerIsCompatible(header);
+}
+
+pub fn extendsBoundary(header: Header) bool {
+    return abi.extendsBoundary(header);
+}
+
+pub fn requestedExtraBytes(header: Header) u32 {
+    return abi.requestedExtraBytes(header);
+}
+
+pub fn canonicalizeHeader(header: Header) Header {
+    return abi.canonicalizeHeader(header);
+}
+
+pub fn validateBoundaryHeader(header: Header) abi.ExportStatus {
+    if (isCompatible(header)) return abi.okStatus(.kernel);
+    return abi.makeStatus(invalid_argument, .kernel);
+}
+
 comptime {
     std.debug.assert(version_size == 12);
     std.debug.assert(version_align == 4);
     std.debug.assert(abi_major_offset == 0);
     std.debug.assert(abi_minor_offset == 4);
     std.debug.assert(header_family_revision_offset == 8);
+    std.debug.assert(header_size == 8);
+    std.debug.assert(header_align == 4);
+    std.debug.assert(header_size_offset == 0);
+    std.debug.assert(header_abi_version_offset == 4);
+    std.debug.assert(header_flags_offset == 6);
 }
 
 test "version helpers keep current compatibility explicit" {
@@ -95,23 +153,53 @@ test "version helpers keep current compatibility explicit" {
     try std.testing.expect(!matchesCurrent(stale_revision));
 }
 
-test "version helpers preserve layout and equality semantics" {
-    const left = current();
-    const same = current();
-    const different = Version{
-        .abi_major = abi_major,
-        .abi_minor = abi_minor,
-        .header_family_revision = header_family_revision + 1,
+test "version helpers keep boundary header compatibility explicit" {
+    const canonical = boundaryHeader(0x31);
+    const expanded = compatibleHeader(header_size + 8, 0x31);
+    const stale = Header{
+        .size = header_size,
+        .abi_version = @as(u16, abi.ABI_VERSION + 1),
+        .flags = 0x11,
     };
+    const canonicalized = canonicalizeHeader(expanded);
+    const valid = validateBoundaryHeader(canonical);
+    const invalid = validateBoundaryHeader(stale);
 
-    try std.testing.expectEqual(@as(usize, 12), version_size);
-    try std.testing.expectEqual(@as(usize, 4), version_align);
-    try std.testing.expectEqual(@as(usize, 0), abi_major_offset);
-    try std.testing.expectEqual(@as(usize, 4), abi_minor_offset);
-    try std.testing.expectEqual(@as(usize, 8), header_family_revision_offset);
+    try std.testing.expectEqual(@as(u32, 8), header_size);
+    try std.testing.expectEqual(@as(usize, 4), header_align);
+    try std.testing.expectEqual(@as(usize, 0), header_size_offset);
+    try std.testing.expectEqual(@as(usize, 4), header_abi_version_offset);
+    try std.testing.expectEqual(@as(usize, 6), header_flags_offset);
 
-    try std.testing.expect(eql(left, same));
-    try std.testing.expect(!eql(left, different));
+    try std.testing.expect(hasCurrentAbiVersion(canonical.abi_version));
+    try std.testing.expect(isCanonicalSize(canonical.size));
+    try std.testing.expect(isCompatibleSize(canonical.size));
+    try std.testing.expect(isCanonical(canonical));
+    try std.testing.expect(isCompatible(canonical));
+    try std.testing.expect(!extendsBoundary(canonical));
+    try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(canonical));
+    try std.testing.expectEqual(@as(i32, 0), valid.code);
+
+    try std.testing.expect(!isCanonicalSize(expanded.size));
+    try std.testing.expect(isCompatibleSize(expanded.size));
+    try std.testing.expect(!isCanonical(expanded));
+    try std.testing.expect(isCompatible(expanded));
+    try std.testing.expect(extendsBoundary(expanded));
+    try std.testing.expectEqual(@as(u32, 8), requestedExtraBytes(expanded));
+
+    try std.testing.expect(!hasCurrentAbiVersion(stale.abi_version));
+    try std.testing.expect(isCanonicalSize(stale.size));
+    try std.testing.expect(isCompatibleSize(stale.size));
+    try std.testing.expect(!isCanonical(stale));
+    try std.testing.expect(!isCompatible(stale));
+    try std.testing.expect(!extendsBoundary(stale));
+    try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(stale));
+    try std.testing.expectEqual(@as(i32, invalid_argument), invalid.code);
+
+    try std.testing.expectEqual(header_size, canonicalized.size);
+    try std.testing.expectEqual(@as(u16, abi.ABI_VERSION), canonicalized.abi_version);
+    try std.testing.expectEqual(expanded.flags, canonicalized.flags);
+    try std.testing.expect(isCanonical(canonicalized));
 }
 
 test "version helpers expose status-tagged compatibility validation" {
