@@ -102,7 +102,7 @@ REQUIRED_SNIPPETS = {
         '            "reps": 20000,',
         '            "label": "16B-ascii-g8",',
         '            "max_slowdown_pct": 600',
-        '          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",',
+        '          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",',
         '          "make -C zigux phase6-hexdump-perf",',
     ],
     PHASE6_HELPER_PARITY_MANIFEST_PATH: [
@@ -157,7 +157,7 @@ REQUIRED_SNIPPETS = {
         '            "reps": 20000,',
         '            "label": "16B-ascii-g8",',
         '            "max_slowdown_pct": 600',
-        '          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",',
+        '          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",',
         '          "make -C zigux phase6-hexdump-perf",',
     ],
     BSEARCH_VECTORS_PATH: [
