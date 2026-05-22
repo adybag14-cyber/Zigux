@@ -22,6 +22,7 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
+BOOTSTRAP_PACKET_CHECKER_REL = Path("scripts/zigux/check-phase1-bootstrap-packet-alignment.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 CLOSURE_VALIDATOR_REL = Path("scripts/zigux/validate-phase1-closure.py")
@@ -37,6 +38,7 @@ REQUIRED_FILES = (
     DIRECT_OWNER_CHECKER_REL,
     STRING_REVIEW_CHECKER_REL,
     ROUTE_SUMMARY_CHECKER_REL,
+    BOOTSTRAP_PACKET_CHECKER_REL,
     BENCH_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
     CLOSURE_VALIDATOR_REL,
@@ -55,6 +57,11 @@ WORKFLOW_PACKET_LINES = (
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "run: python3 scripts/zigux/validate-phase1-closure.py",
     "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
+)
+
+OPTIONAL_WORKFLOW_PACKET_LINES = (
+    "run: python3 scripts/zigux/check-phase1-bootstrap-packet-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-bootstrap-packet-alignment.py",
 )
 
 FORBIDDEN_WORKFLOW_LINES = (
@@ -106,17 +113,44 @@ def require_absent_occurrence(text: str, label: str, needle: str) -> list[str]:
 
 def collect_workflow_order_failures(text: str) -> list[str]:
     failures: list[str] = []
-    positions: list[int] = []
+    position_map: dict[str, int] = {}
     for line in WORKFLOW_PACKET_LINES:
         count = sum(1 for current in text.splitlines() if current.strip() == line)
         if count != 1:
             failures.append(f"workflow:{line}:expected=1:actual={count}")
             continue
-        positions.append(text.index(line))
+        position_map[line] = text.index(line)
     if failures:
         return failures
+    positions = [position_map[line] for line in WORKFLOW_PACKET_LINES]
     if positions != sorted(positions):
         return ["workflow:phase1_packet_order:expected=strictly_increasing:actual=out_of_order"]
+
+    optional_counts = {
+        line: sum(1 for current in text.splitlines() if current.strip() == line)
+        for line in OPTIONAL_WORKFLOW_PACKET_LINES
+    }
+    present_optional = [line for line, count in optional_counts.items() if count]
+    if not present_optional:
+        return failures
+    if len(present_optional) != len(OPTIONAL_WORKFLOW_PACKET_LINES):
+        for line in OPTIONAL_WORKFLOW_PACKET_LINES:
+            count = optional_counts[line]
+            if count != 1:
+                failures.append(f"workflow:{line}:expected_optional_pair_member=1:actual={count}")
+        return failures
+
+    optional_positions = [text.index(line) for line in OPTIONAL_WORKFLOW_PACKET_LINES]
+    if optional_positions != sorted(optional_positions):
+        failures.append("workflow:phase1_bootstrap_optional_pair:expected=strictly_increasing:actual=out_of_order")
+        return failures
+
+    route_summary_check_pos = position_map["run: python3 scripts/zigux/check-phase1-route-summary-counts.py"]
+    bench_self_test_pos = position_map["run: python3 scripts/zigux/check-phase1-bench.py --self-test"]
+    if not all(route_summary_check_pos < pos < bench_self_test_pos for pos in optional_positions):
+        failures.append(
+            "workflow:phase1_bootstrap_optional_pair:expected=between_route_summary_check_and_bench_self_test:actual=outside_slot"
+        )
     return failures
 
 
@@ -197,6 +231,24 @@ def add_forbidden_workflow_line(root: Path) -> None:
     write_text(root, WORKFLOW_REL, text + FORBIDDEN_WORKFLOW_LINES[0] + "\n")
 
 
+def add_optional_workflow_pair(root: Path, mode: str) -> None:
+    lines = load_text(root, WORKFLOW_REL).splitlines()
+    bench_index = lines.index("run: python3 scripts/zigux/check-phase1-bench.py --self-test")
+    pair = list(OPTIONAL_WORKFLOW_PACKET_LINES)
+    if mode == "reversed":
+        pair = list(reversed(pair))
+    elif mode == "self_only":
+        pair = [OPTIONAL_WORKFLOW_PACKET_LINES[0]]
+    elif mode == "check_only":
+        pair = [OPTIONAL_WORKFLOW_PACKET_LINES[1]]
+    if mode == "after_bench":
+        insert_index = bench_index + 1
+    else:
+        insert_index = bench_index
+    lines[insert_index:insert_index] = pair
+    write_text(root, WORKFLOW_REL, "\n".join(lines) + "\n")
+
+
 def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [("success", None)]
 
@@ -214,6 +266,11 @@ def run_self_test() -> int:
 
     cases.append(("workflow_reordered", ("reorder_workflow",)))
     cases.append(("workflow_forbidden_line", ("forbidden_workflow",)))
+    cases.append(("workflow_optional_pair_present", ("optional_workflow", "normal"),))
+    cases.append(("workflow_optional_pair_reversed", ("optional_workflow", "reversed"),))
+    cases.append(("workflow_optional_pair_after_bench", ("optional_workflow", "after_bench"),))
+    cases.append(("workflow_optional_pair_self_only", ("optional_workflow", "self_only"),))
+    cases.append(("workflow_optional_pair_check_only", ("optional_workflow", "check_only"),))
 
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-bootstrap-packet-") as tmpdir:
@@ -231,10 +288,18 @@ def run_self_test() -> int:
                     reorder_workflow(root)
                 elif kind == "forbidden_workflow":
                     add_forbidden_workflow_line(root)
+                elif kind == "optional_workflow":
+                    add_optional_workflow_pair(root, mutation[1])
             failures = collect_failures(root)
             if name == "success":
                 if failures:
                     print("self-test:success:unexpected_failures")
+                    for failure in failures:
+                        print(failure)
+                    return 1
+            elif name == "workflow_optional_pair_present":
+                if failures:
+                    print("self-test:workflow_optional_pair_present:unexpected_failures")
                     for failure in failures:
                         print(failure)
                     return 1
