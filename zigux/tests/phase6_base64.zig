@@ -93,6 +93,26 @@ fn expectConvenienceVariantForeignAlphabetRejection(
     }
 }
 
+fn expectGenericVariantForeignAlphabetRejection(
+    accepted: []const u8,
+    expected: []const u8,
+    padding: bool,
+    variant: base64.Variant,
+    rejected: []const []const u8,
+) !void {
+    var buf: [8]u8 = undefined;
+    const exact_len = try base64.bytes(accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, exact_len);
+    const written = try base64.decode(buf[0..], accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, written);
+    try std.testing.expectEqualSlices(u8, expected, buf[0..written]);
+
+    for (rejected) |input| {
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(input, padding, variant));
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], input, padding, variant));
+    }
+}
+
 fn fixtureVariant(name: []const u8) base64.Variant {
     if (std.mem.eql(u8, name, "std")) {
         return .std;
@@ -266,6 +286,53 @@ test "phase 6 base64 convenience wrappers reject foreign variant tails and full-
         &[_][]const u8{ "APv/f4A", "APv_f4A" },
     );
     try expectConvenienceVariantForeignAlphabetRejection(
+        "APv,f4A=",
+        &fixtures.variant_sample,
+        true,
+        .imap,
+        &[_][]const u8{ "APv/f4A=", "APv_f4A=" },
+    );
+}
+
+test "phase 6 base64 generic decode rejects foreign full-quartet variant spellings" {
+    try expectGenericVariantForeignAlphabetRejection(
+        "APv/f4A",
+        &fixtures.variant_sample,
+        false,
+        .std,
+        &[_][]const u8{ "APv_f4A", "APv,f4A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "APv/f4A=",
+        &fixtures.variant_sample,
+        true,
+        .std,
+        &[_][]const u8{ "APv_f4A=", "APv,f4A=" },
+    );
+
+    try expectGenericVariantForeignAlphabetRejection(
+        "APv_f4A",
+        &fixtures.variant_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{ "APv/f4A", "APv,f4A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "APv_f4A=",
+        &fixtures.variant_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{ "APv/f4A=", "APv,f4A=" },
+    );
+
+    try expectGenericVariantForeignAlphabetRejection(
+        "APv,f4A",
+        &fixtures.variant_sample,
+        false,
+        .imap,
+        &[_][]const u8{ "APv/f4A", "APv_f4A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
         "APv,f4A=",
         &fixtures.variant_sample,
         true,
