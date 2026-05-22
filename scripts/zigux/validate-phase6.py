@@ -73,6 +73,7 @@ EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
@@ -89,6 +90,7 @@ EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
@@ -198,7 +200,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 42
 
 
 class ValidationError(RuntimeError):
@@ -487,6 +489,12 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_direct_readback_companions"].remove("zigux/tests/README.md")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["helpers"][0]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
@@ -512,6 +520,12 @@ def run_self_test() -> None:
         scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["shared_direct_evidence"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["shared_direct_evidence"].remove("zigux/tests/README.md")
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
