@@ -113,7 +113,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -221,6 +221,13 @@ def run_self_test() -> None:
 
         path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
         marker = 'print("PHASE7_RBTREE_PARITY=pass")'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = 'print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
         cases += 1
