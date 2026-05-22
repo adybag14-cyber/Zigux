@@ -5,7 +5,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 ## Status
 - `PHASE5_STATUS=verified-public-fallback-companion-truthfulness`
 - `PHASE5_SLICE=trace-events-reference-sample-readback`
-- `PHASE5_LANE_KEY=P5-L16`
+- `PHASE5_LANE_KEY=P5-L22`
 - `PHASE5_SURVEYED_COMMIT=51b8f2766be46cf0791ea33ca453d849777ecfba`
 - scope: keep the landed non-runtime trace-events packet reviewable through concrete sample evidence while recording which shared Phase 5 reminder surfaces are aligned on current `master` after the latest mixed reread
 
@@ -18,17 +18,17 @@ It is to keep the current sample-backed trace-events packet honest on current `m
 ## Current repo reality on `master`
 Fresh mixed reread on 2026-05-20 still directly reconfirmed the roadmap anchor plus the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` through authenticated sample-root readback.
 
-That same 2026-05-20 reread also kept the broader non-runtime trace-events sample-local companions out of the directly readable packet in this runtime:
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+A fresh 2026-05-22 authenticated reread in this lane also returned this survey note directly again, so it no longer belongs in the still-missing authenticated sample-local companion set.
+
+That same 2026-05-22 reread still kept the broader non-runtime trace-events sample-local companions out of the directly readable packet in this runtime:
 - `samples/zigux/trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Authenticated contents readback still returned `404` for the five sample-local companion paths above on 2026-05-20.
-A fresh 2026-05-21 authenticated reread in this run also returned `zigux/tests/phase5_build.zig` directly again, including the focused `phase5-trace-events-sample-tests` and `phase5-trace-events-sample-survey-tests` routes beside the broader Phase 5 sample bundle.
-Fresh public current-`master` reread in this run also surfaced the broader sample-local companion paths again through their live GitHub blob pages:
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+Authenticated contents readback still returned `404` for the four sample-local companion paths above on 2026-05-22.
+That same 2026-05-22 authenticated reread also returned `zigux/tests/phase5_build.zig` directly again, including the focused `phase5-trace-events-sample-tests` and `phase5-trace-events-sample-survey-tests` routes beside the broader Phase 5 sample bundle.
+Fresh public current-`master` reread in this run also surfaced those four broader sample-local companion paths again through their live GitHub blob pages:
 - `samples/zigux/trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
@@ -60,7 +60,7 @@ A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-roo
 
 The tests-root shared reminder is only inventory-aligned in this run:
 - `zigux/tests/README.md` still names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
-- it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`, which this run could directly reread again even though the five broader sample-local companions still remained off the authenticated path
+- it also keeps the current shared-build split explicit through `zigux/tests/phase5_build.zig`, which this run could directly reread again even though the four broader sample-local companions still remained off the authenticated path
 - it does not restate helper-level trace-events cues such as `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the selected-string plus `iter=%d` formatting cue, or `OutstandingRegistration`; those cues remain explicit in the bounded formatting companion and the shared reminder packet, not in any broader sample-local file that this run could directly re-read
 
 Treat the tests-root reminder as packet-inventory support material on current `master`, with the returned shared build route explicit again, not as proof that the broader sample-local trace-events replay files have returned through the same current read path.
@@ -77,7 +77,7 @@ Broader helper-level trace-events cues from the older sample-local replay packet
 
 ## Recorded gap vs roadmap
 The precise current gap is not that Zigux lacks every trace-events reminder surface.
-The more accurate same-lane state on 2026-05-21 is:
+The more accurate same-lane state on 2026-05-22 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
 - the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` again through their live GitHub blob pages
 - the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
