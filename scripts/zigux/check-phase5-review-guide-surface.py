@@ -19,7 +19,6 @@ SAMPLE_ROOT_PATH = Path("samples/zigux/README.md")
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kfifo-sample-survey.md",
     "Documentation/zigux/phase5-kretprobe-sample-survey.md",
-    "Documentation/zigux/phase5-kobject-sample-survey.md",
     "Documentation/zigux/phase5-sample-lane-sequencing.md",
     "Documentation/zigux/phase5-sample-review-guide.md",
     "Documentation/zigux/phase5-trace-events-approved-idiom-gap.md",
@@ -37,7 +36,6 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase5_bytestream_fifo_manifest.json",
     "zigux/tests/phase5_bytestream_fifo_survey.zig",
     "zigux/tests/phase5_kobject_example.zig",
-    "zigux/tests/phase5_kobject_example_manifest.json",
     "zigux/tests/phase5_kretprobe_example.zig",
     "zigux/tests/phase5_kretprobe_example_manifest.json",
     "zigux/tests/phase5_kretprobe_example_survey.zig",
@@ -45,6 +43,8 @@ DIRECT_PACKET_PATHS = (
 )
 
 PUBLIC_TREE_COMPANION_PATHS = (
+    "Documentation/zigux/phase5-kobject-sample-survey.md",
+    "zigux/tests/phase5_kobject_example_manifest.json",
     "zigux/tests/phase5_kobject_example_survey.zig",
     "Documentation/zigux/phase5-trace-events-sample-survey.md",
     "samples/zigux/trace_events_sample.zig",
