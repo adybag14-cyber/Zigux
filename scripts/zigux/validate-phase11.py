@@ -357,6 +357,42 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         build_fake_zig(fake_zig)
+        missing_hvc_targetless_witness_checker = root / "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+        missing_hvc_targetless_witness_checker.unlink()
+        issues = collect_issues(root)
+        expected_missing_hvc_targetless_witness_checker = "missing_required_path:scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+        if expected_missing_hvc_targetless_witness_checker not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_hvc_targetless_witness_checker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_hvc_targetless_witness = root / "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+        missing_hvc_targetless_witness.unlink()
+        issues = collect_issues(root)
+        expected_missing_hvc_targetless_witness = "missing_required_path:zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+        if expected_missing_hvc_targetless_witness not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_hvc_targetless_witness_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        missing_hvc_targetless_witness_build = root / "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+        missing_hvc_targetless_witness_build.unlink()
+        issues = collect_issues(root)
+        expected_missing_hvc_targetless_witness_build = "missing_required_path:zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+        if expected_missing_hvc_targetless_witness_build not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:missing_hvc_targetless_witness_build_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
         missing_dw_platform_plan = root / "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"
         missing_dw_platform_plan.unlink()
         issues = collect_issues(root)
@@ -679,7 +715,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
