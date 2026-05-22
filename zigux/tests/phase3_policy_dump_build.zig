@@ -21,18 +21,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     allocator_policy.addImport("abi_bindings", abi_bindings);
-    const unsafe_policy = b.createModule(.{
-        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    unsafe_policy.addImport("abi_bindings", abi_bindings);
     const narrow_surface = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
         .optimize = optimize,
     });
     narrow_surface.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow_surface);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_dump.zig"),
