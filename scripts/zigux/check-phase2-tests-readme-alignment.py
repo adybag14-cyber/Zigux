@@ -151,6 +151,7 @@ REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-genksyms-bridge.py",
@@ -237,7 +238,6 @@ def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) 
         if count != 1:
             issues.append((code, f"{count}::{marker}"))
     return issues
-
 
 def collect_missing_manifest_surfaces(strings: set[str]) -> list[tuple[str, str]]:
     return [
