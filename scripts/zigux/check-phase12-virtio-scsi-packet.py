@@ -49,8 +49,10 @@ TEXT_MARKERS = {
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-21`",
+        "* `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`",
         "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet",
         "throughput-parity, and survey-gate tests as support-bundle evidence",
+        "make -C zigux phase12-validate",
         "rollback-only split machine-checkable",
     ],
     FALLBACK_CATALOG_PATH: [
@@ -191,6 +193,12 @@ def check(root: Path) -> list[str]:
         text = read_text(root / rel_path)
         require_markers(errors, rel_path, text, markers)
         forbid_markers(errors, rel_path, text, FORBIDDEN_MARKERS)
+
+    survey_note_text = read_text(root / SURVEY_NOTE_PATH)
+    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") != 1:
+        errors.append("survey note fixture manifest boundary drift")
+    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") != 1:
+        errors.append("survey note survey manifest boundary drift")
 
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
     survey_manifest = json.loads(read_text(root / SURVEY_MANIFEST_PATH))
