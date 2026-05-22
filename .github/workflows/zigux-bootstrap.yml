@@ -394,6 +394,9 @@ jobs:
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
 
+      - name: Run Phase 4 artifact-diff contract make route
+        run: make -C zigux phase4-artifact-diff-contract
+
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
