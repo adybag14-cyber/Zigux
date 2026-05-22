@@ -8,6 +8,31 @@ const phase4_perf_baseline_manifest_source = @embedFile("phase4_perf_baseline_ma
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
 
+const Atomic64Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    roadmap_target_path: []const u8,
+    roadmap_atomic64_diff_present: bool,
+    roadmap_atomic64_wrapper_targets_runtime_diff: bool,
+    live_gate_path: []const u8,
+    live_gate_blob_sha: []const u8,
+    live_gate_line_count: usize,
+    runtime_replay_path: []const u8,
+    runtime_replay_blob_sha: []const u8,
+    runtime_replay_line_count: usize,
+    phase4_build_present: bool,
+    phase4_build_uses_atomic64_wrapper: bool,
+    phase4_validator_atomic64_diff_present: bool,
+    phase4_validator_runtime_atomic64_diff_present: bool,
+    phase4_gate_evidence_path: []const u8,
+    phase9_build_present: bool,
+    phase4_validation_matrix_atomic64_diff_note_present: bool,
+    phase4_validation_matrix_runtime_atomic64_note_present: bool,
+    threshold_posture: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+};
+
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
 }
@@ -337,6 +362,45 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared reviewer checklist");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "rollback-owner matrix");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
+}
+
+test "atomic64 diff wrapper structurally parses the current manifest handoff" {
+    const parsed = try std.json.parseFromSlice(
+        Atomic64Manifest,
+        std.testing.allocator,
+        phase4_runtime_atomic64_manifest_source,
+        .{},
+    );
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const runtime_blob_sha = try gitBlobShaHex(runtime_atomic64_diff_source);
+
+    try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 4", manifest.phase);
+    try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
+    try std.testing.expect(manifest.roadmap_atomic64_diff_present);
+    try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
+    try std.testing.expectEqualStrings(runtime_blob_sha[0..], manifest.live_gate_blob_sha);
+    try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.live_gate_line_count);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
+    try std.testing.expectEqualStrings(runtime_blob_sha[0..], manifest.runtime_replay_blob_sha);
+    try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.runtime_replay_line_count);
+    try std.testing.expect(manifest.phase4_build_present);
+    try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
+    try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
+    try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.phase4_gate_evidence_path);
+    try std.testing.expect(manifest.phase9_build_present);
+    try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
+    try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        manifest.threshold_posture,
+    );
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.owner);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.rollback_owner);
 }
 
 test "atomic64 diff wrapper keeps the paired survey contract explicit" {
