@@ -64,6 +64,28 @@ test "phase13 devres iomap planning preserves translated size on request-region 
     try std.testing.expect(plan.keeps_nonposted_mapping_type);
 }
 
+test "phase13 devres iomap planning reaches helper-first remap when translation succeeds without a region request" {
+    const plan = devres.DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 3,
+        .translated_size = 16384,
+        .translation_ready = true,
+        .requests_region = false,
+        .request_region_available = true,
+        .remap_succeeds = true,
+        .nonposted = true,
+    });
+
+    try std.testing.expectEqual(@as(u32, 3), plan.index);
+    try std.testing.expectEqual(@as(u64, 16384), plan.translated_size);
+    try std.testing.expect(plan.translation_ready);
+    try std.testing.expect(plan.reaches_managed_ioremap_resource);
+    try std.testing.expect(!plan.requests_region);
+    try std.testing.expect(!plan.request_region_denied);
+    try std.testing.expect(!plan.releases_region_on_remap_failure);
+    try std.testing.expect(plan.remap_ready);
+    try std.testing.expect(plan.keeps_nonposted_mapping_type);
+}
+
 test "phase13 devres iomap planning releases the requested region when remap later fails" {
     const plan = devres.DevresHelperLab.planDeviceTreeIomap(.{
         .index = 0,
