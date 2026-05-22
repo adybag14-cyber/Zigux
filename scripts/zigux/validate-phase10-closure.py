@@ -578,6 +578,34 @@ def run_self_test() -> int:
         cases += 1
 
         broken = json.loads(json.dumps(original))
+        broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "python3 scripts/zigux/check-phase10-harness-coverage.py"
+        ]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "exact_checks:'python3 scripts/zigux/check-phase10-harness-coverage.py':missing",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "make -C zigux phase10-test"
+        ]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "exact_checks:'make -C zigux phase10-test':missing",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
         reordered = list(EXPECTED_EXACT_CHECKS)
         reordered[1], reordered[2] = reordered[2], reordered[1]
         broken["exact_checks"] = reordered
