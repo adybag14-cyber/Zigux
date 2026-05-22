@@ -472,6 +472,19 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].append(
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_prefix = "phase3_abi_manifest.json replay_routes duplicate entry:"
+        if not any(issue.startswith(expected_prefix) for issue in issues):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected duplicate low-level-wrapper replay route was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
         manifest["repo_reality_gaps"] = ["zigux/helpers/mmio.zig"]
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -484,10 +497,26 @@ def run_self_test() -> int:
             print("expected low-level-wrapper repo-gap misclassification was not reported")
             return 1
 
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = [
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        ]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json misclassified low-level-wrapper replay route as repo gap: "
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected low-level-wrapper replay-route repo-gap misclassification was not reported")
+            return 1
+
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
-        f"{len(SELF_TEST_CASES) + 5}"
+        f"{len(SELF_TEST_CASES) + 7}"
     )
     return 0
 
