@@ -30,6 +30,11 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_contract_source, "exec_name");
     try expectContains(runtime_loader_contract_source, "exec_path");
     try expectContains(runtime_loader_contract_source, "exec_path_env");
+    try expectContains(runtime_loader_contract_source, "LoadPlan keeps blocked registration-summary surfaces out of the shared request contract");
+    try expectContains(runtime_loader_contract_source, "register_api");
+    try expectContains(runtime_loader_contract_source, "unregister_api");
+    try expectContains(runtime_loader_contract_source, "summary");
+    try expectContains(runtime_loader_contract_source, "registration_snapshot");
     try expectContains(runtime_loader_contract_source, "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract");
     try expectContains(runtime_loader_contract_source, "modinfo");
     try expectContains(runtime_loader_contract_source, "module_alias");
@@ -48,6 +53,18 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_source, "pub fn releaseWithoutSubstrate");
     try expectContains(runtime_loader_source, "waiting_on_runtime_substrate");
     try expectContains(runtime_loader_source, "released_without_substrate");
+    try expectContains(runtime_loader_source, "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary");
+    try expectContains(runtime_loader_source, "\"modinfo\"");
+    try expectContains(runtime_loader_source, "\"module_alias\"");
+    try expectContains(runtime_loader_source, "\"module_aliases\"");
+    try expectContains(runtime_loader_source, "\"modules_alias_path\"");
+    try expectContains(runtime_loader_source, "\"module_install_root\"");
+    try expectContains(runtime_loader_source, "\"modules_order_path\"");
+    try expectContains(runtime_loader_source, "\"modules_builtin_path\"");
+    try expectContains(runtime_loader_source, "\"module_symvers_path\"");
+    try expectContains(runtime_loader_source, "\"depmod_script\"");
+    try expectContains(runtime_loader_source, "\"depmod_manifest\"");
+    try expectContains(runtime_loader_source, "\"depmod_aliases\"");
 }
 
 test "shared runtime loader surface rejects argv and environment control bleed-through" {
@@ -85,22 +102,44 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
     }
 }
 
-test "shared runtime loader surface rejects publication and depmod bleed-through" {
-    const loader_forbidden_markers = [_][]const u8{
-        "modinfo",
-        "module_alias",
-        "module_aliases",
-        "modules_alias_path",
-        "module_install_root",
-        "modules_order_path",
-        "modules_builtin_path",
-        "module_symvers_path",
-        "depmod_script",
-        "depmod_manifest",
-        "depmod_aliases",
+test "shared runtime loader surface rejects registration-summary bleed-through" {
+    const contract_forbidden_field_decls = [_][]const u8{
+        "register_api:",
+        "unregister_api:",
+        "summary:",
+        "registration_snapshot:",
+    };
+    const loader_forbidden_field_decls = [_][]const u8{
+        "register_api:",
+        "unregister_api:",
+        "summary:",
+        "registration_snapshot:",
     };
 
-    inline for (loader_forbidden_markers) |marker| {
+    inline for (contract_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+    inline for (loader_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+    }
+}
+
+test "shared runtime loader surface rejects publication and depmod bleed-through" {
+    const loader_forbidden_field_decls = [_][]const u8{
+        "modinfo:",
+        "module_alias:",
+        "module_aliases:",
+        "modules_alias_path:",
+        "module_install_root:",
+        "modules_order_path:",
+        "modules_builtin_path:",
+        "module_symvers_path:",
+        "depmod_script:",
+        "depmod_manifest:",
+        "depmod_aliases:",
+    };
+
+    inline for (loader_forbidden_field_decls) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
 }
