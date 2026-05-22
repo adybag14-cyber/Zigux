@@ -19,7 +19,9 @@ REQUIRED_PRESENT_MARKERS = (
 FORBIDDEN_PHASE4_MARKERS = (
     "## Phase 4",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
+    "scripts/zigux/check-phase4-gate-evidence.py",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/bitmap_diff.zig",
 )
@@ -30,7 +32,9 @@ SELF_TEST_CASE_NAMES = (
     "missing_phase5_anchor",
     "stale_phase4_heading",
     "stale_phase4_note_reference",
+    "stale_phase4_gate_evidence_note_reference",
     "stale_phase4_perf_reference",
+    "stale_phase4_gate_evidence_checker_reference",
     "stale_phase4_bitmap_reference",
 )
 
@@ -133,14 +137,24 @@ def run_self_test() -> int:
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[1]}"],
         ),
         (
+            "stale_phase4_gate_evidence_note_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[2] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[2]}"],
+        ),
+        (
             "stale_phase4_perf_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[3] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[3]}"],
+            baseline + FORBIDDEN_PHASE4_MARKERS[5] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[5]}"],
+        ),
+        (
+            "stale_phase4_gate_evidence_checker_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[4] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[4]}"],
         ),
         (
             "stale_phase4_bitmap_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[4] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[4]}"],
+            baseline + FORBIDDEN_PHASE4_MARKERS[6] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[6]}"],
         ),
     )
 
