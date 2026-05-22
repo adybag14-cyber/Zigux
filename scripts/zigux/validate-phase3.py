@@ -164,6 +164,7 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-abi.py")',
         'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
         'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+        'Path("scripts/zigux/check-phase3-selftest-surface.py")',
         'print("PHASE3_VALIDATE_SELFTEST=pass")',
     ),
     TESTS_BUILD_PATH: (
@@ -183,6 +184,7 @@ REQUIRED_SOURCE_MARKERS = {
         '"phase3-export-uapi-layout"',
         '"phase3-low-level-wrappers"',
         '"phase3-dump"',
+        '"phase3-test"',
         "phase3_test_step.dependOn(&phase3_policy_starter_packet.step);",
         "phase3_test_step.dependOn(&phase3_abi_core_packet.step);",
         "phase3_test_step.dependOn(&phase3_export_uapi_layout.step);",
@@ -381,6 +383,7 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+    "zig build phase3-test --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
 )
@@ -602,6 +605,11 @@ def run_self_test() -> int:
                 "missing zigux/tests/build.zig marker: const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);",
             ),
             (
+                TESTS_BUILD_PATH,
+                '"phase3-test"\n',
+                'missing zigux/tests/build.zig marker: "phase3-test"',
+            ),
+            (
                 ABI_HEADER_PATH,
                 'static inline int zigux_list_first_broken_backlink(\n',
                 "missing include/zigux/abi.h marker: static inline int zigux_list_first_broken_backlink(",
@@ -655,6 +663,11 @@ def run_self_test() -> int:
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 'Path("scripts/zigux/validate-phase3-validator-support-surface.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-selftest-surface.py")\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-selftest-surface.py")',
             ),
             (
                 EXPORT_SHIM_BUILD_PATH,
@@ -822,6 +835,20 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove("zig build phase3-test --build-file zigux/tests/build.zig")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-test --build-file zigux/tests/build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected aggregate phase3-test replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove("make -C zigux phase3-low-level-wrappers-test")
         _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -919,7 +946,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=31")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
