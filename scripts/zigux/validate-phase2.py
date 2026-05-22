@@ -55,6 +55,7 @@ REQUIRED_PATHS = (
     GENKSYMS_VERSION_SIDE_EFFECT_TEST,
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/artifact_diff.py",
     "third_party/README.md",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
