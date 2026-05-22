@@ -18,6 +18,10 @@ REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
+TESTS_BUILD_REL = Path("zigux/tests/build.zig")
+PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
+PHASE1_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+MAKEFILE_REL = Path("zigux/Makefile")
 
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
@@ -35,6 +39,10 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
     TESTS_README_REL,
     WORKFLOW_REL,
+    TESTS_BUILD_REL,
+    PHASE1_SMOKE_REL,
+    PHASE1_MANIFEST_REL,
+    MAKEFILE_REL,
     DIRECT_OWNER_CHECKER_REL,
     STRING_REVIEW_CHECKER_REL,
     ROUTE_SUMMARY_CHECKER_REL,
