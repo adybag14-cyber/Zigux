@@ -61,6 +61,7 @@ TEST_ROOT_MODULES = {
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "current authenticated contents readback keeps the bounded HVC current-head",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note,",
     "current authenticated contents readback still does not rematerialize",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
@@ -116,6 +117,7 @@ VERIFY_MARKERS = (
 MATRIX_MARKERS = (
     "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
     "the current matrix packet now stays aligned with the smaller",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -239,12 +241,12 @@ PROOF_MARKERS = (
     'try expectContains(driver, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {");',
     'try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");',
     'try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\" {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\" {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\" {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\" {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\" {");',
-    'try expectContains(driver, "test \\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\\\\" {");',
+    'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\\\\" {");',
 )
 
 BUILD_MARKERS = (
@@ -384,6 +386,7 @@ def build_fixture(root: Path) -> None:
                 "",
                 "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
                 "current authenticated contents readback keeps the bounded HVC current-head packet reviewable through:",
+                "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
                 "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
                 "current authenticated contents readback still does not rematerialize",
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py`,",
@@ -460,6 +463,7 @@ def build_fixture(root: Path) -> None:
                 "",
                 "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
                 "the current matrix packet now stays aligned with the smaller authenticated-readback companion stack rather than the older starter-depth public-readback packet",
+                "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
                 "`scripts/zigux/check-phase11-build-inventory.py`",
                 "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
                 "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -484,11 +488,11 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "#!/usr/bin/env python3",
-                '"""Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet."""',
-                '"Documentation/zigux/phase11-hvc-console-validation-matrix.md",',
-                '"scripts/zigux/validate-phase11.py",',
-                '"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit"',
-                'print("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass")',
+                "\"\"\"Fail-closed checker for the Phase 11 HVC targetless-unregister witness packet.\"\"\"",
+                "\"Documentation/zigux/phase11-hvc-console-validation-matrix.md\",",
+                "\"scripts/zigux/validate-phase11.py\",",
+                "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"",
+                "print(\"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass\")",
                 "",
             ]
         ),
@@ -546,6 +550,7 @@ def run_self_test() -> int:
         run_check(fixture)
 
         cases = [
+            (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`,"),
             (SURVEY_PATH, "current authenticated contents readback still does not rematerialize"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
@@ -559,6 +564,7 @@ def run_self_test() -> int:
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution."),
+            (MATRIX_PATH, "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
             (MATRIX_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
@@ -567,7 +573,7 @@ def run_self_test() -> int:
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`"),
             (MATRIX_PATH, "the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` plus `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` witness shard now rereads the live starter and the boundary note together"),
             (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
-            (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\"") ,
+            (TARGETLESS_WITNESS_CHECKER_PATH, "\"phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit\""),
             (DRIVER_PATH, "pub const FlushIntentRequest = struct {"),
             (DRIVER_PATH, "pub fn summarizeFlushIntent(request: FlushIntentRequest) FlushIntentSummary {"),
             (DRIVER_PATH, "pub const CloseTeardownRequest = struct {"),
@@ -614,12 +620,12 @@ def run_self_test() -> int:
             (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeKhvcdWorkerEntry(request: KhvcdWorkerEntryRequest) KhvcdWorkerEntrySummary {");'),
             (PROOF_PATH, 'try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");'),
             (PROOF_PATH, 'try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\" {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\" {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\" {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\" {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\" {");'),
-            (PROOF_PATH, 'try expectContains(driver, "test \\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\\\\" {");'),
+            (PROOF_PATH, 'try expectContains(driver, "test \\\\\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\\\\" {");'),
         ]
         for index, (rel, marker) in enumerate(cases, start=1):
             broken = tmpdir / f"broken_{index:02d}"
