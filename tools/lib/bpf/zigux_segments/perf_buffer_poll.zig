@@ -143,6 +143,8 @@ pub const BufferWindowLookupError = error{
     MissingWindow,
 };
 
+pub const ReadyBufferWindowLookupError = ReadyBufferAttemptLookupError || BufferWindowLookupError;
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -217,7 +219,6 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
                     failure_ready_index >= first_ready_index + index and
                     (index != 0 or failure_ready_index == first_ready_index);
             }
-
             break :blk summary.first_process_error == null and
                 summary.first_process_error_ready_index == null and
                 summary.attempted_ready_buffer_count == summary.poll.ready_count and
@@ -756,6 +757,25 @@ pub fn resolveBufferWindowLookupReturnAtIndex(
     return resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(buffer_windows, buffer_index));
 }
 
+pub fn resolveReadyBufferWindowMappedSizeAtAttempt(
+    buffers: []const BufferObservation,
+    buffer_windows: []const ?BufferWindowObservation,
+    attempt_index: usize,
+) ReadyBufferWindowLookupError!usize {
+    const buffer_index = try resolveReadyBufferAttemptAtIndex(buffers, attempt_index);
+    return resolveBufferWindowMappedSizeAtIndex(buffer_windows, buffer_index);
+}
+
+pub fn resolveReadyBufferWindowLookupReturnAtAttempt(
+    buffers: []const BufferObservation,
+    buffer_windows: []const ?BufferWindowObservation,
+    attempt_index: usize,
+) i32 {
+    const buffer_index = resolveReadyBufferAttemptIndex(buffers, attempt_index) orelse
+        return -@as(i32, @intFromEnum(std.os.linux.E.NOENT));
+    return resolveBufferWindowLookupReturnAtIndex(buffer_windows, buffer_index);
+}
+
 test "phase8 perf-buffer poll resolves ready-buffer attempt ordinals back to slot indexes" {
     const buffers = [_]BufferObservation{
         .{},
@@ -1204,6 +1224,96 @@ test "phase8 perf-buffer poll keeps ready-buffer fd lookup returns errno-shaped"
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
         resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
+}
+
+test "phase8 perf-buffer poll resolves ready-buffer mapped-window lookups without manual slot plumbing" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectError(
+        error.InvalidIndex,
+        resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectError(
+        error.MissingWindow,
+        resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &missing_window, 1),
+    );
+}
+
+test "phase8 perf-buffer poll keeps ready-buffer window lookup returns errno-shaped" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(@as(i32, 0), resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 0));
+    try std.testing.expectEqual(@as(i32, 0), resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 1));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &missing_window, 1),
     );
 }
 
