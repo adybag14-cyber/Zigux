@@ -8,8 +8,8 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L08`
 - lane-key note: `P7-L08` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
-- scope: keep the Phase 7 cmdline lane limited to the current helper-local slice anchor, dedicated replay, dedicated survey, dedicated manifest, dedicated checker, and the no-standalone-cmdline-sample boundary
-- lane state: current `master` directly carries `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.
+- scope: keep the Phase 7 cmdline lane limited to the current helper-local sequencing note, slice anchor, dedicated replay, dedicated survey, dedicated manifest, dedicated checker, and the no-standalone-cmdline-sample boundary
+- lane state: current `master` directly carries `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.
 
 ## Why This Slice Exists
 
@@ -25,6 +25,7 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 - `lib/cmdline.zig`
 
 2. keep the current helper-local review packet explicit
+- `Documentation/zigux/phase7-helper-lane-sequencing.md`
 - `Documentation/zigux/phase7-cmdline-slice.md`
 - `zigux/tests/phase7_cmdline.zig`
 - `zigux/tests/phase7_cmdline_survey.zig`
