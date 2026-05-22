@@ -6,6 +6,7 @@ pub const ModuleDescriptor = struct {
     provides_release_call_planning: bool,
     provides_dmam_free_coherent_cleanup_planning: bool,
     provides_dmam_detach_cleanup_transition_planning: bool,
+    provides_of_iomap_planning: bool,
     provides_iounmap_cleanup_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
@@ -65,6 +66,29 @@ pub const ManagedReleaseCallPlan = struct {
     destroys_release_record_before_free: bool,
 };
 
+pub const DeviceTreeIomapInput = struct {
+    index: u32,
+    translated_size: u64,
+    translation_ready: bool,
+    requests_region: bool,
+    request_region_available: bool,
+    remap_succeeds: bool,
+    nonposted: bool,
+};
+
+pub const DeviceTreeIomapPlan = struct {
+    anchor: []const u8,
+    index: u32,
+    translated_size: u64,
+    translation_ready: bool,
+    reaches_managed_ioremap_resource: bool,
+    requests_region: bool,
+    request_region_denied: bool,
+    releases_region_on_remap_failure: bool,
+    remap_ready: bool,
+    keeps_nonposted_mapping_type: bool,
+};
+
 pub const ManagedIounmapCleanupPlan = struct {
     anchor: []const u8,
     had_mapping_owner: bool,
@@ -120,6 +144,7 @@ pub const DevresHelperLab = struct {
             .provides_release_call_planning = true,
             .provides_dmam_free_coherent_cleanup_planning = true,
             .provides_dmam_detach_cleanup_transition_planning = true,
+            .provides_of_iomap_planning = true,
             .provides_iounmap_cleanup_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
@@ -189,6 +214,27 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    pub fn planDeviceTreeIomap(input: DeviceTreeIomapInput) DeviceTreeIomapPlan {
+        const translation_ready = input.translation_ready and input.translated_size > 0;
+        const reaches_managed_ioremap_resource = translation_ready;
+        const request_region_denied = reaches_managed_ioremap_resource and input.requests_region and !input.request_region_available;
+        const remap_ready = reaches_managed_ioremap_resource and !request_region_denied and input.remap_succeeds;
+        const releases_region_on_remap_failure = reaches_managed_ioremap_resource and input.requests_region and !request_region_denied and !input.remap_succeeds;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .index = input.index,
+            .translated_size = input.translated_size,
+            .translation_ready = translation_ready,
+            .reaches_managed_ioremap_resource = reaches_managed_ioremap_resource,
+            .requests_region = reaches_managed_ioremap_resource and input.requests_region,
+            .request_region_denied = request_region_denied,
+            .releases_region_on_remap_failure = releases_region_on_remap_failure,
+            .remap_ready = remap_ready,
+            .keeps_nonposted_mapping_type = reaches_managed_ioremap_resource and input.nonposted,
+        };
+    }
+
     pub fn planManagedIounmapCleanup(had_mapping_owner: bool, release_record_matches: bool) ManagedIounmapCleanupPlan {
         if (!had_mapping_owner) {
             return .{
@@ -226,6 +272,7 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_release_call_planning);
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
     try std.testing.expect(descriptor.provides_dmam_detach_cleanup_transition_planning);
+    try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_iounmap_cleanup_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
@@ -375,6 +422,72 @@ test "detach cleanup planning skips cleanup when allocation never retained owner
     try std.testing.expect(!cleanup.release_record_consumed);
     try std.testing.expect(!cleanup.warns_on_release_miss);
     try std.testing.expect(!cleanup.destroys_release_record_before_free);
+}
+
+test "iomap planning stops before the managed ioremap-resource stage when translation is missing" {
+    const plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 2,
+        .translated_size = 4096,
+        .translation_ready = false,
+        .requests_region = true,
+        .request_region_available = true,
+        .remap_succeeds = true,
+        .nonposted = true,
+    });
+
+    try std.testing.expectEqual(@as(u32, 2), plan.index);
+    try std.testing.expectEqual(@as(u64, 4096), plan.translated_size);
+    try std.testing.expect(!plan.translation_ready);
+    try std.testing.expect(!plan.reaches_managed_ioremap_resource);
+    try std.testing.expect(!plan.requests_region);
+    try std.testing.expect(!plan.request_region_denied);
+    try std.testing.expect(!plan.releases_region_on_remap_failure);
+    try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.keeps_nonposted_mapping_type);
+}
+
+test "iomap planning preserves translated size and busy denial when the request region is unavailable" {
+    const plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 1,
+        .translated_size = 8192,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = false,
+        .remap_succeeds = true,
+        .nonposted = true,
+    });
+
+    try std.testing.expectEqual(@as(u32, 1), plan.index);
+    try std.testing.expectEqual(@as(u64, 8192), plan.translated_size);
+    try std.testing.expect(plan.translation_ready);
+    try std.testing.expect(plan.reaches_managed_ioremap_resource);
+    try std.testing.expect(plan.requests_region);
+    try std.testing.expect(plan.request_region_denied);
+    try std.testing.expect(!plan.releases_region_on_remap_failure);
+    try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(plan.keeps_nonposted_mapping_type);
+}
+
+test "iomap planning releases the requested region when remap later fails" {
+    const plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 0,
+        .translated_size = 4096,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = true,
+        .remap_succeeds = false,
+        .nonposted = false,
+    });
+
+    try std.testing.expectEqual(@as(u32, 0), plan.index);
+    try std.testing.expectEqual(@as(u64, 4096), plan.translated_size);
+    try std.testing.expect(plan.translation_ready);
+    try std.testing.expect(plan.reaches_managed_ioremap_resource);
+    try std.testing.expect(plan.requests_region);
+    try std.testing.expect(!plan.request_region_denied);
+    try std.testing.expect(plan.releases_region_on_remap_failure);
+    try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.keeps_nonposted_mapping_type);
 }
 
 test "iounmap cleanup planning consumes the matching devres release record" {
