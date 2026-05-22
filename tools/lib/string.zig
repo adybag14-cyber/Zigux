@@ -340,6 +340,27 @@ pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {
     return matchString(haystack, needle);
 }
 
+pub fn strcmp(lhs: []const u8, rhs: []const u8) i32 {
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    const limit = @min(lhs_len, rhs_len);
+
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        if (lhs[idx] != rhs[idx]) {
+            return @as(i32, lhs[idx]) - @as(i32, rhs[idx]);
+        }
+    }
+
+    if (lhs_len == rhs_len) {
+        return 0;
+    }
+
+    const lhs_tail: u8 = if (lhs_len > rhs_len) lhs[rhs_len] else 0;
+    const rhs_tail: u8 = if (rhs_len > lhs_len) rhs[lhs_len] else 0;
+    return @as(i32, lhs_tail) - @as(i32, rhs_tail);
+}
+
 pub fn strchr(buf: []const u8, needle: u8) ?usize {
     const limit = cStringLen(buf);
     if (needle == 0) {
@@ -609,6 +630,18 @@ test "match_string mirrors matchString for empty and matched lists" {
     const empty = [_][]const u8{};
     try std.testing.expectEqual(@as(?usize, 1), match_string(haystack[0..], "green"));
     try std.testing.expectEqual(@as(?usize, null), match_string(empty[0..], "green"));
+}
+
+test "strcmp mirrors C-string lexical ordering" {
+    try std.testing.expect(strcmp("abc", "abc") == 0);
+    try std.testing.expect(strcmp("abd", "abc") > 0);
+    try std.testing.expect(strcmp("abc", "abd") < 0);
+}
+
+test "strcmp stops at embedded NULs and length mismatches" {
+    try std.testing.expect(strcmp(&[_]u8{ 'a', 0, 'z' }, &[_]u8{ 'a', 0, 'x' }) == 0);
+    try std.testing.expect(strcmp(&[_]u8{ 'a', 0, 'z' }, "ab") < 0);
+    try std.testing.expect(strcmp("ab", &[_]u8{ 'a', 0, 'z' }) > 0);
 }
 
 test "memdup and memchrInv preserve byte content" {
