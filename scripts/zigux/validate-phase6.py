@@ -79,6 +79,7 @@ EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "scripts/zigux/check-phase6-present-entrypoints.py",
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
@@ -94,6 +95,7 @@ EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-perf-threshold-markers.py",
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
@@ -187,7 +189,7 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 32
+SELF_TEST_CASE_COUNT = 34
 
 
 class ValidationError(RuntimeError):
@@ -352,30 +354,10 @@ def scaffold_repo(root: Path) -> None:
         "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
         "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
         "helpers": [
-            {
-                "key": "base64",
-                "current_perf_evidence": {
-                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
-                },
-            },
-            {
-                "key": "bsearch",
-                "current_perf_evidence": {
-                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
-                },
-            },
-            {
-                "key": "checksum",
-                "current_perf_evidence": {
-                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
-                },
-            },
-            {
-                "key": "hexdump",
-                "current_perf_evidence": {
-                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
-                },
-            },
+            {"key": "base64", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "bsearch", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "checksum", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "hexdump", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
         ],
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
@@ -437,6 +419,12 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"] = []
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
@@ -445,6 +433,12 @@ def run_self_test() -> None:
         scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
         parity_manifest["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["shared_direct_evidence"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -514,9 +508,7 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
-        parity_manifest["public_tree_backed_shared_companions"] = [
-            "Documentation/zigux/phase6-perf-gate-survey.md"
-        ]
+        parity_manifest["public_tree_backed_shared_companions"] = ["Documentation/zigux/phase6-perf-gate-survey.md"]
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
