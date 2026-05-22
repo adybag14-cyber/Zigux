@@ -5,10 +5,11 @@ Fail-closed checker for the current Phase 14 rollback-threshold packet.
 
 This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
-contract, on the returned ring-buffer survey companion and shared smoke
-manifest, and on the current repo-reality split where the Makefile is
-readable, ships `phase14-validate`, and still does not ship the broader
-`phase14-smoke`, `phase14-test`, or `phase14` wrapper targets.
+contract, on the returned route checker and tests-root reminder checker, on the
+returned ring-buffer survey companion and shared smoke manifest, and on the
+current repo-reality split where the Makefile is readable, ships
+`phase14-validate`, and still does not ship the broader `phase14-smoke`,
+`phase14-test`, or `phase14` wrapper targets.
 """
 
 from __future__ import annotations
@@ -30,12 +31,13 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 
 ROLLBACK_THRESHOLD_MARKER = (
     "  * rollback threshold: `0` tolerated same-packet drifts across the "
-    "recovered documentation packet, the directly readable validator path, the "
-    "readable current Makefile body, the directly readable release-boundary "
-    "exact-count guard, the directly readable workqueue boundary shard, the "
-    "directly readable ring-buffer survey companion, the directly readable "
-    "shared smoke manifest, and the still-missing broader wrapper-backed rerun "
-    "routes"
+    "recovered documentation packet, the directly readable shared-smoke route "
+    "checker, the directly readable tests-root reminder checker, the directly "
+    "readable validator path, the readable current Makefile body, the directly "
+    "readable release-boundary exact-count guard, the directly readable "
+    "workqueue boundary shard, the directly readable ring-buffer survey "
+    "companion, the directly readable shared smoke manifest, and the "
+    "still-missing broader wrapper-backed rerun routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -48,6 +50,8 @@ ROLLBACK_FALLBACK_MARKER = (
 )
 ROLLBACK_TRIGGER_MARKERS = [
     "    * recovered documentation packet drift",
+    "    * route-checker-versus-reminder-surface drift",
+    "    * tests-root-checker-versus-reminder-surface drift",
     "    * validator-versus-reminder-surface drift",
     "    * workqueue-boundary-shard drift",
     "    * ring-buffer-survey drift",
@@ -72,8 +76,11 @@ RETURNED_PHASE4_ROUTE_MARKERS = [
 PRODUCTIZATION_GAP_MARKERS = [
     "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
     "The higher-value same-lane task is reminder-surface truthfulness:",
+    "the directly readable shared-smoke route checker",
+    "the directly readable tests-root reminder checker",
     "the directly readable validator surface",
     "the directly readable release-boundary exact-count guard",
+    "the directly readable shared smoke manifest",
     "the current Makefile posture",
 ]
 CHECKLIST_MARKERS = [
@@ -273,7 +280,7 @@ def fixture_productization_gap() -> str:
         [
             "# Phase 14 Productization Gap Survey",
             "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, the directly readable ring-buffer survey companion, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
+            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable shared-smoke route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable shared smoke manifest, the directly readable workqueue reviewability shard, the directly readable ring-buffer survey companion, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
             "",
         ]
     )
@@ -322,6 +329,36 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * route-checker-versus-reminder-surface drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("route-checker-versus-reminder-surface drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected route-checker trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * tests-root-checker-versus-reminder-surface drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("tests-root-checker-versus-reminder-surface drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected tests-root trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
         write(
             root,
             SMOKE_NOTE_PATH,
@@ -389,14 +426,14 @@ def run_self_test() -> int:
             root,
             PRODUCTIZATION_GAP_PATH,
             fixture_productization_gap().replace(
-                "the directly readable release-boundary exact-count guard",
-                "missing exact-count guard",
+                "the directly readable shared smoke manifest",
+                "missing shared smoke manifest",
                 1,
             ),
         )
-        if not any("the directly readable release-boundary exact-count guard" in error for error in check(root)):
+        if not any("the directly readable shared smoke manifest" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
-            print("expected productization-gap exact-count drift to fail")
+            print("expected productization-gap shared-manifest drift to fail")
             return 1
 
         write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
@@ -411,7 +448,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
