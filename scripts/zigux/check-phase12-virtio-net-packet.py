@@ -50,15 +50,15 @@ SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
     "lane owner: `P12-L01`",
     "scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate review packet truthful without reopening live runtime data-path work",
-    "verified head: `c36b21af252cf76160ba5ae9c8f84b2310f4b2e1`",
+    "verified head: `6791c1229b883d9f0acf9ec70e4159db1c9d1bf6`",
     "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_receive_refill_replay.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
     "drivers/net/virtio_net_post_reset_replay.zig",
     "drivers/net/virtio_net_throughput_parity.zig",
-    "`zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 smoke and test routes",
-    "the shared Phase 12 build route reruns that sextet",
-    "the throughput helper remains review-only throughput-ratio checks, not measured transport throughput evidence",
+    "`zigux/tests/phase12_build.zig` plus `zigux/Makefile` now keep the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes",
+    "current `master` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof for that sextet",
+    "the throughput helper remains review-only throughput-ratio checks, but now also surfaces explicit receive-refill and transmit-recycle readiness booleans rather than measured transport throughput evidence",
     "the packet still does not claim live DMA-safe receive ownership",
     "performance-risk wording refresh remains bounded below runtime queue execution",
 ]
@@ -72,8 +72,8 @@ SURVEY_GATE_MARKERS = [
     '"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
     'try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only");',
-    'try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 smoke and test routes");',
-    'try expectContains(survey_note, "the shared Phase 12 build route reruns that sextet");',
+    'try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes");',
+    'try expectContains(survey_note, "`phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof");',
     'try expectContains(build_zig, "phase12_virtio_net_survey.zig");',
     'try expectContains(build_zig, "phase12-virtio-net-survey-tests");',
     'try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, build_zig, "b.addTest(.{"));',
@@ -81,7 +81,7 @@ SURVEY_GATE_MARKERS = [
     'try std.testing.expect(!try pathExists("drivers/net/virtio_net.zig"));',
     'try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net.zig"));',
     'try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
-    'try expectContains(makefile, "phase12: phase12-smoke phase12-test");',
+    'try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");',
 ]
 
 BUILD_MARKERS = [
@@ -117,9 +117,10 @@ BUILD_MARKERS = [
 ]
 
 MAKEFILE_MARKERS = [
+    "phase12-validate:",
     "phase12-smoke:",
     "phase12-test:",
-    "phase12: phase12-smoke phase12-test",
+    "phase12: phase12-validate phase12-smoke phase12-test",
 ]
 
 STALE_BUILD_MARKERS = [
@@ -131,8 +132,7 @@ STALE_BUILD_MARKERS = [
 ]
 
 STALE_MAKEFILE_MARKERS = [
-    "phase12-validate:",
-    "phase12: phase12-validate phase12-smoke phase12-test",
+    "phase12: phase12-smoke phase12-test",
 ]
 
 
@@ -334,7 +334,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        (root / "zigux/tests/phase12_virtio_net_survey.zig").write_text("broken\n", encoding="utf-8")
+        (root / "zigux/tests/phase12_virtio_net_survey.zig").writeText("broken\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
@@ -358,7 +358,10 @@ def run_self_test() -> None:
         root = fresh_root()
         makefile = root / "zigux/Makefile"
         makefile.write_text(
-            makefile.read_text(encoding="utf-8") + "phase12-validate:\n",
+            makefile.read_text(encoding="utf-8").replace(
+                "phase12: phase12-validate phase12-smoke phase12-test",
+                "phase12: phase12-smoke phase12-test",
+            ),
             encoding="utf-8",
         )
         try:
