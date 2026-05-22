@@ -47,6 +47,7 @@
     "phase15_readiness_packet_checker_present": true,
     "phase15_validator_script_present": true,
     "phase15_docs_readme_checker_present": true,
+    "phase15_scripts_readme_checker_present": true,
     "phase15_tests_readme_checker_present": true,
     "phase15_review_checklist_study_only_alignment_checker_present": true,
     "phase15_handoff_note_checker_present": true,
