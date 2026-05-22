@@ -104,7 +104,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_KALLSYMS_BUILD: (
         "phase8_help.zig",
         "phase8_kallsyms.zig",
-        "Run focused Phase 8 help and kallsyms tests",
+        "Run the focused Phase 8 help and kallsyms shared tests.",
     ),
     HELP_BUILD: (
         "../../tools/lib/subcmd/help.zig",
