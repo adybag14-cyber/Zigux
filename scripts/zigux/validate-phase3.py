@@ -20,6 +20,7 @@ HEADER_GOVERNANCE_VALIDATOR_PATH = Path(
 )
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
+ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
 EXPORT_UAPI_LAYOUT_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
@@ -136,19 +137,23 @@ REQUIRED_SOURCE_MARKERS = {
         "const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);",
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
         "const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);",
+        "const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);",
         'root_source_file = b.path("phase3_policy_starter_packet.zig"),',
         'root_source_file = b.path("phase3_abi.zig"),',
         'root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         'root_source_file = b.path("phase3_low_level_wrappers.zig"),',
+        'root_source_file = b.path("phase3_abi_dump_current.zig"),',
         'root_module.addImport("header_family_binding", header_family_binding);',
         '"phase3-policy-starter-packet"',
         '"phase3-abi-core-packet"',
         '"phase3-export-uapi-layout"',
         '"phase3-low-level-wrappers"',
+        '"phase3-dump"',
         "phase3_test_step.dependOn(&phase3_policy_starter_packet.step);",
         "phase3_test_step.dependOn(&phase3_abi_core_packet.step);",
         "phase3_test_step.dependOn(&phase3_export_uapi_layout.step);",
         "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
+        "phase3_dump_step.dependOn(&phase3_abi_dump.step);",
     ),
     ABI_TEST_PATH: (
         'test "phase3 abi keeps shared layout assertions wired into the replay" {',
@@ -160,6 +165,18 @@ REQUIRED_SOURCE_MARKERS = {
         'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {',
         'test "phase3 abi keeps byte-level policy relays aligned with published ABI constants" {',
         'test "phase3 abi keeps malformed notifier list relays visible through the shared ABI surface" {',
+    ),
+    ABI_DUMP_PATH: (
+        'const abi = @import("abi_bindings");',
+        "pub fn main(init: std.process.Init) !void {",
+        "const default_header = abi.defaultHeader(0);",
+        "const policy = abi.defaultInteropPolicy();",
+        "const header_is_canonical = abi.headerIsCanonical(default_header);",
+        "abi.STATUS_FLAG_ERROR,",
+        "abi.NOTIFIER_DONE,",
+        '@offsetOf(abi.NotifierBlock, "priority"),',
+        '"  \\\"abi_version\\\": {},\\n"',
+        '"  \\\"notifier\\\": {{\\n"',
     ),
     EXPORT_UAPI_LAYOUT_PATH: (
         'const header_family = @import("header_family_binding");',
@@ -515,6 +532,11 @@ def run_self_test() -> int:
                 "missing zigux/tests/build.zig marker: const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);",
             ),
             (
+                TESTS_BUILD_PATH,
+                'const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);\n',
+                "missing zigux/tests/build.zig marker: const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);",
+            ),
+            (
                 ABI_HEADER_PATH,
                 'static inline int zigux_list_first_broken_backlink(\n',
                 "missing include/zigux/abi.h marker: static inline int zigux_list_first_broken_backlink(",
@@ -533,6 +555,11 @@ def run_self_test() -> int:
                 NOTIFIER_BINDINGS_PATH,
                 'pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {\n',
                 "missing zigux/bindings/notifier_abi.zig marker: pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {",
+            ),
+            (
+                ABI_DUMP_PATH,
+                'abi.NOTIFIER_DONE,\n',
+                "missing zigux/tests/phase3_abi_dump_current.zig marker: abi.NOTIFIER_DONE,",
             ),
             (
                 PHASE3_CATALOG_PATH,
@@ -684,7 +711,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
