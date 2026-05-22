@@ -126,7 +126,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase14_ring_buffer_survey.zig` now returns through the current contents path as a directly readable ring-buffer survey companion",
     ],
     SHARED_SMOKE_GAP_PATH: [
-        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, and its live body now matches the narrowed single-gate posture too: `make -C zigux phase14-validate` stays the only shared smoke command, `smoke_shard_commands` stays empty, and the manifest no longer advertises the older `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, or workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow still omit",
+        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, and its live body now matches the narrowed single-gate posture too: `make -C zigux phase14-validate` stays the only shared smoke Makefile command, `smoke_shard_commands` now records the raw focused build-file route `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`, and the manifest still does not advertise the older `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, or workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow still omit",
         "the now-aligned raw-manifest posture",
         "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
         "`zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again through the current contents path as a ring-buffer-local survey companion",
@@ -231,8 +231,8 @@ REQUIRED_MARKERS = {
         "\"Documentation/zigux/phase14-core-boundary-traceability.md\"",
         "\"scripts/zigux/check-phase14-release-boundary-exact-counts.py\"",
         "\"smoke_commands\": [",
-        "\"make -C zigux phase14-validate\"",
-        "\"smoke_shard_commands\": []",
+        "\"smoke_shard_commands\": [",
+        "\"zig build phase14-smoke --build-file zigux/tests/phase14_build.zig\"",
         "\"phase14_make_smoke_target_present\": false",
     ],
     WORKFLOW_PATH: [
