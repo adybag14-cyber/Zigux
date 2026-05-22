@@ -13,6 +13,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 ATTACHED_TOOLCHAIN_GUIDANCE_PATH = Path(
     "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
 )
+RELEASE_BOUNDARY_SURVEY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
 TESTS_ROOT_README_PATH = Path("zigux/tests/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
@@ -24,6 +25,7 @@ WORKQUEUE_BRIDGE_PATH = Path("kernel/workqueue_bridge.zig")
 WORKQUEUE_TEST_PATH = Path("zigux/tests/phase14_workqueue_bridge.zig")
 WORKQUEUE_REVIEWABILITY_PATH = Path("zigux/tests/phase14_workqueue_reviewability.zig")
 WORKQUEUE_MANIFEST_PATH = Path("zigux/tests/phase14_workqueue_bridge_manifest.json")
+RING_BUFFER_SURVEY_PATH = Path("zigux/tests/phase14_ring_buffer_survey.zig")
 
 TESTS_PHASE14_START = "## Phase 14 shared smoke packet"
 TESTS_PHASE14_END = "## Phase 15 shared governance packet"
@@ -33,6 +35,7 @@ SCRIPTS_PHASE14_END = "## Phase 15"
 REQUIRED_FILES = (
     SURVEY_PATH,
     ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
+    RELEASE_BOUNDARY_SURVEY_PATH,
     TESTS_ROOT_README_PATH,
     SCRIPTS_README_PATH,
     REVIEW_CHECKLIST_PATH,
@@ -44,6 +47,7 @@ REQUIRED_FILES = (
     WORKQUEUE_TEST_PATH,
     WORKQUEUE_REVIEWABILITY_PATH,
     WORKQUEUE_MANIFEST_PATH,
+    RING_BUFFER_SURVEY_PATH,
 )
 
 REQUIRED_SURVEY_MARKERS = (
@@ -54,8 +58,7 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_ATTACHED_TOOLCHAIN_MARKERS = (
-    "`zigux/tests/README.md` is aligned on the returned route split, but it still undercounts the broader recovered shared packet",
-    "`Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, and `zigux/tests/phase14_ring_buffer_survey.zig`",
+    "`zigux/tests/README.md` is aligned on the returned route split and now keeps `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, and `zigux/tests/phase14_ring_buffer_survey.zig` explicit in the shared Phase 14 tests-root reminder packet",
     "`scripts/zigux/check-phase14-shared-smoke-route.py` is directly readable again through the current contents path",
     "`zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `phase14-validate` gate, but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
 )
@@ -64,6 +67,8 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
     "`Documentation/zigux/phase14-productization-gap-survey.md`",
     "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`",
+    "`Documentation/zigux/phase14-release-boundary-survey.md`",
+    "`Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`",
     "`scripts/zigux/check-phase14-shared-smoke-route.py`",
     "`scripts/zigux/validate-phase14.py`",
     "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
@@ -72,6 +77,7 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`zigux/tests/phase14_workqueue_bridge.zig`",
     "`zigux/tests/phase14_workqueue_reviewability.zig`",
     "`zigux/tests/phase14_workqueue_bridge_manifest.json`",
+    "`zigux/tests/phase14_ring_buffer_survey.zig`",
     "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent",
     "`zigux/tests/phase14_build.zig`",
     "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
@@ -81,11 +87,7 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`net/core/skbuff_bridge.zig`",
 )
 
-FORBIDDEN_TESTS_ROOT_MARKERS = (
-    "`Documentation/zigux/phase14-release-boundary-survey.md`",
-    "`Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`",
-    "`zigux/tests/phase14_ring_buffer_survey.zig`",
-)
+FORBIDDEN_TESTS_ROOT_MARKERS = ()
 
 REQUIRED_SCRIPTS_README_MARKERS = (
     "Phase 14 flow - the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet",
@@ -302,13 +304,13 @@ def run_self_test() -> int:
         tests_path = base / TESTS_ROOT_README_PATH
         tests_path.write_text(
             tests_path.read_text(encoding="utf-8").replace(
-                TESTS_PHASE14_END,
-                FORBIDDEN_TESTS_ROOT_MARKERS[1] + "\n" + TESTS_PHASE14_END,
+                REQUIRED_TESTS_ROOT_MARKERS[3],
+                "`Documentation/zigux/phase14-release-boundary-survey.md`.missing",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "phase14 tests-root README found forbidden markers")
+        expect_failure(base, "phase14 tests-root README missing required markers")
         cases += 1
 
         write_fixture_tree(base)
