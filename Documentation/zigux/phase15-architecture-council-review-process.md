@@ -65,6 +65,14 @@ The Architecture Council may close a request only in one of these bounded ways:
 - reopen review later with narrower evidence
 - approve a status-bucket change in a separately linked decision record
 
+Every closeout record must also keep all of the following explicit in the linked decision record:
+
+- closeout result
+- follow-up owner
+- next bounded step
+
+If those outcome fields cannot be named honestly, the request stays blocked instead of presenting a stay-in-C closeout or status-bucket change as more settled than the current evidence supports.
+
 This note does not define an exception path outside those reviewable outcomes.
 
 ## Stay-in-C closeout rule
