@@ -86,6 +86,8 @@ FILE_EXPECTATIONS = {
         WITNESS_PATH,
         WITNESS_BUILD_PATH,
         "make -C zigux phase11-validate",
+        "witness shard now rereads the live starter and the boundary note together",
+        "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
     ),
     SURVEY_PATH: (
         CLEANUP_COMPANION_PATH,
@@ -184,17 +186,17 @@ FIXTURE_TEXT = {
         )
     )
     + "\n",
-    LANE_NOTE_PATH: "\n".join(("# sequencing", *FILE_EXPECTATIONS[LANE_NOTE_PATH])) + "\n",
-    CLEANUP_COMPANION_PATH: "\n".join(("# companion", *FILE_EXPECTATIONS[CLEANUP_COMPANION_PATH])) + "\n",
-    VALIDATION_MATRIX_PATH: "\n".join(("# matrix", *FILE_EXPECTATIONS[VALIDATION_MATRIX_PATH])) + "\n",
-    SURVEY_PATH: "\n".join(("# survey", *FILE_EXPECTATIONS[SURVEY_PATH])) + "\n",
-    VERIFY_BOUNDARY_PATH: "\n".join(("# boundary", *FILE_EXPECTATIONS[VERIFY_BOUNDARY_PATH])) + "\n",
+    LANE_NOTE_PATH: "\n".join(("## sequencing", *FILE_EXPECTATIONS[LANE_NOTE_PATH])) + "\n",
+    CLEANUP_COMPANION_PATH: "\n".join(("## companion", *FILE_EXPECTATIONS[CLEANUP_COMPANION_PATH])) + "\n",
+    VALIDATION_MATRIX_PATH: "\n".join(("## matrix", *FILE_EXPECTATIONS[VALIDATION_MATRIX_PATH])) + "\n",
+    SURVEY_PATH: "\n".join(("## survey", *FILE_EXPECTATIONS[SURVEY_PATH])) + "\n",
+    VERIFY_BOUNDARY_PATH: "\n".join(("## boundary", *FILE_EXPECTATIONS[VERIFY_BOUNDARY_PATH])) + "\n",
     DRIVER_PATH: "\n".join(FILE_EXPECTATIONS[DRIVER_PATH]) + "\n",
     CLEANUP_CHECKER_PATH: "\n".join(
-        ("# cleanup checker", *FILE_EXPECTATIONS[CLEANUP_CHECKER_PATH], "PHASE11_HVC_CLEANUP_CURRENT_HEAD=pass")
+        ("## cleanup checker", *FILE_EXPECTATIONS[CLEANUP_CHECKER_PATH], "PHASE11_HVC_CLEANUP_CURRENT_HEAD=pass")
     )
     + "\n",
-    VALIDATE_PHASE11_PATH: "\n".join(("# validate", *FILE_EXPECTATIONS[VALIDATE_PHASE11_PATH])) + "\n",
+    VALIDATE_PHASE11_PATH: "\n".join(("## validate", *FILE_EXPECTATIONS[VALIDATE_PHASE11_PATH])) + "\n",
     MAKEFILE_PATH: "\n".join(
         (
             "phase11-validate:",
@@ -204,7 +206,7 @@ FIXTURE_TEXT = {
     + "\n",
     WITNESS_PATH: "\n".join(FILE_EXPECTATIONS[WITNESS_PATH]) + "\n",
     WITNESS_BUILD_PATH: "\n".join(FILE_EXPECTATIONS[WITNESS_BUILD_PATH]) + "\n",
-    SELF_PATH: "# self\n",
+    SELF_PATH: "## self\n",
 }
 
 
@@ -384,6 +386,14 @@ def run_self_test() -> int:
             (
                 VALIDATION_MATRIX_PATH,
                 "make -C zigux phase11-validate",
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                "witness shard now rereads the live starter and the boundary note together",
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
             ),
             (
                 SURVEY_PATH,
