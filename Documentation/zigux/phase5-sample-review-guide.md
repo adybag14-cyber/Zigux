@@ -34,11 +34,11 @@ Fresh repo-first inspection on 2026-05-19 confirmed that current `master` now di
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
 
-That same reread also confirmed that the shared build companion still needs to stay in the split-readback bucket for now:
+That same reread now directly returns the shared build-route companion for this bytestream packet too:
 
 * `zigux/tests/phase5_build.zig`
 
-Keep the direct bytestream sample-plus-tests packet explicit while the shared build companion stays framed as current public-tree-backed evidence instead of flattening the packet back into a sample-only story or treating the shared build route as returned authenticated proof.
+Keep the direct bytestream sample-plus-tests packet explicit while the shared build-route companion stays framed as current directly readable shared packet evidence for the bytestream lane instead of flattening the packet back into a sample-only story or treating that shared build route as sample-local proof.
 Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.
 
 The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
@@ -101,11 +101,11 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 * `ownership_and_lifetime`
 
 Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
-Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays only current public-tree-backed companion evidence.
+Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays visible as current directly readable shared build-route companion evidence for this bytestream packet rather than as sample-local proof.
 
 Keep the current split explicit too:
 
-* `zigux/tests/phase5_build.zig` remains current public-tree-backed companion evidence until a fresh reread proves broader direct authenticated proof again
+* `zigux/tests/phase5_build.zig` is current directly readable shared build-route companion evidence for the bytestream packet, but it still should not be treated as sample-local proof or as proof that broader trace-events companions returned directly
 * same-lane follow-through should repair one reminder surface at a time instead of reclassifying the whole bytestream packet from memory or older wording alone
 * the lane still stays non-runtime and should not widen into procfs, user-copy, locking, runtime loader, or module-registration claims
 
@@ -214,9 +214,9 @@ Because current `master` keeps the restored direct bytestream sample-plus-tests 
 
 Avoid:
 
-* treating the restored direct bytestream sample-plus-tests packet as permission to promote the shared `zigux/tests/phase5_build.zig` route into direct authenticated proof
+* treating the returned bytestream build-route companion `zigux/tests/phase5_build.zig` as sample-local proof or as proof that the broader trace-events companion set returned directly
 * treating the narrower trace-events packet as either fully absent or fully direct authenticated sample proof when current `master` still keeps the bounded formatting companion direct, the older broader sample-local companion paths missing from authenticated contents reread, and the shared `zigux/tests/phase5_build.zig` route in support-material posture
-* treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has repo-reality-gap or historical-support wording for that shared build route
+* treating the returned bytestream build-route companion as permission to rewrite the broader trace-events or other cross-anchor reminder packet from memory instead of rereading the still-split surfaces first
 * treating the whole `kobject` packet as fully direct authenticated proof when current rereads still leave `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` in the public-tree-backed companion bucket even though `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, the shared build-route companion `zigux/tests/phase5_build.zig`, and `samples/zigux/kobject_example_attr_group_contract.zig` are back on the direct authenticated path
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, ring-buffer, or other runtime-substrate claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
