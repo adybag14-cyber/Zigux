@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed when Phase 10 closure-manifest summary counts drift."""
+"""Fail closed when Phase 10 closure-manifest summary counts or route anchors drift."""
 
 from __future__ import annotations
 
@@ -20,6 +20,16 @@ COUNT_FIELDS = {
     "driver_count": "drivers",
     "test_count": "tests",
 }
+
+REQUIRED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase10-closure-manifest-counts.py",
+    "python3 scripts/zigux/validate-phase10.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "make -C zigux phase10-validate",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
 
 
 def read_json(path: Path) -> dict:
@@ -47,6 +57,22 @@ def collect_drift(manifest: dict) -> list[str]:
         actual = len(listed)
         if count != actual:
             drift.append(f"{count_field}:{count}!=len({list_field}):{actual}")
+
+    exact_checks = manifest.get("exact_checks")
+    if not isinstance(exact_checks, list) or not exact_checks:
+        drift.append("exact_checks:missing")
+        return drift
+
+    indexes: list[int] = []
+    for item in REQUIRED_EXACT_CHECKS:
+        if item not in exact_checks:
+            drift.append(f"exact_checks:{item!r}:missing")
+            continue
+        indexes.append(exact_checks.index(item))
+
+    if len(indexes) == len(REQUIRED_EXACT_CHECKS) and indexes != sorted(indexes):
+        drift.append("exact_checks:closure_route:out_of_order")
+
     return drift
 
 
@@ -67,6 +93,7 @@ def fixture_manifest() -> dict:
         "manifests": [f"manifest-{index}" for index in range(4)],
         "drivers": [f"driver-{index}" for index in range(4)],
         "tests": [f"test-{index}" for index in range(21)],
+        "exact_checks": REQUIRED_EXACT_CHECKS,
     }
 
 
@@ -149,6 +176,36 @@ def run_self_test() -> int:
         expect_contains(validate(root)[1], "tests:missing", "phase10-manifest-counts-self-test")
         cases += 1
 
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item for item in broken["exact_checks"] if item != "python3 scripts/zigux/validate-phase10-closure.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'python3 scripts/zigux/validate-phase10-closure.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        reordered = list(REQUIRED_EXACT_CHECKS)
+        reordered[-1], reordered[-2] = reordered[-2], reordered[-1]
+        broken["exact_checks"] = reordered
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:closure_route:out_of_order",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        del broken["exact_checks"]
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "exact_checks:missing", "phase10-manifest-counts-self-test")
+        cases += 1
+
         manifest_path.unlink()
         missing_files, drift = validate(root)
         if drift:
@@ -197,6 +254,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_MANIFEST_COUNTS=pass")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_FIELD_COUNT={len(COUNT_FIELDS)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_EXACT_CHECK_COUNT={len(REQUIRED_EXACT_CHECKS)}")
     return 0
 
 
