@@ -140,6 +140,7 @@ EXPECTED_MMIO_HELPERS = [
     "phase10-mmio-feature-negotiation-summary-helper",
     "phase10-mmio-config-write-plan-freshness-helper",
     "phase10-mmio-config-write-disposition-helper",
+    "phase10-mmio-config-write-apply-observation-helper",
 ]
 
 LANDED_HELPER_FIELDS = {
@@ -678,6 +679,20 @@ def run_self_test() -> int:
         expect_contains(
             collect_manifest_drift(root),
             "landed_mmio_helper_evidence:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-plan-freshness-helper':missing_from_closure",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = [
+            item
+            for item in broken["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"]
+            if item != "phase10-mmio-config-write-apply-observation-helper"
+        ]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "landed_mmio_helper_evidence:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-apply-observation-helper':missing_from_closure",
             "phase10-closure-self-test",
         )
         cases += 1
