@@ -3,13 +3,14 @@
 This bounded `P13-L08` helper-first packet lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig` while keeping live DMA state, scatterlist ownership, and broader devres-group behavior blocked.
 
 The planner stays intentionally narrow:
-- the helper descriptor records the shared release-record lifetime, release-call, and detach-cleanup planning markers so the packet keeps those already-shipped surfaces explicit instead of leaving them implied by the direct planner entrypoints
+- the helper descriptor records the shared release-record lifetime, release-call, and detach-cleanup-transition planning markers so the packet keeps those already-shipped surfaces explicit instead of leaving them implied by the direct planner entrypoints
 - routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)` so the release-record ownership rule is reviewable as its own shared helper step
 - promotes the coherent-free release-call shape into explicit shared helper planning through `planManagedReleaseCall(...)`
-- routes `planManagedDmamFreeCoherent(...)` through that shared release-call helper so detach cleanup review stays aligned with the retained release-record path
+- routes `planManagedDmamFreeCoherent(...)` through that shared release-call helper so coherent-free review stays aligned with the retained release-record path
 - accepts already-decided allocation inputs rather than talking to live hardware state
 - records whether a successful planned coherent allocation retains detach-time cleanup ownership on success
-- turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`
+- turns that successful allocation plan into explicit detach cleanup transition planning through `planManagedDmamDetachCleanup(...)`
+- routes `planManagedDmamDetachCleanup(...)` through `planManagedDmamFreeCoherent(...)` so detach cleanup review stays aligned with the retained release-record path
 - records whether that planned coherent free consumes the retained release record and releases the allocation from devres
 - records that the planned coherent free destroys the release record before freeing the allocation
 - records whether a missing release record still frees the allocation while surfacing a warn-on-release-miss outcome
@@ -26,10 +27,10 @@ The helper packet now consists of:
 - `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`
 
 Fixture governance stays helper-local:
-- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, missing-release-record, detach-cleanup, and warn-on-release-miss fixture coverage for `planManagedReleaseRecordLifetime(...)`, `planManagedReleaseCall(...)`, `planManagedDmamAllocCoherent(...)`, and `planManagedDmamFreeCoherent(...)`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, detach-cleanup-transition, missing-release-record, and warn-on-release-miss fixture coverage for `planManagedReleaseRecordLifetime(...)`, `planManagedReleaseCall(...)`, `planManagedDmamAllocCoherent(...)`, `planManagedDmamFreeCoherent(...)`, and `planManagedDmamDetachCleanup(...)`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper and planner replay
 - `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py` is the packet-local fail-closed checker and should stay aligned with the helper, planner note, manifest, and replay
-- `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the release-record lifetime, release-call, or detach-cleanup fixture for this planner packet
+- `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the release-record lifetime, release-call, or detach-cleanup-transition fixture for this planner packet
 
 Adjacent boundary evidence stays unchanged:
 - `Documentation/zigux/phase13-devres-slice.md`
