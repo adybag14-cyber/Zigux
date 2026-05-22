@@ -131,7 +131,7 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
         .replay_checkpoint = request.replay_checkpoint,
         .queue_pair_ratio_pct = queue_pair_ratio_pct,
         .refill_ratio_pct = refill_ratio_pct,
-        .recycle_ratio_pct = recycleRatioPct,
+        .recycle_ratio_pct = recycle_ratio_pct,
         .throughput_ratio_pct = throughput_ratio_pct,
         .queue_pairs_preserved = queue_pairs_preserved,
         .control_queue_restore_ready = control_queue_restore_ready,
