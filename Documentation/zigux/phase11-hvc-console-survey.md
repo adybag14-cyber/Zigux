@@ -15,14 +15,18 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   packet reviewable through the direct starter, current survey, current-head
   companion, verify-helper boundary note, validation matrix, build-inventory
   checker, cleanup-current-head checker, targetless-unregister witness checker,
-  shared build inventory, and the proof-backed adjunct stack
-- public raw fallback readback also restores `drivers/tty/hvc/hvc_console_verify.zig`,
+  shared build inventory, the proof-backed adjunct stack, and the standalone
+  targetless-unregister witness pair
+- current authenticated contents readback still does not rematerialize
+  `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
-  `scripts/zigux/check-phase11-hvc-survey-packet.py`
+  `Documentation/zigux/phase11-hvc-console-teardown-note.md`, or
+  `scripts/zigux/check-phase11-hvc-survey-packet.py`; keep those anchors framed
+  as repo-reality gaps or archival vocabulary instead of returned fallback
+  evidence until a future reread proves they returned
 - `zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`
   route, so keep the current route claim bounded to `make -C zigux phase11-validate`
 
@@ -31,22 +35,14 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
 Treat the current bounded HVC packet on `master` as:
 
 - `drivers/tty/hvc/hvc_console.zig`
-- `drivers/tty/hvc/hvc_console_verify.zig`
-- `drivers/tty/hvc/hvc_console_sysrq.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
-- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
-- `zigux/tests/phase11_hvc_console.zig`
-- `zigux/tests/phase11_hvc_cleanup.zig`
-- `zigux/tests/phase11_hvc_console_survey.zig`
-- `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
@@ -59,8 +55,10 @@ Treat the current bounded HVC packet on `master` as:
 The shared build-inventory checker plus shared build inventory still record
 three proof-backed build tests, the coupled `exact_current_checks` list, and
 the `workflow_phase11_steps` entry that routes this packet through
-`make -C zigux phase11-validate`. Keep the dedicated survey route absent unless
-`zigux/Makefile` grows it explicitly.
+`make -C zigux phase11-validate`. Keep the dedicated survey route absent until
+`zigux/Makefile` grows it explicitly. The standalone targetless-unregister
+witness pair likewise stays directly readable as a separate failure-mode replay
+without promoting itself into the shared three-entry build inventory.
 
 ## Still-Bounded Gaps
 
@@ -68,17 +66,27 @@ Keep `Documentation/zigux/phase11-hvc-console-slice.md` and a dedicated
 `make -C zigux phase11-hvc-survey` route framed as remaining gaps until a
 future reread proves they returned.
 
+Keep `drivers/tty/hvc/hvc_console_verify.zig`,
+`drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
+`zigux/tests/phase11_hvc_cleanup.zig`,
+`zigux/tests/phase11_hvc_console_survey.zig`,
+`zigux/tests/phase11_hvc_console_manifest.json`,
+`Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
+`scripts/zigux/check-phase11-hvc-survey-packet.py` framed as repo-reality gaps
+or archival vocabulary until a future reread proves they returned.
+
 Keep the lane below live tty registration, notifier callback execution, khvcd
 execution, live sysrq dispatch, and host-backed teardown parity.
 
 ## Bounded Meaning
 
 This note records that the HVC simple-driver lane still has reviewable
-current-head continuity through the direct starter, the raw-fallback verify and
-sysrq helpers, the returned teardown note and manifest, the focused console and
-cleanup replays, the survey checker, the proof-backed adjunct replays, and the
-standalone targetless-unregister witness pair.
+current-head continuity through the direct starter, the current companion stack,
+the verify-boundary reminder surface, the shared inventory-backed proof routes,
+and the standalone targetless-unregister witness pair.
 
-It does not claim live tty-driver registration, notifier callback execution,
-khvcd polling execution, live sysrq dispatch, host-backed cleanup, or
-hardware-validated teardown parity.
+It does not claim that the currently missing verify helper, sysrq helper,
+focused survey replay, manifest, teardown note, or dedicated survey checker
+have returned, nor does it claim live tty-driver registration, notifier
+callback execution, khvcd polling execution, live sysrq dispatch, host-backed
+cleanup, or hardware-validated teardown parity.
