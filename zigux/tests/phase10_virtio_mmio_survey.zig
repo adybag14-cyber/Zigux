@@ -31,6 +31,7 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(survey_note, "selected-queue readiness");
     try expectContains(survey_note, "interrupt-ack disposition review");
     try expectContains(survey_note, "staged config-write planning");
+    try expectContains(survey_note, "config-write apply observation");
     try expectContains(survey_note, "config-write disposition reporting");
     try expectContains(survey_note, "feature-negotiation deltas");
     try expectContains(survey_note, "dedicated MMIO lab replay");
@@ -139,11 +140,15 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
 
     try expectContains(
         helper_tests,
-        "test \"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\" {",
+        "test \\\"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\\\" {",
     );
     try expectContains(
         helper_tests,
-        "test \"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\" {",
+        "test \\\"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\\\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {",
     );
     try expectContains(
         helper_tests,
