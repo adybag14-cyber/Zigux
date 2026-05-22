@@ -209,6 +209,17 @@
     "validators": [
       "scripts/zigux/validate-phase2.py",
       "scripts/zigux/validate-phase2-closure.py"
+    ],
+    "workflow_action_path": [
+      ".github/workflows/zigux-bootstrap.yml",
+      "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+      "python3 scripts/zigux/install-zig.py --self-test",
+      "python3 scripts/zigux/check-phase2-cross.py --self-test",
+      "python3 scripts/zigux/check-phase2-cross.py",
+      "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+      "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+      "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+      "python3 scripts/zigux/check-phase2-toolchain-pinning.py"
     ]
   },
   "repo_reality_gaps": [],
