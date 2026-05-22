@@ -190,6 +190,8 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-ring-delayed-callback-budget-tests\"",
         "\"phase10-virtio-ring-survey-tests\"",
         "\"phase10-virtio-mmio-tests\"",
+        "\"phase10-virtio-mmio-lab-tests\"",
+        "run_phase10_virtio_mmio_lab_tests.step",
         "\"phase10-virtio-mmio-verify-tests\"",
         "\"phase10-virtio-mmio-survey-tests\"",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
@@ -391,6 +393,18 @@ SELF_TEST_MUTATIONS = [
         "run_phase10_virtio_ring_publish_readiness_tests.step",
         "run_phase10_virtio_ring_publish_readiness_tests_missing.step",
         "zigux/tests/phase10_build.zig:run_phase10_virtio_ring_publish_readiness_tests.step",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "\"phase10-virtio-mmio-lab-tests\"",
+        "\"phase10-virtio-mmio-lab-tests-missing\"",
+        "zigux/tests/phase10_build.zig:\"phase10-virtio-mmio-lab-tests\"",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_mmio_lab_tests.step",
+        "run_phase10_virtio_mmio_lab_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_mmio_lab_tests.step",
     ),
     (
         "zigux/tests/phase10_build.zig",
