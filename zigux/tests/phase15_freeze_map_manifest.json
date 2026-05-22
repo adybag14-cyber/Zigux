@@ -50,6 +50,20 @@
       ]
     },
     {
+      "id": "freeze-map-governance-lane-scope-sync",
+      "summary": "Freeze-map status-change requests must keep the governance lane sequencing link or explicit scope note visible in the root policy layer.",
+      "required_terms": [
+        "governance lane sequencing link or explicit scope note"
+      ]
+    },
+    {
+      "id": "freeze-map-study-only-accounting-sync",
+      "summary": "Freeze-map status-change requests must keep the study-only anchor accounting link or explicit freeze-map-anchor confirmation visible in the root policy layer.",
+      "required_terms": [
+        "study-only anchor accounting link or explicit freeze-map-anchor confirmation"
+      ]
+    },
+    {
       "id": "freeze-map-parity-gate",
       "summary": "Freeze-in-C anchors stay blocked until a parity scorecard exists and the Architecture Council records why the status can change.",
       "required_terms": [
