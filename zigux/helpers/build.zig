@@ -97,6 +97,50 @@ fn addBitmapHelperModule(
     return root_module;
 }
 
+fn addErrPtrModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Module {
+    return b.createModule(.{
+        .root_source_file = b.path("err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+}
+
+fn addXaValueModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    err_ptr: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    return root_module;
+}
+
+fn addXarraySlotViewModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    err_ptr: *std.Build.Module,
+    xa_value: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("xarray_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+    return root_module;
+}
+
 fn addMmioHelperModule(
     b: *std.Build,
     root_source_file: []const u8,
@@ -203,6 +247,34 @@ pub fn build(b: *std.Build) void {
             optimize,
         ),
     );
+    const err_ptr_module = addErrPtrModule(b, target, optimize);
+    const xa_value_module = addXaValueModule(
+        b,
+        target,
+        optimize,
+        err_ptr_module,
+    );
+    const err_ptr = addModuleTest(
+        b,
+        "helper-err-ptr",
+        err_ptr_module,
+    );
+    const xa_value = addModuleTest(
+        b,
+        "helper-xa-value",
+        xa_value_module,
+    );
+    const xarray_slot_view = addModuleTest(
+        b,
+        "helper-xarray-slot-view",
+        addXarraySlotViewModule(
+            b,
+            target,
+            optimize,
+            err_ptr_module,
+            xa_value_module,
+        ),
+    );
     const mmio = addModuleTest(
         b,
         "helper-mmio",
@@ -240,6 +312,14 @@ pub fn build(b: *std.Build) void {
     shared_view_helpers.dependOn(&hlist_view.step);
     shared_view_helpers.dependOn(&cpumask_view.step);
 
+    const xarray_helpers = b.step(
+        "test-xarray-helpers",
+        "Run the helper-local err_ptr, xa_value, and xarray-slot helper tests.",
+    );
+    xarray_helpers.dependOn(&err_ptr.step);
+    xarray_helpers.dependOn(&xa_value.step);
+    xarray_helpers.dependOn(&xarray_slot_view.step);
+
     const layout_step = b.step(
         "test-layout-assert",
         "Run the helper-local Phase 3 layout assertion tests.",
@@ -260,6 +340,9 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&list_view.step);
     all.dependOn(&hlist_view.step);
     all.dependOn(&cpumask_view.step);
+    all.dependOn(&err_ptr.step);
+    all.dependOn(&xa_value.step);
+    all.dependOn(&xarray_slot_view.step);
     all.dependOn(&mmio.step);
     b.default_step = all;
 }
