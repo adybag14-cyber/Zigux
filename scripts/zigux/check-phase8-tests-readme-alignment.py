@@ -44,6 +44,8 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`",
+        "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
         "`zigux/tests/phase8_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
