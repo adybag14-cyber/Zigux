@@ -34,7 +34,7 @@
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "rollback_evidence_present_no_live_queue_planner",
-      "current_surface": "The rollback-only survey packet keeps the missing starter explicit and the shared phase12 build route remains support-bundle evidence only for the virtio_net queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity quintet rather than a virtio_scsi replay path.",
+      "current_surface": "The rollback-only survey packet keeps the missing starter explicit and the shared phase12 build route remains support-bundle evidence only for the virtio_net queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate tests rather than a virtio_scsi replay path.",
       "blocked_by": "No live queue-family planner, no request-queue replay, and no driver-local rollback gates are currently served on master."
     },
     "throughput_and_recovery_parity": {
@@ -91,7 +91,7 @@
       "status": "shared_support_bundle_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "Current master still carries the shared Phase 12 build route, but it wires only the virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, and throughput-parity tests."
+      "why_now": "Current master still carries the shared Phase 12 build route, but it wires the virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests rather than a virtio_scsi replay path."
     },
     {
       "id": "phase12-make-target",
