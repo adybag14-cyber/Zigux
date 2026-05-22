@@ -31,6 +31,7 @@ COMPANION_REQUIRED_MARKERS = (
     "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
     "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
+    "`zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`",
     "`zigux/tests/phase10_virtio_mmio_manifest.json`",
     "returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`",
     "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.",
@@ -123,7 +124,7 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 - shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
-- helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
+- helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`
 - returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`
 
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.
@@ -210,7 +211,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
 
     bad_tests_root_input = good_tests_root.replace(
         "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
-        "`drivers/virtio/virtio_input_queue_callback_preflight_missing.zig`",
+        "`drivers/virtio/virtio_input_queueCallbackPreflightMissing.zig`",
         1,
     )
     try:
@@ -256,17 +257,17 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected scripts-root ring-guard marker failure")
 
-    missing_scripts_mmio_guard = good_scripts_root.replace(
-        "`scripts/zigux/check-phase10-mmio-packet.py`",
-        "`scripts/zigux/check-phase10-mmio-packet-missing.py`",
+    missing_scripts_mmio_guard = good_companion.replace(
+        "`zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`",
+        "`zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet-missing.py`, and `zigux/tests/phase10_build.zig`",
         1,
     )
     try:
-        check_scripts_readme(missing_scripts_mmio_guard)
+        check_companion_text(missing_scripts_mmio_guard)
     except SystemExit as exc:
-        assert "scripts-readme" in str(exc)
+        assert "companion" in str(exc)
     else:
-        raise AssertionError("expected scripts-root mmio-guard marker failure")
+        raise AssertionError("expected companion mmio-guard marker failure")
 
     missing_scripts_validator = good_scripts_root.replace(
         "`scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py`",
@@ -341,7 +342,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
