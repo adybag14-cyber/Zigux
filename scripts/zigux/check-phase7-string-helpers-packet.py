@@ -64,8 +64,8 @@ REQUIRED_MARKERS = {
         '"pub fn devmKasprintfStrarray("',
         '"pub fn devm_kasprintf_strarray("',
         '"zigux/tests/phase7_string_helpers_manifest.json": [',
-        '"\\\\\\"devmKasprintfStrarray\\\\\\""',
-        '"\\\\\\"devm_kasprintf_strarray\\\\\\""',
+        '"\\\"devmKasprintfStrarray\\\""',
+        '"\\\"devm_kasprintf_strarray\\\""',
         '"* `*printf*`"',
         '"* `*vsprintf*`"',
         FORMAT_BOUNDARY_MARKER,
@@ -79,6 +79,7 @@ REQUIRED_MARKERS = {
         "UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_END",
     ],
     "lib/string_helpers.zig": [
+        "pub fn kasprintfStrarray(",
         "pub fn kstrdupQuotable(",
         "pub fn kstrdup_quotable(",
         "pub fn kstrdupQuotableFile(",
@@ -127,16 +128,16 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "* `*printf*`");',
         'try expectContains(checker, "* `*vsprintf*`");',
         'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
-        'try expectContains(manifest, "\\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\\"");',
+        'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\\\\\\\\\\\"next_bounded_step\\\\\\\\\\\\\\\": \\\\\\\\\\\\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\\\\\\\\\\\"");',
+        'try expectContains(manifest, "\\\\\\\"next_bounded_step\\\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
         'try expectNotContains(helper_tests, "devmKasprintfStrarray");',
         'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
-        'try expectNotContains(manifest, "\\\\\\\"devmKasprintfStrarray\\\\\\\"");',
-        'try expectNotContains(manifest, "\\\\\\\"devm_kasprintf_strarray\\\\\\\"");',
+        'try expectNotContains(manifest, "\\\"devmKasprintfStrarray\\\"");',
+        'try expectNotContains(manifest, "\\\"devm_kasprintf_strarray\\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local",
@@ -188,7 +189,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 46
+SELF_TEST_CASE_COUNT = 47
 
 
 def read_text(path: Path) -> str:
@@ -361,6 +362,12 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "string_helpers.zig"
+        helper_string_array_marker = "pub fn kasprintfStrarray("
+        remove_once(helper_path, helper_string_array_marker)
+        expect_missing_marker("missing_helper_string_array_marker", tmp_root, f"lib/string_helpers.zig: {helper_string_array_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         helper_marker = "pub fn kstrdupQuotableCmdline("
         remove_once(helper_path, helper_marker)
         expect_missing_marker("missing_helper_cmdline_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
