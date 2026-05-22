@@ -266,6 +266,7 @@ def expect_failure(root: Path, expected: str) -> None:
 
 
 def run_self_test() -> int:
+    case_count = 1
     with tempfile.TemporaryDirectory(prefix="phase8-perf-buffer-poll-gate-") as tmp:
         base = Path(tmp)
         build_fixture_root(base)
@@ -287,6 +288,7 @@ def run_self_test() -> int:
                 write_text(base, rel_path, baseline.replace(marker, ""))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
                 write_text(base, rel_path, baseline)
+                case_count += 1
 
         for rel_path in (
             NOTE_PATH,
@@ -300,8 +302,10 @@ def run_self_test() -> int:
             path.unlink()
             expect_failure(base, f"missing_file:{rel_path}")
             write_text(base, rel_path, original)
+            case_count += 1
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
+    print(f"PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT={case_count}")
     print(f"PHASE8_PERF_BUFFER_POLL_GATE_NOTE_MARKER_COUNT={len(NOTE_REQUIRED_MARKERS)}")
     print(
         f"PHASE8_PERF_BUFFER_POLL_GATE_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}"
