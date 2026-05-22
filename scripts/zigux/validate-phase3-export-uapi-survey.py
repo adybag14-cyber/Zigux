@@ -24,6 +24,7 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
+LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")
 C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
@@ -41,21 +42,25 @@ REQUIRED_MARKERS = {
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
         "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
+        "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
+        "PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_LAYOUT_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout",
+        "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+        "The packet-local validator, dedicated layout-build handoff, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
-        "Current `master` now directly carries `zigux/tests/phase3_export_uapi_layout_build.zig`, so the dedicated `phase3-export-uapi-layout-test` route is shipped compile wiring rather than a missing same-family handoff.",
-        "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore now points at live dedicated build wiring on current `master`.",
-        "the shared tests-root export/UAPI layout replay, the dedicated `zigux/tests/phase3_export_uapi_layout_build.zig` handoff plus `phase3-export-uapi-layout-test` route, the direct C smoke replay, the kernel-facing governance note, and the starter validation relays explicit as shipped same-family evidence while leaving broader unfinished Phase 3 coverage and adjacent shared-summary truthfulness as the remaining follow-through",
-        "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay as wired through `zigux/tests/build.zig`",
+        "`zigux/tests/phase3_export_uapi_layout_build.zig` now carries the dedicated `phase3-export-uapi-layout-test` replay handoff",
+        "There is no remaining packet-local missing companion or missing dedicated layout-build handoff left to close inside this survey.",
+        "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay plus the dedicated `zigux/tests/phase3_export_uapi_layout_build.zig` handoff",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
+        'LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
         'MAKEFILE_PATH = Path("zigux/Makefile")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
@@ -123,6 +128,12 @@ REQUIRED_MARKERS = {
         'test "header-family binding keeps the bounded relay surface explicit" {',
         'test "export shim relays starter boundary-header validation through the focused replay" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
+    ),
+    LAYOUT_BUILD_HANDOFF_PATH: (
+        '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+        'root_module.addImport("header_family_binding", header_family_binding);',
+        'root_module.addImport("export_shim", export_shim);',
+        '"phase3-export-uapi-layout-test",',
     ),
     C_HEADER_SMOKE_PATH: (
         "#include <linux/zigux.h>",
@@ -205,38 +216,33 @@ def run_self_test() -> int:
     marker_cases = (
         (
             SURVEY_PATH,
-            "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
-            "expected missing kernel export-shim governance survey marker was not reported",
+            "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
+            "expected missing dedicated layout-build path marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-            "expected missing catalog helper survey marker was not reported",
+            "PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+            "expected missing dedicated layout-build gate marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-            "expected missing catalog selftest guard survey marker was not reported",
+            "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
+            "expected missing dedicated layout-build make-route marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
-            "expected missing shared export/uapi layout gate marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "Current `master` now directly carries `zigux/tests/phase3_export_uapi_layout_build.zig`, so the dedicated `phase3-export-uapi-layout-test` route is shipped compile wiring rather than a missing same-family handoff.",
-            "expected missing dedicated build evidence marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore now points at live dedicated build wiring on current `master`.",
-            "expected missing makefile-backed dedicated build marker was not reported",
+            "There is no remaining packet-local missing companion or missing dedicated layout-build handoff left to close inside this survey.",
+            "expected missing parked export/uapi next-step marker was not reported",
         ),
         (
             TESTS_BUILD_PATH,
             'root_module.addImport("header_family_binding", header_family_binding);',
             "expected missing shared tests-root header-family import marker was not reported",
+        ),
+        (
+            LAYOUT_BUILD_HANDOFF_PATH,
+            '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+            "expected missing dedicated layout-build handoff root marker was not reported",
         ),
         (
             MAKEFILE_PATH,
