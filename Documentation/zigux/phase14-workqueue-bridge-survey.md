@@ -103,7 +103,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
   * the bridge-local trusted rerun stays limited to the direct Zig test, while the broader `make -C zigux phase14-validate` route and its shared checker chain remain shared packet-local validation rather than bridge-local trust gates
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers as current proof unless a fresh reread shows they returned
-  * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared Phase 14 smoke packet
+  * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again, and only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared packet
 
 ## Exact productization checks
 
@@ -138,4 +138,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together first. Only widen into the shared Phase 14 smoke packet if those lane-local surfaces cannot be made truthful on their own.
+Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together first. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again, and only widen into the shared packet if those lane-local surfaces cannot be made truthful on their own.
