@@ -79,6 +79,8 @@ REQUIRED_MARKERS = {
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
+        "phase8-perf-buffer-ready-window-tests",
+        "test_step.dependOn(&run_perf_buffer_ready_window_tests.step);",
         "phase8-libbpf-segment-verify-tests",
         "phase8-libbpf-segment-compatibility-tests",
         "phase8-verify-routing-gap-tests",
