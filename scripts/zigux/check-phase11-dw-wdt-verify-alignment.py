@@ -35,8 +35,8 @@ NOTE_MARKERS = [
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
-    '- `drivers/watchdog/dw_wdt_verify.zig` keeps `test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit"`',
-    '- `drivers/watchdog/dw_wdt_pm.zig` keeps `test "phase11 dw_wdt pm suspend keeps missing drvdata explicit"`',
+    "- `drivers/watchdog/dw_wdt_verify.zig` keeps `test \"phase11 dw_wdt verify keeps registration-blocking failure paths explicit\"`",
+    "- `drivers/watchdog/dw_wdt_pm.zig` keeps `test \"phase11 dw_wdt pm suspend keeps missing drvdata explicit\"`",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed instead of asserting the older returned validation-matrix stack",
 ]
 
@@ -44,6 +44,7 @@ PLATFORM_PLAN_MARKERS = [
     "Current authenticated contents rereads in this run do not rematerialize",
     "The live DesignWare packet is therefore no longer just a docs-only owner stack, but it is also not yet the broader direct-driver or replay-backed packet this note used to claim",
     "the manifest-backed registration scaffold, the returned restart helper, the bounded PM helper pair, and the two current DesignWare truthfulness checkers",
+    "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
 ]
 
 VERIFY_MARKERS = [
@@ -279,7 +280,7 @@ def run_self_test() -> None:
         platform_plan_path = missing_platform_plan_marker / FILES["platform_plan"]
         platform_plan_path.write_text(
             platform_plan_path.read_text(encoding="utf-8").replace(
-                PLATFORM_PLAN_MARKERS[2],
+                PLATFORM_PLAN_MARKERS[3],
                 "",
                 1,
             ),
@@ -287,7 +288,7 @@ def run_self_test() -> None:
         )
         expect_failure(
             missing_platform_plan_marker,
-            f"missing marker in platform_plan: {PLATFORM_PLAN_MARKERS[2]}",
+            f"missing marker in platform_plan: {PLATFORM_PLAN_MARKERS[3]}",
         )
         case_count += 1
 
