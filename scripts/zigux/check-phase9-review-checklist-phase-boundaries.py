@@ -18,6 +18,7 @@ SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
 PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
@@ -122,6 +123,13 @@ TESTS_README_REQUIRED_MARKERS = [
     "- Does the bounded Phase 9 reminder keep the direct trace-events packet, the narrower neighboring shared loader packet, the historical loader-gap vocabulary split, the returned runtime bitmap manifest-backed ownership packet, the partial bitmap reminder packet, and the bounded build-bundle wording aligned without widening into broader runtime-loader proof, module-side bitmap claims, or blocked publication boundaries?",
 ]
 
+WORKFLOW_REQUIRED_MARKERS = [
+    "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
+    "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+    "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test",
+    "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
+]
+
 CONTRACT_REQUIRED_MARKERS = [
     "test \"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\" {",
     "const blocked_publication_fields = [_][]const u8{",
@@ -148,6 +156,7 @@ REQUIRED_MARKERS = {
     SCRIPTS_README_PATH: SCRIPTS_README_REQUIRED_MARKERS,
     TESTS_README_PATH: TESTS_README_REQUIRED_MARKERS,
     CONTRACT_PATH: CONTRACT_REQUIRED_MARKERS,
+    WORKFLOW_PATH: WORKFLOW_REQUIRED_MARKERS,
 }
 
 EXACT_ONCE_MARKERS = {
@@ -227,6 +236,17 @@ def validate(root: Path) -> list[str]:
 
 
 def build_fixture_text(rel_path: str) -> str:
+    if rel_path == WORKFLOW_PATH:
+        return """name: fixture
+
+jobs:
+  bootstrap:
+    steps:
+      - run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+      - run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
+      - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
+      - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+"""
     if rel_path == MAKEFILE_PATH:
         return """PYTHON ?= python3
 ZIG ?= zig
