@@ -30,6 +30,18 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_contract_source, "exec_name");
     try expectContains(runtime_loader_contract_source, "exec_path");
     try expectContains(runtime_loader_contract_source, "exec_path_env");
+    try expectContains(runtime_loader_contract_source, "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract");
+    try expectContains(runtime_loader_contract_source, "modinfo");
+    try expectContains(runtime_loader_contract_source, "module_alias");
+    try expectContains(runtime_loader_contract_source, "module_aliases");
+    try expectContains(runtime_loader_contract_source, "modules_alias_path");
+    try expectContains(runtime_loader_contract_source, "module_install_root");
+    try expectContains(runtime_loader_contract_source, "modules_order_path");
+    try expectContains(runtime_loader_contract_source, "modules_builtin_path");
+    try expectContains(runtime_loader_contract_source, "module_symvers_path");
+    try expectContains(runtime_loader_contract_source, "depmod_script");
+    try expectContains(runtime_loader_contract_source, "depmod_manifest");
+    try expectContains(runtime_loader_contract_source, "depmod_aliases");
 
     try expectContains(runtime_loader_source, "pub const PreparedRequest");
     try expectContains(runtime_loader_source, "pub fn prepareRequest");
@@ -68,6 +80,26 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
     inline for (contract_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_contract_source, marker);
     }
+    inline for (loader_forbidden_markers) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+    }
+}
+
+test "shared runtime loader surface rejects publication and depmod bleed-through" {
+    const loader_forbidden_markers = [_][]const u8{
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "module_symvers_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
     inline for (loader_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
