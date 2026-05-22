@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -67,6 +68,14 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
     "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
+
+MANIFEST_EXPECTATIONS = {
+    "zigux/tests/phase11_gpio_wdt_manifest.json": "P11-L04",
+    "zigux/tests/phase11_bcm2835_wdt_manifest.json": "P11-L08",
+    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L05",
+    "zigux/tests/phase11_hvc_console_manifest.json": "P11-L16",
+    "zigux/tests/phase11_uapi_header_parity_manifest.json": "P11-L18",
+}
 
 
 @dataclass(frozen=True)
@@ -189,6 +198,42 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
         issues.append(f"{prefix}:stderr={stderr}")
 
 
+def read_manifest(path: Path) -> dict[str, object] | None:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def collect_manifest_metadata_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    for rel, expected_lane_key in MANIFEST_EXPECTATIONS.items():
+        path = root / rel
+        manifest = read_manifest(path)
+        if manifest is None:
+            issues.append(f"invalid_manifest_json:{rel}")
+            continue
+
+        lane_key = manifest.get("lane_key")
+        if lane_key != expected_lane_key:
+            issues.append(
+                f"manifest_lane_key_mismatch:{rel}:expected={expected_lane_key}:actual={lane_key!r}"
+            )
+
+        phase = manifest.get("phase")
+        if phase != "Phase 11":
+            issues.append(
+                f"manifest_phase_mismatch:{rel}:expected='Phase 11':actual={phase!r}"
+            )
+
+        gaps = manifest.get("gaps")
+        if not isinstance(gaps, list) or not gaps:
+            issues.append(f"manifest_gaps_invalid:{rel}")
+
+    return issues
+
+
 def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     issues: list[str] = []
 
@@ -196,6 +241,10 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_required_path:{rel}")
 
+    if issues:
+        return issues
+
+    issues.extend(collect_manifest_metadata_issues(root))
     if issues:
         return issues
 
@@ -291,6 +340,19 @@ def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
 def build_sample_repo(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         path = root / rel
+        if rel in MANIFEST_EXPECTATIONS:
+            write_text(
+                path,
+                json.dumps(
+                    {
+                        "lane_key": MANIFEST_EXPECTATIONS[rel],
+                        "phase": "Phase 11",
+                        "gaps": [{"id": f"sample-{Path(rel).stem}"}],
+                    }
+                )
+                + "\n",
+            )
+            continue
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
             continue
@@ -477,6 +539,34 @@ def run_self_test() -> int:
         if expected_missing_dw_pm_scaffold not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:missing_dw_pm_scaffold_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        wrong_gpio_manifest_lane = root / "zigux/tests/phase11_gpio_wdt_manifest.json"
+        wrong_gpio_manifest = json.loads(wrong_gpio_manifest_lane.read_text(encoding="utf-8"))
+        wrong_gpio_manifest["lane_key"] = "P11-L99"
+        write_text(wrong_gpio_manifest_lane, json.dumps(wrong_gpio_manifest) + "\n")
+        issues = collect_issues(root)
+        expected_wrong_gpio_manifest_lane = "manifest_lane_key_mismatch:zigux/tests/phase11_gpio_wdt_manifest.json:expected=P11-L04:actual='P11-L99'"
+        if expected_wrong_gpio_manifest_lane not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:wrong_gpio_manifest_lane_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
+        build_fake_zig(fake_zig)
+        wrong_uapi_manifest_phase = root / "zigux/tests/phase11_uapi_header_parity_manifest.json"
+        wrong_uapi_manifest = json.loads(wrong_uapi_manifest_phase.read_text(encoding="utf-8"))
+        wrong_uapi_manifest["phase"] = "Phase 12"
+        write_text(wrong_uapi_manifest_phase, json.dumps(wrong_uapi_manifest) + "\n")
+        issues = collect_issues(root)
+        expected_wrong_uapi_manifest_phase = "manifest_phase_mismatch:zigux/tests/phase11_uapi_header_parity_manifest.json:expected='Phase 11':actual='Phase 12'"
+        if expected_wrong_uapi_manifest_phase not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:wrong_uapi_manifest_phase_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -744,7 +834,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
