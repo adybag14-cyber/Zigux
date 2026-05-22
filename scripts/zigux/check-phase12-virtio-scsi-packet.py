@@ -43,13 +43,14 @@ TEXT_MARKERS = {
         "active `P12-L13` survey packet",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "rollback evidence only",
+        "throughput-parity, and survey-gate tests through the shared `smoke` and `test` steps",
     ],
     SURVEY_NOTE_PATH: [
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-21`",
         "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet",
-        "receive-refill replay",
+        "throughput-parity, and survey-gate tests as support-bundle evidence",
         "rollback-only split machine-checkable",
     ],
     FALLBACK_CATALOG_PATH: [
@@ -71,10 +72,13 @@ TEXT_MARKERS = {
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
         '"rollback owner: `P12-L13` keeps the active virtio_scsi survey packet"',
+        '"survey-gate tests"',
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
+        "phase12_virtio_net_survey.zig",
         "phase12-virtio-net-receive-refill-replay-tests",
+        "phase12-virtio-net-survey-tests",
         "receive-refill replay",
     ],
     MAKEFILE_PATH: [
@@ -262,7 +266,7 @@ def check(root: Path) -> list[str]:
     )
     if build_gap is None:
         errors.append("survey manifest phase12-build-gate entry missing")
-    elif "receive-refill replay" not in build_gap.get("why_now", ""):
+    elif "survey-gate tests" not in build_gap.get("why_now", ""):
         errors.append("survey manifest phase12-build-gate why_now drift")
 
     return errors
