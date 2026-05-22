@@ -60,7 +60,12 @@ REQUIRED_MARKERS = {
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         'print("PHASE7_RBTREE_PARITY=pass")',
+        'print("PHASE7_RBTREE_PARITY=fail")',
         'print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")',
+        '"MISSING_PHASE7_RBTREE_FILES_START"',
+        '"MISSING_PHASE7_RBTREE_FILES_END"',
+        '"MISSING_PHASE7_RBTREE_MARKERS_START"',
+        '"MISSING_PHASE7_RBTREE_MARKERS_END"',
         '"Documentation/zigux/phase7-rbtree-slice.md": [',
         '"zigux/tests/phase7_rbtree_manifest.json": [',
         '"zigux/Makefile": [',
@@ -115,7 +120,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 27
 
 
 def read_text(path: Path) -> str:
@@ -241,7 +246,42 @@ def run_self_test() -> None:
         write_fixture_root(root)
 
         path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = 'print("PHASE7_RBTREE_PARITY=fail")'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
         marker = 'print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = '"MISSING_PHASE7_RBTREE_FILES_START"'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = '"MISSING_PHASE7_RBTREE_FILES_END"'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = '"MISSING_PHASE7_RBTREE_MARKERS_START"'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = '"MISSING_PHASE7_RBTREE_MARKERS_END"'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
         cases += 1
