@@ -14,6 +14,15 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
+MANIFEST_SURFACE_EXPECTATION_ATTRS = (
+    ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),
+    ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),
+    ("validators", "EXPECTED_MANIFEST_VALIDATORS"),
+    ("checkers", "EXPECTED_MANIFEST_CHECKERS"),
+    ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),
+    ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),
+    ("policy", "EXPECTED_MANIFEST_POLICY"),
+)
 
 
 def load_validator(root: Path):
@@ -78,7 +87,7 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
+def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
     payload = load_json(manifest_path)
     if not isinstance(payload, dict):
         raise AssertionError("manifest root must stay a dict in the seeded baseline")
@@ -87,10 +96,21 @@ def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str
         raise AssertionError("manifest present_surfaces must stay a dict in the seeded baseline")
 
     expectations: list[tuple[str, tuple[str, ...]]] = []
-    for key, value in surfaces.items():
+    for key, attr in MANIFEST_SURFACE_EXPECTATION_ATTRS:
+        expected = getattr(module, attr, None)
+        if expected is None:
+            continue
+        if not isinstance(expected, tuple) or not all(isinstance(item, str) for item in expected):
+            raise AssertionError(f"validator surface expectation must stay tuple[str, ...]: {attr}")
+
+        value = surfaces.get(key)
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise AssertionError(f"manifest surface must stay a list[str] in the seeded baseline: {key}")
-        expectations.append((key, tuple(value)))
+
+        missing = [marker for marker in expected if marker not in value]
+        if missing:
+            raise AssertionError(f"manifest surface baseline drifted for {key}: {missing!r}")
+        expectations.append((key, tuple(expected)))
     return expectations
 
 
@@ -163,7 +183,7 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
-        for key, expected in collect_manifest_surface_expectations(manifest_path):
+        for key, expected in collect_manifest_surface_expectations(module, manifest_path):
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
@@ -316,6 +336,7 @@ def build_self_test_root(root: Path) -> None:
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
+            "archive_support": ["archive-a.tar.xz"],
         },
     }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
