@@ -39,7 +39,21 @@ REQUIRED_MARKERS = {
         "int main(void)",
     ),
     LINUX_HEADER_PATH: (
+        "zigux_uapi_version_current(",
+        "zigux_uapi_version_has_current_abi_major(",
+        "zigux_uapi_version_has_current_abi_minor(",
+        "zigux_uapi_version_has_current_header_family_revision(",
+        "zigux_uapi_version_matches_current(",
+        "zigux_uapi_validate_version(",
+        "zigux_uapi_boundary_header_current(",
+        "zigux_uapi_boundary_header_compatible(",
         "zigux_uapi_validate_boundary_header(",
+        "zigux_uapi_boundary_header_has_current_abi_version(",
+        "zigux_uapi_boundary_header_is_canonical(",
+        "zigux_uapi_boundary_header_is_compatible(",
+        "zigux_uapi_boundary_header_extends_boundary(",
+        "zigux_uapi_boundary_header_requested_extra_bytes(",
+        "zigux_uapi_boundary_header_canonicalize(",
         "zigux_validate_boundary_header(",
         "zigux_boundary_header_make(",
         "zigux_boundary_header_make_compatible(",
@@ -475,10 +489,22 @@ static int check_boundary_header_relays(void)
             0x41u);
     zigux_boundary_header canonicalized =
         zigux_boundary_header_canonicalize(compatible);
+    zigux_boundary_header uapi_canonical =
+        zigux_uapi_boundary_header_current(0x52u);
+    zigux_boundary_header uapi_compatible =
+        zigux_uapi_boundary_header_compatible(
+            (uint32_t)sizeof(zigux_boundary_header) + 12u,
+            0x52u);
+    zigux_boundary_header uapi_canonicalized =
+        zigux_uapi_boundary_header_canonicalize(uapi_compatible);
     struct zigux_export_status canonical_status =
         zigux_validate_boundary_header(canonical);
     struct zigux_export_status compatible_status =
         zigux_validate_boundary_header(compatible);
+    struct zigux_export_status uapi_canonical_status =
+        zigux_uapi_validate_boundary_header(uapi_canonical);
+    struct zigux_export_status uapi_compatible_status =
+        zigux_uapi_validate_boundary_header(uapi_compatible);
     struct zigux_export_status undersized_status =
         zigux_validate_boundary_header((zigux_boundary_header){
             .size = (uint32_t)sizeof(zigux_boundary_header) - 1u,
@@ -519,6 +545,43 @@ static int check_boundary_header_relays(void)
     if (zigux_boundary_header_extends_boundary(canonicalized))
         return __LINE__;
     if (canonicalized.flags != compatible.flags)
+        return __LINE__;
+
+    if (!zigux_uapi_boundary_header_has_current_abi_version(
+            uapi_canonical.abi_version))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_is_canonical(uapi_canonical))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_is_compatible(uapi_canonical))
+        return __LINE__;
+    if (!zigux_export_status_ok(uapi_canonical_status))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_extends_boundary(uapi_canonical))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_canonical) != 0u)
+        return __LINE__;
+
+    if (zigux_uapi_boundary_header_is_canonical(uapi_compatible))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_is_compatible(uapi_compatible))
+        return __LINE__;
+    if (!zigux_export_status_ok(uapi_compatible_status))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_extends_boundary(uapi_compatible))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)
+        return __LINE__;
+
+    if (!zigux_uapi_boundary_header_is_canonical(uapi_canonicalized))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_extends_boundary(uapi_canonicalized))
+        return __LINE__;
+    if (uapi_canonicalized.flags != uapi_compatible.flags)
+        return __LINE__;
+
+    if (uapi_canonical.size != canonical.size)
+        return __LINE__;
+    if (uapi_canonical.abi_version != canonical.abi_version)
         return __LINE__;
 
     if (zigux_export_status_ok(undersized_status))
@@ -681,6 +744,23 @@ def run_self_test() -> int:
 
         _write(root / SMOKE_PATH, SELFTEST_SMOKE)
         broken_header = _read(root / LINUX_HEADER_PATH).replace(
+            "zigux_uapi_boundary_header_current(",
+            "zigux_uapi_boundary_header_current_missing(",
+            1,
+        )
+        _write(root / LINUX_HEADER_PATH, broken_header)
+        issues = validate_repo(root, "cc")
+        expected_header = (
+            "missing include/linux/zigux.h marker: "
+            "zigux_uapi_boundary_header_current("
+        )
+        if expected_header not in issues:
+            print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=fail")
+            print("expected missing uapi boundary-header helper marker was not reported")
+            return 1
+
+        _write(root / LINUX_HEADER_PATH, SELFTEST_LINUX_HEADER)
+        broken_header = _read(root / LINUX_HEADER_PATH).replace(
             "zigux_uapi_validate_dev_t_range(",
             "zigux_uapi_validate_dev_t_range_missing(",
             1,
@@ -697,7 +777,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
