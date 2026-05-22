@@ -489,3 +489,37 @@ test "shared runtime loader keeps allocator handoff and anchor metadata from dri
     try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, bitmap_plan));
     try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, bitmap_plan));
 }
+
+test "shared runtime loader keeps waiting module-name and allocator handoff from drifting before release" {
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+
+    trace_events_request.plan.module_name = "runtime_trace_events_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    const bitmap_plan = makeInitializedPlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+    );
+    var bitmap_request = try runtime_loader.prepareRequest(bitmap_plan);
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+
+    bitmap_request.plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+}
