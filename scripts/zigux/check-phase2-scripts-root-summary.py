@@ -98,6 +98,10 @@ SCRIPTS_README_MARKERS = (
     "keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
 
+SCRIPTS_README_EXACT_COUNT_MARKERS = (
+    "keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
+)
+
 CLOSURE_NOTE_MARKERS = (
     "`scripts/zigux/README.md`",
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
@@ -150,6 +154,18 @@ TESTS_README_MARKERS = (
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "`third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
     "the `zigux/tests/fixtures/genksyms_bridge/` packet",
+    "Keep the rematerialized make-wrapper packet explicit through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
+    "current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder",
+    "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder",
+)
+
+TESTS_README_EXACT_COUNT_MARKERS = (
+    "Keep the rematerialized make-wrapper packet explicit through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
+    "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
+    "current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder",
+    "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder",
 )
 
 FORBIDDEN_SCRIPTS_README_MARKERS = (
@@ -161,6 +177,15 @@ FORBIDDEN_SCRIPTS_README_MARKERS = (
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def collect_exact_count_issues(text: str, markers: tuple[str, ...], prefix: str) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append(f"{prefix}:{count}:{marker}")
+    return issues
 
 
 def collect_issues(root: Path) -> list[str]:
@@ -192,6 +217,21 @@ def collect_issues(root: Path) -> list[str]:
     for marker in TESTS_README_MARKERS:
         if marker not in tests_readme_text:
             issues.append(f"missing_tests_readme_marker:{marker}")
+
+    issues.extend(
+        collect_exact_count_issues(
+            scripts_readme_text,
+            SCRIPTS_README_EXACT_COUNT_MARKERS,
+            "exact_count_scripts_readme_marker",
+        )
+    )
+    issues.extend(
+        collect_exact_count_issues(
+            tests_readme_text,
+            TESTS_README_EXACT_COUNT_MARKERS,
+            "exact_count_tests_readme_marker",
+        )
+    )
 
     for marker in FORBIDDEN_SCRIPTS_README_MARKERS:
         count = scripts_readme_text.count(marker)
@@ -252,6 +292,7 @@ def run_self_test() -> int:
 
         build_good_tree(root)
         tests_readme_path = root / TESTS_README_REL
+        tests_readme_path.writeText = None
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[1], "", 1),
             encoding="utf-8",
@@ -259,6 +300,18 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         if f"missing_tests_readme_marker:{TESTS_README_MARKERS[1]}" not in issues:
             raise SystemExit("phase2-scripts-root-summary:self-test:missing_tests_marker")
+        case_count += 1
+
+        build_good_tree(root)
+        tests_readme_path = root / TESTS_README_REL
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8") + TESTS_README_EXACT_COUNT_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected = f"exact_count_tests_readme_marker:2:{TESTS_README_EXACT_COUNT_MARKERS[0]}"
+        if expected not in issues:
+            raise SystemExit("phase2-scripts-root-summary:self-test:duplicate_tests_marker")
         case_count += 1
 
         build_good_tree(root)
@@ -317,6 +370,10 @@ def main() -> int:
     print(
         "PHASE2_SCRIPTS_ROOT_SUMMARY_MARKER_COUNT="
         f"{len(SCRIPTS_README_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(TESTS_README_MARKERS)}"
+    )
+    print(
+        "PHASE2_SCRIPTS_ROOT_SUMMARY_EXACT_COUNT_MARKER_COUNT="
+        f"{len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(TESTS_README_EXACT_COUNT_MARKERS)}"
     )
     return 0
 
