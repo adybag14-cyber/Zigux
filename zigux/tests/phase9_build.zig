@@ -249,6 +249,7 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_atomic64.dependOn(&run_runtime_atomic64_diff_tests.step);
     phase9_runtime_atomic64.dependOn(&run_runtime_atomic64_module_tests.step);
+    phase9_runtime_atomic64.dependOn(&run_runtime_atomic64_sample_tests.step);
 
     const phase9_runtime_atomic64_sample = b.step(
         "phase9-runtime-atomic64-sample-tests",
