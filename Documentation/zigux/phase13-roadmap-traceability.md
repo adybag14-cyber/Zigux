@@ -52,7 +52,7 @@ Use this compact reread before editing the broader Phase 13 packet.
 - shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`
 
-Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and keep the broader docs-root, checklist, release-note, shared-summary-gap, notifier-gap, contributor-sync, and tests-root companion packet explicit as supporting reminder surfaces.
+Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface together with the supporting checklist, release-note, and contributor-sync surfaces.
 
 Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, and the surrounding shared reminder packet, while the Phase 13 Makefile route family still remains missing.
 
