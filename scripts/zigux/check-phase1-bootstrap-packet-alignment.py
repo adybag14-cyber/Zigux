@@ -536,6 +536,30 @@ def run_self_test() -> int:
     cases.append(("workflow_phase1_packet_boundary_spacer_after_smoke", ("boundary_spacer_after", WORKFLOW_PACKET_STEPS[-1][0])))
     cases.append(
         (
+            "workflow_phase1_packet_predecessor_name_missing",
+            ("remove", WORKFLOW_REL, workflow_name_line(PHASE1_PACKET_PREDECESSOR[0])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_predecessor_name_duplicate",
+            ("duplicate", WORKFLOW_REL, workflow_name_line(PHASE1_PACKET_PREDECESSOR[0])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_predecessor_run_missing",
+            ("remove", WORKFLOW_REL, workflow_run_line(PHASE1_PACKET_PREDECESSOR[1])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_predecessor_run_duplicate",
+            ("duplicate", WORKFLOW_REL, workflow_run_line(PHASE1_PACKET_PREDECESSOR[1])),
+        )
+    )
+    cases.append(
+        (
             "workflow_phase1_packet_predecessor_name_drift",
             ("rename_workflow_step", PHASE1_PACKET_PREDECESSOR[0], "Validate current Phase 2 tool proof"),
         )
@@ -554,6 +578,30 @@ def run_self_test() -> int:
         (
             "workflow_phase1_packet_predecessor_duplicate",
             ("duplicate_workflow_step_block", PHASE1_PACKET_PREDECESSOR[0], PHASE1_PACKET_PREDECESSOR[1]),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_name_missing",
+            ("remove", WORKFLOW_REL, workflow_name_line(PHASE1_PACKET_SUCCESSOR[0])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_name_duplicate",
+            ("duplicate", WORKFLOW_REL, workflow_name_line(PHASE1_PACKET_SUCCESSOR[0])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_run_missing",
+            ("remove", WORKFLOW_REL, workflow_run_line(PHASE1_PACKET_SUCCESSOR[1])),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_run_duplicate",
+            ("duplicate", WORKFLOW_REL, workflow_run_line(PHASE1_PACKET_SUCCESSOR[1])),
         )
     )
     cases.append(
