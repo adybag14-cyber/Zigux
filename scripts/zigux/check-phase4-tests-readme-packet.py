@@ -22,8 +22,12 @@ FORBIDDEN_PHASE4_MARKERS = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/bitmap_diff.zig",
+    "make -C zigux phase4-perf-baseline-survey",
 )
 
 SELF_TEST_CASE_NAMES = (
@@ -33,8 +37,12 @@ SELF_TEST_CASE_NAMES = (
     "stale_phase4_heading",
     "stale_phase4_note_reference",
     "stale_phase4_gate_evidence_note_reference",
+    "stale_phase4_perf_manifest_reference",
     "stale_phase4_perf_reference",
+    "stale_phase4_perf_make_route",
     "stale_phase4_gate_evidence_checker_reference",
+    "stale_phase4_reversible_delivery_checker_reference",
+    "stale_phase4_perf_checker_reference",
     "stale_phase4_bitmap_reference",
 )
 
@@ -142,9 +150,19 @@ def run_self_test() -> int:
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[2]}"],
         ),
         (
+            "stale_phase4_perf_manifest_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[7] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[7]}"],
+        ),
+        (
             "stale_phase4_perf_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[5] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[5]}"],
+            baseline + FORBIDDEN_PHASE4_MARKERS[8] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[8]}"],
+        ),
+        (
+            "stale_phase4_perf_make_route",
+            baseline + FORBIDDEN_PHASE4_MARKERS[10] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[10]}"],
         ),
         (
             "stale_phase4_gate_evidence_checker_reference",
@@ -152,9 +170,19 @@ def run_self_test() -> int:
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[4]}"],
         ),
         (
-            "stale_phase4_bitmap_reference",
+            "stale_phase4_reversible_delivery_checker_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[5] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[5]}"],
+        ),
+        (
+            "stale_phase4_perf_checker_reference",
             baseline + FORBIDDEN_PHASE4_MARKERS[6] + "\n",
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[6]}"],
+        ),
+        (
+            "stale_phase4_bitmap_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[9] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[9]}"],
         ),
     )
 
