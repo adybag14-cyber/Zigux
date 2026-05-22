@@ -21,6 +21,7 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
 - `PHASE14_SHARED_SMOKE_GATE_COUNT=1`
 - `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`
 - shared gate: `make -C zigux phase14-validate`
+- focused raw build-file shard: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
 - broader wrapper gaps: `phase14-smoke`, `phase14-test`, and `phase14` remain absent from the readable current `zigux/Makefile` body
 - machine-readable source: `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)
@@ -45,15 +46,16 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
 
 The compile-shard story is no longer an unknown-count placeholder.
 
-Current `master` now carries an exact six-row machine-readable matrix for the shared Phase 14 smoke packet. That improves reviewability, but it does not reopen the broader Phase 14 wrapper family and it does not change the roadmap posture for any deep-core anchor.
+Current `master` now carries an exact six-row machine-readable matrix for the shared Phase 14 smoke packet. That improves reviewability, and the packet now records the one focused build-file smoke shard explicitly, but it still does not reopen the broader Phase 14 Makefile wrapper family and it does not change the roadmap posture for any deep-core anchor.
 
 The honest same-lane conclusion stays narrow:
 
 - keep the single shared gate explicit through `make -C zigux phase14-validate`
+- keep the focused raw build-file shard explicit through `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
 - keep the six compile rows explicit as reviewability evidence only
 - keep workqueue and ring-buffer framed as study-only compile-adjacent footholds
 - keep skbuff and RCU framed as manifest-backed compile rows that still do not justify a delivery claim or a freeze-map status change
 
 ## Next bounded step
 
-If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix before widening any anchor-local work.
+If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix or its single focused build-file shard before widening any anchor-local work.
