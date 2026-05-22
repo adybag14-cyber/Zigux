@@ -64,7 +64,8 @@ TEXT_MARKERS = {
         "- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`",
         "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
-        "`make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`",
+        "exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
+        "`make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only and release-readiness checkers plus `scripts/zigux/validate-phase12.py`",
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
@@ -85,13 +86,14 @@ TEXT_MARKERS = {
     MAKEFILE_PATH: [
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
     ],
 }
 
 FORBIDDEN_MARKERS = [
     "PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey",
     "current `master` now carries `zigux/tests/phase12_virtio_scsi.zig` as the direct bounded replay",
+    "`make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`",
 ]
 
 EXPECTED_ABSENT = [
