@@ -21,7 +21,9 @@ test "phase12 throughput parity gate passes once queue restore refill recycle an
     try std.testing.expect(summary.receive_descriptors_reposted);
     try std.testing.expect(summary.recycle_budget_ready);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.receive_refill_ready);
     try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_ready);
     try std.testing.expect(summary.meets_expected_min_ratio);
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
 }
@@ -65,7 +67,9 @@ test "phase12 throughput parity gate keeps descriptor repost explicit after refi
 
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_receive_refill, summary.status);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.receive_refill_ready);
     try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_ready);
     try std.testing.expect(!summary.receive_descriptors_reposted);
     try std.testing.expectEqual(@as(u8, 100), summary.refill_ratio_pct);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
@@ -91,7 +95,9 @@ test "phase12 throughput parity gate keeps refill budget explicit when restored 
     try std.testing.expect(summary.queue_pairs_preserved);
     try std.testing.expect(!summary.refill_budget_preserved);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.receive_refill_ready);
     try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_ready);
     try std.testing.expectEqual(@as(u8, 75), summary.refill_ratio_pct);
     try std.testing.expectEqual(@as(u8, 75), summary.throughput_ratio_pct);
     try std.testing.expect(!summary.meets_expected_min_ratio);
@@ -112,20 +118,22 @@ test "phase12 throughput parity gate blocks stopped transmit queues below the wa
 
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_transmit_recycle, summary.status);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.receive_refill_ready);
     try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_ready);
     try std.testing.expectEqual(@as(u8, 50), summary.recycle_ratio_pct);
     try std.testing.expectEqual(@as(u8, 50), summary.throughput_ratio_pct);
     try std.testing.expect(!summary.recycle_budget_ready);
     try std.testing.expect(!summary.meets_expected_min_ratio);
 }
 
-test "phase12 throughput parity gate keeps receive refill explicit after control queue restore even when transmit never stopped" {
+test "phase12 throughput parity gate keeps receive refill explicit after control queue restore even when descriptors are already reposted" {
     const summary = try throughput_parity.summarizeThroughputParity(.{
         .queue_pairs_before_reset = 2,
         .queue_pairs_after_restore = 2,
         .receive_buffers_before_reset = 256,
         .receive_buffers_after_restore = 256,
-        .receive_descriptors_reposted = false,
+        .receive_descriptors_reposted = true,
         .recycled_transmit_descriptors = 0,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = false,
@@ -135,7 +143,9 @@ test "phase12 throughput parity gate keeps receive refill explicit after control
 
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_receive_refill, summary.status);
     try std.testing.expect(!summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.receive_refill_ready);
     try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_ready);
     try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
     try std.testing.expect(summary.recycle_budget_ready);
@@ -158,7 +168,9 @@ test "phase12 throughput parity gate keeps transmit recycle explicit after recei
 
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_transmit_recycle, summary.status);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.receive_refill_ready);
     try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
@@ -178,7 +190,9 @@ test "phase12 throughput parity gate keeps post reset replay explicit after rece
 
     try std.testing.expectEqual(throughput_parity.ThroughputParityStatus.needs_post_reset_probe_replay, summary.status);
     try std.testing.expect(summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(summary.receive_refill_ready);
     try std.testing.expect(summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(summary.transmit_recycle_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
