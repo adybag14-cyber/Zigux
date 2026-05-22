@@ -280,14 +280,38 @@ test "policy starter packet keeps unsafe boundary and audit semantics explicit" 
     for (cases) |case| {
         try testing.expectEqual(case.expected_scope, unsafe_policy.modeFromInteropPolicy(case.policy));
         try testing.expectEqual(case.expected_scope, unsafe_policy.scopeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_scope, narrow_surface.scopeFromInteropPolicy(case.policy));
         try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromInteropPolicy(case.policy));
         try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafeInteropPolicy(case.policy));
         try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_unsafe, narrow_surface.isUnsafeInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_audit, narrow_surface.requiresDedicatedAuditInteropPolicy(case.policy));
+
+        const narrow_boundary = narrow_surface.accessBoundaryFromInteropPolicy(case.policy);
+        if (case.expected_boundary) |boundary| {
+            const expected_narrow = switch (boundary) {
+                .typed_safe => narrow_surface.AccessBoundary.typed_safe,
+                .volatile_mmio_window => narrow_surface.AccessBoundary.volatile_mmio_window,
+                .raw_pointer_bridge => narrow_surface.AccessBoundary.raw_pointer_bridge,
+            };
+            try testing.expectEqual(@as(?narrow_surface.AccessBoundary, expected_narrow), narrow_boundary);
+        } else {
+            try testing.expectEqual(@as(?narrow_surface.AccessBoundary, null), narrow_boundary);
+        }
 
         if (case.expected_scope) |scope| {
             try testing.expectEqual(case.expected_boundary.?, unsafe_policy.accessBoundaryFor(scope));
             try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafe(scope));
             try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAudit(scope));
+
+            const narrow_expected = switch (case.expected_boundary.?) {
+                .typed_safe => narrow_surface.AccessBoundary.typed_safe,
+                .volatile_mmio_window => narrow_surface.AccessBoundary.volatile_mmio_window,
+                .raw_pointer_bridge => narrow_surface.AccessBoundary.raw_pointer_bridge,
+            };
+            try testing.expectEqual(narrow_expected, narrow_surface.accessBoundaryFor(scope));
+            try testing.expectEqual(case.expected_unsafe, narrow_surface.isUnsafe(scope));
+            try testing.expectEqual(case.expected_audit, narrow_surface.requiresDedicatedAudit(scope));
         }
     }
 
@@ -309,11 +333,39 @@ test "policy starter packet keeps unsafe boundary and audit semantics explicit" 
         try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromInteropPolicyBytes(case.unsafe_scope, case.reserved));
         try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafePolicyBytes(case.unsafe_scope, case.reserved));
         try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditPolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.expected_unsafe, narrow_surface.isUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.expected_audit, narrow_surface.requiresDedicatedAuditPolicyBytes(case.unsafe_scope, case.reserved));
+
+        const narrow_boundary = narrow_surface.accessBoundaryFromInteropPolicyBytes(case.unsafe_scope, case.reserved);
+        if (case.expected_boundary) |boundary| {
+            const expected_narrow = switch (boundary) {
+                .typed_safe => narrow_surface.AccessBoundary.typed_safe,
+                .volatile_mmio_window => narrow_surface.AccessBoundary.volatile_mmio_window,
+                .raw_pointer_bridge => narrow_surface.AccessBoundary.raw_pointer_bridge,
+            };
+            try testing.expectEqual(@as(?narrow_surface.AccessBoundary, expected_narrow), narrow_boundary);
+        } else {
+            try testing.expectEqual(@as(?narrow_surface.AccessBoundary, null), narrow_boundary);
+        }
 
         if (case.reserved == 0) {
             try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromByte(case.unsafe_scope));
             try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafeByte(case.unsafe_scope));
             try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditByte(case.unsafe_scope));
+            try testing.expectEqual(case.expected_unsafe, narrow_surface.isUnsafeByte(case.unsafe_scope));
+            try testing.expectEqual(case.expected_audit, narrow_surface.requiresDedicatedAuditByte(case.unsafe_scope));
+
+            const narrow_byte_boundary = narrow_surface.accessBoundaryFromByte(case.unsafe_scope);
+            if (case.expected_boundary) |boundary| {
+                const expected_narrow = switch (boundary) {
+                    .typed_safe => narrow_surface.AccessBoundary.typed_safe,
+                    .volatile_mmio_window => narrow_surface.AccessBoundary.volatile_mmio_window,
+                    .raw_pointer_bridge => narrow_surface.AccessBoundary.raw_pointer_bridge,
+                };
+                try testing.expectEqual(@as(?narrow_surface.AccessBoundary, expected_narrow), narrow_byte_boundary);
+            } else {
+                try testing.expectEqual(@as(?narrow_surface.AccessBoundary, null), narrow_byte_boundary);
+            }
         }
     }
 }
