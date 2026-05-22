@@ -115,6 +115,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");',
         'try expectContains(helper, "test \\\"nextArg parses bare parameters and keeps the remaining text\\\" {");',
         'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg keeps quoted bare tokens together and preserves the following remainder\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
@@ -122,7 +123,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
-        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
     "samples/zigux/README.md": [
@@ -140,7 +141,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 74
+SELF_TEST_CASE_COUNT = 75
 
 
 def read_text(path: Path) -> str:
@@ -449,6 +450,10 @@ def run_self_test() -> None:
                 'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
             ),
             (
+                "missing_survey_helper_quoted_bare_token_marker",
+                'try expectContains(helper, "test \\\"nextArg keeps quoted bare tokens together and preserves the following remainder\\\" {");',
+            ),
+            (
                 "missing_survey_helper_quoted_empty_value_marker",
                 'try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");',
             ),
@@ -478,7 +483,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_survey_companion_first_nul_bare_option_marker",
-                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
             ),
             (
                 "missing_survey_companion_memparse_signed_clamp_marker",
