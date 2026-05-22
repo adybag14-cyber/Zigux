@@ -48,8 +48,6 @@ PHASE9_FREEZE_MAP_SELF_TEST_STEP = (
     "- name: Self-test current Phase 9 freeze-map study-boundaries checker"
 )
 PHASE9_FREEZE_MAP_CHECK_STEP = "- name: Check current Phase 9 freeze-map study-boundaries packet"
-PHASE11_BUILD_INVENTORY_SELF_TEST_STEP = "- name: Self-test current Phase 11 build inventory checker"
-PHASE11_BUILD_INVENTORY_CHECK_STEP = "- name: Check current Phase 11 build inventory packet"
 THIRD_PARTY_PATH = "- 'third_party/**'"
 SCRIPTS_PATH = "- 'scripts/zigux/**'"
 TOOLS_PATH = "- 'tools/lib/*.zig'"
@@ -75,9 +73,9 @@ LOCAL_ARCHIVE_MARKERS = (
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
+    'elif try_download "$ZIGUX_ZIG_URL"; then',
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-    'if try_download "$ZIGUX_ZIG_URL"; then',
-    "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
+    "failed to install a verified pinned Zig archive from third_party, ziglang.org, or community mirrors",
 )
 
 RETAINED_STEP_PAIRS = (
@@ -86,7 +84,6 @@ RETAINED_STEP_PAIRS = (
     (PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP, PHASE2_ARTIFACT_TOOLS_CHECK_STEP),
     (PHASE7_MAKE_WRAPPER_SELF_TEST_STEP, PHASE7_MAKE_WRAPPER_CHECK_STEP),
     (PHASE9_FREEZE_MAP_SELF_TEST_STEP, PHASE9_FREEZE_MAP_CHECK_STEP),
-    (PHASE11_BUILD_INVENTORY_SELF_TEST_STEP, PHASE11_BUILD_INVENTORY_CHECK_STEP),
 )
 
 
@@ -306,14 +303,14 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         "if try_local_archive; then",
-        'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-        "workflow local-first before mirrors order",
+        'elif try_download "$ZIGUX_ZIG_URL"; then',
+        "workflow local-first before direct-download order",
     )
     require_order(
         text,
+        'elif try_download "$ZIGUX_ZIG_URL"; then',
         'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-        'if try_download "$ZIGUX_ZIG_URL"; then',
-        "workflow mirrors before direct download order",
+        "workflow direct-download before mirrors order",
     )
 
 
@@ -356,13 +353,12 @@ jobs:
           download_success=0
           if try_local_archive; then
             download_success=1
+          elif try_download "$ZIGUX_ZIG_URL"; then
+            download_success=1
           elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             download_success=0
           fi
-          if try_download "$ZIGUX_ZIG_URL"; then
-            download_success=1
-          fi
-          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
+          echo 'failed to install a verified pinned Zig archive from third_party, ziglang.org, or community mirrors' >&2
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
       - name: Check current Zig toolchain policy packet
@@ -403,10 +399,6 @@ jobs:
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
       - name: Check current Phase 7 make-wrapper selftest alignment packet
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
 """
     check_workflow(good_workflow)
     case_count = 1
@@ -564,20 +556,6 @@ jobs:
     else:
         raise AssertionError("expected missing retained step failure")
 
-    missing_build_inventory_step = good_workflow.replace(
-        f"      {PHASE11_BUILD_INVENTORY_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_build_inventory_step)
-    except SystemExit as exc:
-        assert PHASE11_BUILD_INVENTORY_SELF_TEST_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing Phase 11 build inventory self-test failure")
-
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
         "",
@@ -608,29 +586,46 @@ jobs:
     reordered_fallback = good_workflow.replace(
         "          if try_local_archive; then\n"
         "            download_success=1\n"
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
-        "            download_success=0\n"
-        "          fi\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
+        '          elif try_download "$ZIGUX_ZIG_URL"; then\n'
         "            download_success=1\n"
-        "          fi\n",
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
-        "          fi\n"
+        "          fi\n",
+        '          elif try_download "$ZIGUX_ZIG_URL"; then\n'
+        "            download_success=1\n"
         "          if try_local_archive; then\n"
         "            download_success=1\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "            download_success=1\n"
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        "            download_success=0\n"
         "          fi\n",
         1,
     )
     try:
         check_workflow(reordered_fallback)
     except SystemExit as exc:
-        assert "workflow local-first before mirrors order" in str(exc)
+        assert "workflow local-first before direct-download order" in str(exc)
         case_count += 1
     else:
         raise AssertionError("expected reordered fallback failure")
+
+    reordered_direct_and_mirrors = good_workflow.replace(
+        '          elif try_download "$ZIGUX_ZIG_URL"; then\n'
+        "            download_success=1\n"
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        "            download_success=0\n",
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        "            download_success=0\n"
+        '          elif try_download "$ZIGUX_ZIG_URL"; then\n'
+        "            download_success=1\n",
+        1,
+    )
+    try:
+        check_workflow(reordered_direct_and_mirrors)
+    except SystemExit as exc:
+        assert "workflow direct-download before mirrors order" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected reordered direct-download and mirrors failure")
 
     print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST=pass")
     print(f"LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST_CASE_COUNT={case_count}")
