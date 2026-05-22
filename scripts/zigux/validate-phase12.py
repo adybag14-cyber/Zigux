@@ -205,9 +205,10 @@ REQUIRED_MARKERS = {
     VIRTIO_SCSI_FALLBACK_PATH: [
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
-        "- survey gate: `zigux/tests/phase12_virtio_scsi_survey.zig`",
+        "- survey gate: `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
         "- `scripts/zigux/validate-phase12.py`",
-        "- reminder-only validator wrapper vocabulary until it returns: `make -C zigux phase12-validate`",
+        "- exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
+        "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only and release-readiness checkers plus `scripts/zigux/validate-phase12.py`",
         "current authoritative packet truth therefore lives in the rollback-evidence survey companions on `master`",
     ],
     VIRTIO_SCSI_SURVEY_PATH: [
@@ -269,9 +270,10 @@ REQUIRED_MARKERS = {
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
         "phase3: phase3-validate",
         "phase10: phase10-validate phase10-test",
+        "phase12-validate:",
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: [
         "PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=pass",
@@ -354,12 +356,12 @@ EXACT_COUNT_MARKERS = {
 
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: [
-        "phase12-validate:",
-        "phase12: phase12-validate phase12-smoke phase12-test",
+        "phase12: phase12-smoke phase12-test",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "the shipped `make -C zigux phase12-validate` route keeps",
         "must not treat the shipped `make -C zigux phase12-validate` route",
+        "`make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`",
     ],
     VALIDATOR_PATH: [
         "RUNTIME_EVIDENCE_PATHS = [",
