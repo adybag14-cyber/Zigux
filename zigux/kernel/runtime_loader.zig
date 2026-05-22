@@ -250,6 +250,74 @@ test "releaseWithoutSubstrate preserves the waiting snapshot on drift" {
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
+test "PreparedRequest.requestRuntimeLoad rejects invalid lifecycle states without disturbing snapshots" {
+    const stable = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var waiting_request = try prepareRequest(stable);
+    const waiting_pending = try waiting_request.requestRuntimeLoad();
+    try std.testing.expectError(error.InvalidLoaderState, waiting_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, waiting_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(waiting_request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(waiting_request.plan, waiting_pending));
+    try std.testing.expect(keepsLoadPlanExplicit(waiting_pending, stable));
+
+    var released_request = try prepareRequest(stable);
+    const released_pending = try released_request.requestRuntimeLoad();
+    try released_request.releaseWithoutSubstrate();
+    try std.testing.expectError(error.InvalidLoaderState, released_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.released_without_substrate, released_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(released_request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(released_request.plan, released_pending));
+    try std.testing.expect(keepsLoadPlanExplicit(released_pending, stable));
+}
+
+test "PreparedRequest.releaseWithoutSubstrate rejects invalid lifecycle states without disturbing snapshots" {
+    const stable = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+
+    var prepared_request = try prepareRequest(stable);
+    try std.testing.expectError(error.InvalidLoaderState, prepared_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.prepared, prepared_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(prepared_request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(prepared_request.plan, stable));
+
+    var released_request = try prepareRequest(stable);
+    const released_pending = try released_request.requestRuntimeLoad();
+    try released_request.releaseWithoutSubstrate();
+    try std.testing.expectError(error.InvalidLoaderState, released_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.released_without_substrate, released_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(released_request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(released_request.plan, released_pending));
+    try std.testing.expect(keepsLoadPlanExplicit(released_pending, stable));
+}
+
 test "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
