@@ -24,6 +24,7 @@ Keep the current validator-first route explicit:
 - `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py --self-test`
 - `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `python3 scripts/zigux/check-phase10-closure-manifest-counts.py`
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
@@ -76,6 +77,7 @@ Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `scripts/zigux/check-phase10-harness-coverage.py`
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/check-phase10-closure-manifest-counts.py`
 - `scripts/zigux/validate-phase10.py`
 - `scripts/zigux/validate-phase10-closure.py`
 - `zigux/tests/phase10_closure_manifest.json`
@@ -94,7 +96,7 @@ Keep the current repo-reality split explicit too:
 
 Reviewer prompts:
 
-- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the returned ring freeze-boundary and dedicated survey gate, the returned MMIO companion, manifest, and survey gate, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the closure-manifest count guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the returned ring freeze-boundary and dedicated survey gate, the returned MMIO companion, manifest, and survey gate, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
 - Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
 
 ## Phase 11: Simple-driver packet
