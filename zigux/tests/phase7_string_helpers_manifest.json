@@ -27,6 +27,8 @@
     "match_string",
     "sysfsMatchString",
     "__sysfs_match_string",
+    "stringIsTerminated",
+    "string_is_terminated",
     "stringGetSize",
     "string_get_size",
     "stringUnescape",
@@ -71,6 +73,7 @@
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
+    "bounded termination checks that fail closed for zero bounds, over-wide bounds, and missing NUL bytes",
     "null-sentinel table matching through the first NULL entry",
     "bounded size rendering with explicit units and truncation-safe output accounting",
     "bounded string unescaping across space, octal, hex, and special escape families",
@@ -91,6 +94,7 @@
   ],
   "ownership_focus": [
     "first-NUL-bounded helpers keep caller-provided slices explicit so whitespace trimming and prefix skipping stop at the exported C-string boundary",
+    "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix",
     "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit",
     "stringEscapeMem() keeps append-limited and dictionary-mode output accounting inside caller-owned storage",
     "stringEscapeMemAnyNp(), stringEscapeStr(), and stringEscapeStrAnyNp() keep any-NP and first-NUL-bounded string-wrapper escaping explicit without widening beyond caller-owned storage",
