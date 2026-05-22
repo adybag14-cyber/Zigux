@@ -316,6 +316,58 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 }
 
+test "abi binding chrdev notify window constants stay explicit" {
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 1),
+        CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+    );
+
+    const delivery_view = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView{
+        .ack_window = 7,
+        .delivery_window = 11,
+        .status = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+    };
+    const delivery_summary = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary{
+        .applied = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED,
+        .skipped = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+        .delivered = 3,
+    };
+    const budget_view = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView{
+        .budget = 5,
+        .window = 9,
+        .flags = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED |
+            CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+    };
+    const budget_summary = ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary{
+        .attempted = 4,
+        .applied = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
+        .skipped = CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+    };
+
+    try std.testing.expectEqual(@as(u32, 1), delivery_view.status);
+    try std.testing.expectEqual(@as(u32, 1), delivery_summary.applied);
+    try std.testing.expectEqual(@as(u32, 1), delivery_summary.skipped);
+    try std.testing.expectEqual(@as(u32, 1), budget_view.flags);
+    try std.testing.expectEqual(@as(u32, 1), budget_summary.applied);
+    try std.testing.expectEqual(@as(u32, 1), budget_summary.skipped);
+}
+
 test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(ExportStatus));
     try std.testing.expectEqual(@as(usize, 4), @alignOf(ExportStatus));
