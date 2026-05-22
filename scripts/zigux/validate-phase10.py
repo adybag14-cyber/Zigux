@@ -446,6 +446,17 @@ def run_self_test() -> int:
             )
 
         build_sample_repo(root)
+        failing_script = root / "scripts/zigux/validate-phase10-closure.py"
+        build_stub_script(failing_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_closure_failure = "live_failed:phase10-closure:exit=1"
+        if expected_closure_failure not in issues:
+            raise SystemExit(
+                "phase10-validate-self-test:closure_subcommand_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        build_sample_repo(root)
         manifest_path = root / "zigux/tests/phase10_virtio_core_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["surveyed_commit"] = "master"
@@ -540,7 +551,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
