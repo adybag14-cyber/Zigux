@@ -24,6 +24,7 @@ GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
 )
 
 REQUIRED_PATHS = (
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-closure.md",
     GENKSYMS_DUAL_IMPLEMENTATION_SURVEY,
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
