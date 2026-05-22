@@ -8,7 +8,7 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_SLICE=virtio-net-survey`
 - lane owner: `P12-L01`
 - scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate review packet truthful without reopening live runtime data-path work
-- verified head: `c36b21af252cf76160ba5ae9c8f84b2310f4b2e1`
+- verified head: `6791c1229b883d9f0acf9ec70e4159db1c9d1bf6`
 
 ## Current-master verification
 
@@ -23,8 +23,8 @@ This note records the current-master verification result for the bounded Phase 1
 - current `master` now carries `zigux/tests/phase12_virtio_net_post_reset_replay.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_throughput_parity.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_survey.zig`
-- `zigux/tests/phase12_build.zig` now keeps the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 smoke and test routes
-- the shared Phase 12 build route reruns that sextet
-- the throughput helper remains review-only throughput-ratio checks, not measured transport throughput evidence
+- `zigux/tests/phase12_build.zig` plus `zigux/Makefile` now keep the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes
+- current `master` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof for that sextet
+- the throughput helper remains review-only throughput-ratio checks, but now also surfaces explicit receive-refill and transmit-recycle readiness booleans rather than measured transport throughput evidence
 - the packet still does not claim live DMA-safe receive ownership
 - performance-risk wording refresh remains bounded below runtime queue execution
