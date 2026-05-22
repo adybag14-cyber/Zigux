@@ -104,10 +104,11 @@ EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_PUBLIC_COMPANIONS = []
-EXPECTED_EVIDENCE_CURRENT_GAPS = [
+EXPECTED_BASE64_DIRECT_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
 ]
+EXPECTED_EVIDENCE_CURRENT_GAPS = EXPECTED_BASE64_DIRECT_GAPS
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "zigux/tests/phase6_helper_evidence_manifest.json",
@@ -179,11 +180,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
+    "- follow-up 2026-05-22 direct readback recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`; the remaining generator-side gaps are `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`",
 ]
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
     "- exact missing direct companions from authenticated 2026-05-20 readback: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity checker, and slice note. A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, while `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` still remain outside shipped evidence",
     "- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work",
     "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/validate-phase6.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
 ]
@@ -204,7 +207,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 44
+SELF_TEST_CASE_COUNT = 48
 
 
 class ValidationError(RuntimeError):
@@ -287,6 +290,29 @@ def require_helper_checker_surfaces(
     raise ValidationError(f"{manifest_name} {helper_key} helper missing")
 
 
+def require_helper_field(
+    manifest: dict[str, object],
+    manifest_name: str,
+    helper_key: str,
+    field_name: str,
+    expected_value: object,
+) -> None:
+    helpers = manifest.get("helpers")
+    if not isinstance(helpers, list):
+        raise ValidationError(f"{manifest_name} helpers missing")
+
+    for helper in helpers:
+        if not isinstance(helper, dict) or helper.get("key") != helper_key:
+            continue
+        if helper.get(field_name) != expected_value:
+            raise ValidationError(
+                f"{manifest_name} {helper_key} {field_name} drift"
+            )
+        return
+
+    raise ValidationError(f"{manifest_name} {helper_key} helper missing")
+
+
 def validate(root: Path) -> None:
     missing = [path.as_posix() for path in REQUIRED_FILES if not (root / path).exists()]
     if missing:
@@ -318,11 +344,25 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 helper parity public companion drift")
     if helper_parity_manifest.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper parity follow-through gap drift")
+    require_helper_field(
+        helper_evidence_manifest,
+        "phase6 helper evidence manifest",
+        "base64",
+        "still_missing_direct_companions",
+        EXPECTED_BASE64_DIRECT_GAPS,
+    )
     require_helper_checker_surfaces(
         helper_evidence_manifest,
         "phase6 helper evidence manifest",
         "checksum",
         EXPECTED_CHECKSUM_CHECKER_SURFACES,
+    )
+    require_helper_field(
+        helper_parity_manifest,
+        "phase6 helper parity manifest",
+        "base64",
+        "still_missing_direct_companions",
+        EXPECTED_BASE64_DIRECT_GAPS,
     )
     require_helper_checker_surfaces(
         helper_parity_manifest,
@@ -399,6 +439,10 @@ def scaffold_repo(root: Path) -> None:
         "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_INVENTORY,
         "helpers": [
             {
+                "key": "base64",
+                "still_missing_direct_companions": EXPECTED_BASE64_DIRECT_GAPS,
+            },
+            {
                 "key": "checksum",
                 "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
             }
@@ -413,7 +457,11 @@ def scaffold_repo(root: Path) -> None:
         "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
         "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
         "helpers": [
-            {"key": "base64", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {
+                "key": "base64",
+                "still_missing_direct_companions": EXPECTED_BASE64_DIRECT_GAPS,
+                "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]},
+            },
             {"key": "bsearch", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "checksum", "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "hexdump", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
@@ -468,6 +516,10 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace(REQUIRED_CATALOG_SNIPPETS[7] + "\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-checksum-perf-matrix-test")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
@@ -517,8 +569,24 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
-        manifest["helpers"][0]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
+        manifest["helpers"][0]["still_missing_direct_companions"] = [
+            "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
+        ]
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["helpers"][1]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["helpers"][0]["still_missing_direct_companions"] = [
+            "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
+        ]
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
@@ -617,6 +685,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         write(root / HELPER_PARITY_CATALOG, read_text(root / HELPER_PARITY_CATALOG).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[2] + "\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / HELPER_PARITY_CATALOG, read_text(root / HELPER_PARITY_CATALOG).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[3] + "\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
