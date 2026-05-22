@@ -21,16 +21,19 @@ REQUIRED_FILES = {
 
 ALIGNMENT_NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
-    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, live PM execution, or live MMIO validation",
-    "- `drivers/watchdog/dw_wdt_pm.zig` now also keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment, the adjacent bounded PM-helper landing, and the current next-step scope fail-closed",
+    "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
+    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `drivers/watchdog/dw_wdt_verify.zig` still keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, live PM execution, or live MMIO validation",
+    "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
 ]
 
 GAP_NOTE_MARKERS = [
-    "- current direct tree readback materializes `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, and `Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
-    "- current direct tree readback also materializes `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
+    "- current authenticated contents rereads keep `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` directly reviewable in this smaller current-head packet",
+    "- those same authenticated contents rereads still do not rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt_survey.zig`, so keep that broader helper, replay, and reminder stack framed as larger same-lane vocabulary until a future authenticated reread proves it returned through the same contents bridge",
+    "- public-tree fallback rereads may still surface some of those broader DesignWare reminder or replay paths, but this note should not mix that fallback visibility into the smaller authenticated current-head packet without naming the different read path explicitly",
     "- the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle remains historical context until a future reread proves it returned",
-    "- the stale reminder noise this lane carried was not missing helper coverage anymore; it was outdated wording that still described returned DesignWare helper, replay, and matrix surfaces as repo-reality gaps",
+    "- the stale reminder noise this lane carried was not missing restart or PM helper coverage anymore; it was readback wording that blurred the smaller authenticated current-head packet together with the larger fallback-visible DesignWare stack",
 ]
 
 CLOCK_PLAN_MARKERS = [
@@ -44,9 +47,10 @@ CLOCK_PLAN_MARKERS = [
 
 PLATFORM_PLAN_MARKERS = [
     "Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical context until a future reread proves it returned.",
-    "The live DesignWare packet is no longer just a docs-and-scaffold owner stack: the direct helper, restart helper, verify helper, replay, survey replay, validation matrix, slice, survey, and teardown note are all current-head evidence again.",
-    "- the direct helper trio `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, and `drivers/watchdog/dw_wdt_verify.zig`",
-    "- the direct replay pair `zigux/tests/phase11_dw_wdt.zig` and `zigux/tests/phase11_dw_wdt_survey.zig`",
+    "The live DesignWare packet is therefore no longer just a docs-only owner stack, but it is also not yet the broader direct-driver or replay-backed packet this note used to claim: it now truthfully centers the directly readable continuity notes, the manifest-backed registration scaffold, the returned restart helper, the bounded PM helper pair, and the two current DesignWare truthfulness checkers while leaving the wider driver, verify-helper, and replay stack unpromoted.",
+    "- the current starter-laned gap inventory in `zigux/tests/phase11_dw_wdt_manifest.json`",
+    "- the returned restart helper `drivers/watchdog/dw_wdt_restart.zig`, which keeps missing-drvdata and missing-timeout-image restart blocks explicit beside restart-priority registration, timeout-range and control-register writes, and reset-pulse expectations without widening into live MMIO execution",
+    "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
     "- the dedicated fail-closed companions `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
 ]
 
