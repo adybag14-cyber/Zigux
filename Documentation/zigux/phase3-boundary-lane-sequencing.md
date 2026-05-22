@@ -13,6 +13,7 @@ This note records the current scripts-root sequencing boundary for the bounded P
 - The Phase 3 roadmap keeps `ABI/export surfaces`, `allocators`, `atomics and barriers`, and `MMIO` inside the bounded ABI and interop substrate.
 - Bootstrap ledger step `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`, still names the same core boundary family through `include/zigux/abi.h`, `include/linux/zigux.h`, `zigux/bindings/abi.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/kernel/export_shim.zig`, `zigux/unsafe/narrow.zig`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/validate-phase3.py`, and `Documentation/zigux/phase3-abi-slice.md`.
 - Bootstrap ledger step `27`, `feat(zigux): add bounded Phase 3 bitmap/cpumask interop slice`, still reserves helper-local interop follow-through for `Documentation/zigux/phase3-bitmap-cpumask-slice.md`, `zigux/helpers/bitmap_view.zig`, `zigux/helpers/cpumask_view.zig`, and their directly coupled starter packet instead of folding that slice back into the shared ABI owner map.
+- Bootstrap ledger step `28`, `feat(zigux): add bounded Phase 3 list/hlist interop slice`, still reserves helper-local interop follow-through for `Documentation/zigux/phase3-list-hlist-slice.md`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and their directly coupled starter packet instead of folding that slice back into the shared ABI owner map.
 
 ## Current Directly Readable Boundary Packet
 
