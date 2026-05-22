@@ -16,6 +16,41 @@ fn moduloBucketCmp(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_
     return if (lhs_bucket < rhs_bucket) -1 else 1;
 }
 
+fn expectModuloReplay(head: *list_sort.ListHead, entries: []const Entry) !void {
+    var keys: [12]i32 = undefined;
+    var ordinals: [12]usize = undefined;
+    var reverse_ordinals: [12]usize = undefined;
+
+    var idx: usize = 0;
+    var current = head.next;
+    while (current != head) : (current = current.?.next) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        keys[idx] = entry.key;
+        ordinals[idx] = entry.ordinal;
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+        idx += 1;
+    }
+
+    var reverse_idx: usize = 0;
+    current = head.prev;
+    while (current != head) : (current = current.?.prev) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        reverse_ordinals[reverse_idx] = entry.ordinal;
+        reverse_idx += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, entries.len), idx);
+    try std.testing.expectEqual(@as(usize, entries.len), reverse_idx);
+    try std.testing.expectEqualSlices(i32, &.{ 3, 6, 0, 9, 10, 1, 7, 4, 8, 11, 5, 2 }, keys[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 6, 8, 10, 2, 3, 4, 5, 0, 7, 9, 11 }, ordinals[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 11, 9, 7, 0, 5, 4, 3, 2, 10, 8, 6, 1 }, reverse_ordinals[0..reverse_idx]);
+    try std.testing.expect(head.next == &entries[1].node);
+    try std.testing.expect(head.prev == &entries[11].node);
+    try std.testing.expect(entries[1].node.prev == head);
+    try std.testing.expect(entries[11].node.next == head);
+}
+
 test "phase1 list_sort replay preserves stable modulo bucket order across a longer merge path" {
     var head: list_sort.ListHead = .{};
     head.init();
@@ -39,24 +74,32 @@ test "phase1 list_sort replay preserves stable modulo bucket order across a long
 
     list_sort.listSort(null, &head, moduloBucketCmp);
 
-    var keys: [12]i32 = undefined;
-    var ordinals: [12]usize = undefined;
-    var idx: usize = 0;
-    var current = head.next;
-    while (current != &head) : (current = current.?.next) {
-        const entry: *const Entry = @fieldParentPtr("node", current.?);
-        keys[idx] = entry.key;
-        ordinals[idx] = entry.ordinal;
-        try std.testing.expect(current.?.next.?.prev == current.?);
-        try std.testing.expect(current.?.prev.?.next == current.?);
-        idx += 1;
+    try expectModuloReplay(&head, &entries);
+}
+
+test "phase1 list_sort replay can resort the same modulo-merged ring without changing stable order" {
+    var head: list_sort.ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 8, .ordinal = 0 },
+        .{ .key = 3, .ordinal = 1 },
+        .{ .key = 10, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 7, .ordinal = 4 },
+        .{ .key = 4, .ordinal = 5 },
+        .{ .key = 6, .ordinal = 6 },
+        .{ .key = 11, .ordinal = 7 },
+        .{ .key = 0, .ordinal = 8 },
+        .{ .key = 5, .ordinal = 9 },
+        .{ .key = 9, .ordinal = 10 },
+        .{ .key = 2, .ordinal = 11 },
+    };
+    for (&entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &head);
     }
 
-    try std.testing.expectEqual(@as(usize, entries.len), idx);
-    try std.testing.expectEqualSlices(i32, &.{ 3, 6, 0, 9, 10, 1, 7, 4, 8, 11, 5, 2 }, keys[0..idx]);
-    try std.testing.expectEqualSlices(usize, &.{ 1, 6, 8, 10, 2, 3, 4, 5, 0, 7, 9, 11 }, ordinals[0..idx]);
-    try std.testing.expect(head.next == &entries[1].node);
-    try std.testing.expect(head.prev == &entries[11].node);
-    try std.testing.expect(entries[1].node.prev == &head);
-    try std.testing.expect(entries[11].node.next == &head);
+    list_sort.listSort(null, &head, moduloBucketCmp);
+    list_sort.listSort(null, &head, moduloBucketCmp);
+
+    try expectModuloReplay(&head, &entries);
 }
