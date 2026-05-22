@@ -33,6 +33,10 @@ DIRECT_SAMPLE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);",
     "try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);",
     "try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);",
+    'test "trace-events sample keeps rejected re-selftest rollback explicit" {',
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);",
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);",
+    "try std.testing.expectEqual(before_rejected_exit_selftest.last_main_conditional_event_count, after_rejected_exit_selftest.last_main_conditional_event_count);",
 ]
 
 
