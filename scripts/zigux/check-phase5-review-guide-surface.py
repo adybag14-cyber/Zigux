@@ -207,7 +207,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 20
+    expected_case_count = 21
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -222,6 +222,16 @@ def run_self_test() -> int:
             "guide_validation_marker",
             collect_failures(mutated),
             [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_guide_kobject_exit_split_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][4], ""))
+        expect_exact(
+            "guide_kobject_exit_split_marker",
+            collect_failures(mutated),
+            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][4]}"],
         )
         checks_run += 1
 
