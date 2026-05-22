@@ -338,7 +338,7 @@ def collect_failures(root: Path) -> list[str]:
     if not isinstance(review_anchors, dict):
         return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.bitmap.zig", review_anchors.get("tools/lib/bitmap.zig"), EXPECTED_BITMAP_REVIEW_ANCHORS))
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib.find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib/find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.string.zig", review_anchors.get("tools/lib/string.zig"), EXPECTED_STRING_REVIEW_ANCHORS))
 
