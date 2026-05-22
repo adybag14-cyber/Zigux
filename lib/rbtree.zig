@@ -688,3 +688,38 @@ pub fn nextPostorder(node: ?*const Node) ?*Node {
 pub fn rb_next_postorder(node: ?*const Node) ?*Node {
     return nextPostorder(node);
 }
+
+test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+    };
+    var replacement = Entry{ .key = 20 };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = addCached(&entry.node, &root, less);
+    }
+
+    try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
+
+    replaceNodeCached(&entries[2].node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), last(&root.root));
+}
