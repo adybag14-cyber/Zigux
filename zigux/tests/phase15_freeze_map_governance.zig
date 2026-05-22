@@ -104,7 +104,7 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.governance_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
