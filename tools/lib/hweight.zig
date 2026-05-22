@@ -92,3 +92,60 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers satisfy the overlap identity" {
+    const left8: u32 = 0b1110_0011;
+    const right8: u32 = 0b0111_1000;
+    try std.testing.expectEqual(
+        swHweight8(left8) + swHweight8(right8),
+        swHweight8(left8 ^ right8) + (2 * swHweight8(left8 & right8)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight8(left8) + __sw_hweight8(right8),
+        __sw_hweight8(left8 ^ right8) + (2 * __sw_hweight8(left8 & right8)),
+    );
+
+    const left16: u32 = 0xe38f;
+    const right16: u32 = 0x7c79;
+    try std.testing.expectEqual(
+        swHweight16(left16) + swHweight16(right16),
+        swHweight16(left16 ^ right16) + (2 * swHweight16(left16 & right16)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight16(left16) + __sw_hweight16(right16),
+        __sw_hweight16(left16 ^ right16) + (2 * __sw_hweight16(left16 & right16)),
+    );
+
+    const left32: u32 = 0xe38f_1357;
+    const right32: u32 = 0x7c79_f0a5;
+    try std.testing.expectEqual(
+        swHweight32(left32) + swHweight32(right32),
+        swHweight32(left32 ^ right32) + (2 * swHweight32(left32 & right32)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight32(left32) + __sw_hweight32(right32),
+        __sw_hweight32(left32 ^ right32) + (2 * __sw_hweight32(left32 & right32)),
+    );
+
+    const left64: u64 = 0xe38f_1357_2468_ace0;
+    const right64: u64 = 0x7c79_f0a5_55aa_33cc;
+    try std.testing.expectEqual(
+        swHweight64(left64) + swHweight64(right64),
+        swHweight64(left64 ^ right64) + (2 * swHweight64(left64 & right64)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight64(left64) + __sw_hweight64(right64),
+        __sw_hweight64(left64 ^ right64) + (2 * __sw_hweight64(left64 & right64)),
+    );
+
+    const left_long: usize = if (@sizeOf(usize) == 4) 0xe38f_1357 else 0xe38f_1357_2468_ace0;
+    const right_long: usize = if (@sizeOf(usize) == 4) 0x7c79_f0a5 else 0x7c79_f0a5_55aa_33cc;
+    try std.testing.expectEqual(
+        hweightLong(left_long) + hweightLong(right_long),
+        hweightLong(left_long ^ right_long) + (2 * hweightLong(left_long & right_long)),
+    );
+    try std.testing.expectEqual(
+        hweight_long(left_long) + hweight_long(right_long),
+        hweight_long(left_long ^ right_long) + (2 * hweight_long(left_long & right_long)),
+    );
+}
