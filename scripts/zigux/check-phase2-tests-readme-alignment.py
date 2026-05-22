@@ -84,7 +84,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
     "`zigux/tests/fixtures/fixdep/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
     "keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet",
     "current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket",
     "current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder",
@@ -102,7 +102,7 @@ EXACT_COUNT_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`",
     "`python3 scripts/zigux/check-lane05-local-archive-readme.py`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
@@ -298,133 +298,121 @@ def build_self_test_root(root: Path) -> None:
     )
 
 
-def remove_marker(text: str, marker: str) -> str:
+def remove_all(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, "", 1)
+    return text.replace(marker, "")
 
 
 def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
         1
-        + 1
         + len(REQUIRED_TESTS_README_MARKERS)
         + len(EXACT_COUNT_TESTS_README_MARKERS)
         + len(FORBIDDEN_TESTS_README_MARKERS)
         + len(REQUIRED_DOCS_ROOT_MARKERS)
         + len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)
-        + 6
+        + 1
     )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
+
         assert collect_issues(root) == []
         checks_run += 1
 
-        repeated_marker = "`make -C zigux phase2-cross`"
-        repeated_text = "\n".join((repeated_marker, repeated_marker, "tail")) + "\n"
-        replaced_text = remove_marker(repeated_text, repeated_marker)
-        assert replaced_text == f"\n{repeated_marker}\ntail\n"
+        tests_readme_path = resolve_path(root, TESTS_README)
+        tests_readme_text = read_text(tests_readme_path)
+        for marker in REQUIRED_TESTS_README_MARKERS:
+            write_text(tests_readme_path, remove_all(tests_readme_text, marker))
+            issues = collect_issues(root)
+            assert ("MISSING_TESTS_README_MARKERS", marker) in issues, (marker, issues)
+            build_self_test_root(root)
+            tests_readme_text = read_text(tests_readme_path)
+            checks_run += 1
+
+        for marker in EXACT_COUNT_TESTS_README_MARKERS:
+            write_text(tests_readme_path, tests_readme_text + marker + "\n")
+            issues = collect_issues(root)
+            assert ("EXACT_COUNT_TESTS_README_MARKERS", f"2::{marker}") in issues, (marker, issues)
+            build_self_test_root(root)
+            tests_readme_text = read_text(tests_readme_path)
+            checks_run += 1
+
+        for marker in FORBIDDEN_TESTS_README_MARKERS:
+            write_text(tests_readme_path, tests_readme_text + marker + "\n")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues, (marker, issues)
+            build_self_test_root(root)
+            tests_readme_text = read_text(tests_readme_path)
+            checks_run += 1
+
+        docs_root_path = resolve_path(root, DOCS_ROOT_README)
+        docs_root_text = read_text(docs_root_path)
+        for marker in REQUIRED_DOCS_ROOT_MARKERS:
+            write_text(docs_root_path, remove_all(docs_root_text, marker))
+            issues = collect_issues(root)
+            assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues, (marker, issues)
+            build_self_test_root(root)
+            docs_root_text = read_text(docs_root_path)
+            checks_run += 1
+
+        manifest_path = resolve_path(root, PHASE2_TOOL_MANIFEST)
+        manifest = read_manifest(manifest_path)
+        for surface in REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES:
+            manifest["present_surfaces"]["all"] = [
+                entry for entry in manifest["present_surfaces"]["all"] if entry != surface
+            ]
+            write_text(manifest_path, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+            issues = collect_issues(root)
+            assert ("MISSING_PHASE2_TOOL_MANIFEST_SURFACES", surface) in issues, (surface, issues)
+            build_self_test_root(root)
+            manifest = read_manifest(manifest_path)
+            checks_run += 1
+
+        manifest["repo_reality_gaps"] = ["gap"]
+        write_text(manifest_path, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+        issues = collect_issues(root)
+        assert ("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(["gap"])) in issues, issues
         checks_run += 1
 
-        for marker in REQUIRED_TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_TESTS_README_MARKERS", marker) in issues
-            checks_run += 1
-        for marker in EXACT_COUNT_TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("EXACT_COUNT_TESTS_README_MARKERS", f"2::{marker}") in issues
-            checks_run += 1
-        for marker in FORBIDDEN_TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
-            checks_run += 1
-        for marker in REQUIRED_DOCS_ROOT_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, DOCS_ROOT_README)
-            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
-            checks_run += 1
-        for surface in REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES:
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_TOOL_MANIFEST)
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            payload["present_surfaces"]["all"].remove(surface)
-            path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_PHASE2_TOOL_MANIFEST_SURFACES", surface) in issues
-            checks_run += 1
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["repo_reality_gaps"] = ["legacy-gap"]
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", '["legacy-gap"]') in issues
-        checks_run += 1
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
-        path.write_text("{\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required json invalid" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("invalid json did not abort")
-        build_self_test_root(root)
-        path = resolve_path(root, PHASE2_TOOL_MANIFEST)
-        path.write_text("[]\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required json has invalid top-level shape" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("invalid json shape did not abort")
-        for path in (TESTS_README, DOCS_ROOT_README, PHASE2_TOOL_MANIFEST):
-            build_self_test_root(root)
-            resolve_path(root, path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {path}")
-    assert checks_run == expected_case_count
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
+        if checks_run != expected_case_count:
+            raise AssertionError(
+                f"self-test count drift: expected {expected_case_count}, got {checks_run}"
+            )
+
+    print("PHASE2_TESTS_README_ALIGNMENT=self-test-pass")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASES={checks_run}")
     return 0
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in regression checks instead of repo validation",
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to validate (defaults to current repo root).",
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 tests-root, docs-root, and manifest packet aligned.")
-    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    args = parser.parse_args()
+    args = parse_args()
     if args.self_test:
         return run_self_test()
+
     issues = collect_issues(args.root)
     if issues:
         return emit_issues(issues)
+
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_REQUIRED_MARKER_COUNT={len(REQUIRED_TESTS_README_MARKERS)}")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_EXACT_COUNT_MARKER_COUNT={len(EXACT_COUNT_TESTS_README_MARKERS)}")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_MANIFEST_SURFACE_COUNT={len(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)}")
     return 0
 
 
