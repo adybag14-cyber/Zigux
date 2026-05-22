@@ -150,10 +150,11 @@ MAKEFILE_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-MAKEFILE_FORBIDDEN_LINES = [
+FORBIDDEN_MAKEFILE_MARKERS = [
     "phase7-test:",
     "phase7:",
 ]
+MAKEFILE_FORBIDDEN_LINES = FORBIDDEN_MAKEFILE_MARKERS
 
 BUILD_REQUIRED_SNIPPETS = [
     "../../lib/string_helpers.zig",
