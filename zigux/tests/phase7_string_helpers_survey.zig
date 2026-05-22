@@ -34,17 +34,27 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
+    try expectContains(helper, "pub fn kstrdupQuotableCmdline(");
+    try expectContains(helper, "pub fn kstrdup_quotable_cmdline(");
+    try expectContains(helper, "pub fn stringUpper(");
+    try expectContains(helper, "pub fn string_upper(");
+    try expectContains(helper, "pub fn stringLower(");
+    try expectContains(helper, "pub fn string_lower(");
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "test \"phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators\" {");
+    try expectContains(helper_tests, "test \"phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary\" {");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
     try expectNotContains(helper_tests, "devm_kasprintf_strarray");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-packet.py\"");
+    try expectContains(manifest, "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters");
+    try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
     try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");
     try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test");
