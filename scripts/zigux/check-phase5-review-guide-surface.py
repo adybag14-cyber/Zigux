@@ -66,6 +66,7 @@ MARKERS = {
         "keep the bounded `kobject` attr-group companion explicit here too: `samples/zigux/kobject_example_attr_group_contract.zig` is current direct sample-root evidence for the `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, and NULL-terminated attribute-list slot rather than a fifth Phase 5 sample family.",
         "keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the current `kobject` anchor split explicit instead of falling back to older repo-reality-gap wording.",
         "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
+        "keep the current `kobject` ownership-and-lifetime split explicit too: `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are current direct reminder or packet evidence again, while `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` stay public-tree-backed companion evidence until a fresh authenticated reread restores direct proof for those three routes.",
     ),
     APPROVED_IDIOM_PATH: (
         "Keep the approved formatting idiom bounded to the current landed reminder packet:",
@@ -205,7 +206,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 15
+    expected_case_count = 16
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -274,6 +275,20 @@ def run_self_test() -> int:
             "docs_root_rbtree_boundary_marker",
             collect_failures(mutated),
             [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][3]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_docs_root_kobject_split_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            DOCS_ROOT_PATH,
+            placeholder(DOCS_ROOT_PATH).replace(MARKERS[DOCS_ROOT_PATH][4], ""),
+        )
+        expect_exact(
+            "docs_root_kobject_split_marker",
+            collect_failures(mutated),
+            [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][4]}"],
         )
         checks_run += 1
 
