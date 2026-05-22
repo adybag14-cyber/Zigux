@@ -31,6 +31,14 @@ REQUIRED_EXACT_CHECKS = [
     "make -C zigux phase10",
 ]
 
+REQUIRED_RING_SCOREBOARD_EVIDENCE = [
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_publish_readiness.zig",
+    "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+]
+
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -73,6 +81,28 @@ def collect_drift(manifest: dict) -> list[str]:
     if len(indexes) == len(REQUIRED_EXACT_CHECKS) and indexes != sorted(indexes):
         drift.append("exact_checks:closure_route:out_of_order")
 
+    scoreboard = manifest.get("roadmap_parity_scoreboard", {})
+    if not isinstance(scoreboard, dict):
+        drift.append("roadmap_parity_scoreboard:missing")
+        return drift
+
+    virtqueue_wrappers = scoreboard.get("virtqueue_wrappers")
+    if not isinstance(virtqueue_wrappers, dict):
+        drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:missing")
+        return drift
+
+    evidence = virtqueue_wrappers.get("evidence")
+    if not isinstance(evidence, list) or not evidence:
+        drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:evidence:missing")
+        return drift
+
+    for item in REQUIRED_RING_SCOREBOARD_EVIDENCE:
+        if item not in evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:virtqueue_wrappers:"
+                f"{item!r}:missing"
+            )
+
     return drift
 
 
@@ -94,6 +124,12 @@ def fixture_manifest() -> dict:
         "drivers": [f"driver-{index}" for index in range(4)],
         "tests": [f"test-{index}" for index in range(21)],
         "exact_checks": REQUIRED_EXACT_CHECKS,
+        "roadmap_parity_scoreboard": {
+            "virtqueue_wrappers": {
+                "status": "starter_landed",
+                "evidence": REQUIRED_RING_SCOREBOARD_EVIDENCE,
+            }
+        },
     }
 
 
@@ -206,6 +242,30 @@ def run_self_test() -> int:
         expect_contains(validate(root)[1], "exact_checks:missing", "phase10-manifest-counts-self-test")
         cases += 1
 
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["virtqueue_wrappers"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["virtqueue_wrappers"]["evidence"]
+            if item != "drivers/virtio/virtio_ring_publish_readiness.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:virtqueue_wrappers:'drivers/virtio/virtio_ring_publish_readiness.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        del broken["roadmap_parity_scoreboard"]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:virtqueue_wrappers:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
         manifest_path.unlink()
         missing_files, drift = validate(root)
         if drift:
@@ -255,6 +315,7 @@ def main() -> int:
     print("PHASE10_CLOSURE_MANIFEST_COUNTS=pass")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_FIELD_COUNT={len(COUNT_FIELDS)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_EXACT_CHECK_COUNT={len(REQUIRED_EXACT_CHECKS)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_RING_EVIDENCE_COUNT={len(REQUIRED_RING_SCOREBOARD_EVIDENCE)}")
     return 0
 
 
