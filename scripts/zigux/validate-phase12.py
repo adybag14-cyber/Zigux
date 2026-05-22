@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -417,6 +419,26 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     return [], drift
 
 
+def run_checker(root: Path, rel_path: str) -> list[str]:
+    result = subprocess.run(
+        [sys.executable, str(root / rel_path), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+
+    failures = [f"phase12_checker_failed:{rel_path}:exit={result.returncode}"]
+    combined_output = [
+        line.strip()
+        for line in f"{result.stdout}\n{result.stderr}".splitlines()
+        if line.strip()
+    ]
+    failures.extend(f"phase12_checker_output:{line}" for line in combined_output)
+    return failures
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -661,6 +683,15 @@ def main() -> int:
         print("PHASE12_VALIDATION=fail")
         print("PHASE12_PACKET_DRIFT_START")
         for item in drift:
+            print(item)
+        print("PHASE12_PACKET_DRIFT_END")
+        return 1
+
+    checker_failures = run_checker(args.root, VIRTIO_SCSI_PACKET_CHECKER_PATH)
+    if checker_failures:
+        print("PHASE12_VALIDATION=fail")
+        print("PHASE12_PACKET_DRIFT_START")
+        for item in checker_failures:
             print(item)
         print("PHASE12_PACKET_DRIFT_END")
         return 1
