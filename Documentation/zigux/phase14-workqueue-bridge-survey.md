@@ -51,6 +51,17 @@ Those directly readable surfaces agree on the same bounded message:
   * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable release-boundary exact-count guard, the shared-smoke route checker, and the readable current `zigux/Makefile` posture explicit without overstating bridge-local ownership
   * the bridge-local trusted rerun stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while the broader shared Phase 14 smoke packet now keeps `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `make -C zigux phase14-validate` explicit as shared packet-local validation rather than direct bridge-local trust gates; the missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers still do not count as current proof
 
+## Roadmap and freeze-map alignment
+
+The live workqueue packet currently matches the Phase 14 roadmap and freeze-map guardrails this way:
+
+  * roadmap required feature `boundary maps`: satisfied by `kernel/workqueue_bridge.zig` describing queue submission routing and allocation entrypoints without claiming live worker ownership
+  * roadmap required feature `concurrency audits`: satisfied by the bridge-local manager, pending-bit, delayed-work, flush-drain, rescuer, hotplug, and scheduler-visible worker-state audit checkpoints kept in review-only form
+  * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around callback dispatch, flush, drain, cancellation completion, delayed requeue control, rescuer execution, and topology rebinding
+  * roadmap required feature `wrapper-first or study-only posture`: satisfied by keeping `kernel/workqueue.c` in the freeze map's `Study / Boundary Only` bucket and limiting trusted bridge-local reruns to reviewability evidence rather than live execution claims
+
+That alignment is intentionally narrow. It shows that the packet has a real reviewable foothold for boundary mapping and audit work, while the freeze map still blocks any claim that Zigux owns the runtime workqueue engine.
+
 ## Current workqueue packet posture
 
 The landed workqueue packet is strong enough to keep the following review-only areas explicit:
