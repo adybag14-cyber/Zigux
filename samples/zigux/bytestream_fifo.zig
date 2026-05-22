@@ -53,6 +53,13 @@ pub const VisibleSpanSummary = struct {
     wraps: bool,
 };
 
+pub const VisibleSlices = struct {
+    first: []const u8,
+    second: []const u8,
+    total_visible: usize,
+    wraps: bool,
+};
+
 pub const WritableSpanSummary = struct {
     tail_index: usize,
     writable_count: usize,
@@ -322,13 +329,40 @@ pub const BytestreamFifoSample = struct {
         return value;
     }
 
+    pub fn visibleSlices(self: *const BytestreamFifoSample) VisibleSlices {
+        const spans = self.visibleSpanSummary();
+        const empty = self.buf[0..0];
+        const first = if (spans.first_window_len == 0)
+            empty
+        else
+            self.buf[spans.head_index .. spans.head_index + spans.first_window_len];
+        const second = if (spans.second_window_len == 0)
+            empty
+        else
+            self.buf[0..spans.second_window_len];
+        return .{
+            .first = first,
+            .second = second,
+            .total_visible = spans.total_visible,
+            .wraps = spans.wraps,
+        };
+    }
+
     pub fn snapshotInto(self: *const BytestreamFifoSample, out: []u8) usize {
-        const to_copy = @min(out.len, self.len);
-        var i: usize = 0;
-        while (i < to_copy) : (i += 1) {
-            out[i] = self.buf[(self.head + i) % capacity];
-        }
-        return to_copy;
+        const slices = self.visibleSlices();
+        var copied: usize = 0;
+
+        const first_len = @min(out.len, slices.first.len);
+        std.mem.copyForwards(u8, out[0..first_len], slices.first[0..first_len]);
+        copied += first_len;
+
+        if (copied == out.len or copied == slices.total_visible) return copied;
+
+        const second_len = @min(out.len - copied, slices.second.len);
+        std.mem.copyForwards(u8, out[copied .. copied + second_len], slices.second[0..second_len]);
+        copied += second_len;
+
+        return copied;
     }
 
     pub fn previewInto(self: *const BytestreamFifoSample, out: []u8) PreviewResult {
@@ -588,10 +622,11 @@ pub const BytestreamFifoSample = struct {
         const stage_before = self.sample_stage;
         self.reset();
 
-        var fill: u8 = 0;
-        while (fill < 30) : (fill += 1) {
-            _ = self.pushByte(fill);
+        var value: u8 = 0;
+        while (value < 30) : (value += 1) {
+            _ = self.pushByte(value);
         }
+
         const queue_len_before_extra = self.len;
         const available_before_extra = self.available();
         const extra_values = [_]u8{ 30, 31, 32, 33 };
@@ -735,6 +770,12 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runWrappedPreviewReplay());
 
+    const empty_visible = sample.visibleSlices();
+    try std.testing.expectEqual(@as(usize, 0), empty_visible.first.len);
+    try std.testing.expectEqual(@as(usize, 0), empty_visible.second.len);
+    try std.testing.expectEqual(@as(usize, 0), empty_visible.total_visible);
+    try std.testing.expect(!empty_visible.wraps);
+
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
@@ -753,6 +794,11 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expectEqual(@as(usize, 10), preview.visible_span_after_preview.first_window_len);
     try std.testing.expectEqual(@as(usize, 0), preview.visible_span_after_preview.second_window_len);
     try std.testing.expect(!preview.visible_span_after_preview.wraps);
+    const preview_visible = sample.visibleSlices();
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 }, preview_visible.first);
+    try std.testing.expectEqual(@as(usize, 0), preview_visible.second.len);
+    try std.testing.expectEqual(@as(usize, 10), preview_visible.total_visible);
+    try std.testing.expect(!preview_visible.wraps);
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expect(sample.hasCapacityFor(22));
@@ -789,6 +835,11 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expectEqual(@as(usize, 28), wrapped.visible_span_after_preview.first_window_len);
     try std.testing.expectEqual(@as(usize, 4), wrapped.visible_span_after_preview.second_window_len);
     try std.testing.expect(wrapped.visible_span_after_preview.wraps);
+    const wrapped_visible = sample.visibleSlices();
+    try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6 }, wrapped_visible.first[0..8]);
+    try std.testing.expectEqualSlices(u8, &.{ 200, 201, 202, 203 }, wrapped_visible.second);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_visible.total_visible);
+    try std.testing.expect(wrapped_visible.wraps);
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(sample.isFull());
     try std.testing.expect(sample.hasCapacityFor(0));
@@ -891,10 +942,15 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(@as(usize, 23), capacity_replay.visible_span_after_partial_drain.first_window_len);
     try std.testing.expectEqual(@as(usize, 1), capacity_replay.visible_span_after_partial_drain.second_window_len);
     try std.testing.expect(capacity_replay.visible_span_after_partial_drain.wraps);
-    try std.testing.expect(sample.hasCapacityFor(8));
-    try std.testing.expect(!sample.hasCapacityFor(9));
+    const partial_drain_visible = sample.visibleSlices();
+    try std.testing.expectEqualSlices(u8, &.{ 4, 5, 6, 7, 8, 9, 10, 11 }, partial_drain_visible.first[0..8]);
+    try std.testing.expectEqualSlices(u8, &.{ 200 }, partial_drain_visible.second);
+    try std.testing.expectEqual(@as(usize, 24), partial_drain_visible.total_visible);
+    try std.testing.expect(partial_drain_visible.wraps);
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(sample.hasCapacityFor(8));
+    try std.testing.expect(!sample.hasCapacityFor(9));
     const partial_drain_occupancy = sample.occupancySummary();
     try std.testing.expectEqual(@as(usize, 24), partial_drain_occupancy.queue_len);
     try std.testing.expectEqual(@as(usize, 24), partial_drain_occupancy.used);
@@ -942,10 +998,15 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expect(!partial_enqueue.occupancy_after_extra.wrapped_window);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3, 4, 5, 6, 7 }, partial_enqueue.snapshot_after_extra[0..8]);
     try std.testing.expectEqualSlices(u8, &.{ 24, 25, 26, 27, 28, 29, 30, 31 }, partial_enqueue.snapshot_after_extra[24..32]);
-    try std.testing.expect(sample.hasCapacityFor(0));
-    try std.testing.expect(!sample.hasCapacityFor(1));
+    const partial_enqueue_visible = sample.visibleSlices();
+    try std.testing.expectEqualSlices(u8, partial_enqueue.snapshot_after_extra[0..fifo_capacity], partial_enqueue_visible.first);
+    try std.testing.expectEqual(@as(usize, 0), partial_enqueue_visible.second.len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), partial_enqueue_visible.total_visible);
+    try std.testing.expect(!partial_enqueue_visible.wraps);
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(sample.isFull());
+    try std.testing.expect(sample.hasCapacityFor(0));
+    try std.testing.expect(!sample.hasCapacityFor(1));
     try std.testing.expectEqual(@as(?u8, 0), sample.peekByte());
     try std.testing.expect(!sample.pushByte(255));
 
