@@ -57,6 +57,16 @@
     "governance lane sequencing link or explicit scope note",
     "study-only anchor accounting link or explicit freeze-map-anchor confirmation"
   ],
+  "review_outcome_fields": [
+    "closeout result",
+    "follow-up owner",
+    "next bounded step"
+  ],
+  "review_outcome_markers": [
+    "keep the anchor in `freeze_in_c`",
+    "reopen review later with narrower evidence",
+    "approve a status-bucket change in a separately linked decision record"
+  ],
   "indefinite_c_policy_required_markers": [
     "required approver set",
     "automatic return-to-blocked trigger",
