@@ -16,6 +16,17 @@ STRING_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 STRING_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 STRING_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn memparse(text: []const u8) MemparseResult {",
     "pub fn strscpy(dest: []u8, src: []const u8) isize {",
@@ -346,12 +357,30 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
 def load_json(root: Path, relative_path: Path) -> object:
-    return json.loads(load_text(root, relative_path))
+    return load_json_with_duplicate_tracking(load_text(root, relative_path))
 
 
 def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
     return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
@@ -414,8 +443,15 @@ def collect_failures(root: Path) -> list[str]:
 
     if not isinstance(manifest, dict):
         return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_manifest_paths]
+
     if not isinstance(fixture, dict):
         return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
+    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
+    if duplicate_fixture_paths:
+        return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
 
     for symbol in EXPECTED_STRING_SOURCE_SYMBOLS:
         failures.extend(
@@ -554,6 +590,20 @@ def mutate_json_path(root: Path, relative_path: Path, path: tuple[str, ...]) -> 
     json_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def insert_duplicate_json_line(
+    root: Path,
+    relative_path: Path,
+    needle: str,
+    duplicate_line: str,
+) -> None:
+    json_path = root / relative_path
+    text = json_path.read_text(encoding="utf-8")
+    json_path.write_text(
+        text.replace(needle, duplicate_line + "\n" + needle, 1),
+        encoding="utf-8",
+    )
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase1-string-review-ok-") as tmpdir:
@@ -611,6 +661,30 @@ def run_self_test() -> int:
         )
         for key in EXPECTED_STRING_FIXTURE_VALUES
     )
+    mutation_specs.append(
+        (
+            "manifest_duplicate_strnchr_review_anchor",
+            (
+                "duplicate_json_text",
+                STRING_MANIFEST_REL,
+                '      "strnchr_review_anchor": "test \\\"strnchr honors count and C-string boundaries\\\"",',
+                '      "strnchr_review_anchor": "drifted duplicate anchor",',
+            ),
+            "duplicate_json_text",
+        )
+    )
+    mutation_specs.append(
+        (
+            "fixture_duplicate_replace_char",
+            (
+                "duplicate_json_text",
+                STRING_FIXTURE_REL,
+                '    "replace_char": "a_b",',
+                '    "replace_char": "drifted duplicate value",',
+            ),
+            "duplicate_json_text",
+        )
+    )
     mutation_specs.append(("manifest_missing_file", ("missing_file", STRING_MANIFEST_REL), "missing_file"))
     mutation_specs.append(("fixture_missing_file", ("missing_file", STRING_FIXTURE_REL), "missing_file"))
     mutation_specs.append(("lane_note_missing_file", ("missing_file", STRING_LANE_NOTE_REL), "missing_file"))
@@ -663,6 +737,8 @@ def run_self_test() -> int:
                 mutate_json_path(root, STRING_MANIFEST_REL, target[1])
             elif isinstance(target, tuple) and target[0] == "fixture":
                 mutate_json_path(root, STRING_FIXTURE_REL, target[1])
+            elif isinstance(target, tuple) and target[0] == "duplicate_json_text":
+                insert_duplicate_json_line(root, target[1], target[2], target[3])
             elif isinstance(target, tuple) and target[0] == "invalid_json":
                 (root / target[1]).write_text("{\n", encoding="utf-8")
             else:
