@@ -122,6 +122,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
@@ -169,6 +170,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-bsearch-perf`",
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
+    "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
 ]
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
@@ -194,7 +196,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 37
+SELF_TEST_CASE_COUNT = 39
 
 
 class ValidationError(RuntimeError):
@@ -448,6 +450,10 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace("- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-checksum-perf-matrix-test")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
@@ -456,6 +462,12 @@ def run_self_test() -> None:
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-perf")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_shared_replay_inventory"].remove("python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
