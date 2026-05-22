@@ -12,12 +12,18 @@ SCRIPT_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
 EXEC_CMD_HELPER_PATH = "tools/lib/subcmd/exec-cmd.zig"
+EXEC_CMD_TEST_PATH = "zigux/tests/phase8_exec_cmd.zig"
+EXEC_CMD_BUILD_PATH = "zigux/tests/phase8_exec_cmd_only_build.zig"
+PHASE8_VALIDATE_PATH = "scripts/zigux/validate-phase8.py"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
     TESTS_README_PATH,
     EXEC_CMD_SLICE_PATH,
     EXEC_CMD_HELPER_PATH,
+    EXEC_CMD_TEST_PATH,
+    EXEC_CMD_BUILD_PATH,
+    PHASE8_VALIDATE_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -108,6 +114,9 @@ def make_fixture_root(root: Path) -> None:
         write_text(root, rel_path, "\n".join(markers) + "\n")
     write_text(root, EXEC_CMD_SLICE_PATH, "# Phase 8 Exec-Cmd Slice\n")
     write_text(root, EXEC_CMD_HELPER_PATH, "pub fn placeholder() void {}\n")
+    write_text(root, EXEC_CMD_TEST_PATH, "test \"placeholder\" {}\n")
+    write_text(root, EXEC_CMD_BUILD_PATH, "pub fn build() void {}\n")
+    write_text(root, PHASE8_VALIDATE_PATH, "print('phase8 validate placeholder')\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -153,7 +162,14 @@ def run_self_test() -> int:
                 assert_missing_case(case_root, rel_path, marker)
                 cases += 1
 
-        for rel_path in (TESTS_README_PATH, EXEC_CMD_SLICE_PATH, EXEC_CMD_HELPER_PATH):
+        for rel_path in (
+            TESTS_README_PATH,
+            EXEC_CMD_SLICE_PATH,
+            EXEC_CMD_HELPER_PATH,
+            EXEC_CMD_TEST_PATH,
+            EXEC_CMD_BUILD_PATH,
+            PHASE8_VALIDATE_PATH,
+        ):
             case_root = Path(tmp) / f"case_{cases}"
             shutil.copytree(baseline_root, case_root)
             assert_missing_file_case(case_root, rel_path)
