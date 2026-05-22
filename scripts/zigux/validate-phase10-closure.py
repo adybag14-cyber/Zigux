@@ -14,6 +14,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
+    "scripts/zigux/check-phase10-core-packet.py",
     "scripts/zigux/check-phase10-closure-manifest-counts.py",
     "scripts/zigux/validate-phase10-closure.py",
     "scripts/zigux/validate-phase10.py",
@@ -245,6 +246,7 @@ INVENTORY_FIELDS = {
 
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "python3 scripts/zigux/check-phase10-ring-packet.py",
     "python3 scripts/zigux/check-phase10-input-packet.py",
@@ -263,6 +265,8 @@ EXPECTED_EXACT_CHECKS = [
 COMMANDS = [
     ["scripts/zigux/check-phase10-bootstrap-route.py", "--self-test"],
     ["scripts/zigux/check-phase10-bootstrap-route.py"],
+    ["scripts/zigux/check-phase10-core-packet.py", "--self-test"],
+    ["scripts/zigux/check-phase10-core-packet.py"],
     ["scripts/zigux/check-phase10-shared-freeze-boundary.py", "--self-test"],
     ["scripts/zigux/check-phase10-shared-freeze-boundary.py"],
     ["scripts/zigux/check-phase10-ring-packet.py", "--self-test"],
@@ -472,6 +476,7 @@ def write_fixture(root: Path) -> None:
     for rel_path in [
         "scripts/zigux/validate-phase10.py",
         "scripts/zigux/check-phase10-bootstrap-route.py",
+        "scripts/zigux/check-phase10-core-packet.py",
         "scripts/zigux/check-phase10-shared-freeze-boundary.py",
         "scripts/zigux/check-phase10-ring-packet.py",
         "scripts/zigux/check-phase10-input-packet.py",
@@ -585,6 +590,16 @@ def run_self_test() -> int:
         broken["exact_checks"] = [item for item in broken["exact_checks"] if item != EXPECTED_EXACT_CHECKS[0]]
         write_closure(broken)
         expect_contains(collect_manifest_drift(root), f"exact_checks:{EXPECTED_EXACT_CHECKS[0]!r}:missing", "phase10-closure-self-test")
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["exact_checks"] = [item for item in broken["exact_checks"] if item != "python3 scripts/zigux/check-phase10-core-packet.py"]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "exact_checks:'python3 scripts/zigux/check-phase10-core-packet.py':missing",
+            "phase10-closure-self-test",
+        )
         cases += 1
 
         broken = json.loads(json.dumps(original))
@@ -752,6 +767,18 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
+        failing_script = root / "scripts/zigux/check-phase10-core-packet.py"
+        failing_script.write_text("#!/usr/bin/env python3\nraise SystemExit(1)\n", encoding="utf-8")
+        failures = run_required_commands(root)
+        if failures != [
+            "scripts/zigux/check-phase10-core-packet.py --self-test",
+            "scripts/zigux/check-phase10-core-packet.py",
+        ]:
+            actual = ",".join(failures) if failures else "none"
+            raise SystemExit(f"phase10-closure-self-test:failed_core_packet_command_not_detected:{actual}")
+        cases += 1
+
+        write_fixture(root)
         failing_script = root / "scripts/zigux/check-phase10-harness-coverage.py"
         failing_script.write_text("#!/usr/bin/env python3\nraise SystemExit(1)\n", encoding="utf-8")
         failures = run_required_commands(root)
