@@ -44,8 +44,10 @@ SURVEY_MARKERS = [
     "Current direct contents reads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, but they do not rematerialize the bcm2835 or DesignWare driver-local matrix notes on current `master`",
     "Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
+    "The same narrower continuity packet also stays `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those surviving ABI proof shards explicit as adjacent HVC continuity evidence instead of treating the three build routes as prose-only review support.",
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
 ]
 FORBIDDEN_MARKERS = [
@@ -53,17 +55,22 @@ FORBIDDEN_MARKERS = [
     "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`",
 ]
 FIXTURE_SURVEY_TEXT = Path(__file__).resolve().parents[2].joinpath(FILES["matrix_gap_note"]).read_text(encoding="utf-8") if Path(__file__).resolve().parents[2].joinpath(FILES["matrix_gap_note"]).exists() else ""
+
+
 class CheckError(RuntimeError):
     pass
 
+
 def normalize_whitespace(text: str) -> str:
     return " ".join(text.split())
+
 
 def read_text(root: Path, relative_path: str) -> str:
     path = root / relative_path
     if not path.is_file():
         raise CheckError(f"missing required file: {relative_path}")
     return path.read_text(encoding="utf-8")
+
 
 def expect_string_list(label: str, value: object) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
@@ -72,15 +79,18 @@ def expect_string_list(label: str, value: object) -> list[str]:
         raise CheckError(f"duplicate entry in {label}")
     return list(value)
 
+
 def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ...]) -> None:
     if expect_string_list(label, actual) != list(expected):
         raise CheckError(f"{label} does not match the current-head HVC continuity packet")
+
 
 def expect_exact_object_list(label: str, actual: object, expected: tuple[dict[str, str], ...]) -> None:
     if not isinstance(actual, list) or any(not isinstance(item, dict) for item in actual):
         raise CheckError(f"expected object list for {label}")
     if actual != list(expected):
         raise CheckError(f"{label} does not match the current-head HVC continuity packet")
+
 
 def run_check(root: Path) -> None:
     survey_text = read_text(root, FILES["matrix_gap_note"])
@@ -102,6 +112,7 @@ def run_check(root: Path) -> None:
     expect_exact_string_list("shared_adjunct_replays", inventory.get("shared_adjunct_replays"), REQUIRED_SHARED_ADJUNCT_REPLAYS)
     expect_exact_string_list("shared_adjunct_build_replays", inventory.get("shared_adjunct_build_replays"), REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS)
 
+
 def expect_failure(root: Path, fragment: str) -> None:
     try:
         run_check(root)
@@ -111,12 +122,14 @@ def expect_failure(root: Path, fragment: str) -> None:
         return
     raise AssertionError(fragment)
 
+
 def remove_marker(text: str, marker: str) -> str:
     pattern = r"\s+".join(re.escape(part) for part in marker.split())
     updated_text, count = re.subn(pattern, "", text, flags=re.MULTILINE)
     if count < 1:
         raise AssertionError(marker)
     return updated_text
+
 
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_matrix_gap_validation_"))
@@ -135,7 +148,7 @@ def run_self_test() -> None:
             "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
         }, indent=2) + "\n", encoding="utf-8")
         run_check(fixture_root)
-        for index, marker in enumerate(SURVEY_MARKERS[:4], start=1):
+        for index, marker in enumerate(SURVEY_MARKERS[:5], start=1):
             case_root = tmpdir / f"required_{index}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
@@ -144,9 +157,15 @@ def run_self_test() -> None:
         dedicated_witness_root = tmpdir / "required_dedicated_witness"
         shutil.copytree(fixture_root, dedicated_witness_root, dirs_exist_ok=True)
         path = dedicated_witness_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[5]
+        marker = SURVEY_MARKERS[6]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(dedicated_witness_root, marker)
+        abi_gap_root = tmpdir / "required_abi_gap"
+        shutil.copytree(fixture_root, abi_gap_root, dirs_exist_ok=True)
+        path = abi_gap_root / FILES["matrix_gap_note"]
+        marker = SURVEY_MARKERS[7]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(abi_gap_root, marker)
         forbidden_root = tmpdir / "forbidden"
         shutil.copytree(fixture_root, forbidden_root, dirs_exist_ok=True)
         path = forbidden_root / FILES["matrix_gap_note"]
@@ -160,9 +179,10 @@ def run_self_test() -> None:
         (bad_inventory_root / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_inventory_root, "build_test_names does not match")
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=7")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=9")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -179,5 +199,7 @@ def main() -> int:
         return 1
     print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
