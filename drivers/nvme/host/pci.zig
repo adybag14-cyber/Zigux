@@ -89,6 +89,29 @@ pub const RecoveryReservationReplayPlanSummary = struct {
     admin_queue_must_be_replanned: bool,
 };
 
+pub const RecoveryReservationReplayApplySummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    requested_reserved_io_queues: usize,
+    controller_io_queue_limit: usize,
+    planner_remaining_io_slots: usize,
+    replayed_reserved_io_queues: usize,
+    first_queue_id: u16,
+    last_queue_id: u16,
+    planned_io_queues_after_replay: usize,
+    next_io_queue_id_after_replay: u16,
+    queue_numbering_restarted: bool,
+    controller_limited: bool,
+    planner_limited: bool,
+    queue_planning_blocked: bool,
+    queues_frozen: bool,
+    cached_queue_reservation_stale: bool,
+    cached_prp_metadata_stale: bool,
+    descriptor_rebuild_required: bool,
+    admin_queue_must_be_replanned: bool,
+};
+
 pub const RecoveryReservationReplayDebtSummary = struct {
     anchor: []const u8,
     state: RecoveryState,
@@ -372,6 +395,41 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn applyRecoveryReservationReplay(
+        self: *Self,
+        request: RecoveryReplayRequest,
+        controller_io_queue_limit: usize,
+    ) !RecoveryReservationReplayApplySummary {
+        const plan = try self.planRecoveryReservationReplay(request, controller_io_queue_limit);
+        const reservation_delta = try checkedCastU16(plan.replayable_reserved_io_queues);
+
+        self.next_io_queue_id = try checkedAddU16(self.next_io_queue_id, reservation_delta);
+        self.planned_io_queues = try checkedAddUsize(self.planned_io_queues, plan.replayable_reserved_io_queues);
+
+        return .{
+            .anchor = plan.anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .requested_reserved_io_queues = plan.requested_reserved_io_queues,
+            .controller_io_queue_limit = plan.controller_io_queue_limit,
+            .planner_remaining_io_slots = plan.planner_remaining_io_slots,
+            .replayed_reserved_io_queues = plan.replayable_reserved_io_queues,
+            .first_queue_id = plan.first_queue_id,
+            .last_queue_id = plan.last_queue_id,
+            .planned_io_queues_after_replay = self.planned_io_queues,
+            .next_io_queue_id_after_replay = self.next_io_queue_id,
+            .queue_numbering_restarted = plan.queue_numbering_restarted,
+            .controller_limited = plan.controller_limited,
+            .planner_limited = plan.planner_limited,
+            .queue_planning_blocked = plan.queue_planning_blocked,
+            .queues_frozen = plan.queues_frozen,
+            .cached_queue_reservation_stale = plan.cached_queue_reservation_stale,
+            .cached_prp_metadata_stale = plan.cached_prp_metadata_stale,
+            .descriptor_rebuild_required = plan.descriptor_rebuild_required,
+            .admin_queue_must_be_replanned = plan.admin_queue_must_be_replanned,
+        };
+    }
+
     pub fn recoveryReservationReplayDebtSummary(
         self: *const Self,
         request: RecoveryReplayRequest,
@@ -453,25 +511,21 @@ pub const NvmePciQueueLab = struct {
         request: RecoveryReplayRequest,
         controller_io_queue_limit: usize,
     ) !IoQueueReservationSummary {
-        const plan = try self.planRecoveryReservationReplay(request, controller_io_queue_limit);
-        const reservation_delta = try checkedCastU16(plan.replayable_reserved_io_queues);
-
-        self.next_io_queue_id = try checkedAddU16(self.next_io_queue_id, reservation_delta);
-        self.planned_io_queues = try checkedAddUsize(self.planned_io_queues, plan.replayable_reserved_io_queues);
+        const applied = try self.applyRecoveryReservationReplay(request, controller_io_queue_limit);
 
         return .{
-            .anchor = plan.anchor,
-            .requested_io_queues = plan.requested_reserved_io_queues,
-            .controller_io_queue_limit = plan.controller_io_queue_limit,
-            .planner_remaining_io_slots = plan.planner_remaining_io_slots,
-            .reserved_io_queues = plan.replayable_reserved_io_queues,
-            .first_queue_id = plan.first_queue_id,
-            .last_queue_id = plan.last_queue_id,
-            .planned_io_queues_after_reserve = self.planned_io_queues,
-            .controller_limited = plan.controller_limited,
-            .planner_limited = plan.planner_limited,
-            .queues_frozen = plan.queues_frozen,
-            .reset_generation = plan.reset_generation,
+            .anchor = applied.anchor,
+            .requested_io_queues = applied.requested_reserved_io_queues,
+            .controller_io_queue_limit = applied.controller_io_queue_limit,
+            .planner_remaining_io_slots = applied.planner_remaining_io_slots,
+            .reserved_io_queues = applied.replayed_reserved_io_queues,
+            .first_queue_id = applied.first_queue_id,
+            .last_queue_id = applied.last_queue_id,
+            .planned_io_queues_after_reserve = applied.planned_io_queues_after_replay,
+            .controller_limited = applied.controller_limited,
+            .planner_limited = applied.planner_limited,
+            .queues_frozen = applied.queues_frozen,
+            .reset_generation = applied.reset_generation,
         };
     }
 
