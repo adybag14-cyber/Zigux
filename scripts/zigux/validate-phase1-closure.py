@@ -452,7 +452,7 @@ def run_self_test() -> int:
         ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
         ("stale_bitmap_empty_buffer_anchor", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "empty_buffer_anchor")),
         ("stale_bitmap_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "next_safe_step_note")),
-        ("stale_string_sysfs_review_summary", lambda root: mutate_bad_reviewValue(root, "tools/lib/string.zig", "sysfs_review_summary")),
+        ("stale_string_sysfs_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "sysfs_review_summary")),
         ("stale_string_counted_search_review_anchors", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "counted_search_review_anchors")),
         ("stale_string_strnchr_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "strnchr_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
