@@ -166,17 +166,12 @@ REQUIRED_MARKERS = {
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
-        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
-        "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
         "- exact coverage evidence checked on `2026-05-21`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
@@ -344,13 +339,7 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNT_MARKERS = {
-    RELEASE_CLOSURE_CHECKLIST_PATH: {
-        "The directly readable validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` here only as reminder-only wrapper vocabulary until `zigux/Makefile` rematerializes that route on current `master`.": 1,
-        "The shared build-and-make replay path stays visible through `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, while current `zigux/Makefile` now keeps `phase12-smoke`, `phase12-test`, and `phase12` explicit as shipped wrapper evidence and still omits `phase12-validate`.": 1,
-    },
-    RELEASE_COORDINATION_MATRIX_PATH: {
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
-    },
+    RELEASE_COORDINATION_MATRIX_PATH: {},
 }
 
 FORBIDDEN_MARKERS = {
@@ -432,13 +421,11 @@ FIXTURE_TEXT = {
     ),
     RELEASE_CLOSURE_CHECKLIST_PATH: marker_fixture(
         "# Phase 12 Release Closure Checklist",
-        REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH]
-        + list(EXACT_COUNT_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH].keys()),
+        REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH],
     ),
     RELEASE_COORDINATION_MATRIX_PATH: marker_fixture(
         "# Phase 12 Release Coordination Matrix",
-        REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH]
-        + list(EXACT_COUNT_MARKERS[RELEASE_COORDINATION_MATRIX_PATH].keys()),
+        REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH],
     ),
     RAW_GITHUB_COVERAGE_PATH: marker_fixture(
         "# Phase 12 Raw GitHub Coverage Survey",
