@@ -21,6 +21,7 @@ CHECKSUM_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_checksum_vectors.zig")
 CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 HEXDUMP_VECTORS_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 HEXDUMP_PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
+PHASE6_PERF_SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 PHASE6_HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PHASE6_HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
@@ -211,6 +212,14 @@ REQUIRED_SNIPPETS = {
         "if (slowdown_pct > case.max_slowdown_pct) {",
         'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
     ],
+    PHASE6_PERF_SURVEY_PATH: [
+        "- aggregate route note: `make -C zigux phase6-perf` is now a committed shared wrapper over the directly readable helper-local perf packet, while the broader `make -C zigux phase6` route still stops at `phase6-validate` plus the bundled helper tests and does not rerun the dedicated perf gates",
+        "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-perf`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
+        "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
+        "- bsearch exact evidence: the committed perf fixture matrix keeps `len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+        "- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`, and `zigux/tests/phase6_hexdump_perf.zig` keeps the same four-case helper-local replay aligned with that fixture matrix",
+    ],
     PHASE6_BUILD_PATH: [
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
         'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
@@ -353,6 +362,31 @@ SELF_TEST_CASES = [
         HEXDUMP_PERF_PATH,
         "if (slowdown_pct > case.max_slowdown_pct) {",
         "if (slowdown_pct > case.max_slowdown_pct + 1) {",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
+        "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-perf`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
+        "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-thresholds`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
+        "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
+        "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 16000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
+        "- bsearch exact evidence: the committed perf fixture matrix keeps `len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
+        "- bsearch exact evidence: the committed perf fixture matrix keeps `len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 500`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 175`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
+        "- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`, and `zigux/tests/phase6_hexdump_perf.zig` keeps the same four-case helper-local replay aligned with that fixture matrix",
+        "- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 600`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`, and `zigux/tests/phase6_hexdump_perf.zig` keeps the same four-case helper-local replay aligned with that fixture matrix",
     ),
     (
         PHASE6_BUILD_PATH,
