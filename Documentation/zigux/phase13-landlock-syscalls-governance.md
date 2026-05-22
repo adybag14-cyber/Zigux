@@ -15,6 +15,7 @@ Current `master` materializes the syscall helper starter plus the helper-local p
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
+- `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
 
 Current `master` still does not materialize the direct helper-local survey, replay, reviewability, or manifest companions through:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
@@ -27,7 +28,7 @@ Current `master` also keeps `zigux/Makefile` present without exposing a dedicate
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Keep that live shape explicit as a bounded helper starter plus helper-local slice, governance, and survey-gap packet, with the direct survey, replay, reviewability, manifest, and shared-build companions still absent, not as a claim that live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement shipped in Zigux.
+Keep that live shape explicit as a bounded helper starter plus helper-local slice, governance, survey-gap, and packet-checker set, with the direct survey, replay, reviewability, manifest, and shared-build companions still absent, not as a claim that live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement shipped in Zigux.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
@@ -43,6 +44,7 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
+- `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
 
 Keep contributor guidance anchored to the broader shipped reminder packet while the direct survey, direct replay, reviewability, manifest, and shared-build companions remain absent:
 - `Documentation/zigux/README.md`
@@ -53,7 +55,7 @@ Keep contributor guidance anchored to the broader shipped reminder packet while 
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-Y04`, while the shared Phase 13 reminder notes currently keep the absent direct survey, direct replay, reviewability, manifest, and shared-build companions recorded as the remaining repo-reality gaps for this packet.
+This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-Y04`, while the shared Phase 13 reminder notes currently keep the direct survey, direct replay, reviewability, manifest, and shared-build companions recorded as the remaining repo-reality gaps for this packet.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -72,7 +74,7 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - the broad Phase 13 reminder surfaces keep this governance note explicit beside the ruleset-ownership note and the adjacent notifier evidence packet when they describe the active shared-helper tranche
-- no wording here promotes the still-missing direct survey, direct replay, reviewability, or manifest companions into shipped current-`master` evidence, and no wording implies extra helper-local companions beyond the shipped helper, slice, governance, and survey-gap packet while the shared-build companion remains a repo-reality gap
+- no wording here promotes the still-missing direct survey, direct replay, reviewability, or manifest companions into shipped current-`master` evidence, and no wording implies extra helper-local companions beyond the shipped helper, slice, governance, survey-gap, and packet-checker set while the shared-build companion remains a repo-reality gap
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing repo path stays limited to the direct survey, direct replay, reviewability, manifest, and shared `phase13_build.zig` companions rather than mislabeling shipped helper-local companions as absent current-`master` evidence
