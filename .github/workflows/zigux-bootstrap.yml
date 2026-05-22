@@ -509,6 +509,18 @@ jobs:
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
 
+      - name: Self-test current Phase 12 libbpf snapshot checker
+        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+
+      - name: Check current Phase 12 libbpf snapshot packet
+        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+
+      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
+        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+
+      - name: Check current Phase 12 libbpf heavy-consumer packet
+        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
+
       - name: Validate current Phase 12 support bundle
         run: python3 scripts/zigux/validate-phase12.py
 
