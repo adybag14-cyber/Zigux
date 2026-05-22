@@ -14,7 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
     "scripts/zigux/check-phase7-rbtree-parity.py",
-    "tools/lib/rbtree.zig",
+    "lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
@@ -25,7 +25,7 @@ DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (
     "Machine-readable fallback provenance stays explicit through "
     "`public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, "
     "which currently names only `zigux/tests/phase7_build.zig` because the other listed "
-    "shared or roadmap-aligned non-owner surfaces still rematerialized through authenticated "
+    "legacy or shared non-owner surfaces still rematerialized through authenticated "
     "rereads in this slot."
 )
 
@@ -33,7 +33,7 @@ OWNERSHIP_FOCUS_FALLBACK_MARKER = (
     "machine-readable fallback provenance must stay explicit too: "
     "`public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, "
     "because that shared non-owner surface needed public fallback in this runtime while the "
-    "other listed shared or roadmap-aligned non-owner surfaces still rematerialized through "
+    "other listed legacy or shared non-owner surfaces still rematerialized through "
     "authenticated rereads"
 )
 
@@ -41,17 +41,17 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`",
         "`PHASE7_LANE_KEY=P7-L13`",
-        "`tools/lib/rbtree.zig`",
         "`lib/rbtree.zig`",
+        "`tools/lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
-        "helper-local implementation remains rooted at `tools/lib/rbtree.zig`",
-        "roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence",
+        "helper-local implementation now remains rooted at `lib/rbtree.zig`",
+        "older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence",
         "public-fallback provenance",
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`",
-        "Fresh current-master reread in this slot also confirmed these shared or roadmap-aligned non-owner surfaces:",
-        "- `lib/rbtree.zig`",
+        "Fresh current-master reread in this slot also confirmed these shared, legacy, or roadmap-adjacent non-owner surfaces:",
+        "- `tools/lib/rbtree.zig`",
         "`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot",
         DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER,
         "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion surfaces:",
@@ -68,7 +68,7 @@ REQUIRED_MARKERS = {
         "DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = (",
         "OWNERSHIP_FOCUS_FALLBACK_MARKER = (",
     ],
-    "tools/lib/rbtree.zig": [
+    "lib/rbtree.zig": [
         "pub const Node = struct {",
         "pub const RootCached = struct {",
         "pub fn rb_find_add_cached",
@@ -76,7 +76,7 @@ REQUIRED_MARKERS = {
         "pub fn rb_next_postorder",
     ],
     "zigux/tests/phase7_rbtree.zig": [
-        'const rbtree = @import("../../tools/lib/rbtree.zig");',
+        'const rbtree = @import("../../lib/rbtree.zig");',
         "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers",
         "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries",
         "rbtree.rb_erase_init_cached",
@@ -84,12 +84,12 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_rbtree_survey.zig": [
         'const direct_anchor_fallback_provenance_marker =',
         'const ownership_focus_fallback_marker =',
-        'try expectContains(slice_note, "The helper-local implementation remains rooted at `tools/lib/rbtree.zig`, while the roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence rather than proof that helper-local ownership has moved off the tool-root packet.");',
+        'try expectContains(slice_note, "This slice must stay truthful about the current direct helper path. The helper-local implementation now remains rooted at `lib/rbtree.zig`, while the older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than proof that helper-local ownership still lives there.");',
         'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);',
-        'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");',
+        'try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");',
         'try expectSliceNotContains(manifest.missing_paths, "lib/rbtree.zig");',
         'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);',
-        'try expectContains(manifest.next_bounded_step, "`lib/rbtree.zig` roadmap-path companion");',
+        'try expectContains(manifest.next_bounded_step, "`tools/lib/rbtree.zig` remains framed as readable legacy companion evidence");',
         'try expectContains(makefile, "phase7-validate:");',
         'try expectNotContains(makefile, "phase7-rbtree-test:");',
         'try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");',
@@ -99,8 +99,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"',
-        '"readable_non_owner_paths": [',
+        '"visible_paths": [',
         '"lib/rbtree.zig"',
+        '"readable_non_owner_paths": [',
+        '"tools/lib/rbtree.zig"',
         '"public_fallback_non_owner_paths": [',
         '"zigux/tests/phase7_build.zig"',
         '"missing_paths": [',
@@ -169,21 +171,21 @@ def run_self_test() -> None:
         write_fixture_root(root)
 
         path = root / "Documentation/zigux/phase7-rbtree-slice.md"
-        marker = "roadmap destination `lib/rbtree.zig` now rematerializes as readable runtime-family companion evidence"
+        marker = "older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence"
         path.write_text(read_text(path).replace(marker, "", 1), encoding="utf-8")
         expect_missing_marker(root, "Documentation/zigux/phase7-rbtree-slice.md", marker)
         cases += 1
         write_fixture_root(root)
 
         path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
-        marker = "- `lib/rbtree.zig`"
+        marker = "- `tools/lib/rbtree.zig`"
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md", marker)
         cases += 1
         write_fixture_root(root)
 
         path = root / "zigux/tests/phase7_rbtree_manifest.json"
-        marker = '"lib/rbtree.zig"'
+        marker = '"tools/lib/rbtree.zig"'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_manifest.json", marker)
         cases += 1
@@ -197,7 +199,7 @@ def run_self_test() -> None:
         write_fixture_root(root)
 
         path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
-        marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");'
+        marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");'
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
@@ -217,10 +219,10 @@ def run_self_test() -> None:
         cases += 1
         write_fixture_root(root)
 
-        path = root / "tools/lib/rbtree.zig"
+        path = root / "lib" / "rbtree.zig"
         marker = "pub fn rb_find_add_cached"
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(root, "tools/lib/rbtree.zig", marker)
+        expect_missing_marker(root, "lib/rbtree.zig", marker)
         cases += 1
         write_fixture_root(root)
 
