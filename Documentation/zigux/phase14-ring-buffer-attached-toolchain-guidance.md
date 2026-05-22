@@ -15,6 +15,7 @@ It narrows the guidance to the ring-buffer packet and avoids reopening the broad
 
 ## Attached bundle
 - attached archive name: `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz`
+- lane-local extraction command example: `mkdir -p /workspace/.toolchains/p14-l08 && tar -xf "/workspace/agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz" -C /workspace/.toolchains/p14-l08`
 - run-local extraction example: `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2`
 - compiler version expected after extraction: `0.17.0-dev.87+9b177a7d2`
 
