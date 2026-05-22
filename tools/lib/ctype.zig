@@ -124,6 +124,55 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype print graph and control boundaries stay table-aligned" {
+    try std.testing.expect(isprint(' '));
+    try std.testing.expect(isspace(' '));
+    try std.testing.expect(!isgraph(' '));
+    try std.testing.expect(!ispunct(' '));
+    try std.testing.expect(!iscntrl(' '));
+
+    try std.testing.expect(isgraph('!'));
+    try std.testing.expect(isprint('!'));
+    try std.testing.expect(ispunct('!'));
+    try std.testing.expect(!isspace('!'));
+    try std.testing.expect(!iscntrl('!'));
+
+    try std.testing.expect(iscntrl(0x7f));
+    try std.testing.expect(isascii(0x7f));
+    try std.testing.expect(!isprint(0x7f));
+    try std.testing.expect(!isgraph(0x7f));
+    try std.testing.expect(!isspace(0x7f));
+
+    try std.testing.expect(isprint(0xa0));
+    try std.testing.expect(isspace(0xa0));
+    try std.testing.expect(!isgraph(0xa0));
+    try std.testing.expect(!iscntrl(0xa0));
+    try std.testing.expect(!isascii(0xa0));
+
+    try std.testing.expect(isgraph(0xc0));
+    try std.testing.expect(isprint(0xc0));
+    try std.testing.expect(isupper(0xc0));
+    try std.testing.expect(!isspace(0xc0));
+    try std.testing.expect(!iscntrl(0xc0));
+}
+
+test "ctype print graph and punctuation helpers preserve relational invariants" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        try std.testing.expectEqual(isprint(byte) and !isspace(byte), isgraph(byte));
+        try std.testing.expectEqual(ispunct(byte), isgraph(byte) and !isalnum(byte));
+
+        if (ispunct(byte)) {
+            try std.testing.expect(isprint(byte));
+            try std.testing.expect(isgraph(byte));
+            try std.testing.expect(!isspace(byte));
+            try std.testing.expect(!iscntrl(byte));
+        }
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
