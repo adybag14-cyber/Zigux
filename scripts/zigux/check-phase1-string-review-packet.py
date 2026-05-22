@@ -83,6 +83,8 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     'test "matchString finds C-string matches and preserves first-match order"',
     'test "match_string mirrors matchString for empty and matched lists"',
+    'test "strcmp mirrors C-string lexical ordering"',
+    'test "strcmp stops at embedded NULs and length mismatches"',
     'test "memdup and memchrInv preserve byte content"',
     'test "memchr_inv mirrors memchrInv byte-search semantics"',
     'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
@@ -107,6 +109,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strspn counts the accepted prefix with C-string semantics"',
     'test "strcspn counts until the first rejected byte with C-string semantics"',
     'test "strnchr honors count and C-string boundaries"',
+    'test "strlen honors C-string boundaries"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
@@ -176,6 +179,29 @@ EXPECTED_STRING_PACKET = {
         "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
         "strscpyPad() fixture keys"
     ),
+    "strcmp_review_anchors": [
+        'test "strcmp mirrors C-string lexical ordering"',
+        'test "strcmp stops at embedded NULs and length mismatches"',
+    ],
+    "strcmp_review_summary": (
+        "helper-local lexical-compare anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated strcmp() fixture keys, so lexical "
+        "ordering and embedded-NUL length-mismatch behavior remain review-visible at the helper surface"
+    ),
+    "search_length_review_anchors": [
+        'test "strchr mirrors full-length C-string searches"',
+        'test "strrchr finds the last in-range match with C-string semantics"',
+        'test "strchr and strrchr return the terminator index when searching for NUL"',
+        'test "strlen honors C-string boundaries"',
+        'test "strnlen honors count and C-string boundaries"',
+    ],
+    "search_length_review_summary": (
+        "helper-local search-and-length boundary anchors stay explicit through the direct string tests "
+        "because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, "
+        "so strchr() or strrchr() boundary scans, terminator-index searches, and strlen() or strnlen() "
+        "length boundaries remain review-visible at the helper surface"
+    ),
+    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
     "counted_search_review_anchors": [
         'test "strchr mirrors full-length C-string searches"',
         'test "strrchr finds the last in-range match with C-string semantics"',
@@ -186,7 +212,6 @@ EXPECTED_STRING_PACKET = {
         'test "strnlen honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
     ],
-    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
     "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
     "strnchr_review_summary": (
         "the direct counted-search and C-string search-length follow-up stays explicit because the "
