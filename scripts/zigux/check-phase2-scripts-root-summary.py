@@ -52,7 +52,6 @@ REQUIRED_FILES = (
     Path("scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"),
     Path("scripts/zigux/fixdep.zig"),
     Path("third_party/README.md"),
-    Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"),
     Path("zigux/Makefile"),
     TESTS_README_REL,
     Path("zigux/tests/fixtures/phase2_tool_manifest.json"),
@@ -259,6 +258,12 @@ def run_self_test() -> int:
         build_good_tree(root)
         if collect_issues(root):
             raise SystemExit("phase2-scripts-root-summary:self-test:good_tree")
+        case_count += 1
+
+        build_good_tree(root)
+        issues = collect_issues(root)
+        if any(issue.endswith("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz") for issue in issues):
+            raise SystemExit("phase2-scripts-root-summary:self-test:archive_not_required")
         case_count += 1
 
         build_good_tree(root)
