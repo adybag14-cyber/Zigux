@@ -14,6 +14,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
+    "scripts/zigux/check-phase10-closure-manifest-counts.py",
     "scripts/zigux/validate-phase10-closure.py",
     "scripts/zigux/validate-phase10.py",
     ".github/workflows/zigux-bootstrap.yml",
@@ -250,12 +251,13 @@ EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-mmio-packet.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "python3 scripts/zigux/check-phase10-closure-manifest-counts.py",
     "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
     "make -C zigux phase10-validate",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-test",
-    "make -C zigux phase10"
+    "make -C zigux phase10",
 ]
 
 COMMANDS = [
@@ -273,6 +275,8 @@ COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py"],
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
+    ["scripts/zigux/check-phase10-closure-manifest-counts.py", "--self-test"],
+    ["scripts/zigux/check-phase10-closure-manifest-counts.py"],
     ["scripts/zigux/validate-phase10.py", "--self-test"],
     ["scripts/zigux/validate-phase10.py"],
 ]
@@ -474,6 +478,7 @@ def write_fixture(root: Path) -> None:
         "scripts/zigux/check-phase10-mmio-packet.py",
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        "scripts/zigux/check-phase10-closure-manifest-counts.py",
     ]:
         write_text(root / rel_path, stub)
 
@@ -592,6 +597,20 @@ def run_self_test() -> int:
         expect_contains(
             collect_manifest_drift(root),
             "exact_checks:'python3 scripts/zigux/check-phase10-harness-coverage.py':missing",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "python3 scripts/zigux/check-phase10-closure-manifest-counts.py"
+        ]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "exact_checks:'python3 scripts/zigux/check-phase10-closure-manifest-counts.py':missing",
             "phase10-closure-self-test",
         )
         cases += 1
@@ -739,6 +758,18 @@ def run_self_test() -> int:
         if failures != ["scripts/zigux/check-phase10-harness-coverage.py --self-test", "scripts/zigux/check-phase10-harness-coverage.py"]:
             actual = ",".join(failures) if failures else "none"
             raise SystemExit(f"phase10-closure-self-test:failed_harness_command_not_detected:{actual}")
+        cases += 1
+
+        write_fixture(root)
+        failing_counts = root / "scripts/zigux/check-phase10-closure-manifest-counts.py"
+        failing_counts.write_text("#!/usr/bin/env python3\nraise SystemExit(1)\n", encoding="utf-8")
+        failures = run_required_commands(root)
+        if failures != [
+            "scripts/zigux/check-phase10-closure-manifest-counts.py --self-test",
+            "scripts/zigux/check-phase10-closure-manifest-counts.py",
+        ]:
+            actual = ",".join(failures) if failures else "none"
+            raise SystemExit(f"phase10-closure-self-test:failed_manifest_counts_command_not_detected:{actual}")
         cases += 1
 
         write_fixture(root)
