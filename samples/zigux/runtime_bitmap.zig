@@ -326,6 +326,55 @@ test "runtime bitmap sample keeps parse print and range mutation replay explicit
     try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(9, 4));
 }
 
+test "runtime bitmap sample rejects malformed or out-of-range bit-list init without leaving the cold state" {
+    var malformed = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, malformed.initFromBitList("0,,64"));
+
+    const malformed_summary = malformed.summary();
+    try std.testing.expectEqual(ModuleStage.cold, malformed.stage());
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, malformed_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), malformed_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), malformed_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, malformed_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 0), malformed_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), malformed_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), malformed_summary.exit_runs);
+    try std.testing.expect(!malformed.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), malformed.nthSetBit(0));
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        try malformed.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits),
+    );
+
+    var out_of_bounds = RuntimeBitmapSample{};
+    const out_of_bounds_list = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{}",
+        .{RuntimeBitmapSample.bitmap_nbits},
+    );
+    defer std.testing.allocator.free(out_of_bounds_list);
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        out_of_bounds.initFromBitList(out_of_bounds_list),
+    );
+
+    const out_of_bounds_summary = out_of_bounds.summary();
+    try std.testing.expectEqual(ModuleStage.cold, out_of_bounds.stage());
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, out_of_bounds_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), out_of_bounds_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), out_of_bounds_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, out_of_bounds_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 0), out_of_bounds_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), out_of_bounds_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), out_of_bounds_summary.exit_runs);
+    try std.testing.expect(!out_of_bounds.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), out_of_bounds.nthSetBit(0));
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        try out_of_bounds.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits),
+    );
+}
+
 test "runtime bitmap sample keeps selftest copy and exit lifecycle explicit" {
     var source = RuntimeBitmapSample{};
     try source.initWithSetBits(&.{ 0, 5, 64, 70 });
