@@ -9,6 +9,9 @@ import tempfile
 
 README_REL = Path("scripts/zigux/README.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
+REPLAY_REL = Path("zigux/tests/phase1_helpers.zig")
+C_HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 
 EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
@@ -106,10 +109,13 @@ def collect_issues(root: Path) -> list[str]:
 
     readme_path = root / README_REL
     manifest_path = root / MANIFEST_REL
+    blockers_path = root / BLOCKERS_REL
 
     if add_path_issue(readme_path, README_REL, "readme", issues):
         return issues
     if add_path_issue(manifest_path, MANIFEST_REL, "manifest", issues):
+        return issues
+    if add_path_issue(blockers_path, BLOCKERS_REL, "blockers", issues):
         return issues
 
     readme_lines = readme_path.read_text(encoding="utf-8").splitlines()
@@ -172,14 +178,75 @@ def collect_issues(root: Path) -> list[str]:
         if not isinstance(next_step, str) or not next_step.strip():
             issues.append(f"manifest:next_safe_step_note={helper}")
 
+    try:
+        blockers = load_json_without_duplicates(blockers_path)
+    except Exception as exc:
+        issues.append(f"blockers:parse={exc}")
+        return issues
+
+    if blockers.get("status") != "parked":
+        issues.append("blockers:status")
+
+    blocker_lane = blockers.get("lane_sequencing")
+    if not isinstance(blocker_lane, dict):
+        issues.append("blockers:lane_sequencing")
+        return issues
+
+    if blocker_lane.get("manifest") != MANIFEST_REL.as_posix():
+        issues.append("blockers:manifest_path")
+    if blocker_lane.get("shared_replay_parked_helper_count") != len(EXPECTED_PARKED_HELPERS):
+        issues.append("blockers:shared_replay_parked_helper_count")
+    if blocker_lane.get("shared_replay_parked_helpers") != EXPECTED_PARKED_HELPERS:
+        issues.append("blockers:shared_replay_parked_helpers")
+    if blocker_lane.get("direct_anchor_followup_helper_count") != len(EXPECTED_DIRECT_HELPERS):
+        issues.append("blockers:direct_anchor_followup_helper_count")
+    if blocker_lane.get("direct_anchor_followup_helpers") != EXPECTED_DIRECT_HELPERS:
+        issues.append("blockers:direct_anchor_followup_helpers")
+    if blocker_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+        issues.append("blockers:anti_overlap_rule")
+
+    blocked_combined = blocker_lane.get("shared_replay_parked_helpers", []) + blocker_lane.get(
+        "direct_anchor_followup_helpers", []
+    )
+    if sorted(blocked_combined) != sorted(EXPECTED_HELPERS):
+        issues.append("blockers:helper_partition")
+    if len(set(blocked_combined)) != len(EXPECTED_HELPERS):
+        issues.append("blockers:helper_partition_duplicates")
+
+    replay = blockers.get("replay")
+    if not isinstance(replay, dict):
+        issues.append("blockers:replay")
+        return issues
+    if replay.get("path") != REPLAY_REL.as_posix():
+        issues.append("blockers:replay_path")
+    if replay.get("state") != "blocked":
+        issues.append("blockers:replay_state")
+
+    c_harness = blockers.get("c_harness")
+    if not isinstance(c_harness, dict):
+        issues.append("blockers:c_harness")
+        return issues
+    if c_harness.get("path") != C_HARNESS_REL.as_posix():
+        issues.append("blockers:c_harness_path")
+    if c_harness.get("state") != "blocked":
+        issues.append("blockers:c_harness_state")
+    if c_harness.get("helper_count") != len(EXPECTED_HELPERS):
+        issues.append("blockers:c_harness_helper_count")
+    if c_harness.get("helpers") != EXPECTED_HELPERS:
+        issues.append("blockers:c_harness_helpers")
+    if c_harness.get("blocker_id") != "phase1_helpers_c_harness_missing_c_sources":
+        issues.append("blockers:c_harness_blocker_id")
+
     return issues
 
 
 def make_sample_root(root: Path) -> None:
     readme_path = root / README_REL
     manifest_path = root / MANIFEST_REL
+    blockers_path = root / BLOCKERS_REL
     readme_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    blockers_path.parent.mkdir(parents=True, exist_ok=True)
 
     readme_path.write_text(
         "\n".join(
@@ -221,6 +288,31 @@ def make_sample_root(root: Path) -> None:
         "review_anchors": review_anchors,
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    blockers = {
+        "status": "parked",
+        "lane_sequencing": {
+            "manifest": MANIFEST_REL.as_posix(),
+            "shared_replay_parked_helper_count": len(EXPECTED_PARKED_HELPERS),
+            "shared_replay_parked_helpers": EXPECTED_PARKED_HELPERS,
+            "direct_anchor_followup_helper_count": len(EXPECTED_DIRECT_HELPERS),
+            "direct_anchor_followup_helpers": EXPECTED_DIRECT_HELPERS,
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+        },
+        "replay": {
+            "path": REPLAY_REL.as_posix(),
+            "state": "blocked",
+        },
+        "c_harness": {
+            "path": C_HARNESS_REL.as_posix(),
+            "state": "blocked",
+            "reason": "Legacy helper .c companions are still absent on current master.",
+            "helper_count": len(EXPECTED_HELPERS),
+            "helpers": EXPECTED_HELPERS,
+            "blocker_id": "phase1_helpers_c_harness_missing_c_sources",
+        },
+    }
+    blockers_path.write_text(json.dumps(blockers, indent=2) + "\n", encoding="utf-8")
 
 
 def expect_failure(mutator) -> None:
@@ -307,8 +399,45 @@ def run_self_test() -> None:
 
     expect_failure(wrong_helper_count)
 
+    def blockers_directory(root: Path) -> None:
+        path = root / BLOCKERS_REL
+        path.unlink()
+        path.mkdir()
+
+    expect_failure(blockers_directory)
+
+    def blockers_duplicate_key(root: Path) -> None:
+        path = root / BLOCKERS_REL
+        path.write_text('{"status":"parked","status":"duplicate"}\n', encoding="utf-8")
+
+    expect_failure(blockers_duplicate_key)
+
+    def blockers_wrong_direct_count(root: Path) -> None:
+        path = root / BLOCKERS_REL
+        blockers = json.loads(path.read_text(encoding="utf-8"))
+        blockers["lane_sequencing"]["direct_anchor_followup_helper_count"] = 3
+        path.write_text(json.dumps(blockers, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(blockers_wrong_direct_count)
+
+    def blockers_wrong_anti_overlap(root: Path) -> None:
+        path = root / BLOCKERS_REL
+        blockers = json.loads(path.read_text(encoding="utf-8"))
+        blockers["lane_sequencing"]["anti_overlap_rule"] = "wrong"
+        path.write_text(json.dumps(blockers, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(blockers_wrong_anti_overlap)
+
+    def blockers_wrong_c_harness_helper_count(root: Path) -> None:
+        path = root / BLOCKERS_REL
+        blockers = json.loads(path.read_text(encoding="utf-8"))
+        blockers["c_harness"]["helper_count"] = 12
+        path.write_text(json.dumps(blockers, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(blockers_wrong_c_harness_helper_count)
+
     print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST=pass")
-    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=15")
 
 
 def main() -> int:
@@ -342,6 +471,7 @@ def main() -> int:
     print(f"PHASE1_HELPER_LANE_SEQUENCING_PARKED_COUNT={len(EXPECTED_PARKED_HELPERS)}")
     print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     print("PHASE1_HELPER_LANE_SEQUENCING_README_MARKER_COUNT=2")
+    print("PHASE1_HELPER_LANE_SEQUENCING_BLOCKER_PACKET_COUNT=2")
     print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_REVIEW_ANCHOR_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     return 0
 
