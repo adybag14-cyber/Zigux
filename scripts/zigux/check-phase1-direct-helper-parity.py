@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check current-master-safe Phase 1 parity anchors for bitmap, find_bit, string, and rbtree."""
+"""Guard current-master-safe Phase 1 parity anchors for the direct helper packet."""
 
 from __future__ import annotations
 
@@ -9,17 +9,24 @@ import tempfile
 from pathlib import Path
 
 
-HERE = Path(__file__).resolve()
-DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
+BITMAP_REL = Path("tools/lib/bitmap.zig")
+FIND_BIT_REL = Path("tools/lib/find_bit.zig")
+RBTREE_REL = Path("tools/lib/rbtree.zig")
+STRING_REL = Path("tools/lib/string.zig")
 
 REQUIRED_FILES = (
     MANIFEST_REL,
     FIXTURE_REL,
     SMOKE_REL,
+    BITMAP_REL,
+    FIND_BIT_REL,
+    RBTREE_REL,
+    STRING_REL,
 )
 
 EXPECTED_DIRECT_HELPERS = [
@@ -29,327 +36,387 @@ EXPECTED_DIRECT_HELPERS = [
     "tools/lib/string.zig",
 ]
 
-EXPECTED_BITMAP_FIXTURE_KEYS = [
-    "alloc_words",
-    "zalloc_words",
-    "zalloc_values",
-    "scnprintf",
-    "truncated_scnprintf_len",
-    "truncated_scnprintf",
-    "terminator_only_scnprintf_len",
-    "terminator_only_nul",
-    "zero_length_scnprintf_len",
-]
+EXPECTED_MANIFEST_KEYS = {
+    "tools/lib/bitmap.zig": {
+        "parity_fixture_keys": [
+            "alloc_words",
+            "zalloc_words",
+            "zalloc_values",
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
+        ],
+        "partial_xor_review_fields": [
+            "partial_xor_nbits",
+            "partial_xor_masked_values",
+        ],
+    },
+    "tools/lib/find_bit.zig": {
+        "tail_clamp_fixture_keys": [
+            "tail_clamped_first",
+            "tail_clamped_next",
+            "tail_zero_clamped_first",
+            "tail_zero_clamped_next",
+            "tail_and_clamped_first",
+            "tail_and_clamped_next",
+            "tail_clamped_last",
+            "tail_clamped_empty_last",
+        ],
+        "tail_inclusive_boundary_fixture_keys": [
+            "tail_inclusive_boundary_next",
+            "tail_inclusive_boundary_zero",
+            "tail_inclusive_boundary_and",
+        ],
+    },
+    "tools/lib/rbtree.zig": {
+        "parity_fixture_keys": [
+            "empty_root",
+            "insert_order",
+            "reverse_order",
+            "replace_order",
+            "erase_init_order",
+            "postorder_count",
+            "erase_init_node_empty",
+            "cleared_node_empty",
+            "find_found_key",
+            "find_missing",
+            "find_first_serial",
+            "next_match_serials",
+            "match_iterator_serials",
+            "next_match_terminal_null",
+        ],
+        "cached_leftmost_fixture_keys": [
+            "cached_leftmost_return_serials",
+        ],
+    },
+    "tools/lib/string.zig": {
+        "parity_fixture_keys": [
+            "strtobool_y",
+            "strtobool_on",
+            "strtobool_zero",
+            "strtobool_off",
+            "strtobool_invalid",
+            "strlcpy_len",
+            "strlcpy_buffer",
+            "skip_spaces",
+            "trim_spaces",
+            "remove_spaces",
+            "replace_char",
+            "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ],
+    },
+}
 
-EXPECTED_FIND_BIT_TAIL_CLAMP_KEYS = [
-    "tail_clamped_first",
-    "tail_clamped_next",
-    "tail_zero_clamped_first",
-    "tail_zero_clamped_next",
-    "tail_and_clamped_first",
-    "tail_and_clamped_next",
-    "tail_clamped_last",
-    "tail_clamped_empty_last",
-]
+SMOKE_MARKERS = {
+    "bitmap": (
+        'test "phase1 host-tools smoke keeps bitmap alias zero-size and empty-format edges aligned" {',
+        "bitmap.copy(",
+        "bitmap.bitmap_copy(",
+        "bitmap.copyClearTail(",
+        "bitmap.bitmap_copy_clear_tail(",
+        "bitmap.copyAndExtend(",
+        "bitmap.bitmap_copy_and_extend(",
+        "bitmap.scnprintf(",
+        "bitmap.bitmap_scnprintf(",
+    ),
+    "find_bit": (
+        'test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {',
+        "find_bit.findFirstAndNotBit(",
+        "find_bit.find_next_andnot_bit(",
+        "find_bit._find_next_andnot_bit(",
+        "find_bit.findFirstClump8(",
+        "find_bit.find_first_clump8(",
+        "find_bit.find_next_clump8(",
+        "find_bit._find_next_clump8(",
+    ),
+    "rbtree": (
+        "rbtree.findFirst(",
+        "rbtree.nextMatch(",
+        "rbtree.matchIterator(",
+        "cached_leftmost_return_serials",
+        "rbtree.addCached(",
+        "rbtree.eraseCached(",
+        "rbtree.firstCached(",
+    ),
+    "string": (
+        "string.sysfsMatchString(",
+        "string.sysfs_streq(",
+        "string.matchString(",
+        "string.match_string(",
+        "string.strnchr(",
+        "string.strnchrNul(",
+        "string.strnchrnul(",
+        "string.strspn(",
+    ),
+}
 
-EXPECTED_FIND_BIT_TAIL_BOUNDARY_KEYS = [
-    "tail_inclusive_boundary_next",
-    "tail_inclusive_boundary_zero",
-    "tail_inclusive_boundary_and",
-]
+SOURCE_MARKERS = {
+    BITMAP_REL: (
+        'test "bitmap copy alias preserves raw source words without tail clearing" {',
+        'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {',
+        'test "bitmap Linux-style aliases mirror copy logical range and format helpers" {',
+    ),
+    FIND_BIT_REL: (
+        'test "find first and next set bits across words, with andnot gaps explicit" {',
+        'test "clump8 past-end scans return without reading bitmap words" {',
+        'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
+    ),
+    RBTREE_REL: (
+        'test "rbtree nextMatch walks the duplicate range in order" {',
+        'test "rbtree matchIterator walks the duplicate range in order" {',
+        'test "rbtree cached-root Linux-style aliases mirror the primary helpers" {',
+    ),
+    STRING_REL: (
+        'test "sysfsMatchString finds newline-aware matches and preserves first-match order" {',
+        'test "strcmp mirrors C-string lexical ordering" {',
+        'test "strnchrNul returns the first match, NUL, or count boundary" {',
+    ),
+}
 
-EXPECTED_STRING_FIXTURE_KEYS = [
-    "strtobool_y",
-    "strtobool_on",
-    "strtobool_zero",
-    "strtobool_off",
-    "strtobool_invalid",
-    "strlcpy_len",
-    "strlcpy_buffer",
-    "skip_spaces",
-    "trim_spaces",
-    "remove_spaces",
-    "replace_char",
-    "replace_char_end",
-    "replace_char_cstr_end",
-    "replace_char_cstr_bytes",
-    "memchr_inv_index",
-    "memchr_inv_none",
-]
 
-EXPECTED_RBTREE_FIXTURE_KEYS = [
-    "empty_root",
-    "insert_order",
-    "reverse_order",
-    "replace_order",
-    "erase_init_order",
-    "postorder_count",
-    "erase_init_node_empty",
-    "cleared_node_empty",
-    "find_found_key",
-    "find_missing",
-    "find_first_serial",
-    "next_match_serials",
-    "match_iterator_serials",
-    "next_match_terminal_null",
-]
-
-EXPECTED_RBTREE_CACHED_KEYS = [
-    "cached_leftmost_return_serials",
-]
-
-SMOKE_MARKERS = (
-    'test "phase1 host-tools smoke exercises live helper behavior" {',
-    'const nbits = word_bits + 5;',
-    "find_bit.findLastBit(&map, nbits)",
-    "bitmap.scnprintf(&map, nbits, &rendered)",
-    'string.sysfsMatchString(&sysfs, "auto")',
-    "string.strnchrNul(&counted, counted.len, 'z')",
-    "rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp)",
-)
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
 
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
 
-def load_text(root: Path, relative_path: Path) -> str:
-    return (root / relative_path).read_text(encoding="utf-8")
+def read_text(root: Path, rel: Path) -> str:
+    return (root / rel).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, relative_path: Path) -> object:
-    return json.loads(load_text(root, relative_path))
-
-
-def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
-    return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
-
-
-def require_key_set(
-    failures: list[str],
-    helper_name: str,
-    actual_keys: object,
-    expected_keys: list[str],
-) -> None:
-    failures.extend(
-        require_exact_value(
-            f"{helper_name}.keys",
-            actual_keys,
-            expected_keys,
-        )
+def read_manifest(root: Path) -> object:
+    return json.loads(
+        read_text(root, MANIFEST_REL),
+        object_pairs_hook=DuplicateTrackingDict,
     )
-
-
-def require_fixture_members(
-    failures: list[str],
-    section_name: str,
-    section: object,
-    required_keys: list[str],
-) -> None:
-    if not isinstance(section, dict):
-        failures.append(f"{section_name}:expected=dict:actual={type(section).__name__}")
-        return
-    for key in required_keys:
-        if key not in section:
-            failures.append(f"{section_name}:missing_fixture_key:{key}")
 
 
 def collect_failures(root: Path) -> list[str]:
-    failures: list[str] = []
-    for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).exists():
-            failures.append(f"missing_file:{relative_path}")
+    failures = [f"missing_file:{rel.as_posix()}" for rel in REQUIRED_FILES if not (root / rel).is_file()]
     if failures:
         return failures
 
-    manifest = load_json(root, MANIFEST_REL)
-    fixture = load_json(root, FIXTURE_REL)
-    smoke_text = load_text(root, SMOKE_REL)
-
+    manifest = read_manifest(root)
+    fixture = json.loads(read_text(root, FIXTURE_REL))
     if not isinstance(manifest, dict):
-        failures.append(f"manifest:expected=dict:actual={type(manifest).__name__}")
-        return failures
-    if not isinstance(fixture, dict):
-        failures.append(f"fixture:expected=dict:actual={type(fixture).__name__}")
-        return failures
+        return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
+    if isinstance(manifest, DuplicateTrackingDict) and manifest.duplicate_keys:
+        return [
+            f"{MANIFEST_REL.as_posix()}:duplicate_top_level_key:{key}"
+            for key in manifest.duplicate_keys
+        ]
 
     lane = manifest.get("lane_sequencing")
     if not isinstance(lane, dict):
-        failures.append(f"lane_sequencing:expected=dict:actual={type(lane).__name__}")
-    else:
-        failures.extend(
-            require_exact_value(
-                "lane_sequencing.direct_anchor_followup_helpers",
-                lane.get("direct_anchor_followup_helpers"),
-                EXPECTED_DIRECT_HELPERS,
-            )
-        )
+        return [f"{MANIFEST_REL.as_posix()}:lane_sequencing:expected=dict"]
+    direct = lane.get("direct_anchor_followup_helpers")
+    if direct != EXPECTED_DIRECT_HELPERS:
+        return [
+            f"{MANIFEST_REL.as_posix()}:direct_anchor_followup_helpers:expected={EXPECTED_DIRECT_HELPERS!r}:actual={direct!r}"
+        ]
 
-    anchors = manifest.get("review_anchors")
-    if not isinstance(anchors, dict):
-        failures.append(f"review_anchors:expected=dict:actual={type(anchors).__name__}")
-        return failures
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict"]
+    if not isinstance(fixture, dict):
+        return [f"{FIXTURE_REL.as_posix()}:expected=dict:actual={type(fixture).__name__}"]
 
-    bitmap_anchor = anchors.get("tools/lib/bitmap.zig")
-    find_bit_anchor = anchors.get("tools/lib/find_bit.zig")
-    string_anchor = anchors.get("tools/lib/string.zig")
-    rbtree_anchor = anchors.get("tools/lib/rbtree.zig")
+    for helper, expectations in EXPECTED_MANIFEST_KEYS.items():
+        actual = review_anchors.get(helper)
+        if not isinstance(actual, dict):
+            failures.append(f"{MANIFEST_REL.as_posix()}:review_anchors:{helper}:expected=dict")
+            continue
+        for key, expected_value in expectations.items():
+            if actual.get(key) != expected_value:
+                failures.append(
+                    f"{MANIFEST_REL.as_posix()}:review_anchors:{helper}:{key}:expected={expected_value!r}:actual={actual.get(key)!r}"
+                )
 
-    if not isinstance(bitmap_anchor, dict):
-        failures.append("tools/lib/bitmap.zig:expected=dict")
-    else:
-        require_key_set(
-            failures,
-            "tools/lib/bitmap.zig.parity_fixture_keys",
-            bitmap_anchor.get("parity_fixture_keys"),
-            EXPECTED_BITMAP_FIXTURE_KEYS,
-        )
+    fixture_sections = {
+        "tools/lib/bitmap.zig": "bitmap",
+        "tools/lib/find_bit.zig": "find_bit",
+        "tools/lib/rbtree.zig": "rbtree",
+        "tools/lib/string.zig": "string",
+    }
+    for helper, expectations in EXPECTED_MANIFEST_KEYS.items():
+        section_name = fixture_sections[helper]
+        section = fixture.get(section_name)
+        if not isinstance(section, dict):
+            failures.append(f"{FIXTURE_REL.as_posix()}:{section_name}:expected=dict")
+            continue
+        for key_name, key_list in expectations.items():
+            if "fixture_keys" not in key_name:
+                continue
+            for key in key_list:
+                if key not in section:
+                    failures.append(f"{FIXTURE_REL.as_posix()}:{section_name}:missing_key:{key}")
 
-    if not isinstance(find_bit_anchor, dict):
-        failures.append("tools/lib/find_bit.zig:expected=dict")
-    else:
-        require_key_set(
-            failures,
-            "tools/lib/find_bit.zig.tail_clamp_fixture_keys",
-            find_bit_anchor.get("tail_clamp_fixture_keys"),
-            EXPECTED_FIND_BIT_TAIL_CLAMP_KEYS,
-        )
-        require_key_set(
-            failures,
-            "tools/lib/find_bit.zig.tail_inclusive_boundary_fixture_keys",
-            find_bit_anchor.get("tail_inclusive_boundary_fixture_keys"),
-            EXPECTED_FIND_BIT_TAIL_BOUNDARY_KEYS,
-        )
+    smoke_text = read_text(root, SMOKE_REL)
+    for group, markers in SMOKE_MARKERS.items():
+        for marker in markers:
+            if marker not in smoke_text:
+                failures.append(f"{SMOKE_REL.as_posix()}:{group}:missing_marker:{marker}")
 
-    if not isinstance(string_anchor, dict):
-        failures.append("tools/lib/string.zig:expected=dict")
-    else:
-        require_key_set(
-            failures,
-            "tools/lib/string.zig.parity_fixture_keys",
-            string_anchor.get("parity_fixture_keys"),
-            EXPECTED_STRING_FIXTURE_KEYS,
-        )
-
-    if not isinstance(rbtree_anchor, dict):
-        failures.append("tools/lib/rbtree.zig:expected=dict")
-    else:
-        require_key_set(
-            failures,
-            "tools/lib/rbtree.zig.parity_fixture_keys",
-            rbtree_anchor.get("parity_fixture_keys"),
-            EXPECTED_RBTREE_FIXTURE_KEYS,
-        )
-        require_key_set(
-            failures,
-            "tools/lib/rbtree.zig.cached_leftmost_fixture_keys",
-            rbtree_anchor.get("cached_leftmost_fixture_keys"),
-            EXPECTED_RBTREE_CACHED_KEYS,
-        )
-
-    require_fixture_members(failures, "fixture.bitmap", fixture.get("bitmap"), EXPECTED_BITMAP_FIXTURE_KEYS)
-    require_fixture_members(
-        failures,
-        "fixture.find_bit",
-        fixture.get("find_bit"),
-        EXPECTED_FIND_BIT_TAIL_CLAMP_KEYS + EXPECTED_FIND_BIT_TAIL_BOUNDARY_KEYS,
-    )
-    require_fixture_members(failures, "fixture.string", fixture.get("string"), EXPECTED_STRING_FIXTURE_KEYS)
-    require_fixture_members(
-        failures,
-        "fixture.rbtree",
-        fixture.get("rbtree"),
-        EXPECTED_RBTREE_FIXTURE_KEYS + EXPECTED_RBTREE_CACHED_KEYS,
-    )
-
-    for marker in SMOKE_MARKERS:
-        count = smoke_text.count(marker)
-        if count != 1:
-            failures.append(f"smoke_marker:expected=1:actual={count}:{marker}")
+    for rel, markers in SOURCE_MARKERS.items():
+        source_text = read_text(root, rel)
+        for marker in markers:
+            if marker not in source_text:
+                failures.append(f"{rel.as_posix()}:missing_marker:{marker}")
 
     return failures
 
 
-def write_text(root: Path, relative_path: Path, content: str) -> None:
-    path = root / relative_path
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+def write_text(root: Path, rel: Path, text: str) -> None:
+    destination = root / rel
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(text, encoding="utf-8")
+
+
+def sample_manifest() -> str:
+    return json.dumps(
+        {
+            "phase": "Phase 1",
+            "status": "closed",
+            "lane_sequencing": {
+                "direct_anchor_followup_helpers": EXPECTED_DIRECT_HELPERS,
+            },
+            "review_anchors": EXPECTED_MANIFEST_KEYS,
+        },
+        indent=2,
+    ) + "\n"
+
+
+def sample_smoke() -> str:
+    lines: list[str] = []
+    for markers in SMOKE_MARKERS.values():
+        lines.extend(markers)
+    return "\n".join(lines) + "\n"
+
+
+def sample_source(rel: Path) -> str:
+    return "\n".join(SOURCE_MARKERS[rel]) + "\n"
 
 
 def build_sample_repo(root: Path) -> None:
-    manifest = {
-        "lane_sequencing": {
-            "direct_anchor_followup_helpers": EXPECTED_DIRECT_HELPERS,
-        },
-        "review_anchors": {
-            "tools/lib/bitmap.zig": {
-                "parity_fixture_keys": EXPECTED_BITMAP_FIXTURE_KEYS,
-            },
-            "tools/lib/find_bit.zig": {
-                "tail_clamp_fixture_keys": EXPECTED_FIND_BIT_TAIL_CLAMP_KEYS,
-                "tail_inclusive_boundary_fixture_keys": EXPECTED_FIND_BIT_TAIL_BOUNDARY_KEYS,
-            },
-            "tools/lib/string.zig": {
-                "parity_fixture_keys": EXPECTED_STRING_FIXTURE_KEYS,
-            },
-            "tools/lib/rbtree.zig": {
-                "parity_fixture_keys": EXPECTED_RBTREE_FIXTURE_KEYS,
-                "cached_leftmost_fixture_keys": EXPECTED_RBTREE_CACHED_KEYS,
-            },
-        },
-    }
+    write_text(root, MANIFEST_REL, sample_manifest())
     fixture = {
-        "bitmap": {key: 1 for key in EXPECTED_BITMAP_FIXTURE_KEYS},
-        "find_bit": {key: 1 for key in EXPECTED_FIND_BIT_TAIL_CLAMP_KEYS + EXPECTED_FIND_BIT_TAIL_BOUNDARY_KEYS},
-        "string": {key: 1 for key in EXPECTED_STRING_FIXTURE_KEYS},
-        "rbtree": {key: 1 for key in EXPECTED_RBTREE_FIXTURE_KEYS + EXPECTED_RBTREE_CACHED_KEYS},
+        "bitmap": {key: 1 for key in EXPECTED_MANIFEST_KEYS["tools/lib/bitmap.zig"]["parity_fixture_keys"]},
+        "find_bit": {
+            key: 1
+            for key in EXPECTED_MANIFEST_KEYS["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"]
+            + EXPECTED_MANIFEST_KEYS["tools/lib/find_bit.zig"]["tail_inclusive_boundary_fixture_keys"]
+        },
+        "rbtree": {
+            key: 1
+            for key in EXPECTED_MANIFEST_KEYS["tools/lib/rbtree.zig"]["parity_fixture_keys"]
+            + EXPECTED_MANIFEST_KEYS["tools/lib/rbtree.zig"]["cached_leftmost_fixture_keys"]
+        },
+        "string": {key: 1 for key in EXPECTED_MANIFEST_KEYS["tools/lib/string.zig"]["parity_fixture_keys"]},
     }
-    smoke = "\n".join(SMOKE_MARKERS) + "\n"
-    write_text(root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
     write_text(root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-    write_text(root, SMOKE_REL, smoke)
+    write_text(root, SMOKE_REL, sample_smoke())
+    for rel in SOURCE_MARKERS:
+        write_text(root, rel, sample_source(rel))
 
 
-def remove_text(root: Path, relative_path: Path, target: str) -> None:
-    path = root / relative_path
-    text = path.read_text(encoding="utf-8")
-    path.write_text(text.replace(target, "", 1), encoding="utf-8")
+def mutate_manifest(root: Path, callback) -> None:
+    manifest_path = root / MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    callback(manifest)
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, tuple[str, str] | None]] = [
-        ("success", None),
-        ("missing_smoke_marker", ("text", "rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp)")),
-        ("missing_bitmap_fixture_key", ("text", '"truncated_scnprintf_len": 1,')),
-        ("wrong_direct_helpers", ("text", '"tools/lib/string.zig"\n    ]')),
+    cases = [
+        ("baseline", None),
+        (
+            "missing_bitmap_smoke_marker",
+            lambda root: write_text(
+                root,
+                SMOKE_REL,
+                sample_smoke().replace("bitmap.bitmap_scnprintf(\n", "", 1),
+            ),
+        ),
+        (
+            "drifted_direct_helper_list",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["lane_sequencing"].__setitem__(
+                    "direct_anchor_followup_helpers",
+                    ["tools/lib/bitmap.zig"],
+                ),
+            ),
+        ),
+        (
+            "missing_rbtree_manifest_key",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["review_anchors"]["tools/lib/rbtree.zig"].pop(
+                    "cached_leftmost_fixture_keys"
+                ),
+            ),
+        ),
+        (
+            "missing_string_source_anchor",
+            lambda root: write_text(
+                root,
+                STRING_REL,
+                sample_source(STRING_REL).replace(
+                    'test "strcmp mirrors C-string lexical ordering" {\n',
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_find_bit_fixture_key",
+            lambda root: write_text(
+                root,
+                FIXTURE_REL,
+                json.dumps(
+                    {
+                        **json.loads((root / FIXTURE_REL).read_text(encoding="utf-8")),
+                        "find_bit": {
+                            key: value
+                            for key, value in json.loads((root / FIXTURE_REL).read_text(encoding="utf-8"))["find_bit"].items()
+                            if key != "tail_clamped_last"
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+        ),
     ]
 
-    for name, mutation in cases:
+    for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-direct-helper-parity-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            if mutation is not None:
-                relative_text_target = mutation[1]
-                if name == "missing_smoke_marker":
-                    remove_text(root, SMOKE_REL, relative_text_target)
-                elif name == "missing_bitmap_fixture_key":
-                    remove_text(root, FIXTURE_REL, relative_text_target)
-                elif name == "wrong_direct_helpers":
-                    text = (root / MANIFEST_REL).read_text(encoding="utf-8")
-                    replacement = '"tools/lib/string.zig",\n      "tools/lib/slab.zig"\n    ]'
-                    (root / MANIFEST_REL).write_text(
-                        text.replace(relative_text_target, replacement, 1),
-                        encoding="utf-8",
-                    )
+            if mutate is not None:
+                mutate(root)
             failures = collect_failures(root)
-            if name == "success":
+            if name == "baseline":
                 if failures:
-                    print("self-test:success:unexpected_failures")
-                    for failure in failures:
-                        print(failure)
+                    print(f"phase1-direct-helper-parity:{name}:unexpected={failures}")
                     return 1
             elif not failures:
-                print(f"self-test:{name}:expected_failure")
+                print(f"phase1-direct-helper-parity:{name}:expected_failure")
                 return 1
 
     print("PHASE1_DIRECT_HELPER_PARITY_SELF_TEST=pass")
@@ -359,23 +426,20 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override repository root")
-    parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
+    parser.add_argument("--repo-root", help="override the repository root used for checks")
+    parser.add_argument("--self-test", action="store_true", help="run checker self-tests")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    failures = collect_failures(repo_root(args.root))
+    failures = collect_failures(repo_root(args.repo_root))
     if failures:
-        print("PHASE1_DIRECT_HELPER_PARITY=fail")
         for failure in failures:
             print(failure)
         return 1
 
     print("PHASE1_DIRECT_HELPER_PARITY=pass")
-    print(f"PHASE1_DIRECT_HELPER_PARITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE1_DIRECT_HELPER_PARITY_DIRECT_HELPER_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     return 0
 
 
