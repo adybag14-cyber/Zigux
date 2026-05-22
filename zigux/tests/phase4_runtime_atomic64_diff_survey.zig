@@ -46,7 +46,7 @@ const phase4_gate_evidence_self_test_cases_line =
     "gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift," ++
     "shared_validator_reruns_gate_evidence_check_drift,shared_validator_reruns_gate_evidence_self_test_drift," ++
     "shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift," ++
-    "runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift," ++
+    "runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift,workflow_route_checker_matrix_presence_drift," ++
     "kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift," ++
     "kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift," ++
     "perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift," ++
@@ -387,8 +387,8 @@ test "phase 4 atomic64 survey keeps the gate-evidence wrapper and runtime blob p
     try expectMarker(gate_evidence_source, runtime_atomic64_diff_blob_marker);
 
     try expectMarker(gate_evidence_source, phase4_gate_evidence_self_test_cases_line);
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
