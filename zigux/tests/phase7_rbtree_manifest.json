@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-22T11:32:34Z",
+  "verified_on_utc": "2026-05-22T15:24:00Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -54,5 +54,5 @@
     "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads",
     "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads"
   ],
-  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and reread `Documentation/zigux/phase7-rbtree-slice.md` against `zigux/tests/phase7_rbtree_manifest.json` and `Documentation/zigux/phase7-rbtree-direct-anchor-note.md` for the next smallest reminder-side follow-through so the dedicated slice note mirrors the now machine-readable shared `phase7-validate` route without widening beyond the rbtree packet."
+  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and reread `zigux/tests/phase7_rbtree_survey.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, and `zigux/tests/phase7_rbtree_manifest.json` together only when one more dedicated rbtree companion surface changes, starting with whether `zigux/tests/fixtures/phase7_rbtree.json` or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes on current `master`, so the helper path, shared `phase7-validate` route, public-fallback provenance, and legacy companion framing stay aligned without widening beyond the rbtree packet."
 }
