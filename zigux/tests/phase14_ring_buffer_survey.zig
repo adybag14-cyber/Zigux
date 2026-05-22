@@ -3,6 +3,8 @@ const std = @import("std");
 const SurveySummary = struct {
     preexisting_phase14_build_present: bool,
     preexisting_phase14_make_target_present: bool,
+    preexisting_phase14_workqueue_bridge_present: bool,
+    preexisting_ring_buffer_zig_present: bool,
     preexisting_phase14_ring_buffer_manifest_present: bool,
     preexisting_phase14_ring_buffer_survey_test_present: bool,
     preexisting_phase14_ring_buffer_survey_note_present: bool,
@@ -28,18 +30,25 @@ const MaintenanceHandoff = struct {
 const Gap = struct {
     id: []const u8,
     status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
 };
 
 const DecisionChecklist = struct {
     id: []const u8,
     ownership: []const u8,
     summary: []const u8,
+    anchor_symbols: []const []const u8,
+    rationale: []const u8,
 };
 
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     anchor: []const u8,
+    roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
     study_only_governance: Governance,
     maintenance_handoff: MaintenanceHandoff,
@@ -47,24 +56,38 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-fn hasGap(manifest: Manifest, id: []const u8, status: []const u8) bool {
-    for (manifest.gaps) |gap| {
-        if (std.mem.eql(u8, gap.id, id) and std.mem.eql(u8, gap.status, status)) return true;
+fn containsString(items: []const []const u8, needle: []const u8) bool {
+    for (items) |item| {
+        if (std.mem.eql(u8, item, needle)) return true;
     }
     return false;
 }
 
-fn hasDecisionChecklist(manifest: Manifest, id: []const u8, ownership: []const u8, summary_fragment: []const u8) bool {
-    for (manifest.decision_checklist) |entry| {
-        if (!std.mem.eql(u8, entry.id, id)) continue;
-        if (!std.mem.eql(u8, entry.ownership, ownership)) continue;
-        if (std.mem.indexOf(u8, entry.summary, summary_fragment) == null) continue;
+fn hasGap(manifest: Manifest, id: []const u8, status: []const u8, kind: []const u8, destination: []const u8, why_now_fragment: []const u8) bool {
+    for (manifest.gaps) |gap| {
+        if (!std.mem.eql(u8, gap.id, id)) continue;
+        if (!std.mem.eql(u8, gap.status, status)) continue;
+        if (!std.mem.eql(u8, gap.kind, kind)) continue;
+        if (!std.mem.eql(u8, gap.zigux_destination, destination)) continue;
+        if (std.mem.indexOf(u8, gap.why_now, why_now_fragment) == null) continue;
         return true;
     }
     return false;
 }
 
-test "phase14 ring-buffer manifest tracks the returned two-route study packet" {
+fn hasDecisionChecklist(manifest: Manifest, id: []const u8, ownership: []const u8, summary_fragment: []const u8, anchor_symbol: []const u8, rationale_fragment: []const u8) bool {
+    for (manifest.decision_checklist) |entry| {
+        if (!std.mem.eql(u8, entry.id, id)) continue;
+        if (!std.mem.eql(u8, entry.ownership, ownership)) continue;
+        if (std.mem.indexOf(u8, entry.summary, summary_fragment) == null) continue;
+        if (!containsString(entry.anchor_symbols, anchor_symbol)) continue;
+        if (std.mem.indexOf(u8, entry.rationale, rationale_fragment) == null) continue;
+        return true;
+    }
+    return false;
+}
+
+test "phase14 ring-buffer manifest tracks the parked study packet with its full schema" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -84,9 +107,16 @@ test "phase14 ring-buffer manifest tracks the returned two-route study packet" {
 
     try std.testing.expectEqualStrings("P14-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
+    try std.testing.expectEqualStrings("99cd3249c4bab05b74227ed7ca3869284e818588", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/tests/"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "Documentation/zigux/"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "kernel/trace/ring_buffer.zig"));
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_build_present);
     try std.testing.expectEqual(false, manifest.survey_summary.preexisting_phase14_make_target_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_workqueue_bridge_present);
+    try std.testing.expectEqual(false, manifest.survey_summary.preexisting_ring_buffer_zig_present);
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
@@ -105,13 +135,13 @@ test "phase14 ring-buffer manifest tracks the returned two-route study packet" {
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "replay-route wording") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "public-raw-backed ring-buffer-local evidence") != null);
-    try std.testing.expect(hasDecisionChecklist(manifest, "read-page-extraction-boundary", "stay_in_c", "partial-copy fallback"));
-    try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-reader-serialization-boundary", "stay_in_c", "consumed-page lifetime"));
-    try std.testing.expect(hasGap(manifest, "phase14-build-gate-current-master-gap", "restored_via_public_raw_readback"));
-    try std.testing.expect(hasGap(manifest, "phase14-make-target", "resolved_as_drift_retired"));
-    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-survey-gate-current-master-gap", "restored_via_public_raw_readback"));
-    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed"));
-    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence"));
+    try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-mapping-limitations", "stay_in_c", "shared tracefs lockout boundary", "ring_buffer_resize", "mapped reader pins `resize_disabled`"));
+    try std.testing.expect(hasDecisionChecklist(manifest, "read-page-extraction-boundary", "stay_in_c", "partial-copy fallback", "ring_buffer_read_page", "commit-page visibility"));
+    try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-reader-serialization-boundary", "stay_in_c", "consumed-page lifetime", "tracing_buffers_splice_read", "pipe-buffer references"));
+    try std.testing.expect(hasGap(manifest, "phase14-build-gate-current-master-gap", "restored_via_public_raw_readback", "validation", "zigux/tests/phase14_build.zig", "shared Phase 14 build shard"));
+    try std.testing.expect(hasGap(manifest, "phase14-make-target", "resolved_as_drift_retired", "validation", "zigux/Makefile", "does not ship a dedicated `make -C zigux phase14` convenience route"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed", "maintenance_handoff", "Documentation/zigux/phase14-ring-buffer-survey.md", "explicit reopen conditions"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence", "freeze_map", "kernel/trace/ring_buffer.zig", "years of evidence justify it"));
 }
 
 test "phase14 ring-buffer survey note keeps the exact compile-route posture explicit" {
