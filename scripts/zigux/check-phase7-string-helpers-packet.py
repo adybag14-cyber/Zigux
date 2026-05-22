@@ -167,7 +167,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(path: Path) -> str:
@@ -449,6 +449,16 @@ def run_self_test() -> None:
         samples_readme_marker = "* `*rbtree*`"
         remove_once(samples_readme_path, samples_readme_marker)
         expect_missing_marker("missing_samples_readme_rbtree_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        samples_readme_duplicate_marker = "* `*string*`\n"
+        samples_readme_path.write_text(read_text(samples_readme_path) + samples_readme_duplicate_marker, encoding="utf-8")
+        expect_mismatched_count(
+            "duplicate_samples_readme_string_boundary",
+            tmp_root,
+            "samples/zigux/README.md: expected 1 occurrence(s) of " + repr("* `*string*`") + ", found 2",
+        )
         cases_run += 1
         write_fixture_root(tmp_root)
 
