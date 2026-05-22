@@ -28,6 +28,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "checksum keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`",
     "hexdump keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`",
     "- `make -C zigux phase6-checksum-perf`",
+    "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
@@ -52,6 +53,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
 REQUIRED_EVIDENCE_REPLAYS = [
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
@@ -81,7 +83,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 33
 
 
 class ValidationError(RuntimeError):
@@ -505,6 +507,18 @@ def run_self_test() -> None:
         expect_failure(
             root,
             lambda: mutate_text(
+                root / CATALOG_PATH,
+                "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
+                "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
+            ),
+            "check-phase6-checksum-hexdump-perf-markers.py",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
                 root / SURVEY_PATH,
                 "`64B` at `iterations = 200_000` with `max_slowdown_pct = 150`",
                 "`64B` at `iterations = 180_000` with `max_slowdown_pct = 150`",
@@ -630,6 +644,18 @@ def run_self_test() -> None:
                 '"make -C zigux phase6-hexdump-test"',
             ),
             "phase6-hexdump-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"',
+                '"python3 scripts/zigux/check-phase6-checksum-c-parity.py"',
+            ),
+            "check-phase6-checksum-hexdump-perf-markers.py",
         )
         cases_run += 1
         scaffold_repo(root)
