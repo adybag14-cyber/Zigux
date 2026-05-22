@@ -321,7 +321,7 @@ pub const SyscallsHelperLab = struct {
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
             .reuses_create_ruleset_validation = true,
-            .reuses_ruleset_fd_install_planning = true,
+            .reuses_ruleset_fd_install_planning = create_ruleset_plan.mode == .create_handle,
             .create_ruleset_plan = create_ruleset_plan,
             .ruleset_fd_install_plan = ruleset_fd_install_plan,
         };
@@ -646,7 +646,7 @@ test "landlock syscalls top-level wrapper keeps version query install planning n
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
-    try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
+    try std.testing.expect(!wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
     try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
@@ -664,6 +664,7 @@ test "landlock syscalls top-level wrapper ignores ruleset_fops for version query
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expect(!wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
 }
 
@@ -705,6 +706,26 @@ test "landlock syscalls top-level wrapper requires attr presence for create path
             .attr = .{ .handled_access_fs = 0x4 },
         },
     }));
+}
+
+test "landlock syscalls top-level wrapper keeps version query pointer-free while create path alone reuses install planning" {
+    const version_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+    const create_handle = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    });
+
+    try std.testing.expect(!version_query.reuses_ruleset_fd_install_planning);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), version_query.ruleset_fd_install_plan);
+    try std.testing.expect(create_handle.reuses_ruleset_fd_install_planning);
+    try std.testing.expect(create_handle.ruleset_fd_install_plan != null);
 }
 
 test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
