@@ -9,6 +9,7 @@ from pathlib import Path
 
 SEQUENCING_NOTE_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
+CMDLINE_SLICE_PATH = Path("Documentation/zigux/phase7-cmdline-slice.md")
 REVIEW_CHECKPOINT_PATH = Path("Documentation/zigux/phase7-shared-control-review-checkpoint.md")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 SHARED_SURFACE_VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
@@ -72,12 +73,19 @@ REQUIRED_WORKFLOW_LINES = [
 REQUIRED_SEQUENCING_SNIPPETS = [
     "- shared control-surface packet, lane `P7-Y05`:",
     "- string_helpers packet, helper-local lane family:",
+    "- cmdline packet, lane `P7-L08`:",
     "keep helper-local `string_helpers` slice, helper, dedicated replay, survey, manifest, sample-boundary, and checker drift out of `P7-Y05`; only route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, or shared-build reminders back to the shared-control packet",
     "keep `Documentation/zigux/phase7-string-helpers-slice.md` with the string_helpers helper-local lane family instead of the shared-control packet while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay routed to `P7-Y05`.",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
     "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` still exposes only the narrow `phase7-validate` foothold and still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.",
+    "so `P7-L08` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.",
+]
+
+FORBIDDEN_SEQUENCING_SNIPPETS = [
+    "- cmdline packet, lane `P7-L10`:",
+    "so `P7-L10` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.",
 ]
 
 REQUIRED_REVIEW_SNIPPETS = [
@@ -95,12 +103,17 @@ REQUIRED_STRING_HELPERS_SNIPPETS = [
     "- do not count `scripts/zigux/validate-phase7.py`",
 ]
 
+REQUIRED_CMDLINE_SLICE_SNIPPETS = [
+    "PHASE7_LANE_KEY=P7-L08",
+    "shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons",
+]
+
 REQUIRED_MAKEFILE_LINES = [
     "phase7-validate:",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -155,7 +168,9 @@ def require_repo_reality(repo_root: Path) -> None:
 
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS)
+    require_absent_markers(repo_root / SEQUENCING_NOTE_PATH, FORBIDDEN_SEQUENCING_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS)
+    require_snippets(repo_root / CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS)
     require_snippets(repo_root / REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS)
     require_snippets(repo_root / BUILD_WIRING_CHECKER_PATH, ["FORBIDDEN_MAKEFILE_MARKERS", '"phase7-test:"', '"phase7:"'])
     require_snippets(repo_root / SHARED_SURFACE_VALIDATOR_PATH, ["make -C zigux phase7-validate"])
@@ -171,6 +186,7 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SEQUENCING_NOTE_PATH, "\n".join(REQUIRED_SEQUENCING_SNIPPETS) + "\n")
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(REQUIRED_STRING_HELPERS_SNIPPETS) + "\n")
+    write(root / CMDLINE_SLICE_PATH, "\n".join(REQUIRED_CMDLINE_SLICE_SNIPPETS) + "\n")
     write(root / REVIEW_CHECKPOINT_PATH, "\n".join(REQUIRED_REVIEW_SNIPPETS) + "\n")
     write(root / BUILD_WIRING_CHECKER_PATH, "\n".join(["FORBIDDEN_MAKEFILE_MARKERS", '"phase7-test:"', '"phase7:"']) + "\n")
     write(root / SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate\n")
@@ -207,9 +223,11 @@ def run_self_test() -> None:
 
         cases_run = 0
         cases = [
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[3], "returned narrow", ""),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "returned narrow", ""),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[9], "returned narrow", ""),
             (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow", ""),
             (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`", ""),
+            (CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS[0], "PHASE7_LANE_KEY=P7-L10", ""),
             (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true", ""),
             (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n", ""),
             (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n", ""),
@@ -220,6 +238,24 @@ def run_self_test() -> None:
             scaffold_repo(root)
             expect_failure(root, rel, old, new)
             cases_run += 1
+
+        scaffold_repo(root)
+        write(root / SEQUENCING_NOTE_PATH, read_text(root / SEQUENCING_NOTE_PATH) + FORBIDDEN_SEQUENCING_SNIPPETS[0] + "\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
+
+        scaffold_repo(root)
+        write(root / SEQUENCING_NOTE_PATH, read_text(root / SEQUENCING_NOTE_PATH) + FORBIDDEN_SEQUENCING_SNIPPETS[1] + "\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
         write(root / PARKED_SHARED_CONTROL_PATHS[0], "# unexpectedly returned parked path\n")
