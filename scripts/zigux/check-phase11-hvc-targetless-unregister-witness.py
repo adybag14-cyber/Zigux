@@ -353,6 +353,10 @@ def run_self_test() -> int:
             ),
             (
                 VALIDATE_PHASE11_PATH,
+                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+            ),
+            (
+                VALIDATE_PHASE11_PATH,
                 '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
             ),
             (
