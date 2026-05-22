@@ -115,7 +115,7 @@ OPTIONAL_WORKFLOW_PACKET_STEPS = (
 )
 
 PHASE1_CORE_CHAIN_HEAD = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[:6])
-PHASE1_CORE_CHAIN_TAIL = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[6:11])
+PHASE1_CORE_CHAIN_TAIL = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[6:])
 
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase1-bench.py",
@@ -468,6 +468,12 @@ def run_self_test() -> int:
         (
             "workflow_phase1_packet_spacer_after_shared_reminder",
             ("phase1_packet_spacer", "Check current Phase 1 shared reminder packet"),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_spacer_before_shared_smoke",
+            ("phase1_packet_spacer", "Validate current Phase 1 closure packet"),
         )
     )
     cases.append(
