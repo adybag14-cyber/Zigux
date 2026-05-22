@@ -65,3 +65,34 @@ test "phase10 virtio input registration preflight helper exposes blocker tags an
     try std.testing.expectEqual(@as(?virtio_input.RegistrationBlocker, null), summary.blocker);
     try std.testing.expect(registration.readyForRegistration(summary));
 }
+
+test "phase10 virtio input registration preflight keeps non-multitouch devices ready without slot planning" {
+    var device = try virtio_input.VirtioInputLab.init("Virtio Tablet Lab", "serial-plain", 9, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+
+    var summary = registration.summarize(&device);
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(registration.queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(!registration.capabilitySetupReady(summary));
+    try std.testing.expect(registration.multitouchSlotsReady(summary));
+    try std.testing.expect(registration.waitingOnCapabilitySetup(summary));
+    try std.testing.expect(!registration.waitingOnMultitouchSlots(summary));
+    try std.testing.expect(!registration.readyForRegistration(summary));
+
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    summary = registration.summarize(&device);
+    try std.testing.expect(registration.queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(registration.capabilitySetupReady(summary));
+    try std.testing.expect(registration.multitouchSlotsReady(summary));
+    try std.testing.expect(!registration.waitingOnCapabilitySetup(summary));
+    try std.testing.expect(!registration.waitingOnMultitouchSlots(summary));
+    try std.testing.expectEqual(@as(?virtio_input.RegistrationBlocker, null), summary.blocker);
+    try std.testing.expect(registration.readyForRegistration(summary));
+}
