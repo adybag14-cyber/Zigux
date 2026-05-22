@@ -10,7 +10,7 @@ deps_sample_comment_continuation.o := \
   zigux/tests/fixtures/fixdep/shared:config.h \
     $(wildcard include/config/ZIGUX_COLON) \
     $(wildcard include/config/ZIGUX_SHARED_COLON) \
-  zigux/tests/fixtures/fixdep/escaped\\ space-config.h \
+  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
     $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
 
 sample_comment_continuation.o: $(deps_sample_comment_continuation.o)
