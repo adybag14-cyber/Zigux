@@ -177,7 +177,7 @@ test "phase11 hvc cleanup packet proof keeps standalone targetless witness packe
     try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
     try expectContains(survey_doc, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
     try expectContains(survey_doc, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
-    try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stays");
+    try expectContains(survey_doc, "standalone targetless-unregister witness pair likewise stay explicit");
     try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`");
     try expectContains(cleanup_companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");
     try expectContains(cleanup_companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");
