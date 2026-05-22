@@ -277,6 +277,11 @@ SELFTEST_DRIVER_MARKERS = (
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 
+SELFTEST_DRIVER_EXACT_ONCE_MARKERS = (
+    'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
+    "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -335,6 +340,13 @@ def validate_repo(repo_root: Path) -> list[str]:
     issues.extend(_check_markers(repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README"))
     issues.extend(
         _check_markers(repo_root / SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS, "selftest driver")
+    )
+    issues.extend(
+        _check_exact_once_markers(
+            repo_root / SELFTEST_DRIVER_PATH,
+            SELFTEST_DRIVER_EXACT_ONCE_MARKERS,
+            "selftest driver",
+        )
     )
     return issues
 
@@ -774,8 +786,23 @@ def run_self_test() -> int:
             print("expected duplicate validator-support marker drift was not reported")
             return 1
 
+        _populate_repo(root)
+        _append_duplicate_line(
+            root / SELFTEST_DRIVER_PATH,
+            "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "selftest driver exact-count drift: "
+            "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT= (expected 1, found 2)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected duplicate wrapper selftest case-count drift was not reported")
+            return 1
+
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases) + 1}")
+    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases) + 2}")
     return 0
 
 
