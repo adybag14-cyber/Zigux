@@ -94,6 +94,27 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers as current proof unless a fresh reread shows they returned
   * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared Phase 14 smoke packet
 
+## Exact productization checks
+
+For the current bounded step, productization behavior is only considered verified when the packet keeps these exact checks aligned with the same study-only posture:
+
+  * direct bridge-local trust gate:
+    * `zig test zigux/tests/phase14_workqueue_reviewability.zig`
+  * shared packet-local productization checks:
+    * `python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test`
+    * `python3 scripts/zigux/check-phase14-shared-smoke-route.py`
+    * `python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test`
+    * `python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
+    * `python3 scripts/zigux/validate-phase14.py --self-test`
+    * `python3 scripts/zigux/validate-phase14.py`
+    * `python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`
+    * `python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
+    * `python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test`
+    * `python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+    * `make -C zigux phase14-validate`
+
+Those productization-facing checks verify shared packet-local routing and reminder-surface behavior. They do not promote the workqueue bridge to owner status, and they do not replace the direct Zig replay as the bridge-local trust gate.
+
 ## Non-goals
 
 This survey does not claim:
