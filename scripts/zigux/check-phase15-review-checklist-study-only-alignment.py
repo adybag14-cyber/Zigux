@@ -52,8 +52,8 @@ LANE_SEQ_MARKERS = (
 
 SHARED_GAP_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
-    "if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts",
-    "the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh",
+    "the checklist-specific study-only anchor summary boundary",
+    "the landed tests-root Phase 15 governance reminder",
 )
 
 
@@ -140,14 +140,14 @@ def _seed(root: Path) -> None:
         root / SHARED_GAP_REL,
         """# Phase 15 Shared Summary Gap
 
+## Recovery rule
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+
 ## Current shared-summary watchpoints
 - `Documentation/zigux/review-checklist.md`
 
-## Recovery rule
-- if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
-
 ## Next bounded step
-- keep this note parked unless the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh
+- keep this note parked unless the current Phase 15 governance packet above, the Architecture Council review-process owner note, the decision-record template, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the landed tests-root Phase 15 governance reminder, or the stay-in-C companion changes enough to force a smaller shared-summary refresh
 """,
     )
 
@@ -169,6 +169,7 @@ def run_self_test() -> int:
             (STUDY_ONLY_REL, STUDY_ONLY_MARKERS[4]),
             (LANE_SEQ_REL, LANE_SEQ_MARKERS[1]),
             (SHARED_GAP_REL, SHARED_GAP_MARKERS[1]),
+            (SHARED_GAP_REL, SHARED_GAP_MARKERS[2]),
         )
 
         for rel, marker in cases:
