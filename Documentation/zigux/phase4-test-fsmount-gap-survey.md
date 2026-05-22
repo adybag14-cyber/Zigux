@@ -9,6 +9,7 @@
 - `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`
 - `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow`
 - `PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`
+- `PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold`
 - `PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team`
 - `PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team`
@@ -21,6 +22,7 @@ The packet is intentionally narrow:
 - keep the roadmap-backed C anchor and replay path explicit
 - keep both dedicated local survey wrappers explicit
 - keep the shared lab-and-CI matrix anchor explicit
+- keep the direct validation entrypoint explicit
 - keep the explicit bootstrap-CI posture and the no-perf-threshold posture explicit
 - keep owner and rollback owner reviewable
 - keep the next bounded evidence step explicit until a later Phase 4 lane intentionally widens the packet
@@ -35,7 +37,7 @@ The bounded evidence packet instead remains:
 - `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `make -C zigux phase4-test-fsmount-survey`
 
-That packet keeps the roadmap-backed C anchor, the current Linux replay path, both dedicated local survey wrappers, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the owner, and the rollback owner measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
+That packet keeps the roadmap-backed C anchor, the current Linux replay path, both dedicated local survey wrappers, the explicit bootstrap-CI posture, the direct validation entrypoint, the explicit reviewability-only no-perf-threshold posture, the owner, and the rollback owner measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
 
 The same packet also keeps its reversible-delivery evidence string pinned in the paired manifest so the absent-starter boundary does not fall back to note prose alone.
 The shared validator and remaining-gap checker now fail closed on this manifest-backed `test_fsmount` survey packet, so the remaining measurable gap in this packet is the absent Zig starter rather than reminder-surface promotion.
