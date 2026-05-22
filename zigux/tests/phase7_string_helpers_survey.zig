@@ -54,6 +54,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     defer allocator.free(manifest);
     try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-packet.py\"");
     try expectContains(manifest, "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters");
+    try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
     try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");
     try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
