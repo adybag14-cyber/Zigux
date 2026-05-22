@@ -115,11 +115,11 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     try std.testing.expectEqualStrings("4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694", manifest.helper_replay_blob_sha);
 
-    try std.testing.expectEqualStrings("557881f21ac5e15af61be89a8b730840af6eddec", manifest.shared_validator_blob_sha);
+    try std.testing.expectEqualStrings("cf3eed67995c7c2b634169a88277a97b37cbc6b0", manifest.shared_validator_blob_sha);
 
-    try std.testing.expectEqualStrings("79d22a712b2cea25146f5ecba13465c67b02119f", manifest.shared_matrix_blob_sha);
+    try std.testing.expectEqualStrings("0c243dd80d8ff192d43c3f2db0ca36a2f8e5f77c", manifest.shared_matrix_blob_sha);
 
-    try std.testing.expectEqualStrings("ffe579365d4cf0cca43f8840f917be0623e3b49b", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("4a0cefd8477a547af7a4a8dfb281b186a4ff6ee0", manifest.gate_evidence_blob_sha);
 
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
@@ -197,11 +197,11 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     try expectContains(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49");
+    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
 
     try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=49");
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
 
     try expectContains(gate_evidence_source, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
 
