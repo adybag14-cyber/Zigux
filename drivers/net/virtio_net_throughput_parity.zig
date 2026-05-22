@@ -4,8 +4,8 @@ pub const default_wake_threshold: u16 = 2;
 
 pub const PostResetProbeReplayCheckpoint = enum {
     before_receive_refill,
-    after_receive_refill,
     after_control_queue_restore,
+    after_receive_refill,
     after_transmit_queue_restore,
 };
 
@@ -28,6 +28,7 @@ pub const ThroughputParityRequest = struct {
     wake_threshold: u16 = default_wake_threshold,
     transmit_queue_was_stopped: bool = false,
     replay_checkpoint: PostResetProbeReplayCheckpoint = .after_transmit_queue_restore,
+    requires_control_queue_restore: bool = true,
     expected_min_ratio_pct: u8 = 90,
 };
 
@@ -47,6 +48,7 @@ pub const ThroughputParitySummary = struct {
     recycle_ratio_pct: u8,
     throughput_ratio_pct: u8,
     queue_pairs_preserved: bool,
+    requires_control_queue_restore: bool,
     control_queue_restore_ready: bool,
     refill_budget_preserved: bool,
     recycle_budget_ready: bool,
@@ -83,7 +85,7 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
 
     const throughput_ratio_pct = min3(queue_pair_ratio_pct, refill_ratio_pct, recycle_ratio_pct);
     const queue_pairs_preserved = request.queue_pairs_after_restore >= request.queue_pairs_before_reset;
-    const control_queue_restore_ready = switch (request.replay_checkpoint) {
+    const control_queue_restore_ready = !request.requires_control_queue_restore or switch (request.replay_checkpoint) {
         .before_receive_refill => false,
         .after_control_queue_restore, .after_receive_refill, .after_transmit_queue_restore => true,
     };
@@ -134,6 +136,7 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
         .recycle_ratio_pct = recycle_ratio_pct,
         .throughput_ratio_pct = throughput_ratio_pct,
         .queue_pairs_preserved = queue_pairs_preserved,
+        .requires_control_queue_restore = request.requires_control_queue_restore,
         .control_queue_restore_ready = control_queue_restore_ready,
         .refill_budget_preserved = refill_budget_preserved,
         .recycle_budget_ready = recycle_budget_ready,
@@ -206,11 +209,41 @@ test "summarizeThroughputParity keeps control queue restore explicit before rece
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_control_queue_restore, summary.status);
+    try std.testing.expect(summary.requires_control_queue_restore);
     try std.testing.expect(!summary.control_queue_restore_ready);
     try std.testing.expect(!summary.receive_refill_checkpoint_ready);
     try std.testing.expect(!summary.receive_refill_ready);
     try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
     try std.testing.expect(!summary.transmit_recycle_ready);
+    try std.testing.expect(summary.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
+}
+
+test "summarizeThroughputParity skips control queue restore when the packet says no control queue is present" {
+    const summary = try summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .receive_descriptors_reposted = true,
+        .recycled_transmit_descriptors = 0,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = false,
+        .replay_checkpoint = .before_receive_refill,
+        .requires_control_queue_restore = false,
+        .expected_min_ratio_pct = 100,
+    });
+
+    try std.testing.expectEqual(ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(!summary.requires_control_queue_restore);
+    try std.testing.expect(summary.control_queue_restore_ready);
+    try std.testing.expect(!summary.receive_refill_checkpoint_ready);
+    try std.testing.expect(!summary.receive_refill_ready);
+    try std.testing.expect(!summary.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(!summary.transmit_recycle_ready);
+    try std.testing.expect(summary.recycle_budget_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
