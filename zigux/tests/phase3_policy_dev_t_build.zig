@@ -98,6 +98,7 @@ fn addPhase3PolicyStarterPacket(
         .optimize = optimize,
     });
     narrow_surface.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow_surface);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_starter_packet.zig"),
