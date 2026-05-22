@@ -19,6 +19,7 @@ VIRTIO_SCSI_SURVEY_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
 VIRTIO_SCSI_FALLBACK_PATH = (
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
 )
+VIRTIO_SCSI_FIXTURE_MANIFEST_PATH = "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"
 VIRTIO_SCSI_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
 VIRTIO_SCSI_SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
 COMPLEX_DRIVER_NOTE_PATH = (
@@ -34,6 +35,7 @@ REQUIRED_FILES = [
     VIRTIO_SCSI_SLICE_PATH,
     VIRTIO_SCSI_SURVEY_PATH,
     VIRTIO_SCSI_FALLBACK_PATH,
+    VIRTIO_SCSI_FIXTURE_MANIFEST_PATH,
     VIRTIO_SCSI_MANIFEST_PATH,
     VIRTIO_SCSI_SURVEY_GATE_PATH,
     COMPLEX_DRIVER_NOTE_PATH,
@@ -47,6 +49,12 @@ REQUIRED_MARKERS = {
         "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
         "PHASE12_LANE=P12-L13",
         "rollback-only split machine-checkable",
+    ],
+    VIRTIO_SCSI_FIXTURE_MANIFEST_PATH: [
+        '"lane_key": "P12-L13"',
+        '"fixture_kind": "rollback_evidence_presence_manifest"',
+        '"source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json"',
+        '"driver-local starter and replay gates are absent"',
     ],
     VIRTIO_SCSI_MANIFEST_PATH: [
         '"lane_key": "P12-L13"',
@@ -130,6 +138,7 @@ def write_fixture_tree(root: Path) -> None:
         VIRTIO_SCSI_SLICE_PATH: "# Phase 12 virtio_scsi Slice\n- `PHASE12_SLICE=virtio-scsi-rollback-evidence`\n",
         VIRTIO_SCSI_SURVEY_PATH: "# Phase 12 Virtio SCSI Survey\nPHASE12_STATUS=rollback-evidence-only-live-starter-missing\nPHASE12_LANE=P12-L13\nrollback-only split machine-checkable\n",
         VIRTIO_SCSI_FALLBACK_PATH: "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog\n",
+        VIRTIO_SCSI_FIXTURE_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "fixture_kind": "rollback_evidence_presence_manifest",\n  "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",\n  "scope": "driver-local starter and replay gates are absent"\n}\n',
         VIRTIO_SCSI_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "preexisting_phase12_direct_test_present": false,\n  "gaps": ["phase12-virtio-scsi-runtime-request-flow"]\n}\n',
         VIRTIO_SCSI_SURVEY_GATE_PATH: 'test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthful" {\n    _ = pathExists("drivers/scsi/virtio_scsi.zig");\n    _ = "Documentation/zigux/phase12-virtio-scsi-survey.md";\n}\n',
         COMPLEX_DRIVER_NOTE_PATH: "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`\nkeep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth\nshared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members\n",
@@ -149,6 +158,21 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test expected success but failed: {errors!r}")
 
         write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / VIRTIO_SCSI_FIXTURE_MANIFEST_PATH,
+            read_text(tmp_root / VIRTIO_SCSI_FIXTURE_MANIFEST_PATH).replace(
+                "rollback_evidence_presence_manifest",
+                "rollback_presence_manifest",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and VIRTIO_SCSI_FIXTURE_MANIFEST_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected fixture-manifest marker failure")
+
+        write_fixture_tree(tmp_root)
         write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace("rollback-evidence-only", "rollback-lab", 1))
         if not any("missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("expected complex-driver marker failure")
@@ -166,7 +190,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=3")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=4")
     return 0
 
 
