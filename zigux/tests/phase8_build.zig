@@ -79,6 +79,19 @@ pub fn build(b: *std.Build) void {
         file_path_handle_bridge_tests,
     );
 
+    const file_path_handle_boundary_guard_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_file_path_handle_boundary_guard.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const file_path_handle_boundary_guard_tests = b.addTest(.{
+        .name = "phase8-file-path-handle-boundary-guard-tests",
+        .root_module = file_path_handle_boundary_guard_root_module,
+    });
+    const run_file_path_handle_boundary_guard_tests = b.addRunArtifact(
+        file_path_handle_boundary_guard_tests,
+    );
+
     const file_path_handle_bridge_manifest_sync_root_module = b.createModule(.{
         .root_source_file = b.path("phase8_file_path_handle_bridge_manifest_sync.zig"),
         .target = target,
@@ -132,6 +145,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_perf_buffer_poll_tests.step);
     test_step.dependOn(&run_perf_buffer_ready_window_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_tests.step);
+    test_step.dependOn(&run_file_path_handle_boundary_guard_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_manifest_sync_tests.step);
     test_step.dependOn(&run_libbpf_segment_verify_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
