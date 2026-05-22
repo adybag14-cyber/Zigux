@@ -392,7 +392,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -442,6 +442,17 @@ def load_bridge_checker_anchor_packets(bridge_checker_text: str) -> tuple[tuple[
         extract_string_sequence(bridge_checker_text, CONF_HELPER_ANCHOR_CONST),
         extract_string_sequence(bridge_checker_text, CONFDATA_HELPER_ANCHOR_CONST),
     )
+
+
+def extract_dict_case_list(raw_cases: list[object], *, entry_code: str) -> tuple[list[dict[str, object]], list[tuple[str, str]]]:
+    cases: list[dict[str, object]] = []
+    issues: list[tuple[str, str]] = []
+    for index, case in enumerate(raw_cases):
+        if not isinstance(case, dict):
+            issues.append((entry_code, f"{index}:{type(case).__name__}"))
+            continue
+        cases.append(case)
+    return cases, issues
 
 
 def build_conf_manifest_payload(
@@ -563,7 +574,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if not isinstance(raw_conf_cases, list):
                 issues.append(("INVALID_CONF_CASES_PAYLOAD", type(raw_conf_cases).__name__))
             else:
-                conf_cases = [case for case in raw_conf_cases if isinstance(case, dict)]
+                conf_cases, conf_case_issues = extract_dict_case_list(
+                    raw_conf_cases,
+                    entry_code="INVALID_CONF_CASE_ENTRY",
+                )
+                issues.extend(conf_case_issues)
                 silent_case_names = [case.get("name") for case in conf_cases if case.get("silent") is True]
                 if silent_case_names != list(EXPECTED_SILENT_CONF_CASE_NAMES):
                     issues.append(
@@ -611,7 +626,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if not isinstance(raw_confdata_cases, list):
                 issues.append(("INVALID_CONFDATA_CASES_PAYLOAD", type(raw_confdata_cases).__name__))
             else:
-                confdata_cases = [case for case in raw_confdata_cases if isinstance(case, dict)]
+                confdata_cases, confdata_case_issues = extract_dict_case_list(
+                    raw_confdata_cases,
+                    entry_code="INVALID_CONFDATA_CASE_ENTRY",
+                )
+                issues.extend(confdata_case_issues)
                 confdata_case_names = [case.get("name") for case in confdata_cases]
                 if confdata_case_names != list(EXPECTED_CONFDATA_CASE_NAMES):
                     issues.append(
@@ -825,6 +844,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CASES)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["conf_cases"].insert(0, "junk")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CONF_CASE_ENTRY", "0:str") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["conf_cases"][11].pop("silent")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert (
@@ -876,6 +903,14 @@ def run_self_test() -> int:
             "CONF_CASE_RANDCONFIG_ENV_PACKET_MISMATCH",
             "actual=[]:expected=['randconfig']",
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["confdata_cases"].insert(0, "junk")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CONFDATA_CASE_ENTRY", "0:str") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
