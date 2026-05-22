@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory the current bounded Phase 3 ABI/runtime packet."""
+"""Inventory the current bounded Phase 3 ABI support packet."""
 
 from __future__ import annotations
 
@@ -14,16 +14,10 @@ PHASE3_CATALOG_SCOPE = "abi-runtime"
 DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
-    Path("Documentation/zigux/phase3-roadmap-interop-gap-survey.md"),
-    Path("Documentation/zigux/phase3-errptr-xarray-slice.md"),
-    Path("Documentation/zigux/phase3-xarray-slot-slice.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
-    Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
-    Path("Documentation/zigux/phase3-validator-support-surface.md"),
-    Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
-    Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
+    Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
 )
 
 HEADER_PATHS = (
@@ -51,119 +45,66 @@ HELPER_PATHS = (
     Path("zigux/helpers/atomic.zig"),
     Path("zigux/helpers/barrier.zig"),
     Path("zigux/helpers/mmio.zig"),
-    Path("zigux/helpers/err_ptr.zig"),
-    Path("zigux/helpers/xa_value.zig"),
-    Path("zigux/helpers/xarray_slot_view.zig"),
     Path("zigux/unsafe/narrow.zig"),
 )
 
 VALIDATOR_PATHS = (
-    Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
-    Path("scripts/zigux/check-phase3-selftest-surface.py"),
-    Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
-    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
-    Path("scripts/zigux/validate_phase3_selftest.py"),
-    Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/check-phase3-abi.py"),
     Path("scripts/zigux/check-phase3-abi-support-packet.py"),
     Path("scripts/zigux/phase3_catalog.py"),
-    Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
-    Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
-    Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py"),
-    Path("scripts/zigux/check-phase3-xarray-slot.py"),
-    Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
-    Path("scripts/zigux/check-phase3-policy-dump.py"),
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
-    Path("scripts/zigux/check-phase3-wrapper-templates.py"),
-    Path("scripts/zigux/generate-phase3-check-wrappers.py"),
+    Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
     Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
-    Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
-    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
 )
 
 TEST_PATHS = (
     Path("zigux/tests/build.zig"),
-    Path("zigux/Makefile"),
-    Path("zigux/tests/phase3_dev_t_starter_packet.zig"),
-    Path("zigux/tests/phase3_dev_t_starter_packet_build.zig"),
-    Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
-    Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
-    Path("zigux/tests/phase3_xarray_slot_starter_packet.zig"),
-    Path("zigux/tests/phase3_xarray_slot_starter_packet_build.zig"),
-    Path("zigux/tests/phase3_xarray_slot_dump.zig"),
-    Path("zigux/tests/phase3_xarray_slot_dump_build.zig"),
-    Path("zigux/tests/phase3_policy_starter_packet.zig"),
-    Path("zigux/tests/phase3_policy_starter_packet_build.zig"),
-    Path("zigux/tests/phase3_policy_dump.zig"),
-    Path("zigux/tests/phase3_policy_dump_build.zig"),
-    Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt"),
-    Path("zigux/tests/phase3_low_level_wrappers.zig"),
-    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
-    Path("zigux/tests/phase3_export_uapi_c_header_smoke.c"),
-    Path("zigux/tests/phase3_export_uapi_layout.zig"),
-    Path("zigux/tests/phase3_export_uapi_layout_build.zig"),
+    Path("zigux/tests/README.md"),
     Path("zigux/tests/phase3_abi.zig"),
     Path("zigux/tests/phase3_abi_dump_current.zig"),
     Path("zigux/tests/fixtures/phase3_abi_manifest.json"),
+    Path("zigux/tests/phase3_policy_starter_packet.zig"),
+    Path("zigux/tests/phase3_policy_starter_packet_build.zig"),
+    Path("zigux/tests/phase3_policy_starter_packet_manifest.json"),
+    Path("zigux/tests/phase3_export_uapi_c_header_smoke.c"),
+    Path("zigux/tests/phase3_export_uapi_layout.zig"),
+    Path("zigux/tests/phase3_export_uapi_layout_build.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
+    Path("zigux/Makefile"),
 )
 
 COMMANDS = (
-    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
-    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
-    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
-    "python3 scripts/zigux/validate_phase3_selftest.py",
-    "python3 scripts/zigux/validate-phase3.py",
+    "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
+    "python3 scripts/zigux/check-phase3-catalog-selftest.py",
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
-    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
-    "python3 scripts/zigux/check-phase3-policy-dump.py",
-    "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
-    "python3 scripts/zigux/check-phase3-catalog-selftest.py",
-    "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test",
-    "python3 scripts/zigux/check-phase3-wrapper-templates.py",
-    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
-    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
-    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .",
-    "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
-    "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
-    "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
-    "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
-    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
-    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
-    "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
-    "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-    "make -C zigux phase3-export-uapi-layout",
-    "make -C zigux phase3-export-uapi-layout-test",
+    "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-    "make -C zigux phase3-low-level-wrappers",
     "make -C zigux phase3-low-level-wrappers-test",
-    "make -C zigux phase3-test",
-    "make -C zigux phase3-dump",
-    "make -C zigux phase3-validate",
-    "make -C zigux phase3",
 )
 
 
@@ -250,7 +191,7 @@ def run_self_test() -> int:
         expected = f"missing repo file: {VALIDATOR_PATHS[-1].as_posix()}"
         if expected not in issues:
             print("PHASE3_CATALOG_SELF_TEST=fail")
-            print("expected missing Linux-facing header governance validator route was not reported")
+            print("expected missing ABI governance validator route was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
@@ -260,13 +201,13 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Inventory the current bounded Phase 3 ABI/runtime packet."
+        description="Inventory the current bounded Phase 3 ABI support packet."
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the current Phase 3 ABI/runtime packet",
+        help="repository root that contains the current Phase 3 ABI support packet",
     )
     parser.add_argument("--pretty", action="store_true")
     parser.add_argument("--self-test", action="store_true")
