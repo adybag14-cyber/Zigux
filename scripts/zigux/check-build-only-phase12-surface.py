@@ -107,7 +107,7 @@ RAW_GITHUB_COVERAGE_MARKER = (
     "shared support bundle are distinct evidence states in this runtime"
 )
 RAW_GITHUB_COVERAGE_RETURNED_WRAPPER_MARKER = (
-    "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`, so treat the readable Makefile as bounded support evidence for the returned smoke-and-test wrappers rather than as proof that the whole shared packet is directly bridge-readable"
+    "now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` again, so treat the readable Makefile as bounded support evidence for the returned validator-first plus smoke-and-test wrappers rather than as proof that the whole shared packet is directly bridge-readable"
 )
 RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER = (
     "`.github/workflows/zigux-bootstrap.yml` now rebuilds the repo-local `.zig-toolchain` fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org`, so treat the Makefile fallback as a restorable local-first degraded-workflow path before falling back to attached `ZIG=<attached-zig-path>` reruns"
