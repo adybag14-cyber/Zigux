@@ -98,6 +98,7 @@ PROCESS_OUTPUT_FIXTURES = tuple(
     for name in EXPECTED_PROCESS_OUTPUT_PACKET
 )
 EXPECTED_HELP_PACKET = ("help_expected.json",)
+EXPECTED_STANDALONE_PROOF_PACKET = (VERSION_SIDE_EFFECT_TEST,)
 EXPECTED_HELPER_LOCAL_ANCHORS = (
     "genksyms bridge treats pure version requests as version command",
     "genksyms bridge preserves repeated pure version invocations",
@@ -157,7 +158,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -301,6 +302,7 @@ def build_expected_manifest() -> dict[str, object]:
         "cases": [case["name"] for case in CASE_FIXTURES],
         "bridge_expected_packet": list(EXPECTED_BRIDGE_EXPECTED_PACKET),
         "help_packet": list(EXPECTED_HELP_PACKET),
+        "standalone_proof_packet": list(EXPECTED_STANDALONE_PROOF_PACKET),
         "process_output_packet": list(EXPECTED_PROCESS_OUTPUT_PACKET),
         "helper_local_anchors": list(EXPECTED_HELPER_LOCAL_ANCHORS),
     }
@@ -382,6 +384,8 @@ def validate_manifest_payload(payload: object) -> list[tuple[str, str]]:
         issues.append(("MANIFEST_BRIDGE_EXPECTED_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("help_packet") != expected["help_packet"]:
         issues.append(("MANIFEST_HELP_PACKET_MISMATCH", MANIFEST_FIXTURE))
+    if payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:
+        issues.append(("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("process_output_packet") != expected["process_output_packet"]:
         issues.append(("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("helper_local_anchors") != expected["helper_local_anchors"]:
@@ -729,6 +733,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, MANIFEST_FIXTURE, "{broken\n")
         assert ("INVALID_MANIFEST_JSON", MANIFEST_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        manifest = build_expected_manifest()
+        manifest["standalone_proof_packet"] = []
+        write_text(root, MANIFEST_FIXTURE, json.dumps(manifest, indent=2) + "\n")
+        assert ("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
