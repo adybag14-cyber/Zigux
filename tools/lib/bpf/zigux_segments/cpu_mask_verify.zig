@@ -78,6 +78,29 @@ test "phase8 cpu-mask helpers keep direct parse and summary outputs stable" {
     try std.testing.expect(!cpu_mask.isOnlineCpuEligible(parsed.values, 9));
 }
 
+test "phase8 cpu-mask helpers keep signed-token and dash-whitespace parity explicit" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var parsed = try cpu_mask.parseCpuMaskString(allocator, "\x0b0-\x0c3,+5-\t6,+8-\n9\n");
+    defer parsed.deinit(allocator);
+    try std.testing.expectEqual(@as(usize, 8), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(!parsed.values[7]);
+    try std.testing.expect(parsed.values[8]);
+    try std.testing.expect(parsed.values[9]);
+
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(allocator, "0 -3"));
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(allocator, "+5 \t-6"));
+}
+
 test "phase8 cpu-mask helpers keep string-backed summaries and auto-count outputs stable" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
