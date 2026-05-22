@@ -272,6 +272,10 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "test \"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite combined trigger reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console rejects cleanup without final-close or hangup evidence\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps stale hangup short-circuit ownership reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps remove handoff summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
