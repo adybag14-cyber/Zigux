@@ -174,6 +174,16 @@ EXPECTED_RBTREE_REVIEW_ANCHORS = {
     "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
     "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
     "cached_leftmost_fixture_keys": ["cached_leftmost_return_serials"],
+    "traversal_replay_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+    ],
     "duplicate_search_replay_keys": [
         "find_found_key",
         "find_missing",
@@ -182,6 +192,7 @@ EXPECTED_RBTREE_REVIEW_ANCHORS = {
         "match_iterator_serials",
         "next_match_terminal_null",
     ],
+    "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",
     "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; the ordered Linux-style alias proof, dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors until another committed cached-root field lands.",
 }
 
