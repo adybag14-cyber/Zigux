@@ -415,6 +415,12 @@ def build_self_test_root(root: Path) -> None:
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
+
+
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement)
 
 
@@ -422,6 +428,7 @@ def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
         1
+        + 1
         + len(DOCS_README_MARKERS)
         + len(DOCS_README_FORBIDDEN_MARKERS)
         + len(PHASE2_NOTES_MARKERS)
@@ -446,10 +453,16 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
+        repeated_marker = DOCS_README_MARKERS[0]
+        repeated_text = "\n".join((repeated_marker, repeated_marker, "tail")) + "\n"
+        replaced_text = replace_once(repeated_text, repeated_marker)
+        assert replaced_text == f"\n{repeated_marker}\ntail\n"
+        checks_run += 1
+
         for marker in DOCS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, DOCS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_DOCS_README_MARKERS", marker) in issues
             checks_run += 1
@@ -465,7 +478,7 @@ def run_self_test() -> int:
         for marker in PHASE2_NOTES_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, PHASE2_NOTES)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_PHASE2_NOTES_MARKERS", marker) in issues
             checks_run += 1
@@ -489,7 +502,7 @@ def run_self_test() -> int:
         for marker in REVIEW_CHECKLIST_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
             checks_run += 1
@@ -513,7 +526,7 @@ def run_self_test() -> int:
         for marker in SCRIPTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
@@ -529,7 +542,7 @@ def run_self_test() -> int:
         for marker in TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
@@ -553,7 +566,7 @@ def run_self_test() -> int:
         for marker in THIRD_PARTY_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, THIRD_PARTY_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_THIRD_PARTY_README_MARKERS", marker) in issues
             checks_run += 1
