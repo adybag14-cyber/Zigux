@@ -757,6 +757,14 @@ test "encode accepts exact-fit buffers and rejects one-byte-short buffers" {
     try std.testing.expectError(EncodeError.DestinationTooSmall, encode(short_buf[0..], &sample, true, .std));
 }
 
+test "variant-pinned convenience helpers preserve zero-length ownership paths" {
+    inline for ([_]Variant{ .std, .urlsafe, .imap }) |variant| {
+        inline for ([_]bool{ false, true }) |padding| {
+            try expectVariantPinnedConvenienceParity("", "", padding, variant);
+        }
+    }
+}
+
 test "decode covers padded, unpadded, and variant inputs" {
     var out: [16]u8 = undefined;
     var variant_out: [8]u8 = undefined;
