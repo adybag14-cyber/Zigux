@@ -18,6 +18,7 @@ It keeps the live split-helper network packet and the storage-facing reminder su
 - driver-local NVMe reopen companion: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
+- anti-overlap checker: `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
 
 ## Lane Scope
 
