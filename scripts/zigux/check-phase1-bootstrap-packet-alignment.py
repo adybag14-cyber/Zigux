@@ -116,6 +116,8 @@ OPTIONAL_WORKFLOW_PACKET_STEPS = (
 
 PHASE1_CORE_CHAIN_HEAD = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[:6])
 PHASE1_CORE_CHAIN_TAIL = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[6:])
+PHASE1_PACKET_PREDECESSOR = "Validate current Phase 2 tool packet"
+PHASE1_PACKET_SUCCESSOR = "Self-test current Phase 4 repo-reality warning checker"
 
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase1-bench.py",
@@ -297,8 +299,15 @@ def collect_workflow_order_failures(text: str) -> list[str]:
         phase1_core_chain += tuple(step_name for step_name, _ in OPTIONAL_WORKFLOW_PACKET_STEPS)
     phase1_core_chain += PHASE1_CORE_CHAIN_TAIL
 
-    if not contains_adjacent_chain(workflow_step_names(text), phase1_core_chain):
+    workflow_names = workflow_step_names(text)
+    if not contains_adjacent_chain(workflow_names, phase1_core_chain):
         failures.append("workflow:phase1_core_packet:expected=adjacent_without_insertions:actual=split_or_interleaved")
+
+    boundary_chain = (PHASE1_PACKET_PREDECESSOR,) + phase1_core_chain + (PHASE1_PACKET_SUCCESSOR,)
+    if not contains_adjacent_chain(workflow_names, boundary_chain):
+        failures.append(
+            "workflow:phase1_bootstrap_packet_slot:expected=adjacent_between_phase2_tail_and_phase4_head:actual=split_or_shifted"
+        )
 
     return failures
 
@@ -349,10 +358,18 @@ def build_sample_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
         write_text(root, relative_path, "\n".join(markers) + "\n")
 
+    sample_steps = [
+        workflow_step_block("Validate current Phase 2 tool packet", "python3 scripts/zigux/validate-phase2.py"),
+        *[workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS],
+        workflow_step_block(
+            "Self-test current Phase 4 repo-reality warning checker",
+            "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
+        ),
+    ]
     write_text(
         root,
         WORKFLOW_REL,
-        "\n".join(workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS) + "\n",
+        "\n".join(sample_steps) + "\n",
     )
 
 
@@ -389,7 +406,18 @@ def add_forbidden_workflow_line(root: Path) -> None:
 
 
 def add_optional_workflow_pair(root: Path, mode: str) -> None:
-    blocks = [workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS]
+    workflow_text = load_text(root, WORKFLOW_REL)
+    blocks = workflow_text.rstrip("\n").splitlines()
+    joined_blocks: list[str] = []
+    index = 0
+    while index < len(blocks):
+        if index + 1 < len(blocks) and blocks[index].startswith("      - name: ") and blocks[index + 1].startswith("        run: "):
+            joined_blocks.append(blocks[index] + "\n" + blocks[index + 1])
+            index += 2
+            continue
+        joined_blocks.append(blocks[index])
+        index += 1
+    blocks = joined_blocks
     bench_block = workflow_step_block(*WORKFLOW_PACKET_STEPS[6])
     bench_index = blocks.index(bench_block)
     pair_blocks = [workflow_step_block(step_name, run_command) for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS]
@@ -421,6 +449,20 @@ def insert_phase1_packet_spacer(root: Path, after_step_name: str) -> None:
     spacer = "      - name: Drifted current Phase 1 packet spacer\n        run: true"
     blocks[anchor_index + 1 : anchor_index + 1] = [spacer]
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
+
+
+def insert_workflow_spacer_before(root: Path, step_name: str) -> None:
+    text = load_text(root, WORKFLOW_REL)
+    needle = f"      - name: {step_name}\n"
+    spacer = "      - name: Drifted boundary-before current Phase 1 packet spacer\n        run: true\n"
+    write_text(root, WORKFLOW_REL, replace_once(text, needle, spacer + needle))
+
+
+def insert_workflow_spacer_after(root: Path, step_name: str) -> None:
+    text = load_text(root, WORKFLOW_REL)
+    needle = f"      - name: {step_name}\n"
+    spacer = "      - name: Drifted boundary-after current Phase 1 packet spacer\n        run: true\n"
+    write_text(root, WORKFLOW_REL, replace_once(text, needle, needle + spacer))
 
 
 def rename_workflow_step(root: Path, original_name: str, replacement_name: str) -> None:
@@ -461,6 +503,8 @@ def run_self_test() -> int:
     for step_name, _ in WORKFLOW_PACKET_STEPS[:-1]:
         case_name = f"workflow_phase1_packet_spacer_after_{step_name.lower().replace(' ', '_').replace('-', '_')}"
         cases.append((case_name, ("phase1_packet_spacer", step_name)))
+    cases.append(("workflow_phase1_packet_boundary_spacer_before_direct_owner", ("boundary_spacer_before", WORKFLOW_PACKET_STEPS[0][0])))
+    cases.append(("workflow_phase1_packet_boundary_spacer_after_smoke", ("boundary_spacer_after", WORKFLOW_PACKET_STEPS[-1][0])))
     cases.append(
         (
             "workflow_required_step_name_drift",
@@ -518,6 +562,10 @@ def run_self_test() -> int:
                     add_optional_workflow_pair(root, mutation[1])
                 elif kind == "phase1_packet_spacer":
                     insert_phase1_packet_spacer(root, mutation[1])
+                elif kind == "boundary_spacer_before":
+                    insert_workflow_spacer_before(root, mutation[1])
+                elif kind == "boundary_spacer_after":
+                    insert_workflow_spacer_after(root, mutation[1])
                 elif kind == "rename_workflow_step":
                     rename_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "rewrite_workflow_command":
