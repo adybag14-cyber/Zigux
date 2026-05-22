@@ -16,6 +16,7 @@ DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
 )
