@@ -202,6 +202,14 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
     );
     defer std.testing.allocator.free(checklist);
 
+    const guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(guide);
+
     const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
@@ -209,6 +217,14 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(sample_root_readme);
+
+    const scripts_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root_readme);
 
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_STATUS=restored-direct-sample-packet`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_LANE_KEY=P5-L18`") != null);
@@ -227,10 +243,27 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
     try std.testing.expect(std.mem.indexOf(u8, checklist, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "direct non-runtime kretprobe proof") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, guide, "Documentation/zigux/phase5-kretprobe-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, manifest.sample_path) != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zigux/tests/phase5_kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zig test samples/zigux/kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "zig test zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "current public-tree-backed companion evidence") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, manifest.sample_path) != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "current direct sample-root proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "directly readable paired test evidence") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "samples/zigux/kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "zigux/tests/phase5_kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "restored direct non-runtime kretprobe packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_root_readme, "samples/zigux/runtime_*.zig") != null);
 }
