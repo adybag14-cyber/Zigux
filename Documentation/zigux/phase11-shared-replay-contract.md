@@ -78,6 +78,7 @@ or `zigux/tests/phase11_build.zig` routes.
   through `make -C zigux phase11-validate` and does not name a separate
   dedicated HVC survey workflow step
 - the shared packet now uses the shipped `check-phase11-*.py` reminder scripts,
+  the validator self-test `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, the shared inventory fixture, and the
   directly materialized proof-backed build routes rather than the older wrapper
   family
@@ -86,10 +87,10 @@ or `zigux/tests/phase11_build.zig` routes.
 - that inventory currently records 3 build test names, 0 shared
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
   proof replays, 3 adjunct build replays, and 8 HVC current-head exact command
-  markers, while `scripts/zigux/validate-phase11.py` plus
-  `make -C zigux phase11-validate` keep the broader matrix-gap,
-  targetless-unregister, and DesignWare checker chain explicit beside that
-  narrower inventory packet
+  markers, while `python3 scripts/zigux/validate-phase11.py --self-test`,
+  `scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
+  keep the broader matrix-gap, targetless-unregister, and DesignWare checker
+  chain explicit beside that narrower inventory packet
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
 
@@ -98,6 +99,7 @@ or `zigux/tests/phase11_build.zig` routes.
 These are the exact bounded checks that keep the current shared packet
 deterministic and reviewable:
 
+- shared validator self-test: `python3 scripts/zigux/validate-phase11.py --self-test`
 - shared checker self-tests:
   `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`,
   `python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test`,
