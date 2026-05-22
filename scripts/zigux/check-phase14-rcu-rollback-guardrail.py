@@ -44,7 +44,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 REQUIRED_MARKERS = [
-    "`PHASE14_LANE_KEY=P14-L16`",
+    "`PHASE14_LANE_KEY=P14-L14`",
     "`PHASE14_STATUS_BUCKET=freeze_in_c`",
     "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
     "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
@@ -93,7 +93,7 @@ def write_text(path: Path, content: str) -> None:
 FIXTURE_NOTE = """# Phase 14 RCU Tree Survey
 This document records the current Phase 14 boundary-study packet for `kernel/rcu/tree.c` as it exists on verified `master`.
 ## Status
-- `PHASE14_LANE_KEY=P14-L16`
+- `PHASE14_LANE_KEY=P14-L14`
 - `PHASE14_STATUS_BUCKET=freeze_in_c`
 - `PHASE14_ANCHOR=kernel/rcu/tree.c`
 - `PHASE14_ROADMAP_DESTINATION=kernel/rcu/tree_bridge.zig`
@@ -130,7 +130,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture should pass but failed: {failures!r}")
 
         cases = [
-            ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
+            ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L14`", "missing_marker:`PHASE14_LANE_KEY=P14-L14`"),
             (
                 "remove-companion-heading",
                 COMPANION_CONFIRMATION_HEADING,
