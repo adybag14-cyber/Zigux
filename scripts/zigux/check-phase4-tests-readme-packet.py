@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed on the current Phase 4 tests-root repo-reality packet."""
+"""Guard against stale dedicated Phase 4 packet claims in zigux/tests/README.md."""
 
 from __future__ import annotations
 
@@ -10,67 +10,36 @@ import tempfile
 
 TARGET_RELATIVE_PATH = pathlib.Path("zigux/tests/README.md")
 
-DIRECT_READBACK_PACKET = [
-    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
-    "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/check-phase4-repo-reality-warning.py",
-    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "zigux/tests/phase4_perf_baseline_manifest.json",
-    "zigux/tests/phase4_perf_baseline_survey.zig",
-    "zigux/tests/README.md",
-]
-
-RECOVERED_BROADER_PACKET = [
-    "Documentation/zigux/phase4-gate-evidence.md",
-    "Documentation/zigux/phase4-validation-matrix.md",
-    "scripts/zigux/check-phase4-gate-evidence.py",
-    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-]
-
-SPLIT_READBACK_COMPANIONS = [
-    "scripts/zigux/validate-phase4.py",
-    "zigux/tests/phase4_build.zig",
-    "zigux/tests/bitmap_diff.zig",
-    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
-    "zigux/tests/atomic64_diff.zig",
-    "zigux/tests/runtime_atomic64_diff.zig",
-]
-
-REQUIRED_TEXT_MARKERS = [
-    "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
-    "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
-    "Current `master` keeps the shared Phase 4 rollback packet narrower than full exact-blob refresh rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still need fresh authenticated blob capture in this runtime, but current public raw fallback rereads return those files on `master`",
-    "while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again",
-    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
-    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
-    "Keep the shared ownership reminder truthful by pointing back to `Documentation/zigux/phase4-reversible-delivery-evidence.md` for the narrower current-head handoff instead of reconstructing the broader validator-and-bitmap packet from older route names alone.",
-]
-
-REQUIRED_MARKERS = (
-    REQUIRED_TEXT_MARKERS
-    + DIRECT_READBACK_PACKET
-    + RECOVERED_BROADER_PACKET
-    + SPLIT_READBACK_COMPANIONS
+REQUIRED_PRESENT_MARKERS = (
+    "# zigux/tests",
+    "This directory is the home of reusable Zigux parity and differential validation harnesses.",
+    "## Phase 5 sample packet",
 )
 
-SELF_TEST_CASE_NAMES = [
+FORBIDDEN_PHASE4_MARKERS = (
+    "## Phase 4",
+    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
+    "scripts/zigux/check-phase4-repo-reality-warning.py",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zigux/tests/bitmap_diff.zig",
+)
+
+SELF_TEST_CASE_NAMES = (
     "baseline_round_trip",
-    "missing_direct_readback_summary",
-    "missing_recovered_packet_summary",
-    "missing_split_readback_summary",
-    "missing_atomic64_current_head_evidence",
-    "missing_local_perf_checker",
-    "missing_local_perf_companions",
-    "missing_owner_handoff",
-]
+    "missing_header",
+    "missing_phase5_anchor",
+    "stale_phase4_heading",
+    "stale_phase4_note_reference",
+    "stale_phase4_perf_reference",
+    "stale_phase4_bitmap_reference",
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Verify that zigux/tests/README.md keeps the current Phase 4 "
-            "repo-reality packet explicit."
+            "Verify that zigux/tests/README.md does not carry a stale dedicated "
+            "Phase 4 reminder packet."
         )
     )
     parser.add_argument(
@@ -80,7 +49,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--file",
-        help="Override the tests-root README path for focused checks or self-tests.",
+        help="Override the README path for focused checks or self-tests.",
     )
     parser.add_argument(
         "--self-test",
@@ -103,23 +72,28 @@ def load_text(path: pathlib.Path) -> str:
         raise SystemExit(f"missing file: {path}") from exc
 
 
-def missing_markers(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_MARKERS if marker not in text]
+def collect_issues(text: str) -> list[str]:
+    issues: list[str] = []
+    for marker in REQUIRED_PRESENT_MARKERS:
+        if marker not in text:
+            issues.append(f"missing_required_marker={marker}")
+    for marker in FORBIDDEN_PHASE4_MARKERS:
+        if marker in text:
+            issues.append(f"stale_phase4_marker_present={marker}")
+    return issues
 
 
 def run_check(args: argparse.Namespace) -> int:
     path = target_path(args)
-    missing = missing_markers(load_text(path))
-    if missing:
+    issues = collect_issues(load_text(path))
+    if issues:
         print("PHASE4_TESTS_README_PACKET_CHECK=fail")
-        for marker in missing:
-            print(f"missing_marker={marker}")
+        for issue in issues:
+            print(issue)
         return 1
     print("PHASE4_TESTS_README_PACKET_CHECK=pass")
     print(f"checked_file={path}")
-    print(f"phase4_direct_readback_marker_count={len(DIRECT_READBACK_PACKET)}")
-    print(f"phase4_recovered_broader_marker_count={len(RECOVERED_BROADER_PACKET)}")
-    print(f"phase4_split_readback_marker_count={len(SPLIT_READBACK_COMPANIONS)}")
+    print(f"phase4_forbidden_marker_count={len(FORBIDDEN_PHASE4_MARKERS)}")
     return 0
 
 
@@ -130,57 +104,56 @@ def write_case(tmpdir: pathlib.Path, text: str) -> pathlib.Path:
     return target
 
 
+def baseline_text() -> str:
+    return "\n".join(REQUIRED_PRESENT_MARKERS) + "\n"
+
+
 def run_self_test() -> int:
-    baseline = "\n".join(REQUIRED_MARKERS) + "\n"
-    cases = [
+    baseline = baseline_text()
+    cases = (
         ("baseline_round_trip", baseline, []),
         (
-            "missing_direct_readback_summary",
-            baseline.replace(REQUIRED_TEXT_MARKERS[0] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[0]],
+            "missing_header",
+            baseline.replace(REQUIRED_PRESENT_MARKERS[0] + "\n", "", 1),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[0]}"],
         ),
         (
-            "missing_recovered_packet_summary",
-            baseline.replace(REQUIRED_TEXT_MARKERS[1] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[1]],
+            "missing_phase5_anchor",
+            baseline.replace(REQUIRED_PRESENT_MARKERS[2] + "\n", "", 1),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[2]}"],
         ),
         (
-            "missing_split_readback_summary",
-            baseline.replace(REQUIRED_TEXT_MARKERS[2] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[2]],
+            "stale_phase4_heading",
+            baseline + "## Phase 4\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[0]}"],
         ),
         (
-            "missing_atomic64_current_head_evidence",
-            baseline.replace(REQUIRED_TEXT_MARKERS[3] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[3]],
+            "stale_phase4_note_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[1] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[1]}"],
         ),
         (
-            "missing_local_perf_checker",
-            baseline.replace(REQUIRED_TEXT_MARKERS[4] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[4]],
+            "stale_phase4_perf_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[3] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[3]}"],
         ),
         (
-            "missing_local_perf_companions",
-            baseline.replace(REQUIRED_TEXT_MARKERS[5] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[5]],
+            "stale_phase4_bitmap_reference",
+            baseline + FORBIDDEN_PHASE4_MARKERS[4] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[4]}"],
         ),
-        (
-            "missing_owner_handoff",
-            baseline.replace(REQUIRED_TEXT_MARKERS[6] + "\n", "", 1),
-            [REQUIRED_TEXT_MARKERS[6]],
-        ),
-    ]
+    )
 
     with tempfile.TemporaryDirectory(prefix="phase4-tests-readme-packet-") as tmp:
         tmpdir = pathlib.Path(tmp)
-        for name, text, expected_missing in cases:
+        for name, text, expected in cases:
             path = write_case(tmpdir, text)
-            actual_missing = missing_markers(load_text(path))
-            if actual_missing != expected_missing:
+            actual = collect_issues(load_text(path))
+            if actual != expected:
                 print("PHASE4_TESTS_README_PACKET_SELF_TEST=fail")
                 print(f"failed_case={name}")
-                print(f"expected_missing={expected_missing}")
-                print(f"actual_missing={actual_missing}")
+                print(f"expected={expected}")
+                print(f"actual={actual}")
                 return 1
 
     print("PHASE4_TESTS_README_PACKET_SELF_TEST=pass")
