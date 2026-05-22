@@ -92,3 +92,45 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "narrow hweight helpers ignore bits above their documented width" {
+    const upper8_masks = [_]u32{
+        0x0000_ff00,
+        0x1234_ab00,
+        0xffff_ff00,
+    };
+    const lower8_values = [_]u32{
+        0x00,
+        0x01,
+        0x5a,
+        0xff,
+    };
+
+    for (lower8_values) |lower| {
+        for (upper8_masks) |upper| {
+            const widened = lower | upper;
+            try std.testing.expectEqual(swHweight8(lower), swHweight8(widened));
+            try std.testing.expectEqual(__sw_hweight8(lower), __sw_hweight8(widened));
+        }
+    }
+
+    const upper16_masks = [_]u32{
+        0x1234_0000,
+        0xabcd_0000,
+        0xffff_0000,
+    };
+    const lower16_values = [_]u32{
+        0x0000,
+        0x0001,
+        0x55aa,
+        0xffff,
+    };
+
+    for (lower16_values) |lower| {
+        for (upper16_masks) |upper| {
+            const widened = lower | upper;
+            try std.testing.expectEqual(swHweight16(lower), swHweight16(widened));
+            try std.testing.expectEqual(__sw_hweight16(lower), __sw_hweight16(widened));
+        }
+    }
+}
