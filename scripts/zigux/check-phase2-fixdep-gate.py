@@ -12,7 +12,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
-C_FIXDEP_REL = Path("scripts/basic/fixdep.c")
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
 FIXDEP_DIFF_REL = Path("scripts/zigux/check-fixdep-diff.py")
 FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
@@ -22,7 +21,6 @@ MAKEFILE_REL = Path("zigux/Makefile")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
-    C_FIXDEP_REL,
     FIXDEP_REL,
     FIXDEP_DIFF_REL,
     FIXDEP_CASES_REL,
@@ -51,17 +49,17 @@ FIXDEP_REQUIRED_EXACT_LINES = (
 )
 
 FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
-    "diff_text(c_actual, c_repeat)",
+    "diff_text(expected_stdout, zig_actual)",
+    "diff_text(expected_stdout, zig_repeat)",
     "diff_text(zig_actual, zig_repeat)",
-    "diff_text(c_actual_stderr, c_repeat_stderr)",
+    "diff_text(expected_stderr_path, zig_actual_stderr)",
+    "diff_text(expected_stderr_path, zig_repeat_stderr)",
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
-    'C_FIXDEP = ROOT / "scripts" / "basic" / "fixdep.c"',
     'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
-    'EXPECTED_C_FIXDEP = ROOT / "scripts" / "basic" / "fixdep.c"',
     'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
-    "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
+    "validate_tool_source(ZIG_FIXDEP)",
     'print("FIXDEP_SELF_TEST=pass")',
-    'print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")',
+    'print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")',
     'print("FIXDEP_DIFF=pass")',
     'print("FIXDEP_DETERMINISM=pass")',
 )
@@ -404,7 +402,6 @@ def swap_exact_lines(text: str, first: str, second: str) -> str:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve(root, C_FIXDEP_REL), "present\n")
     write_text(
         resolve(root, FIXDEP_REL),
         "\n".join(
