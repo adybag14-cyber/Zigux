@@ -326,6 +326,13 @@ test "nextArg keeps quoted leading equals tokens bare" {
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
+test "nextArg keeps quoted leading equals tokens with spaces bare" {
+    const parsed = nextArg("\"=value with spaces\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("=value with spaces", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
 test "nextArg keeps empty and unterminated quoted values aligned" {
     const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("root", empty.param);
