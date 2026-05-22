@@ -120,6 +120,47 @@ test "phase11 HVC exported helper proof keeps imported hv_ops layout tied to cur
     try layout_assert.expectOffset(hvc_console.HvOps, "dtr_rts", 64);
 }
 
+test "phase11 HVC exported helper proof keeps imported hv_ops callback signatures tied to current module" {
+    comptime {
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "get_chars"),
+            ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "put_chars"),
+            ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "flush"),
+            ?*const fn (u32, bool) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_add"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_del"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_hangup"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "tiocmget"),
+            ?*const fn (*hvc_console.HvcStruct) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "tiocmset"),
+            ?*const fn (*hvc_console.HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "dtr_rts"),
+            ?*const fn (*hvc_console.HvcStruct, bool) callconv(.c) void,
+        );
+    }
+}
+
 test "phase11 HVC exported helper proof keeps hv_ops callback signatures exact" {
     comptime {
         assertExactType(
