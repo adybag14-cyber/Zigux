@@ -45,6 +45,9 @@ BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
+COMPLEX_DRIVER_LANE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-complex-driver-lane-packet.py"
+)
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 HEAVY_CONSUMER_PACKET_CHECKER_PATH = (
     "scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py"
@@ -111,6 +114,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
+    COMPLEX_DRIVER_LANE_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
     HEAVY_CONSUMER_PACKET_CHECKER_PATH,
     VIRTIO_NET_PACKET_CHECKER_PATH,
@@ -286,6 +290,7 @@ REQUIRED_MARKERS = {
     VALIDATOR_PATH: [
         BUILD_ONLY_CHECKER_PATH,
         RELEASE_READINESS_CHECKER_PATH,
+        COMPLEX_DRIVER_LANE_CHECKER_PATH,
         LIBBPF_SNAPSHOT_CHECKER_PATH,
         HEAVY_CONSUMER_PACKET_CHECKER_PATH,
         VIRTIO_NET_PACKET_CHECKER_PATH,
@@ -308,6 +313,10 @@ REQUIRED_MARKERS = {
         "run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
         "- name: Check current Phase 12 build-only surface",
         "run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+        "- name: Self-test current Phase 12 complex-driver lane packet checker",
+        "run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test",
+        "- name: Check current Phase 12 complex-driver lane packet",
+        "run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py",
         "- name: Self-test current Phase 12 release-readiness packet checker",
         "run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
         "- name: Check current Phase 12 release-readiness packet",
@@ -468,6 +477,7 @@ FIXTURE_TEXT = {
     ),
     BUILD_ONLY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    COMPLEX_DRIVER_LANE_CHECKER_PATH: "#!/usr/bin/env python3\n",
     LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3\n",
     HEAVY_CONSUMER_PACKET_CHECKER_PATH: "\n".join(
         REQUIRED_MARKERS[HEAVY_CONSUMER_PACKET_CHECKER_PATH]
