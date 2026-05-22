@@ -237,3 +237,23 @@ test "releaseWithoutSubstrate preserves the waiting snapshot on drift" {
     try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
+
+test "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary" {
+    const blocked_publication_fields = [_][]const u8{
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "module_symvers_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
+    inline for (blocked_publication_fields) |field| {
+        try std.testing.expect(!@hasField(PreparedRequest, field));
+    }
+}
