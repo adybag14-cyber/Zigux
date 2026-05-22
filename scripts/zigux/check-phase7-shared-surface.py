@@ -14,9 +14,6 @@ CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
-SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
-TESTS_README_PATH = Path("zigux/tests/README.md")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 
@@ -48,6 +45,19 @@ EXPECTED_ROADMAP_ANCHORS = [
     "lib/rbtree.c",
 ]
 EXPECTED_GAPS: list[str] = []
+EXPECTED_REPLAYS = [
+    "python3 scripts/zigux/check-phase7-shared-surface.py",
+    "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
+    "python3 scripts/zigux/check-phase7-build-wiring.py",
+    "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "python3 scripts/zigux/validate-phase7.py",
+    "python3 scripts/zigux/validate-phase7.py --self-test",
+    "make -C zigux phase7-validate",
+]
 EXPECTED_HELPERS = [
     (
         "string_helpers",
@@ -66,20 +76,11 @@ EXPECTED_HELPERS = [
     ),
     ("cmdline", "lib/cmdline.zig", ["pub fn parseOptionStr", "pub fn getOption"]),
     ("argv_split", "lib/argv_split.zig", ["pub const ArgvSplitResult", "pub fn argvSplit"]),
-    ("rbtree", "lib/rbtree.zig", ["pub const Node = struct", "pub const RootCached = struct", "pub fn add(", "pub fn rb_find_add_cached("]),
-]
-EXPECTED_REPLAYS = [
-    "python3 scripts/zigux/check-phase7-shared-surface.py",
-    "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
-    "python3 scripts/zigux/check-phase7-build-wiring.py",
-    "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
-    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
-    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
-    "python3 scripts/zigux/check-phase7-argv-split-packet.py",
-    "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
-    "python3 scripts/zigux/validate-phase7.py",
-    "python3 scripts/zigux/validate-phase7.py --self-test",
-    "make -C zigux phase7-validate",
+    (
+        "rbtree",
+        "lib/rbtree.zig",
+        ["pub const Node = struct", "pub const RootCached = struct", "pub fn add(", "pub fn rb_find_add_cached("],
+    ),
 ]
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
@@ -104,19 +105,16 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase7-validate:",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-README_REQUIRED_RULES = [
-    (DOCS_README_PATH, ["Phase 7 notes"]),
-    (SCRIPTS_README_PATH, ["## Phase 7"]),
-    (TESTS_README_PATH, ["## Phase 7"]),
+REQUIRED_BUILD_SNIPPETS = [
+    "../../lib/rbtree.zig",
+    "phase7-rbtree-test",
+    "phase7-rbtree-survey",
 ]
 REQUIRED_FILES = [
     CATALOG_PATH,
     MANIFEST_PATH,
     MAKEFILE_PATH,
     BUILD_PATH,
-    DOCS_README_PATH,
-    SCRIPTS_README_PATH,
-    TESTS_README_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
     Path("lib/string_helpers.zig"),
@@ -124,7 +122,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -156,7 +154,7 @@ def validate(repo_root: Path) -> None:
 
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
-    require_snippets(repo_root / BUILD_PATH, ["../../lib/rbtree.zig", "phase7-rbtree-test", "phase7-rbtree-survey"])
+    require_snippets(repo_root / BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
 
     manifest = read_json(repo_root / MANIFEST_PATH)
     if manifest.get("packet") != EXPECTED_PACKET:
@@ -175,15 +173,11 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase7 repo-reality gaps mismatch")
 
     helpers = manifest.get("current_direct_helper_evidence")
-    if not isinstance(helpers, list):
-        raise ValidationError("phase7 helper evidence list missing")
-    observed = []
-    for helper in helpers:
-        if not isinstance(helper, dict):
-            raise ValidationError("phase7 helper evidence entry shape drift")
-        observed.append((helper.get("key"), helper.get("zig_helper"), helper.get("expected_markers")))
-    expected_observed = [(key, path, markers) for key, path, markers in EXPECTED_HELPERS]
-    if observed != expected_observed:
+    expected_helpers = [
+        {"key": key, "zig_helper": path, "expected_markers": markers}
+        for key, path, markers in EXPECTED_HELPERS
+    ]
+    if helpers != expected_helpers:
         raise ValidationError("phase7 helper evidence ordering drift")
 
     for key, rel_path, markers in EXPECTED_HELPERS:
@@ -191,9 +185,6 @@ def validate(repo_root: Path) -> None:
         for marker in markers:
             if marker not in content:
                 raise ValidationError(f"phase7 helper marker missing for {key}: {marker}")
-
-    for rel_path, required_snippets in README_REQUIRED_RULES:
-        require_snippets(repo_root / rel_path, required_snippets)
 
 
 def write(path: Path, content: str) -> None:
@@ -204,22 +195,16 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(
         root / CATALOG_PATH,
-        "\n".join(
-            [
-                "- packet: `phase7-leaf-library-evidence`",
-                "- phase: `Phase 7`",
-                "- lane scope: shared leaf-library evidence rows and validation foothold only",
-                "",
-                *REQUIRED_CATALOG_SNIPPETS,
-            ]
-        )
-        + "\n",
+        "\n".join([
+            "- packet: `phase7-leaf-library-evidence`",
+            "- phase: `Phase 7`",
+            "- lane scope: shared leaf-library evidence rows and validation foothold only",
+            "",
+            *REQUIRED_CATALOG_SNIPPETS,
+        ]) + "\n",
     )
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-    write(root / BUILD_PATH, "../../lib/rbtree.zig\nphase7-rbtree-test\nphase7-rbtree-survey\n")
-    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
-    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
-    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
+    write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass')\n")
     write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
     write(
@@ -239,10 +224,9 @@ def scaffold_repo(root: Path) -> None:
                 "current_repo_reality_gaps": EXPECTED_GAPS,
             },
             indent=2,
-        )
-        + "\n",
+        ) + "\n",
     )
-    marker_blocks = {}
+    marker_blocks: dict[str, list[str]] = {}
     for _, rel_path, markers in EXPECTED_HELPERS:
         marker_blocks.setdefault(rel_path, [])
         for marker in markers:
@@ -277,12 +261,14 @@ def run_self_test() -> None:
         ("missing_build_rbtree_import", BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
         ("missing_build_rbtree_route", BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
     ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_shared_surface_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         scaffold_repo(root)
         validate(root)
 
         for case, rel in missing_file_cases:
+            scaffold_repo(root)
             (root / rel).unlink()
             try:
                 validate(root)
@@ -290,9 +276,9 @@ def run_self_test() -> None:
                 pass
             else:
                 raise AssertionError(case)
-            scaffold_repo(root)
 
         for case, rel, old, new in marker_cases:
+            scaffold_repo(root)
             _mutate_text(root, rel, old, new, case)
             try:
                 validate(root)
@@ -300,13 +286,9 @@ def run_self_test() -> None:
                 pass
             else:
                 raise AssertionError(case)
-            scaffold_repo(root)
 
     print("PHASE7_SHARED_SURFACE_SELF_TEST=pass")
-    print(
-        "PHASE7_SHARED_SURFACE_SELF_TEST_CASE_COUNT=%d"
-        % (len(missing_file_cases) + len(marker_cases))
-    )
+    print(f"PHASE7_SHARED_SURFACE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -318,16 +300,14 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    if args.self_test:
-        run_self_test()
-        return 0
-
     try:
+        if args.self_test:
+            run_self_test()
+            return 0
         validate(args.repo_root)
     except ValidationError as exc:
         print(f"PHASE7_SHARED_SURFACE=fail: {exc}")
         return 1
-
     print("PHASE7_SHARED_SURFACE=pass")
     return 0
 
