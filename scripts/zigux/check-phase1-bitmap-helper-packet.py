@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve()
-DEFAULT_ROOT = HERE.parent
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 
