@@ -16,6 +16,7 @@ test "phase14 ring-buffer attached toolchain guidance stays packet-local and env
     try std.testing.expect(std.mem.indexOf(u8, note, "`P14-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`packet_local_only`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`mkdir -p /workspace/.toolchains/p14-l08 && tar -xf \"/workspace/agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz\" -C /workspace/.toolchains/p14-l08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`0.17.0-dev.87+9b177a7d2`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version`") != null);
