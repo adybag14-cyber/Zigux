@@ -70,9 +70,26 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json"',
         '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"',
+        '"repo_reality_gaps": []',
         '"next_safe_step": "keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims"',
     ),
 }
+
+REQUIRED_PACKET_FILES = (
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+)
+
+REQUIRED_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+)
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
 SAMPLE_FILES[MANIFEST_PATH] = """{
@@ -95,12 +112,7 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"
   ],
-  "repo_reality_gaps": [
-    "scripts/zigux/validate-phase3.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "zigux/kernel/export_shim.zig",
-    "zigux/tests/phase3_export_uapi_layout.zig"
-  ],
+  "repo_reality_gaps": [],
   "next_safe_step": "keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims"
 }
 """
@@ -147,6 +159,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         else:
             packet_files = manifest.get("packet_files")
             replay_routes = manifest.get("replay_routes")
+            repo_reality_gaps = manifest.get("repo_reality_gaps")
             if not isinstance(packet_files, list):
                 issues.append(
                     "phase3_errptr_xarray_starter_packet_manifest.json packet_files is not a list"
@@ -155,27 +168,23 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(
                     "phase3_errptr_xarray_starter_packet_manifest.json replay_routes is not a list"
                 )
+            if not isinstance(repo_reality_gaps, list):
+                issues.append(
+                    "phase3_errptr_xarray_starter_packet_manifest.json repo_reality_gaps is not a list"
+                )
+            elif repo_reality_gaps:
+                issues.append(
+                    "phase3_errptr_xarray_starter_packet_manifest.json repo_reality_gaps should stay empty once the helper-local reminder follow-up is parked"
+                )
             if isinstance(packet_files, list):
-                for required_path in (
-                    "Documentation/zigux/phase3-errptr-xarray-slice.md",
-                    "Documentation/zigux/phase3-validator-support-surface.md",
-                    "zigux/helpers/err_ptr.zig",
-                    "zigux/helpers/xa_value.zig",
-                    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
-                    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
-                    "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json",
-                    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
-                ):
+                for required_path in REQUIRED_PACKET_FILES:
                     if required_path not in packet_files:
                         issues.append(
                             "phase3_errptr_xarray_starter_packet_manifest.json missing packet_files entry: "
                             f"{required_path}"
                         )
             if isinstance(replay_routes, list):
-                for route in (
-                    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
-                    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
-                ):
+                for route in REQUIRED_REPLAY_ROUTES:
                     if route not in replay_routes:
                         issues.append(
                             "phase3_errptr_xarray_starter_packet_manifest.json missing replay route: "
@@ -211,8 +220,22 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = ["scripts/zigux/validate-phase3.py"]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_errptr_xarray_starter_packet_manifest.json repo_reality_gaps should stay empty once the helper-local reminder follow-up is parked"
+        )
+        if expected not in issues:
+            print("PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST=fail")
+            print("expected non-empty repo_reality_gaps issue was not reported")
+            return 1
+
     print("PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES)}")
+    print(f"PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 1}")
     return 0
 
 
