@@ -80,6 +80,15 @@ def compute_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def require_order(text: str, earlier: str, later: str, label: str) -> None:
+    earlier_index = text.find(earlier)
+    later_index = text.find(later)
+    if earlier_index == -1 or later_index == -1:
+        raise ValueError(f"archive README is missing ordered markers for {label}")
+    if earlier_index >= later_index:
+        raise ValueError(f"archive README expected {label} `{earlier}` before `{later}`")
+
+
 def validate_readme(root: Path) -> tuple[str, int, str]:
     payload = load_policy(root)
     channel = require_string(payload, "channel")
@@ -106,6 +115,19 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
         f"{expected_path} --archive-target {target}"
     )
 
+    local_archive_line = (
+        f"- Lane 05 bootstrap first reuses and validates `{expected_path}` when that pinned archive is present."
+    )
+    cleanup_line = (
+        "- Before retrying the direct-download or community-mirror path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt."
+    )
+    direct_download_line = (
+        "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` tries the direct `ziglang.org` download URL before `community-mirrors.txt`."
+    )
+    community_mirror_line = (
+        "- If the direct download still fails or produces a mismatched archive, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt`."
+    )
+
     readme_path = root / README_PATH
     try:
         readme_text = readme_path.read_text(encoding="utf-8")
@@ -123,12 +145,20 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
         f"`{validation_command}`",
         f"`{duplicate_archive_name(expected_filename)}`",
         f"`{POLICY_PATH}`",
+        local_archive_line,
+        cleanup_line,
+        direct_download_line,
+        community_mirror_line,
     ]
     missing_markers = [marker for marker in required_markers if marker not in readme_text]
     if missing_markers:
         raise ValueError(
             "archive README is missing required markers: " + ", ".join(missing_markers)
         )
+
+    require_order(readme_text, local_archive_line, cleanup_line, "Lane 05 fallback order")
+    require_order(readme_text, cleanup_line, direct_download_line, "Lane 05 fallback order")
+    require_order(readme_text, direct_download_line, community_mirror_line, "Lane 05 fallback order")
 
     duplicate_copies = sorted(
         path.name
@@ -196,7 +226,11 @@ def run_self_test() -> int:
         with tempfile.TemporaryDirectory(prefix="lane05_archive_readme_pass_") as tmp_dir:
             root = Path(tmp_dir)
             write_fixture(root, include_archive=include_archive)
-            assert validate_readme(root) == ("x86_64-linux", 10, "present" if include_archive else "missing_allowed")
+            assert validate_readme(root) == (
+                "x86_64-linux",
+                14,
+                "present" if include_archive else "missing_allowed",
+            )
             case_count += 1
 
     def expect_failure(mutator, expected_substring: str) -> None:
@@ -233,6 +267,30 @@ def run_self_test() -> int:
             archive_bytes=b"wrong-bytes",
         ),
         "to have sha256 313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+    )
+    expect_failure(
+        lambda root: (root / README_PATH).write_text(
+            (root / README_PATH).read_text(encoding="utf-8").replace(
+                "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` tries the direct `ziglang.org` download URL before `community-mirrors.txt`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        "missing required markers",
+    )
+    expect_failure(
+        lambda root: (root / README_PATH).write_text(
+            (root / README_PATH).read_text(encoding="utf-8").replace(
+                "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` tries the direct `ziglang.org` download URL before `community-mirrors.txt`.\n"
+                "- If the direct download still fails or produces a mismatched archive, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt`.\n",
+                "- If the direct download still fails or produces a mismatched archive, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt`.\n"
+                "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` tries the direct `ziglang.org` download URL before `community-mirrors.txt`.\n",
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        "Lane 05 fallback order",
     )
 
     print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")
