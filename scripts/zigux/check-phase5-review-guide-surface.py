@@ -206,7 +206,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 17
+    expected_case_count = 18
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -271,6 +271,16 @@ def run_self_test() -> int:
             "sample_root_kobject_attr_group_marker",
             collect_failures(mutated),
             [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][1]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_sample_root_bitmap_boundary_marker"
+        seed(mutated)
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][2], ""))
+        expect_exact(
+            "sample_root_bitmap_boundary_marker",
+            collect_failures(mutated),
+            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][2]}"],
         )
         checks_run += 1
 
