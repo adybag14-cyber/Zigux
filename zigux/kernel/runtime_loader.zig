@@ -177,6 +177,18 @@ test "prepareRequest rejects loader-not-required, pilot-family drift, init-flow 
     try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
     plan.module_name = "runtime_bitmap";
 
+    plan.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.anchor = "lib/test_bitmap.c";
+
+    plan.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.entry_symbol = "zigux_runtime_bitmap_init";
+
+    plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.exit_symbol = "zigux_runtime_bitmap_exit";
+
     plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(plan));
     plan.init_flow.selftest_runs = 0;
