@@ -16,6 +16,7 @@ CLOSURE_NOTE_REL = Path("Documentation/zigux/phase2-closure.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 
 REQUIRED_FILES = (
+    Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
     Path("Documentation/zigux/review-checklist.md"),
     CLOSURE_NOTE_REL,
@@ -24,10 +25,14 @@ REQUIRED_FILES = (
     Path("scripts/zigux/install-zig.py"),
     Path("scripts/zigux/check-zig-toolchain.py"),
     Path("scripts/zigux/check-phase2-kbuild-routes.py"),
+    Path("scripts/zigux/check-kconfig-bridge.py"),
     Path("scripts/zigux/check-phase2-kconfig-selftest-alignment.py"),
+    Path("scripts/zigux/check-phase2-tests-readme-alignment.py"),
     Path("scripts/zigux/check-phase2-cross.py"),
     Path("scripts/zigux/check-phase2-cross-selftest-alignment.py"),
     Path("scripts/zigux/check-phase2-docs-shared-reminder.py"),
+    Path("scripts/zigux/check-phase2-toolchain-pinning.py"),
+    Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"),
     Path("scripts/zigux/check-phase2-tool-manifest.py"),
     Path("scripts/zigux/check-phase2-artifact-tools-manifest.py"),
     Path("scripts/zigux/check-phase2-required-make-routes.py"),
@@ -36,6 +41,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-fixdep-diff.py"),
     Path("scripts/zigux/validate-phase2.py"),
     Path("scripts/zigux/validate-phase2-closure.py"),
+    Path("scripts/zigux/zig-toolchain-policy.json"),
     Path("scripts/zigux/kconfig/conf_bridge.zig"),
     Path("scripts/zigux/kconfig/confdata_bridge.zig"),
     Path("scripts/zigux/genksyms.zig"),
@@ -47,12 +53,17 @@ REQUIRED_FILES = (
     Path("zigux/tests/fixtures/phase2_artifact_tools_manifest.json"),
     Path("zigux/tests/fixtures/phase2_cross_targets.json"),
     Path("zigux/tests/fixtures/fixdep/cases.json"),
+    Path("zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"),
+    Path("zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"),
+    Path("zigux/tests/fixtures/kconfig_bridge/cases.json"),
 )
 
 SCRIPTS_README_MARKERS = (
     "## Phase 2",
     "the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet",
-    "`scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/kconfig/conf_bridge.zig` keeps the shipped sixteen-mode request-plan bridge explicit from the scripts root, including the `helpnewconfig` `silent` option handling and the same `randconfig`, `defconfig`, `savedefconfig`, and `syncconfig` argument surfaces that the Phase 2 wrapper-first roadmap tranche expects",
+    "`scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` keep the current conf-side and confdata-side bridge evidence packet explicit from the scripts root without pretending the broader closure packet is still directly readable",
+    "`scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-toolchain-pinning.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `scripts/zigux/check-phase2-required-make-routes.py` remain the shipped Phase 2 toolchain, reminder, alignment, artifact-support, fixdep, genksyms-bridge, and required-make-route guards that survive on current `master`",
     "`.github/workflows/zigux-bootstrap.yml`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` keep the shipped pinned Zig toolchain guard explicit",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, `make -C zigux phase2`, `zigux/tests/fixtures/phase2_tool_manifest.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the shipped closure-side reminder, closure-validator, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
     "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
@@ -63,6 +74,10 @@ SCRIPTS_README_MARKERS = (
 
 CLOSURE_NOTE_MARKERS = (
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-kconfig-bridge.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`scripts/zigux/install-zig.py`",
@@ -72,21 +87,33 @@ CLOSURE_NOTE_MARKERS = (
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
     "`scripts/zigux/fixdep.zig`",
+    "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/Makefile`",
     "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2`",
+    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
 )
 
 TESTS_README_MARKERS = (
     "## Phase 2 review packet",
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-kconfig-bridge.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
     "`scripts/zigux/install-zig.py`",
     "`zigux/Makefile`",
+    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
 )
 
 FORBIDDEN_SCRIPTS_README_MARKERS = (
@@ -112,7 +139,7 @@ def collect_issues(root: Path) -> list[str]:
             issues.append(f"missing_file:{rel_path.as_posix()}")
 
     if not scripts_readme_path.is_file():
-        return issues + [f"missing_file:{SCRIPTS_README_REL.as_posix()}" ]
+        return issues + [f"missing_file:{SCRIPTS_README_REL.as_posix()}"]
 
     scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8")
     closure_note_text = closure_note_path.read_text(encoding="utf-8") if closure_note_path.is_file() else ""
@@ -185,6 +212,17 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         if f"missing_closure_note_marker:{CLOSURE_NOTE_MARKERS[0]}" not in issues:
             raise SystemExit("phase2-scripts-root-summary:self-test:missing_closure_marker")
+        case_count += 1
+
+        build_good_tree(root)
+        tests_readme_path = root / TESTS_README_REL
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[1], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        if f"missing_tests_readme_marker:{TESTS_README_MARKERS[1]}" not in issues:
+            raise SystemExit("phase2-scripts-root-summary:self-test:missing_tests_marker")
         case_count += 1
 
         build_good_tree(root)
