@@ -237,36 +237,39 @@ fn getRange(str: *[]const u8, first_value: i32, dest: []i32) i64 {
 }
 
 pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
-    if (str.*.len == 0) {
+    const current = cStringPrefix(str.*);
+    str.* = current;
+
+    if (current.len == 0) {
         clearOptionOut(pint);
         return 0;
     }
 
-    if (str.*[0] == '+') {
+    if (current[0] == '+') {
         clearOptionOut(pint);
         return 0;
     }
 
-    if (str.*[0] == '-') {
-        const parsed_negative = parseUnsignedOption(str.*[1..]);
+    if (current[0] == '-') {
+        const parsed_negative = parseUnsignedOption(current[1..]);
         if (!parsed_negative.parsed_any) {
-            str.* = str.*[1..];
+            str.* = current[1..];
             clearOptionOut(pint);
             return 0;
         }
 
-        str.* = str.*[1 + parsed_negative.consumed ..];
+        str.* = current[1 + parsed_negative.consumed ..];
         if (pint) |out| {
             out.* = wrapNegativeUnsignedToI32(parsed_negative.value);
         }
     } else {
-        const parsed_positive = parseUnsignedOption(str.*);
+        const parsed_positive = parseUnsignedOption(current);
         if (!parsed_positive.parsed_any) {
             clearOptionOut(pint);
             return 0;
         }
 
-        str.* = str.*[parsed_positive.consumed..];
+        str.* = current[parsed_positive.consumed..];
         if (pint) |out| {
             out.* = wrapUnsignedToI32(parsed_positive.value);
         }
@@ -395,43 +398,44 @@ pub fn nextArg(args: []const u8) NextArgResult {
 pub const next_arg = nextArg;
 
 pub fn memparse(text: []const u8) MemparseResult {
-    const prefix = parseSignedPrefix(text);
-    const base_info = parseBase(text, prefix.start);
+    const current = cStringPrefix(text);
+    const prefix = parseSignedPrefix(current);
+    const base_info = parseBase(current, prefix.start);
     const signed_input = prefix.start != 0;
 
     var idx = base_info.digits_start;
     var parsed_any = false;
     var magnitude: u64 = 0;
 
-    while (idx < text.len) : (idx += 1) {
-        const digit = digitValue(text[idx], base_info.base) orelse break;
+    while (idx < current.len) : (idx += 1) {
+        const digit = digitValue(current[idx], base_info.base) orelse break;
         parsed_any = true;
         magnitude = saturatingMulAdd(magnitude, base_info.base, digit);
     }
 
     if (!parsed_any) {
-        if (!signed_input and base_info.base == 16 and base_info.digits_start == 2 and text.len >= 2 and text[0] == '0' and (text[1] == 'x' or text[1] == 'X')) {
-            return .{ .value = 0, .rest = text[1..] };
+        if (!signed_input and base_info.base == 16 and base_info.digits_start == 2 and current.len >= 2 and current[0] == '0' and (current[1] == 'x' or current[1] == 'X')) {
+            return .{ .value = 0, .rest = current[1..] };
         }
-        return .{ .value = 0, .rest = text };
+        return .{ .value = 0, .rest = current };
     }
 
-    if (idx < text.len and signed_input) {
-        magnitude = applySuffix(magnitude, text[idx]);
+    if (idx < current.len and signed_input) {
+        magnitude = applySuffix(magnitude, current[idx]);
     }
 
     var result = clampSignedMagnitude(magnitude, prefix.negative);
-    if (idx < text.len) {
+    if (idx < current.len) {
         if (!signed_input) {
-            result = applySuffix(result, text[idx]);
+            result = applySuffix(result, current[idx]);
         }
-        switch (text[idx]) {
+        switch (current[idx]) {
             'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
             else => {},
         }
     }
 
-    return .{ .value = result, .rest = text[idx..] };
+    return .{ .value = result, .rest = current[idx..] };
 }
 
 test "getOption and getOptions preserve Linux-style range parsing" {
@@ -530,6 +534,29 @@ test "getOption and getOptions preserve oversized wrap semantics" {
     const overflow_validate_rest = getOptions("18446744073709551616,-18446744073709551616", 0, &overflow_validate_only);
     try std.testing.expectEqualStrings("", overflow_validate_rest);
     try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
+}
+
+test "getOption getOptions and memparse stay inside the first NUL byte" {
+    var option_input = [_]u8{ '1', '6', 0, ',', 't', 'a', 'i', 'l' };
+    var option_rest: []const u8 = option_input[0..];
+    var option_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&option_rest, &option_value));
+    try std.testing.expectEqual(@as(i32, 16), option_value);
+    try std.testing.expectEqualStrings("", option_rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&option_input[2])), @as(usize, @intFromPtr(option_rest.ptr)));
+
+    var range_values = [_]i32{ 0, 0, 0, 0 };
+    const range_input = [_]u8{ '3', '-', '4', 0, ',', '9' };
+    const range_rest = getOptions(range_input[0..], range_values.len, &range_values);
+    try std.testing.expectEqualStrings("", range_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 3, 4, 0 }, &range_values);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&range_input[3])), @as(usize, @intFromPtr(range_rest.ptr)));
+
+    const memparse_input = [_]u8{ '6', '4', 'K', 0, 'r', 'e', 's', 't' };
+    const parsed = memparse(memparse_input[0..]);
+    try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
+    try std.testing.expectEqualStrings("", parsed.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&memparse_input[3])), @as(usize, @intFromPtr(parsed.rest.ptr)));
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
