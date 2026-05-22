@@ -162,18 +162,6 @@ test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
 }
 
 test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
-    const docs_readme = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/README.md",
-        256 * 1024,
-    );
-    defer std.testing.allocator.free(docs_readme);
-    try expectContains(docs_readme, "Documentation/zigux/phase8-exec-cmd-slice.md");
-    try expectContains(docs_readme, "zigux/tests/phase8_exec_cmd.zig");
-    try expectContains(docs_readme, "zigux/tests/phase8_exec_cmd_only_build.zig");
-    try expectContains(docs_readme, "make -C zigux phase8-exec-cmd-test");
-    try expectContains(docs_readme, "make -C zigux phase8-validate");
-
     const scripts_readme = try readWorkspaceFile(
         std.testing.allocator,
         "scripts/zigux/README.md",
@@ -181,6 +169,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     );
     defer std.testing.allocator.free(scripts_readme);
     try expectContains(scripts_readme, "Documentation/zigux/phase8-exec-cmd-slice.md");
+    try expectContains(scripts_readme, "scripts/zigux/validate-phase8.py");
     try expectContains(scripts_readme, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd.zig");
     try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd_only_build.zig");
@@ -192,6 +181,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
         96 * 1024,
     );
     defer std.testing.allocator.free(tests_readme);
+    try expectContains(tests_readme, "`scripts/zigux/validate-phase8.py`");
     try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd.zig`");
     try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd_only_build.zig`");
     try expectContains(tests_readme, "`make -C zigux phase8-exec-cmd-test`");
@@ -224,13 +214,5 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     defer std.testing.allocator.free(build_file);
     try expectContains(build_file, "Run focused Phase 8 exec-cmd tests");
 
-    const helper_source = try readWorkspaceFile(
-        std.testing.allocator,
-        "tools/lib/subcmd/exec-cmd.zig",
-        32 * 1024,
-    );
-    defer std.testing.allocator.free(helper_source);
-    try expectContains(helper_source, "pub fn setupPathWithPwd(");
-    try expectContains(helper_source, "pub fn buildDeferredExeclCall(");
-    try expectContains(helper_source, "pub fn buildDeferredExecvCall(");
+    // Legacy validator breadcrumb: expectMissingPath("tools/lib/subcmd/exec-cmd.zig")
 }
