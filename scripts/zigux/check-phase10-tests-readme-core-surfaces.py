@@ -42,6 +42,7 @@ COMPANION_REQUIRED_MARKERS = (
     "`drivers/virtio/virtio.zig` owns shared device-status bookkeeping",
     "`drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning",
     "`drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning",
+    "keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence",
 )
 
 COMPANION_FORBIDDEN_MARKERS = (
@@ -136,7 +137,7 @@ Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root p
 Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.
 
 Tests-root reviewer prompt:
-- keep the blocked risky-transport posture explicit
+- keep the blocked risky-transport posture explicit while keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence.
 
 Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning.
 
@@ -353,8 +354,32 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
+    missing_driver_id_companion = good_companion.replace(
+        "keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence",
+        "keeping only `drivers/virtio/virtio_driver_id.zig` framed as the remaining repo-reality gap instead of direct current-head evidence",
+        1,
+    )
+    try:
+        check_companion_text(missing_driver_id_companion)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing driver-id pair companion marker failure")
+
+    missing_driver_id_scripts = good_scripts_root.replace(
+        "while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower core-side repo-reality gaps in this scripts-root reminder",
+        "while only `drivers/virtio/virtio_driver_id.zig` remains the narrower core-side repo-reality gap in this scripts-root reminder",
+        1,
+    )
+    try:
+        check_scripts_readme(missing_driver_id_scripts)
+    except SystemExit as exc:
+        assert "scripts-readme" in str(exc)
+    else:
+        raise AssertionError("expected missing driver-id pair scripts-root marker failure")
+
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
