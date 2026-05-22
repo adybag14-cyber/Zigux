@@ -47,6 +47,7 @@ Current direct-readback packet members:
   * `zigux/tests/README.md`
   * `scripts/zigux/README.md`
   * `scripts/zigux/check-phase4-repo-reality-warning.py`
+  * `scripts/zigux/check-phase4-tests-readme-packet.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
 Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.
