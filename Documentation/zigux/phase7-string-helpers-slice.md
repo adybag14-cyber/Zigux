@@ -17,7 +17,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader device-managed follow-ons stay deliberately out of scope.
 
-This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion under the non-runtime `trace_events` anchor. The dedicated boundary replay should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
+This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion plus the shared `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` reminder under the non-runtime `trace_events` anchor. The dedicated boundary replay should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
 
 ## Gates
 
@@ -111,7 +111,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `parseIntArray()` and `parse_int_array()` keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set
 - `stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary
 - `memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries
-- the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test and keeps the bounded `trace_events_string_formatting_sample.zig` allowance tied to the non-runtime `trace_events` anchor
+- the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test and keeps the bounded `trace_events_string_formatting_sample.zig` allowance plus `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` tied to the non-runtime `trace_events` anchor
 
 ## Non-goals
 
