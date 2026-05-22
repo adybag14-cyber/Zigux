@@ -302,12 +302,6 @@ fn addPhase3PolicyStarterPacket(
         .optimize = optimize,
     });
     allocator_policy.addImport("abi_bindings", abi_bindings);
-    const unsafe_policy = b.createModule(.{
-        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    unsafe_policy.addImport("abi_bindings", abi_bindings);
     const layout_assert = b.createModule(.{
         .root_source_file = b.path("../helpers/layout_assert.zig"),
         .target = target,
@@ -320,6 +314,13 @@ fn addPhase3PolicyStarterPacket(
         .optimize = optimize,
     });
     narrow_surface.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow_surface);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_starter_packet.zig"),
@@ -399,12 +400,19 @@ fn addPhase3AbiCorePacket(
         .optimize = optimize,
     });
     allocator_policy.addImport("abi_bindings", abi_bindings);
+    const narrow = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow.addImport("abi_bindings", abi_bindings);
     const unsafe_policy = b.createModule(.{
         .root_source_file = b.path("../helpers/unsafe_policy.zig"),
         .target = target,
         .optimize = optimize,
     });
     unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_abi.zig"),
@@ -505,18 +513,19 @@ fn addPhase3LowLevelWrappers(
         .target = target,
         .optimize = optimize,
     });
-    const unsafe_policy = b.createModule(.{
-        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    unsafe_policy.addImport("abi_bindings", abi_bindings);
     const narrow = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
         .optimize = optimize,
     });
     narrow.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow);
     const atomic = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
