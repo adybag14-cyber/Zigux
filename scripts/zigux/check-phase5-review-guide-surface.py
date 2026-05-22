@@ -41,11 +41,11 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase5_kretprobe_example.zig",
     "zigux/tests/phase5_kretprobe_example_manifest.json",
     "zigux/tests/phase5_kretprobe_example_survey.zig",
+    "zigux/tests/phase5_build.zig",
 )
 
 PUBLIC_TREE_COMPANION_PATHS = (
     "zigux/tests/phase5_kobject_example_survey.zig",
-    "zigux/tests/phase5_build.zig",
     "Documentation/zigux/phase5-trace-events-sample-survey.md",
     "samples/zigux/trace_events_sample.zig",
     "zigux/tests/phase5_trace_events_sample.zig",
@@ -202,7 +202,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 11
+    expected_case_count = 12
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -288,6 +288,20 @@ def run_self_test() -> int:
         seed(mutated)
         (mutated / DIRECT_PACKET_PATHS[8]).unlink()
         expect_exact("missing_direct_path", collect_failures(mutated), [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"])
+        checks_run += 1
+
+        mutated = root / "missing_phase5_build_direct_path"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace("`zigux/tests/phase5_build.zig`", ""))
+        expect_exact(
+            "missing_phase5_build_direct_path",
+            collect_failures(mutated),
+            [
+                f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][1]}",
+                f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}",
+                "guide:missing_path:zigux/tests/phase5_build.zig",
+            ],
+        )
         checks_run += 1
 
         mutated = root / "forbidden_text"
