@@ -458,24 +458,9 @@ def run_self_test() -> int:
     cases.append(("workflow_optional_pair_split", ("optional_workflow", "split")))
     cases.append(("workflow_optional_pair_self_only", ("optional_workflow", "self_only")))
     cases.append(("workflow_optional_pair_check_only", ("optional_workflow", "check_only")))
-    cases.append(
-        (
-            "workflow_phase1_packet_spacer_after_route_summary",
-            ("phase1_packet_spacer", "Check current Phase 1 route summary packet"),
-        )
-    )
-    cases.append(
-        (
-            "workflow_phase1_packet_spacer_after_shared_reminder",
-            ("phase1_packet_spacer", "Check current Phase 1 shared reminder packet"),
-        )
-    )
-    cases.append(
-        (
-            "workflow_phase1_packet_spacer_before_shared_smoke",
-            ("phase1_packet_spacer", "Validate current Phase 1 closure packet"),
-        )
-    )
+    for step_name, _ in WORKFLOW_PACKET_STEPS[:-1]:
+        case_name = f"workflow_phase1_packet_spacer_after_{step_name.lower().replace(' ', '_').replace('-', '_')}"
+        cases.append((case_name, ("phase1_packet_spacer", step_name)))
     cases.append(
         (
             "workflow_required_step_name_drift",
