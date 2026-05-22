@@ -28,7 +28,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 33
+EXPECTED_SELF_TEST_CASES = 34
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -494,6 +494,7 @@ def run_self_test() -> int:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("broken manifest JSON case did not fail closed")
             return 1
+        cases += 1
 
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
