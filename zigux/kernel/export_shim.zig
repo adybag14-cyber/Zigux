@@ -7,53 +7,57 @@ const version = @import("version_binding");
 
 const invalid_argument: i32 = -22;
 
-pub const BoundaryHeader = abi.BoundaryHeader;
+pub const Header = version.Header;
+pub const BoundaryHeader = Header;
 pub const ExportStatus = abi.ExportStatus;
 pub const Facility = abi.Facility;
 pub const Version = version.Version;
 pub const DevTFields = dev_t.Fields;
 pub const abi_version: u16 = abi.ABI_VERSION;
-pub const header_size: u32 = @sizeOf(BoundaryHeader);
+pub const header_size: u32 = version.header_size;
 
 pub fn canonicalHeader(flags: u16) BoundaryHeader {
-    return abi.defaultHeader(flags);
+    return version.boundaryHeader(flags);
+}
+
+pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
+    return version.compatibleHeader(size, flags);
 }
 
 pub fn isCurrentAbiVersion(value: u16) bool {
-    return abi.headerHasCurrentAbiVersion(value);
+    return version.hasCurrentAbiVersion(value);
 }
 
 pub fn isCanonicalSize(value: u32) bool {
-    return value == header_size;
+    return version.isCanonicalSize(value);
 }
 
 pub fn isCompatibleSize(value: u32) bool {
-    return value >= header_size;
+    return version.isCompatibleSize(value);
 }
 
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return abi.headerIsCanonical(header);
+    return version.isCanonical(header);
 }
 
 pub fn headerIsCompatible(header: BoundaryHeader) bool {
-    return abi.headerIsCompatible(header);
+    return version.isCompatible(header);
 }
 
 pub fn extendsBoundary(header: BoundaryHeader) bool {
-    return abi.extendsBoundary(header);
+    return version.extendsBoundary(header);
 }
 
 pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
-    return abi.requestedExtraBytes(header);
+    return version.requestedExtraBytes(header);
 }
 
 pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
-    return abi.canonicalizeHeader(header);
+    return version.canonicalizeHeader(header);
 }
 
 pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {
-    if (headerIsCompatible(header)) return okStatus(.kernel);
-    return errorStatus(invalid_argument, .kernel);
+    return version.validateBoundaryHeader(header);
 }
 
 pub fn currentVersion() Version {
@@ -112,10 +116,13 @@ test "export shim preserves the canonical boundary header and version snapshot" 
     const current = currentVersion();
 
     try testing.expectEqual(@as(u16, abi.ABI_VERSION), abi_version);
+    try testing.expectEqual(version.header_size, header_size);
     try testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header_size);
+    try testing.expectEqual(@as(u32, @sizeOf(version.Header)), header_size);
     try testing.expectEqual(header_size, header.size);
     try testing.expectEqual(@as(u16, abi.ABI_VERSION), header.abi_version);
     try testing.expectEqual(@as(u16, 0x41), header.flags);
+    try testing.expectEqual(version.boundaryHeader(0x41), header);
     try testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
     try testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
 
@@ -125,9 +132,9 @@ test "export shim preserves the canonical boundary header and version snapshot" 
     try testing.expect(version.eql(current, version.current()));
 }
 
-test "export shim keeps boundary header predicates aligned with ABI helpers" {
+test "export shim keeps boundary header predicates aligned with UAPI helpers" {
     const canonical = canonicalHeader(0x15);
-    const future = abi.compatibleHeader(header_size + 8, 0x15);
+    const future = compatibleHeader(header_size + 8, 0x15);
     const stale = BoundaryHeader{
         .size = header_size,
         .abi_version = abi_version + 1,
@@ -135,13 +142,14 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
     };
     const canonicalized = canonicalizeHeader(future);
 
+    try testing.expectEqual(version.compatibleHeader(header_size + 8, 0x15), future);
     try testing.expect(isCurrentAbiVersion(canonical.abi_version));
     try testing.expect(isCanonicalSize(canonical.size));
     try testing.expect(isCompatibleSize(canonical.size));
     try testing.expect(headerIsCanonical(canonical));
     try testing.expect(headerIsCompatible(canonical));
-    try testing.expectEqual(abi.headerIsCanonical(canonical), headerIsCanonical(canonical));
-    try testing.expectEqual(abi.headerIsCompatible(canonical), headerIsCompatible(canonical));
+    try testing.expectEqual(version.isCanonical(canonical), headerIsCanonical(canonical));
+    try testing.expectEqual(version.isCompatible(canonical), headerIsCompatible(canonical));
     try testing.expect(!extendsBoundary(canonical));
     try testing.expectEqual(@as(u32, 0), requestedExtraBytes(canonical));
 
@@ -149,8 +157,8 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
     try testing.expect(!isCanonicalSize(future.size));
     try testing.expect(!headerIsCanonical(future));
     try testing.expect(headerIsCompatible(future));
-    try testing.expectEqual(abi.headerIsCanonical(future), headerIsCanonical(future));
-    try testing.expectEqual(abi.headerIsCompatible(future), headerIsCompatible(future));
+    try testing.expectEqual(version.isCanonical(future), headerIsCanonical(future));
+    try testing.expectEqual(version.isCompatible(future), headerIsCompatible(future));
     try testing.expect(extendsBoundary(future));
     try testing.expectEqual(@as(u32, 8), requestedExtraBytes(future));
 
@@ -169,7 +177,7 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
 
 test "export shim relays boundary header compatibility through status helpers" {
     const canonical = canonicalHeader(0x23);
-    const extended = abi.compatibleHeader(header_size + 8, 0x23);
+    const extended = compatibleHeader(header_size + 8, 0x23);
     const undersized = BoundaryHeader{
         .size = header_size - 1,
         .abi_version = abi_version,
@@ -185,6 +193,8 @@ test "export shim relays boundary header compatibility through status helpers" {
     const invalid_size = validateBoundaryHeader(undersized);
     const invalid_version = validateBoundaryHeader(stale);
 
+    try testing.expectEqual(version.validateBoundaryHeader(canonical), ok);
+    try testing.expectEqual(version.validateBoundaryHeader(extended), ok_extended);
     try testing.expect(statusIsOk(ok));
     try testing.expect(statusIsOk(ok_extended));
     try testing.expect(!statusIsOk(invalid_size));
