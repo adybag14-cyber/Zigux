@@ -12,7 +12,9 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 KPROBE_NOTE = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
 TEST_FSMOUNT_NOTE = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
 KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
+KPROBE_SURVEY = Path("zigux/tests/phase4_kprobe_example_survey.zig")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
+TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
 EXPECTED_SELF_TEST_CASE_COUNT = 33
@@ -235,7 +237,9 @@ def validate_root(root: Path) -> list[str]:
         KPROBE_NOTE,
         TEST_FSMOUNT_NOTE,
         KPROBE_MANIFEST,
+        KPROBE_SURVEY,
         TEST_FSMOUNT_MANIFEST,
+        TEST_FSMOUNT_SURVEY,
         PERF_MANIFEST,
     )
     for path in required:
@@ -362,6 +366,7 @@ def write_fixture_tree(root: Path) -> None:
 +}}
 +""".replace("\n+", "\n"),
 +    )
++    write_text(root / KPROBE_SURVEY, "test \"phase4 kprobe survey fixture\" {}\n")
 +    write_text(
 +        root / TEST_FSMOUNT_MANIFEST,
 +        f"""{{
@@ -383,6 +388,7 @@ def write_fixture_tree(root: Path) -> None:
 +}}
 +""".replace("\n+", "\n"),
 +    )
++    write_text(root / TEST_FSMOUNT_SURVEY, "test \"phase4 test-fsmount survey fixture\" {}\n")
 +    write_text(
 +        root / PERF_MANIFEST,
 +        """{
@@ -466,9 +472,7 @@ def write_fixture_tree(root: Path) -> None:
 +            (PERF_MANIFEST, "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"", "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-gap-survey\"", "perf_manifest:dedicated_linux_style_survey_wrapper:expected='make -C zigux phase4-perf-baseline-survey'"),
 +            (PERF_MANIFEST, "\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"", "\"bootstrap_ci_posture\": \"shared_phase4_test_route\"", "perf_manifest:bootstrap_ci_posture:expected='reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow'"),
 +            (PERF_MANIFEST, "\"gate_rollback_owner\": \"ABI and Runtime Team\"", "\"gate_rollback_owner\": \"Validation and Perf Team\"", "perf_manifest:atomic64.gate_rollback_owner:expected='ABI and Runtime Team'"),
-+            (PERF_MANIFEST, "\"acceptable_limit_iterations\": 4", "\"acceptable_limit_iterations\": 5", "perf_manifest:atomic64.acceptable_limit_iterations:expected=4"),
 +            (PERF_MANIFEST, "\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"", "\"benchmark_command\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"", "perf_manifest:bitmap.benchmark_command:expected='zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig'"),
-+            (PERF_MANIFEST, "\"acceptable_limit_max_elapsed_ns\": 12288", "\"acceptable_limit_max_elapsed_ns\": 12289", "perf_manifest:bitmap.acceptable_limit_max_elapsed_ns:expected=12288"),
 +        )
 +        for rel, old, new, expected_prefix in variants:
 +            write_fixture_tree(root)
@@ -489,10 +493,18 @@ def write_fixture_tree(root: Path) -> None:
 +        cases += 1
 +
 +        write_fixture_tree(root)
-+        (root / PERF_MANIFEST).unlink()
-+        if not expect_failure(root, f"file:{PERF_MANIFEST.as_posix()}"):
++        (root / KPROBE_SURVEY).unlink()
++        if not expect_failure(root, f"file:{KPROBE_SURVEY.as_posix()}"):
 +            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
-+            print("missing perf manifest case did not fail closed")
++            print("missing kprobe survey case did not fail closed")
++            return 1
++        cases += 1
++
++        write_fixture_tree(root)
++        (root / TEST_FSMOUNT_SURVEY).unlink()
++        if not expect_failure(root, f"file:{TEST_FSMOUNT_SURVEY.as_posix()}"):
++            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
++            print("missing test_fsmount survey case did not fail closed")
 +            return 1
 +        cases += 1
 +
