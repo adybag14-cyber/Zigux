@@ -37,6 +37,9 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE7_CMDLINE_PACKET_SELF_TEST=pass",
         '"Documentation/zigux/phase7-cmdline-slice.md",',
+        '"lib/cmdline.zig",',
+        'test \\\"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\\\" {',
+        'try expectContains(helper_companion, \"phase 7 cmdline companion replays whitespace-only sentinel termination\");',
         "FORBIDDEN_MARKERS = {",
         "MISSING_PHASE7_CMDLINE_FILES_START",
         "MISSING_PHASE7_CMDLINE_FILES_END",
@@ -141,7 +144,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 75
+SELF_TEST_CASE_COUNT = 78
 
 
 def read_text(path: Path) -> str:
@@ -299,6 +302,36 @@ def run_self_test() -> None:
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_slice_anchor_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = '"lib/cmdline.zig",'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_helper_path_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'test \\\"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\\\" {'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_companion_quoted_bare_grouping_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'try expectContains(helper_companion, \"phase 7 cmdline companion replays whitespace-only sentinel termination\");'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_survey_whitespace_only_companion_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
         )
