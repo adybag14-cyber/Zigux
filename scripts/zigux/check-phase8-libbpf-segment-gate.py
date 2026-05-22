@@ -10,6 +10,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -33,8 +35,10 @@ DEFERRED_SLUGS = [
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    REVIEW_CHECKLIST_PATH,
     SURVEY_PATH,
     "scripts/zigux/README.md",
+    VALIDATOR_PATH,
     "scripts/zigux/check-phase8-libbpf-segment-gate.py",
     MAKEFILE_PATH,
     "zigux/tests/README.md",
@@ -162,7 +166,9 @@ def write(root: Path, rel_path: str, text: str) -> None:
 def clone_fixture(root: Path) -> None:
     write(root, ".github/workflows/zigux-bootstrap.yml", "name: zigux-bootstrap\n- name: Validate Phase 8 tooling routes\n  run: make -C zigux phase8-validate\n")
     write(root, "Documentation/zigux/README.md", "# Zigux Documentation\n- `Documentation/zigux/phase8-libbpf-segment-survey.md`\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n")
+    write(root, REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `scripts/zigux/validate-phase8.py`\n")
     write(root, "scripts/zigux/README.md", "# scripts/zigux\n- check-phase8-libbpf-segment-gate.py\n- Documentation/zigux/phase8-libbpf-segment-survey.md\n")
+    write(root, VALIDATOR_PATH, "#!/usr/bin/env python3\nprint('PHASE8_VALIDATION=pass')\n")
     write(root, "zigux/tests/README.md", "# zigux/tests\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `zigux/tests/phase8_libbpf_segments_only_build.zig`\n")
     write(root, MAKEFILE_PATH, "phase8-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py\n\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n")
     write(root, BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const libbpf_segment_verify_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const libbpf_segment_verify_tests = b.addTest(.{\n        .name = "phase8-libbpf-segment-verify-tests",\n        .root_module = libbpf_segment_verify_module,\n    });\n    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);\n    const test_step = b.step("test", "Run focused Phase 8 libbpf segment verify build");\n    test_step.dependOn(&run_libbpf_segment_verify_tests.step);\n}\n')
