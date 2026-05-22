@@ -12,6 +12,17 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
@@ -308,6 +319,7 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/string.zig", "strnchr_review_summary"): EXPECTED_STRING_COUNTED_SEARCH_REVIEW_SUMMARY,
 }
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
@@ -316,8 +328,30 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
 def load_json(root: Path, relative_path: Path) -> object:
-    return json.loads(load_text(root, relative_path))
+    return load_json_with_duplicate_tracking(load_text(root, relative_path))
+
+
+def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
+    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
 
 
 def require_exact_line(text: str, label: str, line: str) -> list[str]:
@@ -358,9 +392,19 @@ def collect_failures(root: Path) -> list[str]:
                 )
             )
 
-    manifest = load_json(root, MANIFEST_REL)
+    try:
+        manifest = load_json(root, MANIFEST_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure(MANIFEST_REL.as_posix(), exc)]
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
+
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [
+            f"{MANIFEST_REL.as_posix()}:duplicate_json_key:{path}"
+            for path in duplicate_manifest_paths
+        ]
 
     for path, expected in MANIFEST_EXPECTATIONS.items():
         failures.extend(
@@ -466,8 +510,14 @@ def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
+def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str) -> None:
+    manifest_path = root / MANIFEST_REL
+    text = manifest_path.read_text(encoding="utf-8")
+    manifest_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
+
+
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [
+    cases: list[tuple[str, Path | None, object | None, str]] = [
         ("success", None, None, "none")
     ]
     for relative_path, lines in REQUIRED_EXACT_LINES.items():
@@ -476,6 +526,22 @@ def run_self_test() -> int:
             cases.append((f"duplicate_{relative_path.name}_{abs(hash(line))}", relative_path, line, "duplicate"))
     for path in MANIFEST_EXPECTATIONS:
         cases.append((f"manifest_{'_'.join(path)}", MANIFEST_REL, path, "manifest"))
+    cases.append(("invalid_manifest_json", MANIFEST_REL, None, "invalid_json"))
+    cases.append((
+        "duplicate_manifest_helper_count",
+        MANIFEST_REL,
+        ('  "helper_count": 13,', '  "helper_count": 99,'),
+        "manifest_duplicate_text",
+    ))
+    cases.append((
+        "duplicate_manifest_bitmap_or_window_anchor",
+        MANIFEST_REL,
+        (
+            '      "or_window_anchor": "test \\"bitmap or keeps caller-selected bit window\\"",',
+            '      "or_window_anchor": "drifted bitmap window anchor",',
+        ),
+        "manifest_duplicate_text",
+    ))
     for relative_path in REQUIRED_FILES:
         cases.append((f"missing_file_{relative_path.name}", relative_path, None, "missing_file"))
 
@@ -499,6 +565,11 @@ def run_self_test() -> int:
                 elif operation == "manifest":
                     assert isinstance(needle, tuple)
                     mutate_manifest(root, needle)
+                elif operation == "invalid_json":
+                    target.write_text("{\n", encoding="utf-8")
+                elif operation == "manifest_duplicate_text":
+                    assert isinstance(needle, tuple)
+                    insert_duplicate_manifest_line(root, needle[0], needle[1])
 
             failures = collect_failures(root)
             if name == "success":
