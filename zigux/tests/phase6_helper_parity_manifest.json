@@ -9,6 +9,7 @@
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
