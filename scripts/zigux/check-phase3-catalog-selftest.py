@@ -39,6 +39,7 @@ REQUIRED_MARKERS = {
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
         'Path("Documentation/zigux/phase3-policy-slice.md")',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'Path("Documentation/zigux/phase3-kernel-export-shim-governance.md")',
         'Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")',
         'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
         'Path("scripts/zigux/check-phase3-abi.py")',
@@ -168,6 +169,11 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            'Path("Documentation/zigux/phase3-kernel-export-shim-governance.md")',
+            "expected missing catalog kernel-export governance marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
             "expected missing catalog abi-support checker marker was not reported",
         ),
@@ -194,12 +200,12 @@ def run_self_test() -> int:
         (
             CATALOG_PATH,
             '"make -C zigux phase3-export-uapi-layout"',
-            "expected missing catalog export/uapi shared make route marker was not reported",
+            "expected missing catalog export-uapi shared make route marker was not reported",
         ),
         (
             CATALOG_PATH,
             '"make -C zigux phase3-export-uapi-layout-test"',
-            "expected missing catalog export/uapi dedicated make route marker was not reported",
+            "expected missing catalog export-uapi dedicated make route marker was not reported",
         ),
         (
             CATALOG_PATH,
