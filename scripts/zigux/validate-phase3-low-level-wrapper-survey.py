@@ -239,6 +239,8 @@ REQUIRED_MARKERS = {
         "name: Check current Phase 3 low-level wrapper survey packet",
         "name: Run current Phase 3 low-level wrapper replay",
         "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        "name: Run current Phase 3 shared tests-root packet",
+        "run: zig build phase3-test --build-file zigux/tests/build.zig",
     ),
 }
 
