@@ -18,6 +18,7 @@ DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
+ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -28,6 +29,7 @@ EXPECTED_COMPANIONS = [
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -73,6 +75,8 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -82,6 +86,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `Documentation/zigux/README.md`",
     "- `scripts/zigux/check-phase7-build-wiring.py`",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "- `scripts/zigux/check-phase7-argv-split-packet.py`",
     "- `scripts/zigux/README.md`",
     "- `zigux/tests/README.md`",
     "- `zigux/tests/phase7_build.zig`",
@@ -89,6 +94,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current replay inventory",
     "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
     "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "## Current repo-reality gaps",
@@ -112,6 +118,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
+    ARGV_SPLIT_PACKET_CHECKER_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
@@ -214,6 +221,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
     write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     write(root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass')\n")
+    write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
     write(
         root / MANIFEST_PATH,
         json.dumps(
