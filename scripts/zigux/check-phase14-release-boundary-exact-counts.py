@@ -45,6 +45,8 @@ RELEASE_BOUNDARY_TEXT_MARKERS = [
 
 SURVEY_EXACT_LINE_SNIPPETS = [
     "  * directly readable current-`master` companion surfaces in this lane's current evidence split:",
+    "    * `scripts/zigux/check-phase14-shared-smoke-route.py` through the current contents path",
+    "    * `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` through the current contents path",
     "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json` through the current contents path",
     "  * exact-readback gaps that still belong to this shared note:",
     "    * `zigux/tests/phase14_build.zig`",
@@ -197,7 +199,7 @@ def run_self_test() -> int:
         remove_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[1])
         if not any(SURVEY_EXACT_LINE_SNIPPETS[1] in error for error in check(base)):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected missing returned-manifest marker drift to fail")
+            print("expected missing returned-route-checker marker drift to fail")
             return 1
 
         write_fixture_tree(base)
