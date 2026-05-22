@@ -508,6 +508,26 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
 
+        _write(
+            root / LIBBPF_SHARD_ROUTES_CHECKER,
+            _failing_checker(
+                "PHASE8_LIBBPF_SHARD_ROUTES",
+                "missing-marker:Documentation/zigux/phase8-libbpf-segment-survey.md:`tools/lib/bpf/zigux_segments/verify.zig`",
+            ),
+        )
+        failing_libbpf_checker = validate_root(root)
+        libbpf_checker_output = failing_libbpf_checker.checker_failures.get(
+            LIBBPF_SHARD_ROUTES_CHECKER.as_posix()
+        )
+        if (
+            libbpf_checker_output is None
+            or "PHASE8_LIBBPF_SHARD_ROUTES=fail" not in libbpf_checker_output
+            or "missing-marker:Documentation/zigux/phase8-libbpf-segment-survey.md:`tools/lib/bpf/zigux_segments/verify.zig`" not in libbpf_checker_output
+        ):
+            raise AssertionError("expected failing libbpf shard-routes checker output to be reported")
+        case_count += 1
+        _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
+
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
             for marker in markers:
