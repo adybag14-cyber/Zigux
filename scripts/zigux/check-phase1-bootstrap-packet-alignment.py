@@ -507,6 +507,18 @@ def run_self_test() -> int:
     cases.append(("workflow_phase1_packet_boundary_spacer_after_smoke", ("boundary_spacer_after", WORKFLOW_PACKET_STEPS[-1][0])))
     cases.append(
         (
+            "workflow_phase1_packet_predecessor_name_drift",
+            ("rename_workflow_step", PHASE1_PACKET_PREDECESSOR, "Validate current Phase 2 tool proof"),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_name_drift",
+            ("rename_workflow_step", PHASE1_PACKET_SUCCESSOR, "Self-test current Phase 4 repo-reality proof"),
+        )
+    )
+    cases.append(
+        (
             "workflow_required_step_name_drift",
             ("rename_workflow_step", "Self-test current Phase 1 direct-owner checker", "Self-test current Phase 1 direct-owner proof"),
         )
