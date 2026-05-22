@@ -13,6 +13,9 @@ from pathlib import Path
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 PHASE11_VALIDATE_COMMAND = "make -C zigux phase11-validate"
 PHASE11_VALIDATE_STEP = "Validate current Phase 11 support bundle"
+TARGETLESS_WITNESS_TEST_NAME = "phase11-hvc-targetless-unregister-gap"
+TARGETLESS_WITNESS_REPLAY = "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
+TARGETLESS_WITNESS_BUILD_REPLAY = "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 LANE_NOTE_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
@@ -25,8 +28,8 @@ CLEANUP_CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
 VALIDATE_PHASE11_PATH = "scripts/zigux/validate-phase11.py"
 MAKEFILE_PATH = "zigux/Makefile"
 INVENTORY_PATH = "zigux/tests/fixtures/phase11_build_inventory.json"
-WITNESS_PATH = "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
-WITNESS_BUILD_PATH = "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+WITNESS_PATH = TARGETLESS_WITNESS_REPLAY
+WITNESS_BUILD_PATH = TARGETLESS_WITNESS_BUILD_REPLAY
 SELF_PATH = "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
 
 CLEANUP_SELF_TEST_COMMAND = "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test"
@@ -272,6 +275,24 @@ def require_inventory(root: Path) -> None:
             "phase11_build_inventory.json must keep the targetless-unregister witness workflow step explicit"
         )
 
+    build_test_names = inventory.get("build_test_names")
+    if isinstance(build_test_names, list) and TARGETLESS_WITNESS_TEST_NAME in build_test_names:
+        raise ValidationError(
+            "phase11_build_inventory.json must keep the targetless-unregister witness outside build_test_names"
+        )
+
+    shared_adjunct_replays = inventory.get("shared_adjunct_replays")
+    if isinstance(shared_adjunct_replays, list) and TARGETLESS_WITNESS_REPLAY in shared_adjunct_replays:
+        raise ValidationError(
+            "phase11_build_inventory.json must keep the targetless-unregister witness outside shared_adjunct_replays"
+        )
+
+    shared_adjunct_build_replays = inventory.get("shared_adjunct_build_replays")
+    if isinstance(shared_adjunct_build_replays, list) and TARGETLESS_WITNESS_BUILD_REPLAY in shared_adjunct_build_replays:
+        raise ValidationError(
+            "phase11_build_inventory.json must keep the targetless-unregister witness outside shared_adjunct_build_replays"
+        )
+
 
 def validate(root: Path) -> None:
     require_packet_files(root)
@@ -284,6 +305,11 @@ def build_fixture(root: Path) -> None:
         write_text(root, relative_path, FIXTURE_TEXT.get(relative_path, "placeholder\n"))
 
     inventory = {
+        "build_test_names": [
+            "phase11-hvc-hv-ops-layout-proof-tests",
+            "phase11-hvc-export-surface-layout-proof-tests",
+            "phase11-hvc-cleanup-packet-proof",
+        ],
         "exact_current_checks": [
             CLEANUP_SELF_TEST_COMMAND,
             CLEANUP_COMMAND,
@@ -291,6 +317,16 @@ def build_fixture(root: Path) -> None:
         ],
         "workflow_phase11_steps": [
             {"name": PHASE11_VALIDATE_STEP, "run": PHASE11_VALIDATE_COMMAND},
+        ],
+        "shared_adjunct_replays": [
+            "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
+            "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+            "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+        ],
+        "shared_adjunct_build_replays": [
+            "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+            "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+            "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
         ],
     }
     write_text(root, INVENTORY_PATH, json.dumps(inventory, indent=2, sort_keys=True) + "\n")
@@ -437,6 +473,51 @@ def run_self_test() -> int:
             broken_workflow,
             mutate_inventory_missing_step,
             "workflow step explicit",
+        )
+        cases += 1
+
+        broken_inventory_build_test_names = temp_dir / "broken_inventory_build_test_names"
+        shutil.copytree(fixture, broken_inventory_build_test_names, dirs_exist_ok=True)
+
+        def mutate_inventory_build_test_names(root: Path) -> None:
+            payload = json.loads(read_text(root, INVENTORY_PATH))
+            payload["build_test_names"].append(TARGETLESS_WITNESS_TEST_NAME)
+            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+        expect_failure(
+            broken_inventory_build_test_names,
+            mutate_inventory_build_test_names,
+            "outside build_test_names",
+        )
+        cases += 1
+
+        broken_inventory_adjunct_replays = temp_dir / "broken_inventory_adjunct_replays"
+        shutil.copytree(fixture, broken_inventory_adjunct_replays, dirs_exist_ok=True)
+
+        def mutate_inventory_adjunct_replays(root: Path) -> None:
+            payload = json.loads(read_text(root, INVENTORY_PATH))
+            payload["shared_adjunct_replays"].append(TARGETLESS_WITNESS_REPLAY)
+            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+        expect_failure(
+            broken_inventory_adjunct_replays,
+            mutate_inventory_adjunct_replays,
+            "outside shared_adjunct_replays",
+        )
+        cases += 1
+
+        broken_inventory_adjunct_build_replays = temp_dir / "broken_inventory_adjunct_build_replays"
+        shutil.copytree(fixture, broken_inventory_adjunct_build_replays, dirs_exist_ok=True)
+
+        def mutate_inventory_adjunct_build_replays(root: Path) -> None:
+            payload = json.loads(read_text(root, INVENTORY_PATH))
+            payload["shared_adjunct_build_replays"].append(TARGETLESS_WITNESS_BUILD_REPLAY)
+            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+        expect_failure(
+            broken_inventory_adjunct_build_replays,
+            mutate_inventory_adjunct_build_replays,
+            "outside shared_adjunct_build_replays",
         )
         cases += 1
 
