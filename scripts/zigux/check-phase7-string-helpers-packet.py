@@ -60,6 +60,10 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase7_string_helpers_manifest.json": [',
         '"\\\"devmKasprintfStrarray\\\""',
         '"\\\"devm_kasprintf_strarray\\\""',
+        "MISSING_PHASE7_STRING_HELPERS_FILES_START",
+        "MISSING_PHASE7_STRING_HELPERS_FILES_END",
+        "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
+        "MISSING_PHASE7_STRING_HELPERS_MARKERS_END",
         "MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START",
         "MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_END",
         "UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -167,7 +171,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 32
+SELF_TEST_CASE_COUNT = 36
 
 
 def read_text(path: Path) -> str:
@@ -319,6 +323,21 @@ def run_self_test() -> None:
         )
         cases_run += 1
         write_fixture_root(tmp_root)
+
+        for marker in [
+            "MISSING_PHASE7_STRING_HELPERS_FILES_START",
+            "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
+            "MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START",
+            "UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START",
+        ]:
+            remove_once(checker_path, marker)
+            expect_missing_marker(
+                f"missing_checker_output_marker_{marker.lower()}",
+                tmp_root,
+                f"scripts/zigux/check-phase7-string-helpers-packet.py: {marker}",
+            )
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "string_helpers.zig"
         helper_marker = "pub fn kstrdupQuotableCmdline("
@@ -511,6 +530,27 @@ def main() -> int:
         print("PHASE7_STRING_HELPERS_PACKET=pass")
         return 0
 
+    print("PHASE7_STRING_HELPERS_PACKET=fail")
+    if missing_files:
+        print("MISSING_PHASE7_STRING_HELPERS_FILES_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE7_STRING_HELPERS_FILES_END")
+    if missing_markers:
+        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")
+        for item in missing_markers:
+            print(item)
+        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_END")
+    if mismatched_counts:
+        print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_START")
+        for item in mismatched_counts:
+            print(item)
+        print("MISMATCHED_PHASE7_STRING_HELPERS_COUNTS_END")
+    if unexpected_markers:
+        print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_START")
+        for item in unexpected_markers:
+            print(item)
+        print("UNEXPECTED_PHASE7_STRING_HELPERS_MARKERS_END")
     return 1
 
 
