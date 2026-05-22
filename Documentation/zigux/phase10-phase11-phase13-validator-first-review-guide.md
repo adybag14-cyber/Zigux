@@ -107,29 +107,33 @@ Keep the current pre-replay checker stack and returned shared validation route e
 - `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `python3 scripts/zigux/validate-phase11.py`
 - `make -C zigux phase11-validate`
+- `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 Keep these evidence surfaces aligned in the same review:
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`
 - `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`
 - `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
-- `Documentation/zigux/phase11-dw-wdt-survey.md`
-- `Documentation/zigux/phase11-dw-wdt-slice.md`
-- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
@@ -138,6 +142,8 @@ Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
@@ -145,24 +151,34 @@ Keep these evidence surfaces aligned in the same review:
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
+- `drivers/tty/hvc/hvc_console.zig`
+- `drivers/tty/hvc/hvc_console.h`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt.zig`
-- `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
+- `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-Keep the current repo-reality gaps explicit too:
+Keep the current repo-reality split explicit too:
 
 - `zigux/Makefile` is present on current `master`, and its live body now exposes the shared `make -C zigux phase11-validate` route. `make -C zigux phase11` and `make -C zigux phase11-contract` still remain repo-reality gaps.
+- `Documentation/zigux/phase11-shared-replay-contract.md` is back on current `master` and should stay explicit beside the shared validator, build-inventory, and Makefile-backed review packet instead of being repeated as a gap.
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` are back as current-head matrix evidence, even though this runtime still rereads the bcm2835 and DesignWare notes through raw current-`master` fallback. Keep those returned matrix surfaces explicit beside the gpio and HVC matrices instead of treating them as missing.
-- `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
+- The returned DesignWare continuity packet is narrower than the older broader survey-only reminder family: keep `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` explicit, while `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and `zigux/tests/phase11_dw_wdt_survey.zig` stay outside the current shared validator-first evidence packet until a same-mode reread proves they returned to this lane.
+- The returned HVC continuity packet is broader than the older cleanup-only wording here: keep `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` explicit beside the cleanup packet, build inventory, and proof-backed adjunct stack instead of narrowing the shared story to cleanup alone.
+- `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
 
 Reviewer prompts:
 
-- Do the current Phase 11 checker stack, the returned four-matrix packet, the returned DesignWare owner packet, the current HVC cleanup companion, and the current proof-backed HVC cleanup route still describe the same bounded simple-driver packet?
-- Does the guide keep the returned `zigux/Makefile` file and `make -C zigux phase11-validate` route distinct from the still-missing broader Phase 11 make routes, and keep the older shared replay contract surfaces framed as gaps rather than live evidence?
+- Do the current Phase 11 checker stack, the returned shared replay-contract note, the returned four-matrix packet, the narrower returned DesignWare continuity packet, the broader current-head HVC continuity packet with the targetless-unregister witness, the adjacent header-boundary proof shard, and the shared validator-plus-`phase11-validate` route still describe the same bounded simple-driver packet?
+- Does the guide keep the returned `zigux/Makefile` file and `make -C zigux phase11-validate` route distinct from the still-missing broader Phase 11 make routes, and keep only the older closure-note, removed shared-checker, and removed aggregate build-route surfaces framed as gaps rather than live evidence?
 
 ## Phase 13: Shared-helper release packet
 
