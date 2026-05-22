@@ -127,6 +127,7 @@ EXPECTED_CLOSURE_MARKERS = {
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "string_sysfs_review": "`PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",
+    "find_bit_bench_guard": "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
     "next_step": "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",
 }
 
@@ -337,7 +338,7 @@ def collect_failures(root: Path) -> list[str]:
     if not isinstance(review_anchors, dict):
         return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.bitmap.zig", review_anchors.get("tools/lib/bitmap.zig"), EXPECTED_BITMAP_REVIEW_ANCHORS))
-    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib/find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
+    failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.find_bit.zig", review_anchors.get("tools/lib.find_bit.zig"), EXPECTED_FIND_BIT_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib.string.zig", review_anchors.get("tools/lib/string.zig"), EXPECTED_STRING_REVIEW_ANCHORS))
 
@@ -422,6 +423,7 @@ def run_self_test() -> int:
         ("missing_restore_state", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["restore_state"] + "\n", "", 1))),
         ("old_next_step_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["next_step"], "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`", 1))),
         ("forbidden_old_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n")),
+        ("missing_find_bit_bench_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_bench_guard"] + "\n", "", 1))),
         ("bad_helper_count", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n")),
         ("stale_lane_rule_summary", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "rule_summary": "drifted rule summary"}}, indent=2) + "\n")),
         ("stale_anti_overlap_rule", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "anti_overlap_rule": "drifted anti-overlap rule"}}, indent=2) + "\n")),
