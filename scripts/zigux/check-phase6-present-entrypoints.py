@@ -125,7 +125,16 @@ EXPECTED_HEXDUMP_RERUN_ROUTES = [
     "make -C zigux phase6-perf",
 ]
 EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
+EXPECTED_CHECKSUM_PAYLOAD_MATRIX = [
+    {"label": "64B", "iterations": 200000, "max_slowdown_pct": 150},
+    {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150},
+]
 EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
+EXPECTED_CHECKSUM_FAST_PATH_MATRIX = [
+    {"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100},
+    {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100},
+    {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100},
+]
 EXPECTED_CHECKSUM_RERUN_ROUTES = [
     "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf-matrix-test",
@@ -148,7 +157,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 33
 
 
 class ValidationError(RuntimeError):
@@ -281,8 +290,12 @@ def validate(repo_root: Path) -> None:
     checksum_perf = checksum.get("current_perf_evidence")
     if not isinstance(checksum_perf, dict):
         raise ValidationError("phase6 checksum perf evidence missing")
+    if checksum_perf.get("cases") != EXPECTED_CHECKSUM_PAYLOAD_MATRIX:
+        raise ValidationError("phase6 checksum payload perf matrix mismatch")
     if checksum_perf.get("payload_case_labels") != EXPECTED_CHECKSUM_PAYLOAD_CASES:
         raise ValidationError("phase6 checksum payload perf cases mismatch")
+    if checksum_perf.get("ipv4_fast_path_cases") != EXPECTED_CHECKSUM_FAST_PATH_MATRIX:
+        raise ValidationError("phase6 checksum ipv4 fast-path matrix mismatch")
     if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_FAST_PATH_CASES:
         raise ValidationError("phase6 checksum ipv4 fast-path cases mismatch")
     if checksum_perf.get("linux_style_rerun_routes") != EXPECTED_CHECKSUM_RERUN_ROUTES:
@@ -353,7 +366,9 @@ def scaffold_repo(root: Path) -> None:
                         "key": "checksum",
                         "checker_surfaces": [EXPECTED_CHECKSUM_CHECKER],
                         "current_perf_evidence": {
+                            "cases": EXPECTED_CHECKSUM_PAYLOAD_MATRIX,
                             "payload_case_labels": EXPECTED_CHECKSUM_PAYLOAD_CASES,
+                            "ipv4_fast_path_cases": EXPECTED_CHECKSUM_FAST_PATH_MATRIX,
                             "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_FAST_PATH_CASES,
                             "linux_style_rerun_routes": EXPECTED_CHECKSUM_RERUN_ROUTES,
                         },
@@ -479,6 +494,10 @@ def run_self_test() -> None:
         expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"case_labels": EXPECTED_BASE64_CASES[:-1]})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["cases"][1].update({"iterations": 12001})))
+        cases_run += 1
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["ipv4_fast_path_cases"][2].update({"max_slowdown_pct": 101})))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-checksum-perf")))
         cases_run += 1
