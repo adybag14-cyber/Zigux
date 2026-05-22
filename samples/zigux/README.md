@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh mixed readback on 2026-05-21 confirmed these current sample-root files on `master`:
+Fresh mixed readback on 2026-05-22 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
@@ -12,6 +12,7 @@ Fresh mixed readback on 2026-05-21 confirmed these current sample-root files on 
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
+* `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_bitmap.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
@@ -58,6 +59,7 @@ Current `master` does carry one bounded `*string*` and `*format*` companion thro
 
 The directly readable runtime-facing sample-root evidence on current `master` belongs to the separate later runtime lane:
 
+* `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_bitmap.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
