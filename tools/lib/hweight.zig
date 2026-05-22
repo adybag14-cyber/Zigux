@@ -194,3 +194,30 @@ test "hweight helpers satisfy inclusion exclusion across overlapping masks" {
         hweight_long(left_long | right_long) + hweight_long(left_long & right_long),
     );
 }
+
+test "hweight helpers preserve bit parity modulo two" {
+    const value8: u8 = 0b1011_0110;
+    const parity8 = @as(u32, @popCount(value8) & 1);
+    try std.testing.expectEqual(parity8, swHweight8(value8) & 1);
+    try std.testing.expectEqual(parity8, __sw_hweight8(value8) & 1);
+
+    const value16: u16 = 0xb60d;
+    const parity16 = @as(u32, @popCount(value16) & 1);
+    try std.testing.expectEqual(parity16, swHweight16(value16) & 1);
+    try std.testing.expectEqual(parity16, __sw_hweight16(value16) & 1);
+
+    const value32: u32 = 0xb60d_f00f;
+    const parity32 = @as(u32, @popCount(value32) & 1);
+    try std.testing.expectEqual(parity32, swHweight32(value32) & 1);
+    try std.testing.expectEqual(parity32, __sw_hweight32(value32) & 1);
+
+    const value64: u64 = 0xb60d_f00f_1357_9bdf;
+    const parity64 = @as(u64, @popCount(value64) & 1);
+    try std.testing.expectEqual(parity64, swHweight64(value64) & 1);
+    try std.testing.expectEqual(parity64, __sw_hweight64(value64) & 1);
+
+    const value_long: usize = if (@sizeOf(usize) == 4) value32 else value64;
+    const parity_long = @as(usize, @popCount(value_long) & 1);
+    try std.testing.expectEqual(parity_long, hweightLong(value_long) & 1);
+    try std.testing.expectEqual(parity_long, hweight_long(value_long) & 1);
+}
