@@ -129,6 +129,19 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def _append_duplicate_list_entry_issues(label: str, values: list[object], issues: list[str]) -> None:
+    seen: dict[str, int] = {}
+    for index, value in enumerate(values):
+        key = repr(value)
+        first_index = seen.get(key)
+        if first_index is None:
+            seen[key] = index
+            continue
+        issues.append(
+            f"{label} duplicate entry: {value!r} (first index {first_index}, duplicate index {index})"
+        )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -167,6 +180,9 @@ def validate_repo(repo_root: Path) -> list[str]:
     if not isinstance(packet_files, list):
         issues.append("phase3_abi_manifest.json packet_files is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_abi_manifest.json packet_files", packet_files, issues
+        )
         for entry in REQUIRED_PACKET_FILES:
             if entry not in packet_files:
                 issues.append(
@@ -176,6 +192,9 @@ def validate_repo(repo_root: Path) -> list[str]:
     if not isinstance(replay_routes, list):
         issues.append("phase3_abi_manifest.json replay_routes is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_abi_manifest.json replay_routes", replay_routes, issues
+        )
         for entry in REQUIRED_REPLAY_ROUTES:
             if entry not in replay_routes:
                 issues.append(
@@ -262,6 +281,21 @@ def run_self_test() -> int:
                 print(f"expected missing packet file was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].append("scripts/zigux/phase3_catalog.py")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json packet_files duplicate entry: "
+            "'scripts/zigux/phase3_catalog.py' (first index 6, duplicate index 27)"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=fail")
+            print("expected duplicate packet file entry was not reported")
+            return 1
+
         manifest_route_cases = (
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
@@ -284,6 +318,22 @@ def run_self_test() -> int:
         _populate_repo(root)
         manifest_path = root / MANIFEST_PATH
         manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].append("python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json replay_routes duplicate entry: "
+            "'python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test' "
+            "(first index 0, duplicate index 20)"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=fail")
+            print("expected duplicate replay route entry was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
         manifest["repo_reality_gaps"] = ["scripts/zigux/phase3_catalog.py"]
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -296,7 +346,7 @@ def run_self_test() -> int:
             print("expected repo-reality gap misclassification was not reported")
             return 1
 
-    case_count = 2 + len(note_cases) + len(manifest_packet_cases) + len(manifest_route_cases)
+    case_count = 4 + len(note_cases) + len(manifest_packet_cases) + len(manifest_route_cases)
     print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass")
     print(f"PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
