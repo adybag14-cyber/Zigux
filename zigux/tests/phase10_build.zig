@@ -126,7 +126,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_queue_callback_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_queue_callback_preflight_module.addImport(
         "virtio_input_queue_callback_preflight",
-        virtio_input_queue_callback_preflight_module,
+        phase10_virtio_input_queue_callback_preflight_module,
     );
 
     const phase10_virtio_input_registration_preflight_module = b.createModule(.{
@@ -137,7 +137,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_registration_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_registration_preflight_module.addImport(
         "virtio_input_registration_preflight",
-        virtio_input_registration_preflight_module,
+        phase10_virtio_input_registration_preflight_module,
     );
 
     const phase10_virtio_input_status_drain_module = b.createModule(.{
@@ -148,7 +148,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        virtio_input_status_drain_module,
+        phase10_virtio_input_status_drain_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
