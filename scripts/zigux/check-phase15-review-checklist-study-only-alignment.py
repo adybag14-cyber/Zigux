@@ -52,8 +52,8 @@ LANE_SEQ_MARKERS = (
 
 SHARED_GAP_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
-    "if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts",
-    "the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh",
+    "if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts",
+    "the materialized governance packet above, the Architecture Council review-process owner note, the decision-record template, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the checklist-specific study-only anchor summary boundary, or the stay-in-C companion changes enough to force a smaller shared-summary refresh",
 )
 
 
@@ -144,10 +144,10 @@ def _seed(root: Path) -> None:
 - `Documentation/zigux/review-checklist.md`
 
 ## Recovery rule
-- if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 
 ## Next bounded step
-- keep this note parked unless the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh
+- keep this note parked unless the materialized governance packet above, the Architecture Council review-process owner note, the decision-record template, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the checklist-specific study-only anchor summary boundary, or the stay-in-C companion changes enough to force a smaller shared-summary refresh
 """,
     )
 
