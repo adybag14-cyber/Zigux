@@ -422,6 +422,10 @@ pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     return null;
 }
 
+pub fn strlen(buf: []const u8) usize {
+    return cStringLen(buf);
+}
+
 pub fn strnlen(buf: []const u8, count: usize) usize {
     return @min(cStringLen(buf), @min(count, buf.len));
 }
@@ -766,6 +770,11 @@ test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abc", 2, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abc", 1, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr(&[_]u8{ 'a', 0, 'b' }, 3, 'b'));
+}
+
+test "strlen honors C-string boundaries" {
+    try std.testing.expectEqual(@as(usize, 3), strlen("abc"));
+    try std.testing.expectEqual(@as(usize, 1), strlen(&[_]u8{ 'a', 0, 'b' }));
 }
 
 test "strnlen honors count and C-string boundaries" {
