@@ -200,7 +200,7 @@ REQUIRED_MARKERS = {
     ],
     VIRTIO_NET_SURVEY_PATH: [
         "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
-        "lane owner: `P12-L01`",
+        "lane owner: `P12-L04`",
         "`zigux/tests/phase12_build.zig` plus `zigux/Makefile` now keep the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes",
         "the throughput helper remains review-only throughput-ratio checks, but now also surfaces explicit receive-refill and transmit-recycle readiness booleans rather than measured transport throughput evidence",
         "the shared Phase 12 build route includes the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate replays, and current `zigux/Makefile` now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`",
@@ -246,7 +246,7 @@ REQUIRED_MARKERS = {
         "try std.testing.expectEqualStrings(\"P12-L16\", manifest.lane_key);",
     ],
     VIRTIO_NET_MANIFEST_PATH: [
-        "\"lane_key\": \"P12-L01\"",
+        "\"lane_key\": \"P12-L04\"",
         "\"phase\": \"Phase 12\"",
         "\"anchor\": \"drivers/net/virtio_net.c\"",
         "\"roadmap_gap_check\"",
