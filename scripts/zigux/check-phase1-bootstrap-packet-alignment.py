@@ -98,6 +98,46 @@ WORKFLOW_PACKET_STEPS = (
         "python3 scripts/zigux/validate-phase1-closure.py",
     ),
     (
+        "Self-test current Phase 3 interop packet",
+        "python3 scripts/zigux/validate_phase3_selftest.py",
+    ),
+    (
+        "Check current Phase 3 interop packet",
+        "python3 scripts/zigux/run-phase3-checks.py",
+    ),
+    (
+        "Run current Phase 3 export/UAPI layout replay",
+        "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        "Run current Phase 3 policy starter-packet replay",
+        "make -C zigux phase3-policy-starter-packet-test",
+    ),
+    (
+        "Run current Phase 3 policy dump replay",
+        "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    ),
+    (
+        "Self-test current Phase 3 low-level wrapper survey validator",
+        "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    ),
+    (
+        "Check current Phase 3 low-level wrapper survey packet",
+        "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    ),
+    (
+        "Run current Phase 3 low-level wrapper replay",
+        "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
+    (
+        "Run current Phase 3 shared tests-root packet",
+        "zig build phase3-test --build-file zigux/tests/build.zig",
+    ),
+    (
+        "Run current Phase 3 ABI dump replay",
+        "zig build phase3-dump --build-file zigux/tests/build.zig",
+    ),
+    (
         "Run current Phase 1 shared tests-root smoke",
         "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
     ),
