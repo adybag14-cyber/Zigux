@@ -6,13 +6,15 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 
 
 HERE = Path(__file__).resolve()
-ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
-EXPECTATIONS = ROOT / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
-PHASE1_BENCH = ROOT / "zigux" / "tests" / "phase1_bench.zig"
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")
+PHASE1_BENCH_REL = Path("zigux/tests/phase1_bench.zig")
+BUILD_FILE_REL = Path("zigux/tests/build.zig")
 EXPECTED_ITERATIONS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
     "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
@@ -104,6 +106,24 @@ class DuplicateTrackingDict(dict[str, object]):
             if key in self and key not in self.duplicate_keys:
                 self.duplicate_keys.append(key)
             self[key] = value
+
+
+def resolve_root(explicit: str | None) -> Path:
+    if explicit:
+        return Path(explicit).resolve()
+    return DEFAULT_ROOT
+
+
+def expectations_path(root: Path) -> Path:
+    return root / EXPECTATIONS_REL
+
+
+def phase1_bench_path(root: Path) -> Path:
+    return root / PHASE1_BENCH_REL
+
+
+def build_file_path(root: Path) -> Path:
+    return root / BUILD_FILE_REL
 
 
 def find_zig(explicit: str | None) -> str:
@@ -204,6 +224,7 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         return ("expectations_duplicate_checksums", duplicates)
     if checksums != EXPECTED_CHECKSUMS:
         return ("expectations_checksum_order", checksums)
+
     checksum_keys = set(checksums)
     if checksum_keys != set(EXPECTED_CHECKSUMS):
         missing = sorted(set(EXPECTED_CHECKSUMS) - checksum_keys)
@@ -212,29 +233,17 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
             return ("expectations_missing_checksums", missing)
         return ("expectations_unexpected_checksums", unexpected)
 
-    for key in sorted(BITMAP_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_bitmap_exact_required", key)
-
-    for key in sorted(FIND_BIT_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_find_bit_exact_required", key)
-
-    for key in sorted(STRING_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_string_exact_required", key)
-
-    for key in sorted(HWEIGHT_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_hweight_exact_required", key)
-
-    for key in sorted(LIST_SORT_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_list_sort_exact_required", key)
-
-    for key in sorted(RBTREE_REQUIRED_EXACT_CHECKSUMS):
-        if key in checksum_keys and key not in exact_checksums:
-            return ("expectations_checksums_rbtree_exact_required", key)
+    for label, required_keys in (
+        ("bitmap", BITMAP_REQUIRED_EXACT_CHECKSUMS),
+        ("find_bit", FIND_BIT_REQUIRED_EXACT_CHECKSUMS),
+        ("string", STRING_REQUIRED_EXACT_CHECKSUMS),
+        ("hweight", HWEIGHT_REQUIRED_EXACT_CHECKSUMS),
+        ("list_sort", LIST_SORT_REQUIRED_EXACT_CHECKSUMS),
+        ("rbtree", RBTREE_REQUIRED_EXACT_CHECKSUMS),
+    ):
+        for key in sorted(required_keys):
+            if key in checksum_keys and key not in exact_checksums:
+                return (f"expectations_checksums_{label}_exact_required", key)
 
     exact_keys = set(exact_checksums)
     if exact_keys != set(REQUIRED_EXACT_CHECKSUMS):
@@ -243,6 +252,7 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         if missing:
             return ("expectations_missing_exact_checksums", missing)
         return ("expectations_unexpected_exact_checksums", unexpected)
+
     for key, value in exact_checksums.items():
         if not isinstance(value, int):
             return ("expectations_exact_checksum_value_type", (key, type(value).__name__))
@@ -308,41 +318,17 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
                 return ("rbtree_iteration_mismatch", (key, expected, actual))
             return ("iteration_mismatch", (key, expected, actual))
 
-    missing_rbtree_exact = sorted(
-        key for key in RBTREE_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_rbtree_exact:
-        return ("missing_rbtree_exact_checksums", missing_rbtree_exact)
-
-    missing_bitmap_exact = sorted(
-        key for key in BITMAP_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_bitmap_exact:
-        return ("missing_bitmap_exact_checksums", missing_bitmap_exact)
-
-    missing_find_bit_exact = sorted(
-        key for key in FIND_BIT_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_find_bit_exact:
-        return ("missing_find_bit_exact_checksums", missing_find_bit_exact)
-
-    missing_string_exact = sorted(
-        key for key in STRING_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_string_exact:
-        return ("missing_string_exact_checksums", missing_string_exact)
-
-    missing_hweight_exact = sorted(
-        key for key in HWEIGHT_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_hweight_exact:
-        return ("missing_hweight_exact_checksums", missing_hweight_exact)
-
-    missing_list_sort_exact = sorted(
-        key for key in LIST_SORT_REQUIRED_EXACT_CHECKSUMS if parsed.get(key) is None
-    )
-    if missing_list_sort_exact:
-        return ("missing_list_sort_exact_checksums", missing_list_sort_exact)
+    for label, required_keys in (
+        ("rbtree", RBTREE_REQUIRED_EXACT_CHECKSUMS),
+        ("bitmap", BITMAP_REQUIRED_EXACT_CHECKSUMS),
+        ("find_bit", FIND_BIT_REQUIRED_EXACT_CHECKSUMS),
+        ("string", STRING_REQUIRED_EXACT_CHECKSUMS),
+        ("hweight", HWEIGHT_REQUIRED_EXACT_CHECKSUMS),
+        ("list_sort", LIST_SORT_REQUIRED_EXACT_CHECKSUMS),
+    ):
+        missing_exact = sorted(key for key in required_keys if parsed.get(key) is None)
+        if missing_exact:
+            return (f"missing_{label}_exact_checksums", missing_exact)
 
     for key in expectations["checksums"]:
         actual = parsed.get(key)
@@ -404,27 +390,73 @@ def build_find_bit_bench_source(omit_label: str | None = None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def run_self_test() -> None:
-    case_count = 0
-    expectations = {
+def make_expectations(*, missing_exact: str | None = None, reordered_checksums: bool = False) -> dict[str, object]:
+    exact_checksums = {
+        "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+        "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+        "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+        "PHASE1_BENCH_STRING_CHECKSUM": 5,
+        "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+        "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+        "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+        "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
+    }
+    if missing_exact is not None:
+        del exact_checksums[missing_exact]
+    checksums = list(EXPECTED_CHECKSUMS)
+    if reordered_checksums:
+        checksums = [
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+            "PHASE1_BENCH_STRING_CHECKSUM",
+            "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+            "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+            "PHASE1_BENCH_RBTREE_CHECKSUM",
+        ]
+    return {
         "status": "pass",
         "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
+        "checksums": checksums,
+        "exact_checksums": exact_checksums,
     }
+
+
+def ok_output_lines() -> list[str]:
+    return [
+        "PHASE1_BENCH=pass",
+        "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000",
+        "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS=20000",
+        "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000",
+        "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000",
+        "PHASE1_BENCH_STRING_ITERATIONS=40000",
+        "PHASE1_BENCH_HWEIGHT_ITERATIONS=100000",
+        "PHASE1_BENCH_LIST_SORT_ITERATIONS=1000",
+        "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
+        "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=1",
+        "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=2",
+        "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=3",
+        "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=4",
+        "PHASE1_BENCH_STRING_CHECKSUM=5",
+        "PHASE1_BENCH_HWEIGHT_CHECKSUM=6",
+        "PHASE1_BENCH_LIST_SORT_CHECKSUM=7",
+        "PHASE1_BENCH_RBTREE_CHECKSUM=8",
+        "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=9",
+        "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=10",
+        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
+    ]
+
+
+def run_self_test() -> None:
+    case_count = 0
+
+    expectations = make_expectations()
     kind, payload = validate_expectations(expectations)
     assert kind == "pass", (kind, payload)
     case_count += 1
@@ -456,45 +488,45 @@ def run_self_test() -> None:
         case_count += 1
 
     duplicate_top_level_text = """{
-  \"status\": \"pass\",
-  \"status\": \"fail\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000
+  "status": "pass",
+  "status": "fail",
+  "iterations": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000
   },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
+  "checksums": [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12
+  "exact_checksums": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+    "PHASE1_BENCH_STRING_CHECKSUM": 5,
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+    "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))
@@ -502,559 +534,230 @@ def run_self_test() -> None:
     assert payload == ["status"]
     case_count += 1
 
-    duplicate_iteration_text = """{
-  \"status\": \"pass\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4001
-  },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
-  ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12
-  }
-}"""
+    duplicate_iteration_text = duplicate_top_level_text.replace(
+        '"PHASE1_BENCH_RBTREE_ITERATIONS": 4000',
+        '"PHASE1_BENCH_RBTREE_ITERATIONS": 4000,\n    "PHASE1_BENCH_RBTREE_ITERATIONS": 4001',
+        1,
+    ).replace('"status": "fail",\n', "", 1)
     kind, payload = validate_expectations(load_expectations_text(duplicate_iteration_text))
     assert kind == "expectations_duplicate_iteration_keys"
     assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
     case_count += 1
 
-    duplicate_exact_checksum_text = """{
-  \"status\": \"pass\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000
-  },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
-  ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 13
-  }
-}"""
+    duplicate_exact_checksum_text = duplicate_top_level_text.replace(
+        '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12',
+        '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,\n    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 13',
+        1,
+    ).replace('"status": "fail",\n', "", 1)
     kind, payload = validate_expectations(load_expectations_text(duplicate_exact_checksum_text))
     assert kind == "expectations_duplicate_exact_checksum_keys"
     assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
     case_count += 1
 
-    duplicate_checksum_list = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS) + ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"],
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
+    duplicate_checksum_list = make_expectations()
+    duplicate_checksum_list["checksums"] = list(EXPECTED_CHECKSUMS) + ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
     kind, payload = validate_expectations(duplicate_checksum_list)
     assert kind == "expectations_duplicate_checksums"
     assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
     case_count += 1
 
-    ok_output = "\n".join(
-        [
-            "PHASE1_BENCH=pass",
-            "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000",
-            "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS=20000",
-            "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000",
-            "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000",
-            "PHASE1_BENCH_STRING_ITERATIONS=40000",
-            "PHASE1_BENCH_HWEIGHT_ITERATIONS=100000",
-            "PHASE1_BENCH_LIST_SORT_ITERATIONS=1000",
-            "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=1",
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=2",
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=3",
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=4",
-            "PHASE1_BENCH_STRING_CHECKSUM=5",
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM=6",
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM=7",
-            "PHASE1_BENCH_RBTREE_CHECKSUM=8",
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=9",
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=10",
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
-        ]
-    )
-    kind, _ = validate_output(expectations, ok_output)
-    assert kind == "pass"
+    ok_output = "\n".join(ok_output_lines())
+    kind, payload = validate_output(expectations, ok_output)
+    assert kind == "pass", (kind, payload)
     case_count += 1
 
-    status_mismatch_output = ok_output.replace(
-        "PHASE1_BENCH=pass",
-        "PHASE1_BENCH=fail",
-        1,
-    )
-    kind, payload = validate_output(expectations, status_mismatch_output)
-    assert kind == "status"
-    assert payload == ("pass", "fail")
-    case_count += 1
-
-    missing_status_output = ok_output.replace("PHASE1_BENCH=pass\n", "", 1)
-    kind, payload = validate_output(expectations, missing_status_output)
-    assert kind == "status"
-    assert payload == ("pass", None)
-    case_count += 1
-
-    unexpected_output = ok_output + "\nPHASE1_BENCH_SPURIOUS=13"
-    kind, payload = validate_output(expectations, unexpected_output)
-    assert kind == "unexpected"
-    assert payload == ["PHASE1_BENCH_SPURIOUS"]
-    case_count += 1
-
-    duplicate_iteration_output = ok_output + "\nPHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000"
-    kind, payload = validate_output(expectations, duplicate_iteration_output)
-    assert kind == "duplicate"
-    assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS"]
-    case_count += 1
-
-    missing_rbtree_iteration_output = ok_output.replace(
-        "\nPHASE1_BENCH_RBTREE_ITERATIONS=4000",
-        "",
-    )
-    kind, payload = validate_output(expectations, missing_rbtree_iteration_output)
-    assert kind == "missing_rbtree_iterations"
-    assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
-    case_count += 1
-
-    rbtree_iteration_mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
-        "PHASE1_BENCH_RBTREE_ITERATIONS=4",
-    )
-    kind, payload = validate_output(expectations, rbtree_iteration_mismatch_output)
-    assert kind == "rbtree_iteration_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_ITERATIONS", 4000, "4")
-    case_count += 1
-
-    for key, value in (
-        ("PHASE1_BENCH_RBTREE_CHECKSUM", "8"),
-        ("PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "9"),
-        ("PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM", "10"),
-        ("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM", "11"),
-        ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", "12"),
-    ):
-        missing_output = ok_output.replace(f"\n{key}={value}", "")
-        kind, payload = validate_output(expectations, missing_output)
-        assert kind == "missing_rbtree_exact_checksums"
-        assert payload == [key]
-        case_count += 1
-
-    for key, value in (
-        ("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM", "1"),
-        ("PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM", "2"),
-    ):
-        missing_output = ok_output.replace(f"\n{key}={value}", "")
-        kind, payload = validate_output(expectations, missing_output)
-        assert kind == "missing_bitmap_exact_checksums"
-        assert payload == [key]
-        case_count += 1
-
-    for key, value in (
-        ("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM", "3"),
-        ("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM", "4"),
-    ):
-        missing_output = ok_output.replace(f"\n{key}={value}", "")
-        kind, payload = validate_output(expectations, missing_output)
-        assert kind == "missing_find_bit_exact_checksums"
-        assert payload == [key]
-        case_count += 1
-
-    for key, value, expected_kind in (
-        ("PHASE1_BENCH_STRING_CHECKSUM", "5", "missing_string_exact_checksums"),
-        ("PHASE1_BENCH_HWEIGHT_CHECKSUM", "6", "missing_hweight_exact_checksums"),
-        ("PHASE1_BENCH_LIST_SORT_CHECKSUM", "7", "missing_list_sort_exact_checksums"),
-    ):
-        missing_output = ok_output.replace(f"\n{key}={value}", "")
-        kind, payload = validate_output(expectations, missing_output)
+    expectations_cases = [
+        ("expectations_checksums_bitmap_exact_required", "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"),
+        ("expectations_checksums_bitmap_exact_required", "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM"),
+        ("expectations_checksums_rbtree_exact_required", "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"),
+        ("expectations_checksums_rbtree_exact_required", "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM"),
+        ("expectations_checksums_string_exact_required", "PHASE1_BENCH_STRING_CHECKSUM"),
+        ("expectations_checksums_hweight_exact_required", "PHASE1_BENCH_HWEIGHT_CHECKSUM"),
+        ("expectations_checksums_list_sort_exact_required", "PHASE1_BENCH_LIST_SORT_CHECKSUM"),
+        ("expectations_checksums_find_bit_exact_required", "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"),
+        ("expectations_checksums_find_bit_exact_required", "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"),
+    ]
+    for expected_kind, missing_key in expectations_cases:
+        kind, payload = validate_expectations(make_expectations(missing_exact=missing_key))
         assert kind == expected_kind
-        assert payload == [key]
+        assert payload == missing_key
         case_count += 1
 
-    mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120",
-    )
-    kind, payload = validate_output(expectations, mismatch_output)
-    assert kind == "exact_checksum_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)
-    case_count += 1
-
-    duplicate_mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
-        "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=110",
-    )
-    kind, payload = validate_output(expectations, duplicate_mismatch_output)
-    assert kind == "exact_checksum_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM", 11, 110)
-    case_count += 1
-
-    duplicate_output = ok_output + "\nPHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12"
-    kind, payload = validate_output(expectations, duplicate_output)
-    assert kind == "duplicate"
-    assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
-    case_count += 1
-
-    downgraded_bitmap_weight_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(downgraded_bitmap_weight_exact)
-    assert kind == "expectations_checksums_bitmap_exact_required"
-    assert payload == "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"
-    case_count += 1
-
-    downgraded_bitmap_window_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(downgraded_bitmap_window_exact)
-    assert kind == "expectations_checksums_bitmap_exact_required"
-    assert payload == "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM"
-    case_count += 1
-
-    downgraded_rbtree_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-        },
-    }
-    kind, payload = validate_expectations(downgraded_rbtree_exact)
-    assert kind == "expectations_checksums_rbtree_exact_required"
-    assert payload == "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
-    case_count += 1
-
-    missing_duplicate_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_duplicate_exact)
-    assert kind == "expectations_checksums_rbtree_exact_required"
-    assert payload == "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM"
-    case_count += 1
-
-    missing_string_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_string_exact)
-    assert kind == "expectations_checksums_string_exact_required"
-    assert payload == "PHASE1_BENCH_STRING_CHECKSUM"
-    case_count += 1
-
-    missing_hweight_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_hweight_exact)
-    assert kind == "expectations_checksums_hweight_exact_required"
-    assert payload == "PHASE1_BENCH_HWEIGHT_CHECKSUM"
-    case_count += 1
-
-    missing_list_sort_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_list_sort_exact)
-    assert kind == "expectations_checksums_list_sort_exact_required"
-    assert payload == "PHASE1_BENCH_LIST_SORT_CHECKSUM"
-    case_count += 1
-
-    missing_find_next_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_find_next_exact)
-    assert kind == "expectations_checksums_find_bit_exact_required"
-    assert payload == "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"
-    case_count += 1
-
-    missing_find_bit_edge_exact = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(missing_find_bit_edge_exact)
-    assert kind == "expectations_checksums_find_bit_exact_required"
-    assert payload == "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"
-    case_count += 1
-
-    missing_rbtree_iterations = {
-        "status": "pass",
-        "iterations": {
-            key: value
-            for key, value in EXPECTED_ITERATIONS.items()
-            if key != "PHASE1_BENCH_RBTREE_ITERATIONS"
-        },
-        "checksums": list(EXPECTED_CHECKSUMS),
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
+    missing_rbtree_iterations = make_expectations()
+    del missing_rbtree_iterations["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"]
     kind, payload = validate_expectations(missing_rbtree_iterations)
     assert kind == "expectations_missing_rbtree_iterations"
     assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
     case_count += 1
 
-    reordered_checksums = {
-        "status": "pass",
-        "iterations": dict(EXPECTED_ITERATIONS),
-        "checksums": [
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
-            "PHASE1_BENCH_STRING_CHECKSUM",
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM",
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM",
-            "PHASE1_BENCH_RBTREE_CHECKSUM",
-        ],
-        "exact_checksums": {
-            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
-            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
-            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
-            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
-            "PHASE1_BENCH_STRING_CHECKSUM": 5,
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
-            "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
-            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
-            "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
-            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
-        },
-    }
-    kind, payload = validate_expectations(reordered_checksums)
+    kind, payload = validate_expectations(make_expectations(reordered_checksums=True))
     assert kind == "expectations_checksum_order"
-    assert payload == reordered_checksums["checksums"]
     case_count += 1
+
+    output_cases = [
+        ("status", ok_output.replace("PHASE1_BENCH=pass", "PHASE1_BENCH=fail", 1)),
+        ("status", ok_output.replace("PHASE1_BENCH=pass\n", "", 1)),
+        ("unexpected", ok_output + "\nPHASE1_BENCH_SPURIOUS=13"),
+        ("duplicate", ok_output + "\nPHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000"),
+        ("missing_rbtree_iterations", ok_output.replace("\nPHASE1_BENCH_RBTREE_ITERATIONS=4000", "")),
+        ("rbtree_iteration_mismatch", ok_output.replace("PHASE1_BENCH_RBTREE_ITERATIONS=4000", "PHASE1_BENCH_RBTREE_ITERATIONS=4")),
+        ("exact_checksum_mismatch", ok_output.replace("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12", "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120")),
+        ("exact_checksum_mismatch", ok_output.replace("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11", "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=110")),
+        ("duplicate", ok_output + "\nPHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12"),
+    ]
+    for expected_kind, text in output_cases:
+        kind, payload = validate_output(expectations, text)
+        assert kind == expected_kind, (kind, payload)
+        case_count += 1
+
+    for label, key, value in (
+        ("missing_rbtree_exact_checksums", "PHASE1_BENCH_RBTREE_CHECKSUM", "8"),
+        ("missing_rbtree_exact_checksums", "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "9"),
+        ("missing_rbtree_exact_checksums", "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM", "10"),
+        ("missing_rbtree_exact_checksums", "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM", "11"),
+        ("missing_rbtree_exact_checksums", "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", "12"),
+        ("missing_bitmap_exact_checksums", "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM", "1"),
+        ("missing_bitmap_exact_checksums", "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM", "2"),
+        ("missing_find_bit_exact_checksums", "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM", "3"),
+        ("missing_find_bit_exact_checksums", "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM", "4"),
+        ("missing_string_exact_checksums", "PHASE1_BENCH_STRING_CHECKSUM", "5"),
+        ("missing_hweight_exact_checksums", "PHASE1_BENCH_HWEIGHT_CHECKSUM", "6"),
+        ("missing_list_sort_exact_checksums", "PHASE1_BENCH_LIST_SORT_CHECKSUM", "7"),
+    ):
+        kind, payload = validate_output(expectations, ok_output.replace(f"\n{key}={value}", ""))
+        assert kind == label
+        assert payload == [key]
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        expected_path = expectations_path(temp_root)
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=expectations_missing" in result.stdout
+        assert f"PHASE1_BENCH_EXPECTATIONS={expected_path}" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text("{\n", encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=expectations_json_error" in result.stdout
+        assert f"PHASE1_BENCH_EXPECTATIONS={expected_path}" in result.stdout
+        assert "EXPECTATIONS_JSON_ERROR=" in result.stdout
+        assert "EXPECTATIONS_JSON_LINE=" in result.stdout
+        assert "EXPECTATIONS_JSON_COLUMN=" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=missing_bench_source_file" in result.stdout
+        assert f"PHASE1_BENCH_SOURCE={phase1_bench_path(temp_root)}" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        source_path = phase1_bench_path(temp_root)
+        source_path.parent.mkdir(parents=True, exist_ok=True)
+        source_path.write_text(build_find_bit_bench_source("find_edge_checksum_print"), encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=bench_source_missing_markers" in result.stdout
+        assert f"PHASE1_BENCH_SOURCE={source_path}" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        source_path = phase1_bench_path(temp_root)
+        source_path.parent.mkdir(parents=True, exist_ok=True)
+        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        build_file = build_file_path(temp_root)
+        build_file.parent.mkdir(parents=True, exist_ok=True)
+        build_file.write_text("// bench build file is not executed by /bin/sh\n", encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir, "--zig", "/bin/sh"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=bench_command_exit" in result.stdout
+        assert f"PHASE1_BENCH_EXPECTATIONS={expected_path}" in result.stdout
+        assert f"PHASE1_BENCH_SOURCE={source_path}" in result.stdout
+        assert "BENCH_COMMAND_EXIT=" in result.stdout
+        case_count += 1
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
     print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run and validate the bounded Phase 1 benchmark smoke output.")
+    parser = argparse.ArgumentParser(
+        description="Run and validate the bounded Phase 1 benchmark smoke output."
+    )
+    parser.add_argument("--root", help="Repository root to validate")
     parser.add_argument("--zig", help="Path to Zig executable")
-    parser.add_argument("--self-test", action="store_true", help="Run checker self-test cases without invoking Zig.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run checker self-test cases without invoking Zig.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         run_self_test()
         return 0
 
-    kind, payload = load_runtime_expectations(EXPECTATIONS)
+    root = resolve_root(args.root)
+    expected_path = expectations_path(root)
+    bench_source_path = phase1_bench_path(root)
+
+    kind, payload = load_runtime_expectations(expected_path)
     if kind == "missing_expectations_file":
         print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(f"EXPECTATIONS_PATH={payload}")
+        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
+        print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
         return 1
     if kind == "expectations_json_error":
         exc = payload
         assert isinstance(exc, json.JSONDecodeError)
         print("PHASE1_BENCH_CHECK=fail")
+        print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
+        print(f"PHASE1_BENCH_EXPECTATIONS={expected_path}")
         print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
         print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
         print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
@@ -1068,22 +771,26 @@ def main() -> int:
     expectations = payload
     assert isinstance(expectations, dict)
 
-    kind, payload = load_runtime_bench_source(PHASE1_BENCH)
+    kind, payload = load_runtime_bench_source(bench_source_path)
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
         print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(f"PHASE1_BENCH_SOURCE={bench_source_path}")
         print(payload)
         return 1
 
     zig = find_zig(args.zig)
     result = subprocess.run(
-        [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
-        cwd=str(ROOT),
+        [zig, "build", "bench", "--build-file", str(BUILD_FILE_REL), "-Doptimize=ReleaseSafe"],
+        cwd=str(root),
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
         print("PHASE1_BENCH_CHECK=fail")
+        print("PHASE1_BENCH_CHECK_REASON=bench_command_exit")
+        print(f"PHASE1_BENCH_EXPECTATIONS={expected_path}")
+        print(f"PHASE1_BENCH_SOURCE={bench_source_path}")
         print(f"BENCH_COMMAND_EXIT={result.returncode}")
         if result.stdout:
             print(result.stdout.rstrip("\n"))
@@ -1099,8 +806,8 @@ def main() -> int:
         return 1
 
     print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")
-    print(f"PHASE1_BENCH_SOURCE={PHASE1_BENCH}")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expected_path}")
+    print(f"PHASE1_BENCH_SOURCE={bench_source_path}")
     print(f"PHASE1_BENCH_ZIG={zig}")
     return 0
 
