@@ -17,6 +17,7 @@ BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
+MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -26,6 +27,7 @@ EXPECTED_COMPANIONS = [
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -69,6 +71,8 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-shared-surface.py --self-test",
     "python3 scripts/zigux/check-phase7-build-wiring.py",
     "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -77,12 +81,14 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
     "- `Documentation/zigux/README.md`",
     "- `scripts/zigux/check-phase7-build-wiring.py`",
+    "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/README.md`",
     "- `zigux/tests/README.md`",
     "- `zigux/tests/phase7_build.zig`",
     "- `lib/rbtree.zig`",
     "## Current replay inventory",
     "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
+    "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "## Current repo-reality gaps",
@@ -105,6 +111,7 @@ REQUIRED_FILES = [
     DOCS_README_PATH,
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
+    MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
@@ -206,6 +213,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
     write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
     write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
+    write(root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass')\n")
     write(
         root / MANIFEST_PATH,
         json.dumps(
@@ -248,12 +256,14 @@ def run_self_test() -> None:
     missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
     marker_cases = [
         ("missing_catalog_build_wiring_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-build-wiring.py`", "- `scripts/zigux/check-phase7-build-route.py`"),
+        ("missing_catalog_make_wrapper_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`", "- `scripts/zigux/check-phase7-make-wrapper.py`"),
         ("missing_catalog_build_file_marker", CATALOG_PATH, "- `zigux/tests/phase7_build.zig`", "- `zigux/tests/phase7_rbtree.zig`"),
         ("missing_catalog_rbtree_marker", CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
         ("missing_catalog_none_gap_marker", CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
         ("missing_phase7_validate_route", MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
         ("missing_phase7_validate_run", MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py", "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py"),
         ("missing_manifest_build_wiring_companion", MANIFEST_PATH, '"scripts/zigux/check-phase7-build-wiring.py",', '"scripts/zigux/check-phase7-build-route.py",'),
+        ("missing_manifest_make_wrapper_companion", MANIFEST_PATH, '"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",', '"scripts/zigux/check-phase7-make-wrapper.py",'),
         ("missing_manifest_build_file_companion", MANIFEST_PATH, '"zigux/tests/phase7_build.zig",', '"zigux/tests/phase7_rbtree.zig",'),
         ("missing_manifest_rbtree_helper_entry", MANIFEST_PATH, '"lib/rbtree.zig"', '"tools/lib/rbtree.zig"'),
         ("missing_build_rbtree_import", BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
