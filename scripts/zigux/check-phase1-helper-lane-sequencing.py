@@ -104,6 +104,12 @@ def add_path_issue(path: Path, rel: Path, prefix: str, issues: list[str]) -> boo
     return False
 
 
+def is_nonempty_string_list(value: object) -> bool:
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(item, str) and item.strip() for item in value
+    )
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -166,17 +172,44 @@ def collect_issues(root: Path) -> list[str]:
         issues.append("manifest:review_anchors")
         return issues
 
-    for helper in EXPECTED_DIRECT_HELPERS:
+    missing_review_helpers = [helper for helper in EXPECTED_HELPERS if helper not in review_anchors]
+    if missing_review_helpers:
+        issues.append(
+            "manifest:missing_review_anchors=" + ",".join(missing_review_helpers)
+        )
+    unexpected_review_helpers = [helper for helper in review_anchors if helper not in EXPECTED_HELPERS]
+    if unexpected_review_helpers:
+        issues.append(
+            "manifest:unexpected_review_anchors=" + ",".join(sorted(unexpected_review_helpers))
+        )
+
+    for helper in EXPECTED_HELPERS:
         anchor = review_anchors.get(helper)
         if not isinstance(anchor, dict):
-            issues.append(f"manifest:missing_direct_review_anchor={helper}")
+            issues.append(f"manifest:missing_review_anchor={helper}")
             continue
-        summary = anchor.get("review_packet_summary")
-        if not isinstance(summary, str) or not summary.strip():
-            issues.append(f"manifest:review_packet_summary={helper}")
+
+        helper_tests = anchor.get("helper_test_anchors")
+        if not is_nonempty_string_list(helper_tests):
+            issues.append(f"manifest:helper_test_anchors={helper}")
+        elif len(set(helper_tests)) != len(helper_tests):
+            issues.append(f"manifest:helper_test_anchor_duplicates={helper}")
+
+        replay_anchor = anchor.get("phase1_helper_replay_anchor")
+        if not isinstance(replay_anchor, str) or not replay_anchor.strip():
+            issues.append(f"manifest:phase1_helper_replay_anchor={helper}")
+
         next_step = anchor.get("next_safe_step_note")
         if not isinstance(next_step, str) or not next_step.strip():
             issues.append(f"manifest:next_safe_step_note={helper}")
+
+        summary_keys = [
+            key
+            for key, value in anchor.items()
+            if key.endswith("_summary") and isinstance(value, str) and value.strip()
+        ]
+        if not summary_keys:
+            issues.append(f"manifest:review_summary={helper}")
 
     try:
         blockers = load_json_without_duplicates(blockers_path)
@@ -266,13 +299,22 @@ def make_sample_root(root: Path) -> None:
         encoding="utf-8",
     )
 
-    review_anchors = {
-        helper: {
-            "review_packet_summary": f"{helper} stays reviewable through its helper-local anchors.",
-            "next_safe_step_note": f"{helper} reopens only on direct-anchor or shared-packet drift.",
+    review_anchors = {}
+    for helper in EXPECTED_HELPERS:
+        anchor = {
+            "helper_test_anchors": [f'test "{helper} stays review-visible"'],
+            "phase1_helper_replay_anchor": f'test "{helper} sample replay anchor"',
+            "next_safe_step_note": f"{helper} reopens only for bounded packet drift.",
         }
-        for helper in EXPECTED_DIRECT_HELPERS
-    }
+        if helper in EXPECTED_DIRECT_HELPERS:
+            anchor["review_packet_summary"] = (
+                f"{helper} keeps a direct helper-local review packet on current master."
+            )
+        else:
+            anchor["shared_replay_summary"] = (
+                f"{helper} stays parked on the shared replay reminder packet."
+            )
+        review_anchors[helper] = anchor
 
     manifest = {
         "phase": "Phase 1",
@@ -391,6 +433,30 @@ def run_self_test() -> None:
 
     expect_failure(missing_next_safe_step)
 
+    def missing_parked_review_anchor(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/argv_split.zig"]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(missing_parked_review_anchor)
+
+    def empty_helper_test_anchors(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/argv_split.zig"]["helper_test_anchors"] = []
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(empty_helper_test_anchors)
+
+    def missing_phase1_replay_anchor(root: Path) -> None:
+        path = root / MANIFEST_REL
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/argv_split.zig"]["phase1_helper_replay_anchor"]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    expect_failure(missing_phase1_replay_anchor)
+
     def wrong_helper_count(root: Path) -> None:
         path = root / MANIFEST_REL
         manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -437,7 +503,7 @@ def run_self_test() -> None:
     expect_failure(blockers_wrong_c_harness_helper_count)
 
     print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST=pass")
-    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
@@ -472,6 +538,7 @@ def main() -> int:
     print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     print("PHASE1_HELPER_LANE_SEQUENCING_README_MARKER_COUNT=2")
     print("PHASE1_HELPER_LANE_SEQUENCING_BLOCKER_PACKET_COUNT=2")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_REVIEW_ANCHOR_COUNT={len(EXPECTED_HELPERS)}")
     print(f"PHASE1_HELPER_LANE_SEQUENCING_DIRECT_REVIEW_ANCHOR_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     return 0
 
