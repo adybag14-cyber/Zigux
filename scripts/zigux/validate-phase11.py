@@ -163,13 +163,7 @@ CHECKS = (
 
 
 def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=cwd,
-    )
+    return subprocess.run(command, check=False, capture_output=True, text=True, cwd=cwd)
 
 
 def command_for(spec: CheckSpec, root: Path) -> list[str]:
@@ -201,14 +195,10 @@ def collect_manifest_metadata_issues(root: Path) -> list[str]:
             continue
         lane_key = manifest.get("lane_key")
         if lane_key != expected_lane_key:
-            issues.append(
-                f"manifest_lane_key_mismatch:{rel}:expected={expected_lane_key}:actual={lane_key!r}"
-            )
+            issues.append(f"manifest_lane_key_mismatch:{rel}:expected={expected_lane_key}:actual={lane_key!r}")
         phase = manifest.get("phase")
         if phase != "Phase 11":
-            issues.append(
-                f"manifest_phase_mismatch:{rel}:expected='Phase 11':actual={phase!r}"
-            )
+            issues.append(f"manifest_phase_mismatch:{rel}:expected='Phase 11':actual={phase!r}")
         gaps = manifest.get("gaps")
         if not isinstance(gaps, list) or not gaps:
             issues.append(f"manifest_gaps_invalid:{rel}")
@@ -251,7 +241,6 @@ def run_check(root: Path, *, skip_zig_builds: bool = False) -> int:
             print(issue)
         print("PHASE11_VALIDATION_ISSUES_END")
         return 1
-
     print("PHASE11_VALIDATION=pass")
     print(f"PHASE11_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"PHASE11_VALIDATION_CHECK_COUNT={len(CHECKS)}")
@@ -263,31 +252,23 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_stub_script(
-    path: Path,
-    *,
-    self_test_exit_code: int = 0,
-    live_exit_code: int | None = None,
-) -> None:
+def build_stub_script(path: Path, *, self_test_exit_code: int = 0, live_exit_code: int | None = None) -> None:
     live_exit_literal = self_test_exit_code if live_exit_code is None else live_exit_code
     write_text(
         path,
-        "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                "from __future__ import annotations",
-                "import argparse",
-                "parser = argparse.ArgumentParser()",
-                "parser.add_argument('--self-test', action='store_true')",
-                "parser.add_argument('--root')",
-                "parser.add_argument('--repo-root')",
-                "args = parser.parse_args()",
-                f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
-                f"LIVE_EXIT_CODE = {live_exit_literal}",
-                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
-            ]
-        )
-        + "\n",
+        "\n".join([
+            "#!/usr/bin/env python3",
+            "from __future__ import annotations",
+            "import argparse",
+            "parser = argparse.ArgumentParser()",
+            "parser.add_argument('--self-test', action='store_true')",
+            "parser.add_argument('--root')",
+            "parser.add_argument('--repo-root')",
+            "args = parser.parse_args()",
+            f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
+            f"LIVE_EXIT_CODE = {live_exit_literal}",
+            "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
+        ]) + "\n",
     )
     os.chmod(path, 0o755)
 
@@ -296,26 +277,23 @@ def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
     fail_literal = repr(fail_build_file) if fail_build_file is not None else "None"
     write_text(
         path,
-        "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                "from __future__ import annotations",
-                "import sys",
-                f"FAIL_BUILD_FILE = {fail_literal}",
-                "args = sys.argv[1:]",
-                "if args[:2] != ['build', 'test']:",
-                "    raise SystemExit(2)",
-                "try:",
-                "    build_file = args[args.index('--build-file') + 1]",
-                "except (ValueError, IndexError):",
-                "    raise SystemExit(3)",
-                "if FAIL_BUILD_FILE is not None and build_file == FAIL_BUILD_FILE:",
-                "    print(f'fake zig failed for {build_file}')",
-                "    raise SystemExit(1)",
-                "raise SystemExit(0)",
-            ]
-        )
-        + "\n",
+        "\n".join([
+            "#!/usr/bin/env python3",
+            "from __future__ import annotations",
+            "import sys",
+            f"FAIL_BUILD_FILE = {fail_literal}",
+            "args = sys.argv[1:]",
+            "if args[:2] != ['build', 'test']:",
+            "    raise SystemExit(2)",
+            "try:",
+            "    build_file = args[args.index('--build-file') + 1]",
+            "except (ValueError, IndexError):",
+            "    raise SystemExit(3)",
+            "if FAIL_BUILD_FILE is not None and build_file == FAIL_BUILD_FILE:",
+            "    print(f'fake zig failed for {build_file}')",
+            "    raise SystemExit(1)",
+            "raise SystemExit(0)",
+        ]) + "\n",
     )
     os.chmod(path, 0o755)
 
@@ -324,17 +302,7 @@ def build_sample_repo(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         path = root / rel
         if rel in MANIFEST_EXPECTATIONS:
-            write_text(
-                path,
-                json.dumps(
-                    {
-                        "lane_key": MANIFEST_EXPECTATIONS[rel],
-                        "phase": "Phase 11",
-                        "gaps": [{"id": f"sample-{Path(rel).stem}"}],
-                    }
-                )
-                + "\n",
-            )
+            write_text(path, json.dumps({"lane_key": MANIFEST_EXPECTATIONS[rel], "phase": "Phase 11", "gaps": [{"id": f"sample-{Path(rel).stem}"}]}) + "\n")
             continue
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
@@ -373,12 +341,7 @@ def run_self_test() -> int:
         def expect_issue(fragment: str) -> None:
             issues = collect_issues(root)
             if fragment not in issues:
-                raise SystemExit(
-                    "phase11-validate-self-test:missing_expected_issue:"
-                    + fragment
-                    + ":"
-                    + ",".join(issues or ["none"])
-                )
+                raise SystemExit("phase11-validate-self-test:missing_expected_issue:" + fragment + ":" + ",".join(issues or ["none"]))
 
         for rel in (
             "Documentation/zigux/phase11-shared-replay-contract.md",
@@ -438,7 +401,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec.name}:exit=1")
+            expect_issue(f"live_failed:{spec_name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
