@@ -88,7 +88,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 18), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 25), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_gap_expected_missing_paths.len);
 
     try expectSliceContains(manifest.supporting_context_fields, "governance lane sequencing link or explicit scope note");
@@ -110,6 +110,13 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.handoff_required_markers, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
     try expectSliceContains(manifest.handoff_required_markers, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_parity_scorecard.json`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_governance_lane_sequencing.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_readiness_gate_manifest.json`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
