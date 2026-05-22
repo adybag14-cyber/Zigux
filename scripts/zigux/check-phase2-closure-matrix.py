@@ -139,6 +139,12 @@ def run_matrix(module, seed_root) -> int:
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
         checks_run += 1
 
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
+        write_json(manifest_path, [])
+        assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
+        checks_run += 1
+
         for key, expected in (
             ("review_surfaces", module.EXPECTED_MANIFEST_REVIEW_SURFACES),
             ("closure_notes", module.EXPECTED_MANIFEST_CLOSURE_NOTES),
@@ -147,14 +153,28 @@ def run_matrix(module, seed_root) -> int:
             ("bridge_helpers", module.EXPECTED_MANIFEST_BRIDGE_HELPERS),
             ("fixture_roster", module.EXPECTED_MANIFEST_FIXTURE_ROSTER),
         ):
-            first_marker = expected[0]
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
-            payload["present_surfaces"][key].remove(first_marker)
+            payload["present_surfaces"][key] = "drifted"
             write_json(manifest_path, payload)
-            assert_issue(module, root, ("MISSING_MANIFEST_SURFACE", f"{key}:{first_marker}"))
+            assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", key))
             checks_run += 1
+
+            for marker in expected:
+                seed_root(root)
+                manifest_path = module.resolve(root, module.MANIFEST_REL)
+                payload = load_json(manifest_path)
+                payload["present_surfaces"][key].remove(marker)
+                write_json(manifest_path, payload)
+                assert_issue(module, root, ("MISSING_MANIFEST_SURFACE", f"{key}:{marker}"))
+                checks_run += 1
+
+        seed_root(root)
+        cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
+        write_json(cases_path, [])
+        assert_issue(module, root, ("KCONFIG_CASE_PACKET_MISMATCH", "root"))
+        checks_run += 1
 
         seed_root(root)
         cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
@@ -162,6 +182,14 @@ def run_matrix(module, seed_root) -> int:
         payload["conf_cases"][0]["expected"] = "drifted.json"
         write_json(cases_path, payload)
         assert_issue(module, root, ("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
+        checks_run += 1
+
+        seed_root(root)
+        cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
+        payload = load_json(cases_path)
+        payload["confdata_cases"][0]["expected"] = "drifted.json"
+        write_json(cases_path, payload)
+        assert_issue(module, root, ("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases"))
         checks_run += 1
 
         seed_root(root)
@@ -234,12 +262,12 @@ REQUIRED_FILES = (
     GENKSYMS_CASES_REL,
     GENKSYMS_MANIFEST_REL,
 )
-EXPECTED_MANIFEST_REVIEW_SURFACES = ("review.md",)
-EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure.md",)
-EXPECTED_MANIFEST_VALIDATORS = ("validate.py",)
-EXPECTED_MANIFEST_CHECKERS = ("checker.py",)
-EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge.zig",)
-EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture.json",)
+EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
+EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
+EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
+EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
+EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
+EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
 EXPECTED_CONF_CASE_DETAILS = [{"name": "conf", "expected": "conf.json"}]
 EXPECTED_CONFDATA_CASE_DETAILS = [{"name": "confdata", "expected": "confdata.json"}]
 EXPECTED_CONF_MANIFEST = {"tool": "conf", "case_count": 1}
@@ -305,10 +333,13 @@ def expect_subset(issues, label, actual, expected):
             issues.append(("MISSING_MANIFEST_SURFACE", f"{label}:{marker}"))
 
 def collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_manifest, genksyms_cases, genksyms_manifest):
-    if kconfig_cases.get("conf_cases") != EXPECTED_CONF_CASE_DETAILS:
-        issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
-    if kconfig_cases.get("confdata_cases") != EXPECTED_CONFDATA_CASE_DETAILS:
-        issues.append(("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases"))
+    if not isinstance(kconfig_cases, dict):
+        issues.append(("KCONFIG_CASE_PACKET_MISMATCH", "root"))
+    else:
+        if kconfig_cases.get("conf_cases") != EXPECTED_CONF_CASE_DETAILS:
+            issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
+        if kconfig_cases.get("confdata_cases") != EXPECTED_CONFDATA_CASE_DETAILS:
+            issues.append(("CONFDATA_CASE_PACKET_MISMATCH", "confdata_cases"))
     if conf_manifest != EXPECTED_CONF_MANIFEST:
         issues.append(("CONF_MANIFEST_MISMATCH", "root"))
     if confdata_manifest != EXPECTED_CONFDATA_MANIFEST:
@@ -334,6 +365,9 @@ def collect_issues(root: Path):
     confdata_manifest = json.loads(resolve(root, CONFDATA_MANIFEST_REL).read_text(encoding="utf-8"))
     genksyms_cases = json.loads(resolve(root, GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
     genksyms_manifest = json.loads(resolve(root, GENKSYMS_MANIFEST_REL).read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        issues.append(("INVALID_MANIFEST_SHAPE", "root"))
+        return issues
     for marker in REQUIRED_CLOSURE_MARKERS:
         if marker not in closure_text:
             issues.append(("MISSING_CLOSURE_MARKER", marker))
