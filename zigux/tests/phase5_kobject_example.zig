@@ -178,6 +178,35 @@ test "phase 5 kobject sample initialized-only exit abandonment stays explicit th
     try std.testing.expectEqual(@as(usize, 0), summary.active_attr_count);
 }
 
+test "phase 5 kobject sample initialized-only exit keeps the exited boundary explicit through the focused test surface too" {
+    var module = sample.KobjectExampleSample{};
+    try module.init();
+
+    const exit_summary = try module.exit();
+    try std.testing.expectEqual(sample.ExitDisposition.abandoned_before_registration, exit_summary.disposition);
+    try std.testing.expectEqual(sample.SampleStage.initialized, exit_summary.stage_before_exit);
+    try std.testing.expectEqual(sample.SampleStage.exited, exit_summary.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 0), exit_summary.cleared_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), exit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exit_summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), exit_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+
+    const summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+}
+
 test "phase 5 kobject sample ownership replay stays explicit through the focused test surface too" {
     var module = sample.KobjectExampleSample{};
     const replay = try module.runOwnershipReplay();
