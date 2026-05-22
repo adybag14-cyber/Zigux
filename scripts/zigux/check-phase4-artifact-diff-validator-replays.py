@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR_REL = Path("scripts/zigux/validate-phase4.py")
 NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+ARTIFACT_DIFF_NOTE_REL = Path("Documentation/zigux/artifact-diff.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
@@ -29,6 +30,15 @@ EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
     "`Documentation/zigux/artifact-diff.md`",
     "`scripts/zigux/check-artifact-diff-contract.py`",
     "`scripts/zigux/validate-phase4.py`",
+]
+
+EXPECTED_ARTIFACT_DIFF_NOTE_MARKERS = [
+    "`scripts/zigux/check-phase4-artifact-diff-validator-replays.py`",
+    "validator hook set explicit or falls back to the narrower repo-reality handoff markers when exact validator readback is unavailable",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=catalog_shape,validator_marker_round_trip,validator_helper_marker_drift,validator_marker_drift,validator_replay_marker_drift,repo_reality_handoff_round_trip,repo_reality_handoff_drift,repo_reality_handoff_note_missing,workflow_marker_round_trip,workflow_make_route_marker_drift,workflow_marker_drift,workflow_missing,artifact_diff_note_round_trip,artifact_diff_note_marker_drift`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`",
 ]
 
 EXPECTED_WORKFLOW_REPLAY_MARKERS = [
@@ -63,6 +73,8 @@ EXPECTED_SELF_TEST_CASES = [
     "workflow_make_route_marker_drift",
     "workflow_marker_drift",
     "workflow_missing",
+    "artifact_diff_note_round_trip",
+    "artifact_diff_note_marker_drift",
 ]
 
 
@@ -81,6 +93,17 @@ def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
 
 
 def check(root: Path) -> tuple[str, list[str]]:
+    artifact_diff_note_text = read_text(
+        root,
+        ARTIFACT_DIFF_NOTE_REL,
+        missing_label="the broader artifact-diff review note",
+    )
+    assert_markers(
+        artifact_diff_note_text,
+        EXPECTED_ARTIFACT_DIFF_NOTE_MARKERS,
+        "artifact_diff_note_surface",
+    )
+
     workflow_text = read_text(
         root,
         WORKFLOW_REL,
@@ -137,12 +160,26 @@ def make_workflow_fixture(root: Path) -> None:
     )
 
 
+def make_artifact_diff_note_fixture(root: Path) -> None:
+    write(
+        root / ARTIFACT_DIFF_NOTE_REL,
+        "\n".join(
+            [
+                "# Zigux Artifact-Diff Notes",
+                *EXPECTED_ARTIFACT_DIFF_NOTE_MARKERS,
+            ]
+        )
+        + "\n",
+    )
+
+
 def make_validator_fixture(root: Path) -> None:
     write(
         root / VALIDATOR_REL,
         "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS) + "\n",
     )
     write(root / NOTE_REL, "# note placeholder\n")
+    make_artifact_diff_note_fixture(root)
     make_workflow_fixture(root)
 
 
@@ -157,6 +194,7 @@ def make_repo_reality_handoff_fixture(root: Path) -> None:
         )
         + "\n",
     )
+    make_artifact_diff_note_fixture(root)
     make_workflow_fixture(root)
 
 
@@ -293,6 +331,21 @@ def run_self_test() -> int:
             covered_cases.append("workflow_missing")
         else:
             raise AssertionError("expected workflow_missing to fail closed")
+
+        make_validator_fixture(root)
+        mode, markers = check(root)
+        if mode != "validator_present" or markers != EXPECTED_VALIDATOR_REPLAY_MARKERS:
+            raise AssertionError("artifact_diff_note_round_trip")
+        covered_cases.append("artifact_diff_note_round_trip")
+
+        make_validator_fixture(root)
+        write(root / ARTIFACT_DIFF_NOTE_REL, EXPECTED_ARTIFACT_DIFF_NOTE_MARKERS[0] + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("artifact_diff_note_marker_drift")
+        else:
+            raise AssertionError("expected artifact_diff_note_marker_drift to fail closed")
 
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
