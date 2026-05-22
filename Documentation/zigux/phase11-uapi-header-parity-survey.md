@@ -32,6 +32,7 @@
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
   - `Documentation/zigux/phase11-driver-lane-sequencing.md`
   - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+  - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   - `zigux/helpers/layout_assert.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
@@ -45,7 +46,7 @@
 ## Roadmap Fit
 - Phase 11 still treats bounded watchdog and HVC public surfaces as the simple-production-driver anchors.
 - Phase 11 still requires reviewable validation and honest failure-mode evidence before expansion.
-- Because the older shared header-survey manifest, checker, survey source, and shared build companion are still absent from current `master` even though the shared replay-contract note has returned, this note is truthful only if it records that the live repo now proves the HVC-side header boundary through focused proof shards, their build files, the adjacent validation matrix, the shared sequencing notes, the returned reminder contract note, the returned `zigux/helpers/layout_assert.zig` substrate, and the surviving inventory stack rather than a restored shared replay route.
+- Because the older shared header-survey manifest, checker, survey source, and shared build companion are still absent from current `master` even though the shared replay-contract note has returned, this note is truthful only if it records that the live repo now proves the HVC-side header boundary through focused proof shards, their build files, the adjacent validation matrices, the shared sequencing notes, the returned reminder contract note, the returned `zigux/helpers/layout_assert.zig` substrate, and the surviving inventory stack rather than a restored shared replay route.
 - The roadmap's ABI gate still expects explicit layout assertions and bounded proof, so the current packet should name the surviving `layout_assert`-backed HVC checkpoints directly instead of implying that the missing shared replay family already covers them.
 - The roadmap still keeps watchdog and HVC surfaces in scope, so this note should not imply that the old shared `watchdog_info` replay remains live when the current accessible packet is narrower and HVC-centered.
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, checker, or shared Phase 11 build route currently rematerializes the older cross-driver packet.
