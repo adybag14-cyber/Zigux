@@ -160,9 +160,10 @@ REQUIRED_MARKERS = {
     TESTS_README_PATH: TESTS_README_MARKERS,
     MAKEFILE_PATH: [
         *MAKEFILE_FALLBACK_MARKERS,
+        "phase12-validate:",
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     PHASE12_BUILD_PATH: [
         '"phase12_virtio_net_queue_resume.zig"',
@@ -224,10 +225,6 @@ PHASE12_BUILD_EXACT_COUNTS = {
 }
 
 FORBIDDEN_MARKERS = {
-    MAKEFILE_PATH: [
-        "phase12-validate:",
-        "phase12: phase12-validate phase12-smoke phase12-test",
-    ],
     PHASE12_BUILD_PATH: [
         '"phase12_virtio_net.zig"',
         '"phase12_virtio_net_syntax_lab.zig"',
@@ -289,95 +286,95 @@ def marker_fixture(title: str, markers: list[str]) -> str:
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const virtio_net_queue_resume_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net_queue_resume.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net_queue_resume.zig"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_queue_resume_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_queue_resume.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_queue_resume.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_queue_resume_root_module.addImport(
-        \"virtio_net_queue_resume\",
+        "virtio_net_queue_resume",
         virtio_net_queue_resume_module,
     );
 
     const virtio_net_transmit_recycle_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net_transmit_recycle.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net_transmit_recycle.zig"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_transmit_recycle_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_transmit_recycle.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_transmit_recycle.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_transmit_recycle_root_module.addImport(
-        \"virtio_net_transmit_recycle\",
+        "virtio_net_transmit_recycle",
         virtio_net_transmit_recycle_module,
     );
 
     const virtio_net_receive_refill_replay_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net_receive_refill_replay.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net_receive_refill_replay.zig"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_receive_refill_replay_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_receive_refill_replay.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_receive_refill_replay.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_receive_refill_replay_root_module.addImport(
-        \"virtio_net_receive_refill_replay\",
+        "virtio_net_receive_refill_replay",
         virtio_net_receive_refill_replay_module,
     );
 
     const virtio_net_post_reset_replay_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net_post_reset_replay.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net_post_reset_replay.zig"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_post_reset_replay_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_post_reset_replay.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_post_reset_replay.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_post_reset_replay_root_module.addImport(
-        \"virtio_net_post_reset_replay\",
+        "virtio_net_post_reset_replay",
         virtio_net_post_reset_replay_module,
     );
 
     const virtio_net_throughput_parity_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/net/virtio_net_throughput_parity.zig\"),
+        .root_source_file = b.path("../../drivers/net/virtio_net_throughput_parity.zig"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_throughput_parity_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_throughput_parity.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_throughput_parity.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_throughput_parity_root_module.addImport(
-        \"virtio_net_throughput_parity\",
+        "virtio_net_throughput_parity",
         virtio_net_throughput_parity_module,
     );
 
     const virtio_net_survey_root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase12_virtio_net_survey.zig\"),
+        .root_source_file = b.path("phase12_virtio_net_survey.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const phase12_virtio_net_queue_resume_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-queue-resume-tests\",
+        .name = "phase12-virtio-net-queue-resume-tests",
         .root_module = virtio_net_queue_resume_root_module,
     });
     const run_virtio_net_queue_resume_tests = b.addRunArtifact(
@@ -385,7 +382,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_transmit_recycle_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-transmit-recycle-tests\",
+        .name = "phase12-virtio-net-transmit-recycle-tests",
         .root_module = virtio_net_transmit_recycle_root_module,
     });
     const run_virtio_net_transmit_recycle_tests = b.addRunArtifact(
@@ -393,7 +390,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_receive_refill_replay_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-receive-refill-replay-tests\",
+        .name = "phase12-virtio-net-receive-refill-replay-tests",
         .root_module = virtio_net_receive_refill_replay_root_module,
     });
     const run_virtio_net_receive_refill_replay_tests = b.addRunArtifact(
@@ -401,7 +398,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-post-reset-replay-tests\",
+        .name = "phase12-virtio-net-post-reset-replay-tests",
         .root_module = virtio_net_post_reset_replay_root_module,
     });
     const run_virtio_net_post_reset_replay_tests = b.addRunArtifact(
@@ -409,7 +406,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_throughput_parity_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-throughput-parity-tests\",
+        .name = "phase12-virtio-net-throughput-parity-tests",
         .root_module = virtio_net_throughput_parity_root_module,
     });
     const run_virtio_net_throughput_parity_tests = b.addRunArtifact(
@@ -417,7 +414,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_survey_tests = b.addTest(.{
-        .name = \"phase12-virtio-net-survey-tests\",
+        .name = "phase12-virtio-net-survey-tests",
         .root_module = virtio_net_survey_root_module,
     });
     const run_virtio_net_survey_tests = b.addRunArtifact(
@@ -425,8 +422,8 @@ pub fn build(b: *std.Build) void {
     );
 
     const smoke_step = b.step(
-        \"smoke\",
-        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate smoke tests\",
+        "smoke",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate smoke tests",
     );
     smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
@@ -436,8 +433,8 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(&run_virtio_net_survey_tests.step);
 
     const test_step = b.step(
-        \"test\",
-        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests\",
+        "test",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests",
     );
     test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
