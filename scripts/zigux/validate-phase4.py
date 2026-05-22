@@ -575,6 +575,23 @@ def run_self_test() -> int:
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
         gate = root / "scripts/zigux/check-phase4-gate-evidence.py"
+        build_stub_script(gate, self_test_exit_code=1, live_exit_code=0)
+        issues = collect_issues(root)
+        expected = "live_failed:phase4-gate-evidence-self-test:exit=1"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:gate_evidence_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        gate = root / "scripts/zigux/check-phase4-gate-evidence.py"
         build_stub_script(gate, self_test_exit_code=0, live_exit_code=1)
         issues = collect_issues(root)
         expected = "live_failed:phase4-gate-evidence:exit=1"
@@ -665,7 +682,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
