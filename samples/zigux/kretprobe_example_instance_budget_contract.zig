@@ -1,42 +1,22 @@
 const std = @import("std");
+const sample = @import("kretprobe_example.zig");
 
-pub const linux_anchor = "samples/kprobes/kretprobe_example.c";
-pub const symbol_param_name = "func";
-pub const default_symbol_name = "kernel_clone";
-
-pub const InstanceBudgetContract = struct {
-    anchor: []const u8,
-    symbol_param_name: []const u8,
-    symbol_param_mode: u16,
-    default_symbol_name: []const u8,
-    private_data_word_bytes: usize,
-    default_maxactive: usize,
-    reports_return_value_and_duration: bool,
-    skips_kernel_threads_without_mm: bool,
-    nmissed_suggests_increasing_maxactive: bool,
-};
+pub const linux_anchor = sample.linux_anchor;
+pub const symbol_param_name = sample.KretprobeExampleSample.symbol_param_name;
+pub const default_symbol_name = sample.KretprobeExampleSample.default_symbol_name;
+pub const InstanceBudgetContract = sample.InstanceBudgetContract;
 
 pub fn referencePattern() InstanceBudgetContract {
-    return .{
-        .anchor = linux_anchor,
-        .symbol_param_name = symbol_param_name,
-        .symbol_param_mode = 0o644,
-        .default_symbol_name = default_symbol_name,
-        .private_data_word_bytes = @sizeOf(i64),
-        .default_maxactive = 20,
-        .reports_return_value_and_duration = true,
-        .skips_kernel_threads_without_mm = true,
-        .nmissed_suggests_increasing_maxactive = true,
-    };
+    return sample.KretprobeExampleSample.instanceBudgetContract();
 }
 
 test "kretprobe companion keeps the Linux parameter and instance-budget contract explicit" {
     const contract = referencePattern();
 
-    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", contract.anchor);
-    try std.testing.expectEqualStrings("func", contract.symbol_param_name);
+    try std.testing.expectEqualStrings(linux_anchor, contract.anchor);
+    try std.testing.expectEqualStrings(symbol_param_name, contract.symbol_param_name);
     try std.testing.expectEqual(@as(u16, 0o644), contract.symbol_param_mode);
-    try std.testing.expectEqualStrings("kernel_clone", contract.default_symbol_name);
+    try std.testing.expectEqualStrings(default_symbol_name, contract.default_symbol_name);
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), contract.private_data_word_bytes);
     try std.testing.expectEqual(@as(usize, 20), contract.default_maxactive);
     try std.testing.expect(contract.reports_return_value_and_duration);
