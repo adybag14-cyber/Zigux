@@ -49,7 +49,7 @@
 ## Current build-wiring evidence
 
 - `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.
-- `zigux/tests/phase7_build.zig` still exposes the dedicated helper and survey routes through `phase7-string-helpers-test`, `phase7-cmdline-test`, `phase7-argv-split-test`, and `phase7-rbtree-test`.
+- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.
 - `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.
 
 ## Current repo-reality gaps
