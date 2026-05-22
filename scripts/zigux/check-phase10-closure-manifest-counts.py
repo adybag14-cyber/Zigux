@@ -39,6 +39,17 @@ REQUIRED_RING_SCOREBOARD_EVIDENCE = [
     "Documentation/zigux/phase10-virtio-ring-survey.md",
 ]
 
+REQUIRED_MMIO_SCOREBOARD_EVIDENCE = [
+    "drivers/virtio/virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
+]
+
+REQUIRED_MMIO_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_mmio_manifest.json"
+REQUIRED_MMIO_READY_TRANSPORT_GAP = "phase10-mmio-lifecycle-and-irq-paths"
+
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -91,17 +102,58 @@ def collect_drift(manifest: dict) -> list[str]:
         drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:missing")
         return drift
 
-    evidence = virtqueue_wrappers.get("evidence")
-    if not isinstance(evidence, list) or not evidence:
+    ring_evidence = virtqueue_wrappers.get("evidence")
+    if not isinstance(ring_evidence, list) or not ring_evidence:
         drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:evidence:missing")
         return drift
 
     for item in REQUIRED_RING_SCOREBOARD_EVIDENCE:
-        if item not in evidence:
+        if item not in ring_evidence:
             drift.append(
                 "roadmap_parity_scoreboard:virtqueue_wrappers:"
                 f"{item!r}:missing"
             )
+
+    mmio_wrappers = scoreboard.get("mmio_wrappers")
+    if not isinstance(mmio_wrappers, dict):
+        drift.append("roadmap_parity_scoreboard:mmio_wrappers:missing")
+        return drift
+
+    mmio_evidence = mmio_wrappers.get("evidence")
+    if not isinstance(mmio_evidence, list) or not mmio_evidence:
+        drift.append("roadmap_parity_scoreboard:mmio_wrappers:evidence:missing")
+        return drift
+
+    for item in REQUIRED_MMIO_SCOREBOARD_EVIDENCE:
+        if item not in mmio_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:mmio_wrappers:"
+                f"{item!r}:missing"
+            )
+
+    ready_transport_followups = manifest.get("ready_transport_followups")
+    if not isinstance(ready_transport_followups, dict):
+        drift.append("ready_transport_followups:missing")
+        return drift
+
+    mmio_followup = ready_transport_followups.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
+    if mmio_followup != REQUIRED_MMIO_READY_TRANSPORT_GAP:
+        drift.append(
+            "ready_transport_followups:"
+            f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_followup!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}"
+        )
+
+    blocked_transport_gaps = manifest.get("blocked_transport_gaps")
+    if not isinstance(blocked_transport_gaps, dict):
+        drift.append("blocked_transport_gaps:missing")
+        return drift
+
+    mmio_blocked_gap = blocked_transport_gaps.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
+    if mmio_blocked_gap != REQUIRED_MMIO_READY_TRANSPORT_GAP:
+        drift.append(
+            "blocked_transport_gaps:"
+            f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_blocked_gap!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}"
+        )
 
     return drift
 
@@ -128,7 +180,17 @@ def fixture_manifest() -> dict:
             "virtqueue_wrappers": {
                 "status": "starter_landed",
                 "evidence": REQUIRED_RING_SCOREBOARD_EVIDENCE,
-            }
+            },
+            "mmio_wrappers": {
+                "status": "starter_landed",
+                "evidence": REQUIRED_MMIO_SCOREBOARD_EVIDENCE,
+            },
+        },
+        "ready_transport_followups": {
+            REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
+        },
+        "blocked_transport_gaps": {
+            REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
     }
 
@@ -257,6 +319,40 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["mmio_wrappers"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["mmio_wrappers"]["evidence"]
+            if item != "Documentation/zigux/phase10-virtio-mmio-survey.md"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:mmio_wrappers:'Documentation/zigux/phase10-virtio-mmio-survey.md':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["ready_transport_followups"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = "phase10-mmio-helper-drift"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-helper-drift'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["blocked_transport_gaps"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = "phase10-mmio-helper-drift"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "blocked_transport_gaps:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-helper-drift'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         del broken["roadmap_parity_scoreboard"]
         write_manifest(broken)
         expect_contains(
@@ -316,6 +412,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_FIELD_COUNT={len(COUNT_FIELDS)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_EXACT_CHECK_COUNT={len(REQUIRED_EXACT_CHECKS)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_RING_EVIDENCE_COUNT={len(REQUIRED_RING_SCOREBOARD_EVIDENCE)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
     return 0
 
 
