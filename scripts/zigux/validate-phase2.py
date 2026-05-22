@@ -76,6 +76,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/fixdep/cases.json",
+    "scripts/zigux/validate-phase2-closure.py",
     MAKEFILE,
 )
 
