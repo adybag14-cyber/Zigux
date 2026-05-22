@@ -117,6 +117,11 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase5_kobject_attr_group_contract_tests =
         b.addRunArtifact(phase5_kobject_attr_group_contract_tests);
+    const phase5_kobject_attr_group_contract_step = b.step(
+        "phase5-kobject-attr-group-contract",
+        "Run the Phase 5 kobject attr-group contract companion checks",
+    );
+    phase5_kobject_attr_group_contract_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
 
     const phase5_kretprobe_example_tests = b.addTest(.{
         .name = "phase5-kretprobe-example-tests",
