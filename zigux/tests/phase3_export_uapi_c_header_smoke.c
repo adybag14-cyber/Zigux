@@ -99,6 +99,9 @@ static int check_dev_t_relays(void)
     struct zigux_dev_t_fields valid = zigux_dev_t_fields_make(11u, 29u);
     struct zigux_dev_t_fields start = zigux_dev_t_fields_make(11u, 28u);
     struct zigux_dev_t_fields end = zigux_dev_t_fields_make(11u, 29u);
+    uint32_t encoded = zigux_mkdev(valid.major, valid.minor);
+    struct zigux_dev_t_fields decoded =
+        zigux_dev_t_fields_from_device_number(encoded);
     struct zigux_export_status valid_status =
         zigux_uapi_validate_dev_t_fields(valid);
     struct zigux_export_status invalid_components =
@@ -109,6 +112,12 @@ static int check_dev_t_relays(void)
         zigux_uapi_validate_dev_t_range(end, start);
 
     if (!zigux_uapi_dev_t_fields_is_valid(valid))
+        return __LINE__;
+    if (zigux_major(encoded) != valid.major)
+        return __LINE__;
+    if (zigux_minor(encoded) != valid.minor)
+        return __LINE__;
+    if (decoded.major != valid.major || decoded.minor != valid.minor)
         return __LINE__;
     if (!zigux_uapi_dev_t_fields_range_is_valid(start, end))
         return __LINE__;
