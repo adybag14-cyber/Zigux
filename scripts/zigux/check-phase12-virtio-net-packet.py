@@ -334,7 +334,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        (root / "zigux/tests/phase12_virtio_net_survey.zig").writeText("broken\n", encoding="utf-8")
+        (root / "zigux/tests/phase12_virtio_net_survey.zig").write_text("broken\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
