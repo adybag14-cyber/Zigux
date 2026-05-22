@@ -473,6 +473,7 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
