@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
+PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
+VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
@@ -30,6 +33,9 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig",
+    PHASE2_CLOSURE,
+    VALIDATE_PHASE2,
+    VALIDATE_PHASE2_CLOSURE,
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
