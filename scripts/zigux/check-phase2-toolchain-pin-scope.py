@@ -131,6 +131,7 @@ EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate", "phase2-cross
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
+    + 1
     + len(DOCS_ROOT_MARKERS)
     + len(REVIEW_MARKERS)
     + len(TESTS_MARKERS)
@@ -169,6 +170,18 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            if replacement:
+                lines[index] = replacement
+            else:
+                del lines[index]
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def count_exact_lines(text: str, marker: str) -> int:
@@ -382,38 +395,54 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
+        overlapping_route_text = "\n".join(
+            (
+                "`make -C zigux phase2-validate`",
+                "`make -C zigux phase2`",
+                "`make -C zigux phase2-genksyms`",
+            )
+        ) + "\n"
+        assert replace_exact_line(overlapping_route_text, "`make -C zigux phase2`") == "\n".join(
+            (
+                "`make -C zigux phase2-validate`",
+                "`make -C zigux phase2-genksyms`",
+                "",
+            )
+        )
+        checks_run += 1
+
         for marker in DOCS_ROOT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, DOCS_ROOT_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in REVIEW_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_REVIEW_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in TESTS_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in BOOTSTRAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_BOOTSTRAP_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in WORKFLOW_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_WORKFLOW_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
@@ -427,7 +456,7 @@ def run_self_test() -> int:
         for marker in MAKEFILE_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, MAKEFILE)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
