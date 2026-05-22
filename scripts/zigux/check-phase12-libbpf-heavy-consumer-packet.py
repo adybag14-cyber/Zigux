@@ -114,13 +114,13 @@ REQUIRED_MARKERS = {
     ],
     LIBBPF_SNAPSHOT_CHECKER_PATH: [
         "EXPECTED_SNAPSHOT_TRACKED_PATHS = [",
-        "    \"Documentation/zigux/phase12-libbpf-segment-survey.md\",",
-        "    \"Documentation/zigux/phase12-libbpf-verify-shard-note.md\",",
-        "    \"Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md\",",
-        "    \"Documentation/zigux/phase12-release-coordination-matrix.md\",",
-        "EXPECTED_DETERMINISM_LANE_KEY = \"P12-L17\"",
+        '    "Documentation/zigux/phase12-libbpf-segment-survey.md",',
+        '    "Documentation/zigux/phase12-libbpf-verify-shard-note.md",',
+        '    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",',
+        '    "Documentation/zigux/phase12-release-coordination-matrix.md",',
+        'EXPECTED_DETERMINISM_LANE_KEY = "P12-L17"',
         "EXPECTED_DETERMINISM_TRACKED_PATHS = [",
-        "    \"tools/lib/bpf/zigux_segments/pin_path.zig\",",
+        '    "tools/lib/bpf/zigux_segments/pin_path.zig",',
         "SELF_TEST_CASE_COUNT = 28",
     ],
     SCRIPTS_README_PATH: [
@@ -134,7 +134,7 @@ REQUIRED_MARKERS = {
     VALIDATOR_PATH: [
         "LIBBPF_SNAPSHOT_CHECKER_PATH,",
         "HEAVY_CONSUMER_PACKET_CHECKER_PATH,",
-        "\"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass\",",
+        '"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",',
     ],
 }
 
@@ -162,8 +162,7 @@ EXACT_COUNT_MARKERS = {
     },
     LIBBPF_SNAPSHOT_CHECKER_PATH: {
         "EXPECTED_DETERMINISM_TRACKED_PATHS = [": 1,
-        "    \"tools/lib/bpf/zigux_segments/pin_path.zig\",
-": 1,
+        '    "tools/lib/bpf/zigux_segments/pin_path.zig",': 1,
     },
     SCRIPTS_README_PATH: {
         "- `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`": 1,
@@ -171,7 +170,7 @@ EXACT_COUNT_MARKERS = {
     VALIDATOR_PATH: {
         "LIBBPF_SNAPSHOT_CHECKER_PATH,": 1,
         "HEAVY_CONSUMER_PACKET_CHECKER_PATH,": 1,
-        "\"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass\",": 1,
+        '"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",': 1,
     },
 }
 
@@ -298,7 +297,7 @@ def run_self_test() -> int:
             expect_failure(
                 base,
                 "wrong_count:"
-                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}"
+                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}",
             )
 
         case_count = (
