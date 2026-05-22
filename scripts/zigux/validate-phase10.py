@@ -199,53 +199,75 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        build_sample_repo(root)
-        failing_script = root / "scripts/zigux/check-phase10-core-packet.py"
-        build_stub_script(failing_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_failure = "live_failed:phase10-core-packet:exit=1"
-        if expected_failure not in issues:
-            raise SystemExit(
-                "phase10-validate-self-test:core_subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        def assert_subcommand_failure(
+            script_rel: str,
+            check_name: str,
+            failure_label: str,
+        ) -> None:
+            build_sample_repo(root)
+            failing_script = root / script_rel
+            build_stub_script(failing_script, exit_code=1)
+            issues = collect_issues(root)
+            expected_failure = f"live_failed:{check_name}:exit=1"
+            if expected_failure not in issues:
+                raise SystemExit(
+                    f"phase10-validate-self-test:{failure_label}_not_detected:"
+                    + ",".join(issues or ["none"])
+                )
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
-        failing_script = root / "scripts/zigux/check-phase10-harness-coverage.py"
-        build_stub_script(failing_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_failure = "live_failed:phase10-harness-coverage:exit=1"
-        if expected_failure not in issues:
-            raise SystemExit(
-                "phase10-validate-self-test:subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sampleRepo(root)
-        failing_script = root / "scripts/zigux/check-phase10-input-packet.py"
-        build_stub_script(failing_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_input_failure = "live_failed:phase10-input-packet:exit=1"
-        if expected_input_failure not in issues:
-            raise SystemExit(
-                "phase10-validate-self-test:input_subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
-
-        build_sampleRepo(root)
-        failing_script = root / "scripts/zigux/validate-phase10-closure.py"
-        build_stub_script(failing_script, exit_code=1)
-        issues = collect_issues(root)
-        expected_closure_failure = "live_failed:phase10-closure:exit=1"
-        if expected_closure_failure not in issues:
-            raise SystemExit(
-                "phase10-validate-self-test:closure_subcommand_failure_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-bootstrap-route.py",
+            "phase10-bootstrap-route",
+            "bootstrap_route_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-core-packet.py",
+            "phase10-core-packet",
+            "core_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+            "phase10-shared-freeze-boundary",
+            "shared_freeze_boundary_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-ring-packet.py",
+            "phase10-ring-packet",
+            "ring_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-input-packet.py",
+            "phase10-input-packet",
+            "input_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-mmio-packet.py",
+            "phase10-mmio-packet",
+            "mmio_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-harness-coverage.py",
+            "phase10-harness-coverage",
+            "harness_coverage_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+            "phase10-tests-readme-core-surfaces",
+            "tests_readme_core_surfaces_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/check-phase10-closure-manifest-counts.py",
+            "phase10-closure-manifest-counts",
+            "closure_manifest_counts_subcommand_failure",
+        )
+        assert_subcommand_failure(
+            "scripts/zigux/validate-phase10-closure.py",
+            "phase10-closure",
+            "closure_subcommand_failure",
+        )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
