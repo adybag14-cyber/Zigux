@@ -58,8 +58,8 @@ REQUIRED_MARKERS = (
 )
 
 FORBIDDEN_MARKERS = (
-    "  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
-    "Current `master` still keeps `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` outside the direct-readback packet here, so leave those validator-first, parity, bench-route, harness, and make-wrapper names framed as historical packet members until a fresh reread restores them on current `master`.",
+    "## Phase 1 shared host-tools packet",
+    "  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack:",
     "- Does the bounded Phase 1 reminder keep the restored closure-side validator, the direct owner-map and string-review guards, the shipped bench checker, the shared reminder checker, the helper manifest, the shipped smoke route, and the historical-warning wording aligned without reopening helper semantics or promoting missing validator-first and make-route surfaces back into current tests-root evidence?",
 )
 
@@ -154,7 +154,7 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "forbidden_old_gap_marker",
+            "forbidden_old_header",
             lambda root: write_text(
                 root / TESTS_README_REL,
                 read_text(root, TESTS_README_REL) + FORBIDDEN_MARKERS[0] + "\n",
