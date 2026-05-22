@@ -171,6 +171,8 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-input-teardown-observation-tests\"",
         "\"phase10-virtio-input-survey-tests\"",
         "\"phase10-virtio-input-verify-tests\"",
+        "\"phase10-virtio-ring-tests\"",
+        "run_phase10_virtio_ring_tests.step",
         "\"phase10-virtio-ring-notification-data-readiness-tests\"",
         "\"phase10-virtio-ring-verify-tests\"",
         "\"phase10-virtio-ring-publish-readiness-tests\"",
@@ -310,6 +312,18 @@ SELF_TEST_MUTATIONS = [
         "zigux/tests/phase10_virtio_input_manifest.json",
         "zigux/tests/phase10_virtio_input_manifest_missing.json",
         "Documentation/zigux/phase10-virtio-input-module-slice.md:zigux/tests/phase10_virtio_input_manifest.json",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "\"phase10-virtio-ring-tests\"",
+        "\"phase10-virtio-ring-tests-missing\"",
+        "zigux/tests/phase10_build.zig:\"phase10-virtio-ring-tests\"",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_ring_tests.step",
+        "run_phase10_virtio_ring_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_ring_tests.step",
     ),
     (
         "zigux/tests/phase10_build.zig",
