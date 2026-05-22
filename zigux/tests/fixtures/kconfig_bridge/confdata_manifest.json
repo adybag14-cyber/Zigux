@@ -80,6 +80,7 @@
     "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
     "confdata bridge keeps only the last state across unset and set transitions",
     "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
-    "confdata bridge releases appended entry ownership on index-allocation failure"
+    "confdata bridge releases appended entry ownership on index-allocation failure",
+    "confdata bridge preserves duplicate unset ownership on allocation failure"
   ]
 }
