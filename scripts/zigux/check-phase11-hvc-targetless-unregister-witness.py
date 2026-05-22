@@ -393,7 +393,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, broken_json, dirs_exist_ok=True)
         expect_failure(
             broken_json,
-            lambda root: writeText(root, INVENTORY_PATH, "{not json}\n"),
+            lambda root: write_text(root, INVENTORY_PATH, "{not json}\n"),
             "is not valid JSON",
         )
         cases += 1
