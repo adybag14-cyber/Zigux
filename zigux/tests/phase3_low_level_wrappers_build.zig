@@ -19,18 +19,19 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const unsafe_policy = b.createModule(.{
-        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    unsafe_policy.addImport("abi_bindings", abi_bindings);
     const narrow = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
         .optimize = optimize,
     });
     narrow.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow);
     const mmio = b.createModule(.{
         .root_source_file = b.path("../helpers/mmio.zig"),
         .target = target,
