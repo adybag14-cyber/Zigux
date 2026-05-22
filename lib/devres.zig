@@ -6,8 +6,10 @@ pub const ModuleDescriptor = struct {
     provides_release_call_planning: bool,
     provides_dmam_free_coherent_cleanup_planning: bool,
     provides_dmam_detach_cleanup_transition_planning: bool,
+    provides_iounmap_cleanup_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
+    touches_live_mmio: bool,
 };
 
 pub const ManagedDmamAllocCoherentInput = struct {
@@ -63,6 +65,16 @@ pub const ManagedReleaseCallPlan = struct {
     destroys_release_record_before_free: bool,
 };
 
+pub const ManagedIounmapCleanupPlan = struct {
+    anchor: []const u8,
+    had_mapping_owner: bool,
+    generates_cleanup_plan: bool,
+    unmaps_mapping: bool,
+    releases_from_devres: bool,
+    release_record_consumed: bool,
+    warns_on_release_miss: bool,
+};
+
 pub const DevresHelperLab = struct {
     fn requireReleaseRecordAllocated(release_record_allocated: bool) !void {
         if (!release_record_allocated) {
@@ -108,8 +120,10 @@ pub const DevresHelperLab = struct {
             .provides_release_call_planning = true,
             .provides_dmam_free_coherent_cleanup_planning = true,
             .provides_dmam_detach_cleanup_transition_planning = true,
+            .provides_iounmap_cleanup_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
+            .touches_live_mmio = false,
         };
     }
 
@@ -174,6 +188,30 @@ pub const DevresHelperLab = struct {
             .destroys_release_record_before_free = cleanup.destroys_release_record_before_free,
         };
     }
+
+    pub fn planManagedIounmapCleanup(had_mapping_owner: bool, release_record_matches: bool) ManagedIounmapCleanupPlan {
+        if (!had_mapping_owner) {
+            return .{
+                .anchor = descriptor().anchor,
+                .had_mapping_owner = false,
+                .generates_cleanup_plan = false,
+                .unmaps_mapping = false,
+                .releases_from_devres = false,
+                .release_record_consumed = false,
+                .warns_on_release_miss = false,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .had_mapping_owner = true,
+            .generates_cleanup_plan = true,
+            .unmaps_mapping = true,
+            .releases_from_devres = release_record_matches,
+            .release_record_consumed = release_record_matches,
+            .warns_on_release_miss = !release_record_matches,
+        };
+    }
 };
 
 const std = @import("std");
@@ -188,8 +226,10 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_release_call_planning);
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
     try std.testing.expect(descriptor.provides_dmam_detach_cleanup_transition_planning);
+    try std.testing.expect(descriptor.provides_iounmap_cleanup_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
+    try std.testing.expect(!descriptor.touches_live_mmio);
 }
 
 test "managed allocation retains release record when acquisition succeeds" {
@@ -335,4 +375,39 @@ test "detach cleanup planning skips cleanup when allocation never retained owner
     try std.testing.expect(!cleanup.release_record_consumed);
     try std.testing.expect(!cleanup.warns_on_release_miss);
     try std.testing.expect(!cleanup.destroys_release_record_before_free);
+}
+
+test "iounmap cleanup planning consumes the matching devres release record" {
+    const cleanup = DevresHelperLab.planManagedIounmapCleanup(true, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expect(cleanup.had_mapping_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(cleanup.unmaps_mapping);
+    try std.testing.expect(cleanup.releases_from_devres);
+    try std.testing.expect(cleanup.release_record_consumed);
+    try std.testing.expect(!cleanup.warns_on_release_miss);
+}
+
+test "iounmap cleanup planning still unmaps when the release record is missing" {
+    const cleanup = DevresHelperLab.planManagedIounmapCleanup(true, false);
+
+    try std.testing.expect(cleanup.had_mapping_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(cleanup.unmaps_mapping);
+    try std.testing.expect(!cleanup.releases_from_devres);
+    try std.testing.expect(!cleanup.release_record_consumed);
+    try std.testing.expect(cleanup.warns_on_release_miss);
+}
+
+test "iounmap cleanup planning stays inert when no mapping owner exists" {
+    const cleanup = DevresHelperLab.planManagedIounmapCleanup(false, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expect(!cleanup.had_mapping_owner);
+    try std.testing.expect(!cleanup.generates_cleanup_plan);
+    try std.testing.expect(!cleanup.unmaps_mapping);
+    try std.testing.expect(!cleanup.releases_from_devres);
+    try std.testing.expect(!cleanup.release_record_consumed);
+    try std.testing.expect(!cleanup.warns_on_release_miss);
 }
