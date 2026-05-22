@@ -14,6 +14,7 @@ CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
 
 MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
 DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
+DIRECT_REPLAY_PATH = Path("zigux/tests/phase12_nvme_pci.zig")
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
@@ -134,6 +135,7 @@ EXTRA_REQUIRED_PATHS = (
     "drivers/nvme/host/pci.zig",
     "drivers/nvme/host/pci_verify.zig",
     str(DIRECT_BUILD_PATH),
+    str(DIRECT_REPLAY_PATH),
 )
 
 DIRECT_BUILD_MARKERS = (
@@ -143,9 +145,16 @@ DIRECT_BUILD_MARKERS = (
     "Run the direct Phase 12 NVMe PCI replay in isolation",
 )
 
+DIRECT_REPLAY_MARKERS = (
+    "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit",
+    "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery",
+    "phase12 nvme pci direct replay keeps admin replay blocker explicit even after IO counts recover",
+    "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers",
+)
+
 
 class CheckFailure(RuntimeError):
-    """Raised when the packet checker finds drift."""
+    pass
 
 
 def read_text(root: Path, relative_path: Path) -> str:
@@ -173,30 +182,13 @@ def require_existing_path(root: Path, relative_path: str) -> None:
 
 def check_manifest(root: Path) -> int:
     manifest = json.loads(read_text(root, MANIFEST_PATH))
-
-    require(
-        manifest.get("lane_key") == EXPECTED_LANE_KEY,
-        "nvme_pci manifest lane_key drifted",
-    )
-    require(
-        manifest.get("phase") == EXPECTED_PHASE,
-        "nvme_pci manifest phase drifted",
-    )
-    require(
-        manifest.get("anchor") == EXPECTED_ANCHOR,
-        "nvme_pci manifest anchor drifted",
-    )
-    require(
-        manifest.get("roadmap_destinations") == EXPECTED_ROADMAP_DESTINATIONS,
-        "nvme_pci manifest roadmap destinations drifted",
-    )
+    require(manifest.get("lane_key") == EXPECTED_LANE_KEY, "nvme_pci manifest lane_key drifted")
+    require(manifest.get("phase") == EXPECTED_PHASE, "nvme_pci manifest phase drifted")
+    require(manifest.get("anchor") == EXPECTED_ANCHOR, "nvme_pci manifest anchor drifted")
+    require(manifest.get("roadmap_destinations") == EXPECTED_ROADMAP_DESTINATIONS, "nvme_pci manifest roadmap destinations drifted")
 
     surveyed_commit = manifest.get("surveyed_commit", "")
-    require(
-        len(surveyed_commit) == 40
-        and all(ch in "0123456789abcdef" for ch in surveyed_commit),
-        "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha",
-    )
+    require(len(surveyed_commit) == 40 and all(ch in "0123456789abcdef" for ch in surveyed_commit), "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha")
 
     summary = manifest.get("survey_summary")
     require(isinstance(summary, dict), "nvme_pci survey_summary is not a mapping")
@@ -204,31 +196,14 @@ def check_manifest(root: Path) -> int:
         require(summary.get(flag) is True, f"nvme_pci survey_summary flag missing: {flag}")
 
     roadmap_gap_check = manifest.get("roadmap_gap_check")
-    require(
-        isinstance(roadmap_gap_check, dict),
-        "nvme_pci roadmap_gap_check is not a mapping",
-    )
+    require(isinstance(roadmap_gap_check, dict), "nvme_pci roadmap_gap_check is not a mapping")
     for slug, expected in EXPECTED_ROADMAP_GAP_CHECK.items():
         section = roadmap_gap_check.get(slug)
         require(isinstance(section, dict), f"nvme_pci roadmap gap section missing: {slug}")
-        require(
-            section.get("required_by_roadmap") is True,
-            f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}",
-        )
-        require(
-            section.get("status") == expected["status"],
-            f"nvme_pci roadmap gap status drifted: {slug}",
-        )
-        require_markers(
-            section.get("current_surface", ""),
-            expected["current_surface_markers"],
-            f"nvme_pci roadmap current_surface[{slug}]",
-        )
-        require_markers(
-            section.get("blocked_by", ""),
-            expected["blocked_by_markers"],
-            f"nvme_pci roadmap blocked_by[{slug}]",
-        )
+        require(section.get("required_by_roadmap") is True, f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}")
+        require(section.get("status") == expected["status"], f"nvme_pci roadmap gap status drifted: {slug}")
+        require_markers(section.get("current_surface", ""), expected["current_surface_markers"], f"nvme_pci roadmap current_surface[{slug}]")
+        require_markers(section.get("blocked_by", ""), expected["blocked_by_markers"], f"nvme_pci roadmap blocked_by[{slug}]")
 
     gaps = manifest.get("gaps")
     require(isinstance(gaps, list), "nvme_pci manifest gaps field is not a list")
@@ -242,21 +217,17 @@ def check_manifest(root: Path) -> int:
         require(gap is not None, f"nvme_pci manifest missing gap: {gap_id}")
         require(gap.get("status") == expected["status"], f"nvme_pci gap status drifted: {gap_id}")
         require(gap.get("kind") == expected["kind"], f"nvme_pci gap kind drifted: {gap_id}")
-        require(
-            gap.get("zigux_destination") == expected["zigux_destination"],
-            f"nvme_pci gap destination drifted: {gap_id}",
-        )
+        require(gap.get("zigux_destination") == expected["zigux_destination"], f"nvme_pci gap destination drifted: {gap_id}")
         require_existing_path(root, expected["zigux_destination"])
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         require_existing_path(root, relative_path)
 
     direct_build_text = read_text(root, DIRECT_BUILD_PATH)
-    require_markers(
-        direct_build_text,
-        DIRECT_BUILD_MARKERS,
-        "nvme_pci direct build route",
-    )
+    require_markers(direct_build_text, DIRECT_BUILD_MARKERS, "nvme_pci direct build route")
+
+    direct_replay_text = read_text(root, DIRECT_REPLAY_PATH)
+    require_markers(direct_replay_text, DIRECT_REPLAY_MARKERS, "nvme_pci direct replay")
 
     return len(gaps)
 
@@ -291,11 +262,10 @@ def write_fixture(root: Path) -> None:
                 ],
             },
             indent=2,
-        )
-        + "\n",
+        ) + "\n",
         DIRECT_BUILD_PATH: "\n".join(DIRECT_BUILD_MARKERS) + "\n",
+        DIRECT_REPLAY_PATH: "\n".join(DIRECT_REPLAY_MARKERS) + "\n",
     }
-
     for relative_path, text in fixture_files.items():
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
@@ -304,14 +274,14 @@ def write_fixture(root: Path) -> None:
     for expected in EXPECTED_GAPS.values():
         absolute_path = root / expected["zigux_destination"]
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (root / MANIFEST_PATH, root / DIRECT_BUILD_PATH):
+        if absolute_path in (root / MANIFEST_PATH, root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path == root / DIRECT_BUILD_PATH:
+        if absolute_path in (root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
@@ -321,7 +291,6 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as temp_dir:
         root = Path(temp_dir)
         write_fixture(root)
-
         check_manifest(root)
         cases += 1
 
@@ -404,6 +373,20 @@ def run_self_test() -> int:
             raise AssertionError("expected direct-build marker drift to fail")
 
         write_fixture(root)
+        (root / DIRECT_REPLAY_PATH).write_text(
+            "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "direct replay" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected direct-replay marker drift to fail")
+
+        write_fixture(root)
         (root / DIRECT_BUILD_PATH).unlink()
         try:
             check_manifest(root)
@@ -424,17 +407,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", default=".")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
-
     if args.self_test:
         return run_self_test()
-
     try:
         gap_count = check_manifest(Path(args.root))
     except CheckFailure as exc:
         print(f"{CHECK_NAME}=fail")
         print(f"{CHECK_NAME}_ERROR={exc}")
         return 1
-
     print(f"{CHECK_NAME}=pass")
     print(f"{CHECK_NAME}_GAP_COUNT={gap_count}")
     return 0
