@@ -87,6 +87,8 @@ Keep the current-head simple-driver truthfulness packet explicit through:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- `drivers/watchdog/dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
 - `drivers/tty/hvc/hvc_console.zig`
@@ -101,6 +103,7 @@ Keep the current-head simple-driver truthfulness packet explicit through:
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt.zig`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
