@@ -62,7 +62,7 @@ Keep this packet separate from the later Phase 9 runtime family:
 This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring.
 ## Next bounded step
 
-Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane shared reminder drift:
+Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane note drift inside this sample packet:
 
-  * if a shared README, guide, checklist, or dedicated guide-surface checker later stops naming the restored direct packet or misstates the returned shared `phase5_build.zig` route as either missing or direct authenticated proof, repair only that one file
-  * otherwise leave the restored direct kretprobe packet parked while the shared reminder surfaces stay aligned
+  * if `Documentation/zigux/phase5-kretprobe-sample-survey.md` later misstates `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, or the returned companion-evidence status of `zigux/tests/phase5_build.zig`, repair only this note
+  * otherwise leave the restored direct kretprobe packet parked while the sample-owned packet stays aligned
