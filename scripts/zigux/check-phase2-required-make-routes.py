@@ -28,9 +28,9 @@ WORKFLOW_LINES = (
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
-DEFAULT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate")
-DEFAULT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
-DEFAULT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
+CURRENT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
+CURRENT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in CURRENT_REQUIRED_MAKE_ROUTES)
+CURRENT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 POLICY_SUMMARY_ANCHOR = "required Linux-style make routes"
 
 MAKEFILE_MARKERS = (
@@ -97,14 +97,14 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
-    + len(DEFAULT_WORKFLOW_ROUTE_LINES)
-    + len(DEFAULT_WORKFLOW_ROUTE_LINES)
+    + len(CURRENT_WORKFLOW_ROUTE_LINES)
+    + len(CURRENT_WORKFLOW_ROUTE_LINES)
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
-    + (len(MINIMAL_SURFACE_MARKERS) + len(DEFAULT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
+    + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
     + 1
-    + len(DEFAULT_REQUIRED_MAKE_ROUTES)
+    + len(CURRENT_REQUIRED_MAKE_ROUTES)
     + 10
 )
 
@@ -269,14 +269,14 @@ def build_self_test_root(root: Path) -> None:
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
                     "archive_target_scope": ["x86_64-linux"],
-                    "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES),
+                    "required_make_routes": list(CURRENT_REQUIRED_MAKE_ROUTES),
                 },
             },
             indent=2,
         )
         + "\n",
     )
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES + DEFAULT_WORKFLOW_ROUTE_LINES) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES + CURRENT_WORKFLOW_ROUTE_LINES) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join((REQUIRED_PHASE2_PHONY_LINE,) + MAKEFILE_MARKERS) + "\n")
 
     full_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS)
@@ -286,11 +286,11 @@ def build_self_test_root(root: Path) -> None:
     bootstrap_text = "\n".join(
         MINIMAL_SURFACE_MARKERS
         + CURRENT_PACKET_ROUTE_MARKERS
-        + (format_policy_summary_line(DEFAULT_REQUIRED_MAKE_ROUTES),)
+        + (format_policy_summary_line(CURRENT_REQUIRED_MAKE_ROUTES),)
     )
     write_text(resolve_path(root, BOOTSTRAP_NOTES), bootstrap_text + "\n")
 
-    tests_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + DEFAULT_POLICY_ROUTE_MARKERS)
+    tests_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_POLICY_ROUTE_MARKERS)
     for path, _, _ in POLICY_ROUTE_SURFACE_CODES:
         write_text(resolve_path(root, path), tests_marker_text + "\n")
 
@@ -370,7 +370,7 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINES", f"{line}:count=2") in collect_issues(root)
             checks_run += 1
 
-        for line in DEFAULT_WORKFLOW_ROUTE_LINES:
+        for line in CURRENT_WORKFLOW_ROUTE_LINES:
             build_self_test_root(root)
             workflow_path = resolve_path(root, WORKFLOW)
             workflow_path.write_text(
@@ -380,7 +380,7 @@ def run_self_test() -> int:
             assert ("MISSING_WORKFLOW_ROUTE_LINES", line) in collect_issues(root)
             checks_run += 1
 
-        for line in DEFAULT_WORKFLOW_ROUTE_LINES:
+        for line in CURRENT_WORKFLOW_ROUTE_LINES:
             build_self_test_root(root)
             workflow_path = resolve_path(root, WORKFLOW)
             workflow_path.write_text(
@@ -448,7 +448,7 @@ def run_self_test() -> int:
                 checks_run += 1
 
         for path, gap_code, route_code in POLICY_ROUTE_SURFACE_CODES:
-            for marker in MINIMAL_SURFACE_MARKERS + DEFAULT_POLICY_ROUTE_MARKERS:
+            for marker in MINIMAL_SURFACE_MARKERS + CURRENT_POLICY_ROUTE_MARKERS:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
@@ -471,10 +471,10 @@ def run_self_test() -> int:
         assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_SUMMARY", POLICY_SUMMARY_ANCHOR) in collect_issues(root)
         checks_run += 1
 
-        for route in DEFAULT_REQUIRED_MAKE_ROUTES:
+        for route in CURRENT_REQUIRED_MAKE_ROUTES:
             build_self_test_root(root)
             bootstrap_path = resolve_path(root, BOOTSTRAP_NOTES)
-            summary_line = format_policy_summary_line(DEFAULT_REQUIRED_MAKE_ROUTES)
+            summary_line = format_policy_summary_line(CURRENT_REQUIRED_MAKE_ROUTES)
             bootstrap_path.write_text(
                 replace_exact_line(
                     bootstrap_path.read_text(encoding="utf-8"),
@@ -489,12 +489,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
         policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy_payload["upgrade_policy"]["required_make_routes"].append("phase2-cross")
+        extra_route = "phase2-future"
+        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_TESTS_ROUTE_MARKERS", "`make -C zigux phase2-cross`") in issues
-        assert ("MISSING_WORKFLOW_ROUTE_LINES", "run: make -C zigux phase2-cross") in issues
-        assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", "phase2-cross") in issues
+        assert ("MISSING_TESTS_ROUTE_MARKERS", f"`make -C zigux {extra_route}`") in issues
+        assert ("MISSING_WORKFLOW_ROUTE_LINES", f"run: make -C zigux {extra_route}") in issues
+        assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", extra_route) in issues
         checks_run += 1
 
         build_self_test_root(root)
