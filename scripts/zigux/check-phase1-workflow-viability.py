@@ -79,6 +79,10 @@ REQUIRED_TESTS_ROOT_LINES = (
     "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
 )
 
+PHASE1_PREFLIGHT_STEP = (
+    "Preflight current Phase 1 workflow viability checker",
+    "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test",
+)
 PHASE1_PRELUDE_STEPS = (
     ("Self-test current Phase 1 direct-owner checker", "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test"),
     ("Check current Phase 1 direct-owner markers", "python3 scripts/zigux/check-phase1-direct-owner-markers.py"),
@@ -94,6 +98,11 @@ PHASE1_TAIL_STEPS = (
     ("Check current Phase 1 shared reminder packet", "python3 scripts/zigux/check-phase1-shared-reminder-packet.py"),
     ("Self-test current Phase 1 closure validator", "python3 scripts/zigux/validate-phase1-closure.py --self-test"),
     ("Check current Phase 1 closure packet", "python3 scripts/zigux/validate-phase1-closure.py"),
+)
+
+PHASE1_WORKFLOW_VIABILITY_STEPS = (
+    ("Self-test current Phase 1 workflow viability checker", "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test"),
+    ("Check current Phase 1 workflow viability", "python3 scripts/zigux/check-phase1-workflow-viability.py"),
 )
 
 PHASE3_BUFFER_STEPS = (
@@ -115,13 +124,12 @@ PHASE4_LEAD_STEPS = (
     ("Check current Phase 4 repo-reality warning packet", "python3 scripts/zigux/check-phase4-repo-reality-warning.py"),
 )
 
-ALL_REQUIRED_STEPS = PHASE1_PRELUDE_STEPS + PHASE1_TAIL_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS
+ALL_REQUIRED_STEPS = PHASE1_PRELUDE_STEPS + PHASE1_TAIL_STEPS + PHASE1_WORKFLOW_VIABILITY_STEPS + PHASE3_BUFFER_STEPS + PHASE4_LEAD_STEPS
 REQUIRED_ORDER = tuple(step for step, _ in ALL_REQUIRED_STEPS)
-REQUIRED_CHAIN = (
-    "Check current Phase 1 closure packet",
-    "Self-test current Phase 3 interop packet",
-    "Check current Phase 3 interop packet",
-    "Run current Phase 3 export/UAPI layout replay",
+PREFLIGHT_CHAIN = (
+    "Setup Python",
+    PHASE1_PREFLIGHT_STEP[0],
+    "Setup pinned Zig toolchain",
 )
 PHASE1_PACKET_CHAIN = (
     "Self-test current Phase 1 direct-owner checker",
@@ -135,6 +143,17 @@ PHASE1_PACKET_CHAIN = (
     "Check current Phase 1 shared reminder packet",
     "Self-test current Phase 1 closure validator",
     "Check current Phase 1 closure packet",
+)
+WORKFLOW_VIABILITY_CHAIN = (
+    "Check current Phase 1 closure packet",
+    "Self-test current Phase 1 workflow viability checker",
+    "Check current Phase 1 workflow viability",
+    "Self-test current Phase 3 interop packet",
+)
+PHASE3_CHAIN = (
+    "Self-test current Phase 3 interop packet",
+    "Check current Phase 3 interop packet",
+    "Run current Phase 3 export/UAPI layout replay",
 )
 SMOKE_TO_PHASE4_CHAIN = (
     "Run current Phase 1 shared tests-root smoke",
@@ -221,28 +240,26 @@ def collect_failures(root: Path) -> list[str]:
 
     for line in REQUIRED_DOCS_ROOT_LINES:
         failures.extend(require_once(docs_root_text, "docs_root", line))
-
     for line in REQUIRED_LANE_NOTE_LINES:
         failures.extend(require_once(lane_note_text, "lane_note", line))
-
     for line in REQUIRED_REVIEW_CHECKLIST_LINES:
         failures.extend(require_once(review_checklist_text, "review_checklist", line))
-
     for line in REQUIRED_NOTE_LINES:
         failures.extend(require_once(note_text, "closure_note", line))
-
     for line in REQUIRED_SCRIPTS_ROOT_LINES:
         failures.extend(require_once(scripts_root_text, "scripts_root", line))
-
     for line in REQUIRED_TESTS_ROOT_LINES:
         failures.extend(require_once(tests_root_text, "tests_root", line))
 
+    failures.extend(require_step_pair(workflow_text, PHASE1_PREFLIGHT_STEP[0], PHASE1_PREFLIGHT_STEP[1]))
     for step_name, run_command in ALL_REQUIRED_STEPS:
         failures.extend(require_step_pair(workflow_text, step_name, run_command))
 
     failures.extend(require_order(workflow_text, REQUIRED_ORDER))
+    failures.extend(require_chain(workflow_text, PREFLIGHT_CHAIN, "workflow_preflight_chain"))
     failures.extend(require_chain(workflow_text, PHASE1_PACKET_CHAIN, "workflow_phase1_packet"))
-    failures.extend(require_chain(workflow_text, REQUIRED_CHAIN, "workflow_chain"))
+    failures.extend(require_chain(workflow_text, WORKFLOW_VIABILITY_CHAIN, "workflow_viability_chain"))
+    failures.extend(require_chain(workflow_text, PHASE3_CHAIN, "workflow_phase3_chain"))
     failures.extend(require_chain(workflow_text, SMOKE_TO_PHASE4_CHAIN, "workflow_phase4_lead"))
 
     for forbidden in FORBIDDEN_WORKFLOW_SNIPPETS:
@@ -259,6 +276,12 @@ def sample_workflow_text() -> str:
         "  bootstrap:",
         "    runs-on: ubuntu-latest",
         "    steps:",
+        "      - name: Setup Python",
+        "        uses: actions/setup-python@v6.2.0",
+        f"      - name: {PHASE1_PREFLIGHT_STEP[0]}",
+        f"        run: {PHASE1_PREFLIGHT_STEP[1]}",
+        "      - name: Setup pinned Zig toolchain",
+        "        run: echo setup-zig",
     ]
     for step_name, run_command in ALL_REQUIRED_STEPS:
         lines.append(f"      - name: {step_name}")
@@ -268,69 +291,27 @@ def sample_workflow_text() -> str:
 
 
 def sample_docs_root_text() -> str:
-    return "\n".join(
-        [
-            "# Zigux Documentation",
-            "",
-            *REQUIRED_DOCS_ROOT_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# Zigux Documentation", "", *REQUIRED_DOCS_ROOT_LINES, ""])
 
 
 def sample_lane_note_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 1 Host-Helper Lane Sequencing",
-            "",
-            *REQUIRED_LANE_NOTE_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 1 Host-Helper Lane Sequencing", "", *REQUIRED_LANE_NOTE_LINES, ""])
 
 
 def sample_review_checklist_text() -> str:
-    return "\n".join(
-        [
-            "# Zigux Review Checklist",
-            "",
-            *REQUIRED_REVIEW_CHECKLIST_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# Zigux Review Checklist", "", *REQUIRED_REVIEW_CHECKLIST_LINES, ""])
 
 
 def sample_closure_note_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 1 Closure",
-            "",
-            *REQUIRED_NOTE_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 1 Closure", "", *REQUIRED_NOTE_LINES, ""])
 
 
 def sample_scripts_root_text() -> str:
-    return "\n".join(
-        [
-            "# scripts/zigux",
-            "",
-            *REQUIRED_SCRIPTS_ROOT_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# scripts/zigux", "", *REQUIRED_SCRIPTS_ROOT_LINES, ""])
 
 
 def sample_tests_root_text() -> str:
-    return "\n".join(
-        [
-            "# zigux/tests",
-            "",
-            *REQUIRED_TESTS_ROOT_LINES,
-            "",
-        ]
-    )
+    return "\n".join(["# zigux/tests", "", *REQUIRED_TESTS_ROOT_LINES, ""])
 
 
 def write_placeholder_tree(root: Path) -> None:
@@ -395,171 +376,64 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        broken_root = root / "missing-docs-line"
-        write_sample_root(broken_root)
-        docs_root_text = load_text(broken_root, DOCS_ROOT_REL)
-        write_text(
-            broken_root,
-            DOCS_ROOT_REL,
-            rewrite_once(docs_root_text, REQUIRED_DOCS_ROOT_LINES[1] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "docs_root:expected=1:actual=0" not in failures:
-            print("self-test:missing_docs_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-lane-note-line"
-        write_sample_root(broken_root)
-        lane_note_text = load_text(broken_root, LANE_NOTE_REL)
-        write_text(
-            broken_root,
-            LANE_NOTE_REL,
-            rewrite_once(lane_note_text, REQUIRED_LANE_NOTE_LINES[1] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "lane_note:expected=1:actual=0" not in failures:
-            print("self-test:missing_lane_note_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-review-checklist-line"
-        write_sample_root(broken_root)
-        review_checklist_text = load_text(broken_root, REVIEW_CHECKLIST_REL)
-        write_text(
-            broken_root,
-            REVIEW_CHECKLIST_REL,
-            rewrite_once(review_checklist_text, REQUIRED_REVIEW_CHECKLIST_LINES[0] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "review_checklist:expected=1:actual=0" not in failures:
-            print("self-test:missing_review_checklist_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-reminder-packet-line"
-        write_sample_root(broken_root)
-        note_text = load_text(broken_root, CLOSURE_NOTE_REL)
-        write_text(
-            broken_root,
-            CLOSURE_NOTE_REL,
-            rewrite_once(note_text, REQUIRED_NOTE_LINES[0] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "closure_note:expected=1:actual=0" not in failures:
-            print("self-test:missing_reminder_packet_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-note-line"
-        write_sample_root(broken_root)
-        note_text = load_text(broken_root, CLOSURE_NOTE_REL)
-        write_text(
-            broken_root,
-            CLOSURE_NOTE_REL,
-            rewrite_once(note_text, REQUIRED_NOTE_LINES[1] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "closure_note:expected=1:actual=0" not in failures:
-            print("self-test:missing_note_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-scripts-line"
-        write_sample_root(broken_root)
-        scripts_root_text = load_text(broken_root, SCRIPTS_ROOT_REL)
-        write_text(
-            broken_root,
-            SCRIPTS_ROOT_REL,
-            rewrite_once(scripts_root_text, REQUIRED_SCRIPTS_ROOT_LINES[0] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "scripts_root:expected=1:actual=0" not in failures:
-            print("self-test:missing_scripts_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing-tests-line"
-        write_sample_root(broken_root)
-        tests_root_text = load_text(broken_root, TESTS_ROOT_REL)
-        write_text(
-            broken_root,
-            TESTS_ROOT_REL,
-            rewrite_once(tests_root_text, REQUIRED_TESTS_ROOT_LINES[0] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if "tests_root:expected=1:actual=0" not in failures:
-            print("self-test:missing_tests_line_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "duplicate-step"
+        broken_root = root / "missing-preflight-step"
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
-        duplicate_block = (
-            "      - name: Check current Phase 1 direct-owner markers\n"
-            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py\n"
+        write_text(
+            broken_root,
+            WORKFLOW_REL,
+            rewrite_once(
+                workflow_text,
+                f"      - name: {PHASE1_PREFLIGHT_STEP[0]}\n        run: {PHASE1_PREFLIGHT_STEP[1]}\n",
+            ),
         )
-        write_text(broken_root, WORKFLOW_REL, workflow_text + duplicate_block)
         failures = collect_failures(broken_root)
-        if "workflow_step:Check current Phase 1 direct-owner markers:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_step_not_detected")
+        marker = f"workflow_step:{PHASE1_PREFLIGHT_STEP[0]}:expected=1:actual=0"
+        if marker not in failures:
+            print("self-test:missing_preflight_step_not_detected")
             return 1
         case_count += 1
 
-        broken_root = root / "broken-order"
-        write_sample_root(broken_root)
-        reordered = list(ALL_REQUIRED_STEPS)
-        reordered[0], reordered[1] = reordered[1], reordered[0]
-        lines = [
-            "name: zigux-bootstrap",
-            "jobs:",
-            "  bootstrap:",
-            "    runs-on: ubuntu-latest",
-            "    steps:",
-        ]
-        for step_name, run_command in reordered:
-            lines.append(f"      - name: {step_name}")
-            lines.append(f"        run: {run_command}")
-        lines.append("")
-        write_text(broken_root, WORKFLOW_REL, "\n".join(lines))
-        failures = collect_failures(broken_root)
-        if "workflow_order:out_of_order" not in failures:
-            print("self-test:broken_order_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "broken-phase1-chain"
+        broken_root = root / "duplicate-preflight-step"
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
-        old = (
-            "      - name: Check current Phase 1 string review packet\n"
-            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n"
-            "      - name: Self-test current Phase 1 route summary checker\n"
-            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n"
-        )
-        new = (
-            "      - name: Check current Phase 1 string review packet\n"
-            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n"
-            "      - name: Drifted inserted step\n"
-            "        run: python3 drift.py\n"
-            "      - name: Self-test current Phase 1 route summary checker\n"
-            "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n"
-        )
-        write_text(broken_root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
+        duplicate = f"      - name: {PHASE1_PREFLIGHT_STEP[0]}\n        run: {PHASE1_PREFLIGHT_STEP[1]}\n"
+        write_text(broken_root, WORKFLOW_REL, workflow_text + duplicate)
         failures = collect_failures(broken_root)
-        expected = f"workflow_phase1_packet:missing:{'->'.join(PHASE1_PACKET_CHAIN)}"
-        if expected not in failures:
-            print("self-test:broken_phase1_chain_not_detected")
+        marker = f"workflow_step:{PHASE1_PREFLIGHT_STEP[0]}:expected=1:actual=2"
+        if marker not in failures:
+            print("self-test:duplicate_preflight_step_not_detected")
             return 1
         case_count += 1
 
-        broken_root = root / "broken-chain"
+        broken_root = root / "missing-viability-check"
+        write_sample_root(broken_root)
+        workflow_text = load_text(broken_root, WORKFLOW_REL)
+        write_text(
+            broken_root,
+            WORKFLOW_REL,
+            rewrite_once(
+                workflow_text,
+                "      - name: Check current Phase 1 workflow viability\n        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n",
+            ),
+        )
+        failures = collect_failures(broken_root)
+        marker = "workflow_step:Check current Phase 1 workflow viability:expected=1:actual=0"
+        if marker not in failures:
+            print("self-test:missing_viability_check_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "broken-viability-chain"
         write_sample_root(broken_root)
         workflow_text = load_text(broken_root, WORKFLOW_REL)
         old = (
             "      - name: Check current Phase 1 closure packet\n"
             "        run: python3 scripts/zigux/validate-phase1-closure.py\n"
+            "      - name: Self-test current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
             "      - name: Self-test current Phase 3 interop packet\n"
             "        run: python3 scripts/zigux/validate_phase3_selftest.py\n"
         )
@@ -568,14 +442,47 @@ def run_self_test() -> int:
             "        run: python3 scripts/zigux/validate-phase1-closure.py\n"
             "      - name: Drifted inserted step\n"
             "        run: python3 drift.py\n"
+            "      - name: Self-test current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
             "      - name: Self-test current Phase 3 interop packet\n"
             "        run: python3 scripts/zigux/validate_phase3_selftest.py\n"
         )
         write_text(broken_root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
         failures = collect_failures(broken_root)
-        expected = f"workflow_chain:missing:{'->'.join(REQUIRED_CHAIN)}"
+        expected = f"workflow_viability_chain:missing:{'->'.join(WORKFLOW_VIABILITY_CHAIN)}"
         if expected not in failures:
-            print("self-test:broken_chain_not_detected")
+            print("self-test:broken_viability_chain_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "broken-preflight-chain"
+        write_sample_root(broken_root)
+        workflow_text = load_text(broken_root, WORKFLOW_REL)
+        old = (
+            "      - name: Setup Python\n"
+            "        uses: actions/setup-python@v6.2.0\n"
+            f"      - name: {PHASE1_PREFLIGHT_STEP[0]}\n"
+            f"        run: {PHASE1_PREFLIGHT_STEP[1]}\n"
+            "      - name: Setup pinned Zig toolchain\n"
+            "        run: echo setup-zig\n"
+        )
+        new = (
+            "      - name: Setup Python\n"
+            "        uses: actions/setup-python@v6.2.0\n"
+            "      - name: Drifted inserted step\n"
+            "        run: python3 drift.py\n"
+            f"      - name: {PHASE1_PREFLIGHT_STEP[0]}\n"
+            f"        run: {PHASE1_PREFLIGHT_STEP[1]}\n"
+            "      - name: Setup pinned Zig toolchain\n"
+            "        run: echo setup-zig\n"
+        )
+        write_text(broken_root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
+        failures = collect_failures(broken_root)
+        expected = f"workflow_preflight_chain:missing:{'->'.join(PREFLIGHT_CHAIN)}"
+        if expected not in failures:
+            print("self-test:broken_preflight_chain_not_detected")
             return 1
         case_count += 1
 
