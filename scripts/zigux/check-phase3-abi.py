@@ -462,6 +462,34 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "make -C zigux phase3-export-uapi-layout"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected export/UAPI Makefile replay drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout-test")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "make -C zigux phase3-export-uapi-layout-test"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected export/UAPI Makefile test replay drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["packet_files"].append(REQUIRED_PACKET_FILES[0])
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -482,7 +510,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
