@@ -28,6 +28,8 @@ Current direct-readback evidence for the workqueue anchor includes:
   * `zigux/tests/phase14_workqueue_bridge.zig`
   * `zigux/tests/phase14_workqueue_reviewability.zig`
   * `zigux/tests/phase14_workqueue_bridge_manifest.json`
+  * `Documentation/zigux/phase14-workqueue-bridge-slice.md`
+  * `Documentation/zigux/phase14-workqueue-bridge-survey.md`
   * `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   * `Documentation/zigux/phase14-core-boundary-traceability.md`
   * `Documentation/zigux/phase14-release-boundary-survey.md`
@@ -89,7 +91,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
   * the workqueue anchor remains the non-frozen study-only foothold inside Phase 14
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
   * the bridge-local trusted rerun stays limited to the direct Zig test, while the broader `make -C zigux phase14-validate` route and its shared checker chain remain shared packet-local validation rather than bridge-local trust gates
-  * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, or `phase14` wrappers as current proof unless a fresh reread shows they returned
+  * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers as current proof unless a fresh reread shows they returned
   * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared Phase 14 smoke packet
 
 ## Non-goals
