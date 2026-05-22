@@ -82,7 +82,8 @@
         "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+        "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+        "scripts/zigux/check-phase6-bsearch-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
@@ -228,6 +229,7 @@
     "make -C zigux phase6-bsearch-test",
     "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-perf",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
