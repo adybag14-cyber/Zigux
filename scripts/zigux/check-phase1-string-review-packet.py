@@ -100,6 +100,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "memparse applies suffixes before signed clamping"',
     'test "strchr mirrors full-length C-string searches"',
     'test "strrchr finds the last in-range match with C-string semantics"',
+    'test "strchr and strrchr return the terminator index when searching for NUL"',
     'test "strpbrk finds the first accepted byte with C-string semantics"',
     'test "strspn counts the accepted prefix with C-string semantics"',
     'test "strcspn counts until the first rejected byte with C-string semantics"',
