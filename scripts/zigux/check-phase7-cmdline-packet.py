@@ -61,6 +61,7 @@ REQUIRED_MARKERS = {
         'test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {',
         'test "nextArg keeps leading equals tokens as bare parameters" {',
         'test "nextArg keeps quoted leading equals tokens as bare parameters" {',
+        'test "nextArg parses bare parameters and keeps the remaining text" {',
         'test "nextArg parses key value pairs and quoted values" {',
         'test "nextArg keeps quoted bare tokens together and preserves the following remainder" {',
         'test "nextArg keeps quoted empty values explicit without swallowing the next token" {',
@@ -114,6 +115,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg parses bare parameters and keeps the remaining text\\\" {");',
         'try expectContains(helper, "test \\\"nextArg parses key value pairs and quoted values\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");',
@@ -140,7 +142,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 72
+SELF_TEST_CASE_COUNT = 74
 
 
 def read_text(path: Path) -> str:
@@ -339,6 +341,10 @@ def run_self_test() -> None:
                 'test "nextArg keeps quoted leading equals tokens as bare parameters" {',
             ),
             (
+                "missing_helper_bare_parameter_remainder_marker",
+                'test "nextArg parses bare parameters and keeps the remaining text" {',
+            ),
+            (
                 "missing_helper_key_value_quotes_marker",
                 'test "nextArg parses key value pairs and quoted values" {',
             ),
@@ -435,6 +441,10 @@ def run_self_test() -> None:
             (
                 "missing_survey_helper_quoted_leading_equals_marker",
                 'try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");',
+            ),
+            (
+                "missing_survey_helper_bare_parameter_remainder_marker",
+                'try expectContains(helper, "test \\\"nextArg parses bare parameters and keeps the remaining text\\\" {");',
             ),
             (
                 "missing_survey_helper_key_value_quotes_marker",
