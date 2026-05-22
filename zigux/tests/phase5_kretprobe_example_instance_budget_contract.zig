@@ -13,7 +13,7 @@ test "phase 5 kretprobe instance-budget companion keeps the Linux parameter and 
     try std.testing.expect(contract.nmissed_suggests_increasing_maxactive);
 }
 
-test "phase 5 kretprobe instance-budget companion keeps the skip and duration cues coupled to the same anchor-local contract" {
+test "phase 5 kretprobe instance-budget companion reuses the live sample contract" {
     const contract = companion.referencePattern();
 
     try std.testing.expect(contract.reports_return_value_and_duration);
