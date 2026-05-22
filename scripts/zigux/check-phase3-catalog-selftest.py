@@ -43,6 +43,7 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+        'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
         'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
         'Path("zigux/tests/phase3_policy_dump.zig")',
@@ -52,6 +53,8 @@ REQUIRED_MARKERS = {
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi.py"',
+        '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
@@ -211,6 +214,21 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"python3 scripts/zigux/check-phase3-abi.py"',
             "expected missing catalog abi checker route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
+            "expected missing catalog abi support-checker path marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
+            "expected missing catalog abi support-checker self-test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
+            "expected missing catalog abi support-checker route marker was not reported",
         ),
         (
             CATALOG_PATH,
