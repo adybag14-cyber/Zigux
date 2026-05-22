@@ -39,6 +39,7 @@ EXACT_CURRENT_CHECKS = (
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+SHARED_REPLAY_CONTRACT_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -105,6 +106,19 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
+)
+
+REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = (
+    "Keep the scripts-root reminder honest too: broader contributor-facing summaries",
+    "`scripts/zigux/check-phase11-build-inventory.py`,",
+    "`scripts/zigux/check-phase11-matrix-gap-survey.py`,",
+    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,",
+    "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,",
+    "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,",
+    "`scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`,",
+    "`make -C zigux phase11-validate` explicit together instead of reviving",
 )
 
 REQUIRED_SCRIPTS_ROOT_MARKERS = (
@@ -384,6 +398,7 @@ def run_check(root: Path) -> None:
     require_text_markers(root / HV_OPS_BUILD_PATH, REQUIRED_HV_OPS_BUILD_MARKERS)
     require_text_markers(root / EXPORT_BUILD_PATH, REQUIRED_EXPORT_BUILD_MARKERS)
     require_text_markers(root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_ROOT_MARKERS)
+    require_text_markers(root / SHARED_REPLAY_CONTRACT_PATH, REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS)
     require_text_markers(root / VALIDATE_PHASE11_PATH, REQUIRED_VALIDATE_PHASE11_MARKERS)
     require_text_markers(root / UAPI_SURVEY_PATH, REQUIRED_UAPI_SURVEY_MARKERS)
     require_text_markers(root / HEADER_MATRIX_PATH, REQUIRED_HEADER_MATRIX_MARKERS)
@@ -552,6 +567,11 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - current-head HVC continuity packet rather than a whole-Phase-11 replay roster
 """
 
+FIXTURE_SHARED_REPLAY_CONTRACT_TEXT = """# Phase 11 Shared Replay Contract
+
+Keep the scripts-root reminder honest too: broader contributor-facing summaries should keep `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`, `scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `make -C zigux phase11-validate` explicit together instead of reviving removed `phase11-contract`, `phase11`, or `phase11-hvc-survey` routes.
+"""
+
 FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 
 ## Phase 11
@@ -562,24 +582,24 @@ FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 """
 
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
-    ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-build-inventory.py"),
-    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
-    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
-    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
-    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
+    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_hv_ops_layout_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_export_surface_layout_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_cleanup_packet_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\"),
 )
 """
 
@@ -626,6 +646,7 @@ def build_fixture(root: Path) -> None:
     write(root / EXPORT_BUILD_PATH, FIXTURE_EXPORT_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
+    write(root / SHARED_REPLAY_CONTRACT_PATH, FIXTURE_SHARED_REPLAY_CONTRACT_TEXT)
     write(root / UAPI_SURVEY_PATH, FIXTURE_UAPI_SURVEY_TEXT)
     write(root / HEADER_MATRIX_PATH, FIXTURE_HEADER_MATRIX_TEXT)
     write(root / SCRIPTS_README_PATH, FIXTURE_SCRIPTS_README_TEXT)
@@ -765,6 +786,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_scripts_readme_marker,
             "`make -C zigux phase11-validate`",
+        )
+        case_count += 1
+
+        missing_shared_replay_contract_marker = tmpdir / "missing_shared_replay_contract_marker"
+        shutil.copytree(fixture, missing_shared_replay_contract_marker, dirs_exist_ok=True)
+        write(
+            missing_shared_replay_contract_marker / SHARED_REPLAY_CONTRACT_PATH,
+            read_text(missing_shared_replay_contract_marker / SHARED_REPLAY_CONTRACT_PATH).replace(
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, ",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_shared_replay_contract_marker,
+            "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,",
         )
         case_count += 1
 
