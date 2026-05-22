@@ -42,6 +42,7 @@ EXACT_LINE_MARKERS = {
         "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live owner-map and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
         "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
         "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, shared-reminder, and closure-validator packet explicit from the scripts root",
+        "- `zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
         "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
     ),
     "zigux/tests/README.md": (
@@ -68,7 +69,7 @@ FORBIDDEN_EXACT_LINES = {
         "- `zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
     ),
     "zigux/tests/README.md": (
-        "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
+        "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     ),
     "zigux/Makefile": (
         "phase1-validate:",
@@ -78,24 +79,19 @@ FORBIDDEN_EXACT_LINES = {
     ),
 }
 
-
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
-
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
-
 
 def require_exact_line(text: str, label: str, marker: str) -> list[str]:
     count = sum(1 for line in text.splitlines() if line.strip() == marker.strip())
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
-
 def require_absent_line(text: str, label: str, marker: str) -> list[str]:
     count = sum(1 for line in text.splitlines() if line.strip() == marker.strip())
     return [] if count == 0 else [f"{label}:expected=0:actual={count}"]
-
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -117,18 +113,15 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
-
 def write_text(root: Path, relative_path: str, content: str) -> None:
     path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         lines = list(EXACT_LINE_MARKERS.get(relative_path, ()))
         write_text(root, relative_path, "\n".join(lines) + ("\n" if lines else ""))
-
 
 def remove_marker(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
@@ -140,7 +133,6 @@ def remove_marker(root: Path, relative_path: str, marker: str) -> None:
             return
     raise ValueError(f"missing marker: {relative_path}: {marker}")
 
-
 def duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -151,13 +143,11 @@ def duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
             return
     raise ValueError(f"missing marker: {relative_path}: {marker}")
 
-
 def add_forbidden(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
     text += marker + "\n"
     path.write_text(text, encoding="utf-8")
-
 
 def run_self_test() -> int:
     cases = [("success", None)]
@@ -199,7 +189,6 @@ def run_self_test() -> int:
     print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")
     print(f"PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
