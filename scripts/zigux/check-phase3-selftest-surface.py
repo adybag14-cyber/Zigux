@@ -51,8 +51,8 @@ README_MARKERS = (
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
     "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
-    "zigux/tests/phase3_xarray_slot_starter_packet.zig",
-    "zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "zigux/tests/phase3_xarray-slot-starter-packet.zig",
+    "zigux/tests/phase3_xarray-slot-starter-packet_build.zig",
     "zigux/tests/phase3_xarray_slot_dump.zig",
     "zigux/tests/phase3_xarray_slot_dump_build.zig",
     "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
@@ -256,6 +256,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-policy-dump.py")',
     'Path("scripts/zigux/validate-phase3.py")',
     'Path("scripts/zigux/check-phase3-abi.py")',
+    'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
     'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
@@ -269,6 +270,8 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
     'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass",
+    "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
     "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
@@ -647,6 +650,11 @@ def run_self_test() -> int:
         ),
         (
             SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
             "selftest driver",
         ),
@@ -704,6 +712,16 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
             "selftest driver",
         ),
         (
