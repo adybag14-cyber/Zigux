@@ -163,6 +163,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase10_build.zig": [
         "\"phase10-virtio-core-tests\"",
+        "\"phase10-virtio-core-interrupt-compound-ack-tests\"",
+        "run_phase10_virtio_core_interrupt_compound_ack_tests.step",
+        "\"phase10-virtio-core-reset-queue-tests\"",
+        "run_phase10_virtio_core_reset_queue_tests.step",
         "\"phase10-virtio-core-verify-tests\"",
         "run_phase10_virtio_core_verify_tests.step",
         "\"phase10-virtio-core-survey-tests\"",
@@ -321,6 +325,30 @@ SELF_TEST_MUTATIONS = [
         "zigux/tests/phase10_virtio_input_manifest.json",
         "zigux/tests/phase10_virtio_input_manifest_missing.json",
         "Documentation/zigux/phase10-virtio-input-module-slice.md:zigux/tests/phase10_virtio_input_manifest.json",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "\"phase10-virtio-core-interrupt-compound-ack-tests\"",
+        "\"phase10-virtio-core-interrupt-compound-ack-tests-missing\"",
+        "zigux/tests/phase10_build.zig:\"phase10-virtio-core-interrupt-compound-ack-tests\"",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_core_interrupt_compound_ack_tests.step",
+        "run_phase10_virtio_core_interrupt_compound_ack_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_core_interrupt_compound_ack_tests.step",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "\"phase10-virtio-core-reset-queue-tests\"",
+        "\"phase10-virtio-core-reset-queue-tests-missing\"",
+        "zigux/tests/phase10_build.zig:\"phase10-virtio-core-reset-queue-tests\"",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_core_reset_queue_tests.step",
+        "run_phase10_virtio_core_reset_queue_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_core_reset_queue_tests.step",
     ),
     (
         "zigux/tests/phase10_build.zig",
