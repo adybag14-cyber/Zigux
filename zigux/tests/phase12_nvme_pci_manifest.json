@@ -2,7 +2,7 @@
   "lane_key": "P12-L08",
   "phase": "Phase 12",
   "surveyed_commit": "7f9b8703b96d4de67447791a88584023950b1de7",
-  "verified_on": "2026-05-21",
+  "verified_on": "2026-05-22",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
