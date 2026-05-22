@@ -30,6 +30,7 @@ PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+DOCS_README_CHECKER_REL = Path("scripts/zigux/check-phase1-docs-readme-alignment.py")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
@@ -52,6 +53,7 @@ REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
+    DOCS_README_CHECKER_REL,
     STRING_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
     ROUTE_SUMMARY_CHECKER_REL,
@@ -232,6 +234,7 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
 }
 
 DELEGATED_CHECKERS = (
+    (DOCS_README_CHECKER_REL, "phase1-docs-readme-alignment"),
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
     (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
@@ -460,6 +463,7 @@ def run_self_test() -> int:
         ("stale_string_counted_search_review_anchors", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "counted_search_review_anchors")),
         ("stale_string_strnchr_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "strnchr_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
+        ("missing_docs_readme_checker", lambda root: (root / DOCS_README_CHECKER_REL).unlink()),
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
