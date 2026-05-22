@@ -364,7 +364,7 @@ def run_self_test() -> int:
             checks += 1
 
         for marker in ALIGNMENT_CHECKER_MARKERS:
-            build_selfTest_root(root)
+            build_self_test_root(root)
             path = resolve_path(root, ALIGNMENT_CHECKER)
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_ALIGNMENT_CHECKER_MARKER", marker) in collect_issues(root)
