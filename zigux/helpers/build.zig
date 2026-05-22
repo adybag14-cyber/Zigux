@@ -77,6 +77,26 @@ fn addAbiHelperTest(
     );
 }
 
+fn addBitmapHelperModule(
+    b: *std.Build,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path(root_source_file),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_view = b.createModule(.{
+        .root_source_file = b.path("bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("bitmap_view", bitmap_view);
+    return root_module;
+}
+
 fn addMmioHelperModule(
     b: *std.Build,
     root_source_file: []const u8,
@@ -152,6 +172,37 @@ pub fn build(b: *std.Build) void {
         target,
         optimize,
     );
+    const bitmap_view = addHelperTest(
+        b,
+        "helper-bitmap-view",
+        "bitmap_view.zig",
+        target,
+        optimize,
+    );
+    const list_view = addHelperTest(
+        b,
+        "helper-list-view",
+        "list_view.zig",
+        target,
+        optimize,
+    );
+    const hlist_view = addHelperTest(
+        b,
+        "helper-hlist-view",
+        "hlist_view.zig",
+        target,
+        optimize,
+    );
+    const cpumask_view = addModuleTest(
+        b,
+        "helper-cpumask-view",
+        addBitmapHelperModule(
+            b,
+            "cpumask_view.zig",
+            target,
+            optimize,
+        ),
+    );
     const mmio = addModuleTest(
         b,
         "helper-mmio",
@@ -180,6 +231,15 @@ pub fn build(b: *std.Build) void {
     low_level_helpers.dependOn(&barrier.step);
     low_level_helpers.dependOn(&mmio.step);
 
+    const shared_view_helpers = b.step(
+        "test-shared-view-helpers",
+        "Run the helper-local shared bitmap, list, hlist, and cpumask view tests.",
+    );
+    shared_view_helpers.dependOn(&bitmap_view.step);
+    shared_view_helpers.dependOn(&list_view.step);
+    shared_view_helpers.dependOn(&hlist_view.step);
+    shared_view_helpers.dependOn(&cpumask_view.step);
+
     const layout_step = b.step(
         "test-layout-assert",
         "Run the helper-local Phase 3 layout assertion tests.",
@@ -196,6 +256,10 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&unsafe_policy.step);
     all.dependOn(&atomic.step);
     all.dependOn(&barrier.step);
+    all.dependOn(&bitmap_view.step);
+    all.dependOn(&list_view.step);
+    all.dependOn(&hlist_view.step);
+    all.dependOn(&cpumask_view.step);
     all.dependOn(&mmio.step);
     b.default_step = all;
 }
