@@ -7,7 +7,7 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-20"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-21"
 WATCHPOINTS_HEADING = "## Current shared-summary watchpoints"
 
 STATUS_MARKERS = (
@@ -25,6 +25,7 @@ MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
@@ -34,6 +35,9 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
@@ -41,6 +45,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
+    "scripts/zigux/check-phase15-readiness-gate-packet.py",
 )
 
 STILL_MISSING_VALIDATOR_FIRST_PATHS = (
@@ -59,6 +64,9 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
+    "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
+    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
@@ -70,7 +78,12 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+    "`zigux/tests/phase15_governance_lane_sequencing.zig`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_handoff_next_steps.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
 
@@ -84,6 +97,12 @@ STALE_TEXT_MARKERS = (
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
 REQUIRED_WATCHPOINT_MARKERS = (
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+    "`zigux/tests/phase15_governance_lane_sequencing.zig`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
 )
 
 
@@ -375,6 +394,7 @@ def run_self_test() -> int:
         failures = collect_failures(missing_readiness_checker_root)
         expected = [
             "gap note missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
+            "gap note missing watchpoint marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-readiness-checker failure: {failures}")
