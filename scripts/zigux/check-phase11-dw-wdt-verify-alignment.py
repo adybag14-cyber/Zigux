@@ -271,6 +271,38 @@ def run_self_test() -> None:
         note_path.write_text("# Phase 11 DesignWare Verify Alignment Gap\n", encoding="utf-8")
         expect_failure(missing_marker, "missing marker in note")
 
+        missing_platform_plan_marker = root / "missing-platform-plan-marker"
+        shutil.copytree(fixture, missing_platform_plan_marker)
+        platform_plan_path = missing_platform_plan_marker / FILES["platform_plan"]
+        platform_plan_path.write_text(
+            platform_plan_path.read_text(encoding="utf-8").replace(
+                PLATFORM_PLAN_MARKERS[2],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_platform_plan_marker,
+            f"missing marker in platform_plan: {PLATFORM_PLAN_MARKERS[2]}",
+        )
+
+        missing_verify_marker = root / "missing-verify-marker"
+        shutil.copytree(fixture, missing_verify_marker)
+        verify_path = missing_verify_marker / FILES["verify"]
+        verify_path.write_text(
+            verify_path.read_text(encoding="utf-8").replace(
+                VERIFY_MARKERS[7],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_verify_marker,
+            f"missing marker in verify: {VERIFY_MARKERS[7]}",
+        )
+
         missing_idle_restore = root / "missing-idle-restore"
         shutil.copytree(fixture, missing_idle_restore)
         pm_path = missing_idle_restore / FILES["pm"]
