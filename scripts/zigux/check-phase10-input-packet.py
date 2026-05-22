@@ -135,6 +135,9 @@ INPUT_HELPER_MARKERS = [
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
     "pub fn teardownObservationSummary(self: *const Self) TeardownObservationSummary {",
     "pub fn drainStatusQueue(self: *Self, completed_count: usize) !StatusDrainSummary {",
+    'test "phase10 virtio input teardown summary keeps device ids explicit across reset" {',
+    'test "phase10 virtio input registration preflight keeps non-multitouch devices below slot planning" {',
+    'test "phase10 virtio input rejects oversized multitouch slot metadata before enabling slots" {',
 ]
 
 PROBE_HELPER_MARKERS = [
@@ -229,6 +232,7 @@ TEST_MARKERS = {
     "zigux/tests/phase10_virtio_input.zig": [
         'test "phase10 virtio input descriptor and identity snapshot stay lab-only and bounded" {',
         'test "phase10 virtio input queue planning caps and refills event buffers" {',
+        'test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {',
     ],
     "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
         'test "phase10 virtio input probe preflight helper keeps blocker tags and wrapper-facing readiness explicit" {',
@@ -630,6 +634,18 @@ def run_self_test() -> int:
                 'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
                 'verify_helper:test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
             ),
+            (
+                "drivers/virtio/virtio_input.zig",
+                'test "phase10 virtio input teardown summary keeps device ids explicit across reset" {',
+                'test "phase10 virtio input teardown summary drifts across reset" {',
+                'input_helper:test "phase10 virtio input teardown summary keeps device ids explicit across reset" {',
+            ),
+            (
+                "zigux/tests/phase10_virtio_input.zig",
+                'test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {',
+                'test "phase10 virtio input probe preflight drifts identity expectations" {',
+                'phase10_virtio_input.zig:test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {',
+            ),
         ]
         for rel_path, old, new, expected in text_cases:
             expect_missing_marker(root, rel_path, old, new, expected)
@@ -689,7 +705,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
