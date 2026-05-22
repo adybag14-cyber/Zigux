@@ -429,3 +429,41 @@ test "zallocValue zeroes arrays of nested extern union storage after earlier dir
     try std.testing.expect(value != null);
     try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
 }
+
+test "zallocValue zeroes arrays of nested extern structs containing unions after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Cell = extern struct {
+        tag: u16,
+        inner: extern union {
+            bytes: [8]u8,
+            checksum: u64,
+            ptr: ?*const u8,
+        },
+        tail: u8,
+    };
+    const Payload = extern struct {
+        prefix: u16,
+        cells: [2]Cell,
+        suffix: u8,
+    };
+    const zero_bytes = [_]u8{0} ** @sizeOf(Payload);
+
+    var sentinel: u8 = 0xaa;
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.prefix = 0xbeef;
+    value.?.cells[0].tag = 7;
+    value.?.cells[0].inner.ptr = &sentinel;
+    value.?.cells[0].tail = 0xcc;
+    value.?.cells[1].tag = 11;
+    value.?.cells[1].inner.checksum = 0x1122334455667788;
+    value.?.cells[1].tail = 0xdd;
+    @memset(std.mem.asBytes(value.?), 0xaa);
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u8, &zero_bytes, std.mem.asBytes(value.?));
+}
