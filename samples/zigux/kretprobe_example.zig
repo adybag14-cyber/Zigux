@@ -1,5 +1,7 @@
 const std = @import("std");
 
+pub const linux_anchor = "samples/kprobes/kretprobe_example.c";
+
 pub const SampleStage = enum(u8) {
     cold,
     initialized,
@@ -48,12 +50,26 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const InstanceBudgetContract = struct {
+    anchor: []const u8,
+    symbol_param_name: []const u8,
+    symbol_param_mode: u16,
+    default_symbol_name: []const u8,
+    private_data_word_bytes: usize,
+    default_maxactive: usize,
+    reports_return_value_and_duration: bool,
+    skips_kernel_threads_without_mm: bool,
+    nmissed_suggests_increasing_maxactive: bool,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
         entry_stamp_ns: i64 = -1,
     };
 
+    pub const symbol_param_name = "func";
+    pub const symbol_param_mode: u16 = 0o644;
     pub const default_symbol_name = "kernel_clone";
     pub const default_maxactive: usize = 20;
 
@@ -89,7 +105,7 @@ pub const KretprobeExampleSample = struct {
     pub fn descriptor() SampleDescriptor {
         return .{
             .name = "kretprobe_example",
-            .anchor = "samples/kprobes/kretprobe_example.c",
+            .anchor = linux_anchor,
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
         };
@@ -99,6 +115,20 @@ pub const KretprobeExampleSample = struct {
         return .{
             .focus = sample_review_focus[0..],
             .non_goals = sample_review_non_goals[0..],
+        };
+    }
+
+    pub fn instanceBudgetContract() InstanceBudgetContract {
+        return .{
+            .anchor = linux_anchor,
+            .symbol_param_name = symbol_param_name,
+            .symbol_param_mode = symbol_param_mode,
+            .default_symbol_name = default_symbol_name,
+            .private_data_word_bytes = @sizeOf(InstanceData),
+            .default_maxactive = default_maxactive,
+            .reports_return_value_and_duration = true,
+            .skips_kernel_threads_without_mm = true,
+            .nmissed_suggests_increasing_maxactive = true,
         };
     }
 
@@ -229,7 +259,7 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
-    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(linux_anchor, replay.anchor);
     try std.testing.expectEqualStrings("kernel_clone", replay.symbol_name);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
@@ -248,6 +278,20 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("unregister_kretprobe parity", contract.non_goals[1]);
     try std.testing.expectEqualStrings("pt_regs or regs_return_value parity", contract.non_goals[2]);
     try std.testing.expectEqualStrings("loadable module wiring", contract.non_goals[3]);
+}
+
+test "kretprobe sample exports the live instance-budget contract" {
+    const contract = KretprobeExampleSample.instanceBudgetContract();
+
+    try std.testing.expectEqualStrings(linux_anchor, contract.anchor);
+    try std.testing.expectEqualStrings("func", contract.symbol_param_name);
+    try std.testing.expectEqual(@as(u16, 0o644), contract.symbol_param_mode);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, contract.default_symbol_name);
+    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), contract.private_data_word_bytes);
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, contract.default_maxactive);
+    try std.testing.expect(contract.reports_return_value_and_duration);
+    try std.testing.expect(contract.skips_kernel_threads_without_mm);
+    try std.testing.expect(contract.nmissed_suggests_increasing_maxactive);
 }
 
 test "kretprobe sample keeps maxactive tuning pre-init and reviewable" {
