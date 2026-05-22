@@ -78,6 +78,7 @@ REQUIRED_MARKERS = {
     HEAVY_CONSUMER_LANE_PATH: [
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
         "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "- The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.",
         "- The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
     ],
     LIBBPF_SEGMENT_SURVEY_PATH: [
@@ -141,6 +142,7 @@ REQUIRED_MARKERS = {
 EXACT_COUNT_MARKERS = {
     HEAVY_CONSUMER_LANE_PATH: {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+        "- The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.": 1,
     },
     RELEASE_SEQUENCING_PATH: {
         "* verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
