@@ -117,7 +117,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\"");',
+        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
