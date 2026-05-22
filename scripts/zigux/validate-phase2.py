@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
+GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
@@ -24,6 +25,7 @@ GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
 
 REQUIRED_PATHS = (
     "Documentation/zigux/phase2-closure.md",
+    GENKSYMS_DUAL_IMPLEMENTATION_SURVEY,
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
