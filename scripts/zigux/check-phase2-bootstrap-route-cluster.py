@@ -78,9 +78,11 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -90,8 +92,10 @@ def resolve_path(root: Path, path: Path) -> Path:
         return root / path
 
 
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -131,6 +135,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+
 def phase2_notes_text() -> str:
     return """# Phase 2 Toolchain Bootstrap Notes
 
@@ -141,6 +146,7 @@ This note keeps the current directly readable Phase 2 toolchain packet honest fr
 - `scripts/zigux/check-phase2-bootstrap-route-cluster.py`, `python3 scripts/zigux/check-phase2-bootstrap-route-cluster.py --self-test`, and `python3 scripts/zigux/check-phase2-bootstrap-route-cluster.py` keep the returned workflow route cluster reviewable beside the existing toolchain, cross-route, genksyms, fixdep, and closure validator packet.
 - `.github/workflows/zigux-bootstrap.yml` keeps the current make-wrapper cluster explicit through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.
 """
+
 
 
 def phase2_closure_text() -> str:
@@ -164,6 +170,7 @@ This note keeps the current Phase 2 closure-side packet aligned to the directly 
 """
 
 
+
 def review_checklist_text() -> str:
     return """# Zigux Review Checklist
 
@@ -175,6 +182,7 @@ Use this checklist before opening or merging Zigux product work.
 """
 
 
+
 def scripts_readme_text() -> str:
     return """# scripts/zigux
 
@@ -183,6 +191,7 @@ def scripts_readme_text() -> str:
 - `scripts/zigux/check-phase2-bootstrap-route-cluster.py`, `python3 scripts/zigux/check-phase2-bootstrap-route-cluster.py --self-test`, and `python3 scripts/zigux/check-phase2-bootstrap-route-cluster.py` keep the current Phase 2 bootstrap route cluster explicit from the scripts root.
 - `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` stay explicit as the current rematerialized make-wrapper packet.
 """
+
 
 
 def tests_readme_text() -> str:
@@ -198,6 +207,7 @@ Keep the rematerialized make-wrapper packet explicit through `make -C zigux phas
 """
 
 
+
 def makefile_text() -> str:
     return """PYTHON ?= python3
 PHASE2_SCRIPT_ROOT := ../scripts/zigux
@@ -206,29 +216,30 @@ ZIGUX_ROOT := ..
 .PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2
 
 phase2-toolchain:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
 
 phase2-tools:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py
 
 phase2-kconfig:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
 
 phase2-cross:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
 
 phase2-genksyms:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-genksyms-bridge.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-genksyms-bridge.py
 
 phase2-fixdep:
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-fixdep-gate.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-fixdep-gate.py
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
+\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
 
 phase2: phase2-validate
 """
+
 
 
 def workflow_text() -> str:
@@ -261,6 +272,7 @@ def workflow_text() -> str:
     return "\n".join(lines) + "\n"
 
 
+
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, WORKFLOW), workflow_text())
     write_text(resolve_path(root, PHASE2_NOTES), phase2_notes_text())
@@ -271,7 +283,9 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, MAKEFILE), makefile_text())
 
 
+
 def run_self_test() -> None:
+    checks = 0
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         build_self_test_root(root)
@@ -281,6 +295,7 @@ def run_self_test() -> None:
                 "self-test expected a passing packet, got "
                 + ", ".join(f"{code}:{detail}" for code, detail in issues)
             )
+        checks += 1
 
         broken_workflow = read_text(resolve_path(root, WORKFLOW)).replace(
             "run: make -C zigux phase2-genksyms\n", "", 1
@@ -289,9 +304,47 @@ def run_self_test() -> None:
         missing = collect_issues(root)
         if ("MISSING_WORKFLOW_PACKET_LINES", "run: make -C zigux phase2-genksyms") not in missing:
             raise SystemExit("self-test expected missing genksyms workflow route failure")
+        checks += 1
+
+        build_self_test_root(root)
+        duplicate_workflow = read_text(resolve_path(root, WORKFLOW)).replace(
+            f"        {SELFTEST_LINE}\n",
+            f"        {SELFTEST_LINE}\n        {SELFTEST_LINE}\n",
+            1,
+        )
+        write_text(resolve_path(root, WORKFLOW), duplicate_workflow)
+        duplicate_issues = collect_issues(root)
+        if ("DUPLICATE_WORKFLOW_LINES", f"{SELFTEST_LINE}:count=2") not in duplicate_issues:
+            raise SystemExit("self-test expected duplicate workflow hook failure")
+        checks += 1
+
+        build_self_test_root(root)
+        broken_tests_readme = read_text(resolve_path(root, TESTS_README)).replace(
+            CHECKER_MARKERS[-1] + "\n",
+            "",
+            1,
+        )
+        write_text(resolve_path(root, TESTS_README), broken_tests_readme)
+        checker_issues = collect_issues(root)
+        if ("MISSING_TESTS_README_MARKERS", CHECKER_MARKERS[-1]) not in checker_issues:
+            raise SystemExit("self-test expected missing tests README checker marker failure")
+        checks += 1
+
+        build_self_test_root(root)
+        broken_makefile = read_text(resolve_path(root, MAKEFILE)).replace(
+            "phase2: phase2-validate\n",
+            "",
+            1,
+        )
+        write_text(resolve_path(root, MAKEFILE), broken_makefile)
+        makefile_issues = collect_issues(root)
+        if ("MISSING_MAKEFILE_MARKERS", "phase2: phase2-validate") not in makefile_issues:
+            raise SystemExit("self-test expected missing phase2 aggregate route failure")
+        checks += 1
 
     print("PHASE2_BOOTSTRAP_ROUTE_CLUSTER_SELF_TEST=pass")
-    print("PHASE2_BOOTSTRAP_ROUTE_CLUSTER_SELF_TEST_CASE_COUNT=2")
+    print(f"PHASE2_BOOTSTRAP_ROUTE_CLUSTER_SELF_TEST_CASE_COUNT={checks}")
+
 
 
 def parse_args() -> argparse.Namespace:
@@ -304,6 +357,7 @@ def parse_args() -> argparse.Namespace:
         help="write a passing current-like sample tree to the given directory",
     )
     return parser.parse_args()
+
 
 
 def main() -> None:
