@@ -98,44 +98,44 @@ REQUIRED_MARKERS = {
         "pub fn summarizeNotificationData(",
         "pub fn summarizeDelayedCallback(",
         "pub fn summarizeResetReadiness(",
-        'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
-        'test "phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt" {',
-        'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
+        "test \"phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay\" {",
+        "test \"phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt\" {",
+        "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
     ],
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "pub fn summarizePublishReadiness(",
         "pub fn queueCanPublish(summary: QueuePublishReadinessSummary) bool {",
         "pub fn queueHasPublishCapacity(summary: QueuePublishReadinessSummary) bool {",
-        'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
-        'test "phase10 virtio ring publish-readiness wrapper keeps unpublished chains visible while remaining queue-local publishable" {',
-        'test "phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity" {',
-        'test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {',
-        'test "phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain" {',
-        'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {',
+        "test \"phase10 virtio ring publish-readiness wrapper keeps empty queues publishable\" {",
+        "test \"phase10 virtio ring publish-readiness wrapper keeps unpublished chains visible while remaining queue-local publishable\" {",
+        "test \"phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity\" {",
+        "test \"phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled\" {",
+        "test \"phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain\" {",
+        "test \"phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared\" {",
     ],
     "zigux/tests/phase10_build.zig": [
-        '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
-        '.root_source_file = b.path("../../drivers/virtio/virtio_ring_publish_readiness.zig"),',
-        '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
-        '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
-        '.name = "phase10-virtio-ring-publish-readiness-tests",',
-        '.name = "phase10-virtio-ring-survey-tests",',
+        ".root_source_file = b.path(\"phase10_virtio_ring_notification_data_readiness.zig\"),",
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_publish_readiness.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_survey.zig\"),",
+        ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-publish-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-survey-tests\",",
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
     ],
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
-        'test "phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit" {',
+        "test \"phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit\" {",
         "const packed_summary = try ring.notificationDataSummary(2);",
     ],
     "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
-        'test "phase10 virtio ring delayed callback budget stays bounded to queue-local replay state" {',
+        "test \"phase10 virtio ring delayed callback budget stays bounded to queue-local replay state\" {",
         "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        'try expectContains(slice_note, "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice");',
-        'try expectContains(freeze_note, "direct current-head readback now keeps the broader ring replay `zigux/tests/phase10_virtio_ring.zig` inside the same ring packet as the queue-local helper ladder");',
-        'test "phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11" {',
+        "try expectContains(slice_note, \"the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice\");",
+        "try expectContains(freeze_note, \"direct current-head readback now keeps the broader ring replay `zigux/tests/phase10_virtio_ring.zig` inside the same ring packet as the queue-local helper ladder\");",
+        "test \"phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11\" {",
     ],
 }
 
@@ -148,8 +148,8 @@ FORBIDDEN_MARKERS = {
         "the broader ring replay still remains outside direct current-head evidence in this slice",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        'try expectContains(slice_note, "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice");',
-        'try expectContains(freeze_note, "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder");',
+        "try expectContains(slice_note, \"public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice\");",
+        "try expectContains(freeze_note, \"public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder\");",
     ],
 }
 
@@ -319,6 +319,84 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def drift_freeze_status_change_claimed(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["freeze_status_change_claimed"] = True
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_freeze_status_change_claimed,
+            f"{MANIFEST_PATH}:freeze_status_change_claimed:True",
+        )
+        write_fixture(root)
+
+        def drift_risky_transport_posture(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["risky_transport_posture"] = "starter_landed"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_risky_transport_posture,
+            f"{MANIFEST_PATH}:risky_transport_posture:starter_landed",
+        )
+        write_fixture(root)
+
+        def drift_allowed_evidence_kinds(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["allowed_evidence_kinds"] = "driver_local_lab_slices"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_allowed_evidence_kinds,
+            f"{MANIFEST_PATH}:allowed_evidence_kinds:driver_local_lab_slices",
+        )
+        write_fixture(root)
+
+        def drift_forbidden_transport_claims(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["forbidden_transport_claims"] = "queue_setup_reset_paths"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_forbidden_transport_claims,
+            f"{MANIFEST_PATH}:forbidden_transport_claims:queue_setup_reset_paths",
+        )
+        write_fixture(root)
+
+        def drift_architecture_council_reopen_required(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["architecture_council_reopen_required"] = False
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_architecture_council_reopen_required,
+            f"{MANIFEST_PATH}:architecture_council_reopen_required:False",
+        )
+        write_fixture(root)
+
+        def drift_architecture_council_reopen_attached(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["architecture_council_reopen_attached"] = True
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_architecture_council_reopen_attached,
+            f"{MANIFEST_PATH}:architecture_council_reopen_attached:True",
+        )
+        write_fixture(root)
+
         def remove_empty_queue_test(tmp_root: Path) -> None:
             path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
             text = path.read_text(encoding="utf-8")
@@ -408,7 +486,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
