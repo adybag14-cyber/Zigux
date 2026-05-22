@@ -49,6 +49,10 @@ EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 PERF_BUFFER_POLL_BUILD = Path("zigux/tests/phase8_perf_buffer_poll_only_build.zig")
 LIBBPF_SEGMENTS_TEST = Path("zigux/tests/phase8_libbpf_segments.zig")
 LIBBPF_SEGMENTS_BUILD = Path("zigux/tests/phase8_libbpf_segments_only_build.zig")
+FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST = Path("zigux/tests/phase8_file_path_handle_boundary_guard.zig")
+FILE_PATH_HANDLE_BRIDGE_MANIFEST_SYNC_TEST = Path(
+    "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig"
+)
 
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -72,6 +76,8 @@ REQUIRED_FILES = (
     LIBBPF_SEGMENTS_BUILD,
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
+    FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST,
+    FILE_PATH_HANDLE_BRIDGE_MANIFEST_SYNC_TEST,
     Path("zigux/tests/phase8_perf_buffer_poll.zig"),
     PERF_BUFFER_POLL_BUILD,
     VERIFY_ROUTING_GAP_TEST,
@@ -239,6 +245,18 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase 8 file-path handle bridge",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     ),
+    FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST: (
+        'test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {',
+        "\"slug\": \"fdinfo-map-info-helpers\"",
+        "\"slug\": \"file-path-and-handle-bridge\"",
+        "planTokenPreparation",
+    ),
+    FILE_PATH_HANDLE_BRIDGE_MANIFEST_SYNC_TEST: (
+        'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
+        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+    ),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"): (
         "phase8_file_path_handle_bridge.zig",
         "phase8_file_path_handle_bridge",
@@ -379,7 +397,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
         "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit",
-        "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
+        "resolveNextOnlineCpuRouteBufferFdAtIndex",
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit",
         "resolveReadyBufferFdLookupReturnAtAttempt",
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit",
