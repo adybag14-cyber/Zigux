@@ -84,6 +84,7 @@ MARKERS = {
     ),
     TESTS_ROOT_PATH: (
         "Keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording instead of treating the Phase 5 tests-root packet as docs-only guidance.",
+        "Keep `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` explicit as the direct bytestream replay, manifest, and survey packet while `zigux/tests/phase5_build.zig` stays current directly readable shared build-route companion evidence in this runtime.",
         "Keep the current kobject split explicit too: `zigux/tests/phase5_kobject_example.zig` and `zigux/tests/phase5_kobject_example_manifest.json` are direct tests-root packet evidence again, `samples/zigux/kobject_example_attr_group_contract.zig` stays explicit as the direct sample-root companion for the bounded `foo`/`baz`/`bar` attribute-group contract plus the shared `0664`, unnamed-group, and NULL-terminated attribute-list cues, keep `zigux/tests/phase5_build.zig` explicit as the current directly readable shared build-route companion for that packet, while `zigux/tests/phase5_kobject_example_survey.zig` remains current public-tree-backed companion evidence until a fresh authenticated reread returns that route directly again.",
         "Keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, and broad `*format*` sample claims out of this non-runtime Phase 5 tests-root packet.",
     ),
@@ -202,7 +203,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 12
+    expected_case_count = 13
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -274,13 +275,23 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
+        mutated = root / "missing_tests_root_bytestream_build_route_marker"
+        seed(mutated)
+        write_text(mutated, TESTS_ROOT_PATH, placeholder(TESTS_ROOT_PATH).replace(MARKERS[TESTS_ROOT_PATH][1], ""))
+        expect_exact(
+            "tests_root_bytestream_build_route_marker",
+            collect_failures(mutated),
+            [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][1]}"],
+        )
+        checks_run += 1
+
         mutated = root / "missing_tests_root_bitmap_boundary"
         seed(mutated)
-        write_text(mutated, TESTS_ROOT_PATH, placeholder(TESTS_ROOT_PATH).replace(MARKERS[TESTS_ROOT_PATH][2], ""))
+        write_text(mutated, TESTS_ROOT_PATH, placeholder(TESTS_ROOT_PATH).replace(MARKERS[TESTS_ROOT_PATH][3], ""))
         expect_exact(
             "tests_root_bitmap_boundary",
             collect_failures(mutated),
-            [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][2]}"],
+            [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][3]}"],
         )
         checks_run += 1
 
