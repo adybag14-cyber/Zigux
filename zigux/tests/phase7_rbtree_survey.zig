@@ -100,6 +100,7 @@ test "phase 7 rbtree survey keeps roadmap-path readback truthful without claimin
 
     try expectContains(direct_anchor_note, "Fresh current-master reread in this slot also confirmed these shared or roadmap-aligned non-owner surfaces:");
     try expectContains(direct_anchor_note, "- `lib/rbtree.zig`");
+    try expectContains(direct_anchor_note, "`zigux/Makefile` now returns shared `phase7-validate`");
     try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion surfaces:");
 
