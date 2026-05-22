@@ -392,7 +392,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -1028,6 +1028,12 @@ def run_self_test() -> int:
         path = resolve_path(root, CONF_MANIFEST)
         path.write_text("{\n", encoding="utf-8")
         assert any(code == "INVALID_CONF_MANIFEST_JSON" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONFDATA_MANIFEST)
+        path.write_text("{\n", encoding="utf-8")
+        assert any(code == "INVALID_CONFDATA_MANIFEST_JSON" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
