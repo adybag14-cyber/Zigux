@@ -137,7 +137,7 @@ def _sample_manifest() -> str:
         {
             "lane_key": "P15-L12",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-21",
+            "surveyed_commit": "current-master-readback-2026-05-22",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
             "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
             "present_paths": [
@@ -153,6 +153,9 @@ def _sample_manifest() -> str:
                 "Documentation/zigux/phase15-governance-lane-sequencing.md",
                 "Documentation/zigux/phase15-study-only-anchor-accounting.md",
                 "Documentation/zigux/phase15-shared-summary-gap.md",
+                "zigux/tests/phase15_freeze_map_governance.zig",
+                "zigux/tests/phase15_parity_scorecard.json",
+                "zigux/tests/phase15_parity_scorecard.zig",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
                 "zigux/tests/phase15_architecture_council_review_process.zig",
                 "zigux/tests/phase15_architecture_council_review_process_build.zig",
@@ -180,7 +183,7 @@ def _sample_manifest() -> str:
                 "PHASE15_LANE_KEY=P15-L12",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
                 "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
-                "The dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+                "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
                 "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
                 "an Architecture Council approval workflow implementation",
                 "a direct port-readiness decision for any Phase 15 anchor",
@@ -220,9 +223,9 @@ def _sample_handoff_note() -> str:
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
 - the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
-- The dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
+- The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.
 - Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
 ## Current handed-off packet on current master
@@ -239,6 +242,9 @@ def _sample_handoff_note() -> str:
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.json`
+- `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
@@ -367,7 +373,7 @@ def run_self_test() -> int:
         missing_surveyed_commit_root = root / "missing_surveyed_commit"
         _write(
             missing_surveyed_commit_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("`current-master-readback-2026-05-21`", "`current-master-readback-YYYY-MM-DD`", 1),
+            _sample_handoff_note().replace("`current-master-readback-2026-05-22`", "`current-master-readback-YYYY-MM-DD`", 1),
         )
         _write(missing_surveyed_commit_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_surveyed_commit_root / MANIFEST_PATH)
