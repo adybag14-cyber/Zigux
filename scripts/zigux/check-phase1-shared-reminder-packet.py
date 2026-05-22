@@ -55,7 +55,7 @@ MARKERS = {
     ),
     "Documentation/zigux/review-checklist.md": (
         "`Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet",
-        "while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?",
+        "keep `zigux/Makefile` explicit as current repo evidence for the returned non-Phase-1 route families, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?",
         "there is no standalone `samples/zigux/*bitmap*` reference sample, direct bitmap helper reviewability remains under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `Documentation/zigux/phase4-reversible-delivery-evidence.md`, the partial separate runtime bitmap reminder packet stays explicit in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and `zigux/tests/phase9_build.zig` while `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and `zigux/tests/runtime_bitmap_manifest.json` stay repo-reality gaps on the trusted contents path, keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned or extra Phase 5 evidence landed",
     ),
     "scripts/zigux/README.md": (
@@ -323,26 +323,25 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override repository root")
-    parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
+    parser.add_argument("--repo-root", help="override the repository root used for checks")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="exercise the guard against synthetic positive and negative cases",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = collect_missing_markers(repo_root(args.root))
+    root = repo_root(args.repo_root)
+    issues = collect_missing_markers(root)
     if issues:
-        print("PHASE1_SHARED_REMINDER_PACKET=fail")
         for item in issues:
             print(item)
         return 1
 
     print("PHASE1_SHARED_REMINDER_PACKET=pass")
-    print(f"PHASE1_SHARED_REMINDER_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE1_SHARED_REMINDER_PACKET_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in MARKERS.values())}"
-    )
     return 0
 
 
