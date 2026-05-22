@@ -156,7 +156,7 @@ REQUIRED_MARKERS = {
         "const policy = abi.defaultInteropPolicy();",
         'try stdout.print("  \\\"abi_version\\\": {},\\n", .{abi.ABI_VERSION});',
         'try stdout.print(',
-        '"  \\\"notifier\\\": {{\\n',
+        '"  \\\"notifier\\\": {\\n',
     ),
     EXPORT_UAPI_LAYOUT: (
         'const header_family = @import("header_family_binding");',
@@ -277,6 +277,7 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-test --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
@@ -472,6 +473,20 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["replay_routes"].remove("zig build phase3-test --build-file zigux/tests/build.zig")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-test --build-file zigux/tests/build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected aggregate phase3-test replay drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["replay_routes"].remove(
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
         )
@@ -578,7 +593,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
