@@ -108,6 +108,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(survey_note, "the same trusted read path still returns missing for `zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(survey_note, "the current runtime bitmap reminder packet is still `partial_packet_without_module_and_diff_follow_through`");
     try expectContains(survey_note, "manifest-backed ownership packet");
+    try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectNotContains(survey_note, "and `zigux/tests/runtime_bitmap_manifest.json`");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
@@ -127,6 +128,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
     try expectContains(manifest, "\"top_bit_path\": \"samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
     try expectContains(manifest, "\"validation_entrypoint\": \"phase9-runtime-bitmap-tests\"");
+    try expectContains(manifest, "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.");
     try expectContains(manifest, "\"descriptor_and_anchor\"");
     try expectContains(manifest, "\"sample_re_selftest_summary_stability\"");
     try expectContains(manifest, "\"sample_direct_exit_summary_stability\"");
