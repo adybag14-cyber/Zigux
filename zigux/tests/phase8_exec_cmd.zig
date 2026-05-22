@@ -162,6 +162,18 @@ test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
 }
 
 test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
+    const docs_readme = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/README.md",
+        256 * 1024,
+    );
+    defer std.testing.allocator.free(docs_readme);
+    try expectContains(docs_readme, "Documentation/zigux/phase8-exec-cmd-slice.md");
+    try expectContains(docs_readme, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(docs_readme, "zigux/tests/phase8_exec_cmd_only_build.zig");
+    try expectContains(docs_readme, "make -C zigux phase8-exec-cmd-test");
+    try expectContains(docs_readme, "make -C zigux phase8-validate");
+
     const scripts_readme = try readWorkspaceFile(
         std.testing.allocator,
         "scripts/zigux/README.md",
