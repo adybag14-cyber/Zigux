@@ -168,6 +168,7 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
 
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.next_bounded_evidence_step) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.") != null);
 
     var starter_landed_count: usize = 0;
