@@ -124,3 +124,15 @@ test "argvSplit frees duplicated args when a later dupe fails" {
         }
     }.run, .{});
 }
+
+test "argvSplit reset state can be reused through both free entrypoints" {
+    var result = try argvSplit(std.testing.allocator, "alpha beta");
+    result.deinit();
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    result = try argvSplit(std.testing.allocator, "gamma");
+    argv_free(&result);
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
