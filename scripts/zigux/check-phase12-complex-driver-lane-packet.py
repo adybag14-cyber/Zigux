@@ -144,7 +144,7 @@ def run_self_test() -> int:
             raise AssertionError("expected note marker failure")
 
         write_fixture(root)
-        (root / WORKFLOW_PATH).writeText("broken\n", encoding="utf-8")
+        (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
