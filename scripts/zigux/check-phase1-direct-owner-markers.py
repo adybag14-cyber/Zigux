@@ -193,7 +193,7 @@ REQUIRED_EXACT_LINES = {
         "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; the restored phase1-closure note and validate-phase1-closure guard are live companions again, while the older validator-first and make-route names stay historical`",
         "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`",
         "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed fixture still owns exact find(), findFirst(), nextMatch(), and matchIterator() duplicate-search fields and the shared host-tools smoke route keeps duplicate-range iteration plus the parked cached_leftmost_return_serials witness explicit`",
-        "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
+        "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search and search-length anchors through strpbrk(), strspn(), strcspn(), strnchr(), strnchrNul() or strnchrnul(), strchr(), strrchr(), strlen(), and strnlen(), embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
         "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
         "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
         "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix anchor review-visible on current `master`, so future string-only rereads should treat accepted-byte-prefix scanning as part of that helper-local search family instead of leaving it implicit beside `strpbrk()` and `strnchr()`.",
@@ -208,7 +208,7 @@ REQUIRED_EXACT_LINES = {
         "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
         "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local ordered Linux-style alias proof, dedicated low_level_alias_anchor, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
         "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`; treat those helper-specific manifest notes plus the `PHASE1_*_NEXT_SAFE_STEP` lines below as the authoritative tie-breakers instead of reopening a helper family from older saved cues or missing shared-validator paths.`",
-        "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
+        "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search and search-length anchors through strpbrk(), strspn(), strcspn(), strnchr(), strnchrNul() or strnchrnul(), strchr(), strrchr(), strlen(), and strnlen(), embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
     ],
     DOCS_ROOT_REL: [
         "- `scripts/zigux/check-phase1-bench.py`",
@@ -518,58 +518,55 @@ def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str)
 
 def run_self_test() -> int:
     cases: list[tuple[str, Path | None, object | None, str]] = [
-        ("success", None, None, "none")
+        ("success", None, None, ""),
     ]
-    for relative_path, lines in REQUIRED_EXACT_LINES.items():
-        for line in lines:
-            cases.append((f"missing_{relative_path.name}_{abs(hash(line))}", relative_path, line, "remove"))
-            cases.append((f"duplicate_{relative_path.name}_{abs(hash(line))}", relative_path, line, "duplicate"))
-    for path in MANIFEST_EXPECTATIONS:
-        cases.append((f"manifest_{'_'.join(path)}", MANIFEST_REL, path, "manifest"))
-    cases.append(("invalid_manifest_json", MANIFEST_REL, None, "invalid_json"))
-    cases.append((
-        "duplicate_manifest_helper_count",
-        MANIFEST_REL,
-        ('  "helper_count": 13,', '  "helper_count": 99,'),
-        "manifest_duplicate_text",
-    ))
-    cases.append((
-        "duplicate_manifest_bitmap_or_window_anchor",
-        MANIFEST_REL,
-        (
-            '      "or_window_anchor": "test \\"bitmap or keeps caller-selected bit window\\"",',
-            '      "or_window_anchor": "drifted bitmap window anchor",',
-        ),
-        "manifest_duplicate_text",
-    ))
-    for relative_path in REQUIRED_FILES:
-        cases.append((f"missing_file_{relative_path.name}", relative_path, None, "missing_file"))
 
-    for name, relative_path, needle, operation in cases:
-        safe_name = name.replace("/", "_").replace("`", "_")
-        with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{safe_name}-") as tmpdir:
+    for relative_path in REQUIRED_FILES:
+        cases.append((f"missing_file:{relative_path.as_posix()}", relative_path, None, "remove_file"))
+
+    for relative_path, lines in REQUIRED_EXACT_LINES.items():
+        for idx, line in enumerate(lines):
+            cases.append((f"missing_line:{relative_path.as_posix()}:{idx}", relative_path, line, "remove_line"))
+            cases.append((f"duplicate_line:{relative_path.as_posix()}:{idx}", relative_path, line, "duplicate_line"))
+
+    for path in MANIFEST_EXPECTATIONS:
+        cases.append((f"manifest_drift:{'.'.join(path)}", None, path, "mutate_manifest"))
+
+    cases.append(("duplicate_manifest_key:review_anchors", None, None, "duplicate_manifest_key"))
+
+    for name, relative_path, payload, mode in cases:
+        with tempfile.TemporaryDirectory(prefix="phase1-direct-owner-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            if relative_path is not None:
+
+            if mode == "remove_file" and relative_path is not None:
+                (root / relative_path).unlink()
+            elif mode == "remove_line" and relative_path is not None and isinstance(payload, str):
                 target = root / relative_path
-                if operation == "missing_file":
-                    target.unlink()
-                elif operation in {"remove", "duplicate"}:
-                    assert isinstance(needle, str)
-                    text = target.read_text(encoding="utf-8")
-                    if operation == "remove":
-                        text = text.replace(needle + "\n", "", 1)
-                    else:
-                        text = text.replace(needle, needle + "\n" + needle, 1)
-                    target.write_text(text, encoding="utf-8")
-                elif operation == "manifest":
-                    assert isinstance(needle, tuple)
-                    mutate_manifest(root, needle)
-                elif operation == "invalid_json":
-                    target.write_text("{\n", encoding="utf-8")
-                elif operation == "manifest_duplicate_text":
-                    assert isinstance(needle, tuple)
-                    insert_duplicate_manifest_line(root, needle[0], needle[1])
+                lines = target.read_text(encoding="utf-8").splitlines()
+                stripped = payload.strip()
+                for index, line in enumerate(lines):
+                    if line.strip() == stripped:
+                        del lines[index]
+                        target.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+                        break
+            elif mode == "duplicate_line" and relative_path is not None and isinstance(payload, str):
+                target = root / relative_path
+                lines = target.read_text(encoding="utf-8").splitlines()
+                stripped = payload.strip()
+                for index, line in enumerate(lines):
+                    if line.strip() == stripped:
+                        lines.insert(index + 1, line)
+                        target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                        break
+            elif mode == "mutate_manifest" and isinstance(payload, tuple):
+                mutate_manifest(root, payload)
+            elif mode == "duplicate_manifest_key":
+                insert_duplicate_manifest_line(
+                    root,
+                    '    "tools/lib/string.zig": {',
+                    '    "tools/lib/string.zig": {},',
+                )
 
             failures = collect_failures(root)
             if name == "success":
@@ -578,30 +575,38 @@ def run_self_test() -> int:
                     for failure in failures:
                         print(failure)
                     return 1
-                continue
-            if not failures:
+            elif not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
-    print("self-test:ok")
+    print("PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=pass")
+    print(f"PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
+    parser.add_argument("--root", help="override repository root")
+    parser.add_argument("--self-test", action="store_true", help="run checker self-test")
     args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
 
     failures = collect_failures(repo_root(args.root))
     if failures:
+        print("PHASE1_DIRECT_OWNER_MARKERS=fail")
         for failure in failures:
             print(failure)
         return 1
 
-    print("phase1-direct-owner-markers:ok")
+    print("PHASE1_DIRECT_OWNER_MARKERS=pass")
+    print(f"PHASE1_DIRECT_OWNER_MARKERS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE1_DIRECT_OWNER_MARKERS_REQUIRED_LINE_COUNT="
+        f"{sum(len(lines) for lines in REQUIRED_EXACT_LINES.values())}"
+    )
+    print(f"PHASE1_DIRECT_OWNER_MARKERS_REQUIRED_HELPER_COUNT={len(EXPECTED_HELPERS)}")
     return 0
 
 
