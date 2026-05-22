@@ -27,11 +27,22 @@ TEST_RUN_LINE = f"run: {TEST_CMD}\n"
 MAKE_VALIDATE_TARGET = "phase10-validate:\n"
 MAKE_VALIDATE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py\n"
 MAKE_CLOSURE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py\n"
+MAKE_COUNTS_CMD = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-manifest-counts.py\n"
+)
+MAKE_TESTS_README_CMD = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py\n"
+)
 MAKE_TEST_TARGET = "phase10-test:\n"
 NOTE_SCRIPT_MARKER = "`scripts/zigux/check-phase10-bootstrap-route.py`"
 NOTE_ROUTE_PHRASE = (
     "fails closed if the bootstrap workflow drops `make -C zigux "
     "phase10-validate` or reorders it behind `make -C zigux phase10-test`"
+)
+NOTE_COUNTS_MARKER = "`scripts/zigux/check-phase10-closure-manifest-counts.py`"
+NOTE_COUNTS_PHRASE = (
+    "fails closed if its summary counts drift from the listed docs, manifests, "
+    "drivers, or tests surfaces"
 )
 
 
@@ -96,17 +107,24 @@ def check_workflow(text: str) -> None:
 
 def check_makefile(text: str) -> None:
     section = section_between(text, MAKE_VALIDATE_TARGET, MAKE_TEST_TARGET, "phase10 make route")
+    require_marker(section, MAKE_COUNTS_CMD, "phase10 manifest-count checker command")
     require_marker(section, MAKE_VALIDATE_CMD, "phase10 make validate command")
     require_marker(section, MAKE_CLOSURE_CMD, "phase10 make closure command")
+    require_exact_count(section, MAKE_COUNTS_CMD, 1, "phase10 make route command")
     require_exact_count(section, MAKE_VALIDATE_CMD, 1, "phase10 make route command")
     require_exact_count(section, MAKE_CLOSURE_CMD, 1, "phase10 make route command")
+    require_order(section, MAKE_TESTS_README_CMD, MAKE_COUNTS_CMD, "phase10 make route order")
+    require_order(section, MAKE_COUNTS_CMD, MAKE_VALIDATE_CMD, "phase10 make route order")
     require_order(section, MAKE_VALIDATE_CMD, MAKE_CLOSURE_CMD, "phase10 make route order")
 
 
 def check_note(text: str) -> None:
     require_marker(text, NOTE_SCRIPT_MARKER, "closure note script marker")
     require_marker(text, NOTE_ROUTE_PHRASE, "closure note route phrase")
+    require_marker(text, NOTE_COUNTS_MARKER, "closure note count-guard marker")
+    require_marker(text, NOTE_COUNTS_PHRASE, "closure note count-guard phrase")
     require_exact_count(text, NOTE_SCRIPT_MARKER, 1, "closure note script marker")
+    require_exact_count(text, NOTE_COUNTS_MARKER, 1, "closure note count-guard marker")
     require_exact_count(text, VALIDATE_CMD, 1, "closure note validate command")
     require_exact_count(text, TEST_CMD, 1, "closure note test command")
 
@@ -126,21 +144,23 @@ jobs:
         run: make -C zigux phase10-test
 """
     good_makefile = """phase10-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-manifest-counts.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
 
 phase10-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
 """
     good_note = """# Phase 10 Closure Evidence
 The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.
+The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.
 """
     check_workflow(good_workflow)
     check_makefile(good_makefile)
@@ -196,6 +216,18 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
     else:
         raise AssertionError("expected reordered workflow failure")
 
+    bad_makefile_missing_counts = good_makefile.replace(
+        MAKE_COUNTS_CMD,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_counts)
+    except SystemExit as exc:
+        assert "phase10 manifest-count checker command" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 manifest-count command failure")
+
     bad_makefile_missing_validate = good_makefile.replace(
         MAKE_VALIDATE_CMD,
         "",
@@ -209,8 +241,8 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
         raise AssertionError("expected missing phase10 validate route failure")
 
     bad_makefile_reordered = good_makefile.replace(
-        f"{MAKE_VALIDATE_CMD}{MAKE_CLOSURE_CMD}",
-        f"{MAKE_CLOSURE_CMD}{MAKE_VALIDATE_CMD}",
+        f"{MAKE_COUNTS_CMD}{MAKE_VALIDATE_CMD}",
+        f"{MAKE_VALIDATE_CMD}{MAKE_COUNTS_CMD}",
         1,
     )
     try:
@@ -232,6 +264,18 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
     else:
         raise AssertionError("expected missing note script marker failure")
 
+    bad_note_missing_counts = good_note.replace(
+        NOTE_COUNTS_MARKER,
+        "`scripts/zigux/check-phase10-other-counts.py`",
+        1,
+    )
+    try:
+        check_note(bad_note_missing_counts)
+    except SystemExit as exc:
+        assert NOTE_COUNTS_MARKER in str(exc)
+    else:
+        raise AssertionError("expected missing note count marker failure")
+
     bad_note_missing_phrase = good_note.replace("reorders it behind", "moves it away from", 1)
     try:
         check_note(bad_note_missing_phrase)
@@ -241,7 +285,7 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
         raise AssertionError("expected missing note route phrase failure")
 
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
