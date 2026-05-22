@@ -269,6 +269,24 @@ def run_self_test() -> int:
         populate_repo(tempdir)
         checks_run += 1
 
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.writeText if False else None
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                '\"id\": \"phase13-notifier-chain-helper-gap\"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"id": "phase13-notifier-chain-helper-gap"'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
         checker_input = tempdir / "zigux/helpers/list_view.zig"
         checker_input.write_text(
             checker_input.read_text(encoding="utf-8").replace(
@@ -315,6 +333,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             'missing_marker:zigux/tests/phase13_notifier_list_reviewability.zig:"PHASE13_NOTIFIER_PACKET=pass"'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        hvc_header_path = tempdir / "drivers/tty/hvc/hvc_console.h"
+        hvc_header_path.write_text(
+            hvc_header_path.read_text(encoding="utf-8").replace(
+                "void notifier_hangup_irq(struct hvc_struct *hp, int irq);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:drivers/tty/hvc/hvc_console.h:void notifier_hangup_irq(struct hvc_struct *hp, int irq);"
             in issues
         )
         populate_repo(tempdir)
