@@ -9,6 +9,7 @@
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
