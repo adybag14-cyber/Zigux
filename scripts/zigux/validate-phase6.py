@@ -22,6 +22,7 @@ WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 SHARED_SURFACE_CHECKER = Path("scripts/zigux/check-phase6-shared-surface.py")
 PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoints.py")
 BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")
+BASE64_C_PARITY_CHECKER = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
 BASE64_BSEARCH_PERF_MARKERS_CHECKER = Path(
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"
@@ -39,6 +40,7 @@ CHECKER_INVOCATIONS = [
     (SHARED_SURFACE_CHECKER, "--repo-root"),
     (PRESENT_ENTRYPOINTS_CHECKER, "--repo-root"),
     (BASE64_CORPUS_CHECKER, "--repo-root"),
+    (BASE64_C_PARITY_CHECKER, None),
     (BSEARCH_CORPUS_CHECKER, "--repo-root"),
     (BASE64_BSEARCH_PERF_MARKERS_CHECKER, "--repo-root"),
     (CHECKSUM_CORPUS_CHECKER, "--repo-root"),
@@ -196,7 +198,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 39
+SELF_TEST_CASE_COUNT = 40
 
 
 class ValidationError(RuntimeError):
@@ -526,6 +528,10 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        (root / BASE64_C_PARITY_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         (root / BSEARCH_CORPUS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -605,7 +611,7 @@ def run_self_test() -> None:
         write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[0] + "\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
-        scaffold_repo(root)
+        scaffoldRepo(root)
         write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
