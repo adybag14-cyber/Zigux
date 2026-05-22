@@ -34,6 +34,12 @@ REQUIRED_MARKERS = {
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
         "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
+        "PHASE7_ARGV_SPLIT_PACKET=pass",
+        "PHASE7_ARGV_SPLIT_PACKET=fail",
+        "MISSING_PHASE7_ARGV_SPLIT_FILES_START",
+        "MISSING_PHASE7_ARGV_SPLIT_FILES_END",
+        "MISSING_PHASE7_ARGV_SPLIT_MARKERS_START",
+        "MISSING_PHASE7_ARGV_SPLIT_MARKERS_END",
         "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",",
     ],
     "lib/argv_split.zig": [
@@ -77,8 +83,8 @@ REQUIRED_MARKERS = {
         "const fixture_vectors = try readRepoFile(allocator, fixture_path);",
         "try std.testing.expect(!stringSliceContains(manifest.review_surfaces, \"Documentation/zigux/phase7-helper-lane-sequencing.md\"));",
         "try expectNotContains(checker, \"\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",\");",
-        "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");",
-        "try expectContains(helper, \"test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {\");",
+        "try expectContains(helper, \"test \\\\\\\"argvSplit treats whitespace before the first NUL as blank input\\\\\\\" {\");",
+        "try expectContains(helper, \"test \\\\\\\"argvSplit reuses shared blank sentinel views without argc output\\\\\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\");",
@@ -102,7 +108,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 46
+SELF_TEST_CASE_COUNT = 52
 
 
 def read_text(path: Path) -> str:
@@ -205,6 +211,19 @@ def run_self_test() -> None:
         checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_checker_selftest_pass_marker", tmp_root, f"scripts/zigux/check-phase7-argv-split-packet.py: {checker_marker}")
         write_fixture_root(tmp_root)
+
+        for checker_marker, case in [
+            ("PHASE7_ARGV_SPLIT_PACKET=pass", "missing_checker_pass_output_marker"),
+            ("PHASE7_ARGV_SPLIT_PACKET=fail", "missing_checker_fail_output_marker"),
+            ("MISSING_PHASE7_ARGV_SPLIT_FILES_START", "missing_checker_missing_files_start_marker"),
+            ("MISSING_PHASE7_ARGV_SPLIT_FILES_END", "missing_checker_missing_files_end_marker"),
+            ("MISSING_PHASE7_ARGV_SPLIT_MARKERS_START", "missing_checker_missing_markers_start_marker"),
+            ("MISSING_PHASE7_ARGV_SPLIT_MARKERS_END", "missing_checker_missing_markers_end_marker"),
+        ]:
+            checker_text = read_text(checker_path)
+            checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
+            expect_missing_marker(case, tmp_root, f"scripts/zigux/check-phase7-argv-split-packet.py: {checker_marker}")
+            write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest_text = read_text(manifest_path)
@@ -420,7 +439,7 @@ def run_self_test() -> None:
         expect_missing_marker("missing_samples_argv_boundary", tmp_root, f"samples/zigux/README.md: {samples_marker}")
         write_fixture_root(tmp_root)
 
-        assert SELF_TEST_CASE_COUNT == 46
+        assert SELF_TEST_CASE_COUNT == 52
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
