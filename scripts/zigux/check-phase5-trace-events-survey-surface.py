@@ -27,7 +27,7 @@ SURVEY_MARKERS = (
     "`PHASE5_STATUS=verified-public-fallback-companion-truthfulness`",
     "keep the broader non-runtime sample-local companions visible as public-tree-backed companion evidence while the contents route still misses them",
     "Fresh public current-`master` reread in this run also surfaced the broader sample-local companion paths again through their live GitHub blob pages:",
-    "The shared `zigux/tests/phase5_build.zig` route should stay framed separately as shared companion evidence only until a fresh authenticated reread returns that path directly again.",
+    "The shared `zigux/tests/phase5_build.zig` route should stay framed separately as returned shared build-route evidence again rather than as companion-only support vocabulary.",
     "`scripts/zigux/check-phase5-review-guide-surface.py` still guards the direct-proof, public-tree-backed-companion, and no-extra-sample wording",
     "the approved formatting idiom remains the selected-string plus `iter=%d` cue described in `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`",
     "bounded destination behavior remains part of the approved idiom reminder: `formatIterationMessageInto(12, [5]u8)` stays a no-space boundary, while `formatIterationMessageInto(12, [7]u8)` stays the success-sized `iter=12` case",
@@ -165,7 +165,7 @@ def run_self_test() -> int:
             ),
         )
         failures = collect_failures(missing_build_split_marker_root)
-        expected = [f"{SURVEY_PATH}:missing_text:{SURVEY_MARKERS[3]}"]
+        expected = [f"{SURVEY_PATH}:missing_text:{SURVEY_MARKERS[3]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected build-split marker failure: {failures}")
         checks_run += 1
@@ -187,7 +187,7 @@ def run_self_test() -> int:
             ),
         )
         failures = collect_failures(missing_formatting_boundary_marker_root)
-        expected = [f"{SURVEY_PATH}:missing_text:{SURVEY_MARKERS[6]}"]
+        expected = [f"{SURVEY_PATH}:missing_text:{SURVEY_MARKERS[6]}" ]
         if failures != expected:
             raise AssertionError(f"unexpected formatting-boundary failure: {failures}")
         checks_run += 1
