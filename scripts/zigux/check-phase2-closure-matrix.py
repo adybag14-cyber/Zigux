@@ -167,6 +167,14 @@ def run_matrix(module, seed_root) -> int:
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
+            del payload["present_surfaces"][key]
+            write_json(manifest_path, payload)
+            assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", key))
+            checks_run += 1
+
+            seed_root(root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
             payload["present_surfaces"][key] = "drifted"
             write_json(manifest_path, payload)
             assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", key))
