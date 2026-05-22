@@ -27,10 +27,18 @@ REQUIRED_PATHS = (
 PHASE2_CLOSURE_MARKERS = (
     "This note keeps the current Phase 2 closure-side packet aligned",
     "- `Documentation/zigux/phase2-closure.md`",
+    "- `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`",
     "- `scripts/zigux/README.md`",
+    "- `scripts/zigux/install-zig.py`",
+    "- `scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "- `scripts/zigux/check-lane05-local-archive-readme.py`",
+    "- `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
     "- `scripts/zigux/validate-phase2.py`",
     "- `scripts/zigux/validate-phase2-closure.py`",
+    "- `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`",
+    "- `third_party/README.md`",
     "- `zigux/Makefile`",
+    "`make -C zigux phase2-genksyms`",
     "- `PHASE2_NEXT_SAFE_STEP=keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again",
 )
 
@@ -45,6 +53,8 @@ SCRIPTS_README_MARKERS = (
     "## Phase 2",
     "- Phase 2 flow - the current scripts-root bridge packet stays reviewable",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, and the restored `zigux/tests/fixtures/genksyms_bridge/` expected plus process-output fixture roster keep the bounded genksyms bridge helper packet explicit beside the reminder guards, and `make -C zigux phase2-genksyms` keeps its wrapper route inside the same returned make-wrapper packet.",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep`",
 )
 
@@ -63,11 +73,19 @@ This note keeps the current Phase 2 closure-side packet aligned to the directly 
 ## Current Closure Packet
 
 - `Documentation/zigux/phase2-closure.md`
+- `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/install-zig.py`
+- `scripts/zigux/check-lane05-local-first-archive-workflow.py`
+- `scripts/zigux/check-lane05-local-archive-readme.py`
+- `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
 - `scripts/zigux/validate-phase2.py`
 - `scripts/zigux/validate-phase2-closure.py`
+- `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`
+- `third_party/README.md`
 - `zigux/Makefile`
 
+- `make -C zigux phase2-genksyms`
 - `PHASE2_NEXT_SAFE_STEP=keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again`
 """
 
@@ -88,6 +106,8 @@ SAMPLE_SCRIPTS_README = """# scripts/zigux
 
 - Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of replaying older missing-route assumptions inside that now-rematerialized toolchain packet
 - `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, and `make -C zigux phase2` keep the shipped closure-side reminder packet explicit from the scripts root
+- `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`, so keep those installer and direct cross-route surfaces explicit beside the shipped toolchain and kbuild reminder packet instead of leaving them in repo-reality-gap wording
+- `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, and the restored `zigux/tests/fixtures/genksyms_bridge/` expected plus process-output fixture roster keep the bounded genksyms bridge helper packet explicit beside the reminder guards, and `make -C zigux phase2-genksyms` keeps its wrapper route inside the same returned make-wrapper packet.
 - `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` keep the shipped artifact-support and fixdep packet explicit from the scripts root
 """
 
