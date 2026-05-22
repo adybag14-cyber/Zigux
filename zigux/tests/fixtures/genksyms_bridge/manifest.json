@@ -28,6 +28,9 @@
   "help_packet": [
     "help_expected.json"
   ],
+  "standalone_proof_packet": [
+    "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+  ],
   "process_output_packet": [
     "abbreviated_version_expected.json",
     "ambiguous_long_option_expected.json",
