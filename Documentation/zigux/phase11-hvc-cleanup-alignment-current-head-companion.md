@@ -8,7 +8,7 @@ This note records the bounded current-head readback for the Phase 11 HVC cleanup
 - `PHASE11_FAMILY=hvc-console-cleanup-alignment`
 - `PHASE11_SURFACE=checker-truthfulness-readback`
 - `PHASE11_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-21`
+- surveyed against current `master` readback on `2026-05-22`
 - scope: keep the current HVC cleanup-alignment reminder truthful without widening into notifier callback execution, khvcd execution, tty registration, sysrq execution, watchdog-core glue, or host-backed teardown
 - role: current-head truthfulness companion for the bounded Phase 11 HVC continuity packet while the older starter-depth packet stays visible only as survey-recorded archival vocabulary unless fresh readback proves it returned
 
