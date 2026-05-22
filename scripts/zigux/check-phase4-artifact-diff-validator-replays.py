@@ -32,6 +32,8 @@ EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
 ]
 
 EXPECTED_WORKFLOW_REPLAY_MARKERS = [
+    "- name: Run Phase 4 artifact-diff contract make route",
+    "run: make -C zigux phase4-artifact-diff-contract",
     "- name: Self-test current Phase 4 artifact-diff helper",
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
     "- name: Self-test current Phase 4 artifact-diff contract checker",
@@ -58,6 +60,7 @@ EXPECTED_SELF_TEST_CASES = [
     "repo_reality_handoff_drift",
     "repo_reality_handoff_note_missing",
     "workflow_marker_round_trip",
+    "workflow_make_route_marker_drift",
     "workflow_marker_drift",
     "workflow_missing",
 ]
@@ -252,6 +255,15 @@ def run_self_test() -> int:
         ):
             raise AssertionError("workflow_marker_round_trip")
         covered_cases.append("workflow_marker_round_trip")
+
+        make_repo_reality_handoff_fixture(root)
+        write(root / WORKFLOW_REL, "\n".join(EXPECTED_WORKFLOW_REPLAY_MARKERS[2:]) + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("workflow_make_route_marker_drift")
+        else:
+            raise AssertionError("expected workflow_make_route_marker_drift to fail closed")
 
         make_repo_reality_handoff_fixture(root)
         write(root / WORKFLOW_REL, EXPECTED_WORKFLOW_REPLAY_MARKERS[0] + "\n")
