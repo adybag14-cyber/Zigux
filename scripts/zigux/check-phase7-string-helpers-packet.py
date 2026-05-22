@@ -46,6 +46,12 @@ FORMAT_BOUNDARY_MARKER = (
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here."
 )
 
+CMDLINE_OWNERSHIP_MARKER = (
+    "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, "
+    "collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only "
+    "then applies quotable escaping"
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "`PHASE7_STATUS=starter_landed`",
@@ -118,6 +124,7 @@ REQUIRED_MARKERS = {
         "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
         "bounded uppercase and lowercase copies through the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
+        CMDLINE_OWNERSHIP_MARKER,
         "dedicated helper-local checker-backed packet reviewability",
         NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
         DEVM_FOLLOW_ON_MARKER,
@@ -130,7 +137,8 @@ REQUIRED_MARKERS = {
         'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
         'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\\\"next_bounded_step\\\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\\\"");',
+        'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
+        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
@@ -189,7 +197,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 47
+SELF_TEST_CASE_COUNT = 49
 
 
 def read_text(path: Path) -> str:
@@ -478,6 +486,12 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest_cmdline_ownership_marker = CMDLINE_OWNERSHIP_MARKER
+        remove_once(manifest_path, manifest_cmdline_ownership_marker)
+        expect_missing_marker("missing_manifest_cmdline_ownership_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_cmdline_ownership_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][4]
         remove_once(survey_path, survey_marker)
@@ -486,6 +500,12 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][7]
+        remove_once(survey_path, survey_marker)
+        expect_missing_marker("missing_survey_cmdline_ownership_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][8]
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_manifest_next_bounded_step_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
@@ -601,8 +621,7 @@ def main() -> int:
             print(item)
         print("MISSING_PHASE7_STRING_HELPERS_FILES_END")
     if missing_markers:
-        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")
-        for item in missing_markers:
+        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")n        for item in missing_markers:
             print(item)
         print("MISSING_PHASE7_STRING_HELPERS_MARKERS_END")
     if mismatched_counts:
