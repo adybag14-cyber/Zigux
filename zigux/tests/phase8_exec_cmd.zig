@@ -68,6 +68,20 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
         matched,
     );
 
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "tools");
+    try env.set("PATH", "");
+
+    const root_empty_path = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/",
+    );
+    defer std.testing.allocator.free(root_empty_path);
+    try std.testing.expectEqualStrings("//tools:", root_empty_path);
+
     try std.testing.expectError(
         error.MissingNullTerminator,
         exec_cmd.collectExeclArgs(
