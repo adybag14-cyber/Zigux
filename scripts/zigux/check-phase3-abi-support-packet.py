@@ -15,6 +15,9 @@ REQUIRED_NOTE_MARKERS = (
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/phase3_catalog.py",
@@ -22,22 +25,32 @@ REQUIRED_NOTE_MARKERS = (
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
+    "scripts/zigux/check-phase3-shared-tests-routes.py",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/validate_phase3_selftest.py",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
     "zigux/tests/phase3_export_uapi_c_header_smoke.c",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_shim_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
 )
@@ -64,6 +77,9 @@ REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/phase3_catalog.py",
@@ -71,10 +87,14 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
+    "scripts/zigux/check-phase3-shared-tests-routes.py",
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/validate_phase3_selftest.py",
     "zigux/tests/build.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase3_policy_starter_packet.zig",
@@ -95,6 +115,10 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
@@ -245,9 +269,20 @@ def run_self_test() -> int:
             return 1
 
         note_cases = (
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+            "Documentation/zigux/phase3-validator-support-surface.md",
+            "Documentation/zigux/phase3-shared-reminder-gap.md",
+            "scripts/zigux/check-phase3-shared-tests-routes.py",
+            "scripts/zigux/validate-phase3-validator-support-surface.py",
+            "scripts/zigux/run-phase3-checks.py",
+            "scripts/zigux/validate_phase3_selftest.py",
+            "zigux/tests/phase3_export_shim_build.zig",
+            "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+            "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
             "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
             "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
             "make -C zigux phase3-low-level-wrappers-test",
         )
@@ -263,8 +298,15 @@ def run_self_test() -> int:
                 return 1
 
         manifest_packet_cases = (
+            "Documentation/zigux/phase3-kernel-export-shim-governance.md",
+            "Documentation/zigux/phase3-validator-support-surface.md",
+            "Documentation/zigux/phase3-shared-reminder-gap.md",
             "scripts/zigux/phase3_catalog.py",
             "scripts/zigux/check-phase3-abi-support-packet.py",
+            "scripts/zigux/check-phase3-shared-tests-routes.py",
+            "scripts/zigux/validate-phase3-validator-support-surface.py",
+            "scripts/zigux/run-phase3-checks.py",
+            "scripts/zigux/validate_phase3_selftest.py",
             "zigux/tests/phase3_export_shim_build.zig",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
         )
@@ -287,17 +329,19 @@ def run_self_test() -> int:
         manifest["packet_files"].append("scripts/zigux/phase3_catalog.py")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
+        expected_fragment = (
             "phase3_abi_manifest.json packet_files duplicate entry: "
-            "'scripts/zigux/phase3_catalog.py' (first index 6, duplicate index 27)"
+            "'scripts/zigux/phase3_catalog.py'"
         )
-        if expected not in issues:
+        if not any(issue.startswith(expected_fragment) for issue in issues):
             print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=fail")
             print("expected duplicate packet file entry was not reported")
             return 1
 
         manifest_route_cases = (
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+            "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+            "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
             "make -C zigux phase3-low-level-wrappers-test",
@@ -318,15 +362,16 @@ def run_self_test() -> int:
         _populate_repo(root)
         manifest_path = root / MANIFEST_PATH
         manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].append("python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test")
+        manifest["replay_routes"].append(
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"
+        )
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
+        expected_fragment = (
             "phase3_abi_manifest.json replay_routes duplicate entry: "
-            "'python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test' "
-            "(first index 0, duplicate index 20)"
+            "'python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test'"
         )
-        if expected not in issues:
+        if not any(issue.startswith(expected_fragment) for issue in issues):
             print("PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=fail")
             print("expected duplicate replay route entry was not reported")
             return 1
