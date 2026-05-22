@@ -123,15 +123,22 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/cpu_mask.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/cpu_mask_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/logging.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/logging_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/pin_path.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/type_names.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/type_names_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`");
     try expectContains(survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`");
+    try expectContains(survey, "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`");
     try expectContains(
         survey,
-        "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `cpu_mask_verify.zig`, `logging.zig`, `logging_verify.zig`, `pin_path.zig`, `pin_path_verify.zig`, `type_names.zig`, `type_names_verify.zig`, `perf_buffer_poll.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
+        "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `cpu_mask_verify.zig`, `logging.zig`, `logging_verify.zig`, `pin_path.zig`, `pin_path_verify.zig`, `type_names.zig`, `type_names_verify.zig`, `perf_buffer_poll.zig`, `perf_buffer_poll_verify.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
     );
     try expectContains(
         survey,
@@ -139,7 +146,15 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     );
     try expectContains(
         survey,
-        "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig` now keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same stable-output helper packet.",
+    );
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig` keeps `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()` explicit as bounded helper-local review surfaces below the still-deferred setup-side routing boundary.",
+    );
+    try expectContains(
+        survey,
+        "The directly readable verifier packet now also keeps dedicated stable-output witnesses for cpu-mask parse, string-backed summary, reader-backed summary, auto-count, and fail-closed outputs, logging env/version/error outputs, perf-buffer wait-classification, poll-summary, execution-summary, and impossible-summary fail-closed outputs, pin-path map/program output and validation wrappers, online-CPU route CPU-index and buffer-FD wrappers, ready-buffer attempt wrappers, ready-buffer FD wrappers, ready-buffer window mapped-size and lookup-return wrappers, and type-name lookup plus formatter wrappers explicit beside the aggregate `verify.zig` replay surface.",
     );
     try expectContains(
         survey,
