@@ -21,9 +21,6 @@ CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
-SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
-TESTS_README_PATH = Path("zigux/tests/README.md")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -75,14 +72,8 @@ EXPECTED_HELPER_MARKERS = {
         "pub const ParseIntArrayError",
         "pub fn parseIntArray",
     ],
-    Path("lib/cmdline.zig"): [
-        "pub fn parseOptionStr",
-        "pub fn getOption",
-    ],
-    Path("lib/argv_split.zig"): [
-        "pub const ArgvSplitResult",
-        "pub fn argvSplit",
-    ],
+    Path("lib/cmdline.zig"): ["pub fn parseOptionStr", "pub fn getOption"],
+    Path("lib/argv_split.zig"): ["pub const ArgvSplitResult", "pub fn argvSplit"],
     Path("lib/rbtree.zig"): [
         "pub const Node = struct",
         "pub const RootCached = struct",
@@ -110,7 +101,7 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
             "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
             "phase7-rbtree-test",
             "phase7-rbtree-survey",
-            'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
+            "const test_step = b.step(\"test\", \"Run the Phase 7 runtime helper tests\");",
             "test_step.dependOn(&run_string_helpers_tests.step)",
             "test_step.dependOn(&run_string_helpers_survey_tests.step)",
             "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
@@ -140,9 +131,6 @@ REQUIRED_FILES = [
     BUILD_WIRING_CHECKER_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
-    DOCS_README_PATH,
-    SCRIPTS_README_PATH,
-    TESTS_README_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
@@ -164,7 +152,7 @@ def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise ValidationError(f"missing required file: {path.as_posix()}" ) from exc
+        raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
 def read_json(path: Path) -> dict[str, object]:
@@ -295,8 +283,7 @@ def scaffold_repo(root: Path) -> None:
                 "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
                 "- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes",
             ]
-        )
-        + "\n",
+        ) + "\n",
     )
     write(
         root / MAKEFILE_PATH,
@@ -304,10 +291,7 @@ def scaffold_repo(root: Path) -> None:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
     )
-    write(
-        root / BUILD_PATH,
-        "\n".join(EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]) + "\n",
-    )
+    write(root / BUILD_PATH, "\n".join(EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]) + "\n")
     write(
         root / MANIFEST_PATH,
         json.dumps(
@@ -357,12 +341,8 @@ def scaffold_repo(root: Path) -> None:
                 "current_repo_reality_gaps": EXPECTED_GAPS,
             },
             indent=2,
-        )
-        + "\n",
+        ) + "\n",
     )
-    write(root / DOCS_README_PATH, "# Zigux Documentation\nPhase 7 notes\n")
-    write(root / SCRIPTS_README_PATH, "# scripts/zigux\n\n## Phase 7\n")
-    write(root / TESTS_README_PATH, "# zigux/tests\n\n## Phase 7\n")
     for rel_path, content in [
         (
             Path("lib/string_helpers.zig"),
