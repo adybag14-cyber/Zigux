@@ -705,6 +705,8 @@ test "argvSplitWithArgc keeps caller argc unchanged when allocation fails before
 
 test "argv_split aliases preserve helper-local count, split, and free behavior" {
     try std.testing.expectEqual(@as(usize, 2), count_argc("alpha beta"));
+    try std.testing.expectEqual(@as(usize, 0), count_argc(" \t\n\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 2), count_argc("alpha beta\x00ignored tail"));
 
     var argc: usize = std.math.maxInt(usize);
     var split = try argv_split_with_argc(std.testing.allocator, "alpha beta", &argc);
@@ -721,6 +723,37 @@ test "argv_split aliases preserve helper-local count, split, and free behavior" 
     defer argv_free(std.testing.allocator, &blank);
     try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), blank.cArgv()[0]);
+
+    var blank_prefix_buffer = [_]u8{};
+    var blank_prefix_fba = std.heap.FixedBufferAllocator.init(&blank_prefix_buffer);
+    var blank_prefix_argc: usize = std.math.maxInt(usize);
+    var blank_prefix = try argv_split_with_argc(
+        blank_prefix_fba.allocator(),
+        " \t\n\x00ignored tail",
+        &blank_prefix_argc,
+    );
+    defer argv_free(blank_prefix_fba.allocator(), &blank_prefix);
+
+    try std.testing.expectEqual(@as(usize, 0), blank_prefix_argc);
+    try std.testing.expectEqual(@as(usize, 0), blank_prefix.storage.len);
+    try std.testing.expectEqual(@as(usize, 0), blank_prefix.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), blank_prefix.argv_null_terminated.len);
+    try std.testing.expectEqual(blank.storage.ptr, blank_prefix.storage.ptr);
+    try std.testing.expectEqual(blank.argv.ptr, blank_prefix.argv.ptr);
+    try std.testing.expectEqual(blank.argv_null_terminated.ptr, blank_prefix.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank.cArgv(), blank_prefix.cArgv());
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), blank_prefix.cArgv()[0]);
+
+    var truncated = try argv_split(std.testing.allocator, "alpha beta\x00ignored tail");
+    defer argv_free(std.testing.allocator, &truncated);
+
+    try std.testing.expectEqual(@as(usize, 2), truncated.argv.len);
+    try std.testing.expectEqualStrings("alpha", truncated.argv[0]);
+    try std.testing.expectEqualStrings("beta", truncated.argv[1]);
+    try std.testing.expectEqualStrings("alpha", std.mem.span(truncated.cArgv()[0].?));
+    try std.testing.expectEqualStrings("beta", std.mem.span(truncated.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), truncated.cArgv()[2]);
+    try std.testing.expect(std.mem.indexOf(u8, truncated.storage, "ignored tail") == null);
 }
 
 test "argvSplit reports overflow before sizing the null-terminated argv vector" {
