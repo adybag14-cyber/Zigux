@@ -112,6 +112,8 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-export-uapi-layout"',
+        '"make -C zigux phase3-export-uapi-layout-test"',
     ),
     TESTS_BUILD_PATH: (
         "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
@@ -248,6 +250,16 @@ def run_self_test() -> int:
             MAKEFILE_PATH,
             "phase3-export-uapi-layout-test:",
             "expected missing phase3 export/uapi dedicated make route marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
+            '"make -C zigux phase3-export-uapi-layout"',
+            "expected missing export/uapi shared manifest make route marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
+            '"make -C zigux phase3-export-uapi-layout-test"',
+            "expected missing export/uapi dedicated manifest make route marker was not reported",
         ),
         (
             C_HEADER_SMOKE_PATH,
