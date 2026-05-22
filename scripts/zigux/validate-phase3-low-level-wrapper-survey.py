@@ -91,6 +91,7 @@ REQUIRED_MARKERS = {
         "pub fn full() void {",
         "pub fn acquireRelease() void {",
         "pub fn fullFence() void {",
+        "pub fn storeLoad() void {",
     ),
     MMIO_PATH: (
         "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {",
@@ -176,6 +177,7 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {',
+        "barrier.storeLoad();",
         "try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);",
         "try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),",
         "mmio.readInteropPolicyByte(u32, 1, const_register_ptr)",
