@@ -236,6 +236,7 @@ REQUIRED_SOURCE_MARKERS = {
         '"zigux/tests/phase3_low_level_wrappers.zig"',
         '"zigux/tests/phase3_low_level_wrappers_build.zig"',
         '"zigux/Makefile"',
+        '".github/workflows/zigux-bootstrap.yml"',
         '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
@@ -320,6 +321,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
@@ -640,6 +642,20 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["packet_files"].remove(".github/workflows/zigux-bootstrap.yml")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            ".github/workflows/zigux-bootstrap.yml"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected shared ABI workflow packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove(
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"
         )
@@ -769,7 +785,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=21")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
