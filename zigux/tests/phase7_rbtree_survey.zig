@@ -96,6 +96,10 @@ test "phase 7 rbtree survey keeps lib-path helper ownership truthful without reo
     try expectContains(checker, "\"lib/rbtree.zig\",");
 
     try expectContains(slice_note, "This slice must stay truthful about the current direct helper path. The helper-local implementation now remains rooted at `lib/rbtree.zig`, while the older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than proof that helper-local ownership still lives there.");
+    try expectContains(slice_note, "ordered and reverse traversal");
+    try expectContains(slice_note, "postorder null-stop handling for detached nodes");
+    try expectContains(slice_note, "reverse traversal aliases and detached-node null-stop handling stay reviewable through the dedicated replay rooted at `zigux/tests/phase7_rbtree.zig`");
+    try expectContains(slice_note, "postorder aliases stay reviewable through `firstPostorder()`, `nextPostorder()`, and the dedicated replay's detached-node guards");
     try expectContains(slice_note, "public-fallback provenance");
 
     try expectContains(direct_anchor_note, "Fresh current-master reread in this slot also confirmed these shared, legacy, or roadmap-adjacent non-owner surfaces:");
@@ -105,8 +109,12 @@ test "phase 7 rbtree survey keeps lib-path helper ownership truthful without reo
     try expectContains(direct_anchor_note, "Fresh authenticated GitHub reread in this slot still returned `404` for these dedicated companion surfaces:");
 
     try expectContains(helper, "pub fn rb_find_add_cached");
+    try expectContains(helper, "pub fn rb_prev");
+    try expectContains(helper, "pub fn rb_next_postorder");
     try expectContains(legacy_helper, "pub fn rb_find_add_cached");
     try expectContains(helper_companion, "../../lib/rbtree.zig");
+    try expectContains(helper_companion, "phase 7 rbtree companion replays postorder aliases and null-stop handling");
+    try expectContains(helper_companion, "phase 7 rbtree companion replays reverse traversal aliases and detached null stops");
     try expectContains(build_file, "../../lib/rbtree.zig");
 
     try expectContains(makefile, "phase7-validate:");
