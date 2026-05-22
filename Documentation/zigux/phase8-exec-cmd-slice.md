@@ -31,10 +31,13 @@ The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranch
 2. run the focused shared exec-cmd gate
 - `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 
-3. run the broader Phase 8 tooling gate
+3. run the shared Phase 8 validation route
+- `make -C zigux phase8-validate`
+
+4. run the broader Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience targets
+5. run the convenience targets
 - `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8`
 
