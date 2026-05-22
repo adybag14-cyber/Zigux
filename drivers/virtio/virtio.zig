@@ -111,6 +111,28 @@ pub const DriverIdMatchSummary = struct {
     matched_vendor_any: bool,
 };
 
+pub const DriverIdMatchDisposition = enum {
+    no_match,
+    exact_match,
+    device_wildcard_match,
+    vendor_wildcard_match,
+    full_wildcard_match,
+};
+
+pub const DriverIdCoverageSummary = struct {
+    anchor: []const u8,
+    device_id: u32,
+    vendor_id: u32,
+    candidate_count: usize,
+    matched: bool,
+    matched_rule_index: ?usize,
+    matched_device_any: bool,
+    matched_vendor_any: bool,
+    disposition: DriverIdMatchDisposition,
+    exact_device_match: bool,
+    exact_vendor_match: bool,
+};
+
 pub const VirtioCoreLab = struct {
     const Self = @This();
 
@@ -344,6 +366,34 @@ pub const VirtioCoreLab = struct {
             .matched_vendor_any = false,
         };
     }
+
+    pub fn driverIdCoverageSummary(self: *const Self, rules: []const DriverIdMatchRule) DriverIdCoverageSummary {
+        const summary = self.driverIdMatchSummary(rules);
+        const disposition: DriverIdMatchDisposition = if (!summary.matched)
+            .no_match
+        else if (summary.matched_device_any and summary.matched_vendor_any)
+            .full_wildcard_match
+        else if (summary.matched_device_any)
+            .device_wildcard_match
+        else if (summary.matched_vendor_any)
+            .vendor_wildcard_match
+        else
+            .exact_match;
+
+        return .{
+            .anchor = summary.anchor,
+            .device_id = summary.device_id,
+            .vendor_id = summary.vendor_id,
+            .candidate_count = summary.candidate_count,
+            .matched = summary.matched,
+            .matched_rule_index = summary.matched_rule_index,
+            .matched_device_any = summary.matched_device_any,
+            .matched_vendor_any = summary.matched_vendor_any,
+            .disposition = disposition,
+            .exact_device_match = summary.matched and !summary.matched_device_any,
+            .exact_vendor_match = summary.matched and !summary.matched_vendor_any,
+        };
+    }
 };
 
 test "phase10 virtio core status summary keeps lab-only driver readiness bounded to shared status bookkeeping" {
@@ -556,4 +606,50 @@ test "phase10 virtio core driver id matching models wildcard and unmatched paths
     try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
     try std.testing.expect(!summary.matched_device_any);
     try std.testing.expect(!summary.matched_vendor_any);
+}
+
+test "phase10 virtio core driver id coverage summary keeps disposition bookkeeping local to the core helper" {
+    var core = try VirtioCoreLab.init(0x1052, 2);
+
+    var summary = core.driverIdCoverageSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = default_vendor_id },
+        .{ .device_id = 0x1052, .vendor_id = default_vendor_id },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(DriverIdMatchDisposition.exact_match, summary.disposition);
+    try std.testing.expect(summary.exact_device_match);
+    try std.testing.expect(summary.exact_vendor_match);
+
+    core.setVendorId(0x1AF5);
+    summary = core.driverIdCoverageSummary(&.{
+        .{ .device_id = any_id, .vendor_id = 0x1AF5 },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(DriverIdMatchDisposition.device_wildcard_match, summary.disposition);
+    try std.testing.expect(!summary.exact_device_match);
+    try std.testing.expect(summary.exact_vendor_match);
+
+    summary = core.driverIdCoverageSummary(&.{
+        .{ .device_id = 0x1052, .vendor_id = any_id },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(DriverIdMatchDisposition.vendor_wildcard_match, summary.disposition);
+    try std.testing.expect(summary.exact_device_match);
+    try std.testing.expect(!summary.exact_vendor_match);
+
+    summary = core.driverIdCoverageSummary(&.{
+        .{ .device_id = any_id, .vendor_id = any_id },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(DriverIdMatchDisposition.full_wildcard_match, summary.disposition);
+    try std.testing.expect(!summary.exact_device_match);
+    try std.testing.expect(!summary.exact_vendor_match);
+
+    summary = core.driverIdCoverageSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = default_vendor_id },
+    });
+    try std.testing.expect(!summary.matched);
+    try std.testing.expectEqual(DriverIdMatchDisposition.no_match, summary.disposition);
+    try std.testing.expect(!summary.exact_device_match);
+    try std.testing.expect(!summary.exact_vendor_match);
 }
