@@ -15,7 +15,6 @@ This note tracks the bounded Phase 9 runtime atomic64 starter packet on `master`
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
 - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
 - `samples/zigux/runtime_atomic64.zig`
-- `samples/zigux/runtime_atomic64_loader.zig`
 - `zigux/tests/runtime_atomic64_module.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_survey.zig`
@@ -49,13 +48,12 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 1. `zigux/tests/runtime_atomic64_module.zig` remains the dedicated lifecycle gate for the direct packet.
 2. `zigux/tests/runtime_atomic64_diff.zig` remains the narrow differential gate against `lib/atomic64_test.c`.
 3. `zigux/tests/runtime_atomic64_survey.zig` and `zigux/tests/runtime_atomic64_manifest.json` remain the packet-local survey and manifest gates for the direct starter packet and the visible shared-loader reminder packet.
-4. `zigux/tests/phase9_build.zig` and `zigux/Makefile` keep `zig build phase9-runtime-atomic64-loader-tests --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9-runtime-atomic64-test` explicit beside the shared-loader reminder packet.
+4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit beside the shared-loader reminder packet.
 5. The visible shared-loader reminder packet keeps the broader runtime-substrate blocker explicit instead of being treated as proof that the missing runtime substrate has already landed.
 
 ## Review Surface
 
 - `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, and `zigux/tests/runtime_atomic64_manifest.json` keep the direct packet machine-checkable.
-- `samples/zigux/runtime_atomic64_loader.zig` keeps the prepared `RuntimeAtomic64LoadSummary` snapshot reviewable and keeps the anchor, checked operation families, counter snapshot, and selftest-run count visible even when later counter mutation, later selftest activity, or later exit activity do not rewrite the shared request.
 - The shared-loader reminder packet keeps the prepared shared selftest-hook drift guard explicit, keeps the paired shared-release desynchronization proofs explicit, and keeps the loader-facing review packet visible without claiming live runtime binding.
 
 ## Freeze-Map Governance Boundary
@@ -69,7 +67,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 - owner: the direct atomic64 starter packet named by `PHASE9_LANE_KEY=P9-L04`, with this note carrying the same Phase 9 freeze-boundary review record for `P9-L16`
 - phase: `Phase 9`
 - status bucket: review-only direct starter packet plus visible shared-loader reminder packet beside the study-only `kernel/workqueue.c` boundary
-- validation gate summary: `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, `zigux/tests/phase9_build.zig`, and `make -C zigux phase9-runtime-atomic64-test` keep this packet reviewable without claiming live loader parity
+- validation gate summary: `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, and `zigux/tests/phase9_build.zig` keep this packet reviewable without claiming live loader parity
 - rollback owner: `lib/atomic64_test.c` remains the product source of truth while any future status change still routes through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and `Documentation/zigux/phase15-freeze-map-governance.md`
 
 ## Non-goals
