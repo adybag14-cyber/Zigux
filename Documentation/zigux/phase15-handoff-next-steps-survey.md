@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-21 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-22 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
 
 ## Why this note exists
 
@@ -19,9 +19,9 @@ Current `master` already carries the freeze-map, the freeze-map governance note,
 
 The older handoff target that treated the docs root as the next automatic Phase 15 follow-through was no longer precise enough for the current packet: the dedicated governance notes, the shared-gap guard, the focused review-checklist study-only checker, the focused readiness-packet checker, the focused tests-root checker, the dedicated indefinite-C policy companions, and the focused indefinite-C lane-owner replay now define the tighter same-lane boundaries, while the broad reminder surfaces should only reopen when fresh drift actually appears.
 
-The handoff continuity packet itself now has four dedicated machine-readable companions: the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`. The dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`. Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
+The handoff continuity packet itself now has four dedicated machine-readable companions: the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`. Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
-This refresh closes the dedicated handoff undercount around the already-landed governance-lane sequencing replay pair and keeps the handoff-local lane identity aligned with the current Phase 15 next-bound survey lane. Reviewers can now read this note against the current 2026-05-21 governance packet instead of reconciling it against an older handoff note by hand.
+This refresh closes the dedicated handoff undercount around the already-landed governance-lane sequencing replay pair and keeps the handoff-local lane identity aligned with the current Phase 15 next-bound survey lane. Reviewers can now read this note against the current 2026-05-22 governance packet instead of reconciling it against an older handoff note by hand.
 
 ## Current handed-off packet on current master
 
