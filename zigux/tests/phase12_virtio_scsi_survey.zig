@@ -147,7 +147,7 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
         if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
             saw_build_gate = true;
             try std.testing.expectEqualStrings("shared_support_bundle_present", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey-gate tests") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-survey-gate")) {
             saw_survey_gate = true;
@@ -190,7 +190,7 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-21`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "receive-refill replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput-parity, and survey-gate tests as support-bundle evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
 }
