@@ -111,17 +111,22 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
     try expectContains(manifest, "\"status\": \"active\"");
-    try expectContains(manifest, "\"surveyed_commit\": \"2026-05-22-runtime-bitmap-module-restored\"");
+    try expectContains(manifest, "\"surveyed_commit\": \"e306440f579ded71e8441c1a513af6fd12bbbfdd\"");
     try expectContains(manifest, "\"sample_path\": \"samples/zigux/runtime_bitmap.zig\"");
     try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
     try expectContains(manifest, "\"module_path\": \"zigux/tests/runtime_bitmap_module.zig\"");
+    try expectContains(manifest, "\"diff_path\": \"zigux/tests/runtime_bitmap_diff.zig\"");
     try expectContains(manifest, "\"top_bit_path\": \"samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
+    try expectContains(manifest, "\"diff_summary_replay\"");
+    try expectContains(manifest, "\"diff_copy_tail_clearing\"");
+    try expectContains(manifest, "\"diff_exit_lifecycle_guards\"");
 
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-loader-command-env-boundary-guard-tests\"");
@@ -134,5 +139,4 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-survey-tests\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-bitmap-module-tests\"") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-bitmap-diff-tests\"") == null);
 }
