@@ -70,6 +70,21 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const kretprobe_example_instance_budget_contract_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/kretprobe_example_instance_budget_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase5_kretprobe_example_instance_budget_contract_module = b.createModule(.{
+        .root_source_file = b.path("phase5_kretprobe_example_instance_budget_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase5_kretprobe_example_instance_budget_contract_module.addImport(
+        "kretprobe_example_instance_budget_contract",
+        kretprobe_example_instance_budget_contract_module,
+    );
+
     const trace_events_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/trace_events_sample.zig"),
         .target = target,
@@ -135,6 +150,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase5_kretprobe_example_survey_tests = b.addRunArtifact(phase5_kretprobe_example_survey_tests);
 
+    const phase5_kretprobe_example_instance_budget_contract_tests = b.addTest(.{
+        .name = "phase5-kretprobe-example-instance-budget-contract-tests",
+        .root_module = phase5_kretprobe_example_instance_budget_contract_module,
+    });
+    const run_phase5_kretprobe_example_instance_budget_contract_tests =
+        b.addRunArtifact(phase5_kretprobe_example_instance_budget_contract_tests);
+    const phase5_kretprobe_example_instance_budget_contract_step = b.step(
+        "phase5-kretprobe-example-instance-budget-contract",
+        "Run the Phase 5 kretprobe instance-budget contract companion checks",
+    );
+    phase5_kretprobe_example_instance_budget_contract_step.dependOn(
+        &run_phase5_kretprobe_example_instance_budget_contract_tests.step,
+    );
+
     const phase5_trace_events_sample_tests = b.addTest(.{
         .name = "phase5-trace-events-sample-tests",
         .root_module = phase5_trace_events_sample_module,
@@ -155,6 +184,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_survey_tests.step);
+    test_step.dependOn(&run_phase5_kretprobe_example_instance_budget_contract_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_survey_tests.step);
 }
