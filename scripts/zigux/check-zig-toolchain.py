@@ -414,9 +414,22 @@ def resolve_policy_archive(
     candidates = iter_repo_local_archive_candidates(root=root, policy_path=policy_path)
     if target is not None:
         candidates = [(candidate_target, candidate_path) for candidate_target, candidate_path in candidates if candidate_target == target]
-    for candidate_target, candidate_path in candidates:
-        if candidate_path.is_file():
-            return candidate_target, candidate_path
+    present_candidates = [(candidate_target, candidate_path) for candidate_target, candidate_path in candidates if candidate_path.is_file()]
+    if len(present_candidates) > 1:
+        present_targets = sorted({candidate_target for candidate_target, _ in present_candidates})
+        if target is None and len(present_targets) > 1:
+            raise ValueError(
+                "archive target must be explicit when multiple repo-local archive targets are present "
+                f"in {policy_path}: "
+                + ", ".join(present_targets)
+            )
+        duplicate_target = target or present_targets[0]
+        raise ValueError(
+            f"multiple repo-local archives match {duplicate_target} in {policy_path}: "
+            + ", ".join(str(candidate_path) for _, candidate_path in present_candidates)
+        )
+    if present_candidates:
+        return present_candidates[0]
 
     if target is None and len(archive_targets) == 1:
         target = archive_targets[0]
@@ -469,6 +482,7 @@ def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Pat
             actual_sha,
         )
     return "present", None, expected_sha, actual_sha
+
 
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
     try:
@@ -755,11 +769,64 @@ def run_self_test() -> int:
             "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz"
         )
         duplicate_archive_path.write_bytes(b"zigux-archive")
+        expect_raises(
+            lambda: resolve_policy_archive(root=root, policy_path=policy_path),
+            "multiple repo-local archives match x86_64-linux",
+        )
         workspace_archive_path.unlink()
         expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", duplicate_archive_path))
         expect_equal(
             validate_policy_archive(duplicate_archive_path, "x86_64-linux", policy_path=policy_path),
             ("present", None, expected_archive_sha, expected_archive_sha),
+        )
+        aarch64_archive_path = workspace_archive_path.with_name(
+            "zig-aarch64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        )
+        aarch64_archive_path.write_bytes(b"zigux-archive")
+        policy_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {
+                        "x86_64-linux": expected_archive_sha,
+                        "aarch64-linux": expected_archive_sha,
+                    },
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux", "aarch64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_raises(
+            lambda: resolve_policy_archive(root=root, policy_path=policy_path),
+            "archive target must be explicit when multiple repo-local archive targets are present",
+        )
+        expect_equal(
+            resolve_policy_archive(explicit_target="aarch64-linux", root=root, policy_path=policy_path),
+            ("aarch64-linux", aarch64_archive_path),
+        )
+        policy_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": expected_archive_sha},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
         )
         renamed_archive_path = duplicate_archive_path.with_name("renamed-zig.tar.xz")
         renamed_archive_path.write_bytes(b"zigux-archive")
