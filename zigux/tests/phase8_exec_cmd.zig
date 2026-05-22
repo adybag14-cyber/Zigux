@@ -156,6 +156,7 @@ test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
     try expectContains(slice_note, "deferred execution");
     try expectContains(slice_note, "buildDeferredExeclCall()");
     try expectContains(slice_note, "buildDeferredExecvCall()");
+    try expectContains(slice_note, "make -C zigux phase8-validate");
     try expectContains(slice_note, "queue ownership");
     try expectContains(slice_note, "kernel/workqueue.c");
     try expectContains(slice_note, "Phase 14");
