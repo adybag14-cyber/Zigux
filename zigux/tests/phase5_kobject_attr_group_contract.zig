@@ -11,6 +11,9 @@ test "phase 5 kobject attr-group companion keeps the anchor-local contract revie
     try std.testing.expect(contract.all_modes_match_reference);
     try std.testing.expect(contract.all_modes_disallow_world_write);
     try std.testing.expect(contract.shared_b_handler_pair_consistent);
+    try std.testing.expectEqualStrings("foo", contract.ordered_attr_names[0]);
+    try std.testing.expectEqualStrings("baz", contract.ordered_attr_names[1]);
+    try std.testing.expectEqualStrings("bar", contract.ordered_attr_names[2]);
 }
 
 test "phase 5 kobject attr-group companion keeps the foo/baz/bar ownership-facing shape explicit" {
@@ -20,7 +23,12 @@ test "phase 5 kobject attr-group companion keeps the foo/baz/bar ownership-facin
 
     inline for (expected_names, expected_shared_handlers, 0..) |name, uses_shared_handlers, idx| {
         try std.testing.expectEqualStrings(name, contract.attribute_specs[idx].name);
+        try std.testing.expectEqualStrings(name, contract.ordered_attr_names[idx]);
         try std.testing.expectEqual(@as(u16, 0o664), contract.attribute_specs[idx].mode);
         try std.testing.expectEqual(uses_shared_handlers, contract.attribute_specs[idx].uses_shared_b_handlers);
     }
+
+    try std.testing.expectEqualStrings("foo", contract.dedicated_handler_name);
+    try std.testing.expectEqualStrings("baz", contract.shared_b_handler_names[0]);
+    try std.testing.expectEqualStrings("bar", contract.shared_b_handler_names[1]);
 }
