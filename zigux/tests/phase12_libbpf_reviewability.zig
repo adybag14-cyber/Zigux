@@ -164,7 +164,7 @@ test "phase12 libbpf reviewability gate keeps the helper-local determinism fixtu
     try std.testing.expect(isHexSha(fixture.verification_evidence.current_helper_blob.blob_sha));
 }
 
-test "phase12 libbpf reviewability gate keeps parked replay absences and note-owned anchors explicit" {
+test "phase12 libbpf reviewability gate keeps the live replay packet and note-owned anchors explicit" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-libbpf-segment-survey.md", 24 * 1024);
     defer std.testing.allocator.free(survey_note);
     const verify_note = try readFileAlloc("Documentation/zigux/phase12-libbpf-verify-shard-note.md", 16 * 1024);
@@ -187,9 +187,9 @@ test "phase12 libbpf reviewability gate keeps parked replay absences and note-ow
     try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/online_cpu_routing.zig"));
     try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/manifest.json"));
 
-    try std.testing.expect(!try pathExists("zigux/tests/phase12_libbpf_manifest.json"));
-    try std.testing.expect(!try pathExists("zigux/tests/phase12_libbpf_segments.zig"));
-    try std.testing.expect(!try pathExists("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_libbpf_manifest.json"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_libbpf_segments.zig"));
+    try std.testing.expect(try pathExists("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"));
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot.json") != null);
