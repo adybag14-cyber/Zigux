@@ -18,6 +18,7 @@ REQUIRED_DOC_MARKERS = (
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
 )
 
