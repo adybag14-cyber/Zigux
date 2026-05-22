@@ -14,6 +14,7 @@ BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 SHARED_SURFACE_VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
+BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 
 DIRECT_PACKET = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -29,12 +30,12 @@ DIRECT_PACKET = [
 
 PARKED_SHARED_CONTROL_PATHS = [
     "scripts/zigux/check-phase7-make-wrapper.py",
-    "zigux/tests/phase7_build.zig",
 ]
 
 READABLE_NON_OWNER_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
+    "zigux/tests/phase7_build.zig",
 ]
 
 ABSENT_WORKFLOW_MARKERS = [
@@ -76,13 +77,14 @@ REQUIRED_SEQUENCING_SNIPPETS = [
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
-    "the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold but still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes.",
+    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` still exposes only the narrow `phase7-validate` foothold and still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.",
 ]
 
 REQUIRED_REVIEW_SNIPPETS = [
     "# Phase 7 Shared Control Review Checkpoint",
     "`scripts/zigux/validate-phase7.py`",
-    "Keep `scripts/zigux/validate-phase7.py` and `phase7-validate` framed as a returned narrow validation foothold only;",
+    "Keep `scripts/zigux/check-phase7-make-wrapper.py` framed as parked reminder vocabulary until a fresh current-`master` reread proves that path returned.",
+    "Keep `zigux/tests/phase7_build.zig` framed as readable non-owner build evidence only; it does not by itself prove that `phase7-test`, `phase7`, or workflow-backed Phase 7 routes returned.",
     "Keep `phase7-test` and `phase7` framed as absent wrapper-route vocabulary",
     "`.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate` and `make -C zigux phase7-test` steps.",
 ]
@@ -179,6 +181,7 @@ def scaffold_repo(root: Path) -> None:
         write(path, "# direct phase7 shared-control packet file\n")
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
     write(root / MAKEFILE_PATH, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+    write(root / BUILD_PATH, "// readable non-owner build shard\n")
 
 
 def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
@@ -218,15 +221,23 @@ def run_self_test() -> None:
             expect_failure(root, rel, old, new)
             cases_run += 1
 
-        for rel in [PARKED_SHARED_CONTROL_PATHS[0], PARKED_SHARED_CONTROL_PATHS[1]]:
-            scaffold_repo(root)
-            write(root / rel, "# unexpectedly returned parked path\n")
-            try:
-                validate(root)
-            except ValidationError:
-                cases_run += 1
-            else:
-                raise AssertionError("expected validation failure")
+        scaffold_repo(root)
+        write(root / PARKED_SHARED_CONTROL_PATHS[0], "# unexpectedly returned parked path\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
+
+        scaffold_repo(root)
+        (root / BUILD_PATH).unlink()
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
         (root / SHARED_SURFACE_VALIDATOR_PATH).unlink()
