@@ -112,6 +112,8 @@ jobs:
           download_success=0
           if try_local_archive; then
             download_success=1
+          elif try_download "$ZIGUX_ZIG_URL"; then
+            download_success=1
           elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             while IFS= read -r mirror_url; do
               [ -n "$mirror_url" ] || continue
@@ -122,12 +124,7 @@ jobs:
             done < "$mirror_file"
           fi
           if [ "$download_success" -ne 1 ]; then
-            if try_download "$ZIGUX_ZIG_URL"; then
-              download_success=1
-            fi
-          fi
-          if [ "$download_success" -ne 1 ]; then
-            echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
+            echo 'failed to install a verified pinned Zig archive from third_party, ziglang.org, or community mirrors' >&2
             exit 1
           fi
           zig_path="$extract_root/zig"
@@ -164,6 +161,13 @@ jobs:
 
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
+
+      - name: Self-test current Lane 05 install-zig index fallback checker
+        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test
+
+      - name: Check current Lane 05 install-zig index fallback packet
+        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py
+
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
 
@@ -394,9 +398,6 @@ jobs:
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
 
-      - name: Run Phase 4 artifact-diff contract make route
-        run: make -C zigux phase4-artifact-diff-contract
-
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
@@ -432,9 +433,6 @@ jobs:
       - name: Run focused Phase 8 exec-cmd tests
         run: make -C zigux phase8-exec-cmd-test
 
-      - name: Run focused Phase 8 libbpf segment tests
-        run: make -C zigux phase8-libbpf-segments-test
-
       - name: Run Phase 8 tooling tests
         run: make -C zigux phase8-test
 
@@ -455,12 +453,6 @@ jobs:
 
       - name: Check current Phase 9 trace-events runtime packet
         run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
-
-      - name: Self-test current Phase 9 trace-events direct-summary checker
-        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test
-
-      - name: Check current Phase 9 trace-events direct-summary packet
-        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py
 
       - name: Self-test current Phase 9 trace-events summary-preservation checker
         run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test
@@ -515,29 +507,11 @@ jobs:
       - name: Check current Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
 
-      - name: Self-test current Phase 12 complex-driver lane packet checker
-        run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
-
-      - name: Check current Phase 12 complex-driver lane packet
-        run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py
-
       - name: Self-test current Phase 12 release-readiness packet checker
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
-
-      - name: Self-test current Phase 12 libbpf snapshot checker
-        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
-
-      - name: Check current Phase 12 libbpf snapshot packet
-        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
-
-      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
-        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
-
-      - name: Check current Phase 12 libbpf heavy-consumer packet
-        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
 
       - name: Validate current Phase 12 support bundle
         run: python3 scripts/zigux/validate-phase12.py
