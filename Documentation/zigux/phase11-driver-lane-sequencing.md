@@ -94,6 +94,8 @@ surfaces that were reread in this run:
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
@@ -155,7 +157,8 @@ older paired `scripts/zigux/check-phase11-shared-replay-contract.py`,
 `zigux/tests/phase11_build.zig` routes framed as missing current-head
 companions rather than live replay evidence.
 
-Current rereads in this run also keep
+Current rereads in this run also keep `Documentation/zigux/README.md`,
+`Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
 `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
 `scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
