@@ -70,12 +70,17 @@ REQUIRED_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
-    "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
-    "`scripts/zigux/check-phase2-tool-manifest-packets.py` reviewer-surface guards",
+    "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed Phase 2 manifest packet explicit",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the fixture-backed Phase 2 manifest packet explicit",
     "`third_party/README.md`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py` are directly readable on current `master` again",
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master` again",
     "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` are directly readable on current `master` again",
     "`python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side, bounded genksyms bridge, and make-wrapper packet",
+)
+
+FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
 )
 
 
@@ -108,6 +113,10 @@ def collect_issues(root: Path) -> list[str]:
         if marker not in doc_text:
             issues.append(f"missing_marker:{marker}")
 
+    for marker in FORBIDDEN_MARKERS:
+        if marker in doc_text:
+            issues.append(f"stale_marker:{marker}")
+
     return issues
 
 
@@ -139,6 +148,15 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         if not any(issue.startswith("missing_marker:") for issue in issues):
             raise SystemExit("phase2-docs-root-summary:self-test:missing_marker")
+        cases_run += 1
+
+        write_sample_root(root)
+        doc_path = root / DOC
+        doc_text = load_text(doc_path)
+        write_text(doc_path, doc_text + FORBIDDEN_MARKERS[0] + "\n")
+        issues = collect_issues(root)
+        if f"stale_marker:{FORBIDDEN_MARKERS[0]}" not in issues:
+            raise SystemExit("phase2-docs-root-summary:self-test:stale_marker")
         cases_run += 1
 
         write_sample_root(root)
