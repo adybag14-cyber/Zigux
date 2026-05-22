@@ -268,6 +268,7 @@ COMMANDS = [
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py", "--self-test"],
     ["scripts/zigux/check-phase10-tests-readme-core-surfaces.py"],
     ["scripts/zigux/validate-phase10.py", "--self-test"],
+    ["scripts/zigux/validate-phase10.py"],
 ]
 
 
@@ -680,6 +681,20 @@ def run_self_test() -> int:
         if failures != ["scripts/zigux/check-phase10-harness-coverage.py --self-test", "scripts/zigux/check-phase10-harness-coverage.py"]:
             actual = ",".join(failures) if failures else "none"
             raise SystemExit(f"phase10-closure-self-test:failed_harness_command_not_detected:{actual}")
+        cases += 1
+
+        write_fixture(root)
+        failing_validator = root / "scripts/zigux/validate-phase10.py"
+        failing_validator.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "raise SystemExit(0 if '--self-test' in sys.argv else 1)\n",
+            encoding="utf-8",
+        )
+        failures = run_required_commands(root)
+        if failures != ["scripts/zigux/validate-phase10.py"]:
+            actual = ",".join(failures) if failures else "none"
+            raise SystemExit(f"phase10-closure-self-test:failed_live_validate_command_not_detected:{actual}")
         cases += 1
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
