@@ -48,6 +48,12 @@ HELP_USAGE = (
     " -V, --version Print the release version\n"
 )
 
+EXPECTED_HELP_PAYLOAD = {
+    "stdout": "",
+    "stderr": HELP_USAGE,
+    "exit_code": 0,
+}
+
 EXPECTED_PROCESS_OUTPUT_PAYLOADS = {
     "abbreviated_version_expected.json": {
         "stdout": "",
@@ -95,6 +101,7 @@ EXPECTED_PROCESS_OUTPUT_PAYLOADS = {
         "exit_code": 1,
     },
 }
+
 
 def read_text(path: Path) -> str:
     try:
@@ -255,6 +262,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             build_expected_manifest(case_fixtures, process_output_packet, helper_local_anchors),
         )
     )
+
+    help_payload, help_issue = read_json(root / HELP_FIXTURE.relative_to(ROOT), "INVALID_HELP_JSON")
+    if help_issue is not None:
+        issues.append(help_issue)
+        return issues
+    if help_payload != EXPECTED_HELP_PAYLOAD:
+        issues.append(("HELP_PACKET_MISMATCH", HELP_FIXTURE.name))
+
     issues.extend(collect_process_output_issues(root, process_output_packet))
     return issues
 
@@ -315,7 +330,7 @@ def build_self_test_root(root: Path) -> None:
         root / MANIFEST_FIXTURE.relative_to(ROOT),
         json.dumps(build_expected_manifest(case_fixtures, process_output_packet, helper_local_anchors), indent=2) + "\n",
     )
-    write_text(root / HELP_FIXTURE.relative_to(ROOT), "{}\n")
+    write_text(root / HELP_FIXTURE.relative_to(ROOT), json.dumps(EXPECTED_HELP_PAYLOAD, indent=2) + "\n")
     for case in case_fixtures:
         write_text(root / f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}", "{}\n")
     for rel, payload in EXPECTED_PROCESS_OUTPUT_PAYLOADS.items():
@@ -426,6 +441,18 @@ def run_self_test() -> int:
         assert any(code == "MANIFEST_FIELD_MISMATCH" and value.startswith("standalone_proof_packet:") for code, value in collect_issues(root))
         checks_run += 1
 
+        build_self_test_root(root)
+        help_path = root / HELP_FIXTURE.relative_to(ROOT)
+        help_path.write_text(json.dumps({}, indent=2) + "\n", encoding="utf-8")
+        assert ("HELP_PACKET_MISMATCH", HELP_FIXTURE.name) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        help_path = root / HELP_FIXTURE.relative_to(ROOT)
+        help_path.write_text("{broken\n", encoding="utf-8")
+        assert ("INVALID_HELP_JSON", HELP_FIXTURE.name) in collect_issues(root)
+        checks_run += 1
+
         for marker in (
             'test "genksyms bridge preserves version side effect before invalid long option" {',
             'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
@@ -495,6 +522,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_LINES)
     + len(MAKEFILE_LINES)
+    + 1
+    + 1
     + 1
     + 1
     + 1
