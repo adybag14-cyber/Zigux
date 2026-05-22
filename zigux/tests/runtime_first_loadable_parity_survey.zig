@@ -22,6 +22,12 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(parity_note);
 
+    const atomic64_manifest = try readRepoFileAlloc(
+        "runtime_atomic64_manifest.json",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_manifest);
+
     const manifest = try readRepoFileAlloc(
         "runtime_bitmap_manifest.json",
         16 * 1024,
@@ -82,6 +88,24 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(
         parity_note,
         "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet with restored module proof but blocked diff follow-through.",
+    );
+
+    try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
+    try expectContains(atomic64_manifest, "\"lane_key\": \"P9-L04\"");
+    try expectContains(atomic64_manifest, "\"surveyed_commit\": \"9f8c05368242414084e4bc94ea979604c2b6b712\"");
+    try expectContains(
+        atomic64_manifest,
+        "\"landed_pilot_state\": \"starter_landed_with_visible_shared_loader_packet\"",
+    );
+    try expectContains(atomic64_manifest, "\"runtime-atomic64-loader-scaffold\"");
+    try expectContains(atomic64_manifest, "\"samples/zigux/runtime_atomic64_loader.zig\"");
+    try expectContains(atomic64_manifest, "\"runtime-atomic64-family-make-route\"");
+    try expectContains(atomic64_manifest, "\"path\": \"zigux/Makefile\"");
+    try expectContains(atomic64_manifest, "\"runtime-atomic64-shared-build-boundary\"");
+    try expectContains(atomic64_manifest, "\"runtime-atomic64-live-loader-binding\"");
+    try expectContains(
+        atomic64_manifest,
+        "the loader scaffold and survey gate remain direct packet evidence outside standalone shared-build route names",
     );
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
