@@ -158,7 +158,7 @@ LONG_OPTION_SPECS = (
     ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 26
+EXPECTED_SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -530,8 +530,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         VERSION_SIDE_EFFECT_TEST,
-        'test "genksyms bridge preserves version side effect before invalid long option" {}\n'
-        'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {}\n',
+        'test "genksyms bridge preserves version side effect before invalid long option" {\n'
+        "}\n"
+        'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {\n'
+        "}\n",
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
     write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
@@ -757,6 +759,21 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, PROCESS_OUTPUT_FIXTURES[1], json.dumps({"stdout": "", "stderr": 7, "exit_code": 1}, indent=2) + "\n")
         assert ("PROCESS_OUTPUT_FIXTURE_PAYLOAD_MISMATCH", PROCESS_OUTPUT_FIXTURES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / VERSION_SIDE_EFFECT_TEST).unlink()
+        assert ("MISSING_REQUIRED_PATH", VERSION_SIDE_EFFECT_TEST) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / MANIFEST_FIXTURE).unlink()
+        assert ("MISSING_REQUIRED_PATH", MANIFEST_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / PROCESS_OUTPUT_FIXTURES[0]).unlink()
+        assert ("MISSING_REQUIRED_PATH", PROCESS_OUTPUT_FIXTURES[0]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
