@@ -61,9 +61,11 @@ REQUIRED_EVIDENCE_REPLAYS = [
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
 REQUIRED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 REQUIRED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
 EXPECTED_CHECKSUM_CASES = {
@@ -83,7 +85,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 33
+SELF_TEST_CASE_COUNT = 35
 
 
 class ValidationError(RuntimeError):
@@ -252,6 +254,16 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("checksum current_perf_evidence missing")
     if not isinstance(hexdump_perf, dict):
         raise ValidationError("hexdump current_perf_evidence missing")
+    require_checker_surfaces(
+        checksum,
+        "checksum",
+        REQUIRED_CHECKSUM_CHECKER_SURFACES,
+    )
+    require_checker_surfaces(
+        hexdump,
+        "hexdump",
+        REQUIRED_HEXDUMP_CHECKER_SURFACES,
+    )
     if hexdump.get("perf_matrix_preflight") != EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT:
         raise ValidationError("hexdump perf_matrix_preflight drifted")
 
@@ -393,6 +405,7 @@ def scaffold_repo(root: Path) -> None:
                 "helpers": [
                     {
                         "key": "checksum",
+                        "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "cases": [
                                 {
@@ -416,6 +429,7 @@ def scaffold_repo(root: Path) -> None:
                     },
                     {
                         "key": "hexdump",
+                        "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES,
                         "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT,
                         "current_perf_evidence": {
                             "cases": [
@@ -479,7 +493,6 @@ def run_self_test() -> None:
         validate(root)
 
         cases_run = 0
-
         expect_failure(
             root,
             lambda: mutate_text(
@@ -635,7 +648,6 @@ def run_self_test() -> None:
         )
         cases_run += 1
         scaffold_repo(root)
-
         expect_failure(
             root,
             lambda: mutate_text(
@@ -736,6 +748,30 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]',
+                '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]',
+            ),
+            "checksum checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ]',
+                '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]',
+            ),
+            "hexdump checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"label": "1501B"',
                 '"label": "1500B"',
             ),
@@ -779,7 +815,6 @@ def run_self_test() -> None:
         )
         cases_run += 1
         scaffold_repo(root)
-
         expect_failure(
             root,
             lambda: mutate_text(
