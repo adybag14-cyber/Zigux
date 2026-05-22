@@ -158,7 +158,7 @@ Keep the current mixed-source file-path-handle bridge companions explicit too; t
 - `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8-file-path-handle-bridge-test`
 
-current `zigux/tests/phase8_build.zig` also keeps the landed `zigux/tests/phase8_file_path_handle_boundary_guard.zig` and `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig` witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route
+current `zigux/tests/phase8_build.zig` also keeps the landed boundary-guard and manifest-sync witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route
 
 repo-reality warning for the broader remaining Phase 8 tooling packet:
 
