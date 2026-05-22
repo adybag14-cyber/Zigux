@@ -51,7 +51,7 @@ MANIFEST_MARKERS = (
 )
 
 SURVEY_MARKERS = (
-    'test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {',
+    'test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {',
     'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);',
     'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);',
     'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");',
@@ -354,7 +354,7 @@ def build_fixture_tree(root: Path) -> None:
     )
     write_text(
         root / SURVEY,
-        """test \"phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit\" {
+        """test \"phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit\" {
     try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);
     try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);
 }
