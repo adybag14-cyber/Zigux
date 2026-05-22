@@ -56,6 +56,20 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
 
+test "phase 5 kretprobe sample exports the live instance-budget contract" {
+    const contract = sample.KretprobeExampleSample.instanceBudgetContract();
+
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", contract.anchor);
+    try std.testing.expectEqualStrings("func", contract.symbol_param_name);
+    try std.testing.expectEqual(@as(u16, 0o644), contract.symbol_param_mode);
+    try std.testing.expectEqualStrings("kernel_clone", contract.default_symbol_name);
+    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), contract.private_data_word_bytes);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, contract.default_maxactive);
+    try std.testing.expect(contract.reports_return_value_and_duration);
+    try std.testing.expect(contract.skips_kernel_threads_without_mm);
+    try std.testing.expect(contract.nmissed_suggests_increasing_maxactive);
+}
+
 test "phase 5 kretprobe sample keeps maxactive retargeting pre-init and explicit" {
     var module = sample.KretprobeExampleSample{};
 
