@@ -99,7 +99,7 @@ fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
     try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
-    try expectContains(scorecard_doc, "validator-first reminder route remains a repo-reality gap on current `master` through `python3 scripts/zigux/validate-phase15.py`");
+    try expectContains(scorecard_doc, "validator-first reminder route is directly readable on current `master` through `python3 scripts/zigux/validate-phase15.py`");
     try expectContains(scorecard_doc, "shared replay build route remains a repo-reality gap on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
     try expectContains(scorecard_doc, "current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence");
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`") == null);
@@ -107,7 +107,7 @@ fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
 
 fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "## Next bounded step");
-    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording and current-master gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.");
+    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording and current-master shared-build or wrapper-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.");
 }
 
 fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
@@ -235,7 +235,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("parity-scorecard-baseline", manifest.slice);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.provenance_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-21", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-22", manifest.surveyed_commit);
     try std.testing.expect(!manifest.posture.architecture_council_status_change_approval_recorded);
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", manifest.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.active_freeze_in_c_anchor_count);
@@ -336,7 +336,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "P15-L03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
-    try expectContains(scorecard_doc, "current-master-readback-2026-05-21");
+    try expectContains(scorecard_doc, "current-master-readback-2026-05-22");
     try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
     try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence", parsed.value.metrics.phase15_governance_only_blocker_anchor_count);
