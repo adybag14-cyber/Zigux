@@ -65,24 +65,32 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
     uint32_t delivery_window;
     uint32_t status;
 };
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
 };
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view {
     uint32_t budget;
     uint32_t window;
     uint32_t flags;
 };
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
     uint32_t attempted;
     uint32_t applied;
     uint32_t skipped;
 };
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary;
 
 struct zigux_notifier_block {
     uintptr_t notifier_call;
