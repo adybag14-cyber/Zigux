@@ -21,6 +21,7 @@ TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignmen
 HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
+LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
@@ -59,6 +60,7 @@ REQUIRED_FILES = (
     HELP_KALLSYMS_PACKET_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
+    LIBBPF_SEGMENT_GATE_CHECKER,
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
@@ -157,6 +159,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     Path("zigux/Makefile"): (
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
+        "scripts/zigux/check-phase8-libbpf-segment-gate.py",
         "phase8-help-kallsyms-test:",
         "phase8-libbpf-segments-test:",
         "phase8-file-path-handle-bridge-test:",
@@ -389,6 +392,7 @@ CHECKERS = (
     HELP_KALLSYMS_PACKET_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
+    LIBBPF_SEGMENT_GATE_CHECKER,
 )
 
 
@@ -511,6 +515,7 @@ def _passing_fixture(root: Path) -> None:
     _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
+    _write(root / LIBBPF_SEGMENT_GATE_CHECKER, _passing_checker("PHASE8_LIBBPF_SEGMENT_GATE"))
 
 
 def run_self_test() -> int:
@@ -578,6 +583,27 @@ def run_self_test() -> int:
             raise AssertionError("expected failing libbpf shard-routes checker output to be reported")
         case_count += 1
         _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
+
+        _write(
+            root / LIBBPF_SEGMENT_GATE_CHECKER,
+            _failing_checker(
+                "PHASE8_LIBBPF_SEGMENT_GATE",
+                "missing-marker:zigux/Makefile:scripts/zigux/check-phase8-libbpf-segment-gate.py",
+            ),
+        )
+        failing_libbpf_segment_gate_checker = validate_root(root)
+        libbpf_segment_gate_output = failing_libbpf_segment_gate_checker.checker_failures.get(
+            LIBBPF_SEGMENT_GATE_CHECKER.as_posix()
+        )
+        if (
+            libbpf_segment_gate_output is None
+            or "PHASE8_LIBBPF_SEGMENT_GATE=fail" not in libbpf_segment_gate_output
+            or "missing-marker:zigux/Makefile:scripts/zigux/check-phase8-libbpf-segment-gate.py"
+            not in libbpf_segment_gate_output
+        ):
+            raise AssertionError("expected failing libbpf segment gate output to be reported")
+        case_count += 1
+        _write(root / LIBBPF_SEGMENT_GATE_CHECKER, _passing_checker("PHASE8_LIBBPF_SEGMENT_GATE"))
 
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
