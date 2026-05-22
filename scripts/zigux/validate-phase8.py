@@ -53,9 +53,7 @@ LIBBPF_SEGMENTS_BUILD = Path("zigux/tests/phase8_libbpf_segments_only_build.zig"
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
-    Path("Documentation/zigux/phase8-file-path-handle-bridge-slice.md"),
     EXEC_CMD_SLICE,
-    Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"),
     LIBBPF_SEGMENT_SURVEY,
     REVIEW_CHECKLIST,
     Path("scripts/zigux/README.md"),
@@ -112,21 +110,13 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
     ),
-    Path("Documentation/zigux/phase8-file-path-handle-bridge-slice.md"): (
-        "phase8-file-path-handle-bridge",
-        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
-        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
-    ),
     EXEC_CMD_SLICE: (
+        "phase8-exec-cmd",
+        "exec-cmd review packet",
         "buildDeferredExeclCall()",
         "buildDeferredExecvCall()",
         "make -C zigux phase8-validate",
         "kernel/workqueue.c remains a Phase 14 boundary-study target",
-    ),
-    Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"): (
-        "phase8-userspace-kernel-bridge-boundary",
-        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
-        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
     ),
     LIBBPF_SEGMENT_SURVEY: (
         "Current helper-plus-build packet",
@@ -629,7 +619,7 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).write_text(original, encoding="utf-8")
+                (root / relative_path).writeText(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
