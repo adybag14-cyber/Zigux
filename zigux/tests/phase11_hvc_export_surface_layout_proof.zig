@@ -83,6 +83,15 @@ test "phase11 HVC exported helper proof keeps imported winsize layout tied to cu
     try layout_assert.expectOffset(hvc_console.Winsize, "ws_ypixel", 6);
 }
 
+test "phase11 HVC exported helper proof keeps imported winsize field types tied to current module" {
+    comptime {
+        assertExactType(@FieldType(hvc_console.Winsize, "ws_row"), u16);
+        assertExactType(@FieldType(hvc_console.Winsize, "ws_col"), u16);
+        assertExactType(@FieldType(hvc_console.Winsize, "ws_xpixel"), u16);
+        assertExactType(@FieldType(hvc_console.Winsize, "ws_ypixel"), u16);
+    }
+}
+
 test "phase11 HVC exported helper proof keeps hv_ops callback table layout explicit" {
     try layout_assert.expectSize(HvOpsLayout, 72);
     try layout_assert.expectAlign(HvOpsLayout, 8);
