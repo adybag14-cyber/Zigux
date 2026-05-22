@@ -41,7 +41,6 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "failed-exit rollback explicit after reusable selftest replay",
     "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest",
     "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
-    "`phase9-runtime-loader-allocator-init-flow-tests`",
     "`zigux/kernel/runtime_loader.zig`",
     "`zigux/kernel/runtime_loader_contract.zig`",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
