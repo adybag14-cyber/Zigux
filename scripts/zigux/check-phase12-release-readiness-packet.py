@@ -61,6 +61,10 @@ BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
+LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
+HEAVY_CONSUMER_PACKET_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py"
+)
 PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
 )
@@ -93,6 +97,8 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_SCSI_SURVEY_TEST_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
+    LIBBPF_SNAPSHOT_CHECKER_PATH,
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH,
     PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH,
     SCRIPTS_README_PATH,
     VALIDATOR_PATH,
@@ -125,6 +131,7 @@ REQUIRED_MARKERS = {
     RELEASE_READINESS_SURVEY_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "The route story on current `master` is split rather than absent: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
+        "The parked libbpf helper-first packet is also still machine-checked on current `master` through `scripts/zigux/check-phase12-libbpf-snapshot.py` and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`; keep that checker pair explicit as support evidence for the note-owned libbpf boundary rather than as proof of a shared replay route.",
         "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
         "`zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that throughput-parity anchor still belongs to the adjacent bounded `virtio_net` packet rather than to the shared PMO release route.",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json` remains the parked visibility anchor for the note-owned libbpf reviewability packet on current `master`, while `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remains the helper-local determinism companion for directly readable `tools/lib/bpf/zigux_segments/pin_path.zig`",
@@ -162,7 +169,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
-        "Shared fallback and anti-overlap packet: keep `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the same active smoke-first packet, the same one-catalog plus one-gap-note plus two-anchor fallback split, and the same release-planning-only boundary.",
+        "Shared fallback and anti-overlap packet: keep `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the same active smoke-first packet, the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split, and the same release-planning-only boundary.",
         "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard,",
         "The active shared build packet is the returned five-file `virtio_net` quintet only:",
