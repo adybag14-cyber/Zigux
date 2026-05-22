@@ -100,7 +100,6 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "zigux/tests/phase6_helper_evidence_manifest.json",
-    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
 ]
