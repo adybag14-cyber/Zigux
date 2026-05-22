@@ -271,6 +271,7 @@ REQUIRED_SOURCE_MARKERS = {
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
+        '"scripts/zigux/check-phase3-selftest-surface.py"',
         '"repo_reality_gaps": []',
     ),
 }
@@ -320,6 +321,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -686,6 +688,20 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["packet_files"].remove("scripts/zigux/check-phase3-selftest-surface.py")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/check-phase3-selftest-surface.py"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected selftest-surface packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["packet_files"].remove("zigux/tests/phase3_export_shim_build.zig")
         _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -903,7 +919,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=30")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
