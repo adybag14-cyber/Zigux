@@ -49,10 +49,9 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
-        "Current `master` does not currently carry `zigux/tests/phase3_export_uapi_layout_build.zig`",
-        "the older dedicated `phase3-export-uapi-layout-test` route remains unshipped compile wiring rather than live same-family evidence",
-        "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore still points at a missing dedicated build file on live `master`",
-        "the shared tests-root export/UAPI layout replay, the direct C smoke replay, the kernel-facing governance note, and the starter validation relays explicit as shipped same-family evidence while treating the absent dedicated `phase3_export_uapi_layout_build.zig` handoff as a current repo-reality gap",
+        "Current `master` now directly carries `zigux/tests/phase3_export_uapi_layout_build.zig`, so the dedicated `phase3-export-uapi-layout-test` route is shipped compile wiring rather than a missing same-family handoff.",
+        "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore now points at live dedicated build wiring on current `master`.",
+        "the shared tests-root export/UAPI layout replay, the dedicated `zigux/tests/phase3_export_uapi_layout_build.zig` handoff plus `phase3-export-uapi-layout-test` route, the direct C smoke replay, the kernel-facing governance note, and the starter validation relays explicit as shipped same-family evidence while leaving broader unfinished Phase 3 coverage and adjacent shared-summary truthfulness as the remaining follow-through",
         "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay as wired through `zigux/tests/build.zig`",
     ),
     VALIDATOR_PATH: (
@@ -226,13 +225,13 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "Current `master` does not currently carry `zigux/tests/phase3_export_uapi_layout_build.zig`",
-            "expected missing dedicated build gap marker was not reported",
+            "Current `master` now directly carries `zigux/tests/phase3_export_uapi_layout_build.zig`, so the dedicated `phase3-export-uapi-layout-test` route is shipped compile wiring rather than a missing same-family handoff.",
+            "expected missing dedicated build evidence marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore still points at a missing dedicated build file on live `master`",
-            "expected missing makefile-backed gap marker was not reported",
+            "The existing `phase3-export-uapi-layout-test` target in `zigux/Makefile` therefore now points at live dedicated build wiring on current `master`.",
+            "expected missing makefile-backed dedicated build marker was not reported",
         ),
         (
             TESTS_BUILD_PATH,
