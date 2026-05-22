@@ -153,8 +153,10 @@ VERIFY_MARKERS = [
 HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps probe gating anchored below transport-backed claims" {',
     'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
+    'test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {',
     "_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);",
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
+    'test "phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit" {',
     'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
     'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {',
     'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {',
@@ -163,6 +165,9 @@ HELPER_TEST_MARKERS = [
     'const no_op = try device.configWriteDispositionSummary();',
     'try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);',
     'try std.testing.expect(!no_op.has_changes);',
+    'try std.testing.expect(!summary.bounded_queue_register_window_ready);',
+    'try std.testing.expect(!summary.interrupt_ack_ready);',
+    'try std.testing.expect(summary.queue_ready_for_handoff);',
 ]
 
 SURVEY_GATE_MARKERS = [
@@ -193,6 +198,12 @@ SURVEY_GATE_MARKERS = [
     'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");',
     'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-config-write-plan-freshness-helper\\\"");',
     'try expectContains(manifest, "\\"id\\": \\\"phase10-virtio-mmio-survey-gate\\\"");',
+    'test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {',
+    'try expectContains(helper_tests, "test \\\"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\\\" {");',
+    'try expectContains(helper_tests, "test \\\"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\\\" {");',
+    'try expectContains(helper_tests, "try std.testing.expect(!summary.bounded_queue_register_window_ready);");',
+    'try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");',
+    'try expectContains(helper_tests, "try std.testing.expect(summary.queue_ready_for_handoff);");',
     'test "phase10 virtio mmio survey note keeps risky transport work blocked" {',
     'try expectContains(survey_note, "transport-backed queue setup or queue reset execution");',
     'try expectContains(survey_note, "shared IRQ delivery parity");',
@@ -331,6 +342,8 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'const no_op = try device.configWriteDispositionSummary();', 'const no_op_missing = try device.configWriteDispositionSummary();', 'helper_tests:const no_op = try device.configWriteDispositionSummary();')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);', 'try std.testing.expectEqual(@as(u4, 1), no_op.changed_byte_mask);', 'helper_tests:try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expect(!no_op.has_changes);', 'try std.testing.expect(no_op.has_changes);', 'helper_tests:try std.testing.expect(!no_op.has_changes);')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {', 'test "phase10 virtio mmio selected queue readiness drifts across selector changes" {', 'helper_tests:test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expect(!summary.bounded_queue_register_window_ready);', 'try std.testing.expect(summary.bounded_queue_register_window_ready);', 'helper_tests:try std.testing.expect(!summary.bounded_queue_register_window_ready);')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "interrupt-ack disposition review");', 'try expectContains(survey_note, "interrupt-ack drift");', 'survey_gate:try expectContains(survey_note, "interrupt-ack disposition review");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "staged config-write planning");', 'try expectContains(survey_note, "staged config-write drift");', 'survey_gate:try expectContains(survey_note, "staged config-write planning");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {', 'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {', 'survey_gate:test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {')
@@ -342,11 +355,13 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"lane_key\\": \\\"P10-L11\\\"");', 'try expectContains(manifest, "\\"lane_key\\": \\\"P10-L10\\\"");', 'survey_gate:try expectContains(manifest, "\\"lane_key\\": \\\"P10-L11\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"risky_transport_posture\\": \\\"blocked_on_risky_transport\\\"");', 'try expectContains(manifest, "\\"risky_transport_posture\\": \\\"missing\\\"");', 'survey_gate:try expectContains(manifest, "\\"risky_transport_posture\\": \\\"blocked_on_risky_transport\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");', 'try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\"id\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {', 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");', 'try expectContains(helper_tests, "try std.testing.expect(summary.interrupt_ack_ready);");', 'survey_gate:try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "run_phase10_virtio_mmio_survey_tests.step", "run_phase10_virtio_mmio_survey_drift.step", "build_file:run_phase10_virtio_mmio_survey_tests.step")
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=50")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=54")
     return 0
 
 
