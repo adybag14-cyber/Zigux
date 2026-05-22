@@ -2,7 +2,7 @@
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `current-master-readback-2026-05-21`
+- surveyed head: `current-master-readback-2026-05-22`
 - lane scope: shared helper-evidence rows and machine-readable manifest only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
@@ -63,10 +63,11 @@ The broader shared perf survey is directly readable again and now matches the cu
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
 - dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`
 - focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-c-parity.py`
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders
+- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders; the direct C parity spot check now keeps 17 sorted lookup cases explicit across ascending and descending comparator-driven lookups, duplicate hits, heterogeneous string-key lookup, and mutable write-through behavior
 
 ### checksum
 
@@ -99,7 +100,7 @@ The broader shared perf survey is directly readable again and now matches the cu
 The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bounded `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c` packet. Current direct-readback measurement coverage is now present for each helper, even though the replay shape is still intentionally lightweight rather than a cross-machine benchmark suite:
 
 - `base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` still centralizes six fixture-owned encode and decode cases across standard, URL-safe, and IMAP variants.
-- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget.
+- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget. The direct C parity spot check in `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-c-parity.py` now keeps 17 sorted lookup cases explicit across ascending and descending comparator-driven lookups, duplicate hits, heterogeneous string-key lookup, and mutable write-through behavior.
 - `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed payload threshold matrix (`64B`, `1501B`) and the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`) still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`; the shared replay packet exposes that packet through `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf-matrix-test`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-perf`.
 - `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`, and the restored rationale pair `Documentation/zigux/phase6-hexdump-slice.md` plus `Documentation/zigux/phase6-hexdump-perf-refresh.md` now makes that grouped-threshold packet reviewable again through the shared route guards.
 - the remaining roadmap-aligned measurement risk is ordinary future drift between this catalog, `Documentation/zigux/phase6-perf-gate-survey.md`, the helper-local fixtures and perf harnesses, and the shared build or wrapper routes rather than a current helper-local replay gap.
@@ -114,6 +115,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `make -C zigux phase6-bsearch-test`
 - `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-perf`
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-test`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
