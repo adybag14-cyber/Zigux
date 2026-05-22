@@ -373,6 +373,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/run-phase3-checks.py",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
@@ -791,6 +793,34 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove("python3 scripts/zigux/validate_phase3_selftest.py")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/validate_phase3_selftest.py"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected phase3 selftest driver replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove("python3 scripts/zigux/run-phase3-checks.py")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/run-phase3-checks.py"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected phase3 check-runner replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove(
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
         )
@@ -946,7 +976,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=34")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
