@@ -15,6 +15,7 @@ CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
 MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
 DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
 DIRECT_REPLAY_PATH = Path("zigux/tests/phase12_nvme_pci.zig")
+VERIFIER_PATH = Path("drivers/nvme/host/pci_verify.zig")
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
@@ -133,7 +134,7 @@ EXPECTED_GAPS = {
 
 EXTRA_REQUIRED_PATHS = (
     "drivers/nvme/host/pci.zig",
-    "drivers/nvme/host/pci_verify.zig",
+    str(VERIFIER_PATH),
     str(DIRECT_BUILD_PATH),
     str(DIRECT_REPLAY_PATH),
 )
@@ -150,6 +151,13 @@ DIRECT_REPLAY_MARKERS = (
     "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery",
     "phase12 nvme pci direct replay keeps admin replay blocker explicit even after IO counts recover",
     "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers",
+)
+
+VERIFIER_MARKERS = (
+    "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit",
+    "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt",
+    "nvme pci rollback gate keeps admin replay blocked even after queue and DMA parity recover",
+    "nvme pci recovery reservation replay debt summary keeps admin replay blocker ahead of stale descriptor debt",
 )
 
 
@@ -229,6 +237,9 @@ def check_manifest(root: Path) -> int:
     direct_replay_text = read_text(root, DIRECT_REPLAY_PATH)
     require_markers(direct_replay_text, DIRECT_REPLAY_MARKERS, "nvme_pci direct replay")
 
+    verifier_text = read_text(root, VERIFIER_PATH)
+    require_markers(verifier_text, VERIFIER_MARKERS, "nvme_pci verifier shard")
+
     return len(gaps)
 
 
@@ -265,6 +276,7 @@ def write_fixture(root: Path) -> None:
         ) + "\n",
         DIRECT_BUILD_PATH: "\n".join(DIRECT_BUILD_MARKERS) + "\n",
         DIRECT_REPLAY_PATH: "\n".join(DIRECT_REPLAY_MARKERS) + "\n",
+        VERIFIER_PATH: "\n".join(VERIFIER_MARKERS) + "\n",
     }
     for relative_path, text in fixture_files.items():
         absolute_path = root / relative_path
@@ -274,14 +286,19 @@ def write_fixture(root: Path) -> None:
     for expected in EXPECTED_GAPS.values():
         absolute_path = root / expected["zigux_destination"]
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (root / MANIFEST_PATH, root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH):
+        if absolute_path in (
+            root / MANIFEST_PATH,
+            root / DIRECT_BUILD_PATH,
+            root / DIRECT_REPLAY_PATH,
+            root / VERIFIER_PATH,
+        ):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH):
+        if absolute_path in (root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH, root / VERIFIER_PATH):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
@@ -385,6 +402,20 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected direct-replay marker drift to fail")
+
+        write_fixture(root)
+        (root / VERIFIER_PATH).write_text(
+            "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "verifier shard" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected verifier-marker drift to fail")
 
         write_fixture(root)
         (root / DIRECT_BUILD_PATH).unlink()
