@@ -60,7 +60,7 @@ Keep the following facts aligned across the bridge packet, manifest, reviewabili
   * the explicit cancel-path handoff keeps cancellation completion review-only and in C
   * `Documentation/zigux/review-checklist.md` continues to route reviewers back through the same blocked-maintenance workqueue packet instead of implying a live wrapper or execution claim
   * the live blocker remains `phase14-workqueue-live-execution-blocker`
-  * the next broader same-lane step is still a packet-local reread, not a live execution port
+  * the next broader same-lane step is still a packet-local reread that leaves broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet, not a live execution port
 
 ## Non-goals
 
@@ -76,4 +76,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, `Documentation/zigux/phase14-workqueue-bridge-survey.md`, and `Documentation/zigux/review-checklist.md` together first when a workqueue-local truthfulness drift appears. Only widen into the shared Phase 14 smoke packet if those lane-local and guardrail surfaces cannot be made truthful on their own.
+Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together first when a workqueue-local truthfulness drift appears. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again, and only widen into the shared packet if those lane-local surfaces cannot be made truthful on their own.
