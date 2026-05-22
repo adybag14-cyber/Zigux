@@ -39,17 +39,17 @@ fn writeCase(writer: anytype, name: []const u8, raw: usize, trailing_comma: bool
     const raw_decimal = try std.fmt.bufPrint(&decimal_buffer, "{}", .{raw});
 
     try writer.print(
-        "    {\n" ++
-            "      \"name\": \"{s}\",\n" ++
-            "      \"kind\": \"{s}\",\n" ++
-            "      \"raw_hex\": \"{s}\",\n" ++
-            "      \"raw_decimal\": \"{s}\",\n" ++
-            "      \"is_null\": {s},\n" ++
-            "      \"is_value\": {s},\n" ++
-            "      \"is_err\": {s},\n" ++
-            "      \"is_pointer\": {s},\n" ++
-            "      \"is_tagged_internal\": {s},\n" ++
-            "      \"decoded_error\": ",
+        "    {{\\n" ++
+            "      \\\"name\\\": \\\"{s}\\\",\\n" ++
+            "      \\\"kind\\\": \\\"{s}\\\",\\n" ++
+            "      \\\"raw_hex\\\": \\\"{s}\\\",\\n" ++
+            "      \\\"raw_decimal\\\": \\\"{s}\\\",\\n" ++
+            "      \\\"is_null\\\": {s},\\n" ++
+            "      \\\"is_value\\\": {s},\\n" ++
+            "      \\\"is_err\\\": {s},\\n" ++
+            "      \\\"is_pointer\\\": {s},\\n" ++
+            "      \\\"is_tagged_internal\\\": {s},\\n" ++
+            "      \\\"decoded_error\\\": ",
         .{
             name,
             kindName(slot.kind()),
@@ -63,15 +63,15 @@ fn writeCase(writer: anytype, name: []const u8, raw: usize, trailing_comma: bool
         },
     );
     try writeOptionalSigned(writer, slot.errorCode());
-    try writer.writeAll(",\n      \"decoded_value\": ");
+    try writer.writeAll(",\\n      \\\"decoded_value\\\": ");
     try writeOptionalUnsigned(writer, slot.value());
-    try writer.writeAll(",\n      \"pointer_raw\": ");
+    try writer.writeAll(",\\n      \\\"pointer_raw\\\": ");
     try writeOptionalUnsigned(writer, slot.pointerValue());
-    try writer.writeAll("\n    }");
+    try writer.writeAll("\\n    }");
     if (trailing_comma) {
         try writer.writeAll(",");
     }
-    try writer.writeAll("\n");
+    try writer.writeAll("\\n");
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -84,11 +84,11 @@ pub fn main(init: std.process.Init) !void {
     const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
     try writer.print(
-        "{\n" ++
-            "  \"word_bits\": {},\n" ++
-            "  \"safe_inline_limit\": {},\n" ++
-            "  \"safe_inline_limit_raw_hex\": \"0x{x}\",\n" ++
-            "  \"cases\": [\n",
+        "{{\\n" ++
+            "  \\\"word_bits\\\": {},\\n" ++
+            "  \\\"safe_inline_limit\\\": {},\\n" ++
+            "  \\\"safe_inline_limit_raw_hex\\\": \\\"0x{x}\\\",\\n" ++
+            "  \\\"cases\\\": [\\n",
         .{
             @bitSizeOf(usize),
             xa_value.safe_inline_limit,
@@ -106,6 +106,6 @@ pub fn main(init: std.process.Init) !void {
     try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), true);
     try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);
 
-    try writer.writeAll("  ]\n}\n");
+    try writer.writeAll("  ]\\n}\\n");
     try stdout_writer.interface.flush();
 }
