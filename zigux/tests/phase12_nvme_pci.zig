@@ -74,7 +74,7 @@ test "phase12 nvme pci direct replay keeps stale recovery reservation debt expli
     const recovery = lab.recoverySummary();
     try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
 
-    const replay = try lab.replayReservedIoQueues(.{
+    const applied = try lab.applyRecoveryReservationReplay(.{
         .cached_prp_metadata_generation = reservation.reset_generation,
         .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
@@ -82,9 +82,25 @@ test "phase12 nvme pci direct replay keeps stale recovery reservation debt expli
         .had_io_queue_reservation = true,
         .cached_reserved_io_queues = reservation.reserved_io_queues,
     }, 3);
-    try std.testing.expectEqual(preflight.replayable_reserved_io_queues, replay.reserved_io_queues);
-    try std.testing.expectEqual(preflight.first_queue_id, replay.first_queue_id);
-    try std.testing.expectEqual(preflight.last_queue_id, replay.last_queue_id);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", applied.anchor);
+    try std.testing.expectEqual(preflight.requested_reserved_io_queues, applied.requested_reserved_io_queues);
+    try std.testing.expectEqual(preflight.controller_io_queue_limit, applied.controller_io_queue_limit);
+    try std.testing.expectEqual(preflight.planner_remaining_io_slots, applied.planner_remaining_io_slots);
+    try std.testing.expectEqual(preflight.replayable_reserved_io_queues, applied.replayed_reserved_io_queues);
+    try std.testing.expectEqual(preflight.first_queue_id, applied.first_queue_id);
+    try std.testing.expectEqual(preflight.last_queue_id, applied.last_queue_id);
+    try std.testing.expectEqual(preflight.planned_io_queues_after_replay, applied.planned_io_queues_after_replay);
+    try std.testing.expectEqual(preflight.next_io_queue_id_after_replay, applied.next_io_queue_id_after_replay);
+    try std.testing.expectEqual(preflight.queue_numbering_restarted, applied.queue_numbering_restarted);
+    try std.testing.expectEqual(preflight.controller_limited, applied.controller_limited);
+    try std.testing.expectEqual(preflight.planner_limited, applied.planner_limited);
+    try std.testing.expectEqual(preflight.cached_queue_reservation_stale, applied.cached_queue_reservation_stale);
+    try std.testing.expectEqual(preflight.cached_prp_metadata_stale, applied.cached_prp_metadata_stale);
+    try std.testing.expectEqual(preflight.descriptor_rebuild_required, applied.descriptor_rebuild_required);
+    try std.testing.expectEqual(preflight.admin_queue_must_be_replanned, applied.admin_queue_must_be_replanned);
+
+    const applied_recovery = lab.recoverySummary();
+    try std.testing.expectEqual(@as(usize, 3), applied_recovery.planned_io_queues);
 
     const next = try lab.planIoQueue(8, 64, false);
     try std.testing.expectEqual(@as(u16, 4), next.queue_id);
