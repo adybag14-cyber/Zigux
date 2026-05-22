@@ -91,7 +91,17 @@
         "phase7-argv-split-survey",
         "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
         "phase7-rbtree-test",
-        "phase7-rbtree-survey"
+        "phase7-rbtree-survey",
+        "const test_step = b.step(\"test\", \"Run the Phase 7 runtime helper tests\");",
+        "test_step.dependOn(&run_string_helpers_tests.step)",
+        "test_step.dependOn(&run_string_helpers_survey_tests.step)",
+        "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+        "test_step.dependOn(&run_cmdline_tests.step)",
+        "test_step.dependOn(&run_cmdline_survey_tests.step)",
+        "test_step.dependOn(&run_argv_split_tests.step)",
+        "test_step.dependOn(&run_argv_split_survey_tests.step)",
+        "test_step.dependOn(&run_rbtree_tests.step)",
+        "test_step.dependOn(&run_rbtree_survey_tests.step)"
       ]
     },
     {
