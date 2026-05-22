@@ -116,8 +116,14 @@ OPTIONAL_WORKFLOW_PACKET_STEPS = (
 
 PHASE1_CORE_CHAIN_HEAD = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[:6])
 PHASE1_CORE_CHAIN_TAIL = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[6:])
-PHASE1_PACKET_PREDECESSOR = "Validate current Phase 2 tool packet"
-PHASE1_PACKET_SUCCESSOR = "Self-test current Phase 4 repo-reality warning checker"
+PHASE1_PACKET_PREDECESSOR = (
+    "Validate current Phase 2 tool packet",
+    "python3 scripts/zigux/validate-phase2.py",
+)
+PHASE1_PACKET_SUCCESSOR = (
+    "Self-test current Phase 4 repo-reality warning checker",
+    "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
+)
 
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase1-bench.py",
@@ -201,6 +207,26 @@ def contains_adjacent_chain(names: list[str], expected_chain: tuple[str, ...]) -
 
 def collect_workflow_order_failures(text: str) -> list[str]:
     failures: list[str] = []
+
+    for boundary_label, (step_name, run_command) in (
+        ("predecessor", PHASE1_PACKET_PREDECESSOR),
+        ("successor", PHASE1_PACKET_SUCCESSOR),
+    ):
+        name_line = workflow_name_line(step_name)
+        run_line = workflow_run_line(run_command)
+        block = workflow_step_block(step_name, run_command)
+        name_count = sum(1 for current in text.splitlines() if current.strip() == name_line)
+        if name_count != 1:
+            failures.append(f"workflow_boundary_{boundary_label}_step:{step_name}:expected=1:actual={name_count}")
+        run_count = sum(1 for current in text.splitlines() if current.strip() == run_line)
+        if run_count != 1:
+            failures.append(f"workflow_boundary_{boundary_label}_run:{run_command}:expected=1:actual={run_count}")
+        block_count = text.count(block)
+        if block_count != 1:
+            failures.append(f"workflow_boundary_{boundary_label}_pair:{step_name}:expected=1:actual={block_count}")
+    if failures:
+        return failures
+
     position_map: dict[str, int] = {}
     for step_name, run_command in WORKFLOW_PACKET_STEPS:
         name_line = workflow_name_line(step_name)
@@ -303,7 +329,7 @@ def collect_workflow_order_failures(text: str) -> list[str]:
     if not contains_adjacent_chain(workflow_names, phase1_core_chain):
         failures.append("workflow:phase1_core_packet:expected=adjacent_without_insertions:actual=split_or_interleaved")
 
-    boundary_chain = (PHASE1_PACKET_PREDECESSOR,) + phase1_core_chain + (PHASE1_PACKET_SUCCESSOR,)
+    boundary_chain = (PHASE1_PACKET_PREDECESSOR[0],) + phase1_core_chain + (PHASE1_PACKET_SUCCESSOR[0],)
     if not contains_adjacent_chain(workflow_names, boundary_chain):
         failures.append(
             "workflow:phase1_bootstrap_packet_slot:expected=adjacent_between_phase2_tail_and_phase4_head:actual=split_or_shifted"
@@ -359,12 +385,9 @@ def build_sample_repo(root: Path) -> None:
         write_text(root, relative_path, "\n".join(markers) + "\n")
 
     sample_steps = [
-        workflow_step_block("Validate current Phase 2 tool packet", "python3 scripts/zigux/validate-phase2.py"),
+        workflow_step_block(*PHASE1_PACKET_PREDECESSOR),
         *[workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS],
-        workflow_step_block(
-            "Self-test current Phase 4 repo-reality warning checker",
-            "python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
-        ),
+        workflow_step_block(*PHASE1_PACKET_SUCCESSOR),
     ]
     write_text(
         root,
@@ -475,6 +498,12 @@ def rewrite_workflow_command(root: Path, original_command: str, replacement_comm
     write_text(root, WORKFLOW_REL, replace_once(text, f"run: {original_command}", f"run: {replacement_command}"))
 
 
+def duplicate_workflow_step_block(root: Path, step_name: str, run_command: str) -> None:
+    text = load_text(root, WORKFLOW_REL)
+    block = workflow_step_block(step_name, run_command)
+    write_text(root, WORKFLOW_REL, replace_once(text, block, block + "\n" + block))
+
+
 def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [("success", None)]
 
@@ -508,13 +537,45 @@ def run_self_test() -> int:
     cases.append(
         (
             "workflow_phase1_packet_predecessor_name_drift",
-            ("rename_workflow_step", PHASE1_PACKET_PREDECESSOR, "Validate current Phase 2 tool proof"),
+            ("rename_workflow_step", PHASE1_PACKET_PREDECESSOR[0], "Validate current Phase 2 tool proof"),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_predecessor_command_drift",
+            (
+                "rewrite_workflow_command",
+                PHASE1_PACKET_PREDECESSOR[1],
+                "python3 scripts/zigux/validate-phase2.py --dry-run",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_predecessor_duplicate",
+            ("duplicate_workflow_step_block", PHASE1_PACKET_PREDECESSOR[0], PHASE1_PACKET_PREDECESSOR[1]),
         )
     )
     cases.append(
         (
             "workflow_phase1_packet_successor_name_drift",
-            ("rename_workflow_step", PHASE1_PACKET_SUCCESSOR, "Self-test current Phase 4 repo-reality proof"),
+            ("rename_workflow_step", PHASE1_PACKET_SUCCESSOR[0], "Self-test current Phase 4 repo-reality proof"),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_command_drift",
+            (
+                "rewrite_workflow_command",
+                PHASE1_PACKET_SUCCESSOR[1],
+                "python3 scripts/zigux/check-phase4-repo-reality-warning.py --dry-run",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_successor_duplicate",
+            ("duplicate_workflow_step_block", PHASE1_PACKET_SUCCESSOR[0], PHASE1_PACKET_SUCCESSOR[1]),
         )
     )
     cases.append(
@@ -582,6 +643,8 @@ def run_self_test() -> int:
                     rename_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "rewrite_workflow_command":
                     rewrite_workflow_command(root, mutation[1], mutation[2])
+                elif kind == "duplicate_workflow_step_block":
+                    duplicate_workflow_step_block(root, mutation[1], mutation[2])
                 elif kind == "optional_step_name_drift":
                     add_optional_workflow_pair(root, "normal")
                     rename_workflow_step(root, mutation[1], mutation[2])
