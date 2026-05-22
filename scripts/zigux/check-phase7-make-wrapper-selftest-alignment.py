@@ -64,7 +64,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -227,7 +227,7 @@ def run_self_test() -> int:
             assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
             cases += 1
 
-        for marker in FORBIDDEN_WORKFLOW_LINES[:3]:
+        for marker in FORBIDDEN_WORKFLOW_LINES:
             build_self_test_root(root)
             path = root / WORKFLOW
             path.write_text(path.read_text(encoding="utf-8") + f"        {marker}\n", encoding="utf-8")
