@@ -17,10 +17,10 @@ This restored Phase 5 packet now reads directly through:
   * `zigux/tests/phase5_kretprobe_example_manifest.json`
   * `zigux/tests/phase5_kretprobe_example_survey.zig`
 
-A later public-tree reread in this lane also confirmed this older shared build path:
+Fresh authenticated contents reread in this lane also directly returned this shared build path:
 
   * `zigux/tests/phase5_build.zig`
-Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, and survey gate above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
+Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, and survey gate above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current directly readable shared build-route companion evidence rather than sample-local proof.
 
 Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
   * `Documentation/zigux/README.md`
@@ -32,7 +32,7 @@ Fresh Phase 5 readback in this run also confirmed that the shared reminder packe
   * `scripts/zigux/README.md`
   * `zigux/tests/README.md`
 
-Those aligned shared surfaces keep the restored direct packet explicit, keep the dedicated review-guide surface checker visible as the shipped shared guard for that reminder family, and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence instead of treating it as direct authenticated proof.
+Those aligned shared surfaces keep the restored direct packet explicit, keep the dedicated review-guide surface checker visible as the shipped shared guard for that reminder family, and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current directly readable shared build-route companion evidence instead of flattening it into sample-local proof.
 ## Landed sample and exact checks
   * `KretprobeExampleSample.descriptor()` names `samples/kprobes/kretprobe_example.c` and keeps `requires_runtime_substrate = false`
   * `KretprobeExampleSample.reviewContract()` keeps the six review focuses and four explicit non-goals visible, including `register_kretprobe` parity, `unregister_kretprobe` parity, `pt_regs or regs_return_value` parity, and loadable module wiring as out of scope for this Phase 5 sample
@@ -49,8 +49,8 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or one of its d
   * do the sample and focused test still keep the default `kernel_clone` path explicit together with pre-init `retargetSymbol("do_sys_openat2")`, empty-symbol rejection, skipped kernel-thread handling, and post-init retarget rejection?
   * do the focused maxactive and replay checks still keep pre-init-only `retargetMaxactive(3)`, zero-value rejection, replay `maxactive = 3`, the `my_data`-style private entry timestamp shape, and the returned anchor replay `maxactive = 20` path explicit without implying module parameters or runtime registration parity?
   * do `runAnchorReplay()` plus the focused handler-boundary and teardown tests still describe the same bounded packet across the sample, focused test, manifest-backed contract, and survey gate, including `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and recovered duration `60` with post-exit rejection still explicit?
-  * do the direct validation routes stay explicit too: `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` should stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays current public-tree-backed companion evidence rather than direct authenticated proof?
-  * if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while also keeping the shipped `scripts/zigux/check-phase5-review-guide-surface.py` guard and the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence rather than direct authenticated proof?
+  * do the direct validation routes stay explicit too: `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` should stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays current directly readable shared build-route companion evidence rather than sample-local proof?
+  * if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while also keeping the shipped `scripts/zigux/check-phase5-review-guide-surface.py` guard and the returned shared `zigux/tests/phase5_build.zig` route visible as current directly readable shared build-route companion evidence rather than sample-local proof?
   * do the docs still keep the separate Phase 9 `runtime_kretprobe` family visible without widening this note into `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring claims?
 ## Boundary reminders
 
@@ -64,5 +64,5 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane note drift inside this sample packet:
 
-  * if `Documentation/zigux/phase5-kretprobe-sample-survey.md` later misstates `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, or the returned companion-evidence status of `zigux/tests/phase5_build.zig`, repair only this note
+  * if `Documentation/zigux/phase5-kretprobe-sample-survey.md` later misstates `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, or the returned directly readable shared build-route companion status of `zigux/tests/phase5_build.zig`, repair only this note
   * otherwise leave the restored direct kretprobe packet parked while the sample-owned packet stays aligned
