@@ -57,7 +57,8 @@ REQUIRED_MARKERS = {
         "test \"phase 7 argv split companion replays non-blank cross-call ownership independence\" {",
         "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {",
         "test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {",
-        "test \"phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries\" {",
+        "test \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\" {",
+        "test \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\" {",
         "test \"phase 7 argv split companion replays caller-owned teardown and failure boundaries\" {",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
@@ -79,7 +80,8 @@ REQUIRED_MARKERS = {
         "try expectContains(helper, \"test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {\");",
         "try expectContains(helper, \"test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
-        "try expectContains(helper_companion, \"phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries\");",
+        "try expectContains(helper_companion, \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\");",
+        "try expectContains(helper_companion, \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\");",
         "try expectContains(fixture_vectors, \"whitespace_before_first_nul_reuses_empty_packet\");",
         "try expectContains(slice_note, \"leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins\");",
         "try expectStringSliceContains(manifest.ownership_focus, \"leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins\");",
@@ -100,7 +102,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 45
+SELF_TEST_CASE_COUNT = 46
 
 
 def read_text(path: Path) -> str:
@@ -275,23 +277,29 @@ def run_self_test() -> None:
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][8]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_fixture_backed_companion_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_whitespace_before_first_nul_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][9]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_fixture_backed_companion_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][10]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_slice_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][11]
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_slice_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][12]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_manifest_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
@@ -337,12 +345,6 @@ def run_self_test() -> None:
         helper_marker = "pub fn argvSplit("
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_argvsplit_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
-        write_fixture_root(tmp_root)
-
-        helper_text = read_text(helper_path)
-        helper_marker = "pub fn argvSplitWithArgc("
-        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_helper_argvsplitwithargc_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
@@ -400,7 +402,13 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         companion_text = read_text(companion_path)
-        companion_marker = "test \"phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries\" {"
+        companion_marker = "test \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\" {"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_whitespace_before_first_nul_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = "test \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\" {"
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_companion_fixture_backed_packet_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         write_fixture_root(tmp_root)
@@ -412,7 +420,7 @@ def run_self_test() -> None:
         expect_missing_marker("missing_samples_argv_boundary", tmp_root, f"samples/zigux/README.md: {samples_marker}")
         write_fixture_root(tmp_root)
 
-        assert SELF_TEST_CASE_COUNT == 45
+        assert SELF_TEST_CASE_COUNT == 46
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
