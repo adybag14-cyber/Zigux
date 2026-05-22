@@ -62,6 +62,10 @@ REQUIRED_MARKERS = {
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
+        "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
+        "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+        "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
+        "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
@@ -237,7 +241,7 @@ def fixture_manifest() -> dict[str, object]:
         "freeze_in_c_anchors": ["kernel/sched/core.c", "mm/page_alloc.c", "kernel/rcu/tree.c", "net/core/skbuff.c"],
         "survey_summary": {
             "virtio_ring_c_lines": 3940,
-            "preexisting_phase10_test_files": 3,
+            "preexisting_phase10_test_files": 7,
             "preexisting_virtio_core_zig_present": True,
             "preexisting_phase10_build_present": True,
             "preexisting_phase10_core_doc_present": False,
@@ -293,11 +297,24 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_prepare_kick_marker(tmp_root: Path) -> None:
+            path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
+            text = path.read_text(encoding="utf-8")
+            marker = "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`"
+            path.write_text(text.replace(marker, "`zigux/tests/phase10_virtio_ring_prepare_kick_missing.zig`", 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_prepare_kick_marker,
+            "Documentation/zigux/phase10-virtio-ring-survey.md:`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
+        )
+        write_fixture(root)
+
         def add_forbidden_freeze_marker(tmp_root: Path) -> None:
             path = tmp_root / "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md"
             text = path.read_text(encoding="utf-8")
             marker = "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder"
-            path.write_text(text + marker + "\n", encoding="utf-8")
+            path.write_text(text + "\n", encoding="utf-8")
 
         expect_problem(
             root,
@@ -499,7 +516,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 def main() -> int:
