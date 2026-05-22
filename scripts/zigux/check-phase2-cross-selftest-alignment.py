@@ -80,6 +80,7 @@ TESTS_ALIGNMENT_MARKERS = (
 
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
 ROUTE = "make -C zigux phase2-cross"
+EXPECTED_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
 
 
 def read_text(path: Path) -> str:
@@ -164,6 +165,12 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
         raise SystemExit(
             "unsupported archive_target_scope targets in required file: "
             + ", ".join(unsupported_targets)
+        )
+
+    required_make_routes = upgrade_policy.get("required_make_routes")
+    if required_make_routes != list(EXPECTED_REQUIRED_MAKE_ROUTES):
+        raise SystemExit(
+            f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
         )
 
     expected_modes = {
@@ -321,7 +328,7 @@ def build_self_test_root(root: Path) -> None:
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
                     "archive_target_scope": ["x86_64-linux"],
-                    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    "required_make_routes": list(EXPECTED_REQUIRED_MAKE_ROUTES),
                 },
             },
             indent=2,
@@ -394,7 +401,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 17
+        + 19
         + 10
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -498,6 +505,32 @@ def run_self_test() -> int:
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
         checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid required_make_routes" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing phase2-cross route did not abort")
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["required_make_routes"] = "broken"
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid required_make_routes" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid required_make_routes shape did not abort")
 
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
