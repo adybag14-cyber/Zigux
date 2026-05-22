@@ -270,6 +270,11 @@ SELF_TEST_CASES = [
     ),
     (
         PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '      "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",',
+        '      "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_profile.zig",',
+    ),
+    (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
         '        "budget_formula": "std.math.log2_int_ceil(len) + 1",',
         '        "budget_formula": "std.math.log2_int_floor(len) + 1",',
     ),
