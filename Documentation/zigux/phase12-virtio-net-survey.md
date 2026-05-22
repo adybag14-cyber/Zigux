@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`
 - `PHASE12_SLICE=virtio-net-survey`
-- lane owner: `P12-L01`
+- lane owner: `P12-L04`
 - scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate review packet truthful without reopening live runtime data-path work
 - verified head: `6791c1229b883d9f0acf9ec70e4159db1c9d1bf6`
 
