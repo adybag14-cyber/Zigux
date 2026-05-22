@@ -114,6 +114,9 @@ OPTIONAL_WORKFLOW_PACKET_STEPS = (
     ),
 )
 
+PHASE1_CORE_CHAIN_HEAD = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[:6])
+PHASE1_CORE_CHAIN_TAIL = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS[6:11])
+
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase1-bench.py",
 )
@@ -131,7 +134,7 @@ REQUIRED_MARKERS = {
         "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md now all carry the shipped bench-checker wording, while Documentation/zigux/phase1-closure.md plus scripts/zigux/validate-phase1-closure.py keep the restored closure-side packet explicit and the broader installer-backed, validator-first, bench-route, and replay names remain historical packet members until direct current-master rereads restore them`",
     ),
     REVIEW_CHECKLIST_REL: (
-        "* if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, keep `zigux/Makefile` explicit as current repo evidence for the returned non-Phase-1 route families, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?",
+        "* if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, keep `zigux/Makefile` explicit as current repo evidence for the returned non-Phase-1 route families, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?`",
     ),
     SCRIPTS_README_REL: (
         "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
@@ -180,6 +183,20 @@ def replace_once(text: str, old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+def workflow_step_names(text: str) -> list[str]:
+    prefix = "      - name: "
+    return [line[len(prefix) :] for line in text.splitlines() if line.startswith(prefix)]
+
+
+def contains_adjacent_chain(names: list[str], expected_chain: tuple[str, ...]) -> bool:
+    chain_length = len(expected_chain)
+    max_start = len(names) - chain_length + 1
+    for start in range(max_start):
+        if tuple(names[start : start + chain_length]) == expected_chain:
+            return True
+    return False
+
+
 def collect_workflow_order_failures(text: str) -> list[str]:
     failures: list[str] = []
     position_map: dict[str, int] = {}
@@ -225,9 +242,7 @@ def collect_workflow_order_failures(text: str) -> list[str]:
         for step_name, counts in optional_counts.items()
         if counts != (0, 0) or optional_pair_counts[step_name] != 0
     ]
-    if not present_optional:
-        return failures
-    if len(present_optional) != len(OPTIONAL_WORKFLOW_PACKET_STEPS):
+    if present_optional and len(present_optional) != len(OPTIONAL_WORKFLOW_PACKET_STEPS):
         for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS:
             name_count, run_count = optional_counts[step_name]
             pair_count = optional_pair_counts[step_name]
@@ -243,36 +258,48 @@ def collect_workflow_order_failures(text: str) -> list[str]:
     for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS:
         name_count, run_count = optional_counts[step_name]
         pair_count = optional_pair_counts[step_name]
-        if name_count != 1:
-            optional_pair_failures.append(f"workflow_optional_step:{step_name}:expected=1:actual={name_count}")
-        if run_count != 1:
-            optional_pair_failures.append(f"workflow_optional_run:{run_command}:expected=1:actual={run_count}")
-        if pair_count != 1:
-            optional_pair_failures.append(f"workflow_optional_pair:{step_name}:expected=1:actual={pair_count}")
+        if present_optional:
+            if name_count != 1:
+                optional_pair_failures.append(f"workflow_optional_step:{step_name}:expected=1:actual={name_count}")
+            if run_count != 1:
+                optional_pair_failures.append(f"workflow_optional_run:{run_command}:expected=1:actual={run_count}")
+            if pair_count != 1:
+                optional_pair_failures.append(f"workflow_optional_pair:{step_name}:expected=1:actual={pair_count}")
     if optional_pair_failures:
         failures.extend(optional_pair_failures)
         return failures
 
-    if optional_positions != sorted(optional_positions):
-        failures.append("workflow:phase1_bootstrap_optional_pair:expected=strictly_increasing:actual=out_of_order")
-        return failures
+    if present_optional:
+        if optional_positions != sorted(optional_positions):
+            failures.append("workflow:phase1_bootstrap_optional_pair:expected=strictly_increasing:actual=out_of_order")
+            return failures
 
-    route_summary_check_pos = position_map["Check current Phase 1 route summary packet"]
-    bench_self_test_pos = position_map["Self-test current Phase 1 bench checker"]
-    if not all(route_summary_check_pos < pos < bench_self_test_pos for pos in optional_positions):
-        failures.append(
-            "workflow:phase1_bootstrap_optional_pair:expected=between_route_summary_check_and_bench_self_test:actual=outside_slot"
-        )
-        return failures
+        route_summary_check_pos = position_map["Check current Phase 1 route summary packet"]
+        bench_self_test_pos = position_map["Self-test current Phase 1 bench checker"]
+        if not all(route_summary_check_pos < pos < bench_self_test_pos for pos in optional_positions):
+            failures.append(
+                "workflow:phase1_bootstrap_optional_pair:expected=between_route_summary_check_and_bench_self_test:actual=outside_slot"
+            )
+            return failures
 
-    optional_pair_block = "\n".join(
-        workflow_step_block(step_name, run_command)
-        for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS
-    )
-    if text.count(optional_pair_block) != 1:
-        failures.append(
-            "workflow:phase1_bootstrap_optional_pair:expected=adjacent_self_test_then_check:actual=split_or_misordered"
+        optional_pair_block = "\n".join(
+            workflow_step_block(step_name, run_command)
+            for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS
         )
+        if text.count(optional_pair_block) != 1:
+            failures.append(
+                "workflow:phase1_bootstrap_optional_pair:expected=adjacent_self_test_then_check:actual=split_or_misordered"
+            )
+            return failures
+
+    phase1_core_chain = PHASE1_CORE_CHAIN_HEAD
+    if present_optional:
+        phase1_core_chain += tuple(step_name for step_name, _ in OPTIONAL_WORKFLOW_PACKET_STEPS)
+    phase1_core_chain += PHASE1_CORE_CHAIN_TAIL
+
+    if not contains_adjacent_chain(workflow_step_names(text), phase1_core_chain):
+        failures.append("workflow:phase1_core_packet:expected=adjacent_without_insertions:actual=split_or_interleaved")
+
     return failures
 
 
@@ -383,6 +410,19 @@ def add_optional_workflow_pair(root: Path, mode: str) -> None:
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
 
 
+def insert_phase1_packet_spacer(root: Path, after_step_name: str) -> None:
+    blocks = [workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS]
+    anchor = next(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in WORKFLOW_PACKET_STEPS
+        if step_name == after_step_name
+    )
+    anchor_index = blocks.index(anchor)
+    spacer = "      - name: Drifted current Phase 1 packet spacer\n        run: true"
+    blocks[anchor_index + 1 : anchor_index + 1] = [spacer]
+    write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
+
+
 def rename_workflow_step(root: Path, original_name: str, replacement_name: str) -> None:
     text = load_text(root, WORKFLOW_REL)
     write_text(root, WORKFLOW_REL, replace_once(text, f"- name: {original_name}", f"- name: {replacement_name}"))
@@ -418,6 +458,18 @@ def run_self_test() -> int:
     cases.append(("workflow_optional_pair_split", ("optional_workflow", "split")))
     cases.append(("workflow_optional_pair_self_only", ("optional_workflow", "self_only")))
     cases.append(("workflow_optional_pair_check_only", ("optional_workflow", "check_only")))
+    cases.append(
+        (
+            "workflow_phase1_packet_spacer_after_route_summary",
+            ("phase1_packet_spacer", "Check current Phase 1 route summary packet"),
+        )
+    )
+    cases.append(
+        (
+            "workflow_phase1_packet_spacer_after_shared_reminder",
+            ("phase1_packet_spacer", "Check current Phase 1 shared reminder packet"),
+        )
+    )
     cases.append(
         (
             "workflow_required_step_name_drift",
@@ -473,6 +525,8 @@ def run_self_test() -> int:
                     add_forbidden_workflow_line(root)
                 elif kind == "optional_workflow":
                     add_optional_workflow_pair(root, mutation[1])
+                elif kind == "phase1_packet_spacer":
+                    insert_phase1_packet_spacer(root, mutation[1])
                 elif kind == "rename_workflow_step":
                     rename_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "rewrite_workflow_command":
