@@ -77,6 +77,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    runtime_loader_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
     const runtime_loader_command_env_boundary_guard_module = b.createModule(.{
         .root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),
         .target = target,
