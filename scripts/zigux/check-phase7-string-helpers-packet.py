@@ -621,7 +621,8 @@ def main() -> int:
             print(item)
         print("MISSING_PHASE7_STRING_HELPERS_FILES_END")
     if missing_markers:
-        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")n        for item in missing_markers:
+        print("MISSING_PHASE7_STRING_HELPERS_MARKERS_START")
+        for item in missing_markers:
             print(item)
         print("MISSING_PHASE7_STRING_HELPERS_MARKERS_END")
     if mismatched_counts:
