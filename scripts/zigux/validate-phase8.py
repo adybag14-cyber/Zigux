@@ -525,6 +525,27 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(
+            root / HELP_KALLSYMS_PACKET_CHECKER,
+            _failing_checker(
+                "PHASE8_HELP_KALLSYMS_PACKET",
+                "missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`",
+            ),
+        )
+        failing_help_kallsyms_checker = validate_root(root)
+        help_kallsyms_checker_output = failing_help_kallsyms_checker.checker_failures.get(
+            HELP_KALLSYMS_PACKET_CHECKER.as_posix()
+        )
+        if (
+            help_kallsyms_checker_output is None
+            or "PHASE8_HELP_KALLSYMS_PACKET=fail" not in help_kallsyms_checker_output
+            or "missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`"
+            not in help_kallsyms_checker_output
+        ):
+            raise AssertionError("expected failing help-kallsyms checker output to be reported")
+        case_count += 1
+        _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+
+        _write(
             root / PERF_BUFFER_POLL_GATE_CHECKER,
             _failing_checker(
                 "PHASE8_PERF_BUFFER_POLL_GATE",
@@ -567,7 +588,7 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).write_text(original, encoding="utf-8")
+                (root / relative_path).writeText(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
