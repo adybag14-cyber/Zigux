@@ -108,16 +108,14 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 49
+SELF_TEST_CASE_COUNT = 51
 
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -128,35 +126,29 @@ def collect_missing_markers(root: Path) -> list[str]:
                 missing.append(f"{rel}: {marker}")
     return missing
 
-
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
     return missing_files, collect_missing_markers(root)
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         write(tmp_root / rel, "\n".join(REQUIRED_MARKERS[rel]) + "\n")
-
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
 
-
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [marker], case
-
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_argv_split_packet_") as tmp_dir_str:
@@ -349,6 +341,13 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        companion_text = read_text(companion_path)
+        companion_marker = "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_blank_input_first_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         fixture_text = read_text(fixture_path)
         fixture_marker = "quoted_tokens_stay_whitespace_split"
         fixture_path.write_text(fixture_text.replace(fixture_marker + "\n", "", 1), encoding="utf-8")
@@ -452,6 +451,13 @@ def run_self_test() -> None:
         companion_marker = "test \"phase 7 argv split companion replays non-blank cross-call ownership independence\" {"
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_companion_cross_call_ownership_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_blank_input_first_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
