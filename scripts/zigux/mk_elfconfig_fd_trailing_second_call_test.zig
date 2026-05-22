@@ -131,3 +131,45 @@ test "fd-backed trailing non-ELF input leaves only trailing bytes for the next c
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
     try expectCursor(file, 20);
 }
+
+test "fd-backed trailing non-ELF input keeps a later ELF header hidden behind the trailing bytes" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "not_elf_then_trailing_then_elf32.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x00, 'E',  'L',  'F',  1, 1, 1, 0,
+        0,    0,    0,    0,    0, 0, 0, 0,
+        0xaa, 0xbb, 0xcc, 0xdd,
+        0x7f, 'E',  'L',  'F',  1, 1, 1, 0,
+        0,    0,    0,    0,    0, 0, 0, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const first_exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), first_exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+    try expectCursor(file, 16);
+
+    stdout.reset();
+    stderr.reset();
+    const second_exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), second_exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+    try expectCursor(file, 32);
+
+    stdout.reset();
+    stderr.reset();
+    const third_exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), third_exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+    try expectCursor(file, 36);
+}
