@@ -15,6 +15,7 @@ FD_TRAILING_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_by
 FD_EXACT_CURSOR_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_exact_cursor_test.zig"
 FD_MULTI_HEADER_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_multi_header_cursor_test.zig"
 FD_TRAILING_SECOND_CALL_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_second_call_test.zig"
+FD_DOUBLE_INVALID_CLASS_ZIG_TOOL = ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_double_invalid_class_test.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "mk_elfconfig"
 CASES_PATH = FIXTURE_DIR / "cases.json"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -144,6 +145,9 @@ EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS = {
     "fd_trailing_second_call_invalid_class": 'test "fd-backed trailing invalid-class input leaves only trailing bytes for the next call" {',
     "fd_trailing_second_call_not_elf": 'test "fd-backed trailing non-ELF input leaves only trailing bytes for the next call" {',
 }
+EXPECTED_FD_DOUBLE_INVALID_CLASS_ZIG_MARKERS = {
+    "fd_double_invalid_class": 'test "fd-backed consecutive exact invalid-class headers advance one header per call" {',
+}
 EXPECTED_WORKFLOW_LINES = (
     "      - name: Self-test current Phase 2 mk_elfconfig checker",
     "        run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
@@ -162,19 +166,19 @@ int main(int argc, char **argv)
 \tunsigned char ei[EI_NIDENT];
 
 \tif (fread(ei, 1, EI_NIDENT, stdin) != EI_NIDENT) {
-\t\tfprintf(stderr, "Error: input truncated\\n");
+\t\tfprintf(stderr, \"Error: input truncated\\n\");
 \t\treturn 1;
 \t}
 \tif (memcmp(ei, ELFMAG, SELFMAG) != 0) {
-\t\tfprintf(stderr, "Error: not ELF\\n");
+\t\tfprintf(stderr, \"Error: not ELF\\n\");
 \t\treturn 1;
 \t}
 \tswitch (ei[EI_CLASS]) {
 \tcase ELFCLASS32:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS32\\n");
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS32\\n\");
 \t\tbreak;
 \tcase ELFCLASS64:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
 \t\tbreak;
 \tdefault:
 \t\texit(1);
@@ -349,12 +353,16 @@ def check_cases(*, zig: str, compiler: str) -> None:
     if not FD_TRAILING_SECOND_CALL_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_TRAILING_SECOND_CALL_ZIG_TOOL)
     validate_zig_source_markers(FD_TRAILING_SECOND_CALL_ZIG_TOOL, EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS)
+    if not FD_DOUBLE_INVALID_CLASS_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_DOUBLE_INVALID_CLASS_ZIG_TOOL)
+    validate_zig_source_markers(FD_DOUBLE_INVALID_CLASS_ZIG_TOOL, EXPECTED_FD_DOUBLE_INVALID_CLASS_ZIG_MARKERS)
     validate_workflow_step_packet(WORKFLOW_PATH)
     run_zig_tests(zig, ZIG_TOOL)
     run_zig_tests(zig, FD_TRAILING_ZIG_TOOL)
     run_zig_tests(zig, FD_EXACT_CURSOR_ZIG_TOOL)
     run_zig_tests(zig, FD_MULTI_HEADER_ZIG_TOOL)
     run_zig_tests(zig, FD_TRAILING_SECOND_CALL_ZIG_TOOL)
+    run_zig_tests(zig, FD_DOUBLE_INVALID_CLASS_ZIG_TOOL)
     cases = validate_cases(load_json(CASES_PATH))
     for case in cases:
         validate_expected_result(FIXTURE_DIR / case["expected"])
@@ -411,6 +419,9 @@ def run_self_test() -> None:
     if not FD_TRAILING_SECOND_CALL_ZIG_TOOL.exists():
         raise FileNotFoundError(FD_TRAILING_SECOND_CALL_ZIG_TOOL)
     validate_zig_source_markers(FD_TRAILING_SECOND_CALL_ZIG_TOOL, EXPECTED_FD_TRAILING_SECOND_CALL_ZIG_MARKERS)
+    if not FD_DOUBLE_INVALID_CLASS_ZIG_TOOL.exists():
+        raise FileNotFoundError(FD_DOUBLE_INVALID_CLASS_ZIG_TOOL)
+    validate_zig_source_markers(FD_DOUBLE_INVALID_CLASS_ZIG_TOOL, EXPECTED_FD_DOUBLE_INVALID_CLASS_ZIG_MARKERS)
     validate_workflow_step_packet(WORKFLOW_PATH)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
