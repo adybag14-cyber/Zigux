@@ -9,7 +9,7 @@ test "phase10 virtio input probe preflight helper keeps blocker tags and wrapper
     try std.testing.expect(probe_preflight.identityReady(summary));
     try std.testing.expect(!probe_preflight.queuePlanReady(summary));
     try std.testing.expect(!probe_preflight.capabilitySetupReady(summary));
-    try std.testing.expect(!probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
     try std.testing.expect(!probe_preflight.waitingOnIdentity(summary));
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
     try std.testing.expectEqualStrings("event_queue_unconfigured", probe_preflight.blockerTag(summary.blocker.?));
@@ -31,7 +31,7 @@ test "phase10 virtio input probe preflight helper keeps blocker tags and wrapper
     try std.testing.expect(probe_preflight.queuePlanReady(summary));
     try std.testing.expect(!summary.device_ready);
     try std.testing.expect(!probe_preflight.capabilitySetupReady(summary));
-    try std.testing.expect(!probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.device_not_ready, summary.blocker.?);
     try std.testing.expectEqualStrings("device_not_ready", probe_preflight.blockerTag(summary.blocker.?));
     try std.testing.expect(!probe_preflight.readyForProbeHandoff(summary));
@@ -41,7 +41,7 @@ test "phase10 virtio input probe preflight helper keeps blocker tags and wrapper
     try std.testing.expect(probe_preflight.queuePlanReady(summary));
     try std.testing.expect(summary.device_ready);
     try std.testing.expect(!probe_preflight.capabilitySetupReady(summary));
-    try std.testing.expect(!probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.capability_setup_incomplete, summary.blocker.?);
 
     try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
@@ -76,7 +76,7 @@ test "phase10 virtio input probe preflight keeps serial optional while name and 
     try std.testing.expect(!probe_preflight.queuePlanReady(summary));
     try std.testing.expect(!summary.device_ready);
     try std.testing.expect(!probe_preflight.capabilitySetupReady(summary));
-    try std.testing.expect(!probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
     try std.testing.expect(!probe_preflight.waitingOnIdentity(summary));
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
     try std.testing.expectEqualStrings("event_queue_unconfigured", probe_preflight.blockerTag(summary.blocker.?));
