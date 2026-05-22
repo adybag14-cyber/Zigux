@@ -115,6 +115,17 @@ EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
     "tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues "
     "or neighboring helper families."
 )
+EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINTS = [
+    "findFirstAndNotBit",
+    "find_first_andnot_bit",
+    "_find_first_andnot_bit",
+    "findNextAndNotBit",
+    "find_next_andnot_bit",
+    "_find_next_andnot_bit",
+]
+EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINT_CONTRACT = (
+    "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording."
+)
 EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the already-landed shared-replay promotion for "
     "`cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and "
@@ -219,6 +230,12 @@ REQUIRED_EXACT_LINES = {
         'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
     ],
     FIND_BIT_HELPER_REL: [
+        'pub fn findFirstAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {',
+        'pub fn find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {',
+        'pub fn _find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {',
+        'pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {',
+        'pub fn find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {',
+        'pub fn _find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {',
         'test "clump8 past-end scans return without reading bitmap words" {',
         'test "getValue8 reads aligned bytes from bitmap words" {',
         'test "find last bit scans backward across words" {',
@@ -255,6 +272,8 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/bitmap.zig", "weighted_tail_count_anchor"): 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
     ("review_anchors", "tools/lib/bitmap.zig", "review_packet_summary"): EXPECTED_BITMAP_REVIEW_PACKET_SUMMARY,
     ("review_anchors", "tools/lib/bitmap.zig", "next_safe_step_note"): EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/find_bit.zig", "andnot_scan_entrypoints"): EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINTS,
+    ("review_anchors", "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract"): EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINT_CONTRACT,
     ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"): EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/rbtree.zig", "shared_replay_summary"): EXPECTED_RBTREE_SHARED_REPLAY_SUMMARY,
@@ -371,6 +390,8 @@ def sample_manifest() -> str:
             "next_safe_step_note": EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
         },
         "tools/lib/find_bit.zig": {
+            "andnot_scan_entrypoints": EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINTS,
+            "andnot_scan_entrypoint_contract": EXPECTED_FIND_BIT_ANDNOT_SCAN_ENTRYPOINT_CONTRACT,
             "next_safe_step_note": EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
         },
         "tools/lib/rbtree.zig": {
