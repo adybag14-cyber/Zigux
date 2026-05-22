@@ -4,15 +4,16 @@
 Fail-closed checker for the current Phase 14 release-boundary count posture.
 
 This guard keeps the release-boundary packet honest around the exact manifest-
-backed compile-shard counts, the returned manifest posture in the shared smoke
-survey, and the still-unreadable build-side or broader executable-layer gap
-while cross-reading the shared smoke survey markers that define the current
-Phase 14 route split.
+backed compile-shard counts, the dedicated compile-shard matrix survey, the
+returned manifest posture in the shared smoke survey, and the still-unreadable
+build-side or broader executable-layer gap while cross-reading the shared smoke
+survey markers that define the current Phase 14 route split.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -21,6 +22,10 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
 SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+COMPILE_SHARD_MATRIX_SURVEY_PATH = Path(
+    "Documentation/zigux/phase14-compile-shard-matrix-survey.md"
+)
+MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 
 EXACT_COUNT_MARKERS = [
     "- `PHASE14_COMPILE_SHARD_TOTAL=6`",
@@ -43,6 +48,15 @@ RELEASE_BOUNDARY_TEXT_MARKERS = [
     "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
 ]
 
+COMPILE_SHARD_MATRIX_MARKERS = [
+    *EXACT_COUNT_MARKERS,
+    "- shared gate: `make -C zigux phase14-validate`",
+    "- focused raw build-file shard: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
+    "- machine-readable source: `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+    "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "- shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)",
+]
+
 SURVEY_EXACT_LINE_SNIPPETS = [
     "  * directly readable current-`master` companion surfaces in this lane's current evidence split:",
     "    * `scripts/zigux/check-phase14-shared-smoke-route.py` through the current contents path",
@@ -55,6 +69,27 @@ SURVEY_EXACT_LINE_SNIPPETS = [
     "    * the current readable route layer still stops at `make -C zigux phase14-validate`; no current attached-toolchain `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux phase14` fallback is usable from this note because the readable `zigux/Makefile` body still omits those targets",
 ]
 
+REQUIRED_COMPILE_SHARD_LABELS = {
+    "phase14-workqueue-bridge-tests": "full_bundle_only",
+    "phase14-workqueue-reviewability-tests": "full_bundle_only",
+    "phase14-skbuff-bridge-tests": "full_bundle_only",
+    "phase14-ring-buffer-survey-tests": "full_bundle_only",
+    "phase14-rcu-tree-survey-tests": "full_bundle_only",
+    "phase14-end-to-end-smoke-tests": "focused_and_full_bundle",
+}
+
+REQUIRED_MANIFEST_VALUES = {
+    ("smoke_commands",): ["make -C zigux phase14-validate"],
+    ("smoke_shard_commands",): [
+        "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
+    ],
+    ("survey_summary", "phase14_make_target_present"): True,
+    ("survey_summary", "phase14_make_smoke_target_present"): False,
+    ("survey_summary", "workflow_runs_phase14_validate"): True,
+    ("survey_summary", "workflow_runs_phase14_build"): False,
+    ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
+}
+
 
 def read_text(root: Path, rel: Path) -> str:
     path = root / rel
@@ -63,19 +98,16 @@ def read_text(root: Path, rel: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-
 def write_text(root: Path, rel: Path, text: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
 
-
 def require_markers(errors: list[str], rel: Path, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             errors.append(f"missing_marker:{rel.as_posix()}:{marker}")
-
 
 
 def require_exact_once(errors: list[str], rel: Path, text: str, markers: list[str]) -> None:
@@ -87,6 +119,89 @@ def require_exact_once(errors: list[str], rel: Path, text: str, markers: list[st
             errors.append(f"duplicate_marker:{rel.as_posix()}:{marker}:{count}")
 
 
+def lookup_path(payload: object, path: tuple[str, ...]) -> object:
+    current = payload
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            raise KeyError(".".join(path))
+        current = current[key]
+    return current
+
+
+def require_manifest_values(errors: list[str], manifest: object) -> None:
+    for path, expected in REQUIRED_MANIFEST_VALUES.items():
+        try:
+            actual = lookup_path(manifest, path)
+        except KeyError:
+            errors.append(f"missing_manifest_key:{'.'.join(path)}")
+            continue
+        if actual != expected:
+            errors.append(
+                "manifest_value_mismatch:"
+                f"{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+
+def require_compile_shards(errors: list[str], manifest: object) -> None:
+    if not isinstance(manifest, dict):
+        errors.append("manifest_not_object")
+        return
+    compile_shards = manifest.get("compile_shards")
+    if not isinstance(compile_shards, list):
+        errors.append("missing_manifest_key:compile_shards")
+        return
+
+    if len(compile_shards) != len(REQUIRED_COMPILE_SHARD_LABELS):
+        errors.append(
+            "compile_shard_count_mismatch:"
+            f"expected={len(REQUIRED_COMPILE_SHARD_LABELS)}:actual={len(compile_shards)}"
+        )
+
+    seen_labels: dict[str, str] = {}
+    for row in compile_shards:
+        if not isinstance(row, dict):
+            errors.append(f"compile_shard_row_not_object:{row!r}")
+            continue
+        label = row.get("label")
+        coverage = row.get("coverage")
+        if not isinstance(label, str):
+            errors.append(f"compile_shard_missing_label:{row!r}")
+            continue
+        if not isinstance(coverage, str):
+            errors.append(f"compile_shard_missing_coverage:{label}")
+            continue
+        if label in seen_labels:
+            errors.append(f"duplicate_compile_shard_label:{label}")
+            continue
+        seen_labels[label] = coverage
+
+    for label, expected_coverage in REQUIRED_COMPILE_SHARD_LABELS.items():
+        actual_coverage = seen_labels.get(label)
+        if actual_coverage is None:
+            errors.append(f"missing_compile_shard_label:{label}")
+        elif actual_coverage != expected_coverage:
+            errors.append(
+                "compile_shard_coverage_mismatch:"
+                f"{label}:expected={expected_coverage}:actual={actual_coverage}"
+            )
+
+    focused_count = sum(
+        1 for coverage in seen_labels.values() if coverage == "focused_and_full_bundle"
+    )
+    if focused_count != 1:
+        errors.append(
+            f"focused_compile_shard_count_mismatch:expected=1:actual={focused_count}"
+        )
+
+    full_bundle_only_count = sum(
+        1 for coverage in seen_labels.values() if coverage == "full_bundle_only"
+    )
+    if full_bundle_only_count != 5:
+        errors.append(
+            "full_bundle_only_compile_shard_count_mismatch:"
+            f"expected=5:actual={full_bundle_only_count}"
+        )
+
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
@@ -94,23 +209,46 @@ def check(root: Path) -> list[str]:
     if MARKER not in Path(__file__).read_text(encoding="utf-8"):
         errors.append("missing_checker_marker:self")
 
-    if not (root / RELEASE_BOUNDARY_PATH).exists():
-        errors.append(f"missing_file:{RELEASE_BOUNDARY_PATH.as_posix()}")
-        return errors
-
-    if not (root / SURVEY_PATH).exists():
-        errors.append(f"missing_file:{SURVEY_PATH.as_posix()}")
+    required_paths = [
+        RELEASE_BOUNDARY_PATH,
+        SURVEY_PATH,
+        COMPILE_SHARD_MATRIX_SURVEY_PATH,
+        MANIFEST_PATH,
+    ]
+    for rel in required_paths:
+        if not (root / rel).exists():
+            errors.append(f"missing_file:{rel.as_posix()}")
+    if errors:
         return errors
 
     release_boundary = read_text(root, RELEASE_BOUNDARY_PATH)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, EXACT_COUNT_MARKERS)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, EXECUTABLE_GAP_MARKERS)
-    require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, RELEASE_BOUNDARY_TEXT_MARKERS)
+    require_markers(
+        errors, RELEASE_BOUNDARY_PATH, release_boundary, RELEASE_BOUNDARY_TEXT_MARKERS
+    )
 
     survey = read_text(root, SURVEY_PATH)
     require_exact_once(errors, SURVEY_PATH, survey, SURVEY_EXACT_LINE_SNIPPETS)
-    return errors
 
+    compile_shard_survey = read_text(root, COMPILE_SHARD_MATRIX_SURVEY_PATH)
+    require_markers(
+        errors,
+        COMPILE_SHARD_MATRIX_SURVEY_PATH,
+        compile_shard_survey,
+        COMPILE_SHARD_MATRIX_MARKERS,
+    )
+
+    manifest_text = read_text(root, MANIFEST_PATH)
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid_json:{MANIFEST_PATH.as_posix()}:{exc.msg}")
+        return errors
+
+    require_manifest_values(errors, manifest)
+    require_compile_shards(errors, manifest)
+    return errors
 
 
 def fixture_release_boundary() -> str:
@@ -126,7 +264,6 @@ def fixture_release_boundary() -> str:
     )
 
 
-
 def fixture_survey() -> str:
     return "\n".join(
         [
@@ -137,13 +274,52 @@ def fixture_survey() -> str:
     )
 
 
+def fixture_compile_shard_matrix_survey() -> str:
+    return "\n".join(
+        [
+            "# Phase 14 Compile Shard Matrix Survey",
+            *COMPILE_SHARD_MATRIX_MARKERS,
+            "",
+        ]
+    )
+
+
+def fixture_manifest() -> str:
+    payload = {
+        "smoke_commands": ["make -C zigux phase14-validate"],
+        "smoke_shard_commands": [
+            "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
+        ],
+        "survey_summary": {
+            "phase14_make_target_present": True,
+            "phase14_make_smoke_target_present": False,
+            "workflow_runs_phase14_validate": True,
+            "workflow_runs_phase14_build": False,
+            "workflow_runs_phase14_smoke_shard": False,
+        },
+        "compile_shards": [
+            {
+                "label": label,
+                "coverage": coverage,
+                "root_source": "fixture.zig",
+            }
+            for label, coverage in REQUIRED_COMPILE_SHARD_LABELS.items()
+        ],
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, RELEASE_BOUNDARY_PATH, fixture_release_boundary())
     write_text(root, SURVEY_PATH, fixture_survey())
-
+    write_text(
+        root,
+        COMPILE_SHARD_MATRIX_SURVEY_PATH,
+        fixture_compile_shard_matrix_survey(),
+    )
+    write_text(root, MANIFEST_PATH, fixture_manifest())
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -154,7 +330,6 @@ def remove_line(root: Path, rel: Path, marker: str) -> None:
     write_text(root, rel, updated)
 
 
-
 def duplicate_line(root: Path, rel: Path, marker: str) -> None:
     text = read_text(root, rel)
     if marker not in text:
@@ -162,6 +337,9 @@ def duplicate_line(root: Path, rel: Path, marker: str) -> None:
     updated = text.replace(marker, marker + "\n" + marker, 1)
     write_text(root, rel, updated)
 
+
+def write_manifest_payload(root: Path, payload: object) -> None:
+    write_text(root, MANIFEST_PATH, json.dumps(payload, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -204,17 +382,58 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         duplicate_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[0])
-        if not any(error.startswith(f"duplicate_marker:{SURVEY_PATH.as_posix()}:{SURVEY_EXACT_LINE_SNIPPETS[0]}") for error in check(base)):
+        if not any(
+            error.startswith(
+                f"duplicate_marker:{SURVEY_PATH.as_posix()}:{SURVEY_EXACT_LINE_SNIPPETS[0]}"
+            )
+            for error in check(base)
+        ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected duplicate survey marker drift to fail")
             return 1
 
+        write_fixture_tree(base)
+        remove_line(
+            base,
+            COMPILE_SHARD_MATRIX_SURVEY_PATH,
+            COMPILE_SHARD_MATRIX_MARKERS[4],
+        )
+        if not any(
+            COMPILE_SHARD_MATRIX_MARKERS[4] in error for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected compile-shard survey checker marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["compile_shards"] = manifest["compile_shards"][:-1]
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("compile_shard_count_mismatch:") for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected compile-shard count mismatch to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["compile_shards"][0]["coverage"] = "focused_and_full_bundle"
+        write_manifest_payload(base, manifest)
+        errors = check(base)
+        if not any(
+            error.startswith("compile_shard_coverage_mismatch:phase14-workqueue-bridge-tests")
+            for error in errors
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected compile-shard coverage mismatch to fail")
+            return 1
+
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=5")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
-
 
 
 def main() -> int:
@@ -238,6 +457,10 @@ def main() -> int:
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=pass")
     print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_EXECUTABLE_GAP_COUNT={len(EXECUTABLE_GAP_MARKERS)}")
     print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_SNIPPETS)}")
+    print(
+        "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_COMPILE_SHARD_LABEL_COUNT="
+        f"{len(REQUIRED_COMPILE_SHARD_LABELS)}"
+    )
     return 0
 
 
