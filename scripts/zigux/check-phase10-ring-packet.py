@@ -83,10 +83,9 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
-        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
+        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
         "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
         "the ring survey, slice, and freeze-boundary notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`,",
-        "the returned broader ring companion `zigux/tests/phase10_virtio_ring.zig` kept explicit inside that same direct-readback packet",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "ring lane `P10-L10` owns the queue-local wrapper packet",
@@ -153,9 +152,6 @@ FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice",
         "the broader ring replay still remains outside direct current-head evidence in this slice",
-    ],
-    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
-        "the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
         "try expectContains(slice_note, \"public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` but it still remains outside exact direct-path current-head evidence in this slice\");",
