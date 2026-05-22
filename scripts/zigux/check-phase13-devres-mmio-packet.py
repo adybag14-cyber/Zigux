@@ -47,10 +47,12 @@ SURVEY_MARKERS = [
     "# Phase 13 devres DMA, scatterlist, and MMIO Boundary Survey",
     "helper-first iomap planning evidence",
     "`Documentation/zigux/phase13-devres-iounmap-planner.md` records a landed pure `devm_iounmap()` cleanup planning surface",
+    "`zigux/tests/phase13_devres_iounmap_planner_manifest.json` marks the packet as `starter_landed`",
     "`Documentation/zigux/phase13-devres-iomap-planner.md` records a landed pure `devm_of_iomap()` planning surface",
     "`zigux/tests/phase13_devres_iomap_planner_manifest.json` marks the packet as `starter_landed`",
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
+    "blocked `phase13-devres-missing-devm-of-iomap-surface`",
     "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
     "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
     "blocked `phase13-devres-live-mmio-mapping-state`",
@@ -76,7 +78,12 @@ IOUNMAP_MANIFEST_MARKERS = [
     "\"iounmap_cleanup_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"",
     "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"",
     "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
+    "\"id\": \"phase13-devres-missing-devm-of-iomap-surface\"",
+    "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
+    "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
     "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
+    "\"id\": \"phase13-devres-live-device-tree-walks\"",
+    "\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
 ]
 
 IOUNMAP_REPLAY_MARKERS = [
@@ -229,6 +236,25 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / IOUNMAP_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in IOUNMAP_MANIFEST_MARKERS
+                if marker != "\"id\": \"phase13-devres-live-device-tree-walks\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "iounmap_manifest:missing_marker:\"id\": \"phase13-devres-live-device-tree-walks\"",
+            ],
+            "missing_iounmap_device_tree_marker_failed",
+        )
         case_count += 1
 
         seed_fixture_tree(root)
