@@ -32,7 +32,7 @@ ABSENT_FILES = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P12-L01"',
+    '"lane_key": "P12-L04"',
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
     '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
@@ -48,7 +48,7 @@ MANIFEST_MARKERS = [
 
 SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
-    "lane owner: `P12-L01`",
+    "lane owner: `P12-L04`",
     "scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate review packet truthful without reopening live runtime data-path work",
     "verified head: `6791c1229b883d9f0acf9ec70e4159db1c9d1bf6`",
     "drivers/net/virtio_net_queue_resume.zig",
@@ -67,7 +67,7 @@ SURVEY_GATE_MARKERS = [
     'test "phase12 virtio net survey manifest tracks the shared-build survey-gate coverage truthfully"',
     'test "phase12 virtio net survey note reflects the shared survey-gate route"',
     'test "phase12 virtio net survey gate keeps the present files and shared routes explicit"',
-    'try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
     '"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
     '"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
@@ -170,8 +170,8 @@ def run_check(root: Path) -> None:
     require_markers(manifest_text, "zigux/tests/phase12_virtio_net_manifest.json", MANIFEST_MARKERS)
 
     manifest = json.loads(manifest_text)
-    if manifest.get("lane_key") != "P12-L01":
-        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L01")
+    if manifest.get("lane_key") != "P12-L04":
+        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L04")
     if manifest.get("phase") != "Phase 12":
         raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: phase drifted from Phase 12")
 
@@ -216,7 +216,7 @@ def make_fixture_tree(root: Path) -> None:
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_manifest.json": json.dumps(
             {
-                "lane_key": "P12-L01",
+                "lane_key": "P12-L04",
                 "phase": "Phase 12",
                 "anchor": "drivers/net/virtio_net.c",
                 "roadmap_gap_check": {
@@ -334,7 +334,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
-        (root / "zigux/tests/phase12_virtio_net_survey.zig").write_text("broken\n", encoding="utf-8")
+        (root / "zigux/tests/phase12_virtio_net_survey.zig").writeText("broken\n", encoding="utf-8")
         try:
             run_check(root)
         except CheckError as err:
