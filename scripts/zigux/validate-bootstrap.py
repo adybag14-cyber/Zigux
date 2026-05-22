@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
+TOOLCHAIN_POLICY = "scripts/zigux/zig-toolchain-policy.json"
 
 REQUIRED_PATHS = (
     "zigux-alpha/README.md",
@@ -22,7 +24,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane05-local-archive-readme.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-bootstrap.py",
-    "scripts/zigux/zig-toolchain-policy.json",
+    TOOLCHAIN_POLICY,
     "zigux/tests/README.md",
     WORKFLOW,
 )
@@ -121,6 +123,37 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def policy_required_make_routes(root: Path) -> list[str]:
+    policy_path = root / TOOLCHAIN_POLICY
+    try:
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise ValueError(f"invalid upgrade_policy in {policy_path}")
+
+    required_make_routes = upgrade_policy.get("required_make_routes")
+    if not isinstance(required_make_routes, list) or not required_make_routes:
+        raise ValueError(f"invalid required_make_routes in {policy_path}")
+
+    normalized_routes: list[str] = []
+    seen: set[str] = set()
+    for route in required_make_routes:
+        if not isinstance(route, str) or not route.strip():
+            raise ValueError(f"invalid required_make_routes entry in {policy_path}")
+        normalized_route = route.strip()
+        if normalized_route in seen:
+            raise ValueError(f"duplicate required_make_routes entry in {policy_path}: {normalized_route}")
+        normalized_routes.append(normalized_route)
+        seen.add(normalized_route)
+
+    return normalized_routes
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -161,6 +194,17 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    try:
+        for route in policy_required_make_routes(root):
+            marker = f"run: make -C zigux {route}"
+            count = count_exact_lines(workflow, marker)
+            if count == 0:
+                issues.append(("MISSING_POLICY_REQUIRED_MAKE_ROUTE", marker))
+            elif count != 1:
+                issues.append(("DUPLICATE_POLICY_REQUIRED_MAKE_ROUTE", f"{marker}:count={count}"))
+    except ValueError as exc:
+        issues.append(("INVALID_TOOLCHAIN_POLICY", str(exc)))
 
     return issues
 
@@ -279,9 +323,30 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
     write_text(root, "scripts/zigux/install-zig.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
-    write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
-    write_text(root, "zigux/tests/README.md", "present\n")
-    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
+    write_text(
+        root,
+        TOOLCHAIN_POLICY,
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {
+                    "channel_minimum_lockstep": True,
+                    "archive_target_scope": ["x86_64-linux"],
+                    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
+                },
+            }
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/README.md",
+        "present\n",
+    )
+    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES, "run: make -C zigux phase2-toolchain", "run: make -C zigux phase2-validate", "run: make -C zigux phase2-cross")) + "\n")
 
 
 def run_self_test() -> int:
@@ -357,6 +422,34 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/install-zig.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
+                "run: make -C zigux phase2-validate",
+                "run: make -C zigux phase2-tools",
+            ),
+        )
+        assert (
+            "MISSING_POLICY_REQUIRED_MAKE_ROUTE",
+            "run: make -C zigux phase2-validate",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            TOOLCHAIN_POLICY,
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + ("3" * 64)
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-cross","phase2-cross"]}}\n',
+        )
+        issues = collect_issues(root)
+        assert any(code == "INVALID_TOOLCHAIN_POLICY" and "duplicate required_make_routes entry" in value for code, value in issues)
         checks += 1
 
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
