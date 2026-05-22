@@ -112,6 +112,12 @@ REQUIRED_ROUTE_CHECKER_MARKERS = (
     "run: make -C zigux phase14-validate",
 )
 
+REQUIRED_RELEASE_BOUNDARY_CHECKER_MARKERS = (
+    "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
+    "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
+    'SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")',
+)
+
 FORBIDDEN_MAKEFILE_MARKERS = (
     "phase14-smoke:",
     "phase14-test:",
@@ -185,6 +191,13 @@ def check(root: Path) -> None:
     route_checker_text = (root / SHARED_SMOKE_ROUTE_CHECKER_PATH).read_text(encoding="utf-8")
     require_markers(route_checker_text, REQUIRED_ROUTE_CHECKER_MARKERS, "phase14 shared smoke route checker")
 
+    release_boundary_checker_text = (root / RELEASE_BOUNDARY_CHECKER_PATH).read_text(encoding="utf-8")
+    require_markers(
+        release_boundary_checker_text,
+        REQUIRED_RELEASE_BOUNDARY_CHECKER_MARKERS,
+        "phase14 release-boundary exact-count checker",
+    )
+
     makefile_text = (root / MAKEFILE_PATH).read_text(encoding="utf-8")
     require_absent_markers(makefile_text, FORBIDDEN_MAKEFILE_MARKERS, "phase14 makefile")
 
@@ -240,7 +253,10 @@ def write_fixture_tree(root: Path) -> None:
         "# route checker\n" + "\n".join(REQUIRED_ROUTE_CHECKER_MARKERS) + "\n",
     )
     write_text(root / VALIDATOR_PATH, "# validator placeholder\n")
-    write_text(root / RELEASE_BOUNDARY_CHECKER_PATH, "# release checker placeholder\n")
+    write_text(
+        root / RELEASE_BOUNDARY_CHECKER_PATH,
+        "# release checker\n" + "\n".join(REQUIRED_RELEASE_BOUNDARY_CHECKER_MARKERS) + "\n",
+    )
     write_text(
         root / MAKEFILE_PATH,
         "\n".join(
@@ -260,6 +276,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / WORKQUEUE_TEST_PATH, "// workqueue test\n")
     write_text(root / WORKQUEUE_REVIEWABILITY_PATH, "// workqueue reviewability\n")
     write_text(root / WORKQUEUE_MANIFEST_PATH, "{}\n")
+    write_text(root / RING_BUFFER_SURVEY_PATH, "// ring buffer survey\n")
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -324,6 +341,19 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "phase14 shared smoke route checker missing required markers")
+        cases += 1
+
+        write_fixture_tree(base)
+        release_checker_path = base / RELEASE_BOUNDARY_CHECKER_PATH
+        release_checker_path.write_text(
+            release_checker_path.read_text(encoding="utf-8").replace(
+                REQUIRED_RELEASE_BOUNDARY_CHECKER_MARKERS[1],
+                "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=stale",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase14 release-boundary exact-count checker missing required markers")
         cases += 1
 
         write_fixture_tree(base)
