@@ -53,6 +53,9 @@ MATRIX_MARKERS = (
     "`make -C zigux phase11-hvc-survey`",
     "teardown-parity evidence no longer needs",
     "keep helper-local failure-mode edges reviewable through the verify boundary",
+    "flush intent",
+    "`hvc_install()` ownership",
+    "`hvc_cleanup()` tty-port",
 )
 
 VERIFY_MARKERS = (
@@ -90,6 +93,10 @@ PROOF_MARKERS = (
     'try expectContains(survey_doc, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`");',
     'try expectContains(companion_doc, "`zigux/tests/phase11_hvc_console_manifest.json`");',
     'try expectContains(matrix_doc, "teardown-parity evidence no longer needs");',
+    'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {',
+    'try expectContains(matrix_doc, "flush intent");',
+    'try expectContains(matrix_doc, "`hvc_install()` ownership");',
+    'try expectContains(matrix_doc, "`hvc_cleanup()` tty-port");',
 )
 
 
@@ -198,9 +205,11 @@ def run_self_test() -> int:
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
+            (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps raw-fallback teardown anchors explicit" {'),
+            (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {'),
         ]
 
         for index, (rel, needle) in enumerate(cases, start=1):
