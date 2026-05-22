@@ -27,7 +27,7 @@ That anchor still needs DMA-safe abstractions, queueing correctness, throughput 
 ## Current-master verification
 * current `master` still carries the survey note, slice note, fallback catalog, fixture manifest, survey manifest, survey gate, packet checker, shared `phase12` build bundle, and `zigux/Makefile`
 * current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
-* the shared `zigux/tests/phase12_build.zig` route still covers only the `virtio_net` queue-resume, receive-refill replay, transmit-recycle, post-reset replay, and throughput-parity tests as support-bundle evidence rather than replaying a `virtio_scsi` lane-local packet
+* the shared `zigux/tests/phase12_build.zig` route still covers only the `virtio_net` queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate tests as support-bundle evidence rather than replaying a `virtio_scsi` lane-local packet
 * `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` therefore remains archival raw-read evidence only, not proof that current `master` still exposes the older direct replay family
 * `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` now keep that rollback-only split machine-checkable
 
