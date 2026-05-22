@@ -103,6 +103,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: make -C zigux phase4-validate",
     "- name: Run Phase 4 rollback tests",
     "run: make -C zigux phase4-test",
+    "- name: Run Phase 4 artifact-diff contract make route",
+    "run: make -C zigux phase4-artifact-diff-contract",
     "- name: Self-test current Phase 4 artifact-diff helper",
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
     "- name: Self-test current Phase 4 artifact-diff contract checker",
@@ -122,6 +124,7 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
     "run: make -C zigux phase4-test",
+    "run: make -C zigux phase4-artifact-diff-contract",
     "run: python3 scripts/zigux/artifact_diff.py --self-test",
     "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test",
     "run: python3 scripts/zigux/check-artifact-diff-contract.py",
@@ -290,6 +293,8 @@ SELFTEST_WORKFLOW = """jobs:
         run: make -C zigux phase4-validate
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
+      - name: Run Phase 4 artifact-diff contract make route
+        run: make -C zigux phase4-artifact-diff-contract
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
       - name: Self-test current Phase 4 artifact-diff contract checker
