@@ -30,6 +30,7 @@
   ],
   "maintenance_replay_commands": [
     "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase15-review-process-handoff.py",
