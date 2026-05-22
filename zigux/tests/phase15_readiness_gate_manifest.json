@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L04",
+  "lane_key": "P15-L02",
   "phase": "Phase 15",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit": "current-master-readback-2026-05-22",
@@ -24,7 +24,7 @@
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
-    "scripts/zigux/check-phase15-validator-gap-packet.py",
+    "scripts/zigux/validate-phase15.py",
     "zigux/tests/README.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -41,13 +41,11 @@
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
   "still_missing_broader_paths": [
-    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig"
   ],
   "repo_evidence": {
     "phase15_readiness_packet_checker_present": true,
-    "phase15_validator_gap_checker_present": true,
-    "phase15_validator_script_present": false,
+    "phase15_validator_script_present": true,
     "phase15_docs_readme_checker_present": true,
     "phase15_tests_readme_checker_present": true,
     "phase15_review_checklist_study_only_alignment_checker_present": true,
