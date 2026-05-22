@@ -181,5 +181,6 @@ This ledger turns the roadmap into the first product commit train.
 
 ## Scope Note
 
-- This bootstrap ledger currently records the bounded early commit train through the broadened Phase 2 tranche.
-- Later lane-level expansion stays traceable through the roadmap, the live repo, and current lane notes until a reviewed continuation of this ledger lands.
+- This bootstrap ledger records the bounded early commit train through the broadened Phase 2 tranche.
+- The current-master continuation of that tranche now stays directly reviewable through `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `third_party/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, and `zigux/Makefile`.
+- Treat those current-master surfaces as the shared Lane 25 handoff for the rematerialized local-first archive, installer, direct cross-route, kconfig bridge, genksyms bridge, fixdep, closure-validator, and make-wrapper packet until a reviewed continuation of this ledger lands.
