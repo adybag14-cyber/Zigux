@@ -11,6 +11,20 @@ from pathlib import Path
 HELPER_PATH = Path("lib/devres.zig")
 SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
+SCATTERLIST_NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
+SCATTERLIST_MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
+SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
+SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+
+REQUIRED_FILES = [
+    HELPER_PATH,
+    SURVEY_PATH,
+    DMA_REPLAY_PATH,
+    SCATTERLIST_NOTE_PATH,
+    SCATTERLIST_MANIFEST_PATH,
+    SCATTERLIST_HELPER_PATH,
+    SCATTERLIST_REPLAY_PATH,
+]
 
 HELPER_BLOCKED_MARKERS = [
     "dmam_alloc_coherent(",
@@ -28,6 +42,8 @@ HELPER_BLOCKED_MARKERS = [
 SURVEY_MARKERS = [
     "helper-first scatterlist helper and replay",
     "helper-source readback shows `lib/devres.zig` still omits",
+    "`Documentation/zigux/phase13-devres-scatterlist-planner.md` records a landed pure scatterlist lifetime planning surface",
+    "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` marks the packet as `starter_landed`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
     "blocked `phase13-devres-live-sg-table-lifecycle`",
     "blocked `phase13-devres-generic-dma-map-family`",
@@ -37,12 +53,14 @@ SURVEY_MARKERS = [
     "`dma_mmap_*`",
     "`dma_map_sgtable()`",
     "`sg_table`",
-    "`sg_init_table()`",
+    "`lib/devres_scatterlist.zig` ships a pure scatterlist lifetime planning surface",
 ]
 
-REPLAY_MARKERS = [
+DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
     'test "phase13 devres dma coherent replay proves lib/devres stays planning-only at the boundary" {',
+    'test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {',
+    'test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {',
     'try requireAbsent(helper, "dmam_alloc_coherent(");',
     'try requireAbsent(helper, "dmam_free_coherent(");',
     'try requireAbsent(helper, "dma_map_");',
@@ -59,6 +77,44 @@ REPLAY_MARKERS = [
     'try requireContains(survey, "`dmam_free_coherent()`");',
     'try requireContains(survey, "`dma_map_sgtable()`");',
     'try requireContains(survey, "`sg_table`");',
+]
+
+SCATTERLIST_NOTE_MARKERS = [
+    "pure scatterlist lifetime planning surface",
+    "planManagedScatterlistMap(...)",
+    "scatterlistReleaseMatches(...)",
+    "planManagedScatterlistUnmap(...)",
+    "retains detach-time unmap ownership on success",
+    "failed mapping frees the release record",
+    "warn-on-release-miss outcome",
+    "dma_map_sgtable()",
+    "sg_table",
+]
+
+SCATTERLIST_MANIFEST_MARKERS = [
+    '"packet": "phase13-devres-scatterlist-planner"',
+    '"status": "starter_landed"',
+    '"scatterlist_lifetime_owner": "zigux/tests/phase13_devres_scatterlist.zig"',
+    '"validation_guard": "scripts/zigux/check-phase13-devres-scatterlist-planner.py"',
+    '"id": "phase13-devres-live-scatterlist-ownership"',
+    '"id": "phase13-devres-live-sg-table-lifecycle"',
+    '"id": "phase13-devres-generic-dma-map-family"',
+]
+
+SCATTERLIST_HELPER_MARKERS = [
+    ".provides_scatterlist_lifetime_planning = true",
+    ".touches_live_dma = false",
+    ".touches_live_scatterlist = false",
+    "pub fn planManagedScatterlistMap",
+    "pub fn scatterlistReleaseMatches",
+    "pub fn planManagedScatterlistUnmap",
+]
+
+SCATTERLIST_REPLAY_MARKERS = [
+    "phase13 devres descriptor records helper-first scatterlist planning",
+    "phase13 devres scatterlist planner manifest records the dedicated helper-first packet",
+    "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded",
+    "phase13 devres scatterlist planner checker stays packet-local",
 ]
 
 
@@ -81,29 +137,35 @@ def require_absent(text: str, label: str, markers: list[str], errors: list[str])
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
 
-    helper = root / HELPER_PATH
-    survey = root / SURVEY_PATH
-    replay = root / DMA_REPLAY_PATH
-
-    expected_paths = (
-        ("helper", HELPER_PATH, helper),
-        ("survey", SURVEY_PATH, survey),
-        ("dma_replay", DMA_REPLAY_PATH, replay),
-    )
-    for _, relative_path, full_path in expected_paths:
-        if not full_path.exists():
+    for relative_path in REQUIRED_FILES:
+        if not (root / relative_path).exists():
             errors.append(f"missing:{relative_path.as_posix()}")
 
     if errors:
         return errors
 
-    helper_text = read_text(helper)
-    survey_text = read_text(survey)
-    replay_text = read_text(replay)
-
-    require_absent(helper_text, "helper", HELPER_BLOCKED_MARKERS, errors)
-    require_markers(survey_text, "survey", SURVEY_MARKERS, errors)
-    require_markers(replay_text, "dma_replay", REPLAY_MARKERS, errors)
+    require_absent(read_text(root / HELPER_PATH), "helper", HELPER_BLOCKED_MARKERS, errors)
+    require_markers(read_text(root / SURVEY_PATH), "survey", SURVEY_MARKERS, errors)
+    require_markers(read_text(root / DMA_REPLAY_PATH), "dma_replay", DMA_REPLAY_MARKERS, errors)
+    require_markers(read_text(root / SCATTERLIST_NOTE_PATH), "scatterlist_note", SCATTERLIST_NOTE_MARKERS, errors)
+    require_markers(
+        read_text(root / SCATTERLIST_MANIFEST_PATH),
+        "scatterlist_manifest",
+        SCATTERLIST_MANIFEST_MARKERS,
+        errors,
+    )
+    require_markers(
+        read_text(root / SCATTERLIST_HELPER_PATH),
+        "scatterlist_helper",
+        SCATTERLIST_HELPER_MARKERS,
+        errors,
+    )
+    require_markers(
+        read_text(root / SCATTERLIST_REPLAY_PATH),
+        "scatterlist_replay",
+        SCATTERLIST_REPLAY_MARKERS,
+        errors,
+    )
 
     return errors
 
@@ -126,7 +188,11 @@ def seed_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(root / SURVEY_PATH, "\n".join(SURVEY_MARKERS) + "\n")
-    write_text(root / DMA_REPLAY_PATH, "\n".join(REPLAY_MARKERS) + "\n")
+    write_text(root / DMA_REPLAY_PATH, "\n".join(DMA_REPLAY_MARKERS) + "\n")
+    write_text(root / SCATTERLIST_NOTE_PATH, "\n".join(SCATTERLIST_NOTE_MARKERS) + "\n")
+    write_text(root / SCATTERLIST_MANIFEST_PATH, "\n".join(SCATTERLIST_MANIFEST_MARKERS) + "\n")
+    write_text(root / SCATTERLIST_HELPER_PATH, "\n".join(SCATTERLIST_HELPER_MARKERS) + "\n")
+    write_text(root / SCATTERLIST_REPLAY_PATH, "\n".join(SCATTERLIST_REPLAY_MARKERS) + "\n")
 
 
 def assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -145,11 +211,11 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
-        (root / DMA_REPLAY_PATH).unlink()
+        (root / SCATTERLIST_NOTE_PATH).unlink()
         assert_only(
             validate(root),
-            [f"missing:{DMA_REPLAY_PATH.as_posix()}"],
-            "missing_dma_replay_failed",
+            [f"missing:{SCATTERLIST_NOTE_PATH.as_posix()}"],
+            "missing_scatterlist_note_failed",
         )
         case_count += 1
 
@@ -166,28 +232,30 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / SURVEY_PATH, "broken\n")
+        write_text(root / SCATTERLIST_MANIFEST_PATH, "broken\n")
         assert_only(
             validate(root),
-            [f"survey:missing_marker:{marker}" for marker in SURVEY_MARKERS],
-            "survey_missing_markers_failed",
+            [f"scatterlist_manifest:missing_marker:{marker}" for marker in SCATTERLIST_MANIFEST_MARKERS],
+            "scatterlist_manifest_missing_markers_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
         write_text(
-            root / DMA_REPLAY_PATH,
+            root / SCATTERLIST_REPLAY_PATH,
             "\n".join(
                 marker
-                for marker in REPLAY_MARKERS
-                if marker != 'try requireAbsent(helper, "sg_init_table(");'
+                for marker in SCATTERLIST_REPLAY_MARKERS
+                if marker != "phase13 devres scatterlist planner checker stays packet-local"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ['dma_replay:missing_marker:try requireAbsent(helper, "sg_init_table(");'],
-            "dma_replay_missing_marker_failed",
+            [
+                "scatterlist_replay:missing_marker:phase13 devres scatterlist planner checker stays packet-local"
+            ],
+            "scatterlist_replay_missing_marker_failed",
         )
         case_count += 1
 
@@ -212,6 +280,7 @@ def main() -> int:
         return 1
 
     print("PHASE13_DEVRES_DMA_BOUNDARY=pass")
+    print(f"PHASE13_DEVRES_DMA_BOUNDARY_FILE_COUNT={len(REQUIRED_FILES)}")
     return 0
 
 
