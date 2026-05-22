@@ -12,6 +12,9 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_base64.zig`
   - `zigux/tests/phase6_base64_perf.zig`
   - `zigux/tests/fixtures/phase6_base64_vectors.zig`
+  - `zigux/tests/phase6_base64_c_parity.zig`
+  - `zigux/tests/fixtures/phase6_base64_c_harness.c`
+  - `scripts/zigux/check-phase6-base64-c-parity.py`
 - shared helper-evidence row:
   - `Documentation/zigux/phase6-helper-evidence-catalog.md`
   - `zigux/tests/phase6_helper_evidence_manifest.json`
@@ -32,8 +35,8 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 1. run the focused Zig Phase 6 helper tests
 - local scratch validation in this run used a dedicated `zig build test` replay wired only to `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
-2. keep the base64 slice note aligned with the shared helper-evidence packet
-- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay, while the older direct C parity companions, including the missing `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` fixture companion, remain a fresh-read follow-up rather than current shipped direct evidence
+2. keep the base64 slice note aligned with the shipped helper-local validation packet
+- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay and the restored representative C-vs-Zig spot check in `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 
 ## Current parity surface
 
@@ -74,6 +77,7 @@ The current tests check:
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - the committed slowdown replay in `zigux/tests/phase6_base64_perf.zig`, which keeps the helper tied to the shared Phase 6 build foothold without widening into broader runtime-core work
+- a representative external C-vs-Zig portability replay through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, covering standard padded and unpadded cases plus URL-safe, IMAP, and malformed decode spot checks with `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=4`
 
 ## Non-goals
 
@@ -81,8 +85,8 @@ This slice does not yet claim:
 
 - KUnit integration
 - architecture-specific performance thresholds beyond the committed helper-local slowdown replay
-- the older direct C-vs-Zig parity companions as current shipped direct evidence before fresh direct reads recover `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- a broader generated external-fixture flow or shared manifest refresh for the restored direct C parity packet beyond the representative checker, runner, and harness now shipped in-tree
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, slice, alloc, or exact-fit buffer packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, slice, alloc, exact-fit buffer, or representative C-vs-Zig parity packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or one direct expansion of the restored parity spot check, instead of widening into broader Phase 6 shared-note churn.
