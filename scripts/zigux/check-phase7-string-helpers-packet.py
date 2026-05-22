@@ -188,7 +188,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 42
+SELF_TEST_CASE_COUNT = 43
 
 
 def read_text(path: Path) -> str:
@@ -472,6 +472,12 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
+        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][4]
+        remove_once(survey_path, survey_marker)
+        expect_missing_marker("missing_survey_format_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][7]
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_manifest_next_bounded_step_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
