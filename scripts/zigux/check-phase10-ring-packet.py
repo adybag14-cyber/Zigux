@@ -81,6 +81,12 @@ REQUIRED_MARKERS = {
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
         "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
+        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
+        "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
+        "the ring survey, slice, and freeze-boundary notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`,",
+    ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "ring lane `P10-L10` owns the queue-local wrapper packet",
         "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
@@ -476,6 +482,19 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_tests_root_ring_boundary_marker(tmp_root: Path) -> None:
+            path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+            text = path.read_text(encoding="utf-8")
+            marker = "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh"
+            path.write_text(text.replace(marker, "__removed__", 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_tests_root_ring_boundary_marker,
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
+        )
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_ring_survey.zig").unlink()
         missing_files, problems = validate(root)
         if problems:
@@ -486,7 +505,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
