@@ -9,6 +9,7 @@ from pathlib import Path
 READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
+SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 BUILD_PATH = Path("zigux/tests/phase15_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -60,6 +61,7 @@ EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
     "phase15_validator_script_present": True,
     "phase15_docs_readme_checker_present": True,
+    "phase15_scripts_readme_checker_present": True,
     "phase15_tests_readme_checker_present": True,
     "phase15_review_checklist_study_only_alignment_checker_present": True,
     "phase15_handoff_note_checker_present": True,
@@ -124,7 +126,7 @@ def _workflow_has_phase15_route(root: Path) -> bool:
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel in (READINESS_NOTE_PATH, MANIFEST_PATH, CHECKER_PATH, VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH):
+    for rel in (READINESS_NOTE_PATH, MANIFEST_PATH, CHECKER_PATH, SCRIPTS_CHECKER_PATH, VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH):
         if not (root / rel).exists():
             failures.append(f"missing_required_path:{rel}")
     if failures:
@@ -185,85 +187,16 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
 
-## Why this note exists
-
-Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
-
-Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, and the newly materialized `scripts/zigux/validate-phase15.py` validator. At the same time, direct reads still return missing for the broader shared-build companion and the Makefile and workflow routes that would make the larger Phase 15 replay packet one-command or shared-CI ready.
-
 This survey keeps those two truths together:
-
 - the governance packet is materially landed and reviewable
 - the dedicated validator now exists as a directly readable maintenance gate
 - the broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready
 
-## Current directly readable readiness packet
-
-- `Documentation/zigux/freeze-map.md`
-- `Documentation/zigux/phase15-freeze-map-governance.md`
-- `Documentation/zigux/phase15-parity-scorecard.md`
-- `Documentation/zigux/phase15-parity-scorecard-survey.md`
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
-- `Documentation/zigux/phase15-governance-lane-sequencing.md`
-- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `Documentation/zigux/phase15-shared-summary-gap.md`
-- `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/validate-phase15.py`
-- `zigux/tests/README.md`
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
-- `zigux/tests/phase15_architecture_council_review_process.zig`
-- `zigux/tests/phase15_architecture_council_review_process_build.zig`
-- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
-- `zigux/tests/phase15_governance_lane_sequencing.zig`
-- `zigux/tests/phase15_parity_scorecard.json`
-- `zigux/tests/phase15_parity_scorecard.zig`
-- `zigux/tests/phase15_indefinite_c_policy.json`
-- `zigux/tests/phase15_indefinite_c_policy.zig`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json`
-- `zigux/tests/phase15_handoff_next_steps.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- `zigux/tests/phase15_readiness_gate_manifest.json`
-
-Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.
-
-These directly readable paths are enough to support maintenance-mode truthfulness work on the core readiness packet, and `python3 scripts/zigux/validate-phase15.py` now gives that packet a direct validator-first replay.
-
-## Current repo-reality gaps that still block broader readiness
-
-Repeated authenticated reads on current `master` still return missing for:
-
 - `zigux/tests/phase15_build.zig`
-
-Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes, so:
-
-- `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
-- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
-- `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path
-
-`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route, so shared CI coverage for the broader Phase 15 replay packet remains absent rather than directly readable current-master evidence.
-
+- `make -C zigux phase15-validate` remains blocked route vocabulary
+- `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- no direct deep-core Zig bridge or port-readiness decision is implied by the current readiness posture
-
-## Readiness rules
-
-- treat the current packet as ready for maintenance-mode truthfulness refreshes and direct validator-first replay only
-- do not treat the missing shared-build or route companions as landed evidence until direct current-tree reads recover them
-- if a shared reminder surface drifts, repair the smallest truthful surface first instead of widening into a freeze-map status change claim
-
-## Next bounded step
-
-Keep this note parked until `zigux/tests/phase15_build.zig`, one of the blocked `phase15*` Makefile routes, or a dedicated workflow route lands, or until one of the directly readable readiness-packet paths drifts enough that the validator-first posture above becomes stale.
 """
 
 
@@ -292,6 +225,7 @@ def write_fixture_root(root: Path) -> None:
     _write(root / READINESS_NOTE_PATH, _sample_note())
     _write(root / MANIFEST_PATH, _sample_manifest())
     _write(root / CHECKER_PATH, "#!/usr/bin/env python3\n")
+    _write(root / SCRIPTS_CHECKER_PATH, "#!/usr/bin/env python3\n")
     _write(root / VALIDATOR_PATH, "#!/usr/bin/env python3\n")
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
     _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
@@ -335,8 +269,15 @@ def run_self_test() -> int:
         if failures != ["lane_key:'P15-L99'"]:
             raise AssertionError(f"unexpected lane drift failure: {failures}")
 
+        scripts_root = base / "scripts_checker"
+        write_fixture_root(scripts_root)
+        (scripts_root / SCRIPTS_CHECKER_PATH).unlink()
+        failures = collect_failures(scripts_root)
+        if failures != [f"missing_required_path:{SCRIPTS_CHECKER_PATH}"]:
+            raise AssertionError(f"unexpected scripts-checker failure: {failures}")
+
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=4")
+    print("PHASE15_VALIDATION_SELF_TEST_CASES=5")
     return 0
 
 
