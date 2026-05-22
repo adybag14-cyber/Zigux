@@ -218,6 +218,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -241,6 +242,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_c_header_smoke.c",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_shim_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
@@ -270,6 +272,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
@@ -469,6 +472,22 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["replay_routes"].remove(
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected export-shim replay drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout")
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -511,6 +530,34 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["packet_files"].remove("scripts/zigux/check-phase3-selftest-surface.py")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/check-phase3-selftest-surface.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected selftest-surface packet-file drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["packet_files"].remove("zigux/tests/phase3_export_shim_build.zig")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected export-shim build packet-file drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["packet_files"].append(REQUIRED_PACKET_FILES[0])
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -531,7 +578,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
