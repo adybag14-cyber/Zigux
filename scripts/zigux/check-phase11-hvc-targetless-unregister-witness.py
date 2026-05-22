@@ -55,6 +55,8 @@ FILE_EXPECTATIONS = {
         PHASE11_VALIDATE_COMMAND,
     ),
     LANE_NOTE_PATH: (
+        DRIVER_PATH,
+        VERIFY_BOUNDARY_PATH,
         CLEANUP_COMPANION_PATH,
         CLEANUP_CHECKER_PATH,
         SELF_PATH,
@@ -62,6 +64,8 @@ FILE_EXPECTATIONS = {
         WITNESS_BUILD_PATH,
     ),
     CLEANUP_COMPANION_PATH: (
+        DRIVER_PATH,
+        VERIFY_BOUNDARY_PATH,
         CLEANUP_CHECKER_PATH,
         SELF_PATH,
         WITNESS_PATH,
@@ -309,7 +313,15 @@ def run_self_test() -> int:
         mutations = (
             (
                 LANE_NOTE_PATH,
+                VERIFY_BOUNDARY_PATH,
+            ),
+            (
+                LANE_NOTE_PATH,
+                DRIVER_PATH,
+            ),
+            (
                 CLEANUP_COMPANION_PATH,
+                VERIFY_BOUNDARY_PATH,
             ),
             (
                 CLEANUP_COMPANION_PATH,
