@@ -316,9 +316,23 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface", "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md` now materializes as the packet-local slice companion", "companion_note:`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-slice.md", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket moved inside this slice", "slice_note:the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"lane_key": "P10-L11"', '"lane_key": "P10-L10"', 'manifest:"lane_key": "P10-L11"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_map": "Documentation/zigux/freeze-map.md"', '"freeze_map": "Documentation/zigux/freeze-map-missing.md"', 'manifest:"freeze_map": "Documentation/zigux/freeze-map.md"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "missing"', 'manifest:"freeze_boundary_status": "aligned"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_status_change_claimed": false', '"freeze_status_change_claimed": true', 'manifest:"freeze_status_change_claimed": false')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"risky_transport_posture": "blocked_on_risky_transport"', '"risky_transport_posture": "missing"', 'manifest:"risky_transport_posture": "blocked_on_risky_transport"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"allowed_evidence_kinds": [', '"allowed_evidence_kinds_missing": [', 'manifest:"allowed_evidence_kinds": [')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"driver_local_lab_slices"', '"driver_local_lab_slices_missing"', 'manifest:"driver_local_lab_slices"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"survey_manifests"', '"survey_manifests_missing"', 'manifest:"survey_manifests"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"shared_validation_gates"', '"shared_validation_gates_missing"', 'manifest:"shared_validation_gates"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"forbidden_transport_claims": [', '"forbidden_transport_claims_missing": [', 'manifest:"forbidden_transport_claims": [')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_setup_reset_paths"', '"queue_setup_reset_paths_missing"', 'manifest:"queue_setup_reset_paths"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_reset_execution"', '"queue_reset_execution_missing"', 'manifest:"queue_reset_execution"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"irq_parity"', '"irq_parity_missing"', 'manifest:"irq_parity"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"dma_paths"', '"dma_paths_missing"', 'manifest:"dma_paths"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"probe_remove_lifecycle"', '"probe_remove_lifecycle_missing"', 'manifest:"probe_remove_lifecycle"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_restore_lifecycle"', '"freeze_restore_lifecycle_missing"', 'manifest:"freeze_restore_lifecycle"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"architecture_council_reopen_required": true', '"architecture_council_reopen_required": false', 'manifest:"architecture_council_reopen_required": true')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"architecture_council_reopen_attached": false', '"architecture_council_reopen_attached": true', 'manifest:"architecture_council_reopen_attached": false')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-transport-identity-helper"', '"id": "phase10-mmio-transport-identity-missing"', 'manifest:"id": "phase10-mmio-transport-identity-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-probe-preflight-helper"', '"id": "phase10-mmio-probe-preflight-missing"', 'manifest:"id": "phase10-mmio-probe-preflight-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-selected-queue-readiness-helper"', '"id": "phase10-mmio-selected-queue-readiness-missing"', 'manifest:"id": "phase10-mmio-selected-queue-readiness-helper"')
@@ -361,7 +375,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=54")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=68")
     return 0
 
 
