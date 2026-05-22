@@ -29,6 +29,31 @@ def render_wrapper_stub() -> str:
     return WRAPPER_STUB
 
 
+def normalize_expected_wrapper_name(name: str) -> str:
+    candidate = Path(name)
+    if candidate.is_absolute():
+        raise ValueError(f"expected wrapper must be a basename inside scripts/zigux: {name}")
+    if candidate.name != name:
+        raise ValueError(f"expected wrapper must not include path separators: {name}")
+    if not name.startswith(SCRIPT_PREFIX) or not name.endswith(".py"):
+        raise ValueError(
+            f"expected wrapper must match {SCRIPT_PREFIX}*.py inside scripts/zigux: {name}"
+        )
+    return name
+
+
+def build_expected_entries(
+    expected_wrapper_names: list[str], scripts_dir: Path
+) -> list[object]:
+    normalized_names = sorted(
+        {normalize_expected_wrapper_name(name) for name in expected_wrapper_names}
+    )
+    return [
+        SimpleNamespace(check_script=scripts_dir / normalized_name)
+        for normalized_name in normalized_names
+    ]
+
+
 def is_generated_wrapper_script(path: Path, expected: str) -> bool:
     try:
         current = path.read_text(encoding="utf-8")
@@ -153,6 +178,35 @@ def run_self_test() -> int:
         assert mismatches == []
         case_count += 1
 
+        expected_entries = build_expected_entries(
+            [
+                "check-phase3-zeta.py",
+                "check-phase3-alpha.py",
+                "check-phase3-zeta.py",
+            ],
+            tmp_dir,
+        )
+        assert [entry.check_script.name for entry in expected_entries] == [
+            "check-phase3-alpha.py",
+            "check-phase3-zeta.py",
+        ]
+        case_count += 1
+
+        invalid_names = (
+            "../check-phase3-outside.py",
+            "support.py",
+            "/tmp/check-phase3-absolute.py",
+        )
+        for invalid_name in invalid_names:
+            try:
+                build_expected_entries([invalid_name], tmp_dir)
+            except ValueError:
+                case_count += 1
+                continue
+            raise AssertionError(
+                f"expected invalid wrapper name to be rejected: {invalid_name}"
+            )
+
     print("PHASE3_WRAPPER_SELF_TEST=pass")
     print(f"PHASE3_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -172,7 +226,7 @@ def parse_args() -> argparse.Namespace:
         "--expected-wrapper",
         action="append",
         default=[],
-        help="wrapper filename to keep or recreate inside --scripts-dir",
+        help="wrapper basename to keep or recreate inside --scripts-dir",
     )
     parser.add_argument(
         "--check",
@@ -193,10 +247,12 @@ def main() -> int:
         return run_self_test()
 
     expected = render_wrapper_stub()
-    entries = [
-        SimpleNamespace(check_script=args.scripts_dir / name)
-        for name in sorted(set(args.expected_wrapper))
-    ]
+    try:
+        entries = build_expected_entries(args.expected_wrapper, args.scripts_dir)
+    except ValueError as exc:
+        print("PHASE3_WRAPPER_TEMPLATES=fail")
+        print(str(exc))
+        return 1
     mismatches = sync_wrappers(entries, expected, check=args.check, scripts_dir=args.scripts_dir)
 
     if mismatches and args.check:
