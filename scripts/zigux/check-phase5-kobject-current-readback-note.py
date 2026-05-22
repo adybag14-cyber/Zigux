@@ -34,11 +34,11 @@ REQUIRED_MARKERS = (
     "the direct sample-root file, focused tests-root replay, shared build route, and attr-group companion are readable through the authenticated contents route used here",
     "the dedicated survey note, manifest-backed contract, and survey replay remain visible on public current `master` even though this run's authenticated contents route returned `404` for those three packet members",
     "same-lane reminder work should treat those authenticated-contents `404` results as current connector-local readback flakiness, not as proof that the broader kobject packet vanished from the repo",
-    "The surviving same-lane follow-through targets are now narrower:",
-    "`Documentation/zigux/review-checklist.md`, which still phrases `Documentation/zigux/phase5-kobject-sample-survey.md` and `zigux/tests/phase5_kobject_example_manifest.json` as current direct evidence in this runtime even though this note keeps them in the public-tree-backed companion bucket",
-    "`scripts/zigux/check-phase5-review-guide-surface.py`, which still exact-requires that older review-checklist wording instead of the narrower direct-versus-public split recorded here",
-    "1. reread `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` together first, because the broader docs-root, guide, sequencing, sample-root, scripts-root, and tests-root packet has already caught up and the remaining drift is now concentrated in that checklist-plus-guard pair",
-    "If a fresh reread still leaves that checklist-plus-guard pair overstating the survey note or manifest-backed contract as direct authenticated proof, reopen the lane for that one bounded repair only. Leave the lane parked if those two surfaces catch up to the narrower split recorded here.",
+    "The same slot then compared the broader shared Phase 5 reminder packet against this note and found that most shared reminder surfaces had already caught up to the narrower kobject split recorded here. `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep the direct sample-root file, focused tests-root replay, direct shared build-route companion, public-tree-backed survey note and manifest companions, and bounded attr-group companion aligned with this note.",
+    "Fresh Phase 5 reread on 2026-05-22 also confirms that the formerly lagging checklist-plus-guard pair has now caught up to the same split. `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` now keep the survey note, manifest-backed contract, and survey replay framed as current public-tree-backed companion evidence while leaving `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_build.zig`, and `samples/zigux/kobject_example_attr_group_contract.zig` explicit as the directly readable packet members in this runtime.",
+    "That means this dedicated note no longer needs to hand off a checklist-only repair as the next default follow-through. The remaining same-lane posture is simply to keep future shared-surface wording anchored to this split if another reminder surface drifts.",
+    "1. reread this note beside the exact shared surface that looks stale and confirm whether the direct sample-root file, focused tests-root replay, shared build-route companion, bounded attr-group companion, and public-tree-backed survey companions are still described with the same split",
+    "If the lane reopens, compare this note against the exact shared Phase 5 surface that drifted and repair only that one bounded surface.",
 )
 
 
@@ -83,23 +83,16 @@ def placeholder_note() -> str:
             "",
             "The same slot then compared the broader shared Phase 5 reminder packet against this note and found that most shared reminder surfaces had already caught up to the narrower kobject split recorded here. `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep the direct sample-root file, focused tests-root replay, direct shared build-route companion, public-tree-backed survey note and manifest companions, and bounded attr-group companion aligned with this note.",
             "",
-            "The surviving same-lane follow-through targets are now narrower:",
+            "Fresh Phase 5 reread on 2026-05-22 also confirms that the formerly lagging checklist-plus-guard pair has now caught up to the same split. `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` now keep the survey note, manifest-backed contract, and survey replay framed as current public-tree-backed companion evidence while leaving `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_build.zig`, and `samples/zigux/kobject_example_attr_group_contract.zig` explicit as the directly readable packet members in this runtime.",
             "",
-        )
-    )
-    lines.extend(f"- `{path}`" for path in FOLLOW_THROUGH_PATHS)
-    lines.extend(
-        (
+            "That means this dedicated note no longer needs to hand off a checklist-only repair as the next default follow-through. The remaining same-lane posture is simply to keep future shared-surface wording anchored to this split if another reminder surface drifts.",
             "",
-            "`Documentation/zigux/review-checklist.md`, which still phrases `Documentation/zigux/phase5-kobject-sample-survey.md` and `zigux/tests/phase5_kobject_example_manifest.json` as current direct evidence in this runtime even though this note keeps them in the public-tree-backed companion bucket",
-            "`scripts/zigux/check-phase5-review-guide-surface.py`, which still exact-requires that older review-checklist wording instead of the narrower direct-versus-public split recorded here",
+            "When a future same-lane repair touches shared Phase 5 reminder surfaces, use this note to keep the kobject packet truthful in one bounded step at a time.",
             "",
-            "1. reread `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` together first, because the broader docs-root, guide, sequencing, sample-root, scripts-root, and tests-root packet has already caught up and the remaining drift is now concentrated in that checklist-plus-guard pair",
-            "2. land one dedicated repair across that narrower pair only if a fresh reread still shows the checklist overstating `Documentation/zigux/phase5-kobject-sample-survey.md` or `zigux/tests/phase5_kobject_example_manifest.json` as direct authenticated evidence, or still leaves the shipped guard exact-requiring the older wording",
+            "1. reread this note beside the exact shared surface that looks stale and confirm whether the direct sample-root file, focused tests-root replay, shared build-route companion, bounded attr-group companion, and public-tree-backed survey companions are still described with the same split",
+            "2. land one dedicated reminder-surface repair only if a fresh reread actually reintroduces a mismatch against that split on current `master`",
             "",
-            "Compare this note against `Documentation/zigux/review-checklist.md` and `scripts/zigux/check-phase5-review-guide-surface.py` first the next time the lane reopens.",
-            "",
-            "If a fresh reread still leaves that checklist-plus-guard pair overstating the survey note or manifest-backed contract as direct authenticated proof, reopen the lane for that one bounded repair only. Leave the lane parked if those two surfaces catch up to the narrower split recorded here.",
+            "If the lane reopens, compare this note against the exact shared Phase 5 surface that drifted and repair only that one bounded surface.",
             "",
         )
     )
