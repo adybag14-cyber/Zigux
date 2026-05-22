@@ -188,7 +188,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 43
+SELF_TEST_CASE_COUNT = 46
 
 
 def read_text(path: Path) -> str:
@@ -538,15 +538,33 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        helper_forbidden_alias_marker = "pub fn devm_kasprintf_strarray("
+        helper_path.write_text(read_text(helper_path) + helper_forbidden_alias_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_helper_devm_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_forbidden_alias_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         tests_forbidden_marker = "devmKasprintfStrarray"
         tests_path.write_text(read_text(tests_path) + tests_forbidden_marker + "\n", encoding="utf-8")
         expect_unexpected_marker("unexpected_tests_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_forbidden_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        tests_forbidden_alias_marker = "devm_kasprintf_strarray"
+        tests_path.write_text(read_text(tests_path) + tests_forbidden_alias_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_tests_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_forbidden_alias_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest_forbidden_marker = '"devmKasprintfStrarray"'
         manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_marker + "\n", encoding="utf-8")
         expect_unexpected_marker("unexpected_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest_forbidden_alias_marker = '"devm_kasprintf_strarray"'
+        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_alias_marker + "\n", encoding="utf-8")
+        expect_unexpected_marker("unexpected_manifest_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_alias_marker}")
         cases_run += 1
 
         assert cases_run == SELF_TEST_CASE_COUNT, cases_run
