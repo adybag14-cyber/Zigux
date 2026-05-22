@@ -452,6 +452,9 @@ def run_self_test() -> int:
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
+        ("failing_route_summary_checker", lambda root: make_checker_stub(root / ROUTE_SUMMARY_CHECKER_REL, ok=False)),
+        ("failing_bench_checker", lambda root: make_checker_stub(root / BENCH_CHECKER_REL, ok=False)),
+        ("failing_shared_reminder_checker", lambda root: make_checker_stub(root / SHARED_REMINDER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
         ("forbidden_phase1_makefile_route", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL) + "phase1-validate:\n")),
     ]
@@ -480,10 +483,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run validator self-tests")
+    parser.add_argument(
+        "--write-sample-root",
+        help="write a current-like sample root to the given path and exit",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+    if args.write_sample_root:
+        destination = Path(args.write_sample_root).resolve()
+        make_fixture_tree(destination)
+        print(f"PHASE1_CLOSURE_SAMPLE_ROOT={destination}")
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
