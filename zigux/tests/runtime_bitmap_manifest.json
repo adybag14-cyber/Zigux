@@ -15,6 +15,7 @@
   "review_prompts": [
     "Keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.",
     "Treat the shared phase9 build route as a bounded rerun handle for the direct sample, loader, survey, and top-bit packet only.",
+    "Keep the direct sample duplicate bit-list normalization and malformed-bit-list cold-state guards explicit when the manifest summarizes parse-and-print evidence.",
     "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.",
@@ -27,6 +28,8 @@
     "sparse_iteration",
     "parse_and_print",
     "range_mutation_and_copy",
+    "sample_duplicate_bit_list_normalization",
+    "sample_invalid_bit_list_init_guards",
     "selftest_lifecycle",
     "sample_re_selftest_summary_stability",
     "sample_direct_exit_summary_stability",
