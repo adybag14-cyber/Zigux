@@ -32,6 +32,7 @@ REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
+DOCS_README_ALIGNMENT_CHECKER_REL = Path("scripts/zigux/check-phase1-docs-readme-alignment.py")
 ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
@@ -54,6 +55,7 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
     STRING_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
+    DOCS_README_ALIGNMENT_CHECKER_REL,
     ROUTE_SUMMARY_CHECKER_REL,
     BENCH_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
@@ -234,6 +236,7 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
 DELEGATED_CHECKERS = (
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
+    (DOCS_README_ALIGNMENT_CHECKER_REL, "phase1-docs-readme-alignment"),
     (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
     (BENCH_CHECKER_REL, "phase1-bench"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
@@ -449,11 +452,12 @@ def run_self_test() -> int:
         ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
         ("stale_bitmap_empty_buffer_anchor", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "empty_buffer_anchor")),
         ("stale_bitmap_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/bitmap.zig", "next_safe_step_note")),
-        ("stale_string_sysfs_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "sysfs_review_summary")),
+        ("stale_string_sysfs_review_summary", lambda root: mutate_bad_reviewValue(root, "tools/lib/string.zig", "sysfs_review_summary")),
         ("stale_string_counted_search_review_anchors", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "counted_search_review_anchors")),
         ("stale_string_strnchr_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "strnchr_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
+        ("missing_docs_readme_alignment_checker", lambda root: (root / DOCS_README_ALIGNMENT_CHECKER_REL).unlink()),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
         ("forbidden_phase1_makefile_route", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL) + "phase1-validate:\n")),
