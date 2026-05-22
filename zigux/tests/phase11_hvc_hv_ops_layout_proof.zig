@@ -4,8 +4,8 @@ const layout_assert = @import("layout_assert");
 const HvcStruct = opaque {};
 
 const HvOps = extern struct {
-    get_chars: ?*const fn (u32, [*]u8, c_int) callconv(.c) c_int,
-    put_chars: ?*const fn (u32, [*]const u8, c_int) callconv(.c) c_int,
+    get_chars: ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
+    put_chars: ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
     flush: ?*const fn (u32, bool) callconv(.c) c_int,
     notifier_add: ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
     notifier_del: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
@@ -53,11 +53,11 @@ test "phase11 hvc hv_ops layout proof keeps callback signatures exact" {
     comptime {
         assertExactType(
             @FieldType(HvOps, "get_chars"),
-            ?*const fn (u32, [*]u8, c_int) callconv(.c) c_int,
+            ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
         );
         assertExactType(
             @FieldType(HvOps, "put_chars"),
-            ?*const fn (u32, [*]const u8, c_int) callconv(.c) c_int,
+            ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
         );
         assertExactType(
             @FieldType(HvOps, "flush"),
@@ -95,9 +95,9 @@ test "phase11 hvc hv_ops layout proof stays tied to the exported header" {
     defer std.testing.allocator.free(hvc_header);
 
     try expectContains(hvc_header, "struct hv_ops {");
-    try expectContains(hvc_header, "(*get_chars)");
-    try expectContains(hvc_header, "(*put_chars)");
-    try expectContains(hvc_header, "(*flush)");
+    try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
+    try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
+    try expectContains(hvc_header, "int (*flush)(uint32_t vtermno, bool wait);");
     try expectContains(hvc_header, "(*notifier_add)");
     try expectContains(hvc_header, "(*notifier_del)");
     try expectContains(hvc_header, "(*notifier_hangup)");
