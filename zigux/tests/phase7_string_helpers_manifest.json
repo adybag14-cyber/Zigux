@@ -102,7 +102,7 @@
     "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched",
     "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix",
     "kstrdupQuotableFile() keeps returned storage caller-owned, uses an explicit `<unknown>` fallback for missing file inputs, and otherwise reuses quotable escaping for already-materialized path strings",
-    "kstrdupQuotableCmdline() keeps returned storage caller-owned, collapses trailing and inter-argument NULL separators inside duplicated command-line storage, and only then applies quotable escaping",
+    "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping",
     "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set",
     "parseIntArray() and parse_int_array() keep empty-input `error.NoEntry` and allocator-failure handling explicit so callers never inherit partial ownership when no decoded result packet can be returned",
     "parseIntArray() and parse_int_array() stay helper-local inside `lib/string_helpers.zig` and should not drift back into a duplicate standalone `lib/string_helpers_parse_int_array.zig` sidecar",
