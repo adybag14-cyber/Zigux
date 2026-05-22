@@ -93,6 +93,19 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
     try std.testing.expect(
         std.mem.indexOf(u8, poll_slice, "broader perf-buffer-online-cpu-routing parity") != null,
     );
+
+    const makefile = try readRepoFile("zigux/Makefile");
+    defer std.testing.allocator.free(makefile);
+
+    try std.testing.expect(
+        std.mem.indexOf(u8, makefile, "phase8-perf-buffer-poll-test") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, makefile, "phase8-test") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, makefile, "phase8: phase8-validate") != null,
+    );
 }
 
 test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {
