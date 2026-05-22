@@ -123,6 +123,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-checksum-perf-matrix-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
@@ -169,6 +170,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current shared replay inventory",
     "- `make -C zigux phase6-bsearch-perf`",
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
+    "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
 ]
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
@@ -194,7 +196,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 37
 
 
 class ValidationError(RuntimeError):
@@ -441,6 +443,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace("- `make -C zigux phase6-checksum-perf-matrix-test`\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace("- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
