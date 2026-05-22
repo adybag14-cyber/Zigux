@@ -93,6 +93,17 @@ fn expectPreparedRequestStable(request: PreparedRequest, plan: LoadPlan, state: 
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(plan));
 }
 
+fn expectWaitingRequestSnapshot(
+    request: PreparedRequest,
+    prepared_plan: LoadPlan,
+    pending_plan: LoadPlan,
+) !void {
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, prepared_plan));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(pending_plan, prepared_plan));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, prepared_plan));
+}
+
 test "shared runtime loader keeps initialized-stage bitmap and kretprobe request shape aligned" {
     const bitmap_plan = makeInitializedPlan(
         "runtime_bitmap",
@@ -382,6 +393,55 @@ test "shared runtime loader keeps prepared selftest-hook and handoff-stage label
         kretprobe_request.plan,
         kretprobe_plan,
     ));
+}
+
+test "shared runtime loader keeps waiting selftest-hook and handoff-stage labels from drifting before release" {
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+
+    trace_events_request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.init_flow.handoff_stage = .initialized;
+    trace_events_request.plan.init_flow.selftest_runs = 0;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
+    const kretprobe_plan = makeInitializedPlan(
+        "runtime_kretprobe",
+        "samples/kprobes/kretprobe_example.c",
+        "zigux_runtime_kretprobe_init",
+        "zigux_runtime_kretprobe_exit",
+        .caller_provided,
+    );
+    var kretprobe_request = try runtime_loader.prepareRequest(kretprobe_plan);
+    const kretprobe_pending = try kretprobe_request.requestRuntimeLoad();
+
+    kretprobe_request.plan.init_flow.handoff_stage = .selftest_complete;
+    kretprobe_request.plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        kretprobe_request,
+        kretprobe_plan,
+        kretprobe_pending,
+    );
 }
 
 test "shared runtime loader keeps allocator handoff and anchor metadata from drifting before handoff" {
