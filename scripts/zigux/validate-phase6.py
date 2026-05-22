@@ -190,7 +190,12 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
-SELF_TEST_CASE_COUNT = 34
+EXPECTED_CHECKSUM_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
+]
+
+SELF_TEST_CASE_COUNT = 36
 
 
 class ValidationError(RuntimeError):
@@ -253,6 +258,26 @@ def run_checker(root: Path, checker: Path, flag: str | None) -> None:
         raise ValidationError(f"{checker.as_posix()} failed: {detail}")
 
 
+def require_helper_checker_surfaces(
+    manifest: dict[str, object], manifest_name: str, helper_key: str, expected_surfaces: list[str]
+) -> None:
+    helpers = manifest.get("helpers")
+    if not isinstance(helpers, list):
+        raise ValidationError(f"{manifest_name} helpers missing")
+
+    for helper in helpers:
+        if not isinstance(helper, dict) or helper.get("key") != helper_key:
+            continue
+        checker_surfaces = helper.get("checker_surfaces")
+        if checker_surfaces != expected_surfaces:
+            raise ValidationError(
+                f"{manifest_name} {helper_key} checker surfaces drift"
+            )
+        return
+
+    raise ValidationError(f"{manifest_name} {helper_key} helper missing")
+
+
 def validate(root: Path) -> None:
     missing = [path.as_posix() for path in REQUIRED_FILES if not (root / path).exists()]
     if missing:
@@ -280,6 +305,18 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 helper parity public companion drift")
     if helper_parity_manifest.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper parity follow-through gap drift")
+    require_helper_checker_surfaces(
+        helper_evidence_manifest,
+        "phase6 helper evidence manifest",
+        "checksum",
+        EXPECTED_CHECKSUM_CHECKER_SURFACES,
+    )
+    require_helper_checker_surfaces(
+        helper_parity_manifest,
+        "phase6 helper parity manifest",
+        "checksum",
+        EXPECTED_CHECKSUM_CHECKER_SURFACES,
+    )
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(root / PHASE6_BUILD, REQUIRED_BUILD_SNIPPETS)
@@ -345,6 +382,12 @@ def scaffold_repo(root: Path) -> None:
         "current_direct_readback_companions": EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS,
         "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
         "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_INVENTORY,
+        "helpers": [
+            {
+                "key": "checksum",
+                "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
+            }
+        ],
     }, indent=2) + "\n")
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_PARITY_PACKET,
@@ -357,7 +400,7 @@ def scaffold_repo(root: Path) -> None:
         "helpers": [
             {"key": "base64", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "bsearch", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
-            {"key": "checksum", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "checksum", "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "hexdump", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
         ],
     }, indent=2) + "\n")
@@ -423,6 +466,18 @@ def run_self_test() -> None:
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["helpers"][0]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["helpers"][2]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
