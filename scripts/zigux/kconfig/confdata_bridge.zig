@@ -997,6 +997,53 @@ test "confdata bridge keeps explicit empty assignments distinct from quoted empt
     try std.testing.expectEqualStrings("", summary.entries[2].value);
 }
 
+test "confdata bridge emits explicit empty assignments distinctly in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    const allocator = std.testing.allocator;
+    const input =
+        \\CONFIG_EMPTY=
+        \\CONFIG_QUOTED=""
+        \\# CONFIG_SWITCH is not set
+        \\CONFIG_SWITCH=
+        \\
+    ;
+
+    var capture = try Capture.init(allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(allocator, input, &capture);
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":3,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_EMPTY\",\"kind\":\"value\",\"value\":\"\"},{\"name\":\"CONFIG_QUOTED\",\"kind\":\"string\",\"value\":\"\"},{\"name\":\"CONFIG_SWITCH\",\"kind\":\"value\",\"value\":\"\"}]}\n",
+        capture.list.items,
+    );
+}
+
 fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
