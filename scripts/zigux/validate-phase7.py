@@ -164,7 +164,7 @@ def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise ValidationError(f"missing required file: {path.as_posix()}") from exc
+        raise ValidationError(f"missing required file: {path.as_posix()}" ) from exc
 
 
 def read_json(path: Path) -> dict[str, object]:
@@ -285,13 +285,14 @@ def scaffold_repo(root: Path) -> None:
                 "## Current build-wiring evidence",
                 "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
                 "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
+                "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.",
                 "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
                 "",
                 "## Current repo-reality gaps",
                 "- none currently",
                 "",
                 "## Review posture",
-                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
+                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
                 "- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes",
             ]
         )
