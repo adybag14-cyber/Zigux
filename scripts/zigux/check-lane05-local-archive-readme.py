@@ -8,15 +8,12 @@ import re
 import tempfile
 from pathlib import Path
 
+from zig_archive_contract import expected_archive_size_bytes
+
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 README_PATH = Path("third_party/README.md")
 POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
 ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \((?P<copy>\d+)\)(?P<suffix>\.tar\.xz)$")
-EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
-}
-
-
 def load_policy(root: Path) -> dict[str, object]:
     policy_path = root / POLICY_PATH
     try:
@@ -94,13 +91,10 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
     target = targets[0]
     if target not in archives:
         raise ValueError(f"archive_target_scope target {target} is missing from archive_sha256 in {POLICY_PATH}")
-    if target not in EXPECTED_ARCHIVE_SIZES:
-        raise ValueError(f"missing expected archive size for {target}")
-
     expected_filename = expected_archive_filename(target, channel)
     expected_path = f"third_party/{expected_filename}"
     expected_sha = archives[target]
-    expected_size = EXPECTED_ARCHIVE_SIZES[target]
+    expected_size = expected_archive_size_bytes(target)
     validation_command = (
         "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
         f"{expected_path} --archive-target {target}"
@@ -181,7 +175,7 @@ def write_fixture(
     if include_archive:
         payload_name = "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
         archive_path = third_party_dir / payload_name
-        size = archive_size if archive_size is not None else EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
+        size = archive_size if archive_size is not None else expected_archive_size_bytes("x86_64-linux")
         repeat_count = (size + len(archive_bytes) - 1) // len(archive_bytes)
         archive_path.write_bytes((archive_bytes * repeat_count)[:size])
         if duplicate_copy:
