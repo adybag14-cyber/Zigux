@@ -45,6 +45,7 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         "`samples/zigux/kobject_example_attr_group_contract.zig`",
         "`samples/zigux/kretprobe_example.zig`",
         "`samples/zigux/trace_events_string_formatting_sample.zig`",
+        "`samples/zigux/runtime_atomic64.zig`",
         "`samples/zigux/runtime_bitmap.zig`",
         "`samples/zigux/runtime_bitmap_loader.zig`",
         "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
@@ -69,7 +70,7 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
     }
 
     const sample_root_markers = [_][]const u8{
-        "Fresh mixed readback on 2026-05-21 confirmed these current sample-root files on `master`:",
+        "Fresh mixed readback on 2026-05-22 confirmed these current sample-root files on `master`:",
         "Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.",
         "Current `master` keeps the kobject sample-root port directly readable in `samples/zigux/` through `samples/zigux/kobject_example.zig`, while `samples/zigux/kobject_example_attr_group_contract.zig` stays a bounded companion inside the same approved anchor rather than a fifth sample family.",
         "Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.",
@@ -84,6 +85,7 @@ test "phase 7 string helper sample boundary keeps the Phase 5 anchor set closed"
         "Current `master` still ships no standalone `samples/zigux/*cmdline*`, `samples/zigux/*argv*`, or `samples/zigux/*rbtree*` Phase 5 reference sample.",
         "Current `master` does carry one bounded `*string*` and `*format*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace-events` anchor and its selected-string plus `iter=%d` formatting cue instead of treating it as standalone string-helper delivery.",
         "Phase 9 runtime pilot family",
+        "`samples/zigux/runtime_atomic64.zig`",
         "`samples/zigux/runtime_bitmap.zig`",
         "`samples/zigux/runtime_bitmap_loader.zig`",
         "`samples/zigux/runtime_bitmap_top_bit_contract.zig`",
