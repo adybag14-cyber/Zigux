@@ -107,6 +107,88 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     skipped: u32,
 };
 
+pub const BOUNDARY_HEADER_SIZE: u32 = @sizeOf(BoundaryHeader);
+pub const BOUNDARY_HEADER_ALIGN: usize = @alignOf(BoundaryHeader);
+pub const BOUNDARY_HEADER_OFFSET_SIZE: usize = @offsetOf(BoundaryHeader, "size");
+pub const BOUNDARY_HEADER_OFFSET_ABI_VERSION: usize = @offsetOf(BoundaryHeader, "abi_version");
+pub const BOUNDARY_HEADER_OFFSET_FLAGS: usize = @offsetOf(BoundaryHeader, "flags");
+
+pub const EXPORT_STATUS_SIZE: u32 = @sizeOf(ExportStatus);
+pub const EXPORT_STATUS_ALIGN: usize = @alignOf(ExportStatus);
+pub const EXPORT_STATUS_OFFSET_CODE: usize = @offsetOf(ExportStatus, "code");
+pub const EXPORT_STATUS_OFFSET_FACILITY: usize = @offsetOf(ExportStatus, "facility");
+pub const EXPORT_STATUS_OFFSET_FLAGS: usize = @offsetOf(ExportStatus, "flags");
+
+pub const INTEROP_POLICY_SIZE: u32 = @sizeOf(InteropPolicy);
+pub const INTEROP_POLICY_ALIGN: usize = @alignOf(InteropPolicy);
+pub const INTEROP_POLICY_OFFSET_PANIC_MODE: usize = @offsetOf(InteropPolicy, "panic_mode");
+pub const INTEROP_POLICY_OFFSET_ALLOCATOR_MODE: usize = @offsetOf(InteropPolicy, "allocator_mode");
+pub const INTEROP_POLICY_OFFSET_UNSAFE_SCOPE: usize = @offsetOf(InteropPolicy, "unsafe_scope");
+pub const INTEROP_POLICY_OFFSET_RESERVED: usize = @offsetOf(InteropPolicy, "reserved");
+
+pub const NOTIFIER_BLOCK_SIZE: usize = @sizeOf(NotifierBlock);
+pub const NOTIFIER_BLOCK_ALIGN: usize = @alignOf(NotifierBlock);
+pub const NOTIFIER_BLOCK_OFFSET_NOTIFIER_CALL: usize = @offsetOf(NotifierBlock, "notifier_call");
+pub const NOTIFIER_BLOCK_OFFSET_NEXT: usize = @offsetOf(NotifierBlock, "next");
+pub const NOTIFIER_BLOCK_OFFSET_PRIORITY: usize = @offsetOf(NotifierBlock, "priority");
+
+pub const CHAIN_PRIORITY_INCREASE_SIZE: usize = @sizeOf(ChainPriorityIncrease);
+pub const CHAIN_PRIORITY_INCREASE_ALIGN: usize = @alignOf(ChainPriorityIncrease);
+pub const CHAIN_PRIORITY_INCREASE_OFFSET_PREVIOUS_INDEX: usize = @offsetOf(ChainPriorityIncrease, "previous_index");
+pub const CHAIN_PRIORITY_INCREASE_OFFSET_CURRENT_INDEX: usize = @offsetOf(ChainPriorityIncrease, "current_index");
+pub const CHAIN_PRIORITY_INCREASE_OFFSET_PREVIOUS_PRIORITY: usize = @offsetOf(ChainPriorityIncrease, "previous_priority");
+pub const CHAIN_PRIORITY_INCREASE_OFFSET_CURRENT_PRIORITY: usize = @offsetOf(ChainPriorityIncrease, "current_priority");
+
+pub const LIST_HEAD_SIZE: usize = @sizeOf(ListHead);
+pub const LIST_HEAD_ALIGN: usize = @alignOf(ListHead);
+pub const LIST_HEAD_OFFSET_NEXT: usize = @offsetOf(ListHead, "next");
+pub const LIST_HEAD_OFFSET_PREV: usize = @offsetOf(ListHead, "prev");
+
+pub const HLIST_HEAD_SIZE: usize = @sizeOf(HListHead);
+pub const HLIST_HEAD_ALIGN: usize = @alignOf(HListHead);
+pub const HLIST_HEAD_OFFSET_FIRST: usize = @offsetOf(HListHead, "first");
+
+pub const HLIST_NODE_SIZE: usize = @sizeOf(HListNode);
+pub const HLIST_NODE_ALIGN: usize = @alignOf(HListNode);
+pub const HLIST_NODE_OFFSET_NEXT: usize = @offsetOf(HListNode, "next");
+pub const HLIST_NODE_OFFSET_PPREV: usize = @offsetOf(HListNode, "pprev");
+
+pub const LIST_BACKLINK_BREAK_SIZE: usize = @sizeOf(ListBackLinkBreak);
+pub const LIST_BACKLINK_BREAK_ALIGN: usize = @alignOf(ListBackLinkBreak);
+pub const LIST_BACKLINK_BREAK_OFFSET_CURRENT_INDEX: usize = @offsetOf(ListBackLinkBreak, "current_index");
+pub const LIST_BACKLINK_BREAK_OFFSET_EXPECTED_PREV: usize = @offsetOf(ListBackLinkBreak, "expected_prev");
+pub const LIST_BACKLINK_BREAK_OFFSET_ACTUAL_PREV: usize = @offsetOf(ListBackLinkBreak, "actual_prev");
+
+pub const HLIST_PREV_LINK_BREAK_SIZE: usize = @sizeOf(HListPrevLinkBreak);
+pub const HLIST_PREV_LINK_BREAK_ALIGN: usize = @alignOf(HListPrevLinkBreak);
+pub const HLIST_PREV_LINK_BREAK_OFFSET_CURRENT_INDEX: usize = @offsetOf(HListPrevLinkBreak, "current_index");
+pub const HLIST_PREV_LINK_BREAK_OFFSET_EXPECTED_PPREV: usize = @offsetOf(HListPrevLinkBreak, "expected_pprev");
+pub const HLIST_PREV_LINK_BREAK_OFFSET_ACTUAL_PPREV: usize = @offsetOf(HListPrevLinkBreak, "actual_pprev");
+
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_SIZE: u32 = @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_ALIGN: usize = @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_ACK_WINDOW: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_DELIVERY_WINDOW: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_STATUS: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status");
+
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_SIZE: u32 = @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_ALIGN: usize = @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_APPLIED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_SKIPPED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_DELIVERED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered");
+
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_SIZE: u32 = @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_ALIGN: usize = @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_BUDGET: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_WINDOW: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_FLAGS: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags");
+
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_SIZE: u32 = @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_ALIGN: usize = @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary);
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_ATTEMPTED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_APPLIED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied");
+pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_SKIPPED: usize = @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped");
+
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return notifier_abi.chainHasNonincreasingPriority(head);
 }
@@ -133,7 +215,7 @@ pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
     return .{
-        .size = @sizeOf(BoundaryHeader),
+        .size = BOUNDARY_HEADER_SIZE,
         .abi_version = ABI_VERSION,
         .flags = flags,
     };
@@ -149,13 +231,21 @@ pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
     return abi_version == ABI_VERSION;
 }
 
+pub fn headerIsCompatibleSize(size: u32) bool {
+    return size >= BOUNDARY_HEADER_SIZE;
+}
+
+pub fn headerIsCanonicalSize(size: u32) bool {
+    return size == BOUNDARY_HEADER_SIZE;
+}
+
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return header.size == @sizeOf(BoundaryHeader) and
+    return headerIsCanonicalSize(header.size) and
         headerHasCurrentAbiVersion(header.abi_version);
 }
 
 pub fn headerIsCompatible(header: BoundaryHeader) bool {
-    return header.size >= @sizeOf(BoundaryHeader) and
+    return headerIsCompatibleSize(header.size) and
         headerHasCurrentAbiVersion(header.abi_version);
 }
 
@@ -165,12 +255,12 @@ pub fn extendsBoundary(header: BoundaryHeader) bool {
 
 pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
     if (!extendsBoundary(header)) return 0;
-    return header.size - @as(u32, @sizeOf(BoundaryHeader));
+    return header.size - BOUNDARY_HEADER_SIZE;
 }
 
 pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     var canonical = header;
-    canonical.size = @sizeOf(BoundaryHeader);
+    canonical.size = BOUNDARY_HEADER_SIZE;
     canonical.abi_version = ABI_VERSION;
     return canonical;
 }
@@ -203,38 +293,42 @@ pub fn statusIsOk(status: ExportStatus) bool {
 test "abi binding default header stays canonical" {
     const header = defaultHeader(0x41);
 
-    try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header.size);
+    try std.testing.expectEqual(BOUNDARY_HEADER_SIZE, header.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), header.abi_version);
     try std.testing.expectEqual(@as(u16, 0x41), header.flags);
 
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(BoundaryHeader, "size"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(BoundaryHeader, "abi_version"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(BoundaryHeader, "flags"));
+    try std.testing.expectEqual(@as(u32, 8), BOUNDARY_HEADER_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), BOUNDARY_HEADER_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), BOUNDARY_HEADER_OFFSET_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), BOUNDARY_HEADER_OFFSET_ABI_VERSION);
+    try std.testing.expectEqual(@as(usize, 6), BOUNDARY_HEADER_OFFSET_FLAGS);
 }
 
 test "abi binding boundary header helpers keep compatibility explicit" {
     const default_header = defaultHeader(0x15);
-    const expanded = compatibleHeader(@sizeOf(BoundaryHeader) + 8, 0x15);
+    const expanded = compatibleHeader(BOUNDARY_HEADER_SIZE + 8, 0x15);
     const future = BoundaryHeader{
-        .size = @sizeOf(BoundaryHeader) + 16,
+        .size = BOUNDARY_HEADER_SIZE + 16,
         .abi_version = ABI_VERSION,
         .flags = 0xA1,
     };
     const stale = BoundaryHeader{
-        .size = @sizeOf(BoundaryHeader),
+        .size = BOUNDARY_HEADER_SIZE,
         .abi_version = ABI_VERSION + 1,
         .flags = 0,
     };
     const canonicalized = canonicalizeHeader(future);
 
     try std.testing.expect(headerHasCurrentAbiVersion(default_header.abi_version));
+    try std.testing.expect(headerIsCanonicalSize(default_header.size));
+    try std.testing.expect(headerIsCompatibleSize(default_header.size));
     try std.testing.expect(headerIsCanonical(default_header));
     try std.testing.expect(headerIsCompatible(default_header));
     try std.testing.expect(!extendsBoundary(default_header));
     try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(default_header));
 
+    try std.testing.expect(headerIsCompatibleSize(expanded.size));
+    try std.testing.expect(!headerIsCanonicalSize(expanded.size));
     try std.testing.expect(!headerIsCanonical(expanded));
     try std.testing.expect(headerIsCompatible(expanded));
     try std.testing.expect(extendsBoundary(expanded));
@@ -244,13 +338,15 @@ test "abi binding boundary header helpers keep compatibility explicit" {
     try std.testing.expect(extendsBoundary(future));
     try std.testing.expectEqual(@as(u32, 16), requestedExtraBytes(future));
 
+    try std.testing.expect(headerIsCanonicalSize(stale.size));
+    try std.testing.expect(headerIsCompatibleSize(stale.size));
     try std.testing.expect(!headerHasCurrentAbiVersion(stale.abi_version));
     try std.testing.expect(!headerIsCanonical(stale));
     try std.testing.expect(!headerIsCompatible(stale));
     try std.testing.expect(!extendsBoundary(stale));
     try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(stale));
 
-    try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonicalized.size);
+    try std.testing.expectEqual(BOUNDARY_HEADER_SIZE, canonicalized.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), canonicalized.abi_version);
     try std.testing.expectEqual(future.flags, canonicalized.flags);
     try std.testing.expect(headerIsCanonical(canonicalized));
@@ -368,97 +464,103 @@ test "abi binding chrdev notify window constants stay explicit" {
     try std.testing.expectEqual(@as(u32, 1), budget_summary.skipped);
 }
 
-test "abi binding chrdev structs keep the published layout" {
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(ExportStatus));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ExportStatus));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ExportStatus, "code"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ExportStatus, "facility"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(ExportStatus, "flags"));
+test "abi binding exported layout constants stay aligned with the published boundary surface" {
+    try std.testing.expectEqual(@as(u32, 8), BOUNDARY_HEADER_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), BOUNDARY_HEADER_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), BOUNDARY_HEADER_OFFSET_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), BOUNDARY_HEADER_OFFSET_ABI_VERSION);
+    try std.testing.expectEqual(@as(usize, 6), BOUNDARY_HEADER_OFFSET_FLAGS);
 
-    try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 1), @alignOf(InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(InteropPolicy, "panic_mode"));
-    try std.testing.expectEqual(@as(usize, 1), @offsetOf(InteropPolicy, "allocator_mode"));
-    try std.testing.expectEqual(@as(usize, 2), @offsetOf(InteropPolicy, "unsafe_scope"));
-    try std.testing.expectEqual(@as(usize, 3), @offsetOf(InteropPolicy, "reserved"));
+    try std.testing.expectEqual(@as(u32, 8), EXPORT_STATUS_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), EXPORT_STATUS_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), EXPORT_STATUS_OFFSET_CODE);
+    try std.testing.expectEqual(@as(usize, 4), EXPORT_STATUS_OFFSET_FACILITY);
+    try std.testing.expectEqual(@as(usize, 6), EXPORT_STATUS_OFFSET_FLAGS);
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status"));
+    try std.testing.expectEqual(@as(u32, 4), INTEROP_POLICY_SIZE);
+    try std.testing.expectEqual(@as(usize, 1), INTEROP_POLICY_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), INTEROP_POLICY_OFFSET_PANIC_MODE);
+    try std.testing.expectEqual(@as(usize, 1), INTEROP_POLICY_OFFSET_ALLOCATOR_MODE);
+    try std.testing.expectEqual(@as(usize, 2), INTEROP_POLICY_OFFSET_UNSAFE_SCOPE);
+    try std.testing.expectEqual(@as(usize, 3), INTEROP_POLICY_OFFSET_RESERVED);
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"));
+    try std.testing.expectEqual(@as(u32, 12), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_ACK_WINDOW);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_DELIVERY_WINDOW);
+    try std.testing.expectEqual(@as(usize, 8), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_VIEW_OFFSET_STATUS);
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"));
+    try std.testing.expectEqual(@as(u32, 12), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_APPLIED);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_SKIPPED);
+    try std.testing.expectEqual(@as(usize, 8), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_SUMMARY_OFFSET_DELIVERED);
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
+    try std.testing.expectEqual(@as(u32, 12), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_BUDGET);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_WINDOW);
+    try std.testing.expectEqual(@as(usize, 8), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_VIEW_OFFSET_FLAGS);
+
+    try std.testing.expectEqual(@as(u32, 12), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_SIZE);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_ATTEMPTED);
+    try std.testing.expectEqual(@as(usize, 4), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_APPLIED);
+    try std.testing.expectEqual(@as(usize, 8), CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_SUMMARY_OFFSET_SKIPPED);
 }
 
-test "abi binding notifier and list layouts stay aligned with the exported ABI header" {
+test "abi binding notifier and list layout constants stay aligned with the exported ABI header" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
     const expected_notifier_size = std.mem.alignForward(
         usize,
         raw_size,
-        @alignOf(NotifierBlock),
+        NOTIFIER_BLOCK_ALIGN,
     );
     const raw_increase_size = (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2);
     const expected_increase_size = std.mem.alignForward(
         usize,
         raw_increase_size,
-        @alignOf(ChainPriorityIncrease),
+        CHAIN_PRIORITY_INCREASE_ALIGN,
     );
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
-    try std.testing.expectEqual(expected_notifier_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), NOTIFIER_BLOCK_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), NOTIFIER_BLOCK_OFFSET_NOTIFIER_CALL);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), NOTIFIER_BLOCK_OFFSET_NEXT);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), NOTIFIER_BLOCK_OFFSET_PRIORITY);
+    try std.testing.expectEqual(expected_notifier_size, NOTIFIER_BLOCK_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ChainPriorityIncrease));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChainPriorityIncrease, "previous_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ChainPriorityIncrease, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ChainPriorityIncrease, "previous_priority"));
-    try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(ChainPriorityIncrease, "current_priority"));
-    try std.testing.expectEqual(expected_increase_size, @sizeOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), CHAIN_PRIORITY_INCREASE_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), CHAIN_PRIORITY_INCREASE_OFFSET_PREVIOUS_INDEX);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), CHAIN_PRIORITY_INCREASE_OFFSET_CURRENT_INDEX);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), CHAIN_PRIORITY_INCREASE_OFFSET_PREVIOUS_PRIORITY);
+    try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), CHAIN_PRIORITY_INCREASE_OFFSET_CURRENT_PRIORITY);
+    try std.testing.expectEqual(expected_increase_size, CHAIN_PRIORITY_INCREASE_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListHead, "prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(ListHead));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), LIST_HEAD_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), LIST_HEAD_OFFSET_NEXT);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), LIST_HEAD_OFFSET_PREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), LIST_HEAD_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListHead));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListHead, "first"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @sizeOf(HListHead));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), HLIST_HEAD_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), HLIST_HEAD_OFFSET_FIRST);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), HLIST_HEAD_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListNode));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListNode, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), HLIST_NODE_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), HLIST_NODE_OFFSET_NEXT);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), HLIST_NODE_OFFSET_PPREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), HLIST_NODE_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListBackLinkBreak));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListBackLinkBreak, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListBackLinkBreak, "expected_prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ListBackLinkBreak, "actual_prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(ListBackLinkBreak));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), LIST_BACKLINK_BREAK_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), LIST_BACKLINK_BREAK_OFFSET_CURRENT_INDEX);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), LIST_BACKLINK_BREAK_OFFSET_EXPECTED_PREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), LIST_BACKLINK_BREAK_OFFSET_ACTUAL_PREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), LIST_BACKLINK_BREAK_SIZE);
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListPrevLinkBreak));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListPrevLinkBreak, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListPrevLinkBreak, "expected_pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(HListPrevLinkBreak, "actual_pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), HLIST_PREV_LINK_BREAK_ALIGN);
+    try std.testing.expectEqual(@as(usize, 0), HLIST_PREV_LINK_BREAK_OFFSET_CURRENT_INDEX);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), HLIST_PREV_LINK_BREAK_OFFSET_EXPECTED_PPREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), HLIST_PREV_LINK_BREAK_OFFSET_ACTUAL_PPREV);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), HLIST_PREV_LINK_BREAK_SIZE);
 }
 
 test "abi binding notifier helper relays stay aligned with notifier_abi" {
