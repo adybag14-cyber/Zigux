@@ -61,6 +61,16 @@
     "allmodconfig_expected.json",
     "randconfig_expected.json"
   ],
+  "helper_local_allconfig_implicit_omission_modes": [
+    "allmodconfig",
+    "randconfig"
+  ],
+  "helper_local_allconfig_explicit_override_modes": [
+    "allmodconfig",
+    "allnoconfig",
+    "allyesconfig",
+    "randconfig"
+  ],
   "randconfig_env_packet": [
     "randconfig_expected.json"
   ],
