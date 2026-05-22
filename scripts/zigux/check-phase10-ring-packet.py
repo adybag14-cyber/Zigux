@@ -358,6 +358,46 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_publish_readiness_build_step_name(tmp_root: Path) -> None:
+            path = tmp_root / "zigux/tests/phase10_build.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = '.name = "phase10-virtio-ring-publish-readiness-tests",'
+            path.write_text(
+                text.replace(
+                    marker,
+                    '.name = "phase10-virtio-ring-publish-readiness-missing-tests",',
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+        expect_problem(
+            root,
+            remove_publish_readiness_build_step_name,
+            'zigux/tests/phase10_build.zig:.name = "phase10-virtio-ring-publish-readiness-tests",',
+        )
+        write_fixture(root)
+
+        def remove_publish_readiness_build_dependency(tmp_root: Path) -> None:
+            path = tmp_root / "zigux/tests/phase10_build.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);"
+            path.write_text(
+                text.replace(
+                    marker,
+                    "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+        expect_problem(
+            root,
+            remove_publish_readiness_build_dependency,
+            "zigux/tests/phase10_build.zig:test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
+        )
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_ring_survey.zig").unlink()
         missing_files, problems = validate(root)
         if problems:
@@ -368,7 +408,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
