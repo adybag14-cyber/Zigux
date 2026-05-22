@@ -92,3 +92,30 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "clearing the lowest set bit drops hweight by exactly one" {
+    const value8: u32 = 0b1011_0100;
+    const cleared8 = value8 & (value8 - 1);
+    try std.testing.expectEqual(swHweight8(value8) - 1, swHweight8(cleared8));
+    try std.testing.expectEqual(__sw_hweight8(value8) - 1, __sw_hweight8(cleared8));
+
+    const value16: u32 = 0b1011_0100_0101_0000;
+    const cleared16 = value16 & (value16 - 1);
+    try std.testing.expectEqual(swHweight16(value16) - 1, swHweight16(cleared16));
+    try std.testing.expectEqual(__sw_hweight16(value16) - 1, __sw_hweight16(cleared16));
+
+    const value32: u32 = 0x8f04_9000;
+    const cleared32 = value32 & (value32 - 1);
+    try std.testing.expectEqual(swHweight32(value32) - 1, swHweight32(cleared32));
+    try std.testing.expectEqual(__sw_hweight32(value32) - 1, __sw_hweight32(cleared32));
+
+    const value64: u64 = 0x8040_1000_0000_0201;
+    const cleared64 = value64 & (value64 - 1);
+    try std.testing.expectEqual(swHweight64(value64) - 1, swHweight64(cleared64));
+    try std.testing.expectEqual(__sw_hweight64(value64) - 1, __sw_hweight64(cleared64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0x8040_1001 else 0x8040_1000_0000_0201;
+    const cleared_long = value_long & (value_long - 1);
+    try std.testing.expectEqual(hweightLong(value_long) - 1, hweightLong(cleared_long));
+    try std.testing.expectEqual(hweight_long(value_long) - 1, hweight_long(cleared_long));
+}
