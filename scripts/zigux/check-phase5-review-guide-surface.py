@@ -58,6 +58,7 @@ MARKERS = {
         "Treat those four anchors as the approved Phase 5 destination set unless the roadmap changes.",
         "The same authenticated route also directly returns the shared build-route companion `zigux/tests/phase5_build.zig` for this packet.",
         "Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events cues carried by `samples/zigux/trace_events_string_formatting_sample.zig` and the shared reminder packet.",
+        "Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays only current public-tree-backed companion evidence.",
     ),
     DOCS_ROOT_PATH: (
         "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
@@ -197,12 +198,22 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 7
+    expected_case_count = 8
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
 
         expect_exact("baseline", collect_failures(root), [])
+        checks_run += 1
+
+        mutated = root / "missing_guide_validation_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][3], ""))
+        expect_exact(
+            "guide_validation_marker",
+            collect_failures(mutated),
+            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}"],
+        )
         checks_run += 1
 
         mutated = root / "missing_review_checklist_marker"
