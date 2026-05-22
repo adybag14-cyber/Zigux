@@ -68,6 +68,7 @@ REQUIRED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_CHECKSUM_CASES = {
     "64B": {"iterations": 200000, "max_slowdown_pct": 150},
     "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
@@ -85,7 +86,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 35
+SELF_TEST_CASE_COUNT = 37
 
 
 class ValidationError(RuntimeError):
@@ -174,6 +175,8 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected packet id in {path.as_posix()}")
     if manifest.get("phase") != "Phase 6":
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
+    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("helper-evidence surveyed_head drifted")
 
     companions = manifest.get("current_direct_readback_companions")
     if not isinstance(companions, list):
@@ -244,6 +247,8 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected packet id in {path.as_posix()}")
     if manifest.get("phase") != "Phase 6":
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
+    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("helper-parity surveyed_head drifted")
 
     checksum = get_helper(manifest, "checksum")
     hexdump = get_helper(manifest, "hexdump")
@@ -320,6 +325,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": "phase6-helper-evidence",
                 "phase": "Phase 6",
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
                 "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
                 "helpers": [
                     {
@@ -402,6 +408,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": "phase6-helper-parity",
                 "phase": "Phase 6",
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
                 "helpers": [
                     {
                         "key": "checksum",
@@ -617,6 +624,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-21"',
+            ),
+            "helper-evidence surveyed_head drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"',
                 '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"',
             ),
@@ -764,6 +783,18 @@ def run_self_test() -> None:
                 '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]',
             ),
             "hexdump checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-21"',
+            ),
+            "helper-parity surveyed_head drifted",
         )
         cases_run += 1
         scaffold_repo(root)
