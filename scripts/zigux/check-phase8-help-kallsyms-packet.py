@@ -58,6 +58,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     KALLSYMS_SLICE: (
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms.zig`",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "`make -C zigux phase8-kallsyms-test`",
@@ -124,7 +125,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     KALLSYMS_TEST: (
         'test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit"',
+        'test "phase 8 kallsyms direct parser truncates oversized names"',
         'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
+        'test "phase 8 kallsyms chunked parser also truncates oversized names"',
+        'expectEqualStrings("startup_64\\r", symbols.items[0].name)',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
 }
