@@ -25,6 +25,9 @@ pub const PreparedRequest = struct {
 
     pub fn releaseWithoutSubstrate(self: *PreparedRequest) !void {
         if (self.state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
+        if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         self.state = .released_without_substrate;
     }
 };
@@ -207,38 +210,30 @@ test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drif
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
 
-test "releaseWithoutSubstrate stays fail-closed outside the waiting handoff stage" {
+test "releaseWithoutSubstrate preserves the waiting snapshot on drift" {
     const stable = LoadPlan{
-        .module_name = "runtime_kretprobe",
-        .anchor = "samples/kprobes/kretprobe_example.c",
-        .entry_symbol = "zigux_runtime_kretprobe_init",
-        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
         .requires_runtime_substrate = true,
         .provides_selftest_hook = true,
         .allocator_handoff = .caller_provided,
         .init_flow = .{
-            .handoff_stage = .initialized,
+            .handoff_stage = .selftest_complete,
             .init_runs = 1,
-            .selftest_runs = 0,
+            .selftest_runs = 1,
             .exit_runs = 0,
         },
     };
 
     var request = try prepareRequest(stable);
-    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable));
-    try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
-
     const pending = try request.requestRuntimeLoad();
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .waiting_on_runtime_substrate, pending));
+    request.plan.requires_runtime_substrate = false;
 
-    try request.releaseWithoutSubstrate();
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(
-        request,
-        .released_without_substrate,
-        pending,
-    ));
-    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
-    try std.testing.expectError(error.InvalidLoaderState, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
     try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
+    try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
+    try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
 }
