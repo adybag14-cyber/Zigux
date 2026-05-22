@@ -78,6 +78,22 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
+    payload = load_json(manifest_path)
+    if not isinstance(payload, dict):
+        raise AssertionError("manifest root must stay a dict in the seeded baseline")
+    surfaces = payload.get("present_surfaces")
+    if not isinstance(surfaces, dict):
+        raise AssertionError("manifest present_surfaces must stay a dict in the seeded baseline")
+
+    expectations: list[tuple[str, tuple[str, ...]]] = []
+    for key, value in surfaces.items():
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            raise AssertionError(f"manifest surface must stay a list[str] in the seeded baseline: {key}")
+        expectations.append((key, tuple(value)))
+    return expectations
+
+
 def run_matrix(module, seed_root) -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_") as tmp_dir:
@@ -145,14 +161,9 @@ def run_matrix(module, seed_root) -> int:
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
         checks_run += 1
 
-        for key, expected in (
-            ("review_surfaces", module.EXPECTED_MANIFEST_REVIEW_SURFACES),
-            ("closure_notes", module.EXPECTED_MANIFEST_CLOSURE_NOTES),
-            ("validators", module.EXPECTED_MANIFEST_VALIDATORS),
-            ("checkers", module.EXPECTED_MANIFEST_CHECKERS),
-            ("bridge_helpers", module.EXPECTED_MANIFEST_BRIDGE_HELPERS),
-            ("fixture_roster", module.EXPECTED_MANIFEST_FIXTURE_ROSTER),
-        ):
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
+        for key, expected in collect_manifest_surface_expectations(manifest_path):
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
@@ -262,18 +273,19 @@ REQUIRED_FILES = (
     GENKSYMS_CASES_REL,
     GENKSYMS_MANIFEST_REL,
 )
-EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
-EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
-EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
-EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
-EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
-EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
 EXPECTED_CONF_CASE_DETAILS = [{"name": "conf", "expected": "conf.json"}]
 EXPECTED_CONFDATA_CASE_DETAILS = [{"name": "confdata", "expected": "confdata.json"}]
 EXPECTED_CONF_MANIFEST = {"tool": "conf", "case_count": 1}
 EXPECTED_CONFDATA_MANIFEST = {"tool": "confdata", "case_count": 1}
 EXPECTED_GENKSYMS_CASES = [{"name": "genksyms", "expected_file": "genksyms.json"}]
 EXPECTED_GENKSYMS_MANIFEST = {"tool": "genksyms", "process_output_packet": ["genksyms.json"]}
+EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
+EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
+EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
+EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
+EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
+EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
+EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
 
 def resolve(root: Path, rel: Path) -> Path:
     return root / rel
@@ -295,6 +307,7 @@ def build_self_test_root(root: Path) -> None:
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
+            "policy": list(EXPECTED_MANIFEST_POLICY),
         },
     }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
@@ -391,6 +404,7 @@ def collect_issues(root: Path):
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
+    expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
     collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_manifest, genksyms_cases, genksyms_manifest)
     return issues
 """
