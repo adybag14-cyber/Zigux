@@ -188,7 +188,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 41
+SELF_TEST_CASE_COUNT = 42
 
 
 def read_text(path: Path) -> str:
@@ -488,6 +488,12 @@ def run_self_test() -> None:
         sample_boundary_marker = "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet"
         remove_once(sample_boundary_path, sample_boundary_marker)
         expect_missing_marker("missing_sample_boundary_non_goal_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        sample_boundary_marker = FORMAT_BOUNDARY_MARKER
+        remove_once(sample_boundary_path, sample_boundary_marker)
+        expect_missing_marker("missing_sample_boundary_format_boundary_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
