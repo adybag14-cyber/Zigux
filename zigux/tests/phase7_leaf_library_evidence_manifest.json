@@ -80,8 +80,15 @@
         "../../lib/argv_split.zig",
         "../../lib/rbtree.zig",
         "phase7-string-helpers-test",
+        "phase7-string-helpers-survey",
+        "phase7-string-helpers-sample-boundary",
+        "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
         "phase7-cmdline-test",
+        "phase7-cmdline-survey",
+        "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
         "phase7-argv-split-test",
+        "phase7-argv-split-survey",
+        "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
         "phase7-rbtree-test",
         "phase7-rbtree-survey"
       ]
