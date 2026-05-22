@@ -17,12 +17,20 @@ EXIT_ROLLBACK_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);",
     "try std.testing.expectEqual(@as(usize, 2), before_failed_exit.register_transitions);",
     "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.unregister_transitions);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), after_failed_exit_main_replay.last_main_conditional_message);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), after_failed_exit_main_replay.last_main_template_cond_message);",
+    'try std.testing.expectEqualStrings("Hello __rel_loc", after_failed_exit_main_replay.last_main_relative_location_message orelse return error.ExpectedMainPayload);',
     "try std.testing.expectEqual(@as(?usize, 4), before_unregister.last_main_emitted_events);",
     "try std.testing.expectEqual(@as(?usize, 2), before_unregister.last_fn_emitted_events);",
     "try std.testing.expectEqual(@as(?usize, 0), before_unregister.last_main_conditional_event_count);",
+    'try std.testing.expectEqualStrings("Look at me too", before_unregister.last_function_template_message orelse return error.ExpectedFunctionPayload);',
     "try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);",
     "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);",
     "try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);",
+    "try std.testing.expectEqual(@as(usize, 2), after_exit.unregister_transitions);",
+    "try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);",
+    "try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);",
+    "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
 ]
 
 REENTRY_REQUIRED_MARKERS = [
@@ -32,7 +40,16 @@ REENTRY_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);",
     "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);",
     "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), before_exit.last_main_conditional_message);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), before_exit.last_main_template_cond_message);",
+    'try std.testing.expectEqualStrings("Hello __rel_loc", before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);',
+    'try std.testing.expectEqualStrings("iter=%d", before_exit.last_format_template orelse return error.ExpectedMainPayload);',
+    "try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);",
+    "try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);",
+    "try std.testing.expectEqual(before_exit.last_main_conditional_message, after_exit.last_main_conditional_message);",
+    "try std.testing.expectEqual(before_exit.last_main_template_cond_message, after_exit.last_main_template_cond_message);",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(11));",
     "try std.testing.expect(std.meta.eql(after_exit, after_rejected_lifecycle));",
 ]
 
