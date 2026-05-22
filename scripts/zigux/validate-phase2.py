@@ -57,6 +57,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/zig-toolchain-policy.json",
     "scripts/zigux/artifact_diff.py",
     "third_party/README.md",
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
