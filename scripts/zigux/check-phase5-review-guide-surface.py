@@ -73,6 +73,7 @@ MARKERS = {
         "Current `master` also still ships no standalone Phase 5 `samples/zigux/*string*`, `*kasprintf*`, `*strarray*`, `*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
         "Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.",
         "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
+        "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
     ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet,",
@@ -208,7 +209,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 22
+    expected_case_count = 23
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -373,6 +374,20 @@ def run_self_test() -> int:
             "approved_idiom_destination_boundary_marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][3]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_approved_idiom_cycle_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            APPROVED_IDIOM_PATH,
+            placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][4], ""),
+        )
+        expect_exact(
+            "approved_idiom_cycle_marker",
+            collect_failures(mutated),
+            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][4]}"],
         )
         checks_run += 1
 
