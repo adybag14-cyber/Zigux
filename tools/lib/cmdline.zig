@@ -143,7 +143,7 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
-        if (equals_idx == null and ch == '=') {
+        if (equals_idx == null and idx != token_start and ch == '=') {
             equals_idx = idx;
         }
         if (ch == '"') {
@@ -316,6 +316,13 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     const parsed = next_arg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("mode", parsed.param);
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
+test "nextArg keeps quoted leading equals tokens bare" {
+    const parsed = nextArg("\"=value\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("=value", parsed.param);
+    try std.testing.expect(parsed.value == null);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
