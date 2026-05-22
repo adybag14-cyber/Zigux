@@ -209,10 +209,12 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_core.zig",
     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "drivers/virtio/virtio_verify.zig",
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -225,8 +227,10 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -635,7 +639,7 @@ def run_self_test() -> int:
         broken = json.loads(json.dumps(original))
         broken["tests"] = [item for item in broken["tests"] if item != "zigux/tests/phase10_virtio_mmio_survey.zig"]
         write_closure(broken)
-        expect_contains(collect_manifest_drift(root), "test_count:22!=21", "phase10-closure-self-test")
+        expect_contains(collect_manifest_drift(root), "test_count:26!=25", "phase10-closure-self-test")
         expect_contains(collect_manifest_drift(root), "tests:'zigux/tests/phase10_virtio_mmio_survey.zig':missing", "phase10-closure-self-test")
         expect_contains(
             collect_manifest_drift(root),
