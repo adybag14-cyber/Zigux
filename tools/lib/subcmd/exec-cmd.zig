@@ -21,6 +21,7 @@ pub const EnvMap = struct {
     pub fn deinit(self: *EnvMap) void {
         var iterator = self.values.iterator();
         while (iterator.next()) |entry| {
+            self.allocator.free(entry.key_ptr.*);
             self.allocator.free(entry.value_ptr.*);
         }
         self.values.deinit();
@@ -35,11 +36,16 @@ pub const EnvMap = struct {
         const owned_value = try self.allocator.dupe(u8, value);
         errdefer self.allocator.free(owned_value);
 
-        const entry = try self.values.getOrPut(key);
-        if (entry.found_existing) {
-            self.allocator.free(entry.value_ptr.*);
+        if (self.values.getPtr(key)) |value_ptr| {
+            self.allocator.free(value_ptr.*);
+            value_ptr.* = owned_value;
+            return;
         }
-        entry.value_ptr.* = owned_value;
+
+        const owned_key = try self.allocator.dupe(u8, key);
+        errdefer self.allocator.free(owned_key);
+
+        try self.values.putNoClobber(owned_key, owned_value);
     }
 };
 
@@ -423,6 +429,20 @@ test "systemPath and getArgvExecPath preserve C-style precedence" {
     const fallback = try getArgvExecPath(std.testing.allocator, config, null, "");
     defer std.testing.allocator.free(fallback);
     try std.testing.expectEqualStrings("/usr/libexec/perf-core/libexec/perf-core", fallback);
+}
+
+test "EnvMap owns inserted keys so later caller mutations cannot corrupt lookups" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    const mutable_key = try std.testing.allocator.dupe(u8, "PERF_EXEC_PATH");
+    defer std.testing.allocator.free(mutable_key);
+
+    try env.set(mutable_key, "/tmp/perf");
+    @memset(mutable_key, 'X');
+
+    try std.testing.expectEqualStrings("/tmp/perf", env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqual(@as(?[]const u8, null), env.get("XXXXXXXXXXXXXX"));
 }
 
 test "extractArgv0Path splits command names from directory prefixes" {
