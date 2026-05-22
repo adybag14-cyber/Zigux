@@ -78,7 +78,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
     try expectContains(slice_note, "expanded starter packet");
     try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet");
-    try expectContains(slice_note, "but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion under the non-runtime `trace_events` anchor");
+    try expectContains(slice_note, "but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion plus the shared `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` reminder under the non-runtime `trace_events` anchor");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
