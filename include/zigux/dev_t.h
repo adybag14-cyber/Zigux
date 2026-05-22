@@ -43,6 +43,12 @@ static inline uint32_t zigux_minor(uint32_t dev)
     return dev & ZIGUX_DEV_MINOR_MASK;
 }
 
+static inline struct zigux_dev_t_fields zigux_dev_t_fields_from_device_number(
+    uint32_t dev)
+{
+    return zigux_dev_t_fields_make(zigux_major(dev), zigux_minor(dev));
+}
+
 static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
 {
     return fields.major <= ZIGUX_DEV_MAJOR_MAX &&
