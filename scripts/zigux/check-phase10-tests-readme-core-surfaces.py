@@ -233,6 +233,18 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected tests-root checker marker failure")
 
+    missing_tests_root_validator = good_tests_root.replace(
+        "`scripts/zigux/validate-phase10-closure.py`",
+        "`scripts/zigux/validate-phase10-closure-missing.py`",
+        1,
+    )
+    try:
+        check_tests_root_readme(missing_tests_root_validator)
+    except SystemExit as exc:
+        assert "tests-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected tests-root closure validator marker failure")
+
     bad_scripts_root = good_scripts_root.replace(
         "`scripts/zigux/check-phase10-input-packet.py`",
         "`scripts/zigux/check-phase10-input-packet-missing.py`",
@@ -342,7 +354,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
