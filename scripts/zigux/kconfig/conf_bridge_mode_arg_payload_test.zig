@@ -60,3 +60,22 @@ test "conf bridge keeps silent-prefixed savedefconfig mode args distinct from br
         capture.list.items,
     );
 }
+
+test "conf bridge keeps silent-prefixed savedefconfig mode args distinct from a separate silent bridge flag" {
+    var capture = try Capture.init(std.testing.allocator, 256);
+    defer capture.deinit();
+
+    try conf_bridge.runConfBridge(&capture, .{
+        .mode = .savedefconfig,
+        .kconfig = "arch/arm64/Kconfig",
+        .config = ".config",
+        .arch = "x86_64",
+        .silent = true,
+        .mode_arg = "silent=debug_defconfig",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"savedefconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--savedefconfig\",\"silent=debug_defconfig\",\"arch/arm64/Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\".config\"}}\n",
+        capture.list.items,
+    );
+}
