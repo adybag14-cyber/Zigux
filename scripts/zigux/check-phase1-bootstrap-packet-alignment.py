@@ -164,6 +164,13 @@ def build_sample_repo(root: Path) -> None:
     write_text(root, WORKFLOW_REL, "\n".join(WORKFLOW_PACKET_LINES) + "\n")
 
 
+def write_sample_root(destination: Path) -> None:
+    if destination.exists() and any(destination.iterdir()):
+        raise SystemExit(f"sample root destination must be empty: {destination}")
+    destination.mkdir(parents=True, exist_ok=True)
+    build_sample_repo(destination)
+
+
 def remove_marker(root: Path, relative_path: Path, marker: str) -> None:
     text = load_text(root, relative_path)
     write_text(root, relative_path, text.replace(marker + "\n", "", 1))
@@ -239,10 +246,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
+    parser.add_argument(
+        "--write-sample-root",
+        help="write a current-like sample repo tree to this empty directory and exit",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root:
+        destination = Path(args.write_sample_root).resolve()
+        write_sample_root(destination)
+        print(f"PHASE1_BOOTSTRAP_PACKET_ALIGNMENT_SAMPLE_ROOT={destination}")
+        print(f"PHASE1_BOOTSTRAP_PACKET_ALIGNMENT_SAMPLE_FILE_COUNT={len(REQUIRED_FILES)}")
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
