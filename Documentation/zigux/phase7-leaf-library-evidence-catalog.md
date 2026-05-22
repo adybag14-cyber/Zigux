@@ -9,6 +9,7 @@
 - `scripts/zigux/check-phase7-shared-surface.py`
 - `scripts/zigux/check-phase7-build-wiring.py`
 - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+- `scripts/zigux/check-phase7-argv-split-packet.py`
 - `scripts/zigux/validate-phase7.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -42,6 +43,8 @@
 - `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase7-argv-split-packet.py`
+- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/validate-phase7.py --self-test`
 - `make -C zigux phase7-validate`
@@ -58,5 +61,5 @@
 
 ## Review posture
 
-- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold
+- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold
 - do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes
