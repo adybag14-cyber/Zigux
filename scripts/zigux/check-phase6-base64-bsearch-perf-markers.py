@@ -27,6 +27,7 @@ REQUIRED_SCRIPTS_SNIPPETS = [
 REQUIRED_CATALOG_SNIPPETS = [
     "base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`",
     "bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
+    "`scripts/zigux/check-phase6-bsearch-c-parity.py` now keeps 17 sorted lookup cases explicit across ascending and descending comparator-driven lookups",
     "- `make -C zigux phase6-base64-perf`",
     "- `make -C zigux phase6-bsearch-perf`",
 ]
@@ -57,6 +58,7 @@ REQUIRED_SHARED_REPLAYS = [
     "make -C zigux phase6-base64-perf",
     "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-perf",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
@@ -65,6 +67,7 @@ REQUIRED_BASE64_CHECKER_SURFACES = [
 ]
 REQUIRED_BSEARCH_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "scripts/zigux/check-phase6-bsearch-c-parity.py",
 ]
 EXPECTED_BASE64_LABELS = [
     "STD_PAD",
@@ -81,7 +84,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -226,6 +229,7 @@ def validate_parity_manifest(path: Path) -> None:
     if "make -C zigux phase6-base64-perf" not in base64_routes:
         raise ValidationError("base64 rerun route missing phase6-base64-perf")
 
+    require_checker_surfaces(bsearch, "bsearch", REQUIRED_BSEARCH_CHECKER_SURFACES)
     if bsearch_perf.get("budget_model") != "comparison_budget":
         raise ValidationError("bsearch budget model drifted")
     if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_LABELS:
@@ -321,6 +325,7 @@ def scaffold_repo(root: Path) -> None:
                     },
                     {
                         "key": "bsearch",
+                        "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "budget_model": "comparison_budget",
                             "case_labels": EXPECTED_BSEARCH_LABELS,
@@ -390,6 +395,18 @@ def run_self_test() -> None:
                 "zigux/tests/phase6_bsearch.zig",
             ),
             "phase6_bsearch",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / CATALOG_PATH,
+                "scripts/zigux/check-phase6-bsearch-c-parity.py",
+                "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+            ),
+            "check-phase6-bsearch-c-parity.py",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -518,6 +535,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                "scripts/zigux/check-phase6-bsearch-c-parity.py",
+                "scripts/zigux/check-phase6-bsearch-present-entrypoints.py",
+            ),
+            "bsearch checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
                 "zigux/tests/phase6_bsearch_lower_bound.zig",
             ),
@@ -553,6 +582,18 @@ def run_self_test() -> None:
         expect_failure(
             root,
             lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+                "python3 scripts/zigux/check-phase6-bsearch-review.py",
+            ),
+            "missing shared replay inventory marker",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
                 '"packet": "phase6-helper-parity"',
                 '"packet": "phase6-helper-evidence"',
@@ -570,6 +611,18 @@ def run_self_test() -> None:
                 '"max_decode_slowdown_pct": 400',
             ),
             "base64 decode threshold drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                "scripts/zigux/check-phase6-bsearch-c-parity.py",
+                "scripts/zigux/check-phase6-bsearch-review.py",
+            ),
+            "bsearch checker surface drifted",
         )
         cases_run += 1
         scaffold_repo(root)
