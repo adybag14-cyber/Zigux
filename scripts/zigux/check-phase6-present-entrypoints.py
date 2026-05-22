@@ -21,8 +21,8 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-21"
-EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-21"
+EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
