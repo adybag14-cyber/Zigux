@@ -168,7 +168,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` and `phase14_skbuff_bridge.zig` into the dedicated Phase 14 build shard, so there is now a live skbuff-local review route on current `master`",
     ],
     RCU_TREE_SURVEY_PATH: [
-        "`PHASE14_LANE_KEY=P14-L14`",
+        "`PHASE14_LANE_KEY=P14-L16`",
         "`PHASE14_STATUS_BUCKET=freeze_in_c`",
         "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
         "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
@@ -205,7 +205,7 @@ REQUIRED_MARKERS = {
     ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
-        "`PHASE14_LANE_KEY=P14-L14`",
+        "`PHASE14_LANE_KEY=P14-L16`",
         "`phase14-rcu-tree-rollback-threshold-guardrail`",
         "Check that the dedicated Phase 14 RCU rollback note stays aligned",
     ],
@@ -335,7 +335,7 @@ def fixture_text(rel_path: str) -> str:
             "#!/usr/bin/env python3\n"
             "import sys\n"
             "# PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass\n"
-            "# `PHASE14_LANE_KEY=P14-L14`\n"
+            "# `PHASE14_LANE_KEY=P14-L16`\n"
             "# `phase14-rcu-tree-rollback-threshold-guardrail`\n"
             "# Check that the dedicated Phase 14 RCU rollback note stays aligned\n"
             "if \"--self-test\" in sys.argv:\n"
