@@ -82,4 +82,18 @@ test "phase1 list_sort replay reuses non-unit comparator context across repeated
     try std.testing.expect(head.prev == &entries[3].node);
     try std.testing.expect(entries[2].node.prev == &head);
     try std.testing.expect(entries[3].node.next == &head);
+
+    mode = .descending;
+    list_sort.listSort(&mode, &head, non_unit_cmp);
+
+    var roundtrip_keys: [6]i32 = undefined;
+    var roundtrip_ordinals: [6]usize = undefined;
+    const roundtrip_count = try collectSorted(&head, &roundtrip_keys, &roundtrip_ordinals);
+    try std.testing.expectEqual(@as(usize, entries.len), roundtrip_count);
+    try std.testing.expectEqualSlices(i32, &.{ 5, 5, 4, 2, 1, 1 }, roundtrip_keys[0..roundtrip_count]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 4, 0, 2, 5 }, roundtrip_ordinals[0..roundtrip_count]);
+    try std.testing.expect(head.next == &entries[1].node);
+    try std.testing.expect(head.prev == &entries[5].node);
+    try std.testing.expect(entries[1].node.prev == &head);
+    try std.testing.expect(entries[5].node.next == &head);
 }
