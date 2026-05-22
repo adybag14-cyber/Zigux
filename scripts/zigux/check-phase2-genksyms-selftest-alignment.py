@@ -33,7 +33,70 @@ MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+HELP_USAGE = (
+    "Usage:\n"
+    "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver\n"
+    "\n"
+    " -d, --debug Increment the debug level (repeatable)\n"
+    " -D, --dump Dump expanded symbol defs (for debugging only)\n"
+    " -r, --reference file Read reference symbols from a file\n"
+    " -T, --dump-types file Dump expanded types into file\n"
+    " -p, --preserve Preserve reference modversions or fail\n"
+    " -w, --warnings Enable warnings\n"
+    " -q, --quiet Disable warnings (default)\n"
+    " -h, --help Print this message\n"
+    " -V, --version Print the release version\n"
+)
+
+EXPECTED_PROCESS_OUTPUT_PAYLOADS = {
+    "abbreviated_version_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\n",
+        "exit_code": 0,
+    },
+    "ambiguous_long_option_expected.json": {
+        "stdout": "",
+        "stderr": "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "invalid_option_expected.json": {
+        "stdout": "",
+        "stderr": "invalid option -- 'x'\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "missing_long_dump_types_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--dump-types' requires an argument\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "missing_long_reference_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--reference' requires an argument\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "missing_reference_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option requires an argument -- 'r'\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "too_many_reference_files_expected.json": {
+        "stdout": "",
+        "stderr": "too many reference files\n",
+        "exit_code": 1,
+    },
+    "unsupported_long_option_expected.json": {
+        "stdout": "",
+        "stderr": "unrecognized option '--unknown'\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+    "unexpected_long_help_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -57,10 +120,6 @@ def read_json(path: Path, issue_code: str) -> tuple[object | None, tuple[str, st
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
-
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
 
 
 def extract_literal(module_text: str, const_name: str) -> object:
@@ -111,6 +170,23 @@ def collect_manifest_field_issues(manifest: object, expected: dict[str, object])
         actual_value = manifest.get(key)
         if actual_value != expected_value:
             issues.append(("MANIFEST_FIELD_MISMATCH", f"{key}:actual={actual_value!r}:expected={expected_value!r}"))
+    return issues
+
+
+def collect_process_output_issues(root: Path, process_output_packet: tuple[str, ...]) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    expected_packet = tuple(EXPECTED_PROCESS_OUTPUT_PAYLOADS.keys())
+    if process_output_packet != expected_packet:
+        issues.append(("PROCESS_OUTPUT_PACKET_ROSTER_MISMATCH", MANIFEST_FIXTURE.name))
+        return issues
+
+    for rel in process_output_packet:
+        payload, issue = read_json(root / f"zigux/tests/fixtures/genksyms_bridge/{rel}", "INVALID_PROCESS_OUTPUT_JSON")
+        if issue is not None:
+            issues.append(issue)
+            continue
+        if payload != EXPECTED_PROCESS_OUTPUT_PAYLOADS[rel]:
+            issues.append(("PROCESS_OUTPUT_PACKET_MISMATCH", rel))
     return issues
 
 
@@ -182,6 +258,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             build_expected_manifest(case_fixtures, process_output_packet, helper_local_anchors),
         )
     )
+    issues.extend(collect_process_output_issues(root, process_output_packet))
     return issues
 
 
@@ -203,7 +280,7 @@ def render_bridge_checker_stub() -> str:
         {"name": "minimal", "args": [], "expected_file": "minimal_expected.json"},
         {"name": "debug_reference_types", "args": ["-d", "-r", "ref.symvers"], "expected_file": "debug_reference_types_expected.json"},
     ]
-    process_output_packet = ("invalid_option_expected.json", "unexpected_long_help_argument_expected.json")
+    process_output_packet = tuple(EXPECTED_PROCESS_OUTPUT_PAYLOADS.keys())
     helper_local_anchors = (
         "genksyms bridge treats pure version requests as version command",
         "genksyms bridge preserves repeated pure version invocations",
@@ -244,8 +321,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / HELP_FIXTURE.relative_to(ROOT), "{}\n")
     for case in case_fixtures:
         write_text(root / f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}", "{}\n")
-    for rel in process_output_packet:
-        write_text(root / f"zigux/tests/fixtures/genksyms_bridge/{rel}", "{}\n")
+    for rel, payload in EXPECTED_PROCESS_OUTPUT_PAYLOADS.items():
+        write_text(root / f"zigux/tests/fixtures/genksyms_bridge/{rel}", json.dumps(payload, indent=2) + "\n")
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -362,9 +439,23 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        process_output_path = root / "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json"
+        process_output_path.write_text("{broken\n", encoding="utf-8")
+        assert ("INVALID_PROCESS_OUTPUT_JSON", process_output_path.name) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        process_output_path = root / "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json"
+        payload = json.loads(process_output_path.read_text(encoding="utf-8"))
+        payload["exit_code"] = 7
+        process_output_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("PROCESS_OUTPUT_PACKET_MISMATCH", process_output_path.name) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
-        bridge_path.write_text(bridge_path.read_text(encoding="utf-8").replace("EXPECTED_PROCESS_OUTPUT_PACKET = ('invalid_option_expected.json', 'unexpected_long_help_argument_expected.json')", "EXPECTED_PROCESS_OUTPUT_PACKET = ('invalid_option_expected.json',)", 1), encoding="utf-8")
-        assert any(code == "MANIFEST_FIELD_MISMATCH" and value.startswith("process_output_packet:") for code, value in collect_issues(root))
+        bridge_path.write_text(bridge_path.read_text(encoding="utf-8").replace("EXPECTED_PROCESS_OUTPUT_PACKET = ('abbreviated_version_expected.json', 'ambiguous_long_option_expected.json', 'invalid_option_expected.json', 'missing_long_dump_types_argument_expected.json', 'missing_long_reference_argument_expected.json', 'missing_reference_argument_expected.json', 'too_many_reference_files_expected.json', 'unsupported_long_option_expected.json', 'unexpected_long_help_argument_expected.json')", "EXPECTED_PROCESS_OUTPUT_PACKET = ('invalid_option_expected.json',)", 1), encoding="utf-8")
+        assert ("PROCESS_OUTPUT_PACKET_ROSTER_MISMATCH", MANIFEST_FIXTURE.name) in collect_issues(root)
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
