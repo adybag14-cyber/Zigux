@@ -125,7 +125,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"This remains a bounded next helper once Zigux chooses to materialize the shared file-path bridge surface; until then the reviewable procfs path construction and fdinfo text parsing should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
+        "\"why_now\": \"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
     );
     try expectContains(
         manifest,
@@ -133,7 +133,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"This remains a bounded next helper once the shared bridge surface exists; the reused-map-name chooser and compatibility comparison are still reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
+        "\"why_now\": \"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
     );
     try expectContains(
         manifest,
