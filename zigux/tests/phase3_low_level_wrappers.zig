@@ -29,6 +29,7 @@ test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-
     const register_ptr: *volatile u16 = @ptrCast(&register);
     const updated = mmio.writeMasked(u16, register_ptr, 0x00F0, 0x0005);
 
+    barrier.storeLoad();
     barrier.fullFence();
     try std.testing.expectEqual(@as(u16, 0x0F05), updated);
     try std.testing.expectEqual(updated, register);
