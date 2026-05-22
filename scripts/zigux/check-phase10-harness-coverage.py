@@ -61,6 +61,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase10.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `zigux/Makefile` themselves now rematerialize on current `master`, and their live bodies expose the dedicated shared Phase 10 validate/test route stack, so keep those returned files and that returned build-gate posture explicit here rather than framing them as repo-reality gaps.",
         "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
         "The shared freeze-boundary guard now stays explicit through `scripts/zigux/check-phase10-shared-freeze-boundary.py` so the closure packet fails closed if the Phase 14 study-only anchors drift into Phase 10 closure claims.",
+        "The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.",
         "The returned packet-local review guards also stay explicit through `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py`, so this shared closure note keeps the current virtqueue, input, and MMIO lab validation stack visible beside the returned shared validate/test route rather than collapsing that evidence into the build gate alone.",
         PHASE10_SCRIPTS_ROOT_PHRASE,
         "`lab_only_driver_validation=starter_landed`",
@@ -289,6 +290,12 @@ SELF_TEST_MUTATIONS = [
         "The shared freeze-boundary guard now stays explicit through `scripts/zigux/check-phase10-shared-freeze-boundary.py` so the closure packet fails closed if the Phase 14 study-only anchors drift into Phase 10 closure claims.",
         "The shared freeze-boundary guard now stays explicit through `scripts/zigux/check-phase10-shared-freeze-boundary-missing.py` so the closure packet fails closed if the Phase 14 study-only anchors drift into Phase 10 closure claims.",
         "Documentation/zigux/phase10-closure-evidence.md:The shared freeze-boundary guard now stays explicit through `scripts/zigux/check-phase10-shared-freeze-boundary.py` so the closure packet fails closed if the Phase 14 study-only anchors drift into Phase 10 closure claims.",
+    ),
+    (
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.",
+        "The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts-missing.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.",
+        "Documentation/zigux/phase10-closure-evidence.md:The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.",
     ),
     (
         "Documentation/zigux/phase10-closure-evidence.md",
