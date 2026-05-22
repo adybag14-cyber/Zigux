@@ -19,6 +19,7 @@
     "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.",
+    "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep module and diff follow-through blocked until those files are directly readable again."
   ],
@@ -36,6 +37,7 @@
     "sample_reinit_guards",
     "exit_lifecycle_and_guards",
     "loader_payload_and_invalid_payload",
+    "loader_empty_payload_direct_exit",
     "loader_reinit_and_re_selftest_guards",
     "loader_loaded_summary_stability",
     "top_bit_contract",
