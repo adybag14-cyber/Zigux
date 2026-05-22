@@ -1,18 +1,12 @@
 const std = @import("std");
 const virtio_core = @import("virtio_core");
 
-pub const anchor_path = "drivers/virtio/virtio.c";
+pub const anchor_path = virtio_core.anchor_path;
 
-pub const DriverIdMatchDisposition = enum {
-    no_match,
-    exact_match,
-    device_wildcard_match,
-    vendor_wildcard_match,
-    full_wildcard_match,
-};
-
+pub const DriverIdMatchDisposition = virtio_core.DriverIdMatchDisposition;
 pub const MatchRule = virtio_core.DriverIdMatchRule;
 pub const MatchSummary = virtio_core.DriverIdMatchSummary;
+pub const DriverIdReviewSummary = virtio_core.DriverIdCoverageSummary;
 
 pub const MatchDisposition = enum {
     unmatched,
@@ -22,45 +16,11 @@ pub const MatchDisposition = enum {
     any_any,
 };
 
-pub const DriverIdReviewSummary = struct {
-    anchor: []const u8,
-    device_id: u32,
-    vendor_id: u32,
-    candidate_count: usize,
-    matched: bool,
-    matched_rule_index: ?usize,
-    disposition: DriverIdMatchDisposition,
-    exact_device_match: bool,
-    exact_vendor_match: bool,
-};
-
 pub fn reviewDriverIdMatch(
     core: *const virtio_core.VirtioCoreLab,
     rules: []const virtio_core.DriverIdMatchRule,
 ) DriverIdReviewSummary {
-    const summary = core.driverIdMatchSummary(rules);
-    const review_disposition: DriverIdMatchDisposition = if (!summary.matched)
-        .no_match
-    else if (summary.matched_device_any and summary.matched_vendor_any)
-        .full_wildcard_match
-    else if (summary.matched_device_any)
-        .device_wildcard_match
-    else if (summary.matched_vendor_any)
-        .vendor_wildcard_match
-    else
-        .exact_match;
-
-    return .{
-        .anchor = summary.anchor,
-        .device_id = summary.device_id,
-        .vendor_id = summary.vendor_id,
-        .candidate_count = summary.candidate_count,
-        .matched = summary.matched,
-        .matched_rule_index = summary.matched_rule_index,
-        .disposition = review_disposition,
-        .exact_device_match = summary.matched and !summary.matched_device_any,
-        .exact_vendor_match = summary.matched and !summary.matched_vendor_any,
-    };
+    return core.driverIdCoverageSummary(rules);
 }
 
 pub fn summarize(core: *const virtio_core.VirtioCoreLab, rules: []const MatchRule) MatchSummary {
