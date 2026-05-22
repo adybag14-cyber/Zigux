@@ -78,6 +78,7 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout_writer.interface;
 
+    const inline_zero_raw = try xa_value.makeValue(0);
     const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
     try writer.print(
@@ -95,9 +96,11 @@ pub fn main(init: std.process.Init) !void {
 
     try writeCase(writer, "null", 0, true);
     try writeCase(writer, "pointer_like", 64, true);
+    try writeCase(writer, "inline_zero", inline_zero_raw, true);
     try writeCase(writer, "inline_small", try xa_value.makeValue(29), true);
     try writeCase(writer, "inline_limit", inline_limit_raw, true);
     try writeCase(writer, "gap_before_err_floor", err_ptr.err_floor - 1, true);
+    try writeCase(writer, "err_top", err_ptr.fromErrorCode(-1), true);
     try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), true);
     try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);
 
