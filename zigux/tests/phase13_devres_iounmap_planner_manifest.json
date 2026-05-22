@@ -1,0 +1,74 @@
+{
+  "lane_key": "P13-L09",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-22",
+  "anchor": "lib/devres.c",
+  "packet": "phase13-devres-iounmap-planner",
+  "status": "starter_landed",
+  "owned_surfaces": [
+    "lib/devres.zig",
+    "Documentation/zigux/phase13-devres-iounmap-planner.md",
+    "zigux/tests/phase13_devres_iounmap_planner_manifest.json",
+    "zigux/tests/phase13_devres_iounmap_planner.zig",
+    "scripts/zigux/check-phase13-devres-iounmap-planner.py"
+  ],
+  "fixture_governance": {
+    "iounmap_cleanup_owner": "zigux/tests/phase13_devres_iounmap_planner.zig",
+    "warn_on_release_miss_owner": "zigux/tests/phase13_devres_iounmap_planner.zig",
+    "no_mapping_owner": "zigux/tests/phase13_devres_iounmap_planner.zig",
+    "validation_guard": "scripts/zigux/check-phase13-devres-iounmap-planner.py",
+    "owner_map": "zigux/tests/phase13_devres_iounmap_planner_manifest.json",
+    "adjacent_boundary_evidence_only": [
+      "Documentation/zigux/phase13-devres-survey.md"
+    ]
+  },
+  "adjacent_evidence": [
+    "lib/devres.zig",
+    "Documentation/zigux/phase13-devres-iounmap-planner.md",
+    "zigux/tests/phase13_devres_iounmap_planner.zig",
+    "Documentation/zigux/phase13-devres-survey.md"
+  ],
+  "required_markers": [
+    "pure `devm_iounmap()` cleanup planning surface",
+    "provides_iounmap_cleanup_planning",
+    "touches_live_mmio = false",
+    "planManagedIounmapCleanup",
+    "tracked mapping owner generates cleanup work",
+    "missing release record still unmaps the tracked mapping",
+    "warn-on-release-miss outcome",
+    "devm_ioremap_np()",
+    "devm_of_iomap()",
+    "devm_arch_phys_wc_add()",
+    "devm_arch_io_reserve_memtype_wc()"
+  ],
+  "blocked_boundaries": [
+    {
+      "id": "phase13-devres-missing-devm-ioremap-np-surface",
+      "status": "blocked_on_mmio_mapping_scope"
+    },
+    {
+      "id": "phase13-devres-missing-devm-of-iomap-surface",
+      "status": "blocked_on_device_tree_scope"
+    },
+    {
+      "id": "phase13-devres-missing-devm-arch-phys-wc-add-surface",
+      "status": "blocked_on_arch_memtype_scope"
+    },
+    {
+      "id": "phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface",
+      "status": "blocked_on_arch_memtype_scope"
+    },
+    {
+      "id": "phase13-devres-live-mmio-mapping-state",
+      "status": "blocked_on_live_mmio_state"
+    },
+    {
+      "id": "phase13-devres-live-device-tree-walks",
+      "status": "blocked_on_device_tree_state"
+    },
+    {
+      "id": "phase13-devres-live-arch-memtype-mutation",
+      "status": "blocked_on_arch_memtype_state"
+    }
+  ]
+}
