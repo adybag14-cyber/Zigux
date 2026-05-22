@@ -14,6 +14,7 @@ SAMPLES_README_PATH = "samples/zigux/README.md"
 MANIFEST_PATH = "zigux/tests/runtime_trace_events_manifest.json"
 SURVEY_GATE_PATH = "zigux/tests/runtime_trace_events_survey.zig"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
+LOADER_SUBSTRATE_DRIFT_PATH = "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
@@ -55,7 +56,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "The direct sample also now keeps initialized-stage clean exit explicit",
         "The direct sample also keeps rejected re-selftest rollback explicit",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"`',
+        "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
         "Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`",
         "`phase9-runtime-loader-allocator-init-flow-tests`",
         "`phase9-runtime-loader-command-env-boundary-guard-tests`",
@@ -70,10 +71,10 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`zigux/tests/runtime_trace_events_survey.zig`",
         ".provides_selftest_hook = true",
         "initialized, selftest_complete, and exited lifecycle tracking",
-        'The direct sample also keeps rejected re-selftest rollback explicit: `test "trace-events sample keeps rejected re-selftest rollback explicit"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.',
-        'The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"`',
+        "The direct sample also keeps rejected re-selftest rollback explicit: `test \"trace-events sample keeps rejected re-selftest rollback explicit\"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.",
+        "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        'Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"`',
+        "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
         "sample-local pilot-module reviewability",
         "broader shared runtime-loader packet",
         "`zigux/tests/phase9_build.zig`",
@@ -122,9 +123,21 @@ FILE_MARKERS: dict[str, list[str]] = {
         '.name = "phase9-runtime-loader-allocator-init-flow-tests"',
         '.name = "phase9-runtime-loader-command-env-boundary-guard-tests"',
         '.name = "phase9-runtime-loader-shared-tests"',
+        '.name = "phase9-runtime-trace-events-loader-substrate-drift-tests"',
         '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
         "runtime_loader_allocator_init_flow.zig",
+        "runtime_trace_events_loader_substrate_drift.zig",
         "../../samples/zigux/runtime_trace_events.zig",
+    ],
+    LOADER_SUBSTRATE_DRIFT_PATH: [
+        'const runtime_loader = @import("runtime_loader");',
+        ".requires_runtime_substrate = true",
+        '.entry_symbol = "zigux_runtime_trace_events_init"',
+        '.exit_symbol = "zigux_runtime_trace_events_exit"',
+        'test "phase9 runtime trace-events shared loader rejects prepared substrate drift before handoff" {',
+        'test "phase9 runtime trace-events shared loader rejects release drift after waiting handoff" {',
+        'test "phase9 runtime trace-events shared loader rejects approved-family release drift after waiting handoff" {',
+        "error.PreparedPlanDrift",
     ],
     SAMPLE_PATH: [
         '.name = "runtime_trace_events"',
