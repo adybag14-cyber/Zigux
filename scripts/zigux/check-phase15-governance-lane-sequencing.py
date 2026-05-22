@@ -358,7 +358,7 @@ def run_self_test() -> int:
         _write(
             missing_lane_owner_root / SHARED_GAP_NOTE_PATH,
             _sample_shared_gap_note().replace(
-                "- ``zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig``\n",
+                "- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n",
                 "",
                 1,
             ),
