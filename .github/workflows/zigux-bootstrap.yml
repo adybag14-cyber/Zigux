@@ -164,6 +164,13 @@ jobs:
 
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
+
+      - name: Self-test current Lane 05 install-zig index fallback checker
+        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test
+
+      - name: Check current Lane 05 install-zig index fallback packet
+        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py
+
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
 
