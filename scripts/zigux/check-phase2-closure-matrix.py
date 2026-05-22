@@ -149,6 +149,13 @@ def run_matrix(module, seed_root) -> int:
             ("review_surfaces", module.EXPECTED_MANIFEST_REVIEW_SURFACES),
             ("closure_notes", module.EXPECTED_MANIFEST_CLOSURE_NOTES),
             ("validators", module.EXPECTED_MANIFEST_VALIDATORS),
+            ("bootstrap_helpers", module.EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
+            ("policy", module.EXPECTED_MANIFEST_POLICY),
+            ("archive_support", module.EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
+            ("cross_route_support", module.EXPECTED_MANIFEST_CROSS_SUPPORT),
+            ("artifact_support", module.EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
+            ("fixdep_support", module.EXPECTED_MANIFEST_FIXDEP_SUPPORT),
+            ("make_wrappers", module.EXPECTED_MANIFEST_MAKE_WRAPPERS),
             ("checkers", module.EXPECTED_MANIFEST_CHECKERS),
             ("bridge_helpers", module.EXPECTED_MANIFEST_BRIDGE_HELPERS),
             ("fixture_roster", module.EXPECTED_MANIFEST_FIXTURE_ROSTER),
@@ -265,6 +272,13 @@ REQUIRED_FILES = (
 EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
 EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
 EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
+EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("install-a.py", "install-b.py")
+EXPECTED_MANIFEST_POLICY = ("policy-a.json", "policy-b.json")
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = ("archive-a", "archive-b")
+EXPECTED_MANIFEST_CROSS_SUPPORT = ("cross-a", "cross-b")
+EXPECTED_MANIFEST_ARTIFACT_SUPPORT = ("artifact-a", "artifact-b")
+EXPECTED_MANIFEST_FIXDEP_SUPPORT = ("fixdep-a", "fixdep-b")
+EXPECTED_MANIFEST_MAKE_WRAPPERS = ("make-a", "make-b")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
@@ -280,11 +294,11 @@ def resolve(root: Path, rel: Path) -> Path:
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\n`marker-b`\n", encoding="utf-8")
+    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\\n`marker-b`\\n", encoding="utf-8")
     resolve(root, WORKFLOW_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, WORKFLOW_REL).write_text("run: alpha\nrun: beta\n", encoding="utf-8")
+    resolve(root, WORKFLOW_REL).write_text("run: alpha\\nrun: beta\\n", encoding="utf-8")
     resolve(root, MAKEFILE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, MAKEFILE_REL).write_text("phase2-a:\nphase2-b:\n", encoding="utf-8")
+    resolve(root, MAKEFILE_REL).write_text("phase2-a:\\nphase2-b:\\n", encoding="utf-8")
     resolve(root, MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, MANIFEST_REL).write_text(json.dumps({
         "repo_reality_gaps": [],
@@ -292,24 +306,31 @@ def build_self_test_root(root: Path) -> None:
             "review_surfaces": list(EXPECTED_MANIFEST_REVIEW_SURFACES),
             "closure_notes": list(EXPECTED_MANIFEST_CLOSURE_NOTES),
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
+            "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
+            "policy": list(EXPECTED_MANIFEST_POLICY),
+            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
+            "cross_route_support": list(EXPECTED_MANIFEST_CROSS_SUPPORT),
+            "artifact_support": list(EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
+            "fixdep_support": list(EXPECTED_MANIFEST_FIXDEP_SUPPORT),
+            "make_wrappers": list(EXPECTED_MANIFEST_MAKE_WRAPPERS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
         },
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, KCONFIG_CASES_REL).write_text(json.dumps({
         "conf_cases": EXPECTED_CONF_CASE_DETAILS,
         "confdata_cases": EXPECTED_CONFDATA_CASE_DETAILS,
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONF_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONFDATA_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
 
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
@@ -388,6 +409,13 @@ def collect_issues(root: Path):
     expect_subset(issues, "review_surfaces", require_manifest_list(issues, manifest, "review_surfaces"), EXPECTED_MANIFEST_REVIEW_SURFACES)
     expect_subset(issues, "closure_notes", require_manifest_list(issues, manifest, "closure_notes"), EXPECTED_MANIFEST_CLOSURE_NOTES)
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
+    expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
+    expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
+    expect_subset(issues, "archive_support", require_manifest_list(issues, manifest, "archive_support"), EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
+    expect_subset(issues, "cross_route_support", require_manifest_list(issues, manifest, "cross_route_support"), EXPECTED_MANIFEST_CROSS_SUPPORT)
+    expect_subset(issues, "artifact_support", require_manifest_list(issues, manifest, "artifact_support"), EXPECTED_MANIFEST_ARTIFACT_SUPPORT)
+    expect_subset(issues, "fixdep_support", require_manifest_list(issues, manifest, "fixdep_support"), EXPECTED_MANIFEST_FIXDEP_SUPPORT)
+    expect_subset(issues, "make_wrappers", require_manifest_list(issues, manifest, "make_wrappers"), EXPECTED_MANIFEST_MAKE_WRAPPERS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
