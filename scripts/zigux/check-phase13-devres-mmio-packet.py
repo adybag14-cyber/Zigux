@@ -11,8 +11,12 @@ SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 IOUNMAP_NOTE_PATH = Path("Documentation/zigux/phase13-devres-iounmap-planner.md")
 IOUNMAP_MANIFEST_PATH = Path("zigux/tests/phase13_devres_iounmap_planner_manifest.json")
 IOUNMAP_REPLAY_PATH = Path("zigux/tests/phase13_devres_iounmap_planner.zig")
+IOMAP_NOTE_PATH = Path("Documentation/zigux/phase13-devres-iomap-planner.md")
+IOMAP_MANIFEST_PATH = Path("zigux/tests/phase13_devres_iomap_planner_manifest.json")
+IOMAP_REPLAY_PATH = Path("zigux/tests/phase13_devres_iomap_planner.zig")
 HELPER_PATH = Path("lib/devres.zig")
 IOUNMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iounmap-planner.py")
+IOMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iomap-planner.py")
 
 REQUIRED_FILES = [
     SLICE_PATH,
@@ -20,8 +24,12 @@ REQUIRED_FILES = [
     IOUNMAP_NOTE_PATH,
     IOUNMAP_MANIFEST_PATH,
     IOUNMAP_REPLAY_PATH,
+    IOMAP_NOTE_PATH,
+    IOMAP_MANIFEST_PATH,
+    IOMAP_REPLAY_PATH,
     HELPER_PATH,
     IOUNMAP_CHECKER_PATH,
+    IOMAP_CHECKER_PATH,
 ]
 
 SLICE_MARKERS = [
@@ -29,17 +37,20 @@ SLICE_MARKERS = [
     "`Documentation/zigux/phase13-devres-iounmap-planner.md`",
     "`zigux/tests/phase13_devres_iounmap_planner.zig`",
     "`scripts/zigux/check-phase13-devres-iounmap-planner.py`",
+    "`Documentation/zigux/phase13-devres-iomap-planner.md`",
+    "`zigux/tests/phase13_devres_iomap_planner.zig`",
+    "`scripts/zigux/check-phase13-devres-iomap-planner.py`",
     "current packet helper-first, planning-only, and MMIO-bounded",
 ]
 
 SURVEY_MARKERS = [
     "# Phase 13 devres DMA, scatterlist, and MMIO Boundary Survey",
-    "helper-first iounmap boundary evidence",
+    "helper-first iomap planning evidence",
     "`Documentation/zigux/phase13-devres-iounmap-planner.md` records a landed pure `devm_iounmap()` cleanup planning surface",
-    "`zigux/tests/phase13_devres_iounmap_planner_manifest.json` marks the packet as `starter_landed`",
-    "helper-first iounmap cleanup planning through `planManagedIounmapCleanup(...)`",
+    "`Documentation/zigux/phase13-devres-iomap-planner.md` records a landed pure `devm_of_iomap()` planning surface",
+    "`zigux/tests/phase13_devres_iomap_planner_manifest.json` marks the packet as `starter_landed`",
+    "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
-    "blocked `phase13-devres-missing-devm-of-iomap-surface`",
     "blocked `phase13-devres-live-mmio-mapping-state`",
 ]
 
@@ -71,9 +82,40 @@ IOUNMAP_REPLAY_MARKERS = [
     "phase13 devres iounmap planner checker stays packet-local",
 ]
 
+IOMAP_NOTE_MARKERS = [
+    "# Phase 13 devres iomap Planner",
+    "pure `devm_of_iomap()` planning surface",
+    "planDeviceTreeIomap(...)",
+    "translated size is preserved when a requested region is denied as busy",
+    "requested region is released again when remap later fails",
+    "requested non-posted mapping type stays attached to the planning surface",
+    "devm_ioremap_np()",
+    "devm_iounmap()",
+    "devm_arch_phys_wc_add()",
+    "devm_arch_io_reserve_memtype_wc()",
+]
+
+IOMAP_MANIFEST_MARKERS = [
+    "\"packet\": \"phase13-devres-iomap-planner\"",
+    "\"status\": \"starter_landed\"",
+    "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
+    "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
+]
+
+IOMAP_REPLAY_MARKERS = [
+    "phase13 devres descriptor records helper-first iomap planning",
+    "phase13 devres iomap planner manifest records the landed helper-first mmio scope",
+    "phase13 devres iomap planner note keeps the helper-first mmio slice bounded",
+    "phase13 devres iomap planner checker stays packet-local",
+]
+
 HELPER_REQUIRED_MARKERS = [
+    ".provides_of_iomap_planning = true",
     ".provides_iounmap_cleanup_planning = true",
     ".touches_live_mmio = false",
+    "pub fn planDeviceTreeIomap",
     "pub fn planManagedIounmapCleanup",
 ]
 
@@ -92,6 +134,15 @@ IOUNMAP_CHECKER_MARKERS = [
     "REPLAY_PATH = Path(\"zigux/tests/phase13_devres_iounmap_planner.zig\")",
     "PHASE13_DEVRES_IOUNMAP_PLANNER_SELF_TEST=pass",
     "PHASE13_DEVRES_IOUNMAP_PLANNER=pass",
+]
+
+IOMAP_CHECKER_MARKERS = [
+    "HELPER_PATH = Path(\"lib/devres.zig\")",
+    "NOTE_PATH = Path(\"Documentation/zigux/phase13-devres-iomap-planner.md\")",
+    "MANIFEST_PATH = Path(\"zigux/tests/phase13_devres_iomap_planner_manifest.json\")",
+    "REPLAY_PATH = Path(\"zigux/tests/phase13_devres_iomap_planner.zig\")",
+    "PHASE13_DEVRES_IOMAP_PLANNER_SELF_TEST=pass",
+    "PHASE13_DEVRES_IOMAP_PLANNER=pass",
 ]
 
 
@@ -123,8 +174,12 @@ def validate(root: Path) -> list[str]:
         (IOUNMAP_NOTE_PATH, IOUNMAP_NOTE_MARKERS, "iounmap_note"),
         (IOUNMAP_MANIFEST_PATH, IOUNMAP_MANIFEST_MARKERS, "iounmap_manifest"),
         (IOUNMAP_REPLAY_PATH, IOUNMAP_REPLAY_MARKERS, "iounmap_replay"),
+        (IOMAP_NOTE_PATH, IOMAP_NOTE_MARKERS, "iomap_note"),
+        (IOMAP_MANIFEST_PATH, IOMAP_MANIFEST_MARKERS, "iomap_manifest"),
+        (IOMAP_REPLAY_PATH, IOMAP_REPLAY_MARKERS, "iomap_replay"),
         (HELPER_PATH, HELPER_REQUIRED_MARKERS, "helper"),
         (IOUNMAP_CHECKER_PATH, IOUNMAP_CHECKER_MARKERS, "iounmap_checker"),
+        (IOMAP_CHECKER_PATH, IOMAP_CHECKER_MARKERS, "iomap_checker"),
     ]
     for rel, markers, prefix in checks:
         issues.extend(collect_missing(read_text(root / rel), markers, prefix))
@@ -140,8 +195,12 @@ def seed_fixture_tree(root: Path) -> None:
         IOUNMAP_NOTE_PATH: "\n".join(IOUNMAP_NOTE_MARKERS) + "\n",
         IOUNMAP_MANIFEST_PATH: "\n".join(IOUNMAP_MANIFEST_MARKERS) + "\n",
         IOUNMAP_REPLAY_PATH: "\n".join(IOUNMAP_REPLAY_MARKERS) + "\n",
+        IOMAP_NOTE_PATH: "\n".join(IOMAP_NOTE_MARKERS) + "\n",
+        IOMAP_MANIFEST_PATH: "\n".join(IOMAP_MANIFEST_MARKERS) + "\n",
+        IOMAP_REPLAY_PATH: "\n".join(IOMAP_REPLAY_MARKERS) + "\n",
         HELPER_PATH: "\n".join(HELPER_REQUIRED_MARKERS) + "\n",
         IOUNMAP_CHECKER_PATH: "\n".join(IOUNMAP_CHECKER_MARKERS) + "\n",
+        IOMAP_CHECKER_PATH: "\n".join(IOMAP_CHECKER_MARKERS) + "\n",
     }
     for rel, text in writes.items():
         write_text(root / rel, text)
@@ -164,11 +223,11 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
-        (root / IOUNMAP_MANIFEST_PATH).unlink()
+        (root / IOMAP_MANIFEST_PATH).unlink()
         assert_only(
             validate(root),
-            [f"missing_file:{IOUNMAP_MANIFEST_PATH.as_posix()}"],
-            "missing_iounmap_manifest_failed",
+            [f"missing_file:{IOMAP_MANIFEST_PATH.as_posix()}"],
+            "missing_iomap_manifest_failed",
         )
         case_count += 1
 
