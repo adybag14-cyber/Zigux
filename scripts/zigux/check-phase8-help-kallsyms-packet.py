@@ -78,6 +78,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "if the change touches the parked Phase 8 `kallsyms` parser packet",
         "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`make -C zigux phase8-kallsyms-test`",
+        "`Documentation/zigux/phase8-help-slice.md`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
     ),
     SCRIPTS_README: (
         "while treating the returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors",
