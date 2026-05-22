@@ -16,6 +16,9 @@ UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
 GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
+KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH = Path(
+    "Documentation/zigux/phase3-kernel-export-shim-governance.md"
+)
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
@@ -31,6 +34,7 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
+        "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
@@ -41,6 +45,8 @@ REQUIRED_MARKERS = {
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+        "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
+        "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
         "Current `master` does not currently carry `zigux/tests/phase3_export_uapi_layout_build.zig`",
@@ -87,6 +93,11 @@ REQUIRED_MARKERS = {
     GOVERNANCE_NOTE_PATH: (
         "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_ZIGUX_H_EXPORT_UAPI_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    ),
+    KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH: (
+        "PHASE3_KERNEL_EXPORT_SHIM_SCOPE=",
+        "PHASE3_KERNEL_EXPORT_SHIM_NEXT_SAFE_STEP=",
+        "It does not claim broader shared ABI validator, manifest, linux-header-governance, or low-level-wrapper completion.",
     ),
     DEV_T_HEADER_PATH: (
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
@@ -195,6 +206,21 @@ def run_self_test() -> int:
     marker_cases = (
         (
             SURVEY_PATH,
+            "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
+            "expected missing kernel export-shim governance survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
+            "expected missing catalog helper survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+            "expected missing catalog selftest guard survey marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
             "expected missing shared export/uapi layout gate marker was not reported",
         ),
@@ -222,6 +248,11 @@ def run_self_test() -> int:
             C_HEADER_SMOKE_PATH,
             "zigux_validate_boundary_header(",
             "expected missing c-header smoke boundary-validation marker was not reported",
+        ),
+        (
+            KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH,
+            "PHASE3_KERNEL_EXPORT_SHIM_SCOPE=",
+            "expected missing kernel export-shim governance scope marker was not reported",
         ),
     )
 
