@@ -75,6 +75,12 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     "`LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
     "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet",
     "keep `modules.order`, `modules.builtin`, `Module.symvers`, and module install-root wording framed as blocked wider-family vocabulary too",
+    PHASE2_CONF_BRIDGE_MARKER,
+    PHASE2_CONFDATA_BRIDGE_MARKER,
+    PHASE3_EXPORTS_MARKER,
+    PHASE3_EXPORT_SHIM_MARKER,
+    PHASE2_BOUNDARY_MARKER,
+    PHASE3_BOUNDARY_MARKER,
     "Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.",
 ]
 
