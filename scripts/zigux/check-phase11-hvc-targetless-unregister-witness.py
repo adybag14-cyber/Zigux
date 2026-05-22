@@ -83,6 +83,8 @@ FILE_EXPECTATIONS = (
             SELF_PATH,
             WITNESS_PATH,
             WITNESS_BUILD_PATH,
+            "standalone targetless-unregister witness",
+            "separate failure-mode replay",
         ),
     ),
     FileExpectation(
@@ -104,7 +106,8 @@ FILE_EXPECTATIONS = (
             SELF_PATH,
             WITNESS_PATH,
             WITNESS_BUILD_PATH,
-            "standalone targetless-unregister witness pair",
+            "standalone targetless-unregister witness pair likewise stays",
+            "without promoting itself into the shared three-entry build inventory",
         ),
     ),
     FileExpectation(
@@ -181,8 +184,11 @@ FILE_EXPECTATIONS = (
             'try expectContains(boundary, "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit");',
             'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
             'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
+            'try expectContains(companion, "standalone targetless-unregister witness");',
+            'try expectContains(companion, "separate failure-mode replay");',
             'try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
             'try expectContains(survey, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
+            'try expectContains(survey, "standalone targetless-unregister witness pair likewise stays");',
             'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
             'try expectContains(matrix, "witness shard now rereads the live starter and the boundary note together");',
             'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
@@ -321,6 +327,8 @@ def make_fixture(root: Path) -> None:
                 SELF_PATH,
                 WITNESS_PATH,
                 WITNESS_BUILD_PATH,
+                "standalone targetless-unregister witness",
+                "separate failure-mode replay",
             )
         )
         + "\n",
@@ -354,7 +362,7 @@ def make_fixture(root: Path) -> None:
                 SELF_PATH,
                 WITNESS_PATH,
                 WITNESS_BUILD_PATH,
-                "standalone targetless-unregister witness pair",
+                "standalone targetless-unregister witness pair likewise stays",
                 "without promoting itself into the shared three-entry build inventory",
             )
         )
@@ -460,8 +468,11 @@ def make_fixture(root: Path) -> None:
                 "try expectContains(boundary, \"the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit\");",
                 "try expectContains(companion, \"`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`\");",
                 "try expectContains(companion, \"`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`\");",
+                "try expectContains(companion, \"standalone targetless-unregister witness\");",
+                "try expectContains(companion, \"separate failure-mode replay\");",
                 "try expectContains(survey, \"`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`\");",
                 "try expectContains(survey, \"`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`\");",
+                "try expectContains(survey, \"standalone targetless-unregister witness pair likewise stays\");",
                 "try expectContains(survey, \"without promoting itself into the shared three-entry build inventory\");",
                 "try expectContains(matrix, \"witness shard now rereads the live starter and the boundary note together\");",
                 "try expectContains(matrix, \"keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet\");",
@@ -528,6 +539,38 @@ def run_self_test() -> int:
             raise AssertionError("expected cleanup companion fragment check to fail")
 
         make_fixture(temp_dir)
+        companion.write_text(
+            read_text(temp_dir, CLEANUP_COMPANION_PATH).replace(
+                "standalone targetless-unregister witness\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected cleanup companion standalone-witness fragment check to fail")
+
+        make_fixture(temp_dir)
+        companion.write_text(
+            read_text(temp_dir, CLEANUP_COMPANION_PATH).replace(
+                "separate failure-mode replay\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected cleanup companion failure-mode fragment check to fail")
+
+        make_fixture(temp_dir)
         matrix = temp_dir / VALIDATION_MATRIX_PATH
         matrix.write_text("# matrix\n", encoding="utf-8")
         try:
@@ -546,6 +589,38 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected survey fragment check to fail")
+
+        make_fixture(temp_dir)
+        survey.write_text(
+            read_text(temp_dir, SURVEY_PATH).replace(
+                "standalone targetless-unregister witness pair likewise stays\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected survey standalone-witness wording check to fail")
+
+        make_fixture(temp_dir)
+        survey.write_text(
+            read_text(temp_dir, SURVEY_PATH).replace(
+                "without promoting itself into the shared three-entry build inventory\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected survey no-promotion wording check to fail")
 
         make_fixture(temp_dir)
         boundary = temp_dir / VERIFY_BOUNDARY_PATH
