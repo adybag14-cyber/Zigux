@@ -87,7 +87,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 25), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_gap_expected_missing_paths.len);
 
@@ -105,6 +105,9 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "parity scorecard link or blocker record");
     try expectSliceContains(manifest.study_only_anchor_review_markers, "`kernel/workqueue.c`");
     try expectSliceContains(manifest.study_only_anchor_review_markers, "not candidates for a freeze-in-C status review through this note");
+    try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_freeze_map_governance.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_parity_scorecard.json`");
+    try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_parity_scorecard.zig`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectSliceContains(manifest.handoff_required_markers, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
