@@ -40,6 +40,12 @@ REQUIRED_MARKERS = {
         "PHASE7_CMDLINE_PACKET_SELF_TEST=pass",
         '"Documentation/zigux/phase7-cmdline-slice.md",',
         "FORBIDDEN_MARKERS = {",
+        "MISSING_PHASE7_CMDLINE_FILES_START",
+        "MISSING_PHASE7_CMDLINE_FILES_END",
+        "MISSING_PHASE7_CMDLINE_MARKERS_START",
+        "MISSING_PHASE7_CMDLINE_MARKERS_END",
+        "FORBIDDEN_PHASE7_CMDLINE_MARKERS_START",
+        "FORBIDDEN_PHASE7_CMDLINE_MARKERS_END",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -132,7 +138,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 63
+SELF_TEST_CASE_COUNT = 69
 
 
 def read_text(path: Path) -> str:
@@ -285,6 +291,23 @@ def run_self_test() -> None:
         )
         cases_run += 1
         write_fixture_root(tmp_root)
+
+        for checker_marker in [
+            "MISSING_PHASE7_CMDLINE_FILES_START",
+            "MISSING_PHASE7_CMDLINE_FILES_END",
+            "MISSING_PHASE7_CMDLINE_MARKERS_START",
+            "MISSING_PHASE7_CMDLINE_MARKERS_END",
+            "FORBIDDEN_PHASE7_CMDLINE_MARKERS_START",
+            "FORBIDDEN_PHASE7_CMDLINE_MARKERS_END",
+        ]:
+            remove_once(checker_path, checker_marker)
+            expect_missing_marker(
+                f"missing_checker_output_marker_{checker_marker.lower()}",
+                tmp_root,
+                f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+            )
+            cases_run += 1
+            write_fixture_root(tmp_root)
 
         helper_path = tmp_root / "lib" / "cmdline.zig"
         helper_markers = [
