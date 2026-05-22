@@ -260,7 +260,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {",
     ),
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
-        "phase8 online-cpu routing verifier keeps cpu-index wrappers explicit",
+        "phase8 online-cpu route helpers keep typed cpu-index wrappers stable",
         "resolveNextOnlineCpuRouteCpuIndex",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     ),
@@ -293,14 +293,14 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
     ),
     READY_BUFFER_FD_VERIFY_SEGMENT: (
-        "phase8 ready-buffer fd verifier keeps lookup-return wrappers explicit",
+        "phase8 ready-buffer fd helper entrypoints stay explicit",
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
     ),
     READY_BUFFER_WINDOW_VERIFY_SEGMENT: (
-        "phase8 ready-buffer window verifier keeps mapped-size and lookup-return wrappers explicit",
-        "summarizeBufferWindowMappedSize",
-        "summarizeBufferWindowLookupReturn",
+        "phase8 ready-buffer window helper entrypoints stay explicit",
+        "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
+        "resolveReadyBufferWindowLookupReturnAtAttempt",
     ),
     TYPE_NAMES_SEGMENT: (
         "pub fn libbpfBpfMapTypeStr(",
@@ -509,7 +509,7 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).write_text(original, encoding="utf-8")
+                (root / relative_path).writeText(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
