@@ -289,6 +289,12 @@ jobs:
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
 
+      - name: Self-test current Phase 2 genksyms alignment checker
+        run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 genksyms alignment packet
+        run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py
+
       - name: Run current Phase 2 genksyms make route
         run: make -C zigux phase2-genksyms
 
