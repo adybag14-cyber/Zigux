@@ -9,6 +9,9 @@ from pathlib import Path
 READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 SELF_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
+VALIDATOR_GAP_PACKET_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase15-validator-gap-packet.py"
+)
 DOCS_CHECKER_PATH = Path("scripts/zigux/check-phase15-docs-readme-alignment.py")
 SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 TESTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
@@ -49,6 +52,7 @@ REQUIRED_NOTE_MARKERS = (
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.",
+    "Current `master` also materializes `scripts/zigux/check-phase15-validator-gap-packet.py`, so keep that dedicated blocker checker explicit beside the missing broader validator and build companions instead of making reviewers infer the blocked replay packet by hand.",
 )
 
 BLOCKED_ROUTE_MARKERS = {
@@ -177,6 +181,9 @@ def collect_failures(root: Path) -> list[str]:
     repo_evidence = manifest["repo_evidence"]
     observed = {
         "phase15_readiness_packet_checker_present": (root / SELF_PATH).exists(),
+        "phase15_validator_gap_checker_present": (
+            root / VALIDATOR_GAP_PACKET_CHECKER_PATH
+        ).exists(),
         "phase15_validator_script_present": (root / VALIDATOR_PATH).exists(),
         "phase15_docs_readme_checker_present": (root / DOCS_CHECKER_PATH).exists(),
         "phase15_tests_readme_checker_present": (root / TESTS_CHECKER_PATH).exists(),
@@ -266,6 +273,7 @@ Current directly readable packet:
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `scripts/zigux/check-phase15-validator-gap-packet.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
@@ -282,6 +290,8 @@ Current directly readable packet:
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
 Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.
+
+Current `master` also materializes `scripts/zigux/check-phase15-validator-gap-packet.py`, so keep that dedicated blocker checker explicit beside the missing broader validator and build companions instead of making reviewers infer the blocked replay packet by hand.
 
 Blocked broader paths:
 - `scripts/zigux/validate-phase15.py`
@@ -326,6 +336,7 @@ def _sample_manifest() -> str:
                 "scripts/zigux/check-phase15-handoff-note-alignment.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
                 "scripts/zigux/check-phase15-readiness-gate-packet.py",
+                "scripts/zigux/check-phase15-validator-gap-packet.py",
                 "zigux/tests/README.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
                 "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -347,6 +358,7 @@ def _sample_manifest() -> str:
             ],
             "repo_evidence": {
                 "phase15_readiness_packet_checker_present": true,
+                "phase15_validator_gap_checker_present": true,
                 "phase15_validator_script_present": false,
                 "phase15_docs_readme_checker_present": true,
                 "phase15_tests_readme_checker_present": true,
@@ -394,6 +406,7 @@ def _seed_repo(root: Path) -> None:
         "scripts/zigux/check-phase15-handoff-note-alignment.py",
         "scripts/zigux/check-phase15-shared-summary-gap.py",
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "scripts/zigux/check-phase15-validator-gap-packet.py",
         "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -449,6 +462,25 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-build-replay-marker failure: {failures}")
+
+        missing_validator_gap_checker_marker_root = root / "missing_validator_gap_checker_marker"
+        _seed_repo(missing_validator_gap_checker_marker_root)
+        _write(
+            missing_validator_gap_checker_marker_root / READINESS_NOTE_PATH,
+            _sample_note().replace(
+                "Current `master` also materializes `scripts/zigux/check-phase15-validator-gap-packet.py`, so keep that dedicated blocker checker explicit beside the missing broader validator and build companions instead of making reviewers infer the blocked replay packet by hand.\n\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_validator_gap_checker_marker_root)
+        expected = [
+            "readiness note is missing required marker: Current `master` also materializes `scripts/zigux/check-phase15-validator-gap-packet.py`, so keep that dedicated blocker checker explicit beside the missing broader validator and build companions instead of making reviewers infer the blocked replay packet by hand.",
+        ]
+        if failures != expected:
+            raise AssertionError(
+                f"unexpected missing-validator-gap-checker-marker failure: {failures}"
+            )
 
         broader_root = root / "broader"
         _seed_repo(broader_root)
