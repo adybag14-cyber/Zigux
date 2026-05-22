@@ -100,7 +100,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 44
+SELF_TEST_CASE_COUNT = 45
 
 
 def read_text(path: Path) -> str:
@@ -340,6 +340,12 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
+        helper_marker = "pub fn argvSplitWithArgc("
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_argvsplitwithargc_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
         helper_marker = "fn nextSplitArgSpan("
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_nextsplitargspan_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
@@ -406,7 +412,7 @@ def run_self_test() -> None:
         expect_missing_marker("missing_samples_argv_boundary", tmp_root, f"samples/zigux/README.md: {samples_marker}")
         write_fixture_root(tmp_root)
 
-        assert SELF_TEST_CASE_COUNT == 44
+        assert SELF_TEST_CASE_COUNT == 45
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
