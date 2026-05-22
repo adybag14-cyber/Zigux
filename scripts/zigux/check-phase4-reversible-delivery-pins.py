@@ -62,7 +62,6 @@ EXPECTED_PACKET_MEMBER_LINES = (
     "  * `zigux/tests/README.md`",
     "  * `scripts/zigux/README.md`",
     "  * `scripts/zigux/check-phase4-repo-reality-warning.py`",
-    "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
     "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
 )
 EXPECTED_RECOVERY_MARKERS = (
@@ -171,7 +170,6 @@ def _baseline_note(root: Path) -> str:
         "  * `zigux/tests/README.md`",
         "  * `scripts/zigux/README.md`",
         "  * `scripts/zigux/check-phase4-repo-reality-warning.py`",
-        "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
         "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
         "",
         "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here.",
@@ -264,8 +262,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
-            "  * `scripts/zigux/check-phase4-tests-review-packet.py`",
+            "scripts/zigux/check-phase4-tests-readme-packet.py",
+            "scripts/zigux/check-phase4-tests-review-packet.py",
         )
         cases += _expect_failure(
             root,
