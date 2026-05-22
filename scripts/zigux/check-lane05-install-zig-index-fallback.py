@@ -255,7 +255,7 @@ def run_self_test() -> int:
         "missing installer marker",
     )
     expect_failure(
-        lambda root: (root / INSTALLER_PATH).writeText(
+        lambda root: (root / INSTALLER_PATH).write_text(
             load_text(root).replace(
                 "if not is_explicit_version(channel):\n            raise\n        return {}",
                 "return {}\n        if not is_explicit_version(channel):\n            raise",
@@ -311,7 +311,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if args.self_test:
+    if args.self-test:
         return run_self_test()
 
     if args.write_sample_root is not None:
