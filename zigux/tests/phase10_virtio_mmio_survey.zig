@@ -124,10 +124,11 @@ test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequ
     try expectContains(manifest, "\"id\": \"phase10-mmio-interrupt-ack-disposition-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-mmio-feature-negotiation-summary-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-mmio-config-write-plan-freshness-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-mmio-config-write-apply-observation-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-mmio-survey-gate\"");
 }
 
-test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {
+test "phase10 virtio mmio survey gate keeps helper-local queue isolation, probe blockers, and apply-observation coverage explicit" {
     const allocator = std.testing.allocator;
 
     const helper_tests = try readRepoRelative(
@@ -155,6 +156,26 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
     try expectContains(
         helper_tests,
         "try std.testing.expect(summary.queue_ready_for_handoff);",
+    );
+    try expectContains(
+        helper_tests,
+        "test \"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "const changed = try device.configWriteApplyObservationSummary();",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expectEqual(@as(u4, 0b1111), changed.touched_byte_mask);",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expectEqual(@as(u3, 2), changed.changed_byte_count);",
+    );
+    try expectContains(
+        helper_tests,
+        "try std.testing.expect(changed.applies_changes);",
     );
 }
 
