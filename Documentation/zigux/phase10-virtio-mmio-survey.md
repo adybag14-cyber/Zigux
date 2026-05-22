@@ -12,6 +12,7 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 - scope: keep the current `drivers/virtio/virtio_mmio.zig` helper surface reviewable without claiming transport-backed queue setup, IRQ delivery, DMA, or probe/remove lifecycle parity
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
+  - `drivers/virtio/virtio_mmio_verify.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio_manifest.json`
   - `Documentation/zigux/phase10-virtio-mmio-survey.md`
