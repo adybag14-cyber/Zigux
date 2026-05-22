@@ -13,7 +13,6 @@ WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 VALIDATOR = Path("scripts/zigux/validate-phase7.py")
 PARKED_PATHS = (
     "scripts/zigux/check-phase7-make-wrapper.py",
-    "zigux/tests/phase7_build.zig",
 )
 
 REQUIRED_CHECKER_MARKERS = (
