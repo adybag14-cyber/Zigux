@@ -262,6 +262,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/README.md",
     "zigux/tests/build.zig",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
@@ -445,6 +446,20 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove(".github/workflows/zigux-bootstrap.yml")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            ".github/workflows/zigux-bootstrap.yml"
+        )
+        if expected not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper workflow packet file was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
             "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
         )
@@ -516,7 +531,7 @@ def run_self_test() -> int:
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
-        f"{len(SELF_TEST_CASES) + 7}"
+        f"{len(SELF_TEST_CASES) + 8}"
     )
     return 0
 
