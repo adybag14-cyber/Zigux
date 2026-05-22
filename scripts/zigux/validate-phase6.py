@@ -104,6 +104,10 @@ EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_PUBLIC_COMPANIONS = []
+EXPECTED_EVIDENCE_CURRENT_GAPS = [
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+]
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "zigux/tests/phase6_helper_evidence_manifest.json",
@@ -200,7 +204,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 42
+SELF_TEST_CASE_COUNT = 44
 
 
 class ValidationError(RuntimeError):
@@ -298,6 +302,10 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 phase drift")
     if helper_evidence_manifest.get("current_direct_readback_companions") != EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS:
         raise ValidationError("phase6 helper evidence direct-readback companion drift")
+    if helper_evidence_manifest.get("public_tree_backed_shared_companions") != EXPECTED_SHARED_PUBLIC_COMPANIONS:
+        raise ValidationError("phase6 helper evidence public companion drift")
+    if helper_evidence_manifest.get("current_repo_reality_gaps") != EXPECTED_EVIDENCE_CURRENT_GAPS:
+        raise ValidationError("phase6 helper evidence repo-reality gap drift")
     if helper_parity_manifest.get("shared_direct_evidence") != EXPECTED_SHARED_DIRECT_EVIDENCE:
         raise ValidationError("phase6 helper parity shared direct evidence drift")
     if helper_evidence_manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
@@ -385,6 +393,8 @@ def scaffold_repo(root: Path) -> None:
         "packet": EXPECTED_HELPER_EVIDENCE_PACKET,
         "phase": EXPECTED_PHASE,
         "current_direct_readback_companions": EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS,
+        "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
+        "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
         "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
         "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_INVENTORY,
         "helpers": [
@@ -490,6 +500,18 @@ def run_self_test() -> None:
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_direct_readback_companions"].remove("zigux/tests/README.md")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["public_tree_backed_shared_companions"] = ["Documentation/zigux/phase6-perf-gate-survey.md"]
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
