@@ -33,7 +33,7 @@ MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -289,6 +289,15 @@ def run_self_test() -> int:
         makefile_path = root / MAKEFILE.relative_to(ROOT)
         makefile_path.write_text(replace_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_LINES[3], "$(PYTHON) broken.py"), encoding="utf-8")
         assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[3]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = root / MAKEFILE.relative_to(ROOT)
+        makefile_path.write_text(
+            duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_LINES[4]),
+            encoding="utf-8",
+        )
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[4]}:count=2") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
