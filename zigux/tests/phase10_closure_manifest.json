@@ -347,6 +347,7 @@
   ],
   "exact_checks": [
     "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "python3 scripts/zigux/check-phase10-ring-packet.py",
     "python3 scripts/zigux/check-phase10-input-packet.py",
