@@ -101,8 +101,15 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
             "../../lib/argv_split.zig",
             "../../lib/rbtree.zig",
             "phase7-string-helpers-test",
+            "phase7-string-helpers-survey",
+            "phase7-string-helpers-sample-boundary",
+            "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
             "phase7-cmdline-test",
+            "phase7-cmdline-survey",
+            "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
             "phase7-argv-split-test",
+            "phase7-argv-split-survey",
+            "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
             "phase7-rbtree-test",
             "phase7-rbtree-survey",
         ],
@@ -138,6 +145,7 @@ CATALOG_REQUIRED_SNIPPETS = [
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
+    "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
     "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
     "## Current repo-reality gaps",
     "- none currently",
@@ -166,6 +174,16 @@ BUILD_REQUIRED_SNIPPETS = [
     "../../lib/cmdline.zig",
     "../../lib/argv_split.zig",
     "../../lib/rbtree.zig",
+    "phase7-string-helpers-test",
+    "phase7-string-helpers-survey",
+    "phase7-string-helpers-sample-boundary",
+    "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+    "phase7-cmdline-test",
+    "phase7-cmdline-survey",
+    "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
+    "phase7-argv-split-test",
+    "phase7-argv-split-survey",
+    "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
     "phase7-rbtree-test",
     "phase7-rbtree-survey",
 ]
@@ -177,7 +195,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 8
 
 
 class ValidationError(RuntimeError):
@@ -333,6 +351,9 @@ def run_self_test() -> None:
             (CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
+            (BUILD_PATH, "phase7-string-helpers-sample-boundary", "phase7-string-helpers-sample-gap"),
+            (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
+            (BUILD_PATH, "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)", "argv_split_survey_step.dependOn(&run_argv_split_tests.step)"),
             (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
         ]
         for rel, old, new in mutations:
