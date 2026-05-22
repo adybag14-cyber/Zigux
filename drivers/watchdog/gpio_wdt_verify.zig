@@ -58,9 +58,33 @@ test "gpio_wdt failure summary keeps the current failure-stage and blocker triad
     try std.testing.expect(summary.keeps_runtime_reviewable);
 }
 
+test "gpio_wdt reboot-glue checkpoint keeps drvdata ownership tied to the first register-device request" {
+    var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 17, true);
+    const watchdog_drvdata = driver.watchdogDrvdataCheckpointSummary();
+    const reboot_glue = driver.rebootGlueCheckpointSummary();
+    const register_call = driver.registerDeviceCallSummary(true);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", reboot_glue.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, reboot_glue.hw_algo);
+    try std.testing.expectEqual(@as(u32, 17), reboot_glue.hw_margin_ms);
+    try std.testing.expect(reboot_glue.parent_attached);
+    try std.testing.expect(reboot_glue.module_owner_attached);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", reboot_glue.watchdog_drvdata_owner_identity);
+    try std.testing.expect(reboot_glue.stop_on_reboot_requested);
+    try std.testing.expect(reboot_glue.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(reboot_glue.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(reboot_glue.reboot_glue_reuses_parent_linkage);
+    try std.testing.expect(reboot_glue.blocked_on_live_gpio_lookup);
+    try std.testing.expect(reboot_glue.blocked_on_platform_registration);
+    try std.testing.expect(reboot_glue.blocked_on_host_shutdown_execution);
+    try std.testing.expectEqualStrings(watchdog_drvdata.watchdog_drvdata_owner_identity, reboot_glue.watchdog_drvdata_owner_identity);
+    try std.testing.expect(register_call.register_device_requested);
+    try std.testing.expect(register_call.blocked_on_reboot_glue);
+}
+
 test "gpio_wdt teardown summary shows toggle disable path through current teardown review markers" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("toggle", 9, false);
-    try driver.start();
+    _ = try driver.start();
     const summary = driver.summarizeTeardown(false);
 
     try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, summary.stop_disposition);
@@ -74,7 +98,7 @@ test "gpio_wdt teardown summary shows toggle disable path through current teardo
 
 test "gpio_wdt teardown summary keeps level hardware output asserted on a normal stop" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 5, false);
-    try driver.start();
+    _ = try driver.start();
     const summary = driver.summarizeTeardown(false);
 
     try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, summary.stop_disposition);
@@ -85,7 +109,7 @@ test "gpio_wdt teardown summary keeps level hardware output asserted on a normal
 
 test "gpio_wdt teardown summary keeps always-running watchdog teardown in kept-running state" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 12, true);
-    try driver.start();
+    _ = try driver.start();
     const summary = driver.summarizeTeardown(false);
 
     try std.testing.expect(summary.always_running);
@@ -96,4 +120,41 @@ test "gpio_wdt teardown summary keeps always-running watchdog teardown in kept-r
     try std.testing.expect(summary.request_stop_reviewable);
     try std.testing.expect(summary.register_device_failure_reviewable);
     try std.testing.expect(summary.reboot_glue_checkpoint_reviewable);
+}
+
+test "gpio_wdt remove-handoff summary keeps cleanup blockers and ownership handoff explicit" {
+    var stoppable = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("toggle", 9, false);
+    _ = try stoppable.start();
+    const handoff = stoppable.summarizeRemoveHandoff(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", handoff.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, handoff.hw_algo);
+    try std.testing.expect(!handoff.always_running);
+    try std.testing.expect(!handoff.nowayout);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, handoff.stop_disposition);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", handoff.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", handoff.watchdog_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", handoff.register_device_failure_stage);
+    try std.testing.expect(handoff.request_stop_reviewable);
+    try std.testing.expect(handoff.register_device_failure_reviewable);
+    try std.testing.expect(handoff.reboot_glue_checkpoint_reviewable);
+    try std.testing.expect(handoff.blocked_on_platform_cleanup_callback);
+    try std.testing.expect(handoff.blocked_on_platform_driver_remove);
+    try std.testing.expect(handoff.blocked_on_watchdog_core_unregister);
+    try std.testing.expect(handoff.blocked_on_host_shutdown_execution);
+
+    var guarded = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 12, true);
+    _ = try guarded.start();
+    const guarded_handoff = guarded.summarizeRemoveHandoff(true);
+
+    try std.testing.expect(guarded_handoff.always_running);
+    try std.testing.expect(guarded_handoff.nowayout);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, guarded_handoff.stop_disposition);
+    try std.testing.expect(guarded_handoff.request_stop_reviewable);
+    try std.testing.expect(guarded_handoff.register_device_failure_reviewable);
+    try std.testing.expect(guarded_handoff.reboot_glue_checkpoint_reviewable);
+    try std.testing.expect(guarded_handoff.blocked_on_platform_cleanup_callback);
+    try std.testing.expect(guarded_handoff.blocked_on_platform_driver_remove);
+    try std.testing.expect(guarded_handoff.blocked_on_watchdog_core_unregister);
+    try std.testing.expect(guarded_handoff.blocked_on_host_shutdown_execution);
 }
