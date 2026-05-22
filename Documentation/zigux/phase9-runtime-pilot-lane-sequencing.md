@@ -1,6 +1,6 @@
 # Phase 9 Runtime Pilot Lane Sequencing
 
-This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries one shipped trace-events runtime packet, one narrower returned shared runtime-loader reminder surface with a dedicated command/environment boundary guard, and one partial runtime bitmap reminder packet.
+This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries one shipped trace-events runtime packet, one narrower returned shared runtime-loader reminder surface with a dedicated command/environment boundary guard, and one bounded runtime bitmap reminder packet.
 
 ## Roadmap anchor
 
@@ -53,12 +53,12 @@ Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared load
 - keep the Phase 8 command and environment ownership boundary explicit: deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`, while `LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`
 - current Phase 9 material still does not prove shipped runtime command or environment activation control; it proves only that the shared runtime-loader packet keeps those Phase 8 control surfaces out of the loader contract
 
-### 3. The runtime bitmap side is still only partial
+### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries
 
-- the current reminder surfaces still keep the partial runtime bitmap packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- the current reminder surfaces now keep the bounded runtime bitmap packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - `samples/zigux/runtime_bitmap_loader.zig` stays a returned companion on the trusted path, but it now sits adjacent to the narrower shared loader packet above rather than proving that the older broader loader-gap packet returned
-- `zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` remain the same-family trusted-contents gaps already called out by the shared reminder packet
-- current `master` therefore still supports only a partial runtime bitmap reminder packet, and that partial bitmap visibility must not be used to imply that the broader bitmap family or blocked publication boundaries returned
+- `zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet, but that broader bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned
+- current `master` therefore still supports a bounded runtime bitmap reminder packet, and that returned bitmap visibility must not be used to imply that the broader bitmap family or blocked publication boundaries returned
 
 ## Current shared-owner state
 
@@ -66,7 +66,7 @@ The shared Phase 9 reminder family should now be read as three distinct truths:
 
 1. the trace-events runtime packet is still the shipped direct current-`master` proof for selftest-hook and lifecycle-parity reviewability
 2. the returned shared runtime-loader allocator/init-flow kernel-and-test surface plus the dedicated command/environment boundary guard stay neighboring shared-owner evidence, while the older loader-gap survey and manifest paths stay historical vocabulary until trusted rereads return them
-3. the bitmap side is still only partially materialized on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned
+3. the bitmap side now keeps a broader direct packet on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned
 
 The broader shared reminder packet now keeps the narrower shared-owner split aligned on current `master`:
 
@@ -75,12 +75,12 @@ The broader shared reminder packet now keeps the narrower shared-owner split ali
 - treat any future docs-root or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or a broader checklist rewrite inside this lane
 - a fresh 2026-05-22 reread also showed that `Documentation/zigux/README.md` now undercounts the shared Phase 9 packet by omitting `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, so the next same-lane reminder repair should start there before widening any checker work
 
-This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the partial bitmap reminder packet explicit, keep the broader docs-root and tests-root reminders aligned with that narrower split, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
+This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the bounded runtime bitmap reminder packet explicit, keep the broader docs-root and tests-root reminders aligned with that narrower split, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
 
 - `zigux/tests/phase9_build.zig` still records the bounded atomic64, bitmap, loader-shared, trace-events loader-substrate-drift, command/environment boundary, and cross-family parity-survey route names, but that surviving build bundle is not proof that blocked publication boundaries or install-root surfaces are complete
-- `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current reminder surfaces for the partial bitmap packet
-- the missing bitmap module gate and diff gate stay repo-reality gaps on the same trusted path until a later reread restores them
-- no shared reminder surface should present the partial bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned
+- `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current reminder surfaces for the bounded runtime bitmap packet
+- the returned bitmap module gate and diff gate now stay inside that same bounded packet instead of the older repo-reality-gap bucket
+- no shared reminder surface should present the bounded runtime bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned
 - keep the older non-owner boundary anchors explicit too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence
 
 ## Historical boundaries
@@ -94,18 +94,18 @@ This means the shared owner packet should keep the narrow trace-events family ex
 This lane may:
 
 - refresh this note when trusted repo reality changes
-- tighten one stale shared reminder surface at a time when it undercounts or overclaims the trace-events packet, the returned shared loader packet, the direct command/environment boundary guard, the partial bitmap packet, or build-route maturity
+- tighten one stale shared reminder surface at a time when it undercounts or overclaims the trace-events packet, the returned shared loader packet, the direct command/environment boundary guard, the bounded runtime bitmap packet, or build-route maturity
 - keep the narrow trace-events packet explicit as the current shipped runtime-pilot proof
 - keep the returned shared loader packet explicit without overstating blocked publication or install-root completion
 - keep the direct command/environment boundary guard explicit without treating it as proof of shipped runtime command or environment activation control
-- keep the partial runtime bitmap reminder packet explicit without overstating what has actually returned
+- keep the bounded runtime bitmap reminder packet explicit without overstating what has actually returned
 - keep the bounded `zigux/tests/phase9_build.zig` shard explicit as route vocabulary without treating it as proof that blocked publication boundaries or install-root surfaces are complete
 
 This lane should not reopen:
 
 - new runtime behavior based only on stale reminder wording
 - checker growth when the active problem is a stale shared summary
-- backlog promotion of the partial runtime bitmap reminder packet into proof that every broader runtime boundary returned
+- backlog promotion of the bounded runtime bitmap reminder packet into proof that every broader runtime boundary returned
 - blocked publication or install-root completion claims that the surviving route names still do not prove
 
 Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.
@@ -117,10 +117,10 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 ## Recommended next-step order
 
 1. Start with `Documentation/zigux/README.md` if a fresh reread still omits `scripts/zigux/check-phase9-trace-events-runtime-packet.py` from the shared Phase 9 packet or otherwise drifts from the narrower shared-owner split confirmed here on current `master`.
-2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the partial bitmap split confirmed here on current `master`.
+2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
 3. If the broader shared runtime-loader family changes again, widen this note only after an exact reread proves the specific returned file family or blocked-boundary vocabulary moved.
-4. If the still-missing bitmap module and diff legs return later, widen the bitmap-side reminder packet only after the trusted direct read path returns those exact files.
+4. If the runtime bitmap packet changes again, widen the bitmap-side reminder packet only after the trusted direct read path proves the specific returned file set changed.
 
 ## Anti-overlap rule
 
-If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the partial runtime bitmap reminder packet as full sample-family return, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names or the direct command/environment boundary guard as proof that blocked publication, install-root, or module-metadata work is complete.
+If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the bounded runtime bitmap reminder packet as full sample-family return, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names or the direct command/environment boundary guard as proof that blocked publication, install-root, or module-metadata work is complete.
