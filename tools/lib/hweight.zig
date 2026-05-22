@@ -92,3 +92,35 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers partition arbitrary masks without drift" {
+    const value8: u32 = 0b1101_0110;
+    const mask8: u32 = 0b1011_0101;
+    const rest8 = value8 & (~mask8 & 0xff);
+    try std.testing.expectEqual(swHweight8(value8), swHweight8(value8 & mask8) + swHweight8(rest8));
+    try std.testing.expectEqual(__sw_hweight8(value8), __sw_hweight8(value8 & mask8) + __sw_hweight8(rest8));
+
+    const value16: u32 = 0xd6b9;
+    const mask16: u32 = 0xa55a;
+    const rest16 = value16 & (~mask16 & 0xffff);
+    try std.testing.expectEqual(swHweight16(value16), swHweight16(value16 & mask16) + swHweight16(rest16));
+    try std.testing.expectEqual(__sw_hweight16(value16), __sw_hweight16(value16 & mask16) + __sw_hweight16(rest16));
+
+    const value32: u32 = 0xd6b9_5ca3;
+    const mask32: u32 = 0xa55a_c33c;
+    const rest32 = value32 & ~mask32;
+    try std.testing.expectEqual(swHweight32(value32), swHweight32(value32 & mask32) + swHweight32(rest32));
+    try std.testing.expectEqual(__sw_hweight32(value32), __sw_hweight32(value32 & mask32) + __sw_hweight32(rest32));
+
+    const value64: u64 = 0xd6b9_5ca3_f017_4e2d;
+    const mask64: u64 = 0xa55a_c33c_0ff0_b1d2;
+    const rest64 = value64 & ~mask64;
+    try std.testing.expectEqual(swHweight64(value64), swHweight64(value64 & mask64) + swHweight64(rest64));
+    try std.testing.expectEqual(__sw_hweight64(value64), __sw_hweight64(value64 & mask64) + __sw_hweight64(rest64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0xd6b9_5ca3 else 0xd6b9_5ca3_f017_4e2d;
+    const mask_long: usize = if (@sizeOf(usize) == 4) 0xa55a_c33c else 0xa55a_c33c_0ff0_b1d2;
+    const rest_long = value_long & ~mask_long;
+    try std.testing.expectEqual(hweightLong(value_long), hweightLong(value_long & mask_long) + hweightLong(rest_long));
+    try std.testing.expectEqual(hweight_long(value_long), hweight_long(value_long & mask_long) + hweight_long(rest_long));
+}
