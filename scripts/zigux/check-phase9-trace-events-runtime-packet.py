@@ -18,6 +18,8 @@ SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
+DIRECT_SUMMARY_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-direct-summary.py"
+SUMMARY_PRESERVATION_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-summary-preservation.py"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 
@@ -110,6 +112,10 @@ FILE_MARKERS: dict[str, list[str]] = {
         'try std.testing.expectEqualStrings("P9-L12", manifest.ownership_map[0].owner);',
         'try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[4].owner);',
         'try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");',
+        'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test");',
+        'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py");',
+        'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test");',
+        'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test");',
     ],
     PHASE9_BUILD_PATH: [
@@ -150,9 +156,26 @@ FILE_MARKERS: dict[str, list[str]] = {
         'test "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay" {',
         "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
     ],
+    DIRECT_SUMMARY_CHECKER_PATH: [
+        'DIRECT_SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"',
+        'print("PHASE9_TRACE_EVENTS_DIRECT_SUMMARY_SELF_TEST=pass")',
+        'print("PHASE9_TRACE_EVENTS_DIRECT_SUMMARY=pass")',
+    ],
+    SUMMARY_PRESERVATION_CHECKER_PATH: [
+        'EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"',
+        'REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"',
+        'print("PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_SELF_TEST=pass")',
+        'print("PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION=pass")',
+    ],
     WORKFLOW_PATH: [
+        "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
+        "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
         "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
         "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+        "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py",
+        "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py",
         "zig test samples/zigux/runtime_trace_events.zig",
         "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig",
         "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
@@ -179,6 +202,10 @@ FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
     WORKFLOW_PATH: [
         "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
         "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+        "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py",
+        "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
+        "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py",
     ],
 }
 
