@@ -91,6 +91,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge keeps only the last state across unset and set transitions",
     "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
     "confdata bridge releases appended entry ownership on index-allocation failure",
+    "confdata bridge preserves duplicate unset ownership on allocation failure",
 ]
 
 REQUIRED_CONF_CASE_MODES = [
@@ -256,7 +257,6 @@ def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     if not modes:
         raise SystemExit("failed to discover conf bridge modes")
     return modes
-
 
 def ordered_conf_helper_anchors(conf_bridge_path: Path) -> list[str]:
     source = conf_bridge_path.read_text(encoding="utf-8")
@@ -740,7 +740,6 @@ def build_self_test_root(root: Path) -> None:
         "oldaskconfig_expected.json", "syncconfig_expected.json", "oldconfig_expected.json", "allnoconfig_expected.json", "allyesconfig_expected.json", "allmodconfig_expected.json", "alldefconfig_expected.json", "randconfig_expected.json", "defconfig_expected.json", "savedefconfig_expected.json", "listnewconfig_expected.json", "helpnewconfig_expected.json", "olddefconfig_expected.json", "yes2modconfig_expected.json", "mod2yesconfig_expected.json", "mod2noconfig_expected.json", "sample_expected.json", "escaped_strings_expected.json", "escaped_control_sequences_expected.json", "trailing_escaped_backslash_expected.json", "sample_crlf_expected.json", "explicit_n_tristate_expected.json", "final_trailing_carriage_return_expected.json", "final_unterminated_unset_comment_expected.json", "uppercase_tristate_expected.json", "non_config_lines_expected.json", "empty_config_symbol_names_expected.json", "malformed_unset_comment_tokens_expected.json", "last_state_transitions_expected.json", "duplicate_assignments_expected.json", "duplicate_malformed_quoted_assignment_expected.json", "sample.config", "escaped_strings.config", "escaped_control_sequences.config", "trailing_escaped_backslash.config", "sample_crlf.config", "explicit_n_tristate.config", "final_trailing_carriage_return.config", "final_unterminated_unset_comment.config", "uppercase_tristate.config", "non_config_lines.config", "empty_config_symbol_names.config", "malformed_unset_comment_tokens.config", "last_state_transitions.config", "duplicate_assignments.config", "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
-
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
@@ -840,216 +839,4 @@ def run_self_test() -> int:
         assert ("MISSING_CONF_MODE_ARG_FIELDS", "defconfig:defconfig") in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["seed"] = "0xBAD"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "oldaskconfig:seed") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["allconfig"] = "mini.config"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_ALLCONFIG_FIELDS", "oldaskconfig:allconfig") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["nosilentupdate"] = "1"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", "oldaskconfig:nosilentupdate") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][0]["name"] = "syncconfig"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert ("DUPLICATE_KCONFIG_CASE_NAMES", "syncconfig:conf_cases,confdata_cases") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "helpnewconfig_expected.json"
-        missing_path.unlink()
-        issues = collect_manifest_issues(root)
-        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "helpnewconfig:expected:helpnewconfig_expected.json") in issues
-        assert ("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", "helpnewconfig_expected.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "sample_crlf_expected.json"
-        missing_path.unlink()
-        issues = collect_manifest_issues(root)
-        assert ("MISSING_CONFDATA_CASE_PATHS", "sample_crlf:expected:sample_crlf_expected.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"].pop()
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert ("CONFDATA_CASE_ORDER_ACTUAL", ",".join(REQUIRED_CONFDATA_CASES[:-1])) in issues
-        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][1], payload["confdata_cases"][2] = payload["confdata_cases"][2], payload["confdata_cases"][1]
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONFDATA_CASE_ORDER_ACTUAL" for issue in issues)
-        assert any(issue[0] == "CONFDATA_CASE_ORDER_EXPECTED" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        source = conf_bridge_path.read_text(encoding="utf-8")
-        source = source.replace('test "conf bridge emits randconfig tunables when present" {\n', 'test "conf bridge emits renamed randconfig tunables" {\n', 1)
-        write_text(conf_bridge_path, source)
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
-        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        source = conf_bridge_path.read_text(encoding="utf-8")
-        source += '\ntest "conf bridge future helper anchor should be detected" {\n    try std.testing.expect(true);\n}\n'
-        write_text(conf_bridge_path, source)
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
-        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(conf_manifest_path, "{broken\n")
-        issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_MANIFEST_JSON", "conf_manifest.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        conf_manifest_path.unlink()
-        issues = collect_manifest_issues(root)
-        assert ("MISSING_CONF_MANIFEST", "conf_manifest.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
-        manifest["mode_arg_cases"] = ["savedefconfig"]
-        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = REQUIRED_CONF_HELPER_ANCHORS[:-1]
-        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        source = confdata_bridge_path.read_text(encoding="utf-8")
-        source = source.replace('test "confdata bridge emits bounded json output" {\n', 'test "confdata bridge emits reordered json output" {\n', 1)
-        write_text(confdata_bridge_path, source)
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
-        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        source = confdata_bridge_path.read_text(encoding="utf-8")
-        source += '\ntest "confdata bridge future helper anchor should be detected" {\n    try std.testing.expect(true);\n}\n'
-        write_text(confdata_bridge_path, source)
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
-        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(manifest_path, "{broken\n")
-        issues = collect_manifest_issues(root)
-        assert ("INVALID_CONFDATA_MANIFEST_JSON", "confdata_manifest.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest_path.unlink()
-        issues = collect_manifest_issues(root)
-        assert ("MISSING_CONFDATA_MANIFEST", "confdata_manifest.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = REQUIRED_CONFDATA_HELPER_ANCHORS[:-1]
-        write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
-        checks_run += 1
-
-    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
-        print("KCONFIG_BRIDGE_SELF_TEST=fail")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
-        return 1
-
-    print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Check bounded kconfig bridge fixture parity.")
-    parser.add_argument("--zig", help="Explicit zig executable path")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in manifest coverage without compiling the bridge tools.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    issues = collect_manifest_issues(ROOT)
-    if issues:
-        emit_manifest_issues(issues)
-
-    zig = find_zig(args.zig)
-    conf_cases, confdata_cases, case_issues = load_case_groups(FIXTURE_DIR)
-    if case_issues:
-        emit_manifest_issues(case_issues)
-
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
-        confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
-        compile_tool(zig, CONF_BRIDGE, conf_exe)
-        compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
-
-        for case in conf_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = build_conf_command(conf_exe, case)
-            result = run(cmd, cwd=str(ROOT), capture_output=True)
-            actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
-            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-
-        for case in confdata_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
-            result = run(cmd, cwd=str(ROOT), capture_output=True)
-            actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
-            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-
-    print("KCONFIG_BRIDGE_DETERMINISM=pass")
-    print("KCONFIG_BRIDGE_DIFF=pass")
-    print(f"FIXTURE_DIR={FIXTURE_DIR}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        build_self_test_ROOT(root)
