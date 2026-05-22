@@ -19,6 +19,8 @@ DOC_PATHS = (
     Path("Documentation/zigux/phase3-kernel-export-shim-governance.md"),
     Path("Documentation/zigux/phase3-linux-zigux-header-governance.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-validator-support-surface.md"),
+    Path("Documentation/zigux/phase3-shared-reminder-gap.md"),
 )
 
 HEADER_PATHS = (
@@ -53,6 +55,9 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/check-phase3-abi.py"),
     Path("scripts/zigux/check-phase3-abi-support-packet.py"),
+    Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
+    Path("scripts/zigux/check-phase3-selftest-surface.py"),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/phase3_catalog.py"),
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
@@ -61,6 +66,8 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
     Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
+    Path("scripts/zigux/validate_phase3_selftest.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
 )
 
 TEST_PATHS = (
@@ -75,6 +82,7 @@ TEST_PATHS = (
     Path("zigux/tests/phase3_export_uapi_c_header_smoke.c"),
     Path("zigux/tests/phase3_export_uapi_layout.zig"),
     Path("zigux/tests/phase3_export_uapi_layout_build.zig"),
+    Path("zigux/tests/phase3_export_shim_build.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
     Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
     Path("zigux/Makefile"),
@@ -83,12 +91,18 @@ TEST_PATHS = (
 COMMANDS = (
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py",
+    "python3 scripts/zigux/validate-phase3.py --self-test",
+    "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
+    "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
@@ -97,15 +111,19 @@ COMMANDS = (
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/run-phase3-checks.py",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+    "zig build phase3-test --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
 )
@@ -194,7 +212,7 @@ def run_self_test() -> int:
         expected = f"missing repo file: {VALIDATOR_PATHS[-1].as_posix()}"
         if expected not in issues:
             print("PHASE3_CATALOG_SELF_TEST=fail")
-            print("expected missing ABI governance validator route was not reported")
+            print("expected missing Phase 3 runner route was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
