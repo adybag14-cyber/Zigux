@@ -5,7 +5,8 @@ import argparse
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
@@ -169,6 +170,8 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-matrix.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-matrix.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
