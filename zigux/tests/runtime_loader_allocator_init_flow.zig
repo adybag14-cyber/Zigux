@@ -523,3 +523,34 @@ test "shared runtime loader keeps waiting module-name and allocator handoff from
     try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
     try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
 }
+
+test "shared runtime loader keeps initialized-stage waiting metadata from drifting before release" {
+    const bitmap_plan = makeInitializedPlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+    );
+    var bitmap_request = try runtime_loader.prepareRequest(bitmap_plan);
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+
+    bitmap_request.plan.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    bitmap_request.plan = bitmap_pending;
+    bitmap_request.plan.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    bitmap_request.plan = bitmap_pending;
+    bitmap_request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    bitmap_request.plan = bitmap_pending;
+    bitmap_request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+}
