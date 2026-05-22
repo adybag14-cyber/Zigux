@@ -85,7 +85,7 @@ route explicit, the single `workflow_phase11_steps` entry that routes that
 packet through `make -C zigux phase11-validate`, and no dedicated survey replay
 entries, which matches that narrower current-head packet rather than the older
 starter-depth packet. The dedicated targetless-unregister witness checker and
-the standalone targetless-unregister witness pair likewise stay explicit as
+the standalone targetless-unregister witness pair likewise stays explicit as
 separate failure-mode coverage that rereads the current starter against the
 verify-helper boundary note without promoting the witness into the shared
 three-entry build inventory.
