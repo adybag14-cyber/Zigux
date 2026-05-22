@@ -116,7 +116,7 @@ const boundary_areas = [_]BoundaryArea{
         .summary = "Keep flush, drain, and cancellation completion ownership explicitly in C.",
         .ownership = .stay_in_c,
         .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "drain_workqueue", "__cancel_work_sync" },
-        .rationale = "The bridge can now point directly at insert_wq_barrier(), start_flush_work(), and WORK_OFFQ_CANCELING as the flush-start and cancel-completion seams, but those waits still depend on active-color progression, chained flushers, cancellation disable depth, cancellation wait state, and worker progress owned by the current C implementation.",
+        .rationale = "The bridge can now point directly at insert_wq_barrier(), start_flush_work(), WORK_OFFQ_DISABLE_BITS, disable_work(), __flush_work(), and WORK_OFFQ_CANCELING as the flush-start plus cancel-disable-depth and cancel-completion seams, but those waits still depend on active-color progression, chained flushers, cancellation disable depth, cancellation wait state, and worker progress owned by the current C implementation.",
     },
     .{
         .id = "worker-pool-concurrency",
@@ -260,10 +260,10 @@ const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "flush-drain-color-governance",
         .anchor_symbol = "start_flush_work/__flush_workqueue",
-        .summary = "Keep flush barriers, flusher-color progression, cancellation completion waits, and in-flight tracking under explicit stay-in-C governance.",
+        .summary = "Keep flush barriers, flusher-color progression, cancellation disable-depth fallback, cancellation completion waits, and in-flight tracking under explicit stay-in-C governance.",
         .guard = .flush_color_progression,
-        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "wq->nr_pwqs_to_flush", "wq->first_flusher", "pwq->nr_in_flight", "WORK_OFFQ_CANCELING", "work->data" },
-        .blocked_by = "insert_wq_barrier(), start_flush_work(), __flush_workqueue(), drain_workqueue(), and __cancel_work_sync() still coordinate active-color progression, first-flusher handoff, in-flight progression, cancellation wait bits, and WORK_OFFQ_CANCELING completion under the current C runtime.",
+        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "wq->nr_pwqs_to_flush", "wq->first_flusher", "pwq->nr_in_flight", "WORK_OFFQ_CANCELING", "work->data", "WORK_OFFQ_DISABLE_BITS" },
+        .blocked_by = "insert_wq_barrier(), start_flush_work(), __flush_workqueue(), drain_workqueue(), __cancel_work_sync(), disable_work(), and __flush_work() still coordinate active-color progression, first-flusher handoff, in-flight progression, cancellation disable depth, cancellation wait bits, WORK_OFFQ_DISABLE_BITS preservation, and WORK_OFFQ_CANCELING completion under the current C runtime.",
         .ownership = .stay_in_c,
     },
     .{
@@ -441,6 +441,9 @@ test "workqueue bridge boundary map records blocked-maintenance stay-in-c areas"
     try std.testing.expectEqualStrings("rescuer-and-scheduler-hooks", map.areas[7].id);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "insert_wq_barrier()") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "start_flush_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "WORK_OFFQ_DISABLE_BITS") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "disable_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "__flush_work()") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "WORK_OFFQ_CANCELING") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "disable depth") != null);
 }
@@ -465,15 +468,20 @@ test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
     try std.testing.expectEqualStrings("hotplug-topology-rebinding", audit.checkpoints[13].id);
     try std.testing.expectEqualStrings("scheduler-visible-worker-state-refinement", audit.checkpoints[14].id);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].anchor_symbol, "start_flush_work") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].summary, "disable-depth fallback") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[2], "nr_pwqs_to_flush") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[3], "first_flusher") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[4], "pwq->nr_in_flight") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[5], "WORK_OFFQ_CANCELING") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[6], "work->data") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].observed_fields[7], "WORK_OFFQ_DISABLE_BITS") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "insert_wq_barrier()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "start_flush_work()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "first-flusher") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "__cancel_work_sync()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "disable_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "__flush_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "WORK_OFFQ_DISABLE_BITS") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "WORK_OFFQ_CANCELING") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[13].blocked_by, "POOL_DISASSOCIATED") != null);
 }
