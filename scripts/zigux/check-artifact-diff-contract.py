@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -289,6 +292,24 @@ def assert_review_note_markers(markers: list[str]) -> None:
         raise AssertionError(f"review-note marker drifted: {markers}")
     if len(set(markers)) != len(markers):
         raise AssertionError(f"review-note markers must stay unique: {markers}")
+
+
+def capture_run_check_output(root: Path) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        exit_code = run_check(root)
+    if exit_code != 0:
+        raise AssertionError(f"contract run_check exited {exit_code}")
+    return buffer.getvalue().splitlines()
+
+
+def make_live_helper_fixture(root: Path) -> None:
+    source = ROOT / HELPER_REL
+    if not source.exists():
+        raise AssertionError(f"missing live helper fixture source: {source}")
+    destination = root / HELPER_REL
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
 
 
 def run_check(root: Path) -> int:
@@ -692,7 +713,10 @@ def run_self_test() -> int:
     assert_helper_self_test_output(HELPER_SELF_TEST_LINES)
     covered.append("helper_summary_round_trip")
 
-    assert_contract_output(expected_contract_lines())
+    with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_contract_selftest_") as tmp_dir:
+        fixture_root = Path(tmp_dir)
+        make_live_helper_fixture(fixture_root)
+        assert_contract_output(capture_run_check_output(fixture_root))
     covered.append("contract_summary_round_trip")
 
     bad_status = list(HELPER_SELF_TEST_LINES)
