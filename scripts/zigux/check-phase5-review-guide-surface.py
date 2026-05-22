@@ -92,6 +92,7 @@ MARKERS = {
         "Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.",
         "Treat `samples/zigux/kobject_example.zig` as current direct sample-root evidence inside the mixed kobject packet recorded by `Documentation/zigux/phase5-kobject-current-readback-note.md`, while `zigux/tests/phase5_kobject_example_survey.zig` remains the public-tree-backed companion in this runtime and `zigux/tests/phase5_build.zig` stays directly readable as the shared build-route companion.",
         "Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.",
+        "Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.",
     ),
     SAMPLE_ROOT_PATH: (
         "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example.zig` are direct authenticated reminder or packet evidence again, `zigux/tests/phase5_build.zig` is the current directly readable shared build-route companion for that packet, and `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly again.",
@@ -203,7 +204,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 13
+    expected_case_count = 14
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -272,6 +273,20 @@ def run_self_test() -> int:
             "approved_idiom_checked_focus_marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][2]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_lane_sequencing_trace_events_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            LANE_SEQUENCING_PATH,
+            placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][3], ""),
+        )
+        expect_exact(
+            "lane_sequencing_trace_events_marker",
+            collect_failures(mutated),
+            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][3]}"],
         )
         checks_run += 1
 
@@ -358,3 +373,8 @@ def main() -> int:
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_COMPANION_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
