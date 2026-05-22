@@ -301,13 +301,14 @@ def build_self_test_root(root: Path) -> None:
 def remove_marker(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, "")
+    return text.replace(marker, "", 1)
 
 
 def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
         1
+        + 1
         + len(REQUIRED_TESTS_README_MARKERS)
         + len(EXACT_COUNT_TESTS_README_MARKERS)
         + len(FORBIDDEN_TESTS_README_MARKERS)
@@ -320,6 +321,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        repeated_marker = "`make -C zigux phase2-cross`"
+        repeated_text = "\n".join((repeated_marker, repeated_marker, "tail")) + "\n"
+        replaced_text = remove_marker(repeated_text, repeated_marker)
+        assert replaced_text == f"\n{repeated_marker}\ntail\n"
+        checks_run += 1
+
         for marker in REQUIRED_TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
