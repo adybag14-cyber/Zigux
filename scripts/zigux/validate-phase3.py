@@ -31,6 +31,7 @@ ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
 ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
 EXPORT_UAPI_LAYOUT_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+EXPORT_SHIM_BUILD_PATH = Path("zigux/tests/phase3_export_shim_build.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 CURRENT_NEXT_SAFE_STEP = (
@@ -232,6 +233,14 @@ REQUIRED_SOURCE_MARKERS = {
         'root_module.addImport("header_family_binding", header_family_binding);',
         '"phase3-export-uapi-layout-test"',
     ),
+    EXPORT_SHIM_BUILD_PATH: (
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
+        'export_shim_module.addImport("version_binding", version_binding_module);',
+        '.name = "phase3-export-shim-test",',
+        '"Run the focused Phase 3 export shim replay",',
+    ),
     ABI_MANIFEST_PATH: (
         '"phase": "Phase 3"',
         '"lane": "abi-runtime"',
@@ -334,6 +343,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_c_header_smoke.c",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_shim_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
@@ -363,6 +373,7 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
@@ -643,6 +654,11 @@ def run_self_test() -> int:
                 'Path("scripts/zigux/validate-phase3-validator-support-surface.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
             ),
+            (
+                EXPORT_SHIM_BUILD_PATH,
+                '.name = "phase3-export-shim-test",\n',
+                'missing zigux/tests/phase3_export_shim_build.zig marker: .name = "phase3-export-shim-test",',
+            ),
         )
 
         for rel_path, needle, expected in cases:
@@ -666,6 +682,20 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print("expected shared ABI support-checker packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["packet_files"].remove("zigux/tests/phase3_export_shim_build.zig")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export-shim build packet-file drift was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -732,6 +762,22 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove(
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export-shim replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout")
         _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -755,7 +801,7 @@ def run_self_test() -> int:
         )
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
-            print("expected export/UAPI layout make test replay drift was not reported")
+            print("expected export/UAPI layout make test replay was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -857,7 +903,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=27")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
