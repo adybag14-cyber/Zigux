@@ -29,6 +29,47 @@ fn expectSummaryStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary
     try std.testing.expectEqual(before.init_runs, after.init_runs);
 }
 
+test "runtime bitmap loader keeps an empty loader payload explicit through direct exit" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList("  \n\t  ");
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.nbits);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits),
+    );
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("", formatted);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_exit, after_exit);
+    try std.testing.expectEqual(@as(usize, 0), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits),
+    );
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
+
 test "runtime bitmap loader keeps loader-facing bitmap payload explicit" {
     const descriptor = RuntimeBitmapSample.descriptor();
     try std.testing.expectEqualStrings(load_plan.name, descriptor.name);
