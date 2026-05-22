@@ -103,11 +103,21 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_kallsyms.zig",
         "Run focused Phase 8 help and kallsyms tests",
     ),
+    HELP_BUILD: (
+        "../../tools/lib/subcmd/help.zig",
+        "phase8-help-only-tests",
+        "Run the focused Phase 8 help-only tests.",
+    ),
     HELP_TEST: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
         'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
         'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
+    ),
+    KALLSYMS_BUILD: (
+        "../../tools/lib/symbol/kallsyms.zig",
+        "phase8-kallsyms-only-tests",
+        "Run the focused Phase 8 kallsyms-only tests.",
     ),
     KALLSYMS_TEST: (
         'test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit"',
@@ -298,6 +308,15 @@ def run_self_test() -> int:
             raise AssertionError("expected missing tests README route marker to be reported")
         tests_readme.write_text(original_tests_readme, encoding="utf-8")
 
+        help_build = root / HELP_BUILD
+        original_help_build = _read(help_build)
+        help_build.write_text(original_help_build.replace("../../tools/lib/subcmd/help.zig", "", 1), encoding="utf-8")
+        missing_help_build_source = validate_root(root)
+        expected_help_build_source = "zigux/tests/phase8_help_only_build.zig:../../tools/lib/subcmd/help.zig"
+        if expected_help_build_source not in missing_help_build_source.missing_markers:
+            raise AssertionError("expected missing help-only build source marker to be reported")
+        help_build.write_text(original_help_build, encoding="utf-8")
+
         help_test = root / HELP_TEST
         original_help_test = _read(help_test)
         help_test.write_text(original_help_test.replace('test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"', "", 1), encoding="utf-8")
@@ -329,6 +348,18 @@ def run_self_test() -> int:
         if expected_kallsyms_test_marker not in missing_kallsyms_test_marker.missing_markers:
             raise AssertionError("expected missing kallsyms test marker to be reported")
         kallsyms_test.write_text(original_kallsyms_test, encoding="utf-8")
+
+        kallsyms_build = root / KALLSYMS_BUILD
+        original_kallsyms_build = _read(kallsyms_build)
+        kallsyms_build.write_text(
+            original_kallsyms_build.replace("Run the focused Phase 8 kallsyms-only tests.", "", 1),
+            encoding="utf-8",
+        )
+        missing_kallsyms_build_description = validate_root(root)
+        expected_kallsyms_build_description = "zigux/tests/phase8_kallsyms_only_build.zig:Run the focused Phase 8 kallsyms-only tests."
+        if expected_kallsyms_build_description not in missing_kallsyms_build_description.missing_markers:
+            raise AssertionError("expected missing kallsyms-only build description to be reported")
+        kallsyms_build.write_text(original_kallsyms_build, encoding="utf-8")
 
         build_path = root / HELP_KALLSYMS_BUILD
         original_build = _read(build_path)
@@ -452,7 +483,7 @@ def run_self_test() -> int:
         missing_kallsyms_build_result = validate_root(root)
         if KALLSYMS_BUILD.as_posix() not in missing_kallsyms_build_result.missing_files:
             raise AssertionError("expected missing kallsyms-only build shard to be reported")
-        _write(missing_kallsyms_build, "zigux/tests/phase8_kallsyms_only_build.zig\n")
+        _write(missing_kallsyms_build, "\n".join(FILE_MARKERS[KALLSYMS_BUILD]) + "\n")
 
         scripts_readme.unlink()
         missing_scripts_readme = validate_root(root)
@@ -461,7 +492,7 @@ def run_self_test() -> int:
         _write(scripts_readme, "\n".join(FILE_MARKERS[SCRIPTS_README]) + "\n")
 
     print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST=pass")
-    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=28")
+    print("PHASE8_HELP_KALLSYMS_PACKET_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
