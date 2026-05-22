@@ -167,7 +167,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -399,6 +399,13 @@ def run_self_test() -> None:
         manifest_exclusions_marker = NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER
         manifest_path.write_text(read_text(manifest_path).replace(manifest_exclusions_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_no_extra_sample_exclusions_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_exclusions_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
+        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][4]
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_manifest_next_bounded_step_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
