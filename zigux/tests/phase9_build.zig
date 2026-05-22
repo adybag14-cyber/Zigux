@@ -78,6 +78,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_loader_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
+    const runtime_loader_kernel_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-kernel-tests",
+        .root_module = runtime_loader_module,
+    });
+    const runtime_loader_contract_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-contract-tests",
+        .root_module = runtime_loader_contract_module,
+    });
     const runtime_loader_command_env_boundary_guard_module = b.createModule(.{
         .root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),
         .target = target,
@@ -213,6 +221,8 @@ pub fn build(b: *std.Build) void {
 
     const run_runtime_atomic64_diff_tests = b.addRunArtifact(runtime_atomic64_diff_tests);
     const run_runtime_atomic64_module_tests = b.addRunArtifact(runtime_atomic64_module_tests);
+    const run_runtime_loader_kernel_tests = b.addRunArtifact(runtime_loader_kernel_tests);
+    const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);
     const run_runtime_atomic64_sample_tests = b.addRunArtifact(runtime_atomic64_sample_tests);
     const run_runtime_bitmap_sample_tests = b.addRunArtifact(runtime_bitmap_sample_tests);
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
@@ -298,6 +308,18 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_diff_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
+    const phase9_runtime_loader_kernel = b.step(
+        "phase9-runtime-loader-kernel-tests",
+        "Run the Phase 9 shared runtime loader kernel-contract tests.",
+    );
+    phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);
+
+    const phase9_runtime_loader_contract = b.step(
+        "phase9-runtime-loader-contract-tests",
+        "Run the Phase 9 shared runtime loader contract tests.",
+    );
+    phase9_runtime_loader_contract.dependOn(&run_runtime_loader_contract_tests.step);
+
     const phase9_runtime_loader_command_env_boundary_guard = b.step(
         "phase9-runtime-loader-command-env-boundary-guard-tests",
         "Run the Phase 9 shared runtime loader command/environment boundary guard tests.",
@@ -310,6 +332,8 @@ pub fn build(b: *std.Build) void {
         "phase9-runtime-loader-shared-tests",
         "Run the shared Phase 9 runtime loader handoff parity tests.",
     );
+    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_kernel_tests.step);
+    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_contract_tests.step);
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     phase9_runtime_loader_shared.dependOn(
         &run_runtime_loader_command_env_boundary_guard_tests.step,
