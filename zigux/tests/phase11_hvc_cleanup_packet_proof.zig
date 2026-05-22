@@ -250,36 +250,61 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");
     try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");
     try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
-    try expectContains(driver, "test \"phase11 hvc console keeps flush intent summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps final-close teardown ownership summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps tty-registration handoff summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps successful hvc_install ownership reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps failed hvc_install cleanup ownership reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps missing hvc_install lookup from lighting later ownership surfaces\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps hvc_alloc slot-match handoff reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps hvc_alloc empty-slot fallback reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps hvc_alloc hotplug extension distinct from console slot claims\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps early console setup success reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps early console setup ENODEV gates reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps console-device selection success reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps adapter-missing device lookup null reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps driver-missing device lookup distinct from slot export\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps resize handoff summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps zeroed resize geometry explicit\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps notifier-add open handoff summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps khvcd polling-contract summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps khvcd worker-entry handoff reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps cleanup prerequisite combined trigger reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console rejects cleanup without final-close or hangup evidence\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps stale hangup short-circuit ownership reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps remove handoff summary reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps hvc_kick wakeup cue reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps notifier irq helper surface reviewable\" {");
-    try expectContains(driver, "test \"phase11 hvc console keeps modem-control helper surface reviewable\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps flush intent summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps final-close teardown ownership summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps tty-registration handoff summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps successful hvc_install ownership reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps failed hvc_install cleanup ownership reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps missing hvc_install lookup from lighting later ownership surfaces\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps hvc_alloc slot-match handoff reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps hvc_alloc empty-slot fallback reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps hvc_alloc hotplug extension distinct from console slot claims\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps early console setup success reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps early console setup ENODEV gates reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps console-device selection success reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps adapter-missing device lookup null reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps driver-missing device lookup distinct from slot export\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps resize handoff summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps zeroed resize geometry explicit\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps notifier-add open handoff summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd polling-contract summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd worker-entry handoff reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps cleanup prerequisite final-close-only trigger reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps cleanup prerequisite hangup-only trigger reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps cleanup prerequisite combined trigger reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console rejects cleanup without final-close or hangup evidence\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps stale hangup short-circuit ownership reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps remove handoff summary reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps hvc_kick wakeup cue reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps notifier irq helper surface reviewable\\\" {");
+    try expectContains(driver, "test \\\"phase11 hvc console keeps modem-control helper surface reviewable\\\" {");
+}
+
+test "phase11 hvc cleanup packet proof keeps incomplete remove teardown guard explicit" {
+    const verify_boundary = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(verify_boundary);
+
+    const driver = try readRepoFileAlloc(
+        std.testing.allocator,
+        "drivers/tty/hvc/hvc_console.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(driver);
+
+    try expectContains(
+        verify_boundary,
+        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+    );
+    try expectContains(driver, "test \\\"phase11 hvc console keeps incomplete remove ownership out of handoff summary\\\" {");
+    try expectContains(driver, "try std.testing.expect(!summary.slot_release_ownership);");
+    try expectContains(driver, "try std.testing.expect(!summary.tty_vhangup_follow_through);");
+    try expectContains(driver, "try std.testing.expect(!summary.tty_kref_put_release);");
 }
