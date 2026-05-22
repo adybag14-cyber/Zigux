@@ -26,6 +26,10 @@ RETURN_TO_BLOCKED_MARKERS = [
     "- missing qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, or final sock-owned tail transfer wording in the active skbuff packet",
     "- any bridge-presence wording that upgrades the packet into parity, runtime ownership, or a freeze-map status change without the required reopen evidence",
 ]
+NEXT_STEP_COORDINATION_MARKERS = [
+    "Leave this lane parked unless a future current-`master` reread finds another survey-only drift against the live skbuff bridge packet or the Phase 14 roadmap.",
+    "If the packet ever moves toward status review, update this note and `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py` together before any broader shared Phase 14 reminder surface repeats the claim.",
+]
 
 
 def infer_repo_root() -> Path:
@@ -54,6 +58,7 @@ REQUIRED_MARKERS = [
     *REQUIRED_EVIDENCE_MARKERS,
     RETURN_TO_BLOCKED_HEADING,
     *RETURN_TO_BLOCKED_MARKERS,
+    *NEXT_STEP_COORDINATION_MARKERS,
 ]
 
 
@@ -112,6 +117,9 @@ The live bridge packet therefore remains review-only boundary evidence, not a de
 """ + "\n".join(f"  {marker}" for marker in REQUIRED_EVIDENCE_MARKERS) + """
 """ + RETURN_TO_BLOCKED_HEADING + """
 """ + "\n".join(f"  {marker}" for marker in RETURN_TO_BLOCKED_MARKERS) + """
+
+## Next bounded step
+""" + "\n".join(NEXT_STEP_COORDINATION_MARKERS) + """
 """
 
 
@@ -145,6 +153,11 @@ def run_self_test() -> int:
                 RETURN_TO_BLOCKED_MARKERS[0],
                 f"missing_marker:{RETURN_TO_BLOCKED_MARKERS[0]}",
             ),
+            (
+                "remove-next-step-coordination",
+                NEXT_STEP_COORDINATION_MARKERS[1],
+                f"missing_marker:{NEXT_STEP_COORDINATION_MARKERS[1]}",
+            ),
         ]
         for _, marker, expected in cases:
             write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker, "", 1))
@@ -165,7 +178,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected guard phrase failure, got {failures!r}")
 
         print("PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST_CASE_COUNT=6")
+        print("PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
