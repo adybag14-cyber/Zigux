@@ -79,6 +79,15 @@ pub const CancelPathHandoff = struct {
     blocked_by: []const u8,
 };
 
+pub const FlushDrainHandoff = struct {
+    anchor_symbol: []const u8,
+    ownership: Ownership,
+    observed_fields: []const []const u8,
+    blocked_by: []const u8,
+    current_slice_id: []const u8,
+    next_focus: []const u8,
+};
+
 pub const SchedulerVisibleWorkerStateHandoff = struct {
     running_anchor_symbol: []const u8,
     sleeping_anchor_symbol: []const u8,
@@ -318,6 +327,16 @@ const cancel_path_observed_fields = [_][]const u8{
     "disable_work()",
 };
 
+const flush_drain_observed_fields = [_][]const u8{
+    "wq->work_color",
+    "wq->flush_color",
+    "wq->nr_pwqs_to_flush",
+    "wq->first_flusher",
+    "pwq->nr_in_flight",
+    "WORK_OFFQ_CANCELING",
+    "work->data",
+};
+
 const scheduler_visible_worker_state_observed_fields = [_][]const u8{
     "WORKER_NOT_RUNNING",
     "pool->nr_running",
@@ -373,6 +392,17 @@ pub const WorkqueueBridgeLab = struct {
             .ownership = .stay_in_c,
             .observed_fields = cancel_path_observed_fields[0..],
             .blocked_by = "__cancel_work_sync() may preserve disable depth through disable_work() before falling back to __flush_work(), so cancellation completion stays inside the live C pending-bit and completion rules rather than becoming a Zig wrapper claim.",
+        };
+    }
+
+    pub fn flushDrainHandoff() FlushDrainHandoff {
+        return .{
+            .anchor_symbol = "start_flush_work/__flush_workqueue",
+            .ownership = .stay_in_c,
+            .observed_fields = flush_drain_observed_fields[0..],
+            .blocked_by = "insert_wq_barrier(), start_flush_work(), __flush_workqueue(), and __cancel_work_sync() still coordinate active-color progression, first-flusher handoff, in-flight draining, cancellation wait bits, and WORK_OFFQ_CANCELING completion under the live C runtime, so flush and drain ownership stay explicit and in C rather than becoming a Zig wrapper claim.",
+            .current_slice_id = currentSliceId(),
+            .next_focus = maintenanceHandoff().next_future_target,
         };
     }
 
@@ -518,6 +548,29 @@ test "workqueue bridge cancel-path handoff keeps cancellation completion explici
     try std.testing.expectEqualStrings("disable_work()", cancel_handoff.observed_fields[3]);
     try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "disable depth") != null);
     try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "pending-bit and completion rules") != null);
+}
+
+test "workqueue bridge flush-drain handoff keeps flusher and cancellation governance explicit and in C" {
+    const flush_handoff = WorkqueueBridgeLab.flushDrainHandoff();
+
+    try std.testing.expectEqualStrings("start_flush_work/__flush_workqueue", flush_handoff.anchor_symbol);
+    try std.testing.expect(flush_handoff.ownership == .stay_in_c);
+    try std.testing.expectEqual(@as(usize, 7), flush_handoff.observed_fields.len);
+    try std.testing.expectEqualStrings("wq->work_color", flush_handoff.observed_fields[0]);
+    try std.testing.expectEqualStrings("wq->flush_color", flush_handoff.observed_fields[1]);
+    try std.testing.expectEqualStrings("wq->nr_pwqs_to_flush", flush_handoff.observed_fields[2]);
+    try std.testing.expectEqualStrings("wq->first_flusher", flush_handoff.observed_fields[3]);
+    try std.testing.expectEqualStrings("pwq->nr_in_flight", flush_handoff.observed_fields[4]);
+    try std.testing.expectEqualStrings("WORK_OFFQ_CANCELING", flush_handoff.observed_fields[5]);
+    try std.testing.expectEqualStrings("work->data", flush_handoff.observed_fields[6]);
+    try std.testing.expectEqualStrings(WorkqueueBridgeLab.currentSliceId(), flush_handoff.current_slice_id);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.blocked_by, "insert_wq_barrier()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.blocked_by, "start_flush_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.blocked_by, "first-flusher") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.blocked_by, "WORK_OFFQ_CANCELING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.blocked_by, "__cancel_work_sync()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.next_focus, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, flush_handoff.next_focus, "shared reminder surface") != null);
 }
 
 test "workqueue bridge scheduler-visible worker-state handoff stays explicit and in C" {
