@@ -189,7 +189,8 @@ def collect_workflow_order_failures(text: str) -> list[str]:
         if block_count != 1:
             failures.append(f"workflow_pair:{step_name}:expected=1:actual={block_count}")
             continue
-        position_map[step_name] = text.index(block)
+        block_position = text.index(block)
+        position_map[step_name] = block_position
     if failures:
         return failures
 
@@ -199,6 +200,7 @@ def collect_workflow_order_failures(text: str) -> list[str]:
 
     optional_counts = {}
     optional_pair_counts = {}
+    optional_positions: list[int] = []
     for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS:
         name_line = workflow_name_line(step_name)
         run_line = workflow_run_line(run_command)
@@ -206,7 +208,10 @@ def collect_workflow_order_failures(text: str) -> list[str]:
             sum(1 for current in text.splitlines() if current.strip() == name_line),
             sum(1 for current in text.splitlines() if current.strip() == run_line),
         )
-        optional_pair_counts[step_name] = text.count(workflow_step_block(step_name, run_command))
+        pair_count = text.count(workflow_step_block(step_name, run_command))
+        optional_pair_counts[step_name] = pair_count
+        if pair_count == 1:
+            optional_positions.append(text.index(workflow_step_block(step_name, run_command)))
     present_optional = [
         step_name
         for step_name, counts in optional_counts.items()
@@ -240,10 +245,6 @@ def collect_workflow_order_failures(text: str) -> list[str]:
         failures.extend(optional_pair_failures)
         return failures
 
-    optional_positions = [
-        text.index(workflow_step_block(step_name, run_command))
-        for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS
-    ]
     if optional_positions != sorted(optional_positions):
         failures.append("workflow:phase1_bootstrap_optional_pair:expected=strictly_increasing:actual=out_of_order")
         return failures
@@ -253,6 +254,16 @@ def collect_workflow_order_failures(text: str) -> list[str]:
     if not all(route_summary_check_pos < pos < bench_self_test_pos for pos in optional_positions):
         failures.append(
             "workflow:phase1_bootstrap_optional_pair:expected=between_route_summary_check_and_bench_self_test:actual=outside_slot"
+        )
+        return failures
+
+    optional_pair_block = "\n".join(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in OPTIONAL_WORKFLOW_PACKET_STEPS
+    )
+    if text.count(optional_pair_block) != 1:
+        failures.append(
+            "workflow:phase1_bootstrap_optional_pair:expected=adjacent_self_test_then_check:actual=split_or_misordered"
         )
     return failures
 
@@ -353,6 +364,12 @@ def add_optional_workflow_pair(root: Path, mode: str) -> None:
         pair_blocks = [pair_blocks[0]]
     elif mode == "check_only":
         pair_blocks = [pair_blocks[1]]
+    elif mode == "split":
+        pair_blocks = [
+            pair_blocks[0],
+            "      - name: Split current Phase 1 bootstrap packet spacer\n        run: true",
+            pair_blocks[1],
+        ]
     insert_index = bench_index + 1 if mode == "after_bench" else bench_index
     blocks[insert_index:insert_index] = pair_blocks
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
@@ -390,6 +407,7 @@ def run_self_test() -> int:
     cases.append(("workflow_optional_pair_present", ("optional_workflow", "normal")))
     cases.append(("workflow_optional_pair_reversed", ("optional_workflow", "reversed")))
     cases.append(("workflow_optional_pair_after_bench", ("optional_workflow", "after_bench")))
+    cases.append(("workflow_optional_pair_split", ("optional_workflow", "split")))
     cases.append(("workflow_optional_pair_self_only", ("optional_workflow", "self_only")))
     cases.append(("workflow_optional_pair_check_only", ("optional_workflow", "check_only")))
     cases.append(
