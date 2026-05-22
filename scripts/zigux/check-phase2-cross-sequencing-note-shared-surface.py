@@ -11,6 +11,11 @@ LANE_NOTE = ROOT / "Documentation" / "zigux" / "phase2-toolchain-lane-sequencing
 MAKEFILE = ROOT / "zigux" / "Makefile"
 
 REQUIRED_PATHS = (
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/phase2-closure.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -20,11 +25,18 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
 )
 
 REQUIRED_NOTE_MARKERS = (
+    "`Documentation/zigux/README.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/README.md`",
+    "`zigux/tests/README.md`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -34,7 +46,12 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2`",
 )
 
 FORBIDDEN_NOTE_MARKERS = (
@@ -48,7 +65,7 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def read_text(path: Path) -> str:
