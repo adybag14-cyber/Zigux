@@ -342,6 +342,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
+    + 1
 )
 
 
@@ -687,6 +688,12 @@ def build_self_test_root(root: Path) -> None:
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
+
+
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement)
 
 
@@ -733,6 +740,12 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
+        repeated_marker = BOOTSTRAP_PRESENT_MARKERS[0]
+        repeated_text = "\n".join((repeated_marker, repeated_marker, "tail")) + "\n"
+        replaced_text = replace_once(repeated_text, repeated_marker)
+        assert replaced_text == f"\n{repeated_marker}\ntail\n"
+        checks_run += 1
+
         for marker_set, path_ref, expected_code in (
             (SCRIPTS_MARKERS, SCRIPTS_README, "MISSING_SCRIPTS_MARKERS"),
             (REVIEW_MARKERS, REVIEW_CHECKLIST, "MISSING_REVIEW_MARKERS"),
@@ -741,7 +754,7 @@ def run_self_test() -> int:
             for marker in marker_set:
                 build_self_test_root(root)
                 path = resolve_path(root, path_ref)
-                path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
                 issues = collect_issues(root)
                 assert (expected_code, marker) in issues
                 checks_run += 1
@@ -749,7 +762,7 @@ def run_self_test() -> int:
         for marker in WORKFLOW_SETUP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_SETUP_MARKERS", marker) in issues
             checks_run += 1
@@ -773,7 +786,7 @@ def run_self_test() -> int:
         for marker in BOOTSTRAP_PRESENT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", marker) in issues
             checks_run += 1
@@ -781,7 +794,7 @@ def run_self_test() -> int:
         for marker in BOOTSTRAP_GAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_GAP_MARKERS", marker) in issues
             checks_run += 1
@@ -789,7 +802,7 @@ def run_self_test() -> int:
         for marker in PHASE2_CLOSURE_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, PHASE2_CLOSURE)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_PHASE2_CLOSURE_MARKERS", marker) in issues
             checks_run += 1
@@ -797,7 +810,7 @@ def run_self_test() -> int:
         for marker in archive_markers:
             build_self_test_root(root)
             path = resolve_path(root, THIRD_PARTY_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_ARCHIVE_README_MARKERS", marker) in issues
             checks_run += 1
