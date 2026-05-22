@@ -5,8 +5,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 
 - `PHASE8_STATUS=parked`
-- `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus a bounded setup-path wrapper that consumes stat-identity proof, null-terminated command-vector preparation, pure `execl_cmd()`-style argv collection, and one pure deferred-exec handoff carrier only
+- `PHASE8_SLICE=exec-cmd-deferred-exec-packet`
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus bounded setup-path wrappers that consume stat-identity proof, null-terminated command-vector preparation, pure `execl_cmd()`-style argv collection, and pure deferred `execv_cmd()` / `execl_cmd()` handoff carriers only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -19,9 +19,9 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 
 `exec-cmd.zig` remains the bounded helper-first port for the `exec-cmd.c` side of that roadmap target. The sibling `help.zig` slice now exists too, so this note is no longer tracking the first Zig foothold under `tools/lib/subcmd/`; it is tracking the parked `exec-cmd` subcmd slice specifically.
 
-That keeps the lane honest: `exec-cmd` now covers the smallest reviewable setup and argv-preparation surface from the C helper without widening into direct process-launch side effects or sibling `help.c` behavior.
+That keeps the lane honest: `exec-cmd` now covers the smallest reviewable setup, argv-preparation, and deferred-handoff planning surface from the C helper without widening into direct process-launch side effects or sibling `help.c` behavior.
 
-The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranche, while `kernel/workqueue.c` remains a Phase 14 boundary-study target. So this slice can model argument preparation and environment setup for later deferred execution, but it must stop before `execv_cmd()` or `execvp()` side effects, scheduler-facing transport ownership, or anything that reads like a workqueue-style execution substrate.
+The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranche, while `kernel/workqueue.c` remains a Phase 14 boundary-study target. So this slice can model argument preparation and environment setup for later deferred execution, and it can package launch-free `execv_cmd()` and `execl_cmd()` handoff plans for later use, but it must stop before `execvp()` side effects, scheduler-facing transport ownership, or anything that reads like a workqueue-style execution substrate.
 
 ## Gates
 
