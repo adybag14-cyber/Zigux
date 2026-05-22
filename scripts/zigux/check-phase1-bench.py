@@ -390,7 +390,7 @@ def build_find_bit_bench_source(omit_label: str | None = None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def make_expectations(*, missing_exact: str | None = None, reordered_checksums: bool = False) -> dict[str, object]:
+def make_expectations(*, missing_exact: str | None = null, reordered_checksums: bool = False) -> dict[str, object]:
     exact_checksums = {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
         "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
@@ -451,6 +451,22 @@ def ok_output_lines() -> list[str]:
         "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
         "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
     ]
+
+
+def write_fake_zig(path: Path, output: str) -> None:
+    path.write_text(
+        "\n".join(
+            (
+                "#!/usr/bin/env python3",
+                "import sys",
+                f"sys.stdout.write({output!r})",
+                "raise SystemExit(0)",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
 
 
 def run_self_test() -> None:
@@ -666,6 +682,22 @@ def run_self_test() -> None:
         temp_root = Path(temp_dir)
         expected_path = expectations_path(temp_root)
         expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(duplicate_top_level_text, encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=expectations_duplicate_keys" in result.stdout
+        assert f"PHASE1_BENCH_EXPECTATIONS={expected_path}" in result.stdout
+        case_count += 1
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
         expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         result = subprocess.run(
             [sys.executable, str(HERE), "--root", temp_dir],
@@ -721,6 +753,36 @@ def run_self_test() -> None:
         assert "BENCH_COMMAND_EXIT=" in result.stdout
         case_count += 1
 
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_root = Path(temp_dir)
+        expected_path = expectations_path(temp_root)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
+        expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        source_path = phase1_bench_path(temp_root)
+        source_path.parent.mkdir(parents=True, exist_ok=True)
+        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        build_file = build_file_path(temp_root)
+        build_file.parent.mkdir(parents=True, exist_ok=True)
+        build_file.write_text("// fake zig ignores this file\n", encoding="utf-8")
+        fake_zig = temp_root / "fake-zig.py"
+        fake_output = "\n".join(
+            line
+            for line in ok_output_lines()
+            if not line.startswith("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=")
+        ) + "\n"
+        write_fake_zig(fake_zig, fake_output)
+        result = subprocess.run(
+            [sys.executable, str(HERE), "--root", temp_dir, "--zig", str(fake_zig)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert "PHASE1_BENCH_CHECK=fail" in result.stdout
+        assert "PHASE1_BENCH_CHECK_REASON=missing_bitmap_exact_checksums" in result.stdout
+        assert f"PHASE1_BENCH_EXPECTATIONS={expected_path}" in result.stdout
+        assert f"PHASE1_BENCH_SOURCE={source_path}" in result.stdout
+        case_count += 1
+
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
     print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -765,6 +827,7 @@ def main() -> int:
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
         print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(f"PHASE1_BENCH_EXPECTATIONS={expected_path}")
         print(payload)
         return 1
 
@@ -802,6 +865,8 @@ def main() -> int:
     if kind != "pass":
         print("PHASE1_BENCH_CHECK=fail")
         print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(f"PHASE1_BENCH_EXPECTATIONS={expected_path}")
+        print(f"PHASE1_BENCH_SOURCE={bench_source_path}")
         print(payload)
         return 1
 
