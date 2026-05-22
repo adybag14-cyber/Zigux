@@ -13,6 +13,12 @@ from pathlib import Path
 REQUIRED_COMMAND = "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
 PHASE11_VALIDATE_COMMAND = "make -C zigux phase11-validate"
 PHASE11_VALIDATE_STEP = "Validate current Phase 11 support bundle"
+TARGETLESS_WITNESS_SELF_TEST_COMMAND = (
+    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test"
+)
+TARGETLESS_WITNESS_COMMAND = (
+    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"
+)
 TARGETLESS_WITNESS_TEST_NAME = "phase11-hvc-targetless-unregister-gap"
 TARGETLESS_WITNESS_REPLAY = "zigux/tests/phase11_hvc_targetless_unregister_gap.zig"
 TARGETLESS_WITNESS_BUILD_REPLAY = "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
@@ -260,7 +266,13 @@ def require_inventory(root: Path) -> None:
         raise ValidationError(
             "phase11_build_inventory.json must keep exact_current_checks as a JSON array"
         )
-    for command in (CLEANUP_SELF_TEST_COMMAND, CLEANUP_COMMAND, REQUIRED_COMMAND):
+    for command in (
+        CLEANUP_SELF_TEST_COMMAND,
+        CLEANUP_COMMAND,
+        TARGETLESS_WITNESS_SELF_TEST_COMMAND,
+        TARGETLESS_WITNESS_COMMAND,
+        REQUIRED_COMMAND,
+    ):
         if command not in exact_current_checks:
             raise ValidationError(
                 f"phase11_build_inventory.json must keep {command!r} in exact_current_checks"
@@ -315,6 +327,8 @@ def build_fixture(root: Path) -> None:
         "exact_current_checks": [
             CLEANUP_SELF_TEST_COMMAND,
             CLEANUP_COMMAND,
+            TARGETLESS_WITNESS_SELF_TEST_COMMAND,
+            TARGETLESS_WITNESS_COMMAND,
             REQUIRED_COMMAND,
         ],
         "workflow_phase11_steps": [
