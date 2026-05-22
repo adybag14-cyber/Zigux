@@ -187,6 +187,7 @@ phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-
 
 phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-libbpf-segment-gate.py
 
 phase8-exec-cmd-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all
