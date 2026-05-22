@@ -5,4 +5,5 @@
   sample_comment_only.o: include/generated/autoconf.h\
   sample_comment_only_tail.o: zigux/tests/fixtures/fixdep/sample.h\
   sample_comment_only_final.o: zigux/tests/fixtures/fixdep/sample-config.h\
-  sample_comment_only_repeat.o: zigux/tests/fixtures/fixdep/sample.h
+  sample_comment_only_repeat.o: zigux/tests/fixtures/fixdep/sample.h\
+  sample_comment_only_autoconf.o: include/generated/autoconf.h
