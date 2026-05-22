@@ -49,6 +49,9 @@ COMPLEX_DRIVER_LANE_CHECKER_PATH = (
     "scripts/zigux/check-phase12-complex-driver-lane-packet.py"
 )
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
+LIBBPF_LANE_MARKER_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-lane-marker.py"
+LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
+LIBBPF_SEGMENT_GATE_PATH = "zigux/tests/phase12_libbpf_segments.zig"
 HEAVY_CONSUMER_PACKET_CHECKER_PATH = (
     "scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py"
 )
@@ -116,6 +119,9 @@ REQUIRED_FILES = [
     RELEASE_READINESS_CHECKER_PATH,
     COMPLEX_DRIVER_LANE_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
+    LIBBPF_LANE_MARKER_CHECKER_PATH,
+    LIBBPF_SEGMENT_SURVEY_PATH,
+    LIBBPF_SEGMENT_GATE_PATH,
     HEAVY_CONSUMER_PACKET_CHECKER_PATH,
     VIRTIO_NET_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
@@ -229,6 +235,14 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
         "scripts/zigux/check-phase12-libbpf-snapshot.py",
     ],
+    LIBBPF_SEGMENT_SURVEY_PATH: [
+        "PHASE12_LANE_KEY=P12-L16",
+    ],
+    LIBBPF_SEGMENT_GATE_PATH: [
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "PHASE12_LANE_KEY=P12-L16",
+        "try std.testing.expectEqualStrings(\"P12-L16\", manifest.lane_key);",
+    ],
     VIRTIO_NET_MANIFEST_PATH: [
         "\"lane_key\": \"P12-L01\"",
         "\"phase\": \"Phase 12\"",
@@ -297,6 +311,9 @@ REQUIRED_MARKERS = {
         RELEASE_READINESS_CHECKER_PATH,
         COMPLEX_DRIVER_LANE_CHECKER_PATH,
         LIBBPF_SNAPSHOT_CHECKER_PATH,
+        LIBBPF_LANE_MARKER_CHECKER_PATH,
+        LIBBPF_SEGMENT_SURVEY_PATH,
+        LIBBPF_SEGMENT_GATE_PATH,
         HEAVY_CONSUMER_PACKET_CHECKER_PATH,
         VIRTIO_NET_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
@@ -309,6 +326,7 @@ REQUIRED_MARKERS = {
         VIRTIO_SCSI_SURVEY_GATE_PATH,
         "PHASE12_VALIDATOR_SELF_TEST=pass",
         "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",
+        "PHASE12_LIBBPF_LANE_MARKER_SELF_TEST=pass",
         "make -C zigux phase12-validate",
         "scripts-side support packet",
     ],
@@ -447,6 +465,11 @@ FIXTURE_TEXT = {
         "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         REQUIRED_MARKERS[PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH],
     ),
+    LIBBPF_SEGMENT_SURVEY_PATH: marker_fixture(
+        "# Phase 12 Libbpf Segment Survey",
+        REQUIRED_MARKERS[LIBBPF_SEGMENT_SURVEY_PATH],
+    ),
+    LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
     VIRTIO_NET_SURVEY_PATH: marker_fixture(
         "# Phase 12 Virtio Net Survey",
         REQUIRED_MARKERS[VIRTIO_NET_SURVEY_PATH],
