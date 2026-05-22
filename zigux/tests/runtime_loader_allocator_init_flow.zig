@@ -324,3 +324,62 @@ test "shared runtime loader keeps prepared init-flow counters from drifting befo
     try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(request.prepared_plan, kretprobe_plan));
     try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(request.plan, kretprobe_plan));
 }
+
+test "shared runtime loader keeps prepared selftest-hook and handoff-stage labels from drifting before handoff" {
+    const trace_events_plan = makeSelftestCompletePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+    );
+    var trace_events_request = try runtime_loader.prepareRequest(trace_events_plan);
+
+    trace_events_request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, trace_events_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.prepared_plan,
+        trace_events_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.plan,
+        trace_events_plan,
+    ));
+
+    trace_events_request.plan = trace_events_plan;
+    trace_events_request.plan.init_flow.handoff_stage = .initialized;
+    trace_events_request.plan.init_flow.selftest_runs = 0;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, trace_events_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.prepared_plan,
+        trace_events_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        trace_events_request.plan,
+        trace_events_plan,
+    ));
+
+    const kretprobe_plan = makeInitializedPlan(
+        "runtime_kretprobe",
+        "samples/kprobes/kretprobe_example.c",
+        "zigux_runtime_kretprobe_init",
+        "zigux_runtime_kretprobe_exit",
+        .caller_provided,
+    );
+    var kretprobe_request = try runtime_loader.prepareRequest(kretprobe_plan);
+
+    kretprobe_request.plan.init_flow.handoff_stage = .selftest_complete;
+    kretprobe_request.plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, kretprobe_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        kretprobe_request.prepared_plan,
+        kretprobe_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        kretprobe_request.plan,
+        kretprobe_plan,
+    ));
+}
