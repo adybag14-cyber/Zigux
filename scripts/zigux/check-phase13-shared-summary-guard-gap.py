@@ -18,8 +18,9 @@ REQUIRED_MARKERS = {
         "Fresh authenticated file checks in this run show the stable contributor-facing handle is now aligned on current `master`:",
         "`scripts/zigux/README.md` already keeps the shipped `libfs` packet anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`",
         "`zigux/tests/README.md`, `scripts/zigux/check-phase13-tests-readme-alignment.py`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `Documentation/zigux/review-checklist.md` all keep `scripts/zigux/validate-phase13-release.py` explicit as shipped release-discipline support on current `master`",
-        "What remains open inside this shared-subsystems lane has therefore moved out of the stable contributor-facing handle and into `Documentation/zigux/phase13-release-notes-survey.md`",
-        "`Documentation/zigux/phase13-release-notes-survey.md` claim about `zigux/tests/README.md`",
+        "What remains open inside this shared-subsystems lane has narrowed again:",
+        "`Documentation/zigux/phase13-release-notes-survey.md` no longer carries the older tests-root validator-gap claim",
+        "`scripts/zigux/validate-phase13-release.py` is shipped current-`master` release-discipline support.",
         "- `Documentation/zigux/phase13-release-notes-survey.md`",
         "`scripts/zigux/README.md`",
         "`zigux/tests/README.md`",
@@ -38,6 +39,8 @@ FORBIDDEN_MARKERS = (
     "one stale tests-root repo-reality-gap sentence that lists returned `scripts/zigux/validate-phase13-release.py` as missing",
     "But that same scripts-root section still treats missing `Documentation/zigux/phase13-libfs-survey.md` as shipped `libfs` evidence and still leaves returned `scripts/zigux/validate-phase13-release.py` in repo-reality-gap wording",
     "while `scripts/zigux/README.md` still needs the shipped `libfs` packet kept anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`",
+    "What remains open inside this shared-subsystems lane has therefore moved out of the stable contributor-facing handle and into `Documentation/zigux/phase13-release-notes-survey.md`",
+    "`Documentation/zigux/phase13-release-notes-survey.md` claim about `zigux/tests/README.md`",
 )
 
 
@@ -134,12 +137,12 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8")
-            + "What remains open inside this shared-subsystems lane is therefore broader docs-root reminder drift rather than another stable-handle gap, and `Documentation/zigux/phase13-release-notes-survey.md` still carries one stale tests-root repo-reality-gap sentence that lists returned `scripts/zigux/validate-phase13-release.py` as missing.\n",
+            + "What remains open inside this shared-subsystems lane has therefore moved out of the stable contributor-facing handle and into `Documentation/zigux/phase13-release-notes-survey.md`\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:one stale tests-root repo-reality-gap sentence that lists returned `scripts/zigux/validate-phase13-release.py` as missing"
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:What remains open inside this shared-subsystems lane has therefore moved out of the stable contributor-facing handle and into `Documentation/zigux/phase13-release-notes-survey.md`"
             in issues
         )
         checks_run += 1
@@ -148,7 +151,24 @@ def run_self_test() -> int:
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
-                "`Documentation/zigux/phase13-release-notes-survey.md`\n",
+                "What remains open inside this shared-subsystems lane has narrowed again:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:What remains open inside this shared-subsystems lane has narrowed again:"
+            in issues
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8").replace(
+                "- `Documentation/zigux/phase13-release-notes-survey.md`\n",
                 "",
                 1,
             ),
