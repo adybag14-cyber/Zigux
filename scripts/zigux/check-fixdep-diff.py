@@ -476,7 +476,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")
     return 0
 
 
