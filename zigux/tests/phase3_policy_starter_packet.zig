@@ -262,6 +262,62 @@ test "policy starter packet keeps unsafe require gates explicit on shared record
     try testing.expectError(error.UnsafeScopeDenied, narrow_surface.requireRawPointerBridgeInteropPolicy(unknown_policy));
 }
 
+test "policy starter packet keeps unsafe boundary and audit semantics explicit" {
+    const cases = [_]struct {
+        policy: abi.InteropPolicy,
+        expected_scope: ?abi.UnsafeScope,
+        expected_boundary: ?unsafe_policy.AccessBoundary,
+        expected_unsafe: bool,
+        expected_audit: bool,
+    }{
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 }, .expected_scope = .none, .expected_boundary = .typed_safe, .expected_unsafe = false, .expected_audit = false },
+        .{ .policy = .{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 }, .expected_scope = .volatile_mmio, .expected_boundary = .volatile_mmio_window, .expected_unsafe = true, .expected_audit = true },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 }, .expected_scope = .raw_pointer_bridge, .expected_boundary = .raw_pointer_bridge, .expected_unsafe = true, .expected_audit = true },
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 }, .expected_scope = null, .expected_boundary = null, .expected_unsafe = false, .expected_audit = false },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 1 }, .expected_scope = null, .expected_boundary = null, .expected_unsafe = false, .expected_audit = false },
+    };
+
+    for (cases) |case| {
+        try testing.expectEqual(case.expected_scope, unsafe_policy.modeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_scope, unsafe_policy.scopeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafeInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditInteropPolicy(case.policy));
+
+        if (case.expected_scope) |scope| {
+            try testing.expectEqual(case.expected_boundary.?, unsafe_policy.accessBoundaryFor(scope));
+            try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafe(scope));
+            try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAudit(scope));
+        }
+    }
+
+    const byte_cases = [_]struct {
+        unsafe_scope: u8,
+        reserved: u8,
+        expected_boundary: ?unsafe_policy.AccessBoundary,
+        expected_unsafe: bool,
+        expected_audit: bool,
+    }{
+        .{ .unsafe_scope = 0, .reserved = 0, .expected_boundary = .typed_safe, .expected_unsafe = false, .expected_audit = false },
+        .{ .unsafe_scope = 1, .reserved = 0, .expected_boundary = .volatile_mmio_window, .expected_unsafe = true, .expected_audit = true },
+        .{ .unsafe_scope = 2, .reserved = 0, .expected_boundary = .raw_pointer_bridge, .expected_unsafe = true, .expected_audit = true },
+        .{ .unsafe_scope = 9, .reserved = 0, .expected_boundary = null, .expected_unsafe = false, .expected_audit = false },
+        .{ .unsafe_scope = 2, .reserved = 1, .expected_boundary = null, .expected_unsafe = false, .expected_audit = false },
+    };
+
+    for (byte_cases) |case| {
+        try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromInteropPolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafePolicyBytes(case.unsafe_scope, case.reserved));
+        try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditPolicyBytes(case.unsafe_scope, case.reserved));
+
+        if (case.reserved == 0) {
+            try testing.expectEqual(case.expected_boundary, unsafe_policy.accessBoundaryFromByte(case.unsafe_scope));
+            try testing.expectEqual(case.expected_unsafe, unsafe_policy.isUnsafeByte(case.unsafe_scope));
+            try testing.expectEqual(case.expected_audit, unsafe_policy.requiresDedicatedAuditByte(case.unsafe_scope));
+        }
+    }
+}
+
 test "policy starter packet keeps panic and allocator byte guards explicit" {
     const bug_heap = abi.InteropPolicy{
         .panic_mode = @intFromEnum(abi.PanicMode.bug),
