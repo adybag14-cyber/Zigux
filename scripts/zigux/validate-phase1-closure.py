@@ -444,6 +444,7 @@ def run_self_test() -> int:
         ("duplicate_manifest_lane_rule_summary", lambda root: insert_duplicate_manifest_line(root, f'    "rule_summary": "{EXPECTED_LANE_RULE_SUMMARY}",', '    "rule_summary": "drifted rule summary",')),
         ("missing_find_bit_andnot_contract", lambda root: mutate_remove_review_key(root, "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract")),
         ("stale_find_bit_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "review_packet_summary")),
+        ("stale_find_bit_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "next_safe_step_note")),
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
         ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
