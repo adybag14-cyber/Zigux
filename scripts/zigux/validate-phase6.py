@@ -611,7 +611,7 @@ def run_self_test() -> None:
         write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[0] + "\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
-        scaffoldRepo(root)
+        scaffold_repo(root)
         write(root / WORKFLOW, read_text(root / WORKFLOW).replace(REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
