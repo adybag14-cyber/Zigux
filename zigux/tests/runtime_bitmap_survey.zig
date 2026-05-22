@@ -134,11 +134,13 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(manifest, "\"sample_direct_exit_summary_stability\"");
     try expectContains(manifest, "\"sample_reinit_guards\"");
     try expectContains(manifest, "\"loader_payload_and_invalid_payload\"");
+    try expectContains(manifest, "\"loader_empty_payload_direct_exit\"");
     try expectContains(manifest, "\"loader_reinit_and_re_selftest_guards\"");
     try expectContains(manifest, "\"loader_loaded_summary_stability\"");
     try expectContains(manifest, "\"top_bit_contract\"");
     try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.");
+    try expectContains(manifest, "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "\"loadable runtime bitmap module parity\"");
     try expectContains(manifest, "\"shared runtime-loader command-name or argv-policy controls\"");
@@ -185,6 +187,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed partial bitm
     try expectContains(sample_file, "runtime bitmap sample keeps initialized summary stable across direct exit without selftest");
     try expectContains(sample_file, "runtime bitmap sample rejects re-init after exit without disturbing lifecycle summaries");
 
+    try expectContains(loader_file, "runtime bitmap loader keeps an empty loader payload explicit through direct exit");
     try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
     try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
     try expectContains(loader_file, "runtime bitmap loader rejects re-selftest without disturbing lifecycle summaries");
