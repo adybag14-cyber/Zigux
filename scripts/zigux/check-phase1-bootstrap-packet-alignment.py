@@ -94,7 +94,7 @@ WORKFLOW_PACKET_STEPS = (
         "python3 scripts/zigux/validate-phase1-closure.py --self-test",
     ),
     (
-        "Validate current Phase 1 closure packet",
+        "Check current Phase 1 closure packet",
         "python3 scripts/zigux/validate-phase1-closure.py",
     ),
     (
