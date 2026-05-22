@@ -171,6 +171,19 @@ test "LoadPlan keeps Phase 8 command and environment control fields out of the s
     }
 }
 
+test "LoadPlan keeps blocked registration-summary surfaces out of the shared request contract" {
+    const blocked_registration_summary_fields = [_][]const u8{
+        "register_api",
+        "unregister_api",
+        "summary",
+        "registration_snapshot",
+    };
+
+    inline for (blocked_registration_summary_fields) |field| {
+        try std.testing.expect(!@hasField(LoadPlan, field));
+    }
+}
+
 test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
