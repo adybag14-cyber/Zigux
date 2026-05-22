@@ -74,6 +74,8 @@ REQUIRED_MARKERS = {
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+        '"make -C zigux phase3-export-uapi-layout"',
+        '"make -C zigux phase3-export-uapi-layout-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
@@ -188,6 +190,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
             "expected missing catalog abi core build route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-export-uapi-layout"',
+            "expected missing catalog export/uapi shared make route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-export-uapi-layout-test"',
+            "expected missing catalog export/uapi dedicated make route marker was not reported",
         ),
         (
             CATALOG_PATH,
