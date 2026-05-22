@@ -103,6 +103,8 @@ REQUIRED_MARKERS = {
         "phase8_verify_routing_gap.zig",
         "phase8-perf-buffer-ready-window-tests",
         "test_step.dependOn(&run_perf_buffer_ready_window_tests.step);",
+        "phase8-file-path-handle-bridge-tests",
+        "test_step.dependOn(&run_file_path_handle_bridge_tests.step);",
         "phase8-file-path-handle-boundary-guard-tests",
         "test_step.dependOn(&run_file_path_handle_boundary_guard_tests.step);",
         "phase8-file-path-handle-bridge-manifest-sync-tests",
