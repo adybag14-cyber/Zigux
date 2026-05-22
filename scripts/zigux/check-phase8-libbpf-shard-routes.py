@@ -67,6 +67,7 @@ REQUIRED_MARKERS = {
         "Current authenticated tree readback in this runtime is narrower than some older Phase 8 reminder surfaces:",
         "`tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and the focused libbpf bridge-side build companions are not currently materialized through the same direct-read path.",
         "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
+        "make -C zigux phase8-perf-buffer-poll-test",
     ),
     MAKEFILE_PATH: (
         "phase8-libbpf-segments-test:",
