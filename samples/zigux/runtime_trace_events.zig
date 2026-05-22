@@ -472,7 +472,7 @@ test "trace-events sample keeps conditional replay explicit after selftest" {
     try std.testing.expectEqualStrings(after_conditional_replay.last_main_template_cond_message orelse return error.ExpectedMainPayload, after_exit.last_main_template_cond_message orelse return error.ExpectedMainPayload);
 }
 
-test "mixed replay keeps explicit event totals honest across direct and selftest paths" {
+test "mixed replay keeps returned selftest summary honest after direct pilot activity" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
 
@@ -482,9 +482,18 @@ test "mixed replay keeps explicit event totals honest across direct and selftest
     try module.unregisterFunctionThread();
 
     const summary = try module.runSelftest();
+    try std.testing.expectEqualStrings(RuntimeTraceEventsSample.descriptor().anchor, summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), summary.event_families.len);
+    try std.testing.expectEqual(EventFamily.foo_bar, summary.event_families[0]);
+    try std.testing.expectEqual(EventFamily.template, summary.event_families[1]);
+    try std.testing.expectEqual(EventFamily.conditional, summary.event_families[2]);
+    try std.testing.expectEqual(EventFamily.relative_location, summary.event_families[3]);
+    try std.testing.expectEqual(EventFamily.function_callback, summary.event_families[4]);
     try std.testing.expectEqual(@as(usize, 10), summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), summary.total_events);
+    try std.testing.expect(summary.conditional_paths_checked);
+    try std.testing.expect(summary.registration_paths_checked);
     const replay = module.summary();
     try std.testing.expectEqual(@as(usize, 2), replay.register_transitions);
     try std.testing.expectEqual(@as(usize, 2), replay.unregister_transitions);
