@@ -30,6 +30,9 @@ GOVERNANCE_LANE_MANIFEST_PATH = Path(
 GOVERNANCE_LANE_REPLAY_PATH = Path(
     "zigux/tests/phase15_governance_lane_sequencing.zig"
 )
+REVIEW_PROCESS_BUILD_REPLAY_PATH = Path(
+    "zigux/tests/phase15_architecture_council_review_process_build.zig"
+)
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 EXPECTED_LANE_KEY = "P15-L04"
@@ -45,6 +48,7 @@ REQUIRED_NOTE_MARKERS = (
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
+    "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.",
 )
 
 BLOCKED_ROUTE_MARKERS = {
@@ -187,6 +191,9 @@ def collect_failures(root: Path) -> list[str]:
             root / GOVERNANCE_LANE_REPLAY_PATH
         ).exists(),
         "phase15_handoff_manifest_present": (root / HANDOFF_MANIFEST_PATH).exists(),
+        "phase15_review_process_build_replay_present": (
+            root / REVIEW_PROCESS_BUILD_REPLAY_PATH
+        ).exists(),
         "phase15_build_zig_present": (root / BUILD_ZIG_PATH).exists(),
         "phase15_indefinite_c_lane_owner_alignment_present": (
             root / INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH
@@ -235,7 +242,7 @@ def _sample_note() -> str:
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-20`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
 
 This note says the governance packet is materially landed and reviewable, while the missing validator, build, and workflow companions still block any claim that the broader Phase 15 replay route is fully ready.
 
@@ -262,6 +269,7 @@ Current directly readable packet:
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -272,6 +280,8 @@ Current directly readable packet:
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
+
+Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.
 
 Blocked broader paths:
 - `scripts/zigux/validate-phase15.py`
@@ -294,7 +304,7 @@ def _sample_manifest() -> str:
             "lane_key": EXPECTED_LANE_KEY,
             "phase": EXPECTED_PHASE,
             "surveyed_commit_mode": "dated_master_readback",
-            "surveyed_commit": "current-master-readback-2026-05-20",
+            "surveyed_commit": "current-master-readback-2026-05-22",
             "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
             "direct_packet_paths": [
                 "Documentation/zigux/freeze-map.md",
@@ -319,6 +329,7 @@ def _sample_manifest() -> str:
                 "zigux/tests/README.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
                 "zigux/tests/phase15_architecture_council_review_process.zig",
+                "zigux/tests/phase15_architecture_council_review_process_build.zig",
                 "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
                 "zigux/tests/phase15_governance_lane_sequencing.zig",
                 "zigux/tests/phase15_parity_scorecard.json",
@@ -344,6 +355,7 @@ def _sample_manifest() -> str:
                 "phase15_governance_lane_manifest_present": true,
                 "phase15_governance_lane_replay_present": true,
                 "phase15_handoff_manifest_present": true,
+                "phase15_review_process_build_replay_present": true,
                 "phase15_build_zig_present": false,
                 "phase15_indefinite_c_lane_owner_alignment_present": true,
                 "phase15_makefile_present": true,
@@ -385,6 +397,7 @@ def _seed_repo(root: Path) -> None:
         "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
         "zigux/tests/phase15_architecture_council_review_process.zig",
+        "zigux/tests/phase15_architecture_council_review_process_build.zig",
         "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
         "zigux/tests/phase15_governance_lane_sequencing.zig",
         "zigux/tests/phase15_parity_scorecard.json",
@@ -419,6 +432,23 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected lane-drift failure: {failures}")
+
+        missing_build_replay_marker_root = root / "missing_build_replay_marker"
+        _seed_repo(missing_build_replay_marker_root)
+        _write(
+            missing_build_replay_marker_root / READINESS_NOTE_PATH,
+            _sample_note().replace(
+                "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.\n\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_build_replay_marker_root)
+        expected = [
+            "readiness note is missing required marker: Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in this readiness packet instead of undercounting the Architecture Council review-process evidence.",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-build-replay-marker failure: {failures}")
 
         broader_root = root / "broader"
         _seed_repo(broader_root)
