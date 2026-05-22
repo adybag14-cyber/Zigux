@@ -27,7 +27,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-artifact-tools-manifest.py",
     ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-    ROOT / "scripts" / "zigux" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
