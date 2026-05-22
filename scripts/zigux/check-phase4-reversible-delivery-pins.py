@@ -21,22 +21,22 @@ PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20
 EXPECTED_PIN_SELF_TEST_CASES = 18
 
 STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_PIN_CHECKER_BLOB_SHA=5d125f0e20b3378b2d5ff1b94d0779557a980cee`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=ffe579365d4cf0cca43f8840f917be0623e3b49b`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=50a6051dfb4594046f36c8b79f12573411e8e32f`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=0c243dd80d8ff192d43c3f2db0ca36a2f8e5f77c`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=f2e40cc9cc3836dbf83b918ab680bb0c71de113b`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=7e3383aa89561dd2eea6d2dd5e2fd225e4613eb1`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c1fa46fad53adc7327a03fbe12d3510e854e8bfa`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_VALIDATOR_BLOB_SHA=847d8af2cb90a9669112183dd6197322c7ab10bd`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_VALIDATOR_BLOB_SHA=cf3eed67995c7c2b634169a88277a97b37cbc6b0`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=2123cbb48f7bb32293c1bb3dead619e6d437923b`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=667d5ca6057cc391c6f05227997542b59d3c52b6`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_MANIFEST_BLOB_SHA=6e4f3a7b3d9c2da125d80d84ac3ce2fb886fd985`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_SURVEY_BLOB_SHA=8ac70b09fb17b97f0c067547f2ad8b3855c4a908`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=86af6657cf4abec7ed7ca07bec82c051d974e327`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=8c7fdf65ee906111f8d9a1468cb52bfa8d242763`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_MANIFEST_BLOB_SHA=7dc51c0c5e7e3a3dbb2e83c1fedc719631c4db55`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_SURVEY_BLOB_SHA=ef0e3d311379ea1b96e515b304f0ad599832148a`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=75c533b819a0bb422e69c92a33a23da7c04d5af1`",
 )
 CURRENT_HEAD_BLOB_PINS = (
@@ -51,7 +51,7 @@ CURRENT_HEAD_BLOB_PINS = (
 )
 EXPECTED_STATUS_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
+    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
 )
 EXPECTED_PACKET_MEMBER_LINES = (
@@ -72,12 +72,12 @@ EXPECTED_RECOVERY_MARKERS = (
 )
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
 
 WARNING_MARKERS = (
-    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20",
     "EXPECTED_PIN_SELF_TEST_CASES = 18",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
@@ -158,7 +158,7 @@ def _baseline_note(root: Path) -> str:
         *STATIC_SHA_LINES,
         *(current_head_blob_pin_line(root, label, rel) for label, rel in CURRENT_HEAD_BLOB_PINS),
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
+        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
         "",
         "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
@@ -172,7 +172,7 @@ def _baseline_note(root: Path) -> str:
         "  * `scripts/zigux/check-phase4-repo-reality-warning.py`",
         "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
         "",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.",
@@ -187,7 +187,7 @@ def _baseline_warning() -> str:
     return "\n".join(
         [
             "#!/usr/bin/env python3",
-            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
+            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20",
             "EXPECTED_PIN_SELF_TEST_CASES = 18",
             "scripts/zigux/check-phase4-reversible-delivery-pins.py",
             "scripts/zigux/check-phase4-perf-baseline-packet.py",
@@ -244,8 +244,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`",
         )
         cases += _expect_failure(
             root,
