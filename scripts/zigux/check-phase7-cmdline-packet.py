@@ -138,7 +138,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 69
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(path: Path) -> str:
@@ -286,6 +286,16 @@ def run_self_test() -> None:
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_selftest_pass_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = '"Documentation/zigux/phase7-cmdline-slice.md",'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_slice_anchor_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
         )
