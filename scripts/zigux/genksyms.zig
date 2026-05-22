@@ -285,6 +285,22 @@ fn appendReferenceFile(
     return null;
 }
 
+fn consumeRequiredOptionArgument(
+    args: []const []const u8,
+    index: *usize,
+    inline_value: ?[]const u8,
+    failure_name: []const u8,
+) struct { value: ?[]const u8, failure: ?ParseFailure } {
+    if (inline_value) |value| {
+        return .{ .value = value, .failure = null };
+    }
+    if (index.* + 1 >= args.len) {
+        return .{ .value = null, .failure = .{ .missing_option_argument = failure_name } };
+    }
+    index.* += 1;
+    return .{ .value = args[index.*], .failure = null };
+}
+
 fn takeLongOptionValue(
     args: []const []const u8,
     index: *usize,
@@ -347,10 +363,11 @@ fn parseLongOption(
             return .none;
         },
         .reference, .dump_types => {
-            const value = switch (takeLongOptionValue(args, index, inline_value, option)) {
-                .value => |resolved| resolved,
-                .failure => |failure| return .{ .failure = failure },
-            };
+            const argument = consumeRequiredOptionArgument(args, index, inline_value, option.failure_name);
+            if (argument.failure) |failure| {
+                return .{ .failure = failure };
+            }
+            const value = argument.value.?;
 
             if (option.kind == .reference) {
                 if (try appendReferenceFile(allocator, references, value)) |failure| {
@@ -385,13 +402,16 @@ fn parseShortOptions(
             'r', 'T' => {
                 const option = arg[short_index];
                 const inline_value = arg[short_index + 1 ..];
-                const value = if (inline_value.len != 0) inline_value else blk: {
-                    if (index.* + 1 >= args.len) {
-                        return .{ .failure = .{ .missing_option_argument = arg[short_index .. short_index + 1] } };
-                    }
-                    index.* += 1;
-                    break :blk args[index.*];
-                };
+                const argument = consumeRequiredOptionArgument(
+                    args,
+                    index,
+                    if (inline_value.len != 0) inline_value else null,
+                    arg[short_index .. short_index + 1],
+                );
+                if (argument.failure) |failure| {
+                    return .{ .failure = failure };
+                }
+                const value = argument.value.?;
 
                 if (option == 'r') {
                     if (try appendReferenceFile(allocator, references, value)) |failure| {
@@ -1049,6 +1069,48 @@ test "genksyms bridge reports missing short option argument in getopt style" {
             else => return error.UnexpectedParseFailure,
         },
         else => return error.TestExpectedFailure,
+    }
+}
+
+test "genksyms bridge keeps dash-prefixed short option arguments as data" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "-r", "-d", "-T", "--symtypes" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 0), request.debug_level);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("-d", request.reference_files[0]);
+                try testing.expectEqualStrings("--symtypes", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge keeps dash-prefixed long option arguments as data" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "--reference", "--debug", "--dump-types", "--types" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 0), request.debug_level);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("--debug", request.reference_files[0]);
+                try testing.expectEqualStrings("--types", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
     }
 }
 
