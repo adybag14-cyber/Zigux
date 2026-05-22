@@ -347,6 +347,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "make -C zigux phase3-export-uapi-layout",
+    "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
@@ -688,6 +690,34 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "make -C zigux phase3-export-uapi-layout"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export/UAPI layout make replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove("make -C zigux phase3-export-uapi-layout-test")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "make -C zigux phase3-export-uapi-layout-test"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export/UAPI layout make test replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove("make -C zigux phase3-low-level-wrappers-test")
         _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -785,7 +815,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=22")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
