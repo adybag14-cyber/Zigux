@@ -54,6 +54,7 @@ REQUIRED_MARKERS = {
         'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
         'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
+        'Path("zigux/bindings/header_family.zig")',
         'Path("zigux/Makefile")',
         '"python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test"',
         '"python3 scripts/zigux/check-phase3-catalog-selftest.py"',
@@ -181,6 +182,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
             "expected missing catalog phase3 abi manifest marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            'Path("zigux/bindings/header_family.zig")',
+            "expected missing catalog header-family binding marker was not reported",
         ),
         (
             CATALOG_PATH,
