@@ -150,11 +150,34 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries one in-file self-check") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries three in-file self-checks") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries three in-file self-check") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "four focused replay tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still do not recover `zigux/tests/phase5_bytestream_fifo.zig`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_build.zig`") == null);
+}
+
+test "phase 5 bytestream fifo survey note keeps exact direct rerun routes visible" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const direct_routes = [_][]const u8{
+        "`zig test samples/zigux/bytestream_fifo.zig`",
+        "`zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`",
+        "`zig test zigux/tests/phase5_bytestream_fifo_survey.zig`",
+        "`zig build test --build-file zigux/tests/phase5_build.zig --summary all`",
+    };
+    for (direct_routes) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
 }
 
 test "phase 5 bytestream fifo survey note records the exact current check split" {
