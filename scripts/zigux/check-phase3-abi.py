@@ -40,6 +40,7 @@ REQUIRED_MARKERS = {
         "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
         "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "zig build phase3-dump --build-file zigux/tests/build.zig",
+        ".github/workflows/zigux-bootstrap.yml",
     ),
     ABI_HEADER: (
         "#define ZIGUX_ABI_VERSION 1U",
@@ -243,6 +244,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -421,6 +423,11 @@ def run_self_test() -> int:
                 "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {\n",
                 "missing zigux/kernel/export_shim.zig marker: pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
             ),
+            (
+                ABI_SLICE_NOTE,
+                ".github/workflows/zigux-bootstrap.yml\n",
+                "missing Documentation/zigux/phase3-abi-slice.md marker: .github/workflows/zigux-bootstrap.yml",
+            ),
         )
 
         for rel_path, marker, expected in cases:
@@ -490,6 +497,20 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["packet_files"].remove(".github/workflows/zigux-bootstrap.yml")
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            ".github/workflows/zigux-bootstrap.yml"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected workflow packet-file drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["packet_files"].append(REQUIRED_PACKET_FILES[0])
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -510,7 +531,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=11")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -522,7 +543,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the current Phase 3 ABI packet",
+        help="repository root that contains the bounded Phase 3 ABI packet",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -537,7 +558,6 @@ def main() -> int:
         return 1
 
     print("PHASE3_ABI_CHECK=pass")
-    print("PHASE3_ABI_SCOPE=export-uapi-layout-and-dump-replay-surface")
     return 0
 
 
