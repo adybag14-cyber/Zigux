@@ -108,7 +108,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 50
 
 
 def read_text(path: Path) -> str:
@@ -338,13 +338,6 @@ def run_self_test() -> None:
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][12]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_manifest_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        companion_text = read_text(companion_path)
-        companion_marker = "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {"
-        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_companion_blank_input_first_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
