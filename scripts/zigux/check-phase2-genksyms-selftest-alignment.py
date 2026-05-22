@@ -33,7 +33,7 @@ MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -97,6 +97,7 @@ def build_expected_manifest(
         "cases": [str(case["name"]) for case in case_fixtures],
         "bridge_expected_packet": [str(case["expected_file"]) for case in case_fixtures],
         "help_packet": ["help_expected.json"],
+        "standalone_proof_packet": [VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix()],
         "process_output_packet": list(process_output_packet),
         "helper_local_anchors": list(helper_local_anchors),
     }
@@ -318,6 +319,14 @@ def run_self_test() -> int:
         manifest["helper_local_anchors"] = ["drifted anchor"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert any(code == "MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:") for code, value in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST_FIXTURE.relative_to(ROOT)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["standalone_proof_packet"] = []
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert any(code == "MANIFEST_FIELD_MISMATCH" and value.startswith("standalone_proof_packet:") for code, value in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
