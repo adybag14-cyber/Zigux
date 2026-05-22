@@ -96,7 +96,10 @@ EXPECTED_BASE64_RERUN_ROUTES = [
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-perf",
 ]
-EXPECTED_BSEARCH_CHECKER_SURFACES = ["scripts/zigux/check-phase6-bsearch-corpus-evidence.py"]
+EXPECTED_BSEARCH_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "scripts/zigux/check-phase6-bsearch-c-parity.py",
+]
 EXPECTED_BSEARCH_CASES = ["len15", "len64", "len1024"]
 EXPECTED_BSEARCH_RERUN_ROUTES = [
     "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
@@ -154,7 +157,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 16
 
 
 class ValidationError(RuntimeError):
@@ -479,6 +482,8 @@ def run_self_test() -> None:
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-21"})))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
+        cases_run += 1
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["checker_surfaces"].pop()))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_formula": "len + 1"})))
         cases_run += 1
