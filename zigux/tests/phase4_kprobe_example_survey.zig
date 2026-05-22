@@ -30,6 +30,7 @@ const Manifest = struct {
     current_replay: []const u8,
     isolated_survey_replay: []const u8,
     shared_build_replay: []const u8,
+    shared_lab_and_ci_matrix_anchor: []const u8,
     threshold_posture: []const u8,
     reversible_delivery_evidence: []const u8,
     next_bounded_evidence_step: []const u8,
@@ -84,6 +85,10 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         manifest.isolated_survey_replay,
     );
     try std.testing.expectEqualStrings("phase4-kprobe-example-survey-tests", manifest.shared_build_replay);
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
+        manifest.shared_lab_and_ci_matrix_anchor,
+    );
     try std.testing.expectEqualStrings("c_anchor_only_until_kprobe_example_starter_lands", manifest.threshold_posture);
     try std.testing.expectEqualStrings(
         "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded starter lane intentionally widens this surface",
@@ -189,7 +194,8 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
             std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey") != null,
-        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, "phase4_kprobe_example_manifest.json") != null and
+        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, manifest.shared_lab_and_ci_matrix_anchor) != null and
+            std.mem.indexOf(u8, phase4_matrix, "phase4_kprobe_example_manifest.json") != null and
             std.mem.indexOf(u8, phase4_matrix, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_matrix, manifest.shared_build_replay) != null and
             std.mem.indexOf(u8, phase4_matrix, manifest.isolated_survey_replay) != null and
@@ -202,6 +208,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
             std.mem.indexOf(u8, phase4_gate_evidence, "kprobe_next_step_drift") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+    try std.testing.expect(std.mem.indexOf(u8, kprobe_gap_note, manifest.shared_lab_and_ci_matrix_anchor) != null);
     try std.testing.expect(std.mem.indexOf(u8, kprobe_gap_note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, kprobe_gap_note, manifest.next_bounded_evidence_step) != null);
 
@@ -243,6 +250,8 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
     try std.testing.expect(std.mem.indexOf(u8, anchor, "kernel_clone") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, manifest.shared_lab_and_ci_matrix_anchor) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "shared `phase4-kprobe-example-survey-tests` replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, kprobe_gap_note, manifest.shared_lab_and_ci_matrix_anchor) != null);
 }
