@@ -123,6 +123,22 @@ test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
         .exit_runs = 0,
     };
     try std.testing.expect(!selftest_duplicate_hook_evidence.readyForRuntimeLoad());
+
+    const selftest_duplicate_init = InitFlow{
+        .handoff_stage = .selftest_complete,
+        .init_runs = 2,
+        .selftest_runs = 1,
+        .exit_runs = 0,
+    };
+    try std.testing.expect(!selftest_duplicate_init.readyForRuntimeLoad());
+
+    const selftest_exit_drift = InitFlow{
+        .handoff_stage = .selftest_complete,
+        .init_runs = 1,
+        .selftest_runs = 1,
+        .exit_runs = 1,
+    };
+    try std.testing.expect(!selftest_exit_drift.readyForRuntimeLoad());
 }
 
 test "keepsLoadPlanExplicit compares every shared handoff field" {
