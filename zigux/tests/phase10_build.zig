@@ -240,6 +240,19 @@ pub fn build(b: *std.Build) void {
     });
     phase10_virtio_core_module.addImport("virtio_core", virtio_core_module);
 
+    const phase10_virtio_core_interrupt_compound_ack_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_core_interrupt_compound_ack.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const phase10_virtio_core_reset_queue_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_core_reset_queue.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_core_reset_queue_module.addImport("virtio_core", virtio_core_module);
+
     const phase10_virtio_core_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_core_survey.zig"),
         .target = target,
@@ -259,6 +272,22 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_core_module,
     });
     const run_phase10_virtio_core_tests = b.addRunArtifact(phase10_virtio_core_tests);
+
+    const phase10_virtio_core_interrupt_compound_ack_tests = b.addTest(.{
+        .name = "phase10-virtio-core-interrupt-compound-ack-tests",
+        .root_module = phase10_virtio_core_interrupt_compound_ack_module,
+    });
+    const run_phase10_virtio_core_interrupt_compound_ack_tests = b.addRunArtifact(
+        phase10_virtio_core_interrupt_compound_ack_tests,
+    );
+
+    const phase10_virtio_core_reset_queue_tests = b.addTest(.{
+        .name = "phase10-virtio-core-reset-queue-tests",
+        .root_module = phase10_virtio_core_reset_queue_module,
+    });
+    const run_phase10_virtio_core_reset_queue_tests = b.addRunArtifact(
+        phase10_virtio_core_reset_queue_tests,
+    );
 
     const phase10_virtio_core_verify_tests = b.addTest(.{
         .name = "phase10-virtio-core-verify-tests",
@@ -342,6 +371,20 @@ pub fn build(b: *std.Build) void {
     );
     phase10_virtio_core_step.dependOn(&run_phase10_virtio_core_tests.step);
 
+    const phase10_virtio_core_interrupt_compound_ack_step = b.step(
+        "phase10-virtio-core-interrupt-compound-ack-tests",
+        "Run the live Phase 10 virtio core interrupt-compound-ack tests",
+    );
+    phase10_virtio_core_interrupt_compound_ack_step.dependOn(
+        &run_phase10_virtio_core_interrupt_compound_ack_tests.step,
+    );
+
+    const phase10_virtio_core_reset_queue_step = b.step(
+        "phase10-virtio-core-reset-queue-tests",
+        "Run the live Phase 10 virtio core reset-queue tests",
+    );
+    phase10_virtio_core_reset_queue_step.dependOn(&run_phase10_virtio_core_reset_queue_tests.step);
+
     const phase10_virtio_core_verify_step = b.step(
         "phase10-virtio-core-verify-tests",
         "Run the live Phase 10 virtio core verify tests",
@@ -362,6 +405,8 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
+    test_step.dependOn(&run_phase10_virtio_core_interrupt_compound_ack_tests.step);
+    test_step.dependOn(&run_phase10_virtio_core_reset_queue_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_driver_id_tests.step);
