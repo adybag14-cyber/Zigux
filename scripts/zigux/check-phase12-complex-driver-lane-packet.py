@@ -25,7 +25,7 @@ NOTE_MARKERS = (
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, and `drivers/net/virtio_net_throughput_parity.zig` are now present on `master`.",
     "`zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` are now present on `master` as the directly coupled review packet for that split-helper family.",
     "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are currently absent on `master`",
-    "`make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+    "current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
     "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-first route.",
     "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the one commit-pinned direct replay artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
 )
@@ -44,14 +44,14 @@ BUILD_MARKERS = (
 )
 
 MAKEFILE_MARKERS = (
+    "phase12-validate:",
     "phase12-smoke:",
     "phase12-test:",
-    "phase12: phase12-smoke phase12-test",
+    "phase12: phase12-validate phase12-smoke phase12-test",
 )
 
 FORBIDDEN_MAKEFILE_MARKERS = (
-    "phase12-validate:",
-    "phase12: phase12-validate phase12-smoke phase12-test",
+    "phase12: phase12-smoke phase12-test",
 )
 
 
@@ -151,7 +151,13 @@ def run_self_test() -> int:
 
         write_fixture(root)
         (root / MAKEFILE_PATH).write_text(
-            "\n".join(MAKEFILE_MARKERS) + "\nphase12-validate:\n",
+            "\n".join((
+                "phase12-validate:",
+                "phase12-smoke:",
+                "phase12-test:",
+                "phase12: phase12-smoke phase12-test",
+            ))
+            + "\n",
             encoding="utf-8",
         )
         try:
