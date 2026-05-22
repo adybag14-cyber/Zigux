@@ -17,9 +17,15 @@ VERIFY_ROUTING_GAP_BUILD_PATH = "zigux/tests/phase8_verify_routing_gap_only_buil
 LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
 LIBBPF_SEGMENTS_BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
+CPU_MASK_PATH = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
+CPU_MASK_VERIFY_PATH = "tools/lib/bpf/zigux_segments/cpu_mask_verify.zig"
+LOGGING_PATH = "tools/lib/bpf/zigux_segments/logging.zig"
+LOGGING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/logging_verify.zig"
 ONLINE_CPU_ROUTING_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
 ONLINE_CPU_ROUTING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig"
 PERF_BUFFER_POLL_VERIFY_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig"
+PIN_PATH_PATH = "tools/lib/bpf/zigux_segments/pin_path.zig"
+PIN_PATH_VERIFY_PATH = "tools/lib/bpf/zigux_segments/pin_path_verify.zig"
 READY_BUFFER_ATTEMPT_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig"
 READY_BUFFER_FD_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig"
 READY_BUFFER_WINDOW_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig"
@@ -36,9 +42,15 @@ REQUIRED_FILES = (
     LIBBPF_SEGMENTS_TEST_PATH,
     LIBBPF_SEGMENTS_BUILD_PATH,
     VERIFY_PATH,
+    CPU_MASK_PATH,
+    CPU_MASK_VERIFY_PATH,
+    LOGGING_PATH,
+    LOGGING_VERIFY_PATH,
     ONLINE_CPU_ROUTING_PATH,
     ONLINE_CPU_ROUTING_VERIFY_PATH,
     PERF_BUFFER_POLL_VERIFY_PATH,
+    PIN_PATH_PATH,
+    PIN_PATH_VERIFY_PATH,
     READY_BUFFER_ATTEMPT_VERIFY_PATH,
     READY_BUFFER_FD_VERIFY_PATH,
     READY_BUFFER_WINDOW_VERIFY_PATH,
@@ -49,12 +61,23 @@ REQUIRED_MARKERS = {
     VALIDATOR_PATH: (
         'LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")',
         "LIBBPF_SHARD_ROUTES_CHECKER,",
+        "CPU_MASK_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/cpu_mask.zig\")",
+        "CPU_MASK_VERIFY_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/cpu_mask_verify.zig\")",
+        "LOGGING_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/logging.zig\")",
+        "LOGGING_VERIFY_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/logging_verify.zig\")",
+        "PIN_PATH_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/pin_path.zig\")",
+        "PIN_PATH_VERIFY_SEGMENT = Path(\"tools/lib/bpf/zigux_segments/pin_path_verify.zig\")",
     ),
     SURVEY_PATH: (
         "Current helper-plus-build packet",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/cpu_mask.zig`",
+        "`tools/lib/bpf/zigux_segments/cpu_mask_verify.zig`",
+        "`tools/lib/bpf/zigux_segments/logging.zig`",
+        "`tools/lib/bpf/zigux_segments/logging_verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
@@ -106,10 +129,36 @@ REQUIRED_MARKERS = {
         '"Run focused Phase 8 libbpf segment verify build"',
     ),
     VERIFY_PATH: (
+        'const cpu_mask_verify = @import("cpu_mask_verify.zig");',
+        'const logging_verify = @import("logging_verify.zig");',
         'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
+        'const pin_path_verify = @import("pin_path_verify.zig");',
+        "std.testing.refAllDecls(cpu_mask_verify);",
+        "std.testing.refAllDecls(logging_verify);",
         "std.testing.refAllDecls(online_cpu_routing_verify);",
+        "std.testing.refAllDecls(pin_path_verify);",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
         "resolveReadyBufferFdLookupReturnAtAttempt",
+    ),
+    CPU_MASK_PATH: (
+        "pub fn parseCpuMaskString(",
+        "pub fn summarizePossibleCpusFromReader(",
+        "pub fn derivePerfBufferAutoCpuCountFromReader(",
+    ),
+    CPU_MASK_VERIFY_PATH: (
+        'test "phase8 cpu-mask helper entrypoints stay explicit" {',
+        "derivePerfBufferAutoCpuCountFromReader",
+        'test "phase8 cpu-mask helpers keep invalid direct and reader-backed inputs fail-closed" {',
+    ),
+    LOGGING_PATH: (
+        "pub fn parseLogLevelSetting(",
+        "pub fn libbpfVersionString(",
+        "pub fn formatLibbpfError(",
+    ),
+    LOGGING_VERIFY_PATH: (
+        'test "phase8 logging helper entrypoints stay explicit" {',
+        "parseLogLevelSetting",
+        "formatLibbpfError",
     ),
     ONLINE_CPU_ROUTING_PATH: (
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
@@ -125,6 +174,16 @@ REQUIRED_MARKERS = {
         'test "phase8 perf-buffer poll helper entrypoints stay explicit" {',
         "summarizePollExecutionResultFromWaitResult",
         'test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {',
+    ),
+    PIN_PATH_PATH: (
+        'pub const default_bpf_fs_path = "/sys/fs/bpf";',
+        "pub fn buildValidatedMapPinPath(",
+        "pub fn buildValidatedSanitizedProgramPinPath(",
+    ),
+    PIN_PATH_VERIFY_PATH: (
+        'test "phase8 pin-path helper entrypoints stay explicit" {',
+        "buildValidatedSanitizedProgramPinPath",
+        'test "phase8 pin-path helpers keep stable map and program outputs explicit" {',
     ),
     READY_BUFFER_ATTEMPT_VERIFY_PATH: (
         'test "phase8 ready-buffer attempt helper entrypoints stay explicit" {',
@@ -197,7 +256,7 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     if marker not in text:
         raise SystemExit(f"self-test-fixture-missing:{rel_path}:{marker}")
 
-    (root / rel_path).write_text(text.replace(marker, ""), encoding="utf-8")
+    (root / rel_path).writeText(text.replace(marker, ""), encoding="utf-8")
     result = run_validator(root)
     expected = f"missing-marker:{rel_path}:{marker}"
     output = result.stdout.strip() or result.stderr.strip() or "no_output"
