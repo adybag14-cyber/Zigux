@@ -13,8 +13,8 @@ pub const Winsize = extern struct {
 pub const HvcStruct = opaque {};
 
 pub const HvOps = extern struct {
-    get_chars: ?*const fn (u32, [*]u8, usize) callconv(.c) isize = null,
-    put_chars: ?*const fn (u32, [*]const u8, usize) callconv(.c) isize = null,
+    get_chars: ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int = null,
+    put_chars: ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int = null,
     flush: ?*const fn (u32, bool) callconv(.c) c_int = null,
     notifier_add: ?*const fn (*HvcStruct, c_int) callconv(.c) c_int = null,
     notifier_del: ?*const fn (*HvcStruct, c_int) callconv(.c) void = null,
