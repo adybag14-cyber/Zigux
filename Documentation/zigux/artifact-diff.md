@@ -16,7 +16,7 @@ Phase 3 still treats `scripts/zigux/artifact_diff.py` as the stable comparison e
 
 ## Current Phase 4 use
 
-Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/validate-phase4.py`, `Documentation/zigux/phase4-validation-matrix.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
+Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/validate-phase4.py`, `Documentation/zigux/phase4-validation-matrix.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
 The helper now compares `text`, `json`, and `bytes` artifacts, keeps the legacy `sha256 -> bytes` alias for compatibility, and publishes a stable result surface with `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`.
 
@@ -29,6 +29,8 @@ The current helper self-test families remain:
 `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
 
 `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.
+
+`scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rechecks that the current Phase 4 artifact-diff packet either keeps the shipped validator hook set explicit or falls back to the narrower repo-reality handoff markers when exact validator readback is unavailable, so validator-route and workflow drift fail closed before the shared Phase 4 validator and Zig gates run.
 
 ## Phase 4 Exact Check Packet
 
@@ -52,10 +54,16 @@ Current exact Phase 4 determinism replay markers are:
 - `PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=10`
 - `PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=1`
 
+Current exact Phase 4 validator replay markers are:
+- `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`
+- `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=catalog_shape,validator_marker_round_trip,validator_helper_marker_drift,validator_marker_drift,validator_replay_marker_drift,repo_reality_handoff_round_trip,repo_reality_handoff_drift,repo_reality_handoff_note_missing,workflow_marker_round_trip,workflow_make_route_marker_drift,workflow_marker_drift,workflow_missing,artifact_diff_note_round_trip,artifact_diff_note_marker_drift`
+- `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`
+- `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`
+
 ## Phase 4 Tooling Review Note
 
-`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet for `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.
+`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet for `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, and `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`.
 
-The note stays intentionally narrower than a full Phase 4 closure claim: it documents the current host-side artifact-diff helper, the current exact contract replay, the determinism guard, and the Phase 4 validator touchpoints without claiming that every broader validator, bitmap, or build companion is authenticated-readable in this runtime.
+The note stays intentionally narrower than a full Phase 4 closure claim: it documents the current host-side artifact-diff helper, the current exact contract replay, the determinism guard, the validator-replay guard, and the Phase 4 validator touchpoints without claiming that every broader validator, bitmap, or build companion is authenticated-readable in this runtime.
 
-Near-term follow-through should stay limited to truthful catalog refreshes, helper-contract guard alignment, and direct replay evidence for the current host-side packet rather than widening into unrelated validator, perf, bitmap, atomic64, or starter-gap work.
+Near-term follow-through should stay limited to truthful catalog refreshes, helper-contract guard alignment, validator-replay guard alignment, and direct replay evidence for the current host-side packet rather than widening into unrelated validator, perf, bitmap, atomic64, or starter-gap work.
