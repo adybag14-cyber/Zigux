@@ -1,7 +1,7 @@
 {
-  "lane_key": "P7-L10",
+  "lane_key": "P7-L08",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-19T06:22:44Z",
+  "verified_on_utc": "2026-05-22T11:36:33Z",
   "anchor": "lib/cmdline.c",
   "current_master_state": "helper_slice_test_survey_manifest_anchor",
   "review_surfaces": [
