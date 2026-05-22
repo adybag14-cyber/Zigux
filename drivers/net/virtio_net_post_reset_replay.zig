@@ -16,6 +16,11 @@ pub const PostResetReplayCheckpoint = enum {
     queues_may_resume,
 };
 
+pub const QueueSubmissionOwner = enum {
+    recovery,
+    driver,
+};
+
 pub const PostResetReplayRequest = struct {
     reset_generation: u32,
     receive_queue_pairs: u16,
@@ -45,6 +50,21 @@ pub const PostResetReplaySummary = struct {
     next_checkpoint: PostResetReplayCheckpoint,
     replay_complete: bool,
     can_resume_queues: bool,
+};
+
+pub const PostResetOwnershipSummary = struct {
+    anchor: []const u8,
+    reset_generation: u32,
+    receive_queue_pairs: u16,
+    control_queue_restored: bool,
+    receive_refill_replayed: bool,
+    transmit_recycle_ready: bool,
+    probe_snapshot_replayed: bool,
+    blocker: PostResetReplayBlocker,
+    next_checkpoint: PostResetReplayCheckpoint,
+    receive_submission_owner: QueueSubmissionOwner,
+    transmit_submission_owner: QueueSubmissionOwner,
+    queues_ready_for_driver_ownership: bool,
 };
 
 pub fn summarizePostResetReplay(request: PostResetReplayRequest) !PostResetReplaySummary {
@@ -83,6 +103,26 @@ pub fn summarizePostResetReplay(request: PostResetReplayRequest) !PostResetRepla
         .next_checkpoint = next_checkpoint,
         .replay_complete = replay_complete,
         .can_resume_queues = replay_complete,
+    };
+}
+
+pub fn summarizePostResetOwnership(request: PostResetReplayRequest) !PostResetOwnershipSummary {
+    const replay = try summarizePostResetReplay(request);
+    const owner: QueueSubmissionOwner = if (replay.can_resume_queues) .driver else .recovery;
+
+    return .{
+        .anchor = replay.anchor,
+        .reset_generation = replay.reset_generation,
+        .receive_queue_pairs = replay.receive_queue_pairs,
+        .control_queue_restored = replay.control_queue_restored,
+        .receive_refill_replayed = replay.receive_refill_replayed,
+        .transmit_recycle_ready = replay.transmit_recycle_ready,
+        .probe_snapshot_replayed = replay.probe_snapshot_replayed,
+        .blocker = replay.blocker,
+        .next_checkpoint = replay.next_checkpoint,
+        .receive_submission_owner = owner,
+        .transmit_submission_owner = owner,
+        .queues_ready_for_driver_ownership = replay.can_resume_queues,
     };
 }
 
@@ -165,6 +205,52 @@ test "post reset replay clears once all bounded replay cues are satisfied" {
 test "post reset replay rejects packets without receive queues" {
     try std.testing.expectError(error.NoReceiveQueues, summarizePostResetReplay(.{
         .reset_generation = 1,
+        .receive_queue_pairs = 0,
+        .control_queue_restored = true,
+        .receive_refill_replayed = true,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = true,
+    }));
+}
+
+test "post reset ownership keeps queue submission under recovery until replay completes" {
+    const summary = try summarizePostResetOwnership(.{
+        .reset_generation = 8,
+        .receive_queue_pairs = 4,
+        .control_queue_restored = true,
+        .receive_refill_replayed = true,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = false,
+    });
+
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expectEqual(PostResetReplayBlocker.probe_snapshot_replay, summary.blocker);
+    try std.testing.expectEqual(PostResetReplayCheckpoint.after_probe_snapshot_replay, summary.next_checkpoint);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.transmit_submission_owner);
+    try std.testing.expect(!summary.queues_ready_for_driver_ownership);
+}
+
+test "post reset ownership returns queue submission to the driver once replay clears" {
+    const summary = try summarizePostResetOwnership(.{
+        .reset_generation = 9,
+        .receive_queue_pairs = 4,
+        .control_queue_restored = true,
+        .receive_refill_replayed = true,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = true,
+    });
+
+    try std.testing.expectEqual(PostResetReplayBlocker.none, summary.blocker);
+    try std.testing.expectEqual(PostResetReplayCheckpoint.queues_may_resume, summary.next_checkpoint);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.transmit_submission_owner);
+    try std.testing.expect(summary.queues_ready_for_driver_ownership);
+}
+
+test "post reset ownership forwards missing-queue failures" {
+    try std.testing.expectError(error.NoReceiveQueues, summarizePostResetOwnership(.{
+        .reset_generation = 2,
         .receive_queue_pairs = 0,
         .control_queue_restored = true,
         .receive_refill_replayed = true,
