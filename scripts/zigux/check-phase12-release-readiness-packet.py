@@ -203,7 +203,7 @@ REQUIRED_MARKERS = {
     PHASE12_LIBBPF_SEGMENT_SURVEY_PATH: [
         "the shared shipped replay order is still narrower than that mixed direct-plus-parked libbpf packet.",
         "`scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.",
-        "current `master` now also ships the validator-side support bundle through `scripts/zigux/check-phase12-release-readiness-packet.py` and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary because current `zigux/Makefile` still omits that wrapper;",
+        "current `master` now also ships the validator-side support bundle through `scripts/zigux/check-phase12-libbpf-snapshot.py`, its direct `--self-test` replay, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary because current `zigux/Makefile` still omits that wrapper;",
     ],
     PHASE12_LIBBPF_VERIFY_SHARD_NOTE_PATH: [
         "- shared survey companion: `Documentation/zigux/phase12-libbpf-segment-survey.md`",
