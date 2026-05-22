@@ -64,7 +64,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -219,7 +219,7 @@ def run_self_test() -> int:
         assert ("MISSING_SEQUENCING_MARKERS", REQUIRED_SEQUENCING_MARKERS[4]) in issues
         cases += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES[:2]:
+        for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             path = root / WORKFLOW
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "        run: true"), encoding="utf-8")
