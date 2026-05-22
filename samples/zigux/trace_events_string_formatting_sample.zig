@@ -280,11 +280,20 @@ test "phase 5 trace-events formatting companion keeps the modulo-selected string
 
 test "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit" {
     var sample = TraceEventsStringFormattingSample{};
+    var rendered_destination: [32]u8 = undefined;
+    var selected_destination: [40]u8 = undefined;
 
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runStringFormattingCycleReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatIterationMessageInto(1, &rendered_destination));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatSelectedIterationMessageInto(1, &selected_destination));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+
     try sample.init();
     try std.testing.expectError(error.InvalidIterationCount, sample.runAnchorReplay(-1));
+    try std.testing.expectError(error.InvalidIterationCount, sample.formatIterationMessageInto(-1, &rendered_destination));
+    try std.testing.expectError(error.InvalidIterationCount, sample.formatSelectedIterationMessageInto(-1, &selected_destination));
+
     _ = try sample.runAnchorReplay(4);
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
@@ -292,6 +301,9 @@ test "phase 5 trace-events formatting companion keeps lifecycle boundaries expli
     try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay(2));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runStringFormattingCycleReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatIterationMessageInto(2, &rendered_destination));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatSelectedIterationMessageInto(2, &selected_destination));
 }
 
 test "phase 5 trace-events formatting companion keeps bounded destination failures explicit" {
