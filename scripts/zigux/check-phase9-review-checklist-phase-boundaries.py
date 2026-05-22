@@ -41,6 +41,7 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "failed-exit rollback explicit after reusable selftest replay",
     "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest",
     "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
+    "`phase9-runtime-loader-allocator-init-flow-tests`",
     "`zigux/kernel/runtime_loader.zig`",
     "`zigux/kernel/runtime_loader_contract.zig`",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
@@ -68,7 +69,7 @@ DOCS_README_REQUIRED_MARKERS = [
 LANE_SEQUENCING_REQUIRED_MARKERS = [
     "Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 9 postures.",
     "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
-    "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+    "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
     "`phase9-runtime-loader-command-env-boundary-guard-tests`",
     "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
