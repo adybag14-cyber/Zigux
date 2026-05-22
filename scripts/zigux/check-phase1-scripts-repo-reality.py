@@ -40,18 +40,21 @@ REQUIRED_README_MARKERS = [
     "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
 ]
 
-FORBIDDEN_README_MARKERS = [
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`",
-]
-
 SELF_TEST_CASES = [
     "pass",
     "missing_readme",
     "missing_required_marker",
-    "forbidden_stale_marker",
+    "missing_phase1_missing_bucket",
+    "present_file_listed_missing",
+    "missing_expected_missing_entry",
     "missing_present_file",
     "unexpected_missing_file_returned",
 ]
+
+PHASE1_MISSING_BUCKET_PREFIX = (
+    "- repeated authenticated reads on current `master` still return missing for "
+)
+PHASE1_MISSING_BUCKET_DELIMITER = ", so treat those "
 
 
 def write(path: Path, text: str) -> None:
@@ -96,6 +99,20 @@ def build_sample_root(root: Path, *, include_stale_install_marker: bool = False)
         write(root / rel, "#!/usr/bin/env python3\n")
 
 
+def extract_phase1_missing_bucket(text: str) -> list[str] | None:
+    for line in text.splitlines():
+        if not line.startswith(PHASE1_MISSING_BUCKET_PREFIX):
+            continue
+        if PHASE1_MISSING_BUCKET_DELIMITER not in line:
+            continue
+        body, _ = line.removeprefix(PHASE1_MISSING_BUCKET_PREFIX).split(
+            PHASE1_MISSING_BUCKET_DELIMITER, 1
+        )
+        parts = body.split("`")
+        return [parts[index] for index in range(1, len(parts), 2)]
+    return None
+
+
 def validate(root: Path) -> tuple[str, object]:
     readme = root / README.relative_to(ROOT)
     if not readme.exists():
@@ -106,9 +123,21 @@ def validate(root: Path) -> tuple[str, object]:
     if missing_markers:
         return ("missing_required_marker", missing_markers)
 
-    stale_markers = [marker for marker in FORBIDDEN_README_MARKERS if marker in text]
-    if stale_markers:
-        return ("forbidden_stale_marker", stale_markers)
+    phase1_missing_bucket = extract_phase1_missing_bucket(text)
+    if phase1_missing_bucket is None:
+        return ("missing_phase1_missing_bucket", None)
+
+    present_files_listed_missing = [
+        str(rel) for rel in PRESENT_FILES if str(rel) in phase1_missing_bucket
+    ]
+    if present_files_listed_missing:
+        return ("present_file_listed_missing", present_files_listed_missing)
+
+    missing_expected_missing_entries = [
+        str(rel) for rel in MISSING_FILES if str(rel) not in phase1_missing_bucket
+    ]
+    if missing_expected_missing_entries:
+        return ("missing_expected_missing_entry", missing_expected_missing_entries)
 
     missing_present_files = [str(rel) for rel in PRESENT_FILES if not (root / rel).exists()]
     if missing_present_files:
@@ -149,10 +178,35 @@ def run_self_test() -> int:
         assert_case("missing_required_marker", validate(missing_marker_root))
         covered.append("missing_required_marker")
 
+        missing_bucket_root = root / "missing_bucket"
+        build_sample_root(missing_bucket_root)
+        write(
+            missing_bucket_root / README.relative_to(ROOT),
+            build_readme(include_stale_install_marker=False).replace(
+                PHASE1_MISSING_BUCKET_PREFIX,
+                "- older reminder text with no live missing bucket for ",
+                1,
+            ),
+        )
+        assert_case("missing_phase1_missing_bucket", validate(missing_bucket_root))
+        covered.append("missing_phase1_missing_bucket")
+
         stale_root = root / "stale_install"
         build_sample_root(stale_root, include_stale_install_marker=True)
-        assert_case("forbidden_stale_marker", validate(stale_root))
-        covered.append("forbidden_stale_marker")
+        assert_case("present_file_listed_missing", validate(stale_root))
+        covered.append("present_file_listed_missing")
+
+        dropped_missing_root = root / "dropped_missing"
+        build_sample_root(dropped_missing_root)
+        write(
+            dropped_missing_root / README.relative_to(ROOT),
+            build_readme(include_stale_install_marker=False).replace(
+                "phase1_helpers_c_harness.c", "phase1_helpers_harness.c", 1
+            )
+            + "- marker keepalive `zigux/tests/fixtures/phase1_helpers_c_harness.c`\n",
+        )
+        assert_case("missing_expected_missing_entry", validate(dropped_missing_root))
+        covered.append("missing_expected_missing_entry")
 
         missing_present_root = root / "missing_present"
         build_sample_root(missing_present_root)
@@ -206,7 +260,7 @@ def main() -> int:
     print(f"PHASE1_SCRIPTS_REPO_REALITY_PRESENT_COUNT={len(PRESENT_FILES)}")
     print(f"PHASE1_SCRIPTS_REPO_REALITY_MISSING_COUNT={len(MISSING_FILES)}")
     print(f"PHASE1_SCRIPTS_REPO_REALITY_REQUIRED_MARKER_COUNT={len(REQUIRED_README_MARKERS)}")
-    print(f"PHASE1_SCRIPTS_REPO_REALITY_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_README_MARKERS)}")
+    print("PHASE1_SCRIPTS_REPO_REALITY_MISSING_BUCKET_MODE=structural")
     return 0
 
 
