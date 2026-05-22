@@ -54,6 +54,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContains(sample_boundary, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
     try expectContains(sample_boundary, "* `*printf*`");
     try expectContains(sample_boundary, "* `*vsprintf*`");
