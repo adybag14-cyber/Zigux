@@ -68,6 +68,18 @@ def assert_issue(module, root: Path, expected: tuple[str, str]) -> None:
         raise AssertionError(f"missing expected issue {expected!r}; saw {issues!r}")
 
 
+def assert_system_exit_contains(action, expected_substring: str) -> None:
+    try:
+        action()
+    except SystemExit as exc:
+        if expected_substring not in str(exc):
+            raise AssertionError(
+                f"expected SystemExit containing {expected_substring!r}; saw {exc!r}"
+            ) from exc
+        return
+    raise AssertionError(f"expected SystemExit containing {expected_substring!r}")
+
+
 def seed_materialized_root(module, root: Path, source_root: Path) -> None:
     paths_to_copy = {VALIDATOR_REL, *module.REQUIRED_FILES}
     for rel in paths_to_copy:
@@ -183,6 +195,23 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
+        for rel in (
+            module.MANIFEST_REL,
+            module.KCONFIG_CASES_REL,
+            module.CONF_MANIFEST_REL,
+            module.CONFDATA_MANIFEST_REL,
+            module.GENKSYMS_CASES_REL,
+            module.GENKSYMS_MANIFEST_REL,
+        ):
+            seed_root(root)
+            path = module.resolve(root, rel)
+            path.write_text("{\n", encoding="utf-8")
+            assert_system_exit_contains(
+                lambda: module.collect_issues(root),
+                f"invalid json in required file: {path}:",
+            )
+            checks_run += 1
+
         for key, expected in collect_manifest_surface_expectations(module, manifest_path):
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
@@ -401,12 +430,30 @@ def collect_issues(root: Path):
     closure_text = resolve(root, PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
     workflow_text = resolve(root, WORKFLOW_REL).read_text(encoding="utf-8")
     makefile_text = resolve(root, MAKEFILE_REL).read_text(encoding="utf-8")
-    manifest = json.loads(resolve(root, MANIFEST_REL).read_text(encoding="utf-8"))
-    kconfig_cases = json.loads(resolve(root, KCONFIG_CASES_REL).read_text(encoding="utf-8"))
-    conf_manifest = json.loads(resolve(root, CONF_MANIFEST_REL).read_text(encoding="utf-8"))
-    confdata_manifest = json.loads(resolve(root, CONFDATA_MANIFEST_REL).read_text(encoding="utf-8"))
-    genksyms_cases = json.loads(resolve(root, GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
-    genksyms_manifest = json.loads(resolve(root, GENKSYMS_MANIFEST_REL).read_text(encoding="utf-8"))
+    try:
+        manifest = json.loads(resolve(root, MANIFEST_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, MANIFEST_REL)}: {exc}")
+    try:
+        kconfig_cases = json.loads(resolve(root, KCONFIG_CASES_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, KCONFIG_CASES_REL)}: {exc}")
+    try:
+        conf_manifest = json.loads(resolve(root, CONF_MANIFEST_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, CONF_MANIFEST_REL)}: {exc}")
+    try:
+        confdata_manifest = json.loads(resolve(root, CONFDATA_MANIFEST_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, CONFDATA_MANIFEST_REL)}: {exc}")
+    try:
+        genksyms_cases = json.loads(resolve(root, GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, GENKSYMS_CASES_REL)}: {exc}")
+    try:
+        genksyms_manifest = json.loads(resolve(root, GENKSYMS_MANIFEST_REL).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolve(root, GENKSYMS_MANIFEST_REL)}: {exc}")
     if not isinstance(manifest, dict):
         issues.append(("INVALID_MANIFEST_SHAPE", "root"))
         return issues
