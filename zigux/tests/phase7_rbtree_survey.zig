@@ -101,6 +101,7 @@ test "phase 7 rbtree survey keeps lib-path helper ownership truthful without reo
     try expectContains(slice_note, "reverse traversal aliases and detached-node null-stop handling stay reviewable through the dedicated replay rooted at `zigux/tests/phase7_rbtree.zig`");
     try expectContains(slice_note, "postorder aliases stay reviewable through `firstPostorder()`, `nextPostorder()`, and the dedicated replay's detached-node guards");
     try expectContains(slice_note, "public-fallback provenance");
+    try expectContains(slice_note, "`zigux/Makefile` now returns shared `phase7-validate`");
 
     try expectContains(direct_anchor_note, "Fresh current-master reread in this slot also confirmed these shared, legacy, or roadmap-adjacent non-owner surfaces:");
     try expectContains(direct_anchor_note, "- `tools/lib/rbtree.zig`");
@@ -134,5 +135,5 @@ test "phase 7 rbtree survey keeps lib-path helper ownership truthful without reo
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectSliceContains(manifest.ownership_focus, "path truthfulness must keep the currently returned helper rooted at `lib/rbtree.zig` explicit while `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than helper-local ownership on current master");
     try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);
-    try expectContains(manifest.next_bounded_step, "`tools/lib/rbtree.zig` remains framed as readable legacy companion evidence");
+    try expectContains(manifest.next_bounded_step, "`zigux/tests/fixtures/phase7_rbtree.json` or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes");
 }
