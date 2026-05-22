@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date
 import json
 import sys
 import tempfile
@@ -188,6 +189,14 @@ def require_existing_path(root: Path, relative_path: str) -> None:
         raise CheckFailure(f"missing required packet path: {relative_path}")
 
 
+def require_iso_date(value: object, message: str) -> None:
+    require(isinstance(value, str) and value, message)
+    try:
+        date.fromisoformat(value)
+    except ValueError as exc:
+        raise CheckFailure(f"{message} is not an ISO date") from exc
+
+
 def check_manifest(root: Path) -> int:
     manifest = json.loads(read_text(root, MANIFEST_PATH))
     require(manifest.get("lane_key") == EXPECTED_LANE_KEY, "nvme_pci manifest lane_key drifted")
@@ -197,6 +206,10 @@ def check_manifest(root: Path) -> int:
 
     surveyed_commit = manifest.get("surveyed_commit", "")
     require(len(surveyed_commit) == 40 and all(ch in "0123456789abcdef" for ch in surveyed_commit), "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha")
+    require_iso_date(
+        manifest.get("verified_on"),
+        "nvme_pci manifest verified_on",
+    )
 
     summary = manifest.get("survey_summary")
     require(isinstance(summary, dict), "nvme_pci survey_summary is not a mapping")
@@ -250,6 +263,7 @@ def write_fixture(root: Path) -> None:
                 "lane_key": EXPECTED_LANE_KEY,
                 "phase": EXPECTED_PHASE,
                 "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+                "verified_on": "2026-05-22",
                 "anchor": EXPECTED_ANCHOR,
                 "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
                 "survey_summary": {flag: True for flag in EXPECTED_SUMMARY_FLAGS},
@@ -336,6 +350,19 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected surveyed_commit drift to fail")
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["verified_on"] = "2026/05/22"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "verified_on" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected verified_on drift to fail")
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
