@@ -6,13 +6,13 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_keeps_archival_self_pins_and_flapping_broader_blob_refresh_debt`
   * `PHASE4_REVERSIBLE_DELIVERY_LANE_KEY=P4-L23`
   * `PHASE4_REVERSIBLE_DELIVERY_PHASE=Phase 4`
-  * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-21`
+  * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-22`
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
   * `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`
   * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=1bef69619c61926ef49ef3c02a0708aaba4b6bcd`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_PIN_CHECKER_BLOB_SHA=5d125f0e20b3378b2d5ff1b94d0779557a980cee`
-  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=3f484f5d95b544f533ec03d0ddfc45ea40e7daba`
+  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=e328b627a10b5934683c887eb739f64c0f269acb`
   * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=30d5b5489f180b93f18166c66ee00b1dd9e9ec77`
   * `PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA=c8ce5d87ce4a86e6808435533da42f954ebc27cb`
   * `PHASE4_REVERSIBLE_DELIVERY_SCRIPTS_README_BLOB_SHA=7bd2dad5d65d8b232dda73a84bb7c1d8e18ed53f`
@@ -47,7 +47,6 @@ Current direct-readback packet members:
   * `zigux/tests/README.md`
   * `scripts/zigux/README.md`
   * `scripts/zigux/check-phase4-repo-reality-warning.py`
-  * `scripts/zigux/check-phase4-tests-readme-packet.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
 Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.
@@ -62,7 +61,7 @@ Current direct contents reads in this run also confirmed `Documentation/zigux/ph
 
 The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
-The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff. Direct authenticated contents reads in this runtime now return `scripts/zigux/validate-phase4.py`, while `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap on that same route; public raw fallback rereads continue to return the full set on current `master`, matching the broader review packet's recovered note-and-checker companions.
+The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff. Direct authenticated contents reads in this runtime now return `scripts/zigux/validate-phase4.py` directly, while `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap on that same route; public raw fallback rereads continue to return the full set on current `master`, matching the broader review packet's recovered note-and-checker companions.
 
 The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence. Treat this narrower handoff as the authoritative shared reminder while exact blob recapture for `scripts/zigux/validate-phase4.py` returns to a direct authenticated pin path and the build and bitmap replay companions still wait on steadier authenticated contents reads.
 
