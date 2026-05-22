@@ -14,6 +14,7 @@ BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridg
 DOCS_README_PATH = "Documentation/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
 LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
@@ -32,6 +33,7 @@ REQUIRED_FILES = (
     DOCS_README_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
+    PHASE8_BUILD_PATH,
     BRIDGE_TEST_PATH,
     BOUNDARY_GUARD_PATH,
     LIBBPF_SEGMENTS_TEST_PATH,
@@ -107,6 +109,17 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
         "phase8-test:",
         "zigux/tests/phase8_build.zig --summary all",
+    ),
+    PHASE8_BUILD_PATH: (
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+        "../../tools/lib/bpf/zigux_segments/verify.zig",
+        "phase8_libbpf_segments.zig",
+        "phase8_verify_routing_gap.zig",
+        "phase8-perf-buffer-ready-window-tests",
+        "phase8-libbpf-segment-verify-tests",
+        "phase8-libbpf-segment-compatibility-tests",
+        "phase8-verify-routing-gap-tests",
+        "Run the shared Phase 8 tooling tests.",
     ),
     BRIDGE_TEST_PATH: (
         "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
