@@ -8,8 +8,9 @@ the current repo exposes a dedicated `phase14-validate` Makefile route, that
 the route reruns the shared smoke route checker plus the current tests-root
 smoke-summary checker, validator, and release-boundary checker packets, that
 the bootstrap workflow reruns that same route, and that the shared smoke
-manifest records the same single-route split without claiming that the missing
-`phase14-smoke`, `phase14-test`, or full bundle wrappers have returned.
+manifest records the same single-route Makefile split plus the focused raw
+build-file smoke shard without claiming that the missing `phase14-smoke`,
+`phase14-test`, or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
@@ -55,7 +56,7 @@ FORBIDDEN_WORKFLOW_MARKERS = [
 REQUIRED_MANIFEST_VALUES = {
     ("productization", "validation_gate"): "make -C zigux phase14-validate",
     ("smoke_commands",): ["make -C zigux phase14-validate"],
-    ("smoke_shard_commands",): [],
+    ("smoke_shard_commands",): ["zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"],
     ("survey_summary", "phase14_make_target_present"): True,
     ("survey_summary", "phase14_make_smoke_target_present"): False,
     ("survey_summary", "workflow_runs_phase14_validate"): True,
@@ -176,7 +177,9 @@ def fixture_manifest() -> str:
     payload = {
         "productization": {"validation_gate": "make -C zigux phase14-validate"},
         "smoke_commands": ["make -C zigux phase14-validate"],
-        "smoke_shard_commands": [],
+        "smoke_shard_commands": [
+            "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
+        ],
         "survey_summary": {
             "phase14_make_target_present": True,
             "phase14_make_smoke_target_present": False,
