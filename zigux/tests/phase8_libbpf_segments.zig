@@ -124,6 +124,18 @@ test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     );
 
+    const shared_build = try readRepoFile("zigux/tests/phase8_build.zig");
+    defer std.testing.allocator.free(shared_build);
+
+    try expectContains(
+        shared_build,
+        "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    );
+    try expectContains(shared_build, "phase8_file_path_handle_bridge.zig");
+    try expectContains(shared_build, "phase8_libbpf_segments.zig");
+    try expectContains(shared_build, "phase8_verify_routing_gap.zig");
+    try expectContains(shared_build, "Run the shared Phase 8 tooling tests.");
+
     const tests_readme = try readRepoFile("zigux/tests/README.md");
     defer std.testing.allocator.free(tests_readme);
 
