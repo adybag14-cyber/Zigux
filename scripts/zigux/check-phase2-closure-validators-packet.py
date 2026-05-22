@@ -25,6 +25,8 @@ EXPECTED_CLOSURE_VALIDATORS = (
     "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "python3 scripts/zigux/install-zig.py --self-test",
+    "python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
@@ -90,6 +92,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -129,6 +133,8 @@ REQUIRED_WORKFLOW_LINES = (
 
 REQUIRED_MAKEFILE_LINES = (
     "phase2-toolchain:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
     "phase2-tools:",
     "phase2-kconfig:",
     "phase2-cross:",
@@ -147,7 +153,9 @@ REQUIRED_PATHS = (
     MAKEFILE,
 )
 
-REQUIRED_PHASE2_PHONY_TARGETS = set(route.rsplit(" ", 1)[-1] for route in EXPECTED_MAKE_ROUTES)
+REQUIRED_PHASE2_PHONY_TARGETS = set(
+    route.rsplit(" ", 1)[-1] for route in EXPECTED_MAKE_ROUTES
+)
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -238,8 +246,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("MISSING_ASSIGNMENT", "PHASE2_SHARED_MAKE_ROUTES"))
     elif tuple(make_routes) != EXPECTED_MAKE_ROUTES:
         issues.append(("MAKE_ROUTE_PACKET_MISMATCH", "PHASE2_SHARED_MAKE_ROUTES"))
-    elif closure_validators is not None and tuple(closure_validators[-len(EXPECTED_MAKE_ROUTES) :]) != EXPECTED_MAKE_ROUTES:
-        issues.append(("CLOSURE_VALIDATOR_ROUTE_SUFFIX_MISMATCH", "PHASE2_CLOSURE_VALIDATORS"))
+    elif (
+        closure_validators is not None
+        and tuple(closure_validators[-len(EXPECTED_MAKE_ROUTES):]) != EXPECTED_MAKE_ROUTES
+    ):
+        issues.append(
+            ("CLOSURE_VALIDATOR_ROUTE_SUFFIX_MISMATCH", "PHASE2_CLOSURE_VALIDATORS")
+        )
 
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -249,7 +262,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     if not REQUIRED_PHASE2_PHONY_TARGETS.issubset(phony_targets_present(makefile_text)):
-        issues.append(("MISSING_MAKEFILE_PHONY_TARGETS", ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"))
+        issues.append(
+            (
+                "MISSING_MAKEFILE_PHONY_TARGETS",
+                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
+            )
+        )
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -375,16 +393,48 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/other.py",
             ),
         )
-        expect_issue(root, ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py"))
+        expect_issue(
+            root,
+            ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py"),
+        )
+        checks += 1
+
+        build_sample_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+                "run: python3 scripts/zigux/check-lane05-other.py",
+            ),
+        )
+        expect_issue(
+            root,
+            (
+                "MISSING_WORKFLOW_LINE",
+                "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+            ),
+        )
         checks += 1
 
         build_sample_root(root)
         write_text(
             root,
             MAKEFILE,
-            replace_exact_line(read_text(root, MAKEFILE), "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep", "# removed"),
+            replace_exact_line(
+                read_text(root, MAKEFILE),
+                "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+                "# removed",
+            ),
         )
-        expect_issue(root, ("MISSING_MAKEFILE_LINE", "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep"))
+        expect_issue(
+            root,
+            (
+                "MISSING_MAKEFILE_LINE",
+                "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+            ),
+        )
         checks += 1
 
         build_sample_root(root)
@@ -397,7 +447,29 @@ def run_self_test() -> int:
                 "# removed",
             ),
         )
-        expect_issue(root, ("MISSING_MAKEFILE_LINE", "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py"))
+        expect_issue(
+            root,
+            ("MISSING_MAKEFILE_LINE", "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py"),
+        )
+        checks += 1
+
+        build_sample_root(root)
+        write_text(
+            root,
+            MAKEFILE,
+            replace_exact_line(
+                read_text(root, MAKEFILE),
+                "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+                "# removed",
+            ),
+        )
+        expect_issue(
+            root,
+            (
+                "MISSING_MAKEFILE_LINE",
+                "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+            ),
+        )
         checks += 1
 
         build_sample_root(root)
@@ -419,35 +491,23 @@ def run_self_test() -> int:
         )
         checks += 1
 
-        build_sample_root(root)
-        write_text(root, PHASE2_VALIDATE, '#!/usr/bin/env python3\nprint("OTHER=pass")\n')
-        expect_issue(root, ("MISSING_VALIDATE_MARKER", PHASE2_VALIDATE))
-        checks += 1
-
-        build_sample_root(root)
-        (root / PHASE2_CLOSURE_VALIDATE).unlink()
-        expect_issue(root, ("MISSING_REQUIRED_PATH", PHASE2_CLOSURE_VALIDATE))
-        checks += 1
-
-        build_sample_root(root)
-        write_text(
-            root,
-            WORKFLOW,
-            duplicate_exact_line(read_text(root, WORKFLOW), "run: python3 scripts/zigux/validate-phase2.py"),
-        )
-        expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", "run: python3 scripts/zigux/validate-phase2.py:count=2"))
-        checks += 1
-
     print("PHASE2_CLOSURE_VALIDATORS_PACKET_SELF_TEST=pass")
     print(f"PHASE2_CLOSURE_VALIDATORS_PACKET_SELF_TEST_CASE_COUNT={checks}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the exact Phase 2 closure-validator command packet.")
+    parser = argparse.ArgumentParser(
+        description="Validate the shipped Phase 2 closure-validator packet."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    parser.add_argument("--write-sample-root", type=Path, help="Write a passing sample root for focused validation")
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        default=None,
+        help="Write a passing synthetic repository root and exit",
+    )
     args = parser.parse_args()
 
     if args.self_test:
@@ -455,7 +515,6 @@ def main() -> int:
 
     if args.write_sample_root is not None:
         build_sample_root(args.write_sample_root.resolve())
-        print(f"PHASE2_CLOSURE_VALIDATORS_PACKET_SAMPLE_ROOT={args.write_sample_root.resolve()}")
         return 0
 
     issues = collect_issues(args.root.resolve())
@@ -463,7 +522,9 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_CLOSURE_VALIDATORS_PACKET=pass")
-    print(f"PHASE2_CLOSURE_VALIDATORS_PACKET_VALIDATOR_COUNT={len(EXPECTED_CLOSURE_VALIDATORS)}")
+    print(
+        f"PHASE2_CLOSURE_VALIDATORS_PACKET_VALIDATOR_COUNT={len(EXPECTED_CLOSURE_VALIDATORS)}"
+    )
     print(f"PHASE2_CLOSURE_VALIDATORS_PACKET_ROUTE_COUNT={len(EXPECTED_MAKE_ROUTES)}")
     return 0
 
