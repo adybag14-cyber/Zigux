@@ -143,7 +143,7 @@ test "phase 6 base64 variant decode parity matches the kernel mappings" {
     }
 }
 
-test "phase 6 base64 convenience wrappers reject foreign variant tails" {
+test "phase 6 base64 convenience wrappers reject foreign variant tails and full-quartet spellings" {
     try expectConvenienceVariantForeignAlphabetRejection(
         "+w",
         &fixtures.variant_one_byte_sample,
@@ -171,6 +171,20 @@ test "phase 6 base64 convenience wrappers reject foreign variant tails" {
         true,
         .std,
         &[_][]const u8{ "__A=", ",,A=" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv/f4A",
+        &fixtures.variant_sample,
+        false,
+        .std,
+        &[_][]const u8{ "APv_f4A", "APv,f4A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv/f4A=",
+        &fixtures.variant_sample,
+        true,
+        .std,
+        &[_][]const u8{ "APv_f4A=", "APv,f4A=" },
     );
 
     try expectConvenienceVariantForeignAlphabetRejection(
@@ -201,6 +215,20 @@ test "phase 6 base64 convenience wrappers reject foreign variant tails" {
         .urlsafe,
         &[_][]const u8{ "//A=", ",,A=" },
     );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv_f4A",
+        &fixtures.variant_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{ "APv/f4A", "APv,f4A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv_f4A=",
+        &fixtures.variant_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{ "APv/f4A=", "APv,f4A=" },
+    );
 
     try expectConvenienceVariantForeignAlphabetRejection(
         "+w",
@@ -229,6 +257,20 @@ test "phase 6 base64 convenience wrappers reject foreign variant tails" {
         true,
         .imap,
         &[_][]const u8{ "//A=", "__A=" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv,f4A",
+        &fixtures.variant_sample,
+        false,
+        .imap,
+        &[_][]const u8{ "APv/f4A", "APv_f4A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "APv,f4A=",
+        &fixtures.variant_sample,
+        true,
+        .imap,
+        &[_][]const u8{ "APv/f4A=", "APv_f4A=" },
     );
 }
 
