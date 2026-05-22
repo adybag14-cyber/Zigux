@@ -254,6 +254,34 @@ test "phase3 low-level wrappers keep additive and bitwise atomic updates explici
     try std.testing.expectEqual(@as(u8, 0xD5), mmio.read(u8, const_register_ptr));
 }
 
+test "phase3 low-level wrappers keep subtractive, xor, and clamp-style atomic updates explicit before MMIO publish" {
+    var state: u16 = 0x0040;
+
+    try std.testing.expectEqual(@as(u16, 0x0040), try atomic.fetchSub(u16, &state, 0x0005, .release));
+    try std.testing.expectEqual(@as(u16, 0x003B), state);
+
+    try std.testing.expectEqual(@as(u16, 0x003B), try atomic.fetchXor(u16, &state, 0x00F0, .acq_rel));
+    try std.testing.expectEqual(@as(u16, 0x00CB), state);
+
+    try std.testing.expectEqual(@as(u16, 0x00CB), try atomic.fetchMin(u16, &state, 0x0044, .acquire));
+    try std.testing.expectEqual(@as(u16, 0x0044), state);
+
+    try std.testing.expectEqual(@as(u16, 0x0044), try atomic.fetchMax(u16, &state, 0x0088, .seq_cst));
+    try std.testing.expectEqual(@as(u16, 0x0088), state);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.fetchXor(u16, &state, 0x0001, .unordered));
+    try std.testing.expectEqual(@as(u16, 0x0088), state);
+
+    var register: u16 = 0;
+    const register_ptr: *volatile u16 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u16 = @ptrCast(&register);
+
+    barrier.release();
+    mmio.write(u16, register_ptr, state);
+    barrier.acquire();
+    try std.testing.expectEqual(@as(u16, 0x0088), mmio.read(u16, const_register_ptr));
+}
+
 test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {
     var register: u16 = 0x55AA;
     const register_ptr: *volatile u16 = @ptrCast(&register);
