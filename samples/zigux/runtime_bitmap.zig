@@ -326,6 +326,35 @@ test "runtime bitmap sample keeps parse print and range mutation replay explicit
     try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(9, 4));
 }
 
+test "runtime bitmap sample keeps duplicate bit lists normalized without inflating summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(" 0, 5, 5, 64, 70, 70 ");
+
+    const summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 5), module.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, 64), module.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", formatted);
+}
+
 test "runtime bitmap sample rejects malformed or out-of-range bit-list init without leaving the cold state" {
     var malformed = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, malformed.initFromBitList("0,,64"));
