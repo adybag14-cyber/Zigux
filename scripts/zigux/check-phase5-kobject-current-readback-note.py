@@ -22,6 +22,15 @@ PUBLIC_PATHS = (
     "zigux/tests/phase5_kobject_example_survey.zig",
 )
 
+SHARED_SURFACE_PATHS = (
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase5-sample-review-guide.md",
+    "Documentation/zigux/phase5-sample-lane-sequencing.md",
+    "samples/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+)
+
 FOLLOW_THROUGH_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase5-review-guide-surface.py",
@@ -101,7 +110,7 @@ def placeholder_note() -> str:
 
 def seed(root: Path) -> None:
     write_text(root / NOTE_PATH, placeholder_note())
-    for path in DIRECT_PATHS + PUBLIC_PATHS + FOLLOW_THROUGH_PATHS:
+    for path in DIRECT_PATHS + PUBLIC_PATHS + SHARED_SURFACE_PATHS + FOLLOW_THROUGH_PATHS:
         if path == str(NOTE_PATH):
             continue
         write_text(root / path, "present\n")
@@ -127,6 +136,12 @@ def collect_failures(root: Path) -> list[str]:
         if not (root / path).exists():
             failures.append(f"repo:missing_public_path:{path}")
 
+    for path in SHARED_SURFACE_PATHS:
+        if f"`{path}`" not in note:
+            failures.append(f"note:missing_shared_surface_path:{path}")
+        if not (root / path).exists():
+            failures.append(f"repo:missing_shared_surface_path:{path}")
+
     for path in FOLLOW_THROUGH_PATHS:
         if f"`{path}`" not in note:
             failures.append(f"note:missing_follow_through_path:{path}")
@@ -138,7 +153,7 @@ def collect_failures(root: Path) -> list[str]:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 5
+    expected_case_count = 6
     with tempfile.TemporaryDirectory(prefix="phase5_kobject_readback_note_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -167,6 +182,15 @@ def run_self_test() -> int:
         expected = [f"repo:missing_direct_path:{DIRECT_PATHS[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct-path failure: {failures}")
+        checks_run += 1
+
+        missing_shared_surface_repo_path_root = root / "missing_shared_surface_repo_path"
+        seed(missing_shared_surface_repo_path_root)
+        (missing_shared_surface_repo_path_root / SHARED_SURFACE_PATHS[0]).unlink()
+        failures = collect_failures(missing_shared_surface_repo_path_root)
+        expected = [f"repo:missing_shared_surface_path:{SHARED_SURFACE_PATHS[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-shared-surface-repo-path failure: {failures}")
         checks_run += 1
 
         missing_follow_through_repo_path_root = root / "missing_follow_through_repo_path"
@@ -214,6 +238,7 @@ def main() -> int:
     print("PHASE5_KOBJECT_CURRENT_READBACK_NOTE=pass")
     print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_DIRECT_PATH_COUNT={len(DIRECT_PATHS)}")
     print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_PUBLIC_PATH_COUNT={len(PUBLIC_PATHS)}")
+    print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_SHARED_SURFACE_COUNT={len(SHARED_SURFACE_PATHS)}")
     print(f"PHASE5_KOBJECT_CURRENT_READBACK_NOTE_FOLLOW_THROUGH_COUNT={len(FOLLOW_THROUGH_PATHS)}")
     return 0
 
