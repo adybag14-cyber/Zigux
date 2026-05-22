@@ -31,7 +31,7 @@ EXPECTED_DETERMINISM_TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
 ]
 EXPECTED_READBACK_MODE = "github-contents-readback"
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 29
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -651,6 +651,22 @@ def run_self_test() -> None:
                 "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
             ),
             "snapshot_current_note_blob_path",
+        )
+        build_fixture_tree(tmp_root)
+
+        snapshot = load_json(tmp_root / SNAPSHOT_PATH)
+        note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
+        if not isinstance(note_blobs, list):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
+        note_blobs[-1]["blob_sha"] = "short-sha"
+        (tmp_root / SNAPSHOT_PATH).write_text(
+            json.dumps(snapshot, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            "snapshot:verification_evidence:current_note_blobs:3:blob_sha",
+            "snapshot_current_note_blob_sha",
         )
         build_fixture_tree(tmp_root)
 
