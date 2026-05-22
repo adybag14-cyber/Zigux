@@ -2,6 +2,7 @@ const std = @import("std");
 
 const RepoEvidence = struct {
     phase15_readiness_packet_checker_present: bool,
+    phase15_validator_gap_checker_present: bool,
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
     phase15_tests_readme_checker_present: bool,
@@ -57,7 +58,7 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 33), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 34), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/freeze-map.md",
         manifest.direct_packet_paths[0],
@@ -71,28 +72,32 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         manifest.direct_packet_paths[18],
     );
     try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-validator-gap-packet.py",
+        manifest.direct_packet_paths[19],
+    );
+    try std.testing.expectEqualStrings(
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-        manifest.direct_packet_paths[20],
+        manifest.direct_packet_paths[21],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_architecture_council_review_process_build.zig",
-        manifest.direct_packet_paths[22],
-    );
-    try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
         manifest.direct_packet_paths[23],
     );
     try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_handoff_next_steps.zig",
-        manifest.direct_packet_paths[30],
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        manifest.direct_packet_paths[24],
     );
     try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        "zigux/tests/phase15_handoff_next_steps.zig",
         manifest.direct_packet_paths[31],
     );
     try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_readiness_gate_manifest.json",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         manifest.direct_packet_paths[32],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_readiness_gate_manifest.json",
+        manifest.direct_packet_paths[33],
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.still_missing_broader_paths.len);
     try std.testing.expectEqualStrings(
@@ -104,6 +109,7 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         manifest.still_missing_broader_paths[1],
     );
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_validator_gap_checker_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_tests_readme_checker_present);
@@ -156,6 +162,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-shared-summary-gap.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-validator-gap-packet.py`");
     try expectContains(readiness_note, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`");
     try expectContains(readiness_note, "`zigux/tests/phase15_governance_lane_sequencing.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_handoff_next_steps.zig`");
@@ -164,6 +171,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`");
+    try expectContains(readiness_note, "Current `master` also materializes `scripts/zigux/check-phase15-validator-gap-packet.py`");
     try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those missing broader companions");
     try expectContains(readiness_note, "`zigux/Makefile`");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
@@ -173,4 +181,5 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes only");
     try expectContains(readiness_note, "focused readiness packet checker");
+    try expectContains(readiness_note, "dedicated validator-gap blocker checker");
 }
