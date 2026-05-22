@@ -116,7 +116,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
     try expectContains(manifest, "\"status\": \"active\"");
-    try expectContains(manifest, "\"surveyed_commit\": \"2026-05-22-runtime-bitmap-diff-returned\"");
+    try expectContains(manifest, "\"surveyed_commit\": \"e306440f579ded71e8441c1a513af6fd12bbbfdd\"");
     try expectContains(manifest, "\"sample_path\": \"samples/zigux/runtime_bitmap.zig\"");
     try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
     try expectContains(manifest, "\"module_path\": \"zigux/tests/runtime_bitmap_module.zig\"");
@@ -148,11 +148,11 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
-    try expectNotContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
     try expectContains(sample_file, ".top_bit_contract,");
