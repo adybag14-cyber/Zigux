@@ -19,13 +19,16 @@ note, validation matrix, build-inventory checker, cleanup-current-head checker,
 targetless-unregister witness checker, shared build inventory, and the current
 proof-backed adjunct stack.
 
-Public raw fallback readback also restores `drivers/tty/hvc/hvc_console_verify.zig`,
+Current authenticated contents readback still does not rematerialize
+`drivers/tty/hvc/hvc_console_verify.zig`,
 `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
 `zigux/tests/phase11_hvc_cleanup.zig`,
 `zigux/tests/phase11_hvc_console_survey.zig`,
 `zigux/tests/phase11_hvc_console_manifest.json`,
-`Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
-`scripts/zigux/check-phase11-hvc-survey-packet.py`.
+`Documentation/zigux/phase11-hvc-console-teardown-note.md`, or
+`scripts/zigux/check-phase11-hvc-survey-packet.py`; keep those older helper,
+replay, manifest, note, and checker anchors framed as repo-reality gaps or archival vocabulary
+instead of returned fallback evidence.
 
 The returned HVC validation matrix and build-inventory checker stay explicit
 inside that smaller current-head packet. The standalone targetless-unregister
@@ -35,13 +38,14 @@ shared inventory-backed proof routes.
 
 ## Drift Kept Explicit
 
-This companion exists so nearby reminders do not keep describing the returned
-manifest and teardown note as absent, and do not drop the fallback-backed
-verify, sysrq, focused replay, or survey-checker anchors that current `master`
-still exposes.
+This companion exists so nearby reminders do not keep describing the currently
+missing manifest and teardown note as returned, and do not reintroduce
+stale returned-file claims for the missing verify helper, sysrq helper, focused
+replay, or dedicated survey-checker anchors that current `master` still does
+not expose.
 
-Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as a returned
-fallback-backed checker, but keep the dedicated `make -C zigux phase11-hvc-survey`
+Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as a current
+repo-reality gap, but keep the dedicated `make -C zigux phase11-hvc-survey`
 route absent until `zigux/Makefile` grows it.
 
 ## Boundary Kept Honest
@@ -54,7 +58,8 @@ This companion does not claim:
 - live sysrq dispatch
 - host-backed teardown or transport parity
 
-It only records that current `master` keeps the returned direct starter, the
-returned teardown note and manifest, the fallback-backed helper and replay
-anchors, the standalone targetless-unregister witness pair, and the smaller
-proof-backed continuity packet reviewable.
+It only records that current `master` keeps the direct starter, the verify
+boundary reminder, the standalone targetless-unregister witness pair, and the
+smaller proof-backed continuity packet reviewable while the older helper,
+survey-replay, manifest, teardown-note, and survey-checker anchors remain
+absent on current head.
