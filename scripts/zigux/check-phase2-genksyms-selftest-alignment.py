@@ -442,6 +442,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        manifest_path = root / MANIFEST_FIXTURE.relative_to(ROOT)
+        manifest_path.write_text("[]\n", encoding="utf-8")
+        assert ("INVALID_MANIFEST_PAYLOAD", "list") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         help_path = root / HELP_FIXTURE.relative_to(ROOT)
         help_path.write_text(json.dumps({}, indent=2) + "\n", encoding="utf-8")
         assert ("HELP_PACKET_MISMATCH", HELP_FIXTURE.name) in collect_issues(root)
@@ -522,6 +528,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_LINES)
     + len(MAKEFILE_LINES)
+    + 1
     + 1
     + 1
     + 1
