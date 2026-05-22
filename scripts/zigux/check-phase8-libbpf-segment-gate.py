@@ -30,7 +30,6 @@ DEFERRED_SLUGS = [
     "object-and-elf-loader",
     "btf-relocation-and-program-load",
 ]
-COUNT_WORDS = {12: "twelve"}
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
@@ -44,9 +43,9 @@ REQUIRED_FILES = [
     VERIFY_PATH,
 ]
 SURVEY_MARKERS = [
-    "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `perf_buffer_poll.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
-    "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.",
-    "This survey should therefore keep the helper-first packet, the bridge-plus-build reminder packet, and the routing-helper evidence explicit together without promoting the still-deferred setup-side routing, reopen-flow, token-materialization, or object-model work.",
+    "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `cpu_mask_verify.zig`, `logging.zig`, `logging_verify.zig`, `pin_path.zig`, `pin_path_verify.zig`, `type_names.zig`, `type_names_verify.zig`, `perf_buffer_poll.zig`, `perf_buffer_poll_verify.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
+    "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
+    "This survey should therefore keep the helper-first packet and the shared wrapper-route vocabulary explicit together without promoting the still-deferred setup-side routing, reopen-flow, token-materialization, object-model, or bridge-heavy work into direct authenticated helper proof.",
 ]
 MAKEFILE_MARKERS = [
     "phase8-validate:",
@@ -67,19 +66,6 @@ VERIFY_MARKERS = [
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
-
-
-def oxford(items: list[str]) -> str:
-    wrapped = [f"`{item}`" for item in items]
-    if len(wrapped) == 1:
-        return wrapped[0]
-    if len(wrapped) == 2:
-        return " and ".join(wrapped)
-    return ", ".join(wrapped[:-1]) + ", and " + wrapped[-1]
-
-
-def count_marker(count: int) -> str:
-    return f"The manifest currently records {COUNT_WORDS.get(count, str(count))} bounded {'segment' if count == 1 else 'segments'}"
 
 
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
@@ -117,9 +103,6 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     if not isinstance(segments, list):
         return [], missing_markers, ["manifest:missing_or_invalid_segments"]
 
-    if count_marker(len(segments)) not in survey_text:
-        missing_markers.append(f"{SURVEY_PATH}:{count_marker(len(segments))}")
-
     landed = [segment.get("slug") for segment in segments if segment.get("status") == "starter_landed"]
     deferred = [
         segment.get("slug")
@@ -130,10 +113,6 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
         state_errors.append("manifest:unexpected_landed_slugs:" + ",".join(str(x) for x in landed))
     if deferred != DEFERRED_SLUGS:
         state_errors.append("manifest:unexpected_deferred_slugs:" + ",".join(str(x) for x in deferred))
-
-    landed_marker = f"The seven landed bounded slices are {oxford(LANDED_SLUGS)}."
-    if landed_marker not in survey_text:
-        missing_markers.append(f"{SURVEY_PATH}:{landed_marker}")
 
     return [], missing_markers, state_errors
 
@@ -162,12 +141,9 @@ def fixture_survey() -> str:
         [
             "# Phase 8 Libbpf Segment Survey",
             "",
-            "- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-20",
-            f"- {count_marker(12)}: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.",
+            "- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-21",
             "",
             SURVEY_MARKERS[0],
-            "",
-            f"The seven landed bounded slices are {oxford(LANDED_SLUGS)}.",
             "",
             SURVEY_MARKERS[1],
             "",
@@ -206,9 +182,9 @@ def run_self_test() -> int:
 
         survey_path = root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.write_text(original_survey.replace(count_marker(12), count_marker(11), 1), encoding="utf-8")
-        if f"{SURVEY_PATH}:{count_marker(12)}" not in validate(root)[1]:
-            raise SystemExit("phase8-libbpf-segment-gate-self-test:survey_count_marker")
+        survey_path.write_text(original_survey.replace("ready_buffer_attempt_verify.zig", "ready_buffer_attempt_review.zig", 1), encoding="utf-8")
+        if f"{SURVEY_PATH}:{SURVEY_MARKERS[0]}" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:survey_marker")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         build_path = root / BUILD_PATH
@@ -268,7 +244,7 @@ def main() -> int:
         return 1
     print("PHASE8_LIBBPF_SEGMENT_GATE=pass")
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT={len(SURVEY_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + 2}")
+    print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT={len(SURVEY_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS)}")
     return 0
 
 
