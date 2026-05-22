@@ -136,6 +136,38 @@ test "fd-backed exact 32-bit ELF header leaves a following invalid-class header 
     try expectCursor(file, 32);
 }
 
+test "fd-backed exact 32-bit ELF header leaves a following truncated packet for the next call" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "elf32_then_truncated.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x7f, 'E', 'L', 'F', 1, 1, 1, 0,
+        0,    0,   0,   0,   0, 0, 0, 0,
+        0x7f, 'E', 'L', 'F', 1, 1, 1, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const first_exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), first_exit_code);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+    try expectCursor(file, 16);
+
+    stdout.reset();
+    stderr.reset();
+    const second_exit_code = try mk.runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), second_exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+    try expectCursor(file, 24);
+}
+
 test "fd-backed exact 64-bit ELF header leaves a following non-ELF header for the next call" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
