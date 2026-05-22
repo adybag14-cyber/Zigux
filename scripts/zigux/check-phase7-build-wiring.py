@@ -14,6 +14,7 @@ MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 RBTREE_PATH = Path("lib/rbtree.zig")
+ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -145,6 +146,7 @@ REQUIRED_FILES = (
     MAKEFILE_PATH,
     BUILD_PATH,
     RBTREE_PATH,
+    ARGV_SPLIT_PACKET_CHECKER_PATH,
 )
 
 CATALOG_REQUIRED_SNIPPETS = [
@@ -171,6 +173,8 @@ VALIDATOR_REQUIRED_SNIPPETS = [
     "phase7 build-wiring evidence drift",
     "phase7 build marker missing: ../../lib/rbtree.zig",
     "phase7 build marker missing: phase7-rbtree-test",
+    'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
+    'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
 ]
 
 MAKEFILE_REQUIRED_LINES = [
@@ -311,6 +315,8 @@ def build_fixture_root(root: Path) -> None:
                 "phase7 build-wiring evidence drift",
                 "phase7 build marker missing: ../../lib/rbtree.zig",
                 "phase7 build marker missing: phase7-rbtree-test",
+                'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
+                'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
             ]
         )
         + "\n",
@@ -349,6 +355,7 @@ def build_fixture_root(root: Path) -> None:
     )
     write(root / BUILD_PATH, "\n".join(BUILD_REQUIRED_SNIPPETS) + "\n")
     write(root / RBTREE_PATH, "\n".join(RBTREE_REQUIRED_SNIPPETS) + "\n")
+    write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
 
 
 def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
