@@ -10,10 +10,14 @@ from pathlib import Path
 
 SCRIPT_PATH = "scripts/zigux/check-phase8-tests-readme-alignment.py"
 TESTS_README_PATH = "zigux/tests/README.md"
+EXEC_CMD_SLICE_PATH = "Documentation/zigux/phase8-exec-cmd-slice.md"
+EXEC_CMD_HELPER_PATH = "tools/lib/subcmd/exec-cmd.zig"
 
 REQUIRED_FILES = (
     SCRIPT_PATH,
     TESTS_README_PATH,
+    EXEC_CMD_SLICE_PATH,
+    EXEC_CMD_HELPER_PATH,
 )
 
 REQUIRED_MARKERS = {
@@ -102,6 +106,8 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, SCRIPT_PATH, script_text)
     for rel_path, markers in REQUIRED_MARKERS.items():
         write_text(root, rel_path, "\n".join(markers) + "\n")
+    write_text(root, EXEC_CMD_SLICE_PATH, "# Phase 8 Exec-Cmd Slice\n")
+    write_text(root, EXEC_CMD_HELPER_PATH, "pub fn placeholder() void {}\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -115,6 +121,17 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     output = result.stdout.strip() or result.stderr.strip() or "no_output"
     if result.returncode == 0:
         raise SystemExit(f"self-test-unexpected-pass:{rel_path}:{marker}")
+    if expected not in output:
+        raise SystemExit(f"self-test-mismatch:{expected}:{output}")
+
+
+def assert_missing_file_case(root: Path, rel_path: str) -> None:
+    (root / rel_path).unlink()
+    result = run_validator(root)
+    expected = f"missing-file:{rel_path}"
+    output = result.stdout.strip() or result.stderr.strip() or "no_output"
+    if result.returncode == 0:
+        raise SystemExit(f"self-test-unexpected-pass:{expected}")
     if expected not in output:
         raise SystemExit(f"self-test-mismatch:{expected}:{output}")
 
@@ -136,24 +153,11 @@ def run_self_test() -> int:
                 assert_missing_case(case_root, rel_path, marker)
                 cases += 1
 
-        missing_tests_readme_root = Path(tmp) / f"case_{cases}"
-        shutil.copytree(baseline_root, missing_tests_readme_root)
-        (missing_tests_readme_root / TESTS_README_PATH).unlink()
-        missing_tests_readme_result = run_validator(missing_tests_readme_root)
-        expected_missing_tests_readme = f"missing-file:{TESTS_README_PATH}"
-        missing_tests_readme_output = (
-            missing_tests_readme_result.stdout.strip()
-            or missing_tests_readme_result.stderr.strip()
-            or "no_output"
-        )
-        if missing_tests_readme_result.returncode == 0:
-            raise SystemExit(f"self-test-unexpected-pass:{expected_missing_tests_readme}")
-        if expected_missing_tests_readme not in missing_tests_readme_output:
-            raise SystemExit(
-                "self-test-mismatch:"
-                f"{expected_missing_tests_readme}:{missing_tests_readme_output}"
-            )
-        cases += 1
+        for rel_path in (TESTS_README_PATH, EXEC_CMD_SLICE_PATH, EXEC_CMD_HELPER_PATH):
+            case_root = Path(tmp) / f"case_{cases}"
+            shutil.copytree(baseline_root, case_root)
+            assert_missing_file_case(case_root, rel_path)
+            cases += 1
 
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
