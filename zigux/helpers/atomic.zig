@@ -38,6 +38,15 @@ pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) 
     return failure_strength <= success_strength;
 }
 
+pub fn validateCompareExchangeOrders(
+    comptime success: Ordering,
+    comptime failure: Ordering,
+) CompareExchangeError!void {
+    if (comptime !compareExchangeFailureOrderAllowed(success, failure)) {
+        return error.InvalidFailureOrdering;
+    }
+}
+
 pub fn strongestAllowedFailureOrder(success: Ordering) ?Ordering {
     return switch (success) {
         .monotonic, .release => .monotonic,
@@ -109,10 +118,10 @@ pub fn compareExchangeStrong(
     comptime success: Ordering,
     comptime failure: Ordering,
 ) CompareExchangeError!?T {
-    if (comptime !compareExchangeFailureOrderAllowed(success, failure)) {
-        return error.InvalidFailureOrdering;
+    if (comptime compareExchangeFailureOrderAllowed(success, failure)) {
+        return @cmpxchgStrong(T, ptr, expected_value, desired_value, success, failure);
     }
-    return @cmpxchgStrong(T, ptr, expected_value, desired_value, success, failure);
+    return error.InvalidFailureOrdering;
 }
 
 pub fn compareExchangeWeak(
@@ -123,10 +132,10 @@ pub fn compareExchangeWeak(
     comptime success: Ordering,
     comptime failure: Ordering,
 ) CompareExchangeError!?T {
-    if (comptime !compareExchangeFailureOrderAllowed(success, failure)) {
-        return error.InvalidFailureOrdering;
+    if (comptime compareExchangeFailureOrderAllowed(success, failure)) {
+        return @cmpxchgWeak(T, ptr, expected_value, desired_value, success, failure);
     }
-    return @cmpxchgWeak(T, ptr, expected_value, desired_value, success, failure);
+    return error.InvalidFailureOrdering;
 }
 
 pub fn fetchAdd(
@@ -239,6 +248,19 @@ test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
     try std.testing.expect(!compareExchangeFailureOrderAllowed(.seq_cst, .release));
     try std.testing.expect(!compareExchangeFailureOrderAllowed(.seq_cst, .acq_rel));
     try std.testing.expect(!compareExchangeFailureOrderAllowed(.unordered, .monotonic));
+}
+
+test "phase3 atomic helper exposes reusable compare-exchange order validation" {
+    try validateCompareExchangeOrders(.monotonic, .monotonic);
+    try validateCompareExchangeOrders(.release, .monotonic);
+    try validateCompareExchangeOrders(.acquire, .acquire);
+    try validateCompareExchangeOrders(.seq_cst, .seq_cst);
+
+    try std.testing.expectError(error.InvalidFailureOrdering, validateCompareExchangeOrders(.monotonic, .acquire));
+    try std.testing.expectError(error.InvalidFailureOrdering, validateCompareExchangeOrders(.release, .acquire));
+    try std.testing.expectError(error.InvalidFailureOrdering, validateCompareExchangeOrders(.acq_rel, .seq_cst));
+    try std.testing.expectError(error.InvalidFailureOrdering, validateCompareExchangeOrders(.seq_cst, .release));
+    try std.testing.expectError(error.InvalidFailureOrdering, validateCompareExchangeOrders(.unordered, .monotonic));
 }
 
 test "phase3 atomic helper reports allowed failure-order bounds" {
