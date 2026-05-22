@@ -112,6 +112,16 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
             "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
             "phase7-rbtree-test",
             "phase7-rbtree-survey",
+            'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
+            "test_step.dependOn(&run_string_helpers_tests.step)",
+            "test_step.dependOn(&run_string_helpers_survey_tests.step)",
+            "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+            "test_step.dependOn(&run_cmdline_tests.step)",
+            "test_step.dependOn(&run_cmdline_survey_tests.step)",
+            "test_step.dependOn(&run_argv_split_tests.step)",
+            "test_step.dependOn(&run_argv_split_survey_tests.step)",
+            "test_step.dependOn(&run_rbtree_tests.step)",
+            "test_step.dependOn(&run_rbtree_survey_tests.step)",
         ],
     },
     {
@@ -146,6 +156,7 @@ CATALOG_REQUIRED_SNIPPETS = [
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
     "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
+    "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.",
     "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
     "## Current repo-reality gaps",
     "- none currently",
@@ -186,6 +197,16 @@ BUILD_REQUIRED_SNIPPETS = [
     "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
     "phase7-rbtree-test",
     "phase7-rbtree-survey",
+    'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
+    "test_step.dependOn(&run_string_helpers_tests.step)",
+    "test_step.dependOn(&run_string_helpers_survey_tests.step)",
+    "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+    "test_step.dependOn(&run_cmdline_tests.step)",
+    "test_step.dependOn(&run_cmdline_survey_tests.step)",
+    "test_step.dependOn(&run_argv_split_tests.step)",
+    "test_step.dependOn(&run_argv_split_survey_tests.step)",
+    "test_step.dependOn(&run_rbtree_tests.step)",
+    "test_step.dependOn(&run_rbtree_survey_tests.step)",
 ]
 
 RBTREE_REQUIRED_SNIPPETS = [
@@ -195,7 +216,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 
 
 class ValidationError(RuntimeError):
@@ -355,6 +376,8 @@ def run_self_test() -> None:
             (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
             (BUILD_PATH, "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)", "argv_split_survey_step.dependOn(&run_argv_split_tests.step)"),
             (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
+            (BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
+            (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
         ]
         for rel, old, new in mutations:
             build_fixture_root(root)
