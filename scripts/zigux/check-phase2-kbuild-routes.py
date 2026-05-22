@@ -15,6 +15,8 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-genksyms-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
@@ -25,10 +27,14 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-artifact-tools-manifest.py",
     ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "genksyms.zig",
+    ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
     MAKEFILE,
@@ -53,12 +59,23 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-genksyms",
 )
 
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/genksyms.zig`",
+    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/manifest.json`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
@@ -81,6 +98,7 @@ README_PRESENT_MARKERS = (
     "`zigux/Makefile`",
     "`make -C zigux phase2`",
     "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-genksyms`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
 )
@@ -99,11 +117,18 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-kconfig:",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+    "phase2-genksyms:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
 )
 
 DISALLOWED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/genksyms.zig",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
