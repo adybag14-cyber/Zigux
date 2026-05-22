@@ -86,6 +86,74 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
 )
 
 REQUIRED_COMMAND_OUTPUT_MARKERS = {
+    "phase4-repo-reality-warning-self-test": (
+        (
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST",
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES",
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20",
+        ),
+    ),
+    "phase4-repo-reality-warning": (
+        ("PHASE4_REPO_REALITY_WARNING", "PHASE4_REPO_REALITY_WARNING=pass"),
+    ),
+    "phase4-reversible-delivery-pins-self-test": (
+        (
+            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST",
+            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18",
+        ),
+    ),
+    "phase4-reversible-delivery-pins": (
+        ("PHASE4_REVERSIBLE_DELIVERY_PINS", "PHASE4_REVERSIBLE_DELIVERY_PINS=pass"),
+    ),
+    "phase4-gate-evidence-self-test": (
+        (
+            "phase4 gate evidence self-test",
+            "phase4 gate evidence self-test: PASS (44 cases)",
+        ),
+    ),
+    "phase4-gate-evidence": (
+        ("phase4 gate evidence check passed", "phase4 gate evidence check passed"),
+    ),
+    "phase4-perf-baseline-packet-self-test": (
+        (
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST",
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES",
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=34",
+        ),
+    ),
+    "phase4-perf-baseline-packet": (
+        (
+            "PHASE4_PERF_BASELINE_PACKET_CHECK",
+            "PHASE4_PERF_BASELINE_PACKET_CHECK=pass",
+        ),
+    ),
+    "phase4-remaining-gap-matrix-self-test": (
+        (
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST",
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
+        ),
+        (
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT",
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+        ),
+    ),
+    "phase4-remaining-gap-matrix": (
+        ("PHASE4_REMAINING_GAP_MATRIX", "PHASE4_REMAINING_GAP_MATRIX=pass"),
+        (
+            "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT",
+            "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6",
+        ),
+    ),
     "phase4-workflow-route-counts-self-test": (
         (
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST",
@@ -458,6 +526,50 @@ def configure_workflow_route_stub(root: Path) -> None:
     )
 
 
+def configure_phase4_output_stubs(root: Path) -> None:
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-repo-reality-warning.py",
+        self_test_stdout_lines=(
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass",
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20",
+        ),
+        live_stdout_lines=("PHASE4_REPO_REALITY_WARNING=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+        self_test_stdout_lines=(
+            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18",
+            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES=18",
+        ),
+        live_stdout_lines=("PHASE4_REVERSIBLE_DELIVERY_PINS=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-gate-evidence.py",
+        self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",),
+        live_stdout_lines=("phase4 gate evidence check passed",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        self_test_stdout_lines=(
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=34",
+        ),
+        live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+        self_test_stdout_lines=(
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+        ),
+        live_stdout_lines=(
+            "PHASE4_REMAINING_GAP_MATRIX=pass",
+            "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6",
+        ),
+    )
+
+
 def run_self_test() -> int:
     original_path = os.environ.get("PATH", "")
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validate_") as tmp_dir:
@@ -470,6 +582,7 @@ def run_self_test() -> int:
             build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
             write_matrix_fixture(root)
+            configure_phase4_output_stubs(root)
             configure_workflow_route_stub(root)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -517,7 +630,7 @@ def run_self_test() -> int:
         if expected_missing not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:artifact_doc_marker_missing_not_detected:"
-                + ",".join(issues or ["none"])
+                + ",".join(issues or ["none"]) 
             )
 
         reset_fixture()
@@ -565,6 +678,30 @@ def run_self_test() -> int:
             "Current Phase 4 use",
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
+        repo_reality = root / "scripts/zigux/check-phase4-repo-reality-warning.py"
+        build_stub_script(
+            repo_reality,
+            self_test_stdout_lines=("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass",),
+            live_stdout_lines=("PHASE4_REPO_REALITY_WARNING=pass",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-repo-reality-warning-self-test:"
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:repo_reality_warning_output_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
         pins = root / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
         build_stub_script(pins, self_test_exit_code=1, live_exit_code=0)
         issues = collect_issues(root)
@@ -572,6 +709,30 @@ def run_self_test() -> int:
         if expected not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:reversible_delivery_pins_self_test_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        pins = root / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
+        build_stub_script(
+            pins,
+            self_test_stdout_lines=("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass",),
+            live_stdout_lines=("PHASE4_REVERSIBLE_DELIVERY_PINS=pass",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-reversible-delivery-pins-self-test:"
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:reversible_delivery_pins_output_marker_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -701,6 +862,23 @@ def run_self_test() -> int:
             "Current Phase 4 use",
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
+        gate = root / "scripts/zigux/check-phase4-gate-evidence.py"
+        build_stub_script(gate, self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",))
+        issues = collect_issues(root)
+        expected = "output_marker_missing:phase4-gate-evidence:phase4 gate evidence check passed"
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:gate_evidence_output_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
         perf_baseline = root / "scripts/zigux/check-phase4-perf-baseline-packet.py"
         build_stub_script(perf_baseline, self_test_exit_code=0, live_exit_code=1)
         issues = collect_issues(root)
@@ -718,6 +896,30 @@ def run_self_test() -> int:
             "Current Phase 4 use",
             *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
+        perf_baseline = root / "scripts/zigux/check-phase4-perf-baseline-packet.py"
+        build_stub_script(
+            perf_baseline,
+            self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass",),
+            live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-perf-baseline-packet-self-test:"
+            "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:perf_baseline_output_marker_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
         remaining_gap = root / "scripts/zigux/check-phase4-remaining-gap-matrix.py"
         build_stub_script(remaining_gap, self_test_exit_code=0, live_exit_code=1)
         issues = collect_issues(root)
@@ -725,6 +927,33 @@ def run_self_test() -> int:
         if expected not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:remaining_gap_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
+            "# Artifact Diff Policy",
+            "",
+            "Current Phase 4 use",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+        ]) + "\n")
+        remaining_gap = root / "scripts/zigux/check-phase4-remaining-gap-matrix.py"
+        build_stub_script(
+            remaining_gap,
+            self_test_stdout_lines=(
+                "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
+                "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+            ),
+            live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass",),
+        )
+        issues = collect_issues(root)
+        expected = (
+            "output_marker_missing:phase4-remaining-gap-matrix:"
+            "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT"
+        )
+        if expected not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:remaining_gap_output_marker_not_detected:"
                 + ",".join(issues or ["none"])
             )
 
@@ -819,7 +1048,7 @@ def run_self_test() -> int:
 
     os.environ["PATH"] = original_path
     print("PHASE4_VALIDATE_SELF_TEST=pass")
-    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE4_VALIDATE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
