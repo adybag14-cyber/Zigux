@@ -12,6 +12,12 @@ import sys
 import tempfile
 
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+ORCHESTRATION_ROUTES = frozenset(
+    {
+        Path("scripts/zigux/run-phase3-checks.py"),
+        Path("scripts/zigux/validate_phase3_selftest.py"),
+    }
+)
 
 CHECK_COMMANDS = (
     (
@@ -199,7 +205,11 @@ def _expected_manifest_python_routes(manifest: object) -> set[Path]:
         if len(parts) < 2 or parts[0] != "python3" or "--self-test" in parts[2:]:
             continue
         script_path = Path(parts[1])
-        if script_path.parts[:2] == ("scripts", "zigux") and script_path.suffix == ".py":
+        if (
+            script_path.parts[:2] == ("scripts", "zigux")
+            and script_path.suffix == ".py"
+            and script_path not in ORCHESTRATION_ROUTES
+        ):
             expected.add(script_path)
     return expected
 
@@ -301,6 +311,8 @@ def _write_synthetic_manifest(root: Path, replay_routes: list[str] | None = None
         ]
         replay_routes.extend(
             [
+                "python3 scripts/zigux/run-phase3-checks.py",
+                "python3 scripts/zigux/validate_phase3_selftest.py",
                 "python3 scripts/zigux/check-phase3-abi.py --self-test",
                 "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
             ]
