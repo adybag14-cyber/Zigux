@@ -98,10 +98,7 @@ EXPECTED_HEXDUMP_CHECKERS = [
 EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-helper-readback-restored"
 EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
-    "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
-    "zigux/tests/fixtures/phase6_base64_c_harness.c",
-    "scripts/zigux/check-phase6-base64-c-parity.py",
 ]
 EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
@@ -505,7 +502,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-hexdump-perf")))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("scripts/zigux/check-phase6-base64-c-parity.py")))
+        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/phase6_base64_c_casegen.zig")))
         cases_run += 1
         expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
