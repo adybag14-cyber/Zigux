@@ -43,6 +43,7 @@ ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH = (
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 )
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
+WORKQUEUE_PACKET_CHECKER_PATH = "scripts/zigux/check-phase14-workqueue-packet.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -75,6 +76,7 @@ REQUIRED_FILES = [
     RELEASE_BOUNDARY_CHECKER_PATH,
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+    WORKQUEUE_PACKET_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -200,10 +202,16 @@ REQUIRED_MARKERS = {
         "`phase14-rcu-tree-rollback-threshold-guardrail`",
         "Check that the dedicated Phase 14 RCU rollback note stays aligned",
     ],
+    WORKQUEUE_PACKET_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=workqueue_packet",
+        "PHASE14_WORKQUEUE_PACKET_SELF_TEST=pass",
+        'WORKQUEUE_BRIDGE_PATH = Path("kernel/workqueue_bridge.zig")',
+        "blocked-maintenance, wrapper-first posture",
+    ],
     TESTS_README_CHECKER_PATH: [
         "Check that the shared Phase 14 tests-root reminder stays aligned with repo reality.",
         "PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass",
-        "SURVEY_PATH = Path(\"Documentation/zigux/phase14-end-to-end-smoke-survey.md\")",
+        'SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")',
     ],
     TESTS_README_PATH: [
         "## Phase 14 shared smoke packet",
@@ -226,14 +234,14 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     ],
     END_TO_END_SMOKE_MANIFEST_PATH: [
-        "\"shared_smoke_surfaces\": [",
-        "\"scripts/zigux/check-phase14-rollback-threshold-sequencing.py\"",
-        "\"Documentation/zigux/phase14-core-boundary-traceability.md\"",
-        "\"scripts/zigux/check-phase14-release-boundary-exact-counts.py\"",
-        "\"smoke_commands\": [",
-        "\"smoke_shard_commands\": [",
-        "\"zig build phase14-smoke --build-file zigux/tests/phase14_build.zig\"",
-        "\"phase14_make_smoke_target_present\": false",
+        '"shared_smoke_surfaces": [',
+        '"scripts/zigux/check-phase14-rollback-threshold-sequencing.py"',
+        '"Documentation/zigux/phase14-core-boundary-traceability.md"',
+        '"scripts/zigux/check-phase14-release-boundary-exact-counts.py"',
+        '"smoke_commands": [',
+        '"smoke_shard_commands": [',
+        '"zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"',
+        '"phase14_make_smoke_target_present": false',
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 14 shared smoke route checker",
@@ -242,36 +250,37 @@ REQUIRED_MARKERS = {
         "run: make -C zigux phase14-validate",
     ],
     WORKQUEUE_BRIDGE_PATH: [
-        "return \"phase14-workqueue-scheduler-visible-worker-state-refinement\";",
-        ".posture = \"blocked_maintenance\",",
+        'return "phase14-workqueue-scheduler-visible-worker-state-refinement";',
+        '.posture = "blocked_maintenance",',
         "zigux/tests/phase14_workqueue_reviewability.zig",
     ],
     WORKQUEUE_BRIDGE_TEST_PATH: [
-        "try std.testing.expectEqualStrings(\"phase14-workqueue-scheduler-visible-worker-state-refinement\", workqueue_bridge.WorkqueueBridgeLab.currentSliceId());",
-        "try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, \"blocked maintenance\") != null);",
+        'try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", workqueue_bridge.WorkqueueBridgeLab.currentSliceId());',
+        'try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);',
     ],
     WORKQUEUE_REVIEWABILITY_PATH: [
-        "try std.testing.expectEqualStrings(\"P14-L04\", manifest.lane_key);",
-        "\"zig test zigux/tests/phase14_workqueue_reviewability.zig\"",
-        "\"blocked maintenance\"",
+        'try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);',
+        '"zig test zigux/tests/phase14_workqueue_reviewability.zig"',
+        '"blocked maintenance"',
     ],
     WORKQUEUE_MANIFEST_PATH: [
-        "\"lane_key\": \"P14-L04\"",
-        "\"current_lane_posture\": \"blocked_maintenance\"",
-        "\"zig test zigux/tests/phase14_workqueue_reviewability.zig\"",
-        "\"phase14-workqueue-live-execution-blocker\"",
+        '"lane_key": "P14-L04"',
+        '"current_lane_posture": "blocked_maintenance"',
+        '"zig test zigux/tests/phase14_workqueue_reviewability.zig"',
+        '"phase14-workqueue-live-execution-blocker"',
     ],
     RING_BUFFER_MANIFEST_PATH: [
-        "\"lane_key\": \"P14-L08\"",
-        "\"current_lane_posture\": \"maintenance_mode\"",
-        "\"phase14-ring-buffer-maintenance-handoff\"",
-        "\"zig test zigux/tests/phase14_ring_buffer_survey.zig\"",
+        '"lane_key": "P14-L08"',
+        '"current_lane_posture": "maintenance_mode"',
+        '"phase14-ring-buffer-maintenance-handoff"',
+        '"zig test zigux/tests/phase14_ring_buffer_survey.zig"',
     ],
     VALIDATOR_PATH: [
         "PHASE14_VALIDATION=pass",
         "PHASE14_VALIDATOR_SELF_TEST=pass",
         "REQUIRED_FILES = [",
         "REQUIRED_MARKERS = {",
+        'WORKQUEUE_PACKET_CHECKER_PATH = "scripts/zigux/check-phase14-workqueue-packet.py"',
     ],
 }
 
@@ -333,6 +342,19 @@ def fixture_text(rel_path: str) -> str:
             "else:\n"
             "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL=pass\")\n"
         )
+    if rel_path == WORKQUEUE_PACKET_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "# PHASE14_CHECK_PACKET=workqueue_packet\n"
+            '# WORKQUEUE_BRIDGE_PATH = Path("kernel/workqueue_bridge.zig")\n'
+            "# blocked-maintenance, wrapper-first posture\n"
+            "import sys\n"
+            "if \"--self-test\" in sys.argv:\n"
+            "    print(\"PHASE14_WORKQUEUE_PACKET_SELF_TEST=pass\")\n"
+            "else:\n"
+            "    print(\"PHASE14_WORKQUEUE_PACKET=pass\")\n"
+        )
     if rel_path in REQUIRED_MARKERS:
         title = titles.get(rel_path)
         if title is not None:
@@ -354,15 +376,15 @@ def write_fixture_tree(root: Path) -> None:
         write_text(root / rel_path, fixture_text(rel_path))
 
 
-def checker_script_path(root: Path) -> Path:
-    candidate = root / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+def checker_script_path(root: Path, rel_path: str) -> Path:
+    candidate = root / rel_path
     if candidate.exists():
         return candidate
-    return ROOT / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+    return ROOT / rel_path
 
 
-def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
-    command = [sys.executable, str(checker_script_path(root))]
+def run_subchecker(root: Path, *, self_test: bool, rel_path: str, fail_prefix: str) -> list[str]:
+    command = [sys.executable, str(checker_script_path(root, rel_path))]
     if self_test:
         command.append("--self-test")
     else:
@@ -375,10 +397,25 @@ def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
     output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
     if not output:
         output = ["checker exited with no output"]
-    return [
-        f"subcheck_fail:{RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH}:{line}"
-        for line in output
-    ]
+    return [f"{fail_prefix}:{rel_path}:{line}" for line in output]
+
+
+def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
+    return run_subchecker(
+        root,
+        self_test=self_test,
+        rel_path=RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+        fail_prefix="subcheck_fail",
+    )
+
+
+def run_workqueue_packet_checker(root: Path, *, self_test: bool) -> list[str]:
+    return run_subchecker(
+        root,
+        self_test=self_test,
+        rel_path=WORKQUEUE_PACKET_CHECKER_PATH,
+        fail_prefix="subcheck_fail",
+    )
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -408,6 +445,12 @@ def run_self_test() -> int:
                 "fixture tree should pass the dedicated RCU rollback guardrail self-test "
                 f"but failed: {checker_failures!r}"
             )
+        workqueue_checker_failures = run_workqueue_packet_checker(base, self_test=True)
+        if workqueue_checker_failures:
+            raise SystemExit(
+                "fixture tree should pass the dedicated workqueue packet self-test "
+                f"but failed: {workqueue_checker_failures!r}"
+            )
 
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
@@ -416,6 +459,7 @@ def run_self_test() -> int:
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+            WORKQUEUE_PACKET_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
             END_TO_END_SMOKE_MANIFEST_PATH,
             WORKFLOW_PATH,
@@ -438,6 +482,10 @@ def run_self_test() -> int:
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
+            ),
+            (
+                WORKQUEUE_PACKET_CHECKER_PATH,
+                REQUIRED_MARKERS[WORKQUEUE_PACKET_CHECKER_PATH][0],
             ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
@@ -466,9 +514,9 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
-            "the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
-            "rollback-threshold sequencing checker, the dedicated RCU rollback "
-            "guardrail, and the returned workqueue reviewability shard."
+            "the release-boundary exact-count guard, the workqueue bridge packet guard, the "
+            "ring-buffer study-only packet, the dedicated rollback-threshold sequencing checker, "
+            "the dedicated RCU rollback guardrail, and the returned workqueue reviewability shard."
         )
     )
     parser.add_argument(
@@ -490,6 +538,8 @@ def main() -> int:
     failures = validate(args.root)
     if not failures:
         failures.extend(run_rcu_guardrail_checker(args.root, self_test=False))
+    if not failures:
+        failures.extend(run_workqueue_packet_checker(args.root, self_test=False))
     if failures:
         print("PHASE14_VALIDATION=fail")
         print("PHASE14_PACKET_DRIFT_START")
