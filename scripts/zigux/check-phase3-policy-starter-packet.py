@@ -58,9 +58,15 @@ REQUIRED_REPLAY_ROUTES = (
 UPDATED_SHARED_REMINDER_MARKER = (
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, "
     "the dedicated ABI header-family survey follow-through, the focused abi.h next-step note, the shared ABI catalog helper "
-    "plus manifest-backed inventory companion, the shared tests-root export/UAPI layout route, the direct C smoke proof for "
-    "the Linux-facing header helpers, and the shared docs-root, tests-root, and scripts-root Phase 3 summaries now all "
-    "reflect those returns without widening into broader replay claims"
+    "plus manifest-backed inventory companion, the bounded bitmap/cpumask and list/hlist helper slices, the shared tests-root "
+    "export/UAPI layout route, and the direct C smoke proof; the remaining same-lane gap is no longer missing landed helper-local "
+    "code or replay surfaces, but shared-summary truthfulness across the docs-root, tests-root, and scripts-root reminder family"
+)
+
+UPDATED_SHARED_REMINDER_NEXT_STEP_MARKER = (
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread shows a smaller one-file reminder drift; "
+    "the highest-value same-lane follow-through is now shared-summary sync for the returned bitmap/cpumask and list/hlist slices, "
+    "with the scripts-root direct-C-smoke pair still separate and inventory-local"
 )
 
 REQUIRED_MARKERS = {
@@ -98,7 +104,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/README.md",
         "scripts/zigux/phase3_catalog.py",
         "zigux/tests/fixtures/phase3_abi_manifest.json",
-        "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread reopens a smaller one-file Phase 3 reminder or checker drift; the earlier docs-root refresh is now closed",
+        UPDATED_SHARED_REMINDER_NEXT_STEP_MARKER,
     ),
     ABI_HEADER_PATH: (
         "#define ZIGUX_PANIC_ABORT 0U",
