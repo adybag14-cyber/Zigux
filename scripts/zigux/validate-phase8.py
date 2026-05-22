@@ -176,6 +176,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
         "current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set",
     ),
     Path("zigux/tests/phase8_build.zig"): (
@@ -543,7 +544,6 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).writeText = None
                 (root / relative_path).write_text(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
