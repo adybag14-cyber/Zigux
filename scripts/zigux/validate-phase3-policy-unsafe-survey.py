@@ -35,12 +35,15 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig",
     "PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig",
     "PHASE3_UNSAFE_POLICY_PATH=zigux/helpers/unsafe_policy.zig",
+    "PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-permits-and-audit-aliases",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig",
     "PHASE3_POLICY_UNSAFE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
     "The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.",
 )
@@ -67,7 +70,10 @@ REQUIRED_FILE_MARKERS = {
     UNSAFE_POLICY_PATH: (
         "pub const AccessBoundary = enum {",
         "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn requiresDedicatedAuditInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn allowsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {",
         "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     ),
     MMIO_PATH: (
         "pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {",
@@ -78,13 +84,18 @@ REQUIRED_FILE_MARKERS = {
         "pub const Surface = enum {",
         "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
         "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
+        "pub fn constPointerAtInteropPolicy(comptime T: type, address: usize, policy: abi.InteropPolicy) RawPointerBridgeError!*align(1) const T {",
+        "pub fn constSliceAtInteropPolicy(comptime T: type, address: usize, len: usize, policy: abi.InteropPolicy) RawPointerBridgeError![]align(1) const T {",
+        "pub fn writeValueAtInteropPolicyBytes(comptime T: type, address: usize, value: T, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!void {",
         "pub fn writeValueAtInteropPolicy(comptime T: type, address: usize, value: T, policy: abi.InteropPolicy) RawPointerBridgeError!void {",
     ),
 }
 
 SELF_TEST_CASES = (
-    ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[6], "marker"),
-    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
+    ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
+    ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
+    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[13], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
@@ -92,8 +103,8 @@ SELF_TEST_CASES = (
         "blob",
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
     ),
-    ("panic marker drift", PANIC_POLICY_PATH, REQUIRED_FILE_MARKERS[PANIC_POLICY_PATH][2], "marker"),
-    ("allocator ownership marker drift", ALLOCATOR_POLICY_PATH, REQUIRED_FILE_MARKERS[ALLOCATOR_POLICY_PATH][3], "marker"),
+    ("unsafe policy audit marker drift", UNSAFE_POLICY_PATH, REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][2], "marker"),
+    ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
 )
 
 SAMPLE_FILE_TEXT = {
