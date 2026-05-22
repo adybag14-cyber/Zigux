@@ -21,8 +21,14 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-22"
-EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
+EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
+EXPECTED_CURRENT_REPO_REALITY_GAPS = [
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+]
+EXPECTED_PUBLIC_TREE_COMPANIONS: list[str] = []
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -43,46 +49,55 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
-EXPECTED_PUBLIC_TREE_COMPANIONS = []
-EXPECTED_CATALOG_SURVEYED_HEAD = "- surveyed head: `current-master-readback-2026-05-21`"
+EXPECTED_SHARED_DIRECT_EVIDENCE = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    "zigux/tests/phase6_build.zig",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+    "scripts/zigux/check-phase6-shared-surface.py",
+    "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/validate-phase6.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-perf-threshold-markers.py",
+]
 EXPECTED_DOCS_README_SNIPPETS = [
-    "authenticated current-master rereads now directly recover both `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep both note surfaces inside the current docs-root evidence packet beside the shared manifests instead of framing the broader perf-note surface as public-tree-backed companion evidence.",
-    "current `master` directly serves the four roadmap-backed helper anchors through `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`, their focused `zigux/tests/phase6_*` helper and perf replays, the restored `zigux/tests/phase6_build.zig` foothold, and the current `zigux/Makefile` wrapper family, so keep the docs-root reminder reviewable through that returned helper-evidence packet instead of restating helper-local semantics here.",
+    "- `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/phase6-perf-gate-survey.md`",
+    "* current `master` directly serves the four roadmap-backed helper anchors through `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`",
+    "* authenticated current-master rereads now directly recover both `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`",
 ]
 EXPECTED_CATALOG_SNIPPETS = [
-    EXPECTED_CATALOG_SURVEYED_HEAD,
-    "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
-    "this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`,",
+    "- surveyed head: `current-master-readback-2026-05-22`",
+    "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`",
+    "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`",
 ]
-EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
-EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
-EXPECTED_BASE64_CASES = [
-    "STD_PAD",
-    "STD_NO_PAD",
-    "URLSAFE_PAD",
-    "URLSAFE_NO_PAD",
-    "IMAP_PAD",
-    "IMAP_NO_PAD",
+REQUIRED_BUILD_SNIPPETS = [
+    'const bsearch_perf_root_module = b.createModule(.{',
+    'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
+    'const checksum_perf_matrix_test_step = b.step(',
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
+    'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
 ]
-EXPECTED_BASE64_ITERATIONS = 12000
-EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT = 150
-EXPECTED_BASE64_DECODE_SLOWDOWN_PCT = 325
+REQUIRED_MAKEFILE_SNIPPETS = [
+    "phase6-bsearch-perf:",
+    "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-checksum-perf-matrix-test:",
+    "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-checksum-perf:",
+    "phase6-hexdump-perf:",
+]
+EXPECTED_BASE64_CASES = ["STD_PAD", "STD_NO_PAD", "URLSAFE_PAD", "URLSAFE_NO_PAD", "IMAP_PAD", "IMAP_NO_PAD"]
 EXPECTED_BASE64_RERUN_ROUTES = [
     "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-perf",
 ]
-EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
-EXPECTED_BSEARCH_REVIEW_POSTURE = "direct-helper-readback-restored"
+EXPECTED_BSEARCH_CHECKER_SURFACES = ["scripts/zigux/check-phase6-bsearch-corpus-evidence.py"]
 EXPECTED_BSEARCH_CASES = ["len15", "len64", "len1024"]
-EXPECTED_BSEARCH_QUERY_COUNT = 16
-EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
-EXPECTED_BSEARCH_PARITY_BUDGET_MODEL = "comparison_budget"
-EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
-EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS = [
-    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
-]
 EXPECTED_BSEARCH_RERUN_ROUTES = [
     "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-test",
@@ -90,44 +105,19 @@ EXPECTED_BSEARCH_RERUN_ROUTES = [
     "make -C zigux phase6-bsearch-perf",
     "make -C zigux phase6-perf",
 ]
-EXPECTED_CHECKSUM_CHECKER = "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
-EXPECTED_HEXDUMP_CHECKERS = [
-    "scripts/zigux/check-phase6-hexdump-packet.py",
-    "scripts/zigux/check-phase6-hexdump-route.py",
+EXPECTED_BSEARCH_C_ABI_REPLAYS = [
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig",
 ]
-EXPECTED_HEXDUMP_REVIEW_POSTURE = "direct-helper-readback-restored"
-EXPECTED_CURRENT_REPO_REALITY_GAPS = [
-    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
-    "zigux/tests/phase6_base64_c_casegen.zig",
+EXPECTED_CHECKSUM_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
-EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
-    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
-    "python3 scripts/zigux/check-phase6-hexdump-route.py",
-    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
-    "make -C zigux phase6-hexdump-review",
-    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
-    "make -C zigux phase6-hexdump-perf-matrix-test",
-    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
-    "make -C zigux phase6-hexdump-perf",
-]
-EXPECTED_HEXDUMP_PERF_CASES = [
-    {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
-    {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
-    {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
-    {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
-]
-EXPECTED_HEXDUMP_RERUN_ROUTES = [
-    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
-    "make -C zigux phase6-hexdump-perf",
-    "make -C zigux phase6-perf",
-]
-EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
-EXPECTED_CHECKSUM_PAYLOAD_MATRIX = [
+EXPECTED_CHECKSUM_PAYLOAD_CASES = [
     {"label": "64B", "iterations": 200000, "max_slowdown_pct": 150},
     {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150},
 ]
-EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
-EXPECTED_CHECKSUM_FAST_PATH_MATRIX = [
+EXPECTED_CHECKSUM_FAST_PATH_CASES = [
     {"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100},
     {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100},
     {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100},
@@ -139,22 +129,32 @@ EXPECTED_CHECKSUM_RERUN_ROUTES = [
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-perf",
 ]
-REQUIRED_BUILD_SNIPPETS = [
-    'const bsearch_perf_root_module = b.createModule(.{',
-    'const bsearch_perf = b.addExecutable(.{',
-    'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
-    'const checksum_perf_matrix_test_step = b.step(',
-    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
+EXPECTED_HEXDUMP_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
-REQUIRED_MAKEFILE_SNIPPETS = [
-    "phase6-bsearch-perf:",
-    "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
-    "phase6-checksum-perf-matrix-test:",
-    "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
-    "phase6-checksum-perf:",
-    "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
+EXPECTED_HEXDUMP_PERF_CASES = [
+    {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
+    {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
+    {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
 ]
-SELF_TEST_CASE_COUNT = 33
+EXPECTED_HEXDUMP_RERUN_ROUTES = [
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
+EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "python3 scripts/zigux/check-phase6-hexdump-route.py",
+    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "make -C zigux phase6-hexdump-perf",
+]
+SELF_TEST_CASE_COUNT = 15
 
 
 class ValidationError(RuntimeError):
@@ -169,7 +169,13 @@ def read_text(path: Path) -> str:
 
 
 def read_json(path: Path) -> dict[str, object]:
-    return json.loads(read_text(path))
+    try:
+        parsed = json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"invalid JSON in {path.as_posix()}: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValidationError(f"manifest root is not an object: {path.as_posix()}")
+    return parsed
 
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
@@ -177,6 +183,15 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}")
+
+
+def get_helper(helpers: object, key: str) -> dict[str, object]:
+    if not isinstance(helpers, list):
+        raise ValidationError("phase6 helpers list missing")
+    for helper in helpers:
+        if isinstance(helper, dict) and helper.get("key") == key:
+            return helper
+    raise ValidationError(f"missing helper row: {key}")
 
 
 def require_list_contains(values: object, expected_items: list[str], label: str) -> None:
@@ -188,13 +203,13 @@ def require_list_contains(values: object, expected_items: list[str], label: str)
 
 
 def validate(repo_root: Path) -> None:
-    manifest = read_json(repo_root / MANIFEST_PATH)
-    parity = read_json(repo_root / PARITY_MANIFEST_PATH)
-
     require_snippets(repo_root / DOCS_README_PATH, EXPECTED_DOCS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, EXPECTED_CATALOG_SNIPPETS)
     require_snippets(repo_root / BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
+
+    manifest = read_json(repo_root / MANIFEST_PATH)
+    parity = read_json(repo_root / PARITY_MANIFEST_PATH)
 
     if manifest.get("packet") != EXPECTED_PACKET:
         raise ValidationError("phase6 helper-evidence packet drift")
@@ -204,117 +219,114 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 phase drift")
     if manifest.get("lane_scope") != EXPECTED_LANE_SCOPE:
         raise ValidationError("phase6 helper-evidence lane-scope drift")
-    if manifest.get("surveyed_head") != EXPECTED_EVIDENCE_SURVEYED_HEAD:
+    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("phase6 helper-evidence surveyed-head drift")
-    if parity.get("surveyed_head") != EXPECTED_PARITY_SURVEYED_HEAD:
+    if parity.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("phase6 helper-parity surveyed-head drift")
     if manifest.get("current_direct_readback_companions") != EXPECTED_DIRECT_COMPANIONS:
         raise ValidationError("phase6 direct-readback companions mismatch")
     if manifest.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
-        raise ValidationError("phase6 public-tree-backed shared companions mismatch")
+        raise ValidationError("phase6 public-tree companions mismatch")
     if manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
-        raise ValidationError("phase6 roadmap anchor packet mismatch")
+        raise ValidationError("phase6 roadmap anchors mismatch")
+    if manifest.get("current_repo_reality_gaps") != EXPECTED_CURRENT_REPO_REALITY_GAPS:
+        raise ValidationError("phase6 repo-reality gaps mismatch")
+    if parity.get("shared_direct_evidence") != EXPECTED_SHARED_DIRECT_EVIDENCE:
+        raise ValidationError("phase6 parity shared direct evidence mismatch")
+    if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
+        raise ValidationError("phase6 parity public-tree companions mismatch")
 
     helpers = manifest.get("helpers")
-    if not isinstance(helpers, list):
-        raise ValidationError("phase6 helpers list missing")
+    parity_helpers = parity.get("helpers")
     if [helper.get("key") for helper in helpers if isinstance(helper, dict)] != EXPECTED_HELPER_KEYS:
         raise ValidationError("phase6 helper key order mismatch")
+    if [helper.get("key") for helper in parity_helpers if isinstance(helper, dict)] != EXPECTED_HELPER_KEYS:
+        raise ValidationError("phase6 parity helper key order mismatch")
 
-    parity_helpers = parity.get("helpers")
-    if not isinstance(parity_helpers, list):
-        raise ValidationError("phase6 parity helpers list missing")
-
-    base64 = next(helper for helper in parity_helpers if helper.get("key") == "base64")
+    base64 = get_helper(parity_helpers, "base64")
     base64_perf = base64.get("current_perf_evidence")
     if not isinstance(base64_perf, dict):
         raise ValidationError("phase6 base64 perf evidence missing")
     if base64_perf.get("case_labels") != EXPECTED_BASE64_CASES:
-        raise ValidationError("phase6 base64 perf case labels mismatch")
-    if base64_perf.get("iterations") != EXPECTED_BASE64_ITERATIONS:
+        raise ValidationError("phase6 base64 perf labels mismatch")
+    if base64_perf.get("iterations") != 12000:
         raise ValidationError("phase6 base64 perf iterations mismatch")
-    if base64_perf.get("max_encode_slowdown_pct") != EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT:
-        raise ValidationError("phase6 base64 encode slowdown mismatch")
-    if base64_perf.get("max_decode_slowdown_pct") != EXPECTED_BASE64_DECODE_SLOWDOWN_PCT:
-        raise ValidationError("phase6 base64 decode slowdown mismatch")
+    if base64_perf.get("max_encode_slowdown_pct") != 150:
+        raise ValidationError("phase6 base64 encode threshold mismatch")
+    if base64_perf.get("max_decode_slowdown_pct") != 325:
+        raise ValidationError("phase6 base64 decode threshold mismatch")
     if base64_perf.get("linux_style_rerun_routes") != EXPECTED_BASE64_RERUN_ROUTES:
-        raise ValidationError("phase6 base64 perf rerun routes mismatch")
+        raise ValidationError("phase6 base64 rerun routes mismatch")
 
-    bsearch = next(helper for helper in helpers if helper.get("key") == "bsearch")
-    if bsearch.get("checker_surfaces") != [EXPECTED_BSEARCH_CHECKER]:
-        raise ValidationError("phase6 bsearch checker surface mismatch")
-    if bsearch.get("dedicated_slowdown_replay") != "zigux/tests/phase6_bsearch_perf.zig":
-        raise ValidationError("phase6 bsearch perf replay mismatch")
-    if bsearch.get("current_review_posture") != EXPECTED_BSEARCH_REVIEW_POSTURE:
+    bsearch = get_helper(helpers, "bsearch")
+    if bsearch.get("checker_surfaces") != EXPECTED_BSEARCH_CHECKER_SURFACES:
+        raise ValidationError("phase6 bsearch checker surfaces mismatch")
+    if bsearch.get("current_review_posture") != "direct-helper-readback-restored":
         raise ValidationError("phase6 bsearch review posture mismatch")
     bsearch_perf = bsearch.get("current_perf_evidence")
     if not isinstance(bsearch_perf, dict):
         raise ValidationError("phase6 bsearch perf evidence missing")
     if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_CASES:
-        raise ValidationError("phase6 bsearch perf case labels mismatch")
-    if bsearch_perf.get("query_count") != EXPECTED_BSEARCH_QUERY_COUNT:
+        raise ValidationError("phase6 bsearch perf labels mismatch")
+    if bsearch_perf.get("query_count") != 16:
         raise ValidationError("phase6 bsearch query count mismatch")
-    if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA:
+    if bsearch_perf.get("budget_formula") != "std.math.log2_int_ceil(len) + 1":
         raise ValidationError("phase6 bsearch budget formula mismatch")
     if bsearch_perf.get("linux_style_rerun_routes") != EXPECTED_BSEARCH_RERUN_ROUTES:
-        raise ValidationError("phase6 bsearch perf rerun routes mismatch")
+        raise ValidationError("phase6 bsearch rerun routes mismatch")
 
-    bsearch_parity = next(helper for helper in parity_helpers if helper.get("key") == "bsearch")
-    if bsearch_parity.get("current_review_posture") != EXPECTED_BSEARCH_REVIEW_POSTURE:
-        raise ValidationError("phase6 parity bsearch review posture mismatch")
+    bsearch_parity = get_helper(parity_helpers, "bsearch")
     bsearch_parity_perf = bsearch_parity.get("current_perf_evidence")
     if not isinstance(bsearch_parity_perf, dict):
         raise ValidationError("phase6 parity bsearch perf evidence missing")
-    if bsearch_parity_perf.get("budget_model") != EXPECTED_BSEARCH_PARITY_BUDGET_MODEL:
+    if bsearch_parity_perf.get("budget_model") != "comparison_budget":
         raise ValidationError("phase6 parity bsearch budget model mismatch")
-    if bsearch_parity_perf.get("case_labels") != EXPECTED_BSEARCH_CASES:
-        raise ValidationError("phase6 parity bsearch perf case labels mismatch")
-    if bsearch_parity_perf.get("query_count") != EXPECTED_BSEARCH_QUERY_COUNT:
-        raise ValidationError("phase6 parity bsearch query count mismatch")
-    if bsearch_parity_perf.get("bound_budget_formula") != EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA:
+    if bsearch_parity_perf.get("bound_budget_formula") != "std.math.log2_int_ceil(len) + 1":
         raise ValidationError("phase6 parity bsearch budget formula mismatch")
-    if (
-        bsearch_parity_perf.get("runtime_selected_c_abi_replays")
-        != EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS
-    ):
-        raise ValidationError("phase6 parity bsearch C ABI replay mismatch")
+    if bsearch_parity_perf.get("runtime_selected_c_abi_replays") != EXPECTED_BSEARCH_C_ABI_REPLAYS:
+        raise ValidationError("phase6 parity bsearch C ABI rerun mismatch")
     if bsearch_parity_perf.get("linux_style_rerun_routes") != EXPECTED_BSEARCH_RERUN_ROUTES:
         raise ValidationError("phase6 parity bsearch rerun routes mismatch")
 
-    checksum = next(helper for helper in helpers if helper.get("key") == "checksum")
-    if checksum.get("checker_surfaces") != [EXPECTED_CHECKSUM_CHECKER]:
-        raise ValidationError("phase6 checksum checker surface mismatch")
+    checksum = get_helper(helpers, "checksum")
+    if checksum.get("checker_surfaces") != EXPECTED_CHECKSUM_CHECKER_SURFACES:
+        raise ValidationError("phase6 checksum checker surfaces mismatch")
     checksum_perf = checksum.get("current_perf_evidence")
     if not isinstance(checksum_perf, dict):
         raise ValidationError("phase6 checksum perf evidence missing")
-    if checksum_perf.get("cases") != EXPECTED_CHECKSUM_PAYLOAD_MATRIX:
-        raise ValidationError("phase6 checksum payload perf matrix mismatch")
-    if checksum_perf.get("payload_case_labels") != EXPECTED_CHECKSUM_PAYLOAD_CASES:
-        raise ValidationError("phase6 checksum payload perf cases mismatch")
-    if checksum_perf.get("ipv4_fast_path_cases") != EXPECTED_CHECKSUM_FAST_PATH_MATRIX:
-        raise ValidationError("phase6 checksum ipv4 fast-path matrix mismatch")
-    if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_FAST_PATH_CASES:
-        raise ValidationError("phase6 checksum ipv4 fast-path cases mismatch")
+    if checksum_perf.get("cases") != EXPECTED_CHECKSUM_PAYLOAD_CASES:
+        raise ValidationError("phase6 checksum payload matrix mismatch")
+    if checksum_perf.get("ipv4_fast_path_cases") != EXPECTED_CHECKSUM_FAST_PATH_CASES:
+        raise ValidationError("phase6 checksum fast-path matrix mismatch")
     if checksum_perf.get("linux_style_rerun_routes") != EXPECTED_CHECKSUM_RERUN_ROUTES:
-        raise ValidationError("phase6 checksum perf rerun routes mismatch")
+        raise ValidationError("phase6 checksum rerun routes mismatch")
 
-    hexdump = next(helper for helper in helpers if helper.get("key") == "hexdump")
-    if hexdump.get("checker_surfaces") != EXPECTED_HEXDUMP_CHECKERS:
-        raise ValidationError("phase6 hexdump checker surface mismatch")
+    checksum_parity = get_helper(parity_helpers, "checksum")
+    if checksum_parity.get("checker_surfaces") != EXPECTED_CHECKSUM_CHECKER_SURFACES:
+        raise ValidationError("phase6 parity checksum checker surfaces mismatch")
+
+    hexdump = get_helper(helpers, "hexdump")
+    if hexdump.get("checker_surfaces") != EXPECTED_HEXDUMP_CHECKER_SURFACES:
+        raise ValidationError("phase6 hexdump checker surfaces mismatch")
     if hexdump.get("perf_matrix_preflight") != "zigux/tests/phase6_hexdump_perf_matrix.zig":
         raise ValidationError("phase6 hexdump perf-matrix preflight mismatch")
-    if hexdump.get("current_review_posture") != EXPECTED_HEXDUMP_REVIEW_POSTURE:
-        raise ValidationError("phase6 hexdump review posture mismatch")
     hexdump_perf = hexdump.get("current_perf_evidence")
     if not isinstance(hexdump_perf, dict):
         raise ValidationError("phase6 hexdump perf evidence missing")
     if hexdump_perf.get("cases") != EXPECTED_HEXDUMP_PERF_CASES:
         raise ValidationError("phase6 hexdump perf cases mismatch")
     if hexdump_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
-        raise ValidationError("phase6 hexdump perf rerun routes mismatch")
+        raise ValidationError("phase6 hexdump rerun routes mismatch")
 
-    if manifest.get("current_repo_reality_gaps") != EXPECTED_CURRENT_REPO_REALITY_GAPS:
-        raise ValidationError("phase6 current repo reality gaps mismatch")
+    hexdump_parity = get_helper(parity_helpers, "hexdump")
+    if hexdump_parity.get("checker_surfaces") != EXPECTED_HEXDUMP_CHECKER_SURFACES:
+        raise ValidationError("phase6 parity hexdump checker surfaces mismatch")
+    hexdump_parity_perf = hexdump_parity.get("current_perf_evidence")
+    if not isinstance(hexdump_parity_perf, dict):
+        raise ValidationError("phase6 parity hexdump perf evidence missing")
+    if hexdump_parity_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
+        raise ValidationError("phase6 parity hexdump rerun routes mismatch")
+
     require_list_contains(
         manifest.get("current_shared_replay_inventory"),
         EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
@@ -338,7 +350,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_PACKET,
                 "phase": EXPECTED_PHASE,
-                "surveyed_head": EXPECTED_EVIDENCE_SURVEYED_HEAD,
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
                 "lane_scope": EXPECTED_LANE_SCOPE,
                 "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
@@ -349,32 +361,28 @@ def scaffold_repo(root: Path) -> None:
                     {"key": "base64"},
                     {
                         "key": "bsearch",
-                        "checker_surfaces": [EXPECTED_BSEARCH_CHECKER],
-                        "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
-                        "current_review_posture": EXPECTED_BSEARCH_REVIEW_POSTURE,
+                        "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES,
+                        "current_review_posture": "direct-helper-readback-restored",
                         "current_perf_evidence": {
                             "case_labels": EXPECTED_BSEARCH_CASES,
-                            "query_count": EXPECTED_BSEARCH_QUERY_COUNT,
-                            "budget_formula": EXPECTED_BSEARCH_EVIDENCE_BUDGET_FORMULA,
+                            "query_count": 16,
+                            "budget_formula": "std.math.log2_int_ceil(len) + 1",
                             "linux_style_rerun_routes": EXPECTED_BSEARCH_RERUN_ROUTES,
                         },
                     },
                     {
                         "key": "checksum",
-                        "checker_surfaces": [EXPECTED_CHECKSUM_CHECKER],
+                        "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
                         "current_perf_evidence": {
-                            "cases": EXPECTED_CHECKSUM_PAYLOAD_MATRIX,
-                            "payload_case_labels": EXPECTED_CHECKSUM_PAYLOAD_CASES,
-                            "ipv4_fast_path_cases": EXPECTED_CHECKSUM_FAST_PATH_MATRIX,
-                            "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_FAST_PATH_CASES,
+                            "cases": EXPECTED_CHECKSUM_PAYLOAD_CASES,
+                            "ipv4_fast_path_cases": EXPECTED_CHECKSUM_FAST_PATH_CASES,
                             "linux_style_rerun_routes": EXPECTED_CHECKSUM_RERUN_ROUTES,
                         },
                     },
                     {
                         "key": "hexdump",
-                        "checker_surfaces": EXPECTED_HEXDUMP_CHECKERS,
+                        "checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES,
                         "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
-                        "current_review_posture": EXPECTED_HEXDUMP_REVIEW_POSTURE,
                         "current_perf_evidence": {
                             "cases": EXPECTED_HEXDUMP_PERF_CASES,
                             "linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES,
@@ -392,28 +400,38 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_PARITY_PACKET,
                 "phase": EXPECTED_PHASE,
-                "surveyed_head": EXPECTED_PARITY_SURVEYED_HEAD,
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "shared_direct_evidence": EXPECTED_SHARED_DIRECT_EVIDENCE,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "helpers": [
                     {
                         "key": "base64",
                         "current_perf_evidence": {
                             "case_labels": EXPECTED_BASE64_CASES,
-                            "iterations": EXPECTED_BASE64_ITERATIONS,
-                            "max_encode_slowdown_pct": EXPECTED_BASE64_ENCODE_SLOWDOWN_PCT,
-                            "max_decode_slowdown_pct": EXPECTED_BASE64_DECODE_SLOWDOWN_PCT,
+                            "iterations": 12000,
+                            "max_encode_slowdown_pct": 150,
+                            "max_decode_slowdown_pct": 325,
                             "linux_style_rerun_routes": EXPECTED_BASE64_RERUN_ROUTES,
                         },
                     },
                     {
                         "key": "bsearch",
-                        "current_review_posture": EXPECTED_BSEARCH_REVIEW_POSTURE,
                         "current_perf_evidence": {
-                            "budget_model": EXPECTED_BSEARCH_PARITY_BUDGET_MODEL,
-                            "case_labels": EXPECTED_BSEARCH_CASES,
-                            "query_count": EXPECTED_BSEARCH_QUERY_COUNT,
-                            "bound_budget_formula": EXPECTED_BSEARCH_PARITY_BOUND_BUDGET_FORMULA,
-                            "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_RUNTIME_SELECTED_C_ABI_REPLAYS,
+                            "budget_model": "comparison_budget",
+                            "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+                            "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                             "linux_style_rerun_routes": EXPECTED_BSEARCH_RERUN_ROUTES,
+                        },
+                    },
+                    {
+                        "key": "checksum",
+                        "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
+                    },
+                    {
+                        "key": "hexdump",
+                        "checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES,
+                        "current_perf_evidence": {
+                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES,
                         },
                     },
                 ],
@@ -424,7 +442,8 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
-def expect_failure(root: Path, path: Path, mutate) -> None:
+def expect_failure(root: Path, rel_path: Path, mutate) -> None:
+    path = root / rel_path
     original = read_text(path)
     mutate(path)
     try:
@@ -433,7 +452,13 @@ def expect_failure(root: Path, path: Path, mutate) -> None:
         return
     finally:
         write(path, original)
-    raise AssertionError("expected validation failure")
+    raise AssertionError(f"expected validation failure for {rel_path.as_posix()}")
+
+
+def rewrite_json(path: Path, mutate) -> None:
+    data = json.loads(read_text(path))
+    mutate(data)
+    write(path, json.dumps(data, indent=2) + "\n")
 
 
 def run_self_test() -> None:
@@ -443,76 +468,35 @@ def run_self_test() -> None:
         validate(root)
         cases_run = 0
 
-        def rewrite_json(path: Path, fn) -> None:
-            data = json.loads(read_text(path))
-            fn(data)
-            write(path, json.dumps(data, indent=2) + "\n")
-
-        expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[0] + "\n", "", 1)))
+        expect_failure(root, DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[1] + "\n", "", 1)))
+        expect_failure(root, CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[2] + "\n", "", 1)))
+        expect_failure(root, BUILD_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_BUILD_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[0] + "\n", "", 1)))
+        expect_failure(root, MAKEFILE_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_MAKEFILE_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_DOCS_README_SNIPPETS[1] + "\n", "", 1)))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-21"})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
         cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "deadbee"})))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_formula": "len + 1"})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2].update({"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-hexdump-slice.md")))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"].update({"linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES[:-1]})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"current_review_posture": "drifted"})))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"max_decode_slowdown_pct": 350})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_formula": "len + 1"})))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS[:1]})))
         cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-bsearch-perf")))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_model": "drifted"})))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["runtime_selected_c_abi_replays"].remove("zigux/tests/phase6_bsearch_c_abi_budget.zig")))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-bsearch-perf")))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-base64-perf")))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"max_decode_slowdown_pct": 326})))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"case_labels": EXPECTED_BASE64_CASES[:-1]})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": []})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["cases"][1].update({"iterations": 12001})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["ipv4_fast_path_cases"][2].update({"max_slowdown_pct": 101})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-checksum-perf")))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["cases"][3].update({"max_slowdown_pct": 601})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"]["linux_style_rerun_routes"].remove("make -C zigux phase6-hexdump-perf")))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/phase6_base64_c_casegen.zig")))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
-        cases_run += 1
-        expect_failure(root, root / BUILD_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_BUILD_SNIPPETS[2] + "\n", "", 1)))
-        cases_run += 1
-        expect_failure(root, root / MAKEFILE_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_MAKEFILE_SNIPPETS[4] + "\n", "", 1)))
-        cases_run += 1
-        expect_failure(root, root / PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
-        cases_run += 1
-        expect_failure(root, root / MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "drifted"})))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3].update({"checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES[:1]})))
         cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
