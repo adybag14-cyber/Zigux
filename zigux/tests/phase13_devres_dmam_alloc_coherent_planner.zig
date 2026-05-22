@@ -20,6 +20,7 @@ test "phase13 devres descriptor records helper-first dmam_alloc_coherent plannin
     try std.testing.expect(descriptor.provides_release_record_lifetime_planning);
     try std.testing.expect(descriptor.provides_release_call_planning);
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
+    try std.testing.expect(descriptor.provides_dmam_detach_cleanup_transition_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
@@ -70,7 +71,7 @@ test "phase13 devres retains detach-time cleanup ownership when planned coherent
     try std.testing.expect(plan.should_free_on_detach);
 }
 
-test "phase13 devres turns successful coherent-allocation planning into explicit detach cleanup planning" {
+test "phase13 devres turns successful coherent-allocation planning into explicit detach cleanup transition planning" {
     const plan = try devres.DevresHelperLab.planManagedDmamAllocCoherent(.{
         .requested_size = 4096,
         .release_record_allocated = true,
@@ -79,10 +80,11 @@ test "phase13 devres turns successful coherent-allocation planning into explicit
 
     try std.testing.expect(plan.should_free_on_detach);
 
-    const cleanup = devres.DevresHelperLab.planManagedDmamFreeCoherent(plan.requested_size, true);
+    const cleanup = devres.DevresHelperLab.planManagedDmamDetachCleanup(plan, true);
     try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
     try std.testing.expectEqual(@as(u64, 4096), cleanup.requested_size);
-    try std.testing.expect(cleanup.frees_allocation);
+    try std.testing.expect(cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
     try std.testing.expect(cleanup.releases_from_devres);
     try std.testing.expect(cleanup.release_record_consumed);
     try std.testing.expect(!cleanup.warns_on_release_miss);
@@ -93,11 +95,30 @@ test "phase13 devres turns successful coherent-allocation planning into explicit
     try requireContains(source, ".provides_release_record_lifetime_planning = true");
     try requireContains(source, ".provides_release_call_planning = true");
     try requireContains(source, ".provides_dmam_free_coherent_cleanup_planning = true");
+    try requireContains(source, ".provides_dmam_detach_cleanup_transition_planning = true");
     try requireContains(source, "pub const ManagedReleaseCallPlan = struct");
+    try requireContains(source, "pub const ManagedDmamDetachCleanupPlan = struct");
     try requireContains(source, "pub fn planManagedReleaseCall(requested_size: u64, release_record_matches: bool) ManagedReleaseCallPlan");
-    try requireContains(source, "const release_call = planManagedReleaseCall(requested_size, release_record_matches);");
+    try requireContains(source, "pub fn planManagedDmamDetachCleanup(");
+    try requireContains(source, "const cleanup = planManagedDmamFreeCoherent(allocation_plan.requested_size, release_record_matches);");
     try requireContains(source, ".warns_on_release_miss = !release_record_matches");
     try requireContains(source, ".destroys_release_record_before_free = true");
+}
+
+test "phase13 devres keeps detach cleanup transition warnable when the release record is missing" {
+    const plan = try devres.DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+    const cleanup = devres.DevresHelperLab.planManagedDmamDetachCleanup(plan, false);
+
+    try std.testing.expect(cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(!cleanup.releases_from_devres);
+    try std.testing.expect(!cleanup.release_record_consumed);
+    try std.testing.expect(cleanup.warns_on_release_miss);
+    try std.testing.expect(cleanup.destroys_release_record_before_free);
 }
 
 test "phase13 devres warns when planned coherent free cannot find the devres record" {
@@ -164,7 +185,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py");
     try requireContains(manifest, "\"release_record_lifetime_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"release_call_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
-    try requireContains(manifest, "\"detach_cleanup_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"detach_cleanup_transition_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"zero_sized_request_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"validation_guard\": \"scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json\"");
@@ -173,9 +194,12 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "provides_release_record_lifetime_planning");
     try requireContains(manifest, "provides_release_call_planning");
     try requireContains(manifest, "provides_dmam_free_coherent_cleanup_planning");
+    try requireContains(manifest, "provides_dmam_detach_cleanup_transition_planning");
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "planManagedReleaseCall");
     try requireContains(manifest, "planManagedDmamFreeCoherent");
+    try requireContains(manifest, "ManagedDmamDetachCleanupPlan");
+    try requireContains(manifest, "planManagedDmamDetachCleanup");
     try requireContains(manifest, "ManagedReleaseCallPlan");
     try requireContains(manifest, "zero-sized requests free the release record");
     try requireContains(manifest, "release_record_consumed");
@@ -193,20 +217,21 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig`");
-    try requireContains(note, "descriptor records the shared release-record lifetime, release-call, and detach-cleanup planning markers");
+    try requireContains(note, "descriptor records the shared release-record lifetime, release-call, and detach-cleanup-transition planning markers");
     try requireContains(note, "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`");
     try requireContains(note, "promotes the coherent-free release-call shape into explicit shared helper planning through `planManagedReleaseCall(...)`");
     try requireContains(note, "routes `planManagedDmamFreeCoherent(...)` through that shared release-call helper");
     try requireContains(note, "accepts already-decided allocation inputs rather than talking to live hardware state");
     try requireContains(note, "retains detach-time cleanup ownership on success");
-    try requireContains(note, "turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`");
+    try requireContains(note, "turns that successful allocation plan into explicit detach cleanup transition planning through `planManagedDmamDetachCleanup(...)`");
+    try requireContains(note, "routes `planManagedDmamDetachCleanup(...)` through `planManagedDmamFreeCoherent(...)`");
     try requireContains(note, "records whether that planned coherent free consumes the retained release record and releases the allocation from devres");
     try requireContains(note, "records that the planned coherent free destroys the release record before freeing the allocation");
     try requireContains(note, "records whether a missing release record still frees the allocation while surfacing a warn-on-release-miss outcome");
     try requireContains(note, "failed allocation frees the release record");
     try requireContains(note, "zero-sized requests free the release record and avoid retaining detach-time cleanup ownership");
     try requireContains(note, "Fixture governance stays helper-local:");
-    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, missing-release-record, detach-cleanup, and warn-on-release-miss fixture coverage");
+    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, detach-cleanup-transition, missing-release-record, and warn-on-release-miss fixture coverage");
     try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map");
     try requireContains(note, "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py` is the packet-local fail-closed checker");
     try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
