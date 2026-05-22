@@ -45,6 +45,7 @@ SURVEY_MARKERS = [
     "Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+    "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
 ]
 FORBIDDEN_MARKERS = [
@@ -134,12 +135,18 @@ def run_self_test() -> None:
             "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
         }, indent=2) + "\n", encoding="utf-8")
         run_check(fixture_root)
-        for index, marker in enumerate(SURVEY_MARKERS[:3], start=1):
+        for index, marker in enumerate(SURVEY_MARKERS[:4], start=1):
             case_root = tmpdir / f"required_{index}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             expect_failure(case_root, marker)
+        dedicated_witness_root = tmpdir / "required_dedicated_witness"
+        shutil.copytree(fixture_root, dedicated_witness_root, dirs_exist_ok=True)
+        path = dedicated_witness_root / FILES["matrix_gap_note"]
+        marker = SURVEY_MARKERS[5]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(dedicated_witness_root, marker)
         forbidden_root = tmpdir / "forbidden"
         shutil.copytree(fixture_root, forbidden_root, dirs_exist_ok=True)
         path = forbidden_root / FILES["matrix_gap_note"]
@@ -153,7 +160,7 @@ def run_self_test() -> None:
         (bad_inventory_root / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_inventory_root, "build_test_names does not match")
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=5")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=7")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
