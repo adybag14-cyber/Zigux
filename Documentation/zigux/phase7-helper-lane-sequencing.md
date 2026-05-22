@@ -16,7 +16,8 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
   - `scripts/zigux/validate-phase7.py`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
-  - parked shared reminder paths: `scripts/zigux/check-phase7-make-wrapper.py` and `zigux/tests/phase7_build.zig`
+  - readable non-owner shared build evidence: `zigux/tests/phase7_build.zig`
+  - parked shared reminder path: `scripts/zigux/check-phase7-make-wrapper.py`
 
 - string_helpers packet, helper-local lane family:
   - `Documentation/zigux/phase7-string-helpers-slice.md`
@@ -61,9 +62,9 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 ## Current Repo Reality
 
-- the shared control packet is only partly recoverable in this slot. `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/validate-phase7.py` remain directly readable on current `master`, while `zigux/tests/phase7_build.zig` still sits in parked reminder territory, so `P7-Y05` should keep the broader shared build shard framed as reminder vocabulary instead of route-present proof.
+- the shared control packet now directly rereads `zigux/tests/phase7_build.zig` on current `master`, but that returned build shard still lives here only as readable non-owner evidence. `zigux/Makefile` still omits `phase7-test`, `phase7`, and the helper-local wrapper routes, so `P7-Y05` should keep the broader shared build-and-test surface framed as reminder vocabulary instead of route-present proof.
 
-- the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml` and `zigux/Makefile`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold but still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, and the still-absent broader wrapper boundaries instead of claiming the older build-and-test routes have returned.
+- the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` still exposes only the narrow `phase7-validate` foothold and still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.
 
 - `string_helpers` currently survives through `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `scripts/zigux/check-phase7-string-helpers-packet.py`. Fresh helper-local reread for this slot confirmed those helper-local surfaces now directly materialize on current `master`, so keep `Documentation/zigux/phase7-string-helpers-slice.md` with the string_helpers helper-local lane family instead of the shared-control packet while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay routed to `P7-Y05`.
 
@@ -76,7 +77,7 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 ## Anti-Overlap Rules
 
 - Treat scheduled lane `P7-Y07` as the argv-split alias for `P7-L09`; if a scheduled run starts under `P7-Y07`, keep the work inside the currently returned `argv_split` slice, helper, dedicated test, dedicated fixture, survey, manifest, and checker surfaces.
-- `P7-Y05` owns only shared validator, scripts-root, sample-root, tests-root, make-wrapper, and build-route truthfulness.
+- `P7-Y05` owns only shared validator, scripts-root, sample-root, tests-root, make-wrapper, and shared build-route truthfulness.
 - The helper-local string_helpers family owns `Documentation/zigux/phase7-string-helpers-slice.md`; do not route string_helpers helper, dedicated replay, survey, manifest, sample-boundary, or checker drift through `P7-Y05` just because the shared-control packet still rereads docs-root, tests-root, sample-root, validator, Makefile, workflow, or shared-build reminder files.
 - `P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift; because the current slot could directly reread `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`, keep same-lane work inside those returned surfaces.
 - `P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift; because the current slot could directly reread `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and the cmdline no-sample boundary in `samples/zigux/README.md`, keep same-lane work inside those returned surfaces.
