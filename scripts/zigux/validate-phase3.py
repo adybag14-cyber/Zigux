@@ -620,6 +620,24 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(repo_root)
+        current_header = _read(repo_root / ABI_HEADER_PATH)
+        _write(
+            repo_root / ABI_HEADER_PATH,
+            current_header
+            + "\ntypedef struct zigux_duplicate_layout_alias {\n"
+            + "    int value;\n"
+            + "} zigux_boundary_header;\n",
+        )
+        issues = validate_repo(repo_root)
+        if not any(
+            issue.startswith("duplicate ABI header typedef alias: zigux_boundary_header ")
+            for issue in issues
+        ):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected duplicate typedef alias issue was not reported")
+            return 1
+
+        _populate_repo(repo_root)
         current_bindings = _read(repo_root / ABI_BINDINGS_PATH)
         _write(
             repo_root / ABI_BINDINGS_PATH,
@@ -651,7 +669,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
