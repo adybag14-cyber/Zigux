@@ -31,7 +31,7 @@ Base raw URL prefix:
 - Linux-style route owner: `zigux/Makefile`
 
 ## Current-Master Evidence Snapshot
-- exact coverage evidence refreshed on `2026-05-20` against live current `master`
+- exact coverage evidence refreshed on `2026-05-21` against live current `master`
 - current `master` still carries this fallback catalog, the survey note, the slice note, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 - current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
 - `zigux/tests/phase12_build.zig` now wires the `virtio_net` queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests through both shared `smoke` and shared `test`
