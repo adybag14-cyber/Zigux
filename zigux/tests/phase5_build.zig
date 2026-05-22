@@ -102,6 +102,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const trace_events_string_formatting_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/trace_events_string_formatting_sample.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase5_bytestream_fifo_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-tests",
         .root_module = phase5_bytestream_fifo_module,
@@ -176,6 +182,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase5_trace_events_sample_survey_tests = b.addRunArtifact(phase5_trace_events_sample_survey_tests);
 
+    const phase5_trace_events_string_formatting_companion_tests = b.addTest(.{
+        .name = "phase5-trace-events-string-formatting-companion-tests",
+        .root_module = trace_events_string_formatting_sample_module,
+    });
+    const run_phase5_trace_events_string_formatting_companion_tests =
+        b.addRunArtifact(phase5_trace_events_string_formatting_companion_tests);
+    const phase5_trace_events_string_formatting_companion_step = b.step(
+        "phase5-trace-events-string-formatting-companion",
+        "Run the Phase 5 trace-events string-formatting companion checks",
+    );
+    phase5_trace_events_string_formatting_companion_step.dependOn(
+        &run_phase5_trace_events_string_formatting_companion_tests.step,
+    );
+
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
@@ -187,4 +207,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kretprobe_example_instance_budget_contract_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_survey_tests.step);
+    test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_tests.step);
 }
