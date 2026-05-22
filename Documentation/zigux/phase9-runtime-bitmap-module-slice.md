@@ -42,7 +42,7 @@ This document tracks the current bounded runtime bitmap slice.
 
 The runtime bitmap lane still needs a family-local note that keeps the visible reminder packet explicit without turning it into false proof that every broader shared runtime-loader surface returned too.
 
-The current visible packet includes the direct bitmap sample, direct loader companion, direct module proof, direct diff proof, focused top-bit companion, manifest-backed ownership packet, survey note, module-slice note, survey gate, and bounded build bundle. The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, loader, survey gate, diff gate, and top-bit companion; the directly readable module-side proof now sits beside that bundle; and the neighboring shared loader packet also survives through allocator/init-flow, command/environment boundary guard, the bounded loader-shared routes, and the broader `phase9-first-loadable-runtime-module-parity-survey-tests` handle, but those adjacent shared-owner surfaces still do not prove the broader runtime bitmap packet has reached loadable-module parity.
+The current visible packet includes the direct bitmap sample, direct loader companion, direct module proof, direct diff proof, focused top-bit companion, manifest-backed ownership packet, survey note, module-slice note, survey gate, and bounded build bundle. The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, loader, module, survey gate, diff gate, and top-bit companion; and the neighboring shared loader packet also survives through allocator/init-flow, command/environment boundary guard, the bounded loader-shared routes, and the broader `phase9-first-loadable-runtime-module-parity-survey-tests` handle, but those adjacent shared-owner surfaces still do not prove the broader runtime bitmap packet has reached loadable-module parity.
 
 The diff leg is directly readable again on the trusted path, but the older wider-family loader-gap survey and manifest vocabulary still does not return there, so this slice must stay bitmap-local while keeping that narrower returned shared loader packet distinct from the still-missing wider-family loader backlog.
 
@@ -57,10 +57,11 @@ The diff leg is directly readable again on the trusted path, but the older wider
 2. `zig test zigux/tests/runtime_bitmap_module.zig`
 3. `zig test zigux/tests/runtime_bitmap_diff.zig`
 4. `zig build phase9-runtime-bitmap-loader-tests --build-file zigux/tests/phase9_build.zig`
-5. `zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`
-6. `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
+5. `zig build phase9-runtime-bitmap-module-tests --build-file zigux/tests/phase9_build.zig`
+6. `zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`
+7. `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig`
 
-Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as rerun handles for the visible sample, loader, survey, diff, and top-bit packet only; they do not prove the broader shared runtime-loader family returned beyond the narrower allocator/init-flow, command/environment boundary, and cross-family parity-survey packet.
+Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as rerun handles for the visible sample, loader, module, survey, diff, and top-bit packet only; they do not prove the broader shared runtime-loader family returned beyond the narrower allocator/init-flow, command/environment boundary, and cross-family parity-survey packet.
 
 ## Next Bounded Step
 
