@@ -100,8 +100,8 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
 
     try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("c36b21af252cf76160ba5ae9c8f84b2310f4b2e1", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-21", manifest.verified_on);
+    try std.testing.expectEqualStrings("6791c1229b883d9f0acf9ec70e4159db1c9d1bf6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-22", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
@@ -113,7 +113,11 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     );
     try expectContains(
         manifest.roadmap_gap_check.queueing_correctness.current_surface,
-        "throughput-parity, and survey-gate sextet on the shared smoke and test route",
+        "shared validate, smoke, and test routes",
+    );
+    try expectContains(
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
+        "explicit receive-refill and transmit-recycle readiness booleans",
     );
     try std.testing.expectEqualStrings(
         "split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete",
@@ -122,6 +126,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
 
     var saw_build_gate = false;
     var saw_survey_gate = false;
+    var saw_runtime_data_path_gap = false;
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
             saw_build_gate = true;
@@ -130,15 +135,23 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
                 gap.status,
             );
             try expectContains(gap.why_now, "`phase12_virtio_net_survey`");
+            try expectContains(gap.why_now, "`phase12-validate`");
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("survey_present_shared_route_present", gap.status);
-            try expectContains(gap.why_now, "survey-gate build route");
+            try expectContains(gap.why_now, "`phase12-validate`");
+            try expectContains(gap.why_now, "blocked runtime-data-path boundary");
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
+            saw_runtime_data_path_gap = true;
+            try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
+            try expectContains(gap.why_now, "receive-refill and transmit-recycle readiness booleans");
         }
     }
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_runtime_data_path_gap);
 }
 
 test "phase12 virtio net survey note reflects the shared survey-gate route" {
@@ -149,9 +162,9 @@ test "phase12 virtio net survey note reflects the shared survey-gate route" {
     try expectContains(survey_note, "lane owner: `P12-L01`");
     try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
-    try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 smoke and test routes");
-    try expectContains(survey_note, "the shared Phase 12 build route reruns that sextet");
-    try expectContains(survey_note, "not measured transport throughput evidence");
+    try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes");
+    try expectContains(survey_note, "`phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof");
+    try expectContains(survey_note, "explicit receive-refill and transmit-recycle readiness booleans");
     try expectContains(survey_note, "still does not claim live DMA-safe receive ownership");
     try expectContains(survey_note, "performance-risk wording refresh");
 }
@@ -195,7 +208,8 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
 
     const makefile = try readFileAlloc("zigux/Makefile", 32 * 1024);
     defer std.testing.allocator.free(makefile);
+    try expectContains(makefile, "phase12-validate:");
     try expectContains(makefile, "phase12-smoke:");
     try expectContains(makefile, "phase12-test:");
-    try expectContains(makefile, "phase12: phase12-smoke phase12-test");
+    try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");
 }
