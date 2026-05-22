@@ -84,6 +84,14 @@ test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
     };
     try std.testing.expect(!missing_init.readyForRuntimeLoad());
 
+    const duplicate_init = InitFlow{
+        .handoff_stage = .initialized,
+        .init_runs = 2,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expect(!duplicate_init.readyForRuntimeLoad());
+
     const initialized_selftest_drift = InitFlow{
         .handoff_stage = .initialized,
         .init_runs = 1,
@@ -92,6 +100,14 @@ test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
     };
     try std.testing.expect(!initialized_selftest_drift.readyForRuntimeLoad());
 
+    const initialized_exit_drift = InitFlow{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 1,
+    };
+    try std.testing.expect(!initialized_exit_drift.readyForRuntimeLoad());
+
     const selftest_missing_hook_evidence = InitFlow{
         .handoff_stage = .selftest_complete,
         .init_runs = 1,
@@ -99,6 +115,14 @@ test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
         .exit_runs = 0,
     };
     try std.testing.expect(!selftest_missing_hook_evidence.readyForRuntimeLoad());
+
+    const selftest_duplicate_hook_evidence = InitFlow{
+        .handoff_stage = .selftest_complete,
+        .init_runs = 1,
+        .selftest_runs = 2,
+        .exit_runs = 0,
+    };
+    try std.testing.expect(!selftest_duplicate_hook_evidence.readyForRuntimeLoad());
 }
 
 test "keepsLoadPlanExplicit compares every shared handoff field" {
