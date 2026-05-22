@@ -9,7 +9,7 @@ This document records the bounded Phase 15 roadmap-facing survey for the live pa
 - `PHASE15_SLICE=parity-roadmap-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey rechecked against current `master` on 2026-05-20; the dedicated parity-scorecard packet still carries dated readback marker `current-master-readback-2026-05-19`
+- survey rechecked against current `master` on 2026-05-22; the dedicated parity-scorecard packet still carries dated readback marker `current-master-readback-2026-05-21`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -24,7 +24,7 @@ The honest same-lane question on current `master` is no longer whether Zigux lac
 
 ## Current master readback
 
-The 2026-05-20 reread shows these dedicated parity-scorecard surfaces present on current `master`:
+The 2026-05-22 reread shows these dedicated parity-scorecard surfaces present on current `master`:
 
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -35,7 +35,7 @@ The dedicated scorecard note and JSON still agree on the core packet shape:
 - lane key: `P15-L03`
 - slice: `parity-scorecard-baseline`
 - provenance mode: `dated_master_readback`
-- surveyed commit marker: `current-master-readback-2026-05-19`
+- surveyed commit marker: `current-master-readback-2026-05-21`
 - posture: `blocked_posture_accounting_not_port_readiness`
 
 The live machine-readable metrics still cover:
@@ -62,17 +62,17 @@ The exact handoff reread now shows the dedicated parity packet aligned on curren
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the broader validator-first and shared-build reminder routes through `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15{,-validate,-test}` framed as missing current-master gap vocabulary rather than shipped evidence
 - `zigux/tests/phase15_parity_scorecard.zig` still expects that same narrower wording for the dedicated reminder route and current-master gap inventory
 - `Documentation/zigux/phase15-governance-lane-sequencing.md` still records `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` as broader Phase 15 companions that remain missing on current `master`
-- direct current-`master` readback on 2026-05-20 still returned missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so the dedicated scorecard note, JSON companion, dedicated Zig guard, and the broader governance sequencing note now agree on the same reminder-route posture
+- direct current-`master` readback on 2026-05-22 still returned missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so the dedicated scorecard note, JSON companion, dedicated Zig guard, and the broader governance sequencing note now agree on the same reminder-route posture
 
 ## Exact checks
 
-The exact 2026-05-20 checks for this bounded handoff step were:
+The exact 2026-05-22 checks for this bounded handoff step were:
 
-- read `Documentation/zigux/phase15-parity-scorecard.md` and confirmed its status block still advertises `PHASE15_LANE_KEY=P15-L03`, `PHASE15_PROVENANCE_MODE=dated_master_readback`, and `current-master-readback-2026-05-19`
+- read `Documentation/zigux/phase15-parity-scorecard.md` and confirmed its status block still advertises `PHASE15_LANE_KEY=P15-L03`, `PHASE15_PROVENANCE_MODE=dated_master_readback`, and `current-master-readback-2026-05-21`
 - read `zigux/tests/phase15_parity_scorecard.json` and confirmed the same lane key, slice, dated-readback marker, posture role, four-anchor inventory, and `0` Architecture Council approvals
-- read `zigux/tests/phase15_parity_scorecard.zig` and confirmed the dedicated Zig guard still checks for `P15-L03`, `current-master-readback-2026-05-19`, the same aggregate metrics, and the narrower reminder-route sentence that keeps `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15*` routes in repo-reality-gap wording
+- read `zigux/tests/phase15_parity_scorecard.zig` and confirmed the dedicated Zig guard still checks for `P15-L03`, `current-master-readback-2026-05-21`, the same aggregate metrics, and the narrower reminder-route sentence that keeps `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15*` routes in repo-reality-gap wording
 - read `Documentation/zigux/phase15-governance-lane-sequencing.md` and confirmed the broader governance packet still lists `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` as missing broader Phase 15 companions on current `master`
-- attempted direct current-`master` readback for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`; both still returned missing on 2026-05-20
+- attempted direct current-`master` readback for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`; both still returned missing on 2026-05-22
 
 ## Current roadmap posture
 
