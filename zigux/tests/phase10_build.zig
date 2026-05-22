@@ -148,7 +148,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        virtio_input_status_drain_module,
+        phase10_virtio_input_status_drain_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -170,7 +170,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_teardown_observation_module.addImport(
         "virtio_input_teardown_observation",
-        virtio_input_teardown_observation_module,
+        phase10_virtio_input_teardown_observation_module,
     );
 
     const phase10_virtio_input_survey_module = b.createModule(.{
@@ -226,6 +226,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    const phase10_virtio_mmio_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_mmio_module.addImport("virtio_mmio", virtio_mmio_module);
 
     const phase10_virtio_mmio_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_mmio_survey.zig"),
@@ -360,6 +367,8 @@ pub fn build(b: *std.Build) void {
 
     const phase10_virtio_mmio_tests = b.addTest(.{ .name = "phase10-virtio-mmio-tests", .root_module = virtio_mmio_module });
     const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
+    const phase10_virtio_mmio_lab_tests = b.addTest(.{ .name = "phase10-virtio-mmio-lab-tests", .root_module = phase10_virtio_mmio_module });
+    const run_phase10_virtio_mmio_lab_tests = b.addRunArtifact(phase10_virtio_mmio_lab_tests);
     const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = "phase10-virtio-mmio-verify-tests", .root_module = virtio_mmio_verify_module });
     const run_phase10_virtio_mmio_verify_tests = b.addRunArtifact(phase10_virtio_mmio_verify_tests);
     const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = "phase10-virtio-mmio-survey-tests", .root_module = phase10_virtio_mmio_survey_module });
@@ -428,6 +437,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
+    test_step.dependOn(&run_phase10_virtio_mmio_lab_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 }
