@@ -87,13 +87,13 @@ REQUIRED_MARKERS = {
         "rbtree.rb_erase_init_cached",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
-        'const direct_anchor_fallback_provenance_marker =',
-        'const ownership_focus_fallback_marker =',
+        "const direct_anchor_fallback_provenance_marker =",
+        "const ownership_focus_fallback_marker =",
         'try expectContains(slice_note, "This slice must stay truthful about the current direct helper path. The helper-local implementation now remains rooted at `lib/rbtree.zig`, while the older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than proof that helper-local ownership still lives there.");',
-        'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);',
+        "try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);",
         'try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");',
         'try expectSliceNotContains(manifest.missing_paths, "lib/rbtree.zig");',
-        'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);',
+        "try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);",
         'try expectContains(manifest.next_bounded_step, "`tools/lib/rbtree.zig` remains framed as readable legacy companion evidence");',
         'try expectContains(makefile, "phase7-validate:");',
         'try expectNotContains(makefile, "phase7-rbtree-test:");',
@@ -120,7 +120,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -211,14 +211,14 @@ def run_self_test() -> None:
         write_fixture_root(root)
 
         path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
-        marker = 'try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);'
+        marker = "try expectSliceContains(manifest.ownership_focus, ownership_focus_fallback_marker);"
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
         write_fixture_root(root)
 
         path = root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
-        marker = 'try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);'
+        marker = "try expectContains(direct_anchor_note, direct_anchor_fallback_provenance_marker);"
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "zigux/tests/phase7_rbtree_survey.zig", marker)
         cases += 1
@@ -289,6 +289,20 @@ def run_self_test() -> None:
 
         path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
         marker = '"phase7-validate:"'
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = "DIRECT_ANCHOR_FALLBACK_PROVENANCE_MARKER = ("
+        path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
+        cases += 1
+        write_fixture_root(root)
+
+        path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        marker = "OWNERSHIP_FOCUS_FALLBACK_MARKER = ("
         path.write_text(read_text(path).replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(root, "scripts/zigux/check-phase7-rbtree-parity.py", marker)
         cases += 1
