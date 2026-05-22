@@ -79,6 +79,9 @@
       "fixture_surfaces": [
         "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
       ],
+      "checker_surfaces": [
+        "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+      ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
       "still_missing_direct_companions": [],
