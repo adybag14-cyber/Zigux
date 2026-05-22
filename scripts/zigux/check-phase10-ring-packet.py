@@ -314,7 +314,7 @@ def run_self_test() -> int:
             path = tmp_root / "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md"
             text = path.read_text(encoding="utf-8")
             marker = "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder"
-            path.write_text(text + "\n", encoding="utf-8")
+            path.write_text(text + marker + "\n", encoding="utf-8")
 
         expect_problem(
             root,
