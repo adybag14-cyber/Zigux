@@ -87,6 +87,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+        'test "phase 7 cmdline companion replays whitespace-only sentinel termination" {',
         'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
         'test "nextArg keeps empty input borrowed from the caller slice" {',
         'test "nextArg stays inside the first NUL for bare and key value tokens" {',
@@ -120,6 +121,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
         'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
@@ -138,7 +140,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 70
+SELF_TEST_CASE_COUNT = 72
 
 
 def read_text(path: Path) -> str:
@@ -463,6 +465,10 @@ def run_self_test() -> None:
                 'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
             ),
             (
+                "missing_survey_companion_whitespace_only_marker",
+                'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
+            ),
+            (
                 "missing_survey_companion_first_nul_bare_option_marker",
                 'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
             ),
@@ -522,6 +528,10 @@ def run_self_test() -> None:
             (
                 "missing_companion_leading_whitespace_boundary_marker",
                 'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
+            ),
+            (
+                "missing_companion_whitespace_only_boundary_marker",
+                'test "phase 7 cmdline companion replays whitespace-only sentinel termination" {',
             ),
             (
                 "missing_companion_bare_leading_equals_marker",
