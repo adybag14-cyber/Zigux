@@ -14,19 +14,20 @@ Current `master` materializes the syscall helper starter plus the helper-local p
 - `security/landlock/syscalls.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
+
+Current `master` still does not materialize the direct helper-local survey, replay, reviewability, or manifest companions through:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
-
-Current `master` still does not materialize the older shared Phase 13 build companion through:
 - `zigux/tests/phase13_build.zig`
 
 Current `master` also keeps `zigux/Makefile` present without exposing a dedicated Phase 13 landlock replay route through:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Keep that live shape explicit as a bounded helper starter plus helper-local governance, survey, direct replay, reviewability, and manifest packet, with the shared-build companion still absent, not as a claim that live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement shipped in Zigux.
+Keep that live shape explicit as a bounded helper starter plus helper-local slice, governance, and survey-gap packet, with the direct survey, replay, reviewability, manifest, and shared-build companions still absent, not as a claim that live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement shipped in Zigux.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
@@ -41,12 +42,9 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `security/landlock/syscalls.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `zigux/tests/phase13_landlock_syscalls.zig`
-- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
-- `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
 
-Keep contributor guidance anchored to the broader shipped reminder packet while the older shared-build companion remains absent:
+Keep contributor guidance anchored to the broader shipped reminder packet while the direct survey, direct replay, reviewability, manifest, and shared-build companions remain absent:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -55,7 +53,7 @@ Keep contributor guidance anchored to the broader shipped reminder packet while 
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-Y04`, while the shared Phase 13 reminder notes currently keep the absent shared-build companion recorded as the remaining repo-reality gap for this packet.
+This keeps the ownership split explicit: this governance note is the helper-local governance surface for `P13-Y04`, while the shared Phase 13 reminder notes currently keep the absent direct survey, direct replay, reviewability, manifest, and shared-build companions recorded as the remaining repo-reality gaps for this packet.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -64,7 +62,7 @@ The intent is simple: keep the syscall-facing policy packet reviewable as one bo
 Use this note to keep these boundaries explicit:
 - syscall policy wording, review prompts, and reminder-surface ownership belong here
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- shared packet routing stays with the shipped docs-root reminder surfaces while the shared `zigux/tests/phase13_build.zig` companion remains absent; keep that path recorded as repo reality rather than as shipped evidence
+- shared packet routing stays with the shipped docs-root reminder surfaces while the direct survey, direct replay, reviewability, manifest, and shared-build companions remain absent; keep that path recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
 - if a future helper lands, keep it tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that FD, file-buffer, credential, or domain ownership moved into Zigux
 
@@ -74,9 +72,9 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - the broad Phase 13 reminder surfaces keep this governance note explicit beside the ruleset-ownership note and the adjacent notifier evidence packet when they describe the active shared-helper tranche
-- no wording here drops the shipped survey, direct replay, reviewability, or manifest companions back into the missing-file bucket, and no wording implies extra helper-local companions beyond the shipped helper, slice, governance, survey, direct replay, reviewability, and manifest packet while the shared-build companion remains a repo-reality gap
+- no wording here promotes the still-missing direct survey, direct replay, reviewability, or manifest companions into shipped current-`master` evidence, and no wording implies extra helper-local companions beyond the shipped helper, slice, governance, and survey-gap packet while the shared-build companion remains a repo-reality gap
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
-- any still-missing repo path stays limited to the shared `phase13_build.zig` companion rather than mislabeling shipped helper-local companions as absent current-`master` evidence
+- any still-missing repo path stays limited to the direct survey, direct replay, reviewability, manifest, and shared `phase13_build.zig` companions rather than mislabeling shipped helper-local companions as absent current-`master` evidence
 - helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, restrict-self planning, ruleset-fd lookup planning, top-level create-ruleset initialization plus attr-presence wrapper checks, create-handle-only reuse of the ruleset-fd install planner, add-rule planning, top-level add-rule initialization plus attr-presence wrapper checks, ruleset-fd install planning, ruleset-fd stub planning, ruleset release planning, handled-access plus attr-size plus flag validation, incoming-layer plus tree-walk validation, delegated ruleset creation plus rule-tree search plus rule insertion planning, explicit `ruleset_fops` binding discipline, explicit `no_new_privs` plus supported restrict-self flag discipline, explicit `FMODE_CAN_READ` or `FMODE_CAN_WRITE` stub-mode discipline, explicit `filp->private_data` release discipline, and no live FD installation, file-buffer handling, or credential replacement
-- note-versus-gap ownership stays explicit: `P13-Y04` owns this governance note, while the broader shared Phase 13 reminder packet keeps only the absent shared-build companion recorded as the remaining repo-reality gap for this helper-local packet
+- note-versus-gap ownership stays explicit: `P13-Y04` owns this governance note, while the broader shared Phase 13 reminder packet keeps the direct survey, direct replay, reviewability, manifest, and shared-build companions recorded as the remaining repo-reality gaps for this helper-local packet
