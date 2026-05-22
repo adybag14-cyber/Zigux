@@ -43,6 +43,7 @@ TYPE_NAMES_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names.zig")
 TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
+PERF_BUFFER_POLL_BUILD = Path("zigux/tests/phase8_perf_buffer_poll_only_build.zig")
 LIBBPF_SEGMENTS_TEST = Path("zigux/tests/phase8_libbpf_segments.zig")
 LIBBPF_SEGMENTS_BUILD = Path("zigux/tests/phase8_libbpf_segments_only_build.zig")
 
@@ -68,6 +69,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
     Path("zigux/tests/phase8_perf_buffer_poll.zig"),
+    PERF_BUFFER_POLL_BUILD,
     VERIFY_ROUTING_GAP_TEST,
     VERIFY_ROUTING_GAP_BUILD,
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
@@ -222,6 +224,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "summarizePollExecutionResultFromWaitResult",
         "summarizeBufferFdLookup",
         "summarizeBufferWindowLookup",
+    ),
+    PERF_BUFFER_POLL_BUILD: (
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "phase8_perf_buffer_poll.zig",
+        "phase8-perf-buffer-poll-tests",
+        "Run focused Phase 8 perf-buffer poll tests",
     ),
     VERIFY_ROUTING_GAP_TEST: (
         "phase 8 verify routing witness records the current CPU-index verifier closure",
