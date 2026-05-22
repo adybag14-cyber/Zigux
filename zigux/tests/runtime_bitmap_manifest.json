@@ -2,7 +2,7 @@
   "phase": "Phase 9",
   "lane_key": "P9-L08",
   "status": "active",
-  "surveyed_commit": "2026-05-22-runtime-bitmap-diff-returned",
+  "surveyed_commit": "e306440f579ded71e8441c1a513af6fd12bbbfdd",
   "scope": "partial runtime bitmap reminder packet, direct sample proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader shared runtime-loader parity claim",
   "sample_path": "samples/zigux/runtime_bitmap.zig",
   "loader_path": "samples/zigux/runtime_bitmap_loader.zig",
