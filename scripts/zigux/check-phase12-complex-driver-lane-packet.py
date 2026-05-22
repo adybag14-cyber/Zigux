@@ -11,11 +11,13 @@ from pathlib import Path
 CHECK_NAME = "PHASE12_COMPLEX_DRIVER_LANE_PACKET"
 
 NOTE_PATH = Path("Documentation/zigux/phase12-complex-driver-lane-sequencing.md")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_FILES = (
     NOTE_PATH,
+    WORKFLOW_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
 )
@@ -24,10 +26,20 @@ NOTE_MARKERS = (
     "`PHASE12_LANE=complex-driver-shared-release-packet`",
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, and `drivers/net/virtio_net_throughput_parity.zig` are now present on `master`.",
     "`zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` are now present on `master` as the directly coupled review packet for that split-helper family.",
+    "`zigux/tests/phase12_virtio_net_survey.zig` is also present on `master` as the shared survey gate for that same bounded packet; keep it explicit as reviewability support beside the five replay shards without reviving the older monolithic starter or implying live DMA-safe queue ownership, queue restart parity, or completion-path delivery.",
     "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are currently absent on `master`",
     "current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+    "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, so keep that workflow-side throughput anchor explicit as adjacent bounded `virtio_net` evidence rather than shared smoke-route proof.",
     "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-first route.",
     "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the one commit-pinned direct replay artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
+)
+
+WORKFLOW_MARKERS = (
+    "run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py",
+    "run: make -C zigux phase12-smoke",
+    "run: make -C zigux phase12-test",
+    "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
 )
 
 BUILD_MARKERS = (
@@ -41,6 +53,8 @@ BUILD_MARKERS = (
     "phase12-virtio-net-post-reset-replay-tests",
     "phase12_virtio_net_throughput_parity.zig",
     "phase12-virtio-net-throughput-parity-tests",
+    "phase12_virtio_net_survey.zig",
+    "phase12-virtio-net-survey-tests",
 )
 
 MAKEFILE_MARKERS = (
@@ -84,6 +98,7 @@ def check(root: Path) -> None:
             raise CheckFailure(f"missing required file: {relative_path}")
 
     require_markers(read_text(root, NOTE_PATH), NOTE_MARKERS, str(NOTE_PATH))
+    require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, str(WORKFLOW_PATH))
     require_markers(read_text(root, BUILD_PATH), BUILD_MARKERS, str(BUILD_PATH))
 
     makefile_text = read_text(root, MAKEFILE_PATH)
@@ -98,6 +113,7 @@ def check(root: Path) -> None:
 def write_fixture(root: Path) -> None:
     files = {
         NOTE_PATH: "\n".join(NOTE_MARKERS) + "\n",
+        WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
     }
@@ -126,6 +142,17 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected note marker failure")
+
+        write_fixture(root)
+        (root / WORKFLOW_PATH).writeText("broken\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if ".github/workflows/zigux-bootstrap.yml" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
         (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
