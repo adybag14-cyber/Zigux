@@ -113,7 +113,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\");',
+        'try expectContains(manifest, "\\\\\"next_bounded_step\\\\\": \\\\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
@@ -167,14 +167,17 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 28
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
@@ -184,8 +187,10 @@ def write_fixture_root(tmp_root: Path) -> None:
                 lines.extend([marker] * expected)
         write(tmp_root / rel, "\n".join(lines) + "\n")
 
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -195,6 +200,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
+
 
 def collect_mismatched_counts(root: Path) -> list[str]:
     mismatches: list[str] = []
@@ -206,6 +212,7 @@ def collect_mismatched_counts(root: Path) -> list[str]:
                 mismatches.append(f"{rel}: expected {expected} occurrence(s) of {marker!r}, found {actual}")
     return mismatches
 
+
 def collect_unexpected_markers(root: Path) -> list[str]:
     unexpected: list[str] = []
     for rel, markers in FORBIDDEN_MARKERS.items():
@@ -214,6 +221,7 @@ def collect_unexpected_markers(root: Path) -> list[str]:
             if marker in text:
                 unexpected.append(f"{rel}: {marker}")
     return unexpected
+
 
 def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
@@ -226,6 +234,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
         collect_unexpected_markers(root),
     )
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_markers == [], case
@@ -233,11 +242,13 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert unexpected_markers == [], case
     assert missing_files == [rel], case
 
+
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_files == [], case
     assert unexpected_markers == [], case
     assert missing_markers == [marker], case
+
 
 def expect_mismatched_count(case: str, tmp_root: Path, mismatch: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
@@ -246,12 +257,14 @@ def expect_mismatched_count(case: str, tmp_root: Path, mismatch: str) -> None:
     assert unexpected_markers == [], case
     assert mismatched_counts == [mismatch], case
 
+
 def expect_unexpected_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers, mismatched_counts, unexpected_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [], case
     assert mismatched_counts == [], case
     assert unexpected_markers == [marker], case
+
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_string_helpers_packet_") as tmp_dir_str:
@@ -396,6 +409,12 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        sample_boundary_marker = "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet"
+        sample_boundary_path.write_text(read_text(sample_boundary_path).replace(sample_boundary_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_sample_boundary_non_goal_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
         samples_readme_marker = "* `*rbtree*`"
         samples_readme_path.write_text(read_text(samples_readme_path).replace(samples_readme_marker + "\n", "", 1), encoding="utf-8")
@@ -434,6 +453,7 @@ def run_self_test() -> None:
 
         assert cases_run == SELF_TEST_CASE_COUNT, cases_run
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to validate")
@@ -452,6 +472,7 @@ def main() -> int:
         return 0
 
     return 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
