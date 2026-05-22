@@ -23,6 +23,7 @@ PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-pol
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
+EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VERIFY_ROUTING_GAP_TEST = Path("zigux/tests/phase8_verify_routing_gap.zig")
 VERIFY_ROUTING_GAP_BUILD = Path("zigux/tests/phase8_verify_routing_gap_only_build.zig")
@@ -42,6 +43,7 @@ READY_BUFFER_FD_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer
 READY_BUFFER_WINDOW_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig")
 TYPE_NAMES_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names.zig")
 TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")
+EXEC_CMD_HELPER = Path("tools/lib/subcmd/exec-cmd.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 PERF_BUFFER_POLL_BUILD = Path("zigux/tests/phase8_perf_buffer_poll_only_build.zig")
@@ -52,6 +54,7 @@ REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
     Path("Documentation/zigux/phase8-file-path-handle-bridge-slice.md"),
+    EXEC_CMD_SLICE,
     Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"),
     LIBBPF_SEGMENT_SURVEY,
     REVIEW_CHECKLIST,
@@ -64,6 +67,7 @@ REQUIRED_FILES = (
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
+    EXEC_CMD_HELPER,
     EXEC_CMD_TEST,
     EXEC_CMD_BUILD,
     LIBBPF_SEGMENTS_TEST,
@@ -112,6 +116,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8-file-path-handle-bridge",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+    ),
+    EXEC_CMD_SLICE: (
+        "buildDeferredExeclCall()",
+        "buildDeferredExecvCall()",
+        "make -C zigux phase8-validate",
+        "kernel/workqueue.c remains a Phase 14 boundary-study target",
     ),
     Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"): (
         "phase8-userspace-kernel-bridge-boundary",
@@ -216,6 +226,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
+    ),
+    EXEC_CMD_HELPER: (
+        "pub fn collectExeclArgs(",
+        "pub fn buildDeferredExeclCall(",
+        "pub fn buildDeferredExecvCall(",
     ),
     EXEC_CMD_TEST: (
         "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
