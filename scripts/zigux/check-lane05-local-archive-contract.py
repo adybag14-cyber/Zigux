@@ -6,15 +6,12 @@ import json
 import tempfile
 from pathlib import Path
 
+from zig_archive_contract import expected_archive_size_bytes
+
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
 README_PATH = Path("third_party/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
-
-EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
-}
-
 
 def load_policy(root: Path) -> dict[str, object]:
     policy_path = root / POLICY_PATH
@@ -90,11 +87,8 @@ def validate_contract(root: Path) -> tuple[str, str, int]:
     target = targets[0]
     if target not in archives:
         raise ValueError(f"archive target {target} is missing from archive_sha256 in {POLICY_PATH}")
-    if target not in EXPECTED_ARCHIVE_SIZES:
-        raise ValueError(f"missing expected archive size for {target}")
-
     expected_sha = archives[target]
-    expected_size = EXPECTED_ARCHIVE_SIZES[target]
+    expected_size = expected_archive_size_bytes(target)
     expected_filename = expected_archive_filename(target, channel)
     expected_path = f"third_party/{expected_filename}"
     duplicate_name = duplicate_archive_filename(expected_filename)
