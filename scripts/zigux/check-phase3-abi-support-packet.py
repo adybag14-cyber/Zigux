@@ -53,6 +53,7 @@ REQUIRED_NOTE_MARKERS = (
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -88,6 +89,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
     "scripts/zigux/check-phase3-shared-tests-routes.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -107,6 +109,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -131,6 +134,8 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+    "make -C zigux phase3-export-uapi-layout",
+    "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
@@ -282,6 +287,7 @@ def run_self_test() -> int:
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
             "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
             "make -C zigux phase3-low-level-wrappers-test",
+            ".github/workflows/zigux-bootstrap.yml",
         )
         for marker in note_cases:
             _populate_repo(root)
@@ -301,11 +307,13 @@ def run_self_test() -> int:
             "scripts/zigux/phase3_catalog.py",
             "scripts/zigux/check-phase3-abi-support-packet.py",
             "scripts/zigux/check-phase3-shared-tests-routes.py",
+            "scripts/zigux/check-phase3-selftest-surface.py",
             "scripts/zigux/validate-phase3-validator-support-surface.py",
             "scripts/zigux/run-phase3-checks.py",
             "scripts/zigux/validate_phase3_selftest.py",
             "zigux/tests/phase3_export_shim_build.zig",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
+            ".github/workflows/zigux-bootstrap.yml",
         )
         for entry in manifest_packet_cases:
             _populate_repo(root)
@@ -341,6 +349,8 @@ def run_self_test() -> int:
             "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+            "make -C zigux phase3-export-uapi-layout",
+            "make -C zigux phase3-export-uapi-layout-test",
             "make -C zigux phase3-low-level-wrappers-test",
         )
         for entry in manifest_route_cases:
