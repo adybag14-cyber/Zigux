@@ -6,6 +6,10 @@ fn requireContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn requireDoesNotContain(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return try std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1 << 20));
 }
@@ -20,6 +24,11 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"current_hlist_view_present\": true");
     try requireContains(manifest_text, "\"current_phase13_release_validator_present\": true");
     try requireContains(manifest_text, "\"current_phase13_build_present\": false");
+    try requireContains(manifest_text, "\"zigux/Makefile\": {");
+    try requireContains(
+        manifest_text,
+        "make -C zigux phase13-validate or make -C zigux phase13 as shipped adjacent-packet routes.",
+    );
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-list-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-hlist-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-focused-packet-checker\"");
@@ -43,6 +52,7 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "`drivers/tty/hvc/hvc_console.h`");
     try requireContains(survey, "`zigux/helpers/notifier_chain_view.zig`");
     try requireContains(survey, "`scripts/zigux/validate-phase13-release.py`");
+    try requireContains(survey, "`zigux/Makefile` is present on current `master`");
     try requireContains(survey, "`make -C zigux phase13-validate`");
     try requireContains(survey, "focused checker");
     try requireContains(survey, "repo-reality gaps");
@@ -59,6 +69,7 @@ test "phase13 notifier summary gap and release validator keep the adjacent packe
     try requireContains(summary_gap, "`zigux/helpers/hlist_view.zig`");
     try requireContains(summary_gap, "`zigux/helpers/notifier_chain_view.zig`");
     try requireContains(summary_gap, "`scripts/zigux/validate-phase13-release.py`");
+    try requireContains(summary_gap, "keep `zigux/Makefile` distinct from the still-missing route names");
     try requireContains(summary_gap, "`make -C zigux phase13-validate`");
     try requireContains(summary_gap, "repo-reality gaps");
 
@@ -69,6 +80,17 @@ test "phase13 notifier summary gap and release validator keep the adjacent packe
     try requireContains(release_validator, "`scripts/zigux/check-phase13-notifier-packet.py`");
     try requireContains(release_validator, "`zigux/tests/phase13_notifier_list_manifest.json`");
     try requireContains(release_validator, "`zigux/tests/phase13_notifier_list_reviewability.zig`");
+}
+
+test "phase13 notifier makefile evidence stays distinct from the missing shared routes" {
+    try requireContains(manifest_text, "\"zigux/Makefile\": {");
+    try requireContains(manifest_text, "\"current_phase13_build_present\": false");
+
+    const makefile = try readRepoFile(std.testing.allocator, "zigux/Makefile");
+    defer std.testing.allocator.free(makefile);
+
+    try requireDoesNotContain(makefile, "\nphase13-validate:");
+    try requireDoesNotContain(makefile, "\nphase13:");
 }
 
 test "phase13 notifier checker stays explicit in the focused reviewability gate" {
