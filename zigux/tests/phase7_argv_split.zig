@@ -117,7 +117,7 @@ test "phase 7 argv split companion replays repeated blank-result sentinel reuse"
     try std.testing.expectEqual(first.cArgv(), second.cArgv());
 }
 
-test "phase 7 argv split companion replays fixture-backed blank-prefix ownership and quoted-token boundaries" {
+test "phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse" {
     const vectors = fixture_vectors.phase7_argv_split_vectors;
 
     var blank_argc: usize = std.math.maxInt(usize);
@@ -134,18 +134,28 @@ test "phase 7 argv split companion replays fixture-backed blank-prefix ownership
     defer whitespace_before_nul.deinit(std.testing.allocator);
     try expectVectorReplay(vectors[2], &whitespace_before_nul, whitespace_before_nul_argc);
 
+    try std.testing.expectEqual(blank.storage.ptr, whitespace_before_nul.storage.ptr);
+    try std.testing.expectEqual(blank.argv.ptr, whitespace_before_nul.argv.ptr);
+    try std.testing.expectEqual(blank.argv_null_terminated.ptr, whitespace_before_nul.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank.cArgv(), whitespace_before_nul.cArgv());
+}
+
+test "phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries" {
+    const vectors = fixture_vectors.phase7_argv_split_vectors;
+
+    var blank_argc: usize = std.math.maxInt(usize);
+    var blank = try argv_split.argvSplitWithArgc(std.testing.allocator, vectors[1].input, &blank_argc);
+    defer blank.deinit(std.testing.allocator);
+    try expectVectorReplay(vectors[1], &blank, blank_argc);
+
     var leading_nul_argc: usize = std.math.maxInt(usize);
     var leading_nul = try argv_split.argvSplitWithArgc(std.testing.allocator, vectors[3].input, &leading_nul_argc);
     defer leading_nul.deinit(std.testing.allocator);
     try expectVectorReplay(vectors[3], &leading_nul, leading_nul_argc);
 
-    try std.testing.expectEqual(blank.storage.ptr, whitespace_before_nul.storage.ptr);
     try std.testing.expectEqual(blank.storage.ptr, leading_nul.storage.ptr);
-    try std.testing.expectEqual(blank.argv.ptr, whitespace_before_nul.argv.ptr);
     try std.testing.expectEqual(blank.argv.ptr, leading_nul.argv.ptr);
-    try std.testing.expectEqual(blank.argv_null_terminated.ptr, whitespace_before_nul.argv_null_terminated.ptr);
     try std.testing.expectEqual(blank.argv_null_terminated.ptr, leading_nul.argv_null_terminated.ptr);
-    try std.testing.expectEqual(blank.cArgv(), whitespace_before_nul.cArgv());
     try std.testing.expectEqual(blank.cArgv(), leading_nul.cArgv());
 
     var truncated_argc: usize = std.math.maxInt(usize);
