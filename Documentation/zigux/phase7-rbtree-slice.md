@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `rbtree` state on `master` now carries a bounded helper-local packet around ordered insertion, ordered traversal, duplicate-range matching, cached-leftmost promotion, erase-init ownership boundaries, and checker-backed reviewability while keeping helper-local ownership on the runtime-root implementation and the dedicated fixture pair outside this same helper family.
+The current `rbtree` state on `master` now carries a bounded helper-local packet around ordered insertion, ordered and reverse traversal, duplicate-range matching, cached-leftmost promotion, postorder null-stop handling for detached nodes, erase-init ownership boundaries, and checker-backed reviewability while keeping helper-local ownership on the runtime-root implementation and the dedicated fixture pair outside this same helper family.
 
 This slice must stay truthful about the current direct helper path. The helper-local implementation now remains rooted at `lib/rbtree.zig`, while the older tool-root `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than proof that helper-local ownership still lives there.
 
@@ -49,13 +49,16 @@ The current helper-local packet on `master` covers:
 
 - `Node`, `Root`, and `RootCached`
 - ordered insertion through `add()`, `findAdd()`, and cached aliases
-- ordered traversal through `first()`, `next()`, and duplicate-match helpers
+- ordered and reverse traversal through `first()`, `next()`, `last()`, `prev()`, and duplicate-match helpers
+- postorder traversal and detached-node null-stop handling through `firstPostorder()` and `nextPostorder()`
 - cached-leftmost insertion, cached replacement, and cached erase-init helpers
 - dedicated replay, survey, manifest, direct-anchor note, slice note, and parity checker reviewability
 
 The current helper-local replay keeps these proofs explicit:
 
 - ordered traversal stays reviewable through the dedicated replay rooted at `zigux/tests/phase7_rbtree.zig`
+- reverse traversal aliases and detached-node null-stop handling stay reviewable through the dedicated replay rooted at `zigux/tests/phase7_rbtree.zig`
+- postorder aliases stay reviewable through `firstPostorder()`, `nextPostorder()`, and the dedicated replay's detached-node guards
 - duplicate-range matching stays reviewable through `findFirst()`, `nextMatch()`, and `matchIterator()`
 - cached-leftmost promotion and erase-init ownership boundaries stay reviewable through the dedicated replay and the parity checker
 - same-lane truthfulness stays rooted at the returned runtime-root helper, the returned notes, the returned survey, the returned manifest, and the returned parity checker
