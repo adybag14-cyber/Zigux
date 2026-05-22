@@ -128,6 +128,23 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.argv[3]);
 }
 
+test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit" {
+    var rooted = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
+    defer rooted.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("", rooted.argv0_path.?);
+    try std.testing.expectEqualStrings("perf", rooted.command_name);
+
+    var directory_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")) orelse unreachable;
+    defer directory_only.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/tmp", directory_only.argv0_path.?);
+    try std.testing.expectEqualStrings("", directory_only.command_name);
+
+    var root_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer root_only.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("", root_only.argv0_path.?);
+    try std.testing.expectEqualStrings("", root_only.command_name);
+}
+
 test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
     const slice_note = try readWorkspaceFile(
         std.testing.allocator,
