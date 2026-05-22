@@ -22,12 +22,19 @@ REQUIRED_MARKERS = (
     "for candidate in index.values():",
     "if isinstance(candidate, dict) and candidate.get('version') == channel:",
     "        if entry is None:\n            return target_key, channel, infer_tarball_url(channel, target_key, system_key)",
-    "except (TimeoutError, urllib.error.URLError):",
+    "except (TimeoutError, urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError):",
     "        if not is_explicit_version(channel):\n            raise\n        return {}",
     "assert resolve_target(",
     f"assert load_index('{DEV_CHANNEL}') == {{}}",
     "raise AssertionError('expected non-explicit channel timeout to fail')",
+    "raise AssertionError('expected non-explicit channel HTTP failure to fail')",
+    "raise AssertionError('expected non-explicit channel JSON decode failure to fail')",
 )
+
+EXPECTED_MARKER_COUNTS = {
+    "assert resolve_target(": 4,
+    f"assert load_index('{DEV_CHANNEL}') == {{}}": 3,
+}
 
 ORDERED_MARKER_PAIRS = (
     (
@@ -48,10 +55,10 @@ ORDERED_MARKER_PAIRS = (
     ),
     (
         "def load_index(channel: str) -> dict:",
-        "except (TimeoutError, urllib.error.URLError):",
+        "except (TimeoutError, urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError):",
     ),
     (
-        "except (TimeoutError, urllib.error.URLError):",
+        "except (TimeoutError, urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError):",
         "        if not is_explicit_version(channel):\n            raise\n        return {}",
     ),
 )
@@ -97,7 +104,12 @@ def check_root(root: Path) -> tuple[int, str]:
     text = load_text(root)
     for marker in REQUIRED_MARKERS:
         require_marker(text, marker, "installer marker")
-        require_exact_count(text, marker, 1, "installer marker")
+        require_exact_count(
+            text,
+            marker,
+            EXPECTED_MARKER_COUNTS.get(marker, 1),
+            "installer marker",
+        )
     for earlier, later in ORDERED_MARKER_PAIRS:
         require_order(text, earlier, later, "installer fallback order")
     return len(REQUIRED_MARKERS), DEV_CHANNEL
@@ -109,6 +121,7 @@ def write_sample_root(root: Path) -> None:
     (scripts_dir / "install-zig.py").write_text(
         "\n".join(
             (
+                "import json",
                 "import urllib.error",
                 "",
                 "VERSION_KEY_RE = object()",
@@ -140,12 +153,42 @@ def write_sample_root(root: Path) -> None:
                 "def load_index(channel: str) -> dict:",
                 "    try:",
                 "        return read_index()",
-                "    except (TimeoutError, urllib.error.URLError):",
+                "    except (TimeoutError, urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError):",
                 "        if not is_explicit_version(channel):",
                 "            raise",
                 "        return {}",
                 "",
                 "def run_self_test() -> int:",
+                "    assert resolve_target(",
+                "        {'master': {'version': '0.17.0-dev.87+9b177a7d2', 'x86_64-linux': {'tarball': 'https://example.invalid/zig-linux.tar.xz'}}},",
+                "        'master',",
+                "        'x86_64',",
+                "        'linux',",
+                "    ) == (",
+                "        'x86_64-linux',",
+                "        '0.17.0-dev.87+9b177a7d2',",
+                "        'https://example.invalid/zig-linux.tar.xz',",
+                "    )",
+                "    assert resolve_target(",
+                "        {'master': {'version': '0.17.0-dev.87+9b177a7d2', 'aarch64-macos': {'tarball': 'https://example.invalid/zig-macos.tar.xz'}}},",
+                "        'master',",
+                "        'aarch64',",
+                "        'macos',",
+                "    ) == (",
+                "        'aarch64-macos',",
+                "        '0.17.0-dev.87+9b177a7d2',",
+                "        'https://example.invalid/zig-macos.tar.xz',",
+                "    )",
+                "    assert resolve_target(",
+                "        {'master': {'version': '0.17.0-dev.87+9b177a7d2', 'x86_64-linux': {'tarball': 'https://example.invalid/zig-linux.tar.xz'}}},",
+                f"        '{DEV_CHANNEL}',",
+                "        'x86_64',",
+                "        'linux',",
+                "    ) == (",
+                "        'x86_64-linux',",
+                f"        '{DEV_CHANNEL}',",
+                "        'https://example.invalid/zig-linux.tar.xz',",
+                "    )",
                 "    assert resolve_target(",
                 "        {'0.16.0': {'version': '0.16.0'}},",
                 f"        '{DEV_CHANNEL}',",
@@ -157,7 +200,11 @@ def write_sample_root(root: Path) -> None:
                 f"        'https://ziglang.org/builds/zig-x86_64-linux-{DEV_CHANNEL}.tar.xz',",
                 "    )",
                 f"    assert load_index('{DEV_CHANNEL}') == {{}}",
+                f"    assert load_index('{DEV_CHANNEL}') == {{}}",
+                f"    assert load_index('{DEV_CHANNEL}') == {{}}",
                 "    raise AssertionError('expected non-explicit channel timeout to fail')",
+                "    raise AssertionError('expected non-explicit channel HTTP failure to fail')",
+                "    raise AssertionError('expected non-explicit channel JSON decode failure to fail')",
                 "",
             )
         )
@@ -208,7 +255,7 @@ def run_self_test() -> int:
         "missing installer marker",
     )
     expect_failure(
-        lambda root: (root / INSTALLER_PATH).write_text(
+        lambda root: (root / INSTALLER_PATH).writeText(
             load_text(root).replace(
                 "if not is_explicit_version(channel):\n            raise\n        return {}",
                 "return {}\n        if not is_explicit_version(channel):\n            raise",
@@ -220,7 +267,7 @@ def run_self_test() -> int:
     )
     expect_failure(
         lambda root: (root / INSTALLER_PATH).write_text(
-            load_text(root) + f"assert load_index('{DEV_CHANNEL}') == {{}}\n",
+            load_text(root) + "raise AssertionError('expected non-explicit channel timeout to fail')\n",
             encoding="utf-8",
         ),
         "expected exactly 1 occurrences",
