@@ -141,6 +141,16 @@ FORBIDDEN_CLOSURE_MARKERS = {
     "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`",
 }
 
+EXPECTED_SCRIPTS_README_MARKERS = (
+    "- `scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `.github/workflows/zigux-bootstrap.yml` keep the adjacent Phase 1 route-summary guard explicit beside the narrower reminder packet, so scripts-root follow-through can verify the returned non-Phase-1 Makefile route inventory without promoting the older Phase 1 wrappers back into shipped proof",
+    "- `zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
+    "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
+)
+
+FORBIDDEN_SCRIPTS_README_MARKERS = (
+    "- `zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
+)
+
 EXPECTED_MAKEFILE_MARKERS = (
     "phase2-toolchain:",
     "phase2-tools:",
@@ -331,6 +341,14 @@ def collect_failures(root: Path) -> list[str]:
         if count:
             failures.append(f"{PHASE1_CLOSURE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
 
+    scripts_readme_text = load_text(root, SCRIPTS_README_REL)
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        failures.extend(require_exact_occurrence(scripts_readme_text, f"{SCRIPTS_README_REL.as_posix()}:required", marker))
+    for marker in FORBIDDEN_SCRIPTS_README_MARKERS:
+        count = scripts_readme_text.count(marker)
+        if count:
+            failures.append(f"{SCRIPTS_README_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
+
     makefile_text = load_text(root, ZIGUX_MAKEFILE_REL)
     for marker in EXPECTED_MAKEFILE_MARKERS:
         failures.extend(require_exact_occurrence(makefile_text, f"{ZIGUX_MAKEFILE_REL.as_posix()}:required", marker))
@@ -398,6 +416,7 @@ def make_fixture_tree(root: Path) -> None:
         write_text(root / relative_path, f"fixture for {relative_path.as_posix()}\n")
 
     write_text(root / PHASE1_CLOSURE_REL, "# Phase 1 Closure\n\n" + "\n".join(EXPECTED_CLOSURE_MARKERS.values()) + "\n")
+    write_text(root / SCRIPTS_README_REL, "\n".join(EXPECTED_SCRIPTS_README_MARKERS) + "\n")
     write_text(root / ZIGUX_MAKEFILE_REL, "\n".join(EXPECTED_MAKEFILE_MARKERS) + "\n")
     write_text(
         root / MANIFEST_REL,
@@ -461,9 +480,12 @@ def run_self_test() -> int:
         ("missing_shared_tests_route", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["shared_tests_route"] + "\n", "", 1))),
         ("missing_validator_state", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["validator_state"] + "\n", "", 1))),
         ("stale_string_sysfs_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["string_sysfs_review"], "`PHASE1_STRING_SYSFS_REVIEW=drifted string sysfs review marker`", 1))),
+        ("missing_scripts_route_summary_marker", lambda root: write_text(root / SCRIPTS_README_REL, load_text(root, SCRIPTS_README_REL).replace(EXPECTED_SCRIPTS_README_MARKERS[0] + "\n", "", 1))),
+        ("stale_scripts_makefile_summary_marker", lambda root: write_text(root / SCRIPTS_README_REL, load_text(root, SCRIPTS_README_REL).replace(EXPECTED_SCRIPTS_README_MARKERS[1], FORBIDDEN_SCRIPTS_README_MARKERS[0], 1))),
+        ("missing_scripts_direct_anchor_marker", lambda root: write_text(root / SCRIPTS_README_REL, load_text(root, SCRIPTS_README_REL).replace(EXPECTED_SCRIPTS_README_MARKERS[2] + "\n", "", 1))),
         ("bad_helper_count", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n")),
-        ("stale_lane_rule_summary", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "rule_summary": "drifted rule summary"}}, indent=2) + "\n")),
-        ("stale_anti_overlap_rule", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "anti_overlap_rule": "drifted anti-overlap rule"}}, indent=2) + "\n")),
+        ("stale_lane_rule_summary", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))['lane_sequencing'], "rule_summary": "drifted rule summary"}}, indent=2) + "\n")),
+        ("stale_anti_overlap_rule", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))['lane_sequencing'], "anti_overlap_rule": "drifted anti-overlap rule"}}, indent=2) + "\n")),
         ("duplicate_manifest_helper_count", lambda root: insert_duplicate_manifest_line(root, '  "helper_count": 13,', '  "helper_count": 99,')),
         ("duplicate_manifest_lane_rule_summary", lambda root: insert_duplicate_manifest_line(root, f'    "rule_summary": "{EXPECTED_LANE_RULE_SUMMARY}",', '    "rule_summary": "drifted rule summary",')),
         ("missing_find_bit_andnot_contract", lambda root: mutate_remove_review_key(root, "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract")),
