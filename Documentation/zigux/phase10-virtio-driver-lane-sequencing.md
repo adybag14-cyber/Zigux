@@ -52,4 +52,4 @@ This note does not widen Phase 10 into:
 - IRQ parity or DMA-facing behavior
 - probe, remove, freeze, or restore lifecycle closure
 - an Architecture Council reopen or a freeze-map status change
-- direct proof that the remaining driver-id exact-path core companions have returned on current `master`
+- risky transport proof or lifecycle claims beyond the returned core checker, driver-id replay pair, and the current shared validation packet
