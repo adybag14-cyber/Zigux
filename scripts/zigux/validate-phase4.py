@@ -223,7 +223,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ),
         (
             "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT",
-            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35",
         ),
     ),
     "phase4-remaining-gap-matrix": (
@@ -642,6 +642,33 @@ def configure_phase4_output_stubs(root: Path) -> None:
         ),
     )
     build_stub_script(
+        root / "scripts/zigux/check-artifact-diff-contract.py",
+        self_test_stdout_lines=(
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=13",
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=baseline_round_trip,missing_result_lines,missing_mode,missing_expected,missing_actual,missing_sha256,missing_expected_exists,missing_actual_exists,missing_expected_json_error,missing_actual_json_error,missing_mode_placeholder,missing_expected_exists_placeholder,missing_actual_exists_placeholder",
+        ),
+        live_stdout_lines=("ARTIFACT_DIFF_CONTRACT_CHECK=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+        self_test_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=10",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=baseline_round_trip,missing_phase4_heading,missing_artifact_doc_text_marker,missing_artifact_doc_json_marker,missing_artifact_doc_invalid_marker,missing_artifact_doc_missing_marker,missing_artifact_doc_case_count_marker,missing_artifact_doc_case_names_marker,missing_contract_case_count_marker,missing_contract_case_names_marker",
+        ),
+        live_stdout_lines=("PHASE4_ARTIFACT_DIFF_DETERMINISM_CHECK=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+        self_test_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=17",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=baseline_round_trip,missing_artifact_diff_self_test,missing_contract_self_test,missing_contract_check,missing_determinism_self_test,missing_determinism_check,missing_validator_replays_self_test,missing_validator_replays_check,missing_workflow_contract_self_test,missing_workflow_contract_check,missing_workflow_determinism_self_test,missing_workflow_determinism_check,missing_workflow_validator_replays_self_test,missing_workflow_validator_replays_check,missing_handoff_contract_reference,missing_handoff_determinism_reference,missing_handoff_validator_replays_reference",
+        ),
+        live_stdout_lines=("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_CHECK=pass",),
+    )
+    build_stub_script(
         root / "scripts/zigux/check-phase4-gate-evidence.py",
         self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",),
         live_stdout_lines=("phase4 gate evidence check passed",),
@@ -658,64 +685,65 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-remaining-gap-matrix.py",
         self_test_stdout_lines=(
             "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
-            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+            "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35",
         ),
         live_stdout_lines=(
             "PHASE4_REMAINING_GAP_MATRIX=pass",
             "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6",
         ),
     )
+    configure_workflow_route_stub(root)
+
+
+def reset_fixture(root: Path, *, fail_build_file: str | None = None) -> None:
+    build_sample_repo(root)
+    configure_phase4_output_stubs(root)
+    write_matrix_fixture(root)
+    write_text(
+        root / "Documentation/zigux/artifact-diff.md",
+        "\n".join(
+            [
+                "# Artifact Diff Policy",
+                "",
+                "Current Phase 4 use",
+                *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
+            ]
+        )
+        + "\n",
+    )
+    fake_bin = root / "fake-bin"
+    fake_bin.mkdir(parents=True, exist_ok=True)
+    build_fake_zig(fake_bin / "zig", fail_build_file=fail_build_file)
+    os.environ["PATH"] = str(fake_bin) + os.pathsep + os.environ.get("PATH", "")
 
 
 def run_self_test() -> int:
     original_path = os.environ.get("PATH", "")
-    with tempfile.TemporaryDirectory(prefix="zigux_phase4_validate_") as tmp_dir:
-        root = Path(tmp_dir)
-        tool_root = root / ".tools"
-        tool_root.mkdir(parents=True, exist_ok=True)
-        fake_zig = tool_root / "zig"
+    with tempfile.TemporaryDirectory(prefix="phase4_validate_") as tempdir:
+        root = Path(tempdir)
 
-        def reset_fixture(*, fail_build_file: str | None = None) -> None:
-            build_sample_repo(root)
-            build_fake_zig(fake_zig, fail_build_file=fail_build_file)
-            write_matrix_fixture(root)
-            configure_phase4_output_stubs(root)
-            configure_workflow_route_stub(root)
+        def reset_fixture_local(*, fail_build_file: str | None = None) -> None:
+            os.environ["PATH"] = original_path
+            reset_fixture(root, fail_build_file=fail_build_file)
 
-        os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
+        reset_fixture_local()
+        issues = collect_issues(root)
+        if issues:
+            raise SystemExit(
+                "phase4-validate-self-test:baseline_round_trip_failed:" + ",".join(issues)
+            )
 
-        reset_fixture()
-        write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
-            "# Artifact Diff Policy",
-            "",
-            "Current Phase 4 use",
-            "- `scripts/zigux/check-artifact-diff-contract.py`",
-            "- `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
-            "- `scripts/zigux/check-phase4-gate-evidence.py`",
-            "- `zigux/tests/atomic64_diff.zig`",
-            "- `zigux/tests/runtime_atomic64_diff.zig`",
-            "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`",
-            "- `zigux/tests/bitmap_diff.zig`",
-            "- `zigux/tests/phase4_bitmap_diff_survey.zig`",
-            "- `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
-            "- `scripts/zigux/validate-phase4.py`",
-            "- `Documentation/zigux/phase4-validation-matrix.md`",
-            "",
-            "## Phase 4 Tooling Review Note",
-            "- `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`",
-            "- `ARTIFACT_DIFF_SELF_TEST_TEXT` must prove both the stable text pass shape and the direct text mismatch fail shape",
-            "- `ARTIFACT_DIFF_SELF_TEST_JSON` must prove canonical JSON equivalence while `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` proves malformed JSON fails without inventing digest or exists markers",
-            "- `ARTIFACT_DIFF_SELF_TEST_MISSING` must prove missing-path failures emit only the EXISTS markers",
-            "- `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_SELF_TEST_CASES` must stay aligned with the helper's published `--self-test` packet",
-            "- `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_BASE_CASES`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASES`, `ARTIFACT_DIFF_CONTRACT_CASE_COUNT`, and `ARTIFACT_DIFF_CONTRACT_CASES` must stay aligned with the published contract replay packet",
-            "- `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES` must stay aligned with the isolated stale-catalog and review-note drift coverage",
-            "- `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT` and `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES` must stay aligned with the isolated phase4-use, review-note, helper-summary, and contract-catalog drift coverage",
-        ]) + "\n")
-        baseline_issues = collect_issues(root)
-        if baseline_issues:
-            raise SystemExit("phase4-validate-self-test:baseline_failed:" + ",".join(baseline_issues))
+        reset_fixture_local()
+        (root / ".github/workflows/zigux-bootstrap.yml").unlink()
+        issues = collect_issues(root)
+        expected_missing = "missing_required_path:.github/workflows/zigux-bootstrap.yml"
+        if expected_missing not in issues:
+            raise SystemExit(
+                "phase4-validate-self-test:missing_required_path_not_detected:"
+                + ",".join(issues or ["none"])
+            )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -730,7 +758,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"]) 
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(
             root / "Documentation/zigux/phase4-validation-matrix.md",
             "\n".join(
@@ -751,7 +779,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -768,7 +796,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -792,7 +820,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -809,7 +837,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -833,7 +861,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -850,7 +878,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -860,7 +888,12 @@ def run_self_test() -> int:
         tests_readme = root / "scripts/zigux/check-phase4-tests-readme-packet.py"
         build_stub_script(
             tests_readme,
-            self_test_stdout_lines=("PHASE4_TESTS_README_PACKET_SELF_TEST=pass",),
+            self_test_stdout_lines=(
+                "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
+                "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
+                "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES="
+                + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES,
+            ),
             live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=pass",),
         )
         issues = collect_issues(root)
@@ -874,7 +907,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -903,7 +936,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -920,7 +953,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -940,7 +973,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -957,7 +990,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -974,7 +1007,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -991,7 +1024,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1008,7 +1041,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1025,7 +1058,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1042,7 +1075,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1059,7 +1092,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1083,7 +1116,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1100,7 +1133,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1112,7 +1145,7 @@ def run_self_test() -> int:
             remaining_gap,
             self_test_stdout_lines=(
                 "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass",
-                "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=33",
+                "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35",
             ),
             live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass",),
         )
@@ -1127,7 +1160,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1158,7 +1191,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture()
+        reset_fixture_local()
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1188,7 +1221,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture(fail_build_file="zigux/tests/phase4_build.zig")
+        reset_fixture_local(fail_build_file="zigux/tests/phase4_build.zig")
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
@@ -1203,7 +1236,7 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
-        reset_fixture(fail_build_file="zigux/tests/phase4_build.zig")
+        reset_fixture_local(fail_build_file="zigux/tests/phase4_build.zig")
         write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join([
             "# Artifact Diff Policy",
             "",
