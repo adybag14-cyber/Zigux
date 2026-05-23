@@ -158,6 +158,21 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_top_bit_module,
     });
 
+    const runtime_bitmap_cold_stage_guard_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_bitmap_cold_stage_guard.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_cold_stage_guard_module.addImport(
+        "runtime_bitmap_sample",
+        runtime_bitmap_sample_module,
+    );
+
+    const runtime_bitmap_cold_stage_guard_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-cold-stage-guard-tests",
+        .root_module = runtime_bitmap_cold_stage_guard_module,
+    });
+
     const runtime_loader_allocator_init_flow_module = b.createModule(.{
         .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
         .target = target,
@@ -257,6 +272,9 @@ pub fn build(b: *std.Build) void {
     const run_runtime_bitmap_module_tests = b.addRunArtifact(runtime_bitmap_module_tests);
     const run_runtime_bitmap_diff_tests = b.addRunArtifact(runtime_bitmap_diff_tests);
     const run_runtime_bitmap_top_bit_tests = b.addRunArtifact(runtime_bitmap_top_bit_tests);
+    const run_runtime_bitmap_cold_stage_guard_tests = b.addRunArtifact(
+        runtime_bitmap_cold_stage_guard_tests,
+    );
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
         runtime_loader_allocator_init_flow_tests,
     );
@@ -335,13 +353,22 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_bitmap_top_bit.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
+    const phase9_runtime_bitmap_cold_stage_guard = b.step(
+        "phase9-runtime-bitmap-cold-stage-guard-tests",
+        "Run the Phase 9 runtime bitmap cold-stage selftest, exit, and mutation guard tests.",
+    );
+    phase9_runtime_bitmap_cold_stage_guard.dependOn(
+        &run_runtime_bitmap_cold_stage_guard_tests.step,
+    );
+
     const phase9_runtime_bitmap = b.step(
         "phase9-runtime-bitmap-tests",
-        "Run the Phase 9 runtime bitmap sample, loader, module, survey, diff, and top-bit tests.",
+        "Run the Phase 9 runtime bitmap sample, loader, module, cold-stage guard, survey, diff, and top-bit tests.",
     );
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_sample_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_loader_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_module_tests.step);
+    phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_cold_stage_guard_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_survey_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_diff_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
