@@ -82,6 +82,47 @@ EXPECTED_HELPERS = [
         ["pub const Node = struct", "pub const RootCached = struct", "pub fn add(", "pub fn rb_find_add_cached("],
     ),
 ]
+EXPECTED_BUILD_WIRING_EVIDENCE = [
+    {
+        "path": "zigux/tests/phase7_build.zig",
+        "expected_markers": [
+            "../../lib/string_helpers.zig",
+            "../../lib/cmdline.zig",
+            "../../lib/argv_split.zig",
+            "../../lib/rbtree.zig",
+            "phase7-string-helpers-test",
+            "phase7-string-helpers-survey",
+            "phase7-string-helpers-sample-boundary",
+            "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+            "phase7-cmdline-test",
+            "phase7-cmdline-survey",
+            "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
+            "phase7-argv-split-test",
+            "phase7-argv-split-survey",
+            "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
+            "phase7-rbtree-test",
+            "phase7-rbtree-survey",
+            'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
+            "test_step.dependOn(&run_string_helpers_tests.step)",
+            "test_step.dependOn(&run_string_helpers_survey_tests.step)",
+            "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+            "test_step.dependOn(&run_cmdline_tests.step)",
+            "test_step.dependOn(&run_cmdline_survey_tests.step)",
+            "test_step.dependOn(&run_argv_split_tests.step)",
+            "test_step.dependOn(&run_argv_split_survey_tests.step)",
+            "test_step.dependOn(&run_rbtree_tests.step)",
+            "test_step.dependOn(&run_rbtree_survey_tests.step)",
+        ],
+    },
+    {
+        "path": "zigux/Makefile",
+        "expected_markers": [
+            "phase7-validate:",
+            "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "$(PYTHON) scripts/zigux/validate-phase7.py",
+        ],
+    },
+]
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
     "- `Documentation/zigux/README.md`",
@@ -122,7 +163,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 24
 
 
 class ValidationError(RuntimeError):
@@ -179,6 +220,8 @@ def validate(repo_root: Path) -> None:
     ]
     if helpers != expected_helpers:
         raise ValidationError("phase7 helper evidence ordering drift")
+    if manifest.get("current_build_wiring_evidence") != EXPECTED_BUILD_WIRING_EVIDENCE:
+        raise ValidationError("phase7 build-wiring evidence mismatch")
 
     for key, rel_path, markers in EXPECTED_HELPERS:
         content = read_text(repo_root / rel_path)
@@ -220,6 +263,7 @@ def scaffold_repo(root: Path) -> None:
                     {"key": key, "zig_helper": path, "expected_markers": markers}
                     for key, path, markers in EXPECTED_HELPERS
                 ],
+                "current_build_wiring_evidence": EXPECTED_BUILD_WIRING_EVIDENCE,
                 "current_replay_inventory": EXPECTED_REPLAYS,
                 "current_repo_reality_gaps": EXPECTED_GAPS,
             },
@@ -258,6 +302,7 @@ def run_self_test() -> None:
         ("missing_manifest_make_wrapper_companion", MANIFEST_PATH, '"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",', '"scripts/zigux/check-phase7-make-wrapper.py",'),
         ("missing_manifest_build_file_companion", MANIFEST_PATH, '"zigux/tests/phase7_build.zig",', '"zigux/tests/phase7_rbtree.zig",'),
         ("missing_manifest_rbtree_helper_entry", MANIFEST_PATH, '"lib/rbtree.zig"', '"tools/lib/rbtree.zig"'),
+        ("missing_manifest_build_wiring_evidence", MANIFEST_PATH, '"phase7-rbtree-test"', '"phase7-rbtree-helper"'),
         ("missing_build_rbtree_import", BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
         ("missing_build_rbtree_route", BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
     ]
