@@ -13,6 +13,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body reruns the direct sample, loader, module, survey, diff, and top-bit proofs; that bundle still does not prove the broader runtime bitmap packet or shared runtime-loader parity
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
 - keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.
+- Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.
 
 ## Boundaries
 - keep the visible bitmap-side reminder packet inside `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and the shared `zigux/tests/phase9_build.zig` bundle
