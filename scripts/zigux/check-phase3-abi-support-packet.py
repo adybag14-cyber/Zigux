@@ -120,6 +120,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
@@ -346,6 +348,8 @@ def run_self_test() -> int:
         manifest_route_cases = (
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+            "python3 scripts/zigux/check-phase3-selftest-surface.py",
             "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
             "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
