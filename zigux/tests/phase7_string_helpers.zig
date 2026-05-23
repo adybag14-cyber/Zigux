@@ -104,6 +104,23 @@ test "phase 7 string helpers starter formats bounded sizes with three significan
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &truncated);
 }
 
+test "phase 7 string helpers starter keeps rendered size accounting explicit when no payload bytes can be written" {
+    var empty = [_]u8{};
+    const empty_written = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &empty, empty.len);
+    try std.testing.expectEqual(@as(usize, 8), empty_written);
+
+    var terminator_only = [_]u8{'#'};
+    const terminator_only_written = string_helpers.string_get_size(
+        1536,
+        1,
+        string_helpers.STRING_UNITS_2,
+        &terminator_only,
+        terminator_only.len,
+    );
+    try std.testing.expectEqual(@as(usize, 8), terminator_only_written);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+}
+
 test "phase 7 string helpers starter keeps sysfs matching newline aware" {
     try std.testing.expect(string_helpers.sysfsStreq("zigux\n", "zigux"));
     try std.testing.expect(string_helpers.sysfs_streq("zigux", "zigux\n"));
@@ -250,6 +267,40 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     const truncated_written = string_helpers.stringEscapeMem(&[_]u8{0}, &truncated, truncated.len, string_helpers.ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), truncated_written);
     try std.testing.expectEqualSlices(u8, "\\x0", &truncated);
+}
+
+test "phase 7 string helpers starter keeps zero-capacity and exact-fit escape accounting explicit" {
+    var zero_capacity = [_]u8{};
+    const zero_capacity_written = string_helpers.stringEscapeMem(
+        "A\n",
+        &zero_capacity,
+        0,
+        string_helpers.ESCAPE_SPACE,
+        null,
+    );
+    try std.testing.expectEqual(@as(usize, 3), zero_capacity_written);
+
+    var exact_fit = [_]u8{ '#', '#', '#' };
+    const exact_fit_written = string_helpers.string_escape_mem(
+        "A\n",
+        &exact_fit,
+        exact_fit.len,
+        string_helpers.ESCAPE_SPACE,
+        null,
+    );
+    try std.testing.expectEqual(@as(usize, 3), exact_fit_written);
+    try std.testing.expectEqualSlices(u8, "A\\n", exact_fit[0..exact_fit_written]);
+
+    var truncated = [_]u8{ '#', '#' };
+    const truncated_written = string_helpers.stringEscapeMem(
+        "A\n",
+        &truncated,
+        truncated.len,
+        string_helpers.ESCAPE_SPACE,
+        null,
+    );
+    try std.testing.expectEqual(@as(usize, 3), truncated_written);
+    try std.testing.expectEqualSlices(u8, "A\\", &truncated);
 }
 
 test "phase 7 string helpers starter keeps append-limited octal dictionary escapes reviewable" {
