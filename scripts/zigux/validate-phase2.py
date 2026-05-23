@@ -43,6 +43,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-phase2-closure-matrix.py",
+    "scripts/zigux/check-phase2-closure-matrix-coverage.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -177,7 +179,6 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
-
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
     try:
@@ -185,16 +186,13 @@ def read_text(root: Path, rel: str) -> str:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(root: Path, rel: str, content: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
@@ -204,7 +202,6 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
-
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -212,7 +209,6 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
-
 
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
@@ -223,46 +219,37 @@ def phony_targets_present(text: str) -> set[str]:
             targets.update(token for token in suffix.strip().split() if token)
     return targets
 
-
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root, WORKFLOW)
     makefile_text = read_text(root, MAKEFILE)
-
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
-
     for marker in DISALLOWED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count != 0:
             issues.append(("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count={count}"))
-
     if not REQUIRED_PHASE2_PHONY_TARGETS.issubset(phony_targets_present(makefile_text)):
         issues.append(("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
-
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
         if count == 0:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
-
     for rel in REQUIRED_PATHS:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
-
     return issues
-
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
-
     print("PHASE2_VALIDATION=fail")
     for code, values in grouped.items():
         print(f"{code}_START")
@@ -271,96 +258,59 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
-
 def build_self_test_root(root: Path) -> None:
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
-    write_text(
-        root,
-        MAKEFILE,
-        "\n".join(
-            (
-                "PYTHON ?= python3",
-                "ZIG ?= zig",
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
-                "ZIGUX_ROOT := ..",
-                "",
-                REQUIRED_PHASE2_PHONY_LINE,
-                *REQUIRED_MAKEFILE_LINES,
-            )
-        )
-        + "\n",
-    )
+    write_text(root, MAKEFILE, "\n".join(("PYTHON ?= python3", "ZIG ?= zig", "PHASE2_SCRIPT_ROOT := ../scripts/zigux", "ZIGUX_ROOT := ..", "", REQUIRED_PHASE2_PHONY_LINE, *REQUIRED_MAKEFILE_LINES,)) + "\n")
     for rel in REQUIRED_PATHS:
         if rel != MAKEFILE:
             write_text(root, rel, "present\n")
-
 
 def expect_issue(root: Path, expected: tuple[str, str]) -> None:
     issues = collect_issues(root)
     assert expected in issues, (expected, issues)
 
-
 def run_self_test() -> int:
-    expected_case_count = (
-        1
-        + len(REQUIRED_WORKFLOW_LINES)
-        + len(REQUIRED_WORKFLOW_LINES)
-        + len(DISALLOWED_WORKFLOW_LINES)
-        + 1
-        + len(REQUIRED_MAKEFILE_LINES)
-        + len(REQUIRED_MAKEFILE_LINES)
-        + (len(REQUIRED_PATHS) - 1)
-        + 2
-    )
+    expected_case_count = (1 + len(REQUIRED_WORKFLOW_LINES) + len(REQUIRED_WORKFLOW_LINES) + len(DISALLOWED_WORKFLOW_LINES) + 1 + len(REQUIRED_MAKEFILE_LINES) + len(REQUIRED_MAKEFILE_LINES) + (len(REQUIRED_PATHS) - 1) + 2)
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
-
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks += 1
-
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), marker, "run: python3 scripts/zigux/other.py"))
             expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
             checks += 1
-
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
             expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
             checks += 1
-
         for marker in DISALLOWED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, read_text(root, WORKFLOW) + marker + "\n")
             expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
             checks += 1
-
         build_self_test_root(root)
         write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), REQUIRED_PHASE2_PHONY_LINE, "# removed"))
         expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
         checks += 1
-
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), marker, "# removed"))
             expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
             checks += 1
-
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
             expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
             checks += 1
-
         for rel in REQUIRED_PATHS[:-1]:
             build_self_test_root(root)
             (root / rel).unlink()
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
             checks += 1
-
         for rel in (WORKFLOW, MAKEFILE):
             build_self_test_root(root)
             (root / rel).unlink()
@@ -371,31 +321,25 @@ def run_self_test() -> int:
                 checks += 1
             else:
                 raise AssertionError(f"missing file did not abort: {rel}")
-
     assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
-
     print("PHASE2_VALIDATION=pass")
     print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
