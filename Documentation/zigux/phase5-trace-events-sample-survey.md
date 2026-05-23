@@ -81,9 +81,10 @@ The more accurate same-lane state on 2026-05-22 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
 - the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` again through their live GitHub blob pages
 - the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
+- the focused survey gate `zigux/tests/phase5_trace_events_sample_survey.zig` still encodes the older checklist-owned `checked_focus` plus selected-string `iter=%d` reminder cues even though the current shared reminder packet now routes that formatting cue through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` instead of the shared checklist
 - same-lane documentation should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support references instead of calling it repo absence or directly readable proof, while keeping the returned shared build route classified separately from that still-missing authenticated sample-local set
 
-So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again.
+So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again and while keeping the remaining survey-gate wording drift explicit.
 
 ## Non-goals
 This survey does not claim:
@@ -95,6 +96,6 @@ This survey does not claim:
 ## Next bounded step
 Leave this lane parked unless a fresh same-packet reread finds a new exact trace-events-local drift to close.
 
-Current public `master` already shows the previously suggested `checked_focus` follow-through in `zigux/tests/phase5_trace_events_sample.zig`, so there is no outstanding focused-tests replay repair to schedule from this note.
+Current public `master` already shows the previously suggested `checked_focus` follow-through in `zigux/tests/phase5_trace_events_sample.zig`, but one focused survey-gate alignment repair still remains in `zigux/tests/phase5_trace_events_sample_survey.zig`: its shared-reminder checks still look for the formatting cue through the checklist rather than through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`.
 
-If this packet reopens, keep the next step to one same-packet survey note, manifest, focused replay, or shared reminder alignment that reflects the already-landed `checked_focus` contract without widening into shared Phase 5 guide work, the formatting-only companion lane, or the separate Phase 9 runtime trace-events family.
+If this packet reopens, keep the next step to that one same-packet survey-gate alignment repair first, then leave broader shared guide work, the formatting-only companion lane, and the separate Phase 9 runtime trace-events family out of scope.
