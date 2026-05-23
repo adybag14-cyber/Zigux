@@ -10,6 +10,7 @@ from pathlib import Path
 SEQUENCING_NOTE_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
 CMDLINE_SLICE_PATH = Path("Documentation/zigux/phase7-cmdline-slice.md")
+WORKSPACE_BOOTSTRAP_SURVEY_PATH = Path("Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md")
 REVIEW_CHECKPOINT_PATH = Path("Documentation/zigux/phase7-shared-control-review-checkpoint.md")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 SHARED_SURFACE_VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
@@ -19,6 +20,7 @@ BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 
 DIRECT_PACKET = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md",
     "Documentation/zigux/phase7-shared-control-review-checkpoint.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -95,6 +97,24 @@ REQUIRED_REVIEW_SNIPPETS = [
     "Keep `zigux/tests/phase7_build.zig` framed as readable non-owner build evidence only; it does not by itself prove that `phase7-test`, `phase7`, or workflow-backed Phase 7 routes returned.",
     "Keep `phase7-test` and `phase7` framed as absent wrapper-route vocabulary",
     "`.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate` and `make -C zigux phase7-test` steps.",
+    "`Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md`",
+    "Keep `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md` framed as the roadmap-vs-bootstrap gap note: it can claim the four roadmap-backed helper anchors and the narrow `phase7-validate` foothold, but it must not promote absent `phase7-test`, `phase7`, or workflow-backed Phase 7 test routes into current proof.",
+]
+
+REQUIRED_WORKSPACE_BOOTSTRAP_SURVEY_SNIPPETS = [
+    "# Phase 7 Runtime Workspace Bootstrap Gap Survey",
+    "`PHASE7_STATUS=shared_control_workspace_bootstrap_gap_survey`",
+    "`PHASE7_LANE_KEY=P7-L01`",
+    "survey focus: roadmap-backed runtime leaf-library anchors versus current workspace/bootstrap glue on `master`",
+    "the Phase 7 roadmap anchors remain `lib/string_helpers.c`, `lib/cmdline.c`, `lib/argv_split.c`, and `lib/rbtree.c`",
+    "`zigux/tests/phase7_build.zig` wires all four returned helpers into the shared Phase 7 build graph",
+    "`scripts/zigux/validate-phase7.py` plus `make -C zigux phase7-validate` keep one returned shared validation foothold explicit on current `master`",
+    "`.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase7-shared-control-gap.py` and `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "the readable `zigux/Makefile` still exposes only `phase7-validate` for the shared Phase 7 packet",
+    "current `master` still does not materialize `phase7-test` or `phase7` in `zigux/Makefile`",
+    "`.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate`, `make -C zigux phase7-test`, and `zig build test --build-file zigux/tests/phase7_build.zig --summary all` steps",
+    "the roadmap-backed helper anchors are present, but the shared workspace bootstrap glue remains a narrow validation foothold rather than a returned end-to-end Phase 7 workspace route",
+    "treat that gap as shared-control reminder debt, not as missing helper-local proof for `string_helpers`, `cmdline`, `argv_split`, or `rbtree`",
 ]
 
 REQUIRED_STRING_HELPERS_SNIPPETS = [
@@ -113,7 +133,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 
 class ValidationError(RuntimeError):
@@ -169,6 +189,7 @@ def require_repo_reality(repo_root: Path) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS)
     require_absent_markers(repo_root / SEQUENCING_NOTE_PATH, FORBIDDEN_SEQUENCING_SNIPPETS)
+    require_snippets(repo_root / WORKSPACE_BOOTSTRAP_SURVEY_PATH, REQUIRED_WORKSPACE_BOOTSTRAP_SURVEY_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS)
     require_snippets(repo_root / CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS)
     require_snippets(repo_root / REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS)
@@ -185,12 +206,13 @@ def write(path: Path, content: str) -> None:
 
 def scaffold_repo(root: Path) -> None:
     write(root / SEQUENCING_NOTE_PATH, "\n".join(REQUIRED_SEQUENCING_SNIPPETS) + "\n")
+    write(root / WORKSPACE_BOOTSTRAP_SURVEY_PATH, "\n".join(REQUIRED_WORKSPACE_BOOTSTRAP_SURVEY_SNIPPETS) + "\n")
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(REQUIRED_STRING_HELPERS_SNIPPETS) + "\n")
     write(root / CMDLINE_SLICE_PATH, "\n".join(REQUIRED_CMDLINE_SLICE_SNIPPETS) + "\n")
     write(root / REVIEW_CHECKPOINT_PATH, "\n".join(REQUIRED_REVIEW_SNIPPETS) + "\n")
     write(root / BUILD_WIRING_CHECKER_PATH, "\n".join(["FORBIDDEN_MAKEFILE_MARKERS", '"phase7-test:"', '"phase7:"']) + "\n")
     write(root / SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate\n")
-    for rel in DIRECT_PACKET[2:]:
+    for rel in DIRECT_PACKET[3:]:
         path = root / Path(rel)
         if path.exists():
             continue
@@ -320,9 +342,8 @@ def main() -> int:
         return 1
 
     print("PHASE7_SHARED_CONTROL_GAP=pass")
-    print(f"PHASE7_SHARED_CONTROL_GAP_DIRECT_FILE_COUNT={len(DIRECT_PACKET)}")
-    print(f"PHASE7_SHARED_CONTROL_GAP_PARKED_FILE_COUNT={len(PARKED_SHARED_CONTROL_PATHS)}")
-    print(f"PHASE7_SHARED_CONTROL_GAP_NON_OWNER_FILE_COUNT={len(READABLE_NON_OWNER_FILES)}")
+    print(f"PHASE7_SHARED_CONTROL_GAP_DIRECT_PACKET_COUNT={len(DIRECT_PACKET)}")
+    print(f"PHASE7_SHARED_CONTROL_GAP_PARKED_PATH_COUNT={len(PARKED_SHARED_CONTROL_PATHS)}")
     print(f"PHASE7_SHARED_CONTROL_GAP_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     return 0
 
