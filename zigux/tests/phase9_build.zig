@@ -195,6 +195,21 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_sample_module,
     });
 
+    const runtime_trace_events_module_tests_module = b.createModule(.{
+        .root_source_file = b.path("runtime_trace_events_module.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_module_tests_module.addImport(
+        "runtime_trace_events_sample",
+        runtime_trace_events_sample_module,
+    );
+
+    const runtime_trace_events_module_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-module-tests",
+        .root_module = runtime_trace_events_module_tests_module,
+    });
+
     const runtime_trace_events_unregistered_gate_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-unregistered-gate-tests",
         .root_module = b.createModule(.{
@@ -253,6 +268,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_trace_events_sample_tests = b.addRunArtifact(
         runtime_trace_events_sample_tests,
+    );
+    const run_runtime_trace_events_module_tests = b.addRunArtifact(
+        runtime_trace_events_module_tests,
     );
     const run_runtime_trace_events_unregistered_gate_tests = b.addRunArtifact(
         runtime_trace_events_unregistered_gate_tests,
@@ -365,9 +383,10 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_trace_events = b.step(
         "phase9-runtime-trace-events-tests",
-        "Run the Phase 9 trace-events runtime sample and lifecycle companion tests.",
+        "Run the Phase 9 trace-events runtime sample, module, and lifecycle companion tests.",
     );
     phase9_runtime_trace_events.dependOn(&run_runtime_trace_events_sample_tests.step);
+    phase9_runtime_trace_events.dependOn(&run_runtime_trace_events_module_tests.step);
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_unregistered_gate_tests.step,
     );
@@ -376,6 +395,14 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_registration_reentry_gate_tests.step,
+    );
+
+    const phase9_runtime_trace_events_module = b.step(
+        "phase9-runtime-trace-events-module-tests",
+        "Run the Phase 9 trace-events module-boundary lifecycle tests.",
+    );
+    phase9_runtime_trace_events_module.dependOn(
+        &run_runtime_trace_events_module_tests.step,
     );
 
     const phase9_first_loadable_runtime_module_parity = b.step(
