@@ -6,7 +6,7 @@ This note keeps the roadmap-backed `samples/kobject/kobject-example.c` anchor tr
 
 - `PHASE5_STATUS=verified-mixed-readback-packet`
 - `PHASE5_LANE_KEY=P5-L20`
-- `PHASE5_SURVEYED_COMMIT=566ad529ced741b845a929cd6d5c1ae2cf7cf504`
+- `PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e`
 - scope: keep the approved ownership-and-lifetime idiom reviewable while recording the current mixed direct-versus-public-tree-backed kobject packet without widening into sysfs, `kernel_kobj`, uevents, or module registration
 
 ## Current bounded packet on 2026-05-23
