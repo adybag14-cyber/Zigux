@@ -236,6 +236,21 @@ def run_self_test() -> int:
             raise SystemExit("expected fixture-manifest marker failure")
 
         write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / LIBBPF_SURVEY_PATH,
+            read_text(tmp_root / LIBBPF_SURVEY_PATH).replace(
+                "`zigux/tests/phase12_libbpf_reviewability.zig` gate still pins the legacy five-path reviewability packet on current `master`",
+                "`zigux/tests/phase12_libbpf_reviewability.zig` gate no longer pins the legacy five-path reviewability packet on current `master`",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and LIBBPF_SURVEY_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected libbpf survey marker failure")
+
+        write_fixture_tree(tmp_root)
         write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace("rollback-evidence-only", "rollback-lab", 1))
         if not any("missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("expected complex-driver marker failure")
@@ -291,7 +306,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=10")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=11")
     return 0
 
 
