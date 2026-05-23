@@ -191,6 +191,7 @@ TEARDOWN_HELPER_MARKERS = [
 VERIFY_HELPER_MARKERS = [
     'test "phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit" {',
     'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
+    'test "phase10 virtio input verify keeps probe wrapper blockers aligned with registration progress" {',
     'test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
 ]
 
@@ -630,6 +631,12 @@ def run_self_test() -> int:
             ),
             (
                 "drivers/virtio/virtio_input_verify.zig",
+                'test "phase10 virtio input verify keeps probe wrapper blockers aligned with registration progress" {',
+                'test "phase10 virtio input verify drifts probe wrapper blockers" {',
+                'verify_helper:test "phase10 virtio input verify keeps probe wrapper blockers aligned with registration progress" {',
+            ),
+            (
+                "drivers/virtio/virtio_input_verify.zig",
                 'test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
                 'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
                 'verify_helper:test "phase10 virtio input verify keeps teardown and status-drain wrapper parity explicit across reset" {',
@@ -705,7 +712,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
