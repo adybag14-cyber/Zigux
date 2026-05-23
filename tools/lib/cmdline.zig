@@ -289,6 +289,29 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "parseOptionStr keeps exact token boundaries across commas and visible terminators" {
+    try std.testing.expect(parseOptionStr("alpha,beta,gamma", "alpha"));
+    try std.testing.expect(parseOptionStr("alpha,beta,gamma", "gamma"));
+    try std.testing.expect(parseOptionStr("alpha,beta\x00gamma", "beta"));
+
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "alp"));
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "bet"));
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "gamma,delta"));
+    try std.testing.expect(!parseOptionStr("alpha,beta=1,gamma", "beta"));
+    try std.testing.expect(!parseOptionStr("alpha,beta\x00gamma", "gamma"));
+}
+
+test "parseOptionStr only matches empty options on comma-bounded empty entries" {
+    try std.testing.expect(parseOptionStr(",alpha", ""));
+    try std.testing.expect(parseOptionStr("alpha,,beta", ""));
+    try std.testing.expect(parseOptionStr("alpha,,,beta", ""));
+
+    try std.testing.expect(!parseOptionStr("alpha,\x00beta", ""));
+    try std.testing.expect(!parseOptionStr("\x00,alpha", ""));
+    try std.testing.expect(!parseOptionStr("alpha", ""));
+    try std.testing.expect(!parse_option_str("alpha,\x00beta", ""));
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
