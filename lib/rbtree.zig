@@ -678,6 +678,9 @@ pub fn rb_first_postorder(root: *const Root) ?*Node {
 
 pub fn nextPostorder(node: ?*const Node) ?*Node {
     const current = node orelse return null;
+    if (emptyNode(current)) {
+        return null;
+    }
     const parent = current.parent;
     if (parent != null and parent.?.left == current and parent.?.right != null) {
         return leftDeepestNode(parent.?.right.?);
