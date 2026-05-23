@@ -59,6 +59,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "const argv_split = @import(\"argv_split\");",
+        "const fixture_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");",
         "test \"phase 7 argv split companion replays copied-storage token ownership\" {",
         "test \"phase 7 argv split companion replays non-blank cross-call ownership independence\" {",
         "test \"phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation\" {",
@@ -108,7 +109,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 52
+SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(path: Path) -> str:
@@ -208,7 +209,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         checker_text = read_text(checker_path)
-        checker_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
+        checker_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"," 
         checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_checker_fixture_marker", tmp_root, f"scripts/zigux/check-phase7-argv-split-packet.py: {checker_marker}")
         cases_run += 1
@@ -459,6 +460,13 @@ def run_self_test() -> None:
         helper_marker = "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_non_blank_teardown_isolation_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = "const fixture_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_fixture_import_marker", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
