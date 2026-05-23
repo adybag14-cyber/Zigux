@@ -42,13 +42,15 @@ COMPANION_REQUIRED_MARKERS = (
     "`drivers/virtio/virtio.zig` owns shared device-status bookkeeping",
     "`drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning",
     "`drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning",
-    "keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence",
+    "current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`",
+    "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` companion where exact direct-path readback still misses it.",
 )
 
 COMPANION_FORBIDDEN_MARKERS = (
     "current `master` still does not materialize `scripts/zigux/validate-phase10.py`",
     "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`",
     "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
+    "current direct lane readback still does not materialize `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` through the direct readback available in this lane",
 )
 
 TESTS_ROOT_REQUIRED_MARKERS = (
@@ -127,6 +129,7 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`
 - returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`
+- current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`
 
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.
 
@@ -137,9 +140,11 @@ Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root p
 Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.
 
 Tests-root reviewer prompt:
-- keep the blocked risky-transport posture explicit while keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence.
+- keep the blocked risky-transport posture explicit while keeping the now-returned driver-id pair explicit beside the returned core-side companions and `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` ring companion where exact direct-path readback still misses it.
 
 Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning.
+
+Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` companion where exact direct-path readback still misses it.
 
 ## Phase 11 tests-root packet
 """
@@ -355,8 +360,8 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing returned broader ring companion marker failure")
 
     missing_driver_id_companion = good_companion.replace(
-        "keeping only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the remaining repo-reality gaps instead of direct current-head evidence",
-        "keeping only `drivers/virtio/virtio_driver_id.zig` framed as the remaining repo-reality gap instead of direct current-head evidence",
+        "current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`",
+        "current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig`",
         1,
     )
     try:
