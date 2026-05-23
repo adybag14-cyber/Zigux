@@ -41,6 +41,10 @@ FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-landlock-syscalls-slice.md": [
         "materialized on current `master`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
     ],
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
+        "`make -C zigux phase13-validate`",
+        "`make -C zigux phase13`",
+    ],
 }
 
 REQUIRED_FILES = sorted(set(REQUIRED_MARKERS) | set(FORBIDDEN_MARKERS))
