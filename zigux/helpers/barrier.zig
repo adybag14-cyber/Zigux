@@ -12,6 +12,12 @@ pub fn fenceOrderAllowed(order: Ordering) bool {
     };
 }
 
+pub fn validateFenceOrder(comptime order: Ordering) FenceError!void {
+    if (comptime !fenceOrderAllowed(order)) {
+        return error.InvalidFenceOrdering;
+    }
+}
+
 fn acquireImpl() void {
     var word: u8 = 0;
     _ = @atomicLoad(u8, &word, .acquire);
@@ -57,6 +63,16 @@ test "phase3 barrier wrappers keep fence ordering rules explicit" {
 
     try std.testing.expectError(error.InvalidFenceOrdering, fence(.unordered));
     try std.testing.expectError(error.InvalidFenceOrdering, fence(.monotonic));
+}
+
+test "phase3 barrier wrappers expose reusable fence-order validation" {
+    try validateFenceOrder(.acquire);
+    try validateFenceOrder(.release);
+    try validateFenceOrder(.acq_rel);
+    try validateFenceOrder(.seq_cst);
+
+    try std.testing.expectError(error.InvalidFenceOrdering, validateFenceOrder(.unordered));
+    try std.testing.expectError(error.InvalidFenceOrdering, validateFenceOrder(.monotonic));
 }
 
 test "phase3 barrier wrappers keep compiler fences reviewable" {
@@ -232,9 +248,7 @@ pub fn compiler() void {
 }
 
 pub fn fence(comptime order: Ordering) FenceError!void {
-    if (comptime !fenceOrderAllowed(order)) {
-        return error.InvalidFenceOrdering;
-    }
+    try validateFenceOrder(order);
 
     switch (order) {
         .acquire => acquireImpl(),
