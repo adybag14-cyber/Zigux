@@ -311,7 +311,7 @@ def run_self_test() -> int:
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_lane_line")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_PARAGRAPH + "\n", "", 1)
         write_text(tmp_root, LANE_NOTE_REL, lane_text)
         if cases[4][1] not in collect_failures(tmp_root):
