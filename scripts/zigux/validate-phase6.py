@@ -217,7 +217,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -584,6 +584,29 @@ def run_self_test() -> None:
         )
         expect_mutation(
             lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "checksum"
+                            else {
+                                **helper,
+                                "checker_surfaces": [
+                                    "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_EVIDENCE_MANIFEST)["helpers"]
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
                 root / HELPER_PARITY_MANIFEST,
                 json.dumps(
                     {
@@ -594,6 +617,29 @@ def run_self_test() -> None:
                                 "shared_direct_evidence"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "checksum"
+                            else {
+                                **helper,
+                                "checker_surfaces": [
+                                    "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
                     },
                     indent=2,
