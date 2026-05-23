@@ -65,6 +65,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 
 So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the direct `kobject` sample-root file plus the bounded attr-group companion, the restored kretprobe port, and the bounded trace-events formatting companion.
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
+Keep the bytestream queue-shape posture explicit too: the current direct replay packet now exact-checks `occupancySummary().used`, `available`, and `wrapped_window` together with the visible-span and writable-span boundaries, so shared reminders should not collapse that packet back to queue length alone.
 Treat `samples/zigux/kobject_example.zig` as current direct sample-root evidence inside the mixed kobject packet recorded by `Documentation/zigux/phase5-kobject-sample-survey.md`, while `zigux/tests/phase5_kobject_example_survey.zig` remains the public-tree-backed companion in this runtime and `zigux/tests/phase5_build.zig` stays directly readable as the shared build-route companion.
 Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
