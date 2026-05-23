@@ -330,6 +330,27 @@ pub const TeardownSummary = struct {
     reboot_glue_checkpoint_reviewable: bool,
 };
 
+pub const PlatformCleanupCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    stop_disposition: StopDisposition,
+    platform_drvdata_owner_identity: []const u8,
+    watchdog_drvdata_owner_identity: []const u8,
+    register_device_failure_stage: []const u8,
+    request_stop_reviewable: bool,
+    register_device_failure_reviewable: bool,
+    reboot_glue_checkpoint_reviewable: bool,
+    platform_cleanup_precedes_driver_remove: bool,
+    driver_remove_precedes_watchdog_unregister: bool,
+    cleanup_reuses_parent_linkage: bool,
+    blocked_on_platform_cleanup_callback: bool,
+    blocked_on_platform_driver_remove: bool,
+    blocked_on_watchdog_core_unregister: bool,
+    blocked_on_host_shutdown_execution: bool,
+};
+
 pub const RemoveHandoffSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -813,7 +834,7 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
-    pub fn summarizeRemoveHandoff(self: *Self, nowayout: bool) RemoveHandoffSummary {
+    pub fn platformCleanupCheckpointSummary(self: *Self, nowayout: bool) PlatformCleanupCheckpointSummary {
         const teardown = self.teardownCheckpointSummary(nowayout);
         const teardown_summary = self.summarizeTeardown(nowayout);
         return .{
@@ -828,10 +849,34 @@ pub const GpioWatchdogLab = struct {
             .request_stop_reviewable = teardown_summary.request_stop_reviewable,
             .register_device_failure_reviewable = teardown_summary.register_device_failure_reviewable,
             .reboot_glue_checkpoint_reviewable = teardown_summary.reboot_glue_checkpoint_reviewable,
+            .platform_cleanup_precedes_driver_remove = true,
+            .driver_remove_precedes_watchdog_unregister = true,
+            .cleanup_reuses_parent_linkage = teardown.teardown_reuses_parent_linkage,
             .blocked_on_platform_cleanup_callback = true,
             .blocked_on_platform_driver_remove = true,
             .blocked_on_watchdog_core_unregister = true,
             .blocked_on_host_shutdown_execution = teardown.blocked_on_host_shutdown_execution,
+        };
+    }
+
+    pub fn summarizeRemoveHandoff(self: *Self, nowayout: bool) RemoveHandoffSummary {
+        const cleanup = self.platformCleanupCheckpointSummary(nowayout);
+        return .{
+            .anchor = cleanup.anchor,
+            .hw_algo = cleanup.hw_algo,
+            .always_running = cleanup.always_running,
+            .nowayout = cleanup.nowayout,
+            .stop_disposition = cleanup.stop_disposition,
+            .platform_drvdata_owner_identity = cleanup.platform_drvdata_owner_identity,
+            .watchdog_drvdata_owner_identity = cleanup.watchdog_drvdata_owner_identity,
+            .register_device_failure_stage = cleanup.register_device_failure_stage,
+            .request_stop_reviewable = cleanup.request_stop_reviewable,
+            .register_device_failure_reviewable = cleanup.register_device_failure_reviewable,
+            .reboot_glue_checkpoint_reviewable = cleanup.reboot_glue_checkpoint_reviewable,
+            .blocked_on_platform_cleanup_callback = cleanup.blocked_on_platform_cleanup_callback,
+            .blocked_on_platform_driver_remove = cleanup.blocked_on_platform_driver_remove,
+            .blocked_on_watchdog_core_unregister = cleanup.blocked_on_watchdog_core_unregister,
+            .blocked_on_host_shutdown_execution = cleanup.blocked_on_host_shutdown_execution,
         };
     }
 
@@ -933,6 +978,44 @@ test "teardown checkpoint keeps ownership and failure ordering explicit" {
     try std.testing.expect(!blocked_teardown.driver_stop_invoked);
     try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.platform_drvdata_owner_identity);
     try std.testing.expectEqualStrings("gpio_wdt_priv", blocked_teardown.watchdog_drvdata_owner_identity);
+}
+
+test "platform cleanup checkpoint stays between teardown and unregister handoff" {
+    var stoppable = try GpioWatchdogLab.init(.toggle, 60, false);
+    _ = try stoppable.start();
+    const cleanup = stoppable.platformCleanupCheckpointSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", cleanup.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, cleanup.hw_algo);
+    try std.testing.expect(!cleanup.always_running);
+    try std.testing.expect(!cleanup.nowayout);
+    try std.testing.expectEqual(StopDisposition.stopped, cleanup.stop_disposition);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", cleanup.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", cleanup.watchdog_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", cleanup.register_device_failure_stage);
+    try std.testing.expect(cleanup.request_stop_reviewable);
+    try std.testing.expect(cleanup.register_device_failure_reviewable);
+    try std.testing.expect(cleanup.reboot_glue_checkpoint_reviewable);
+    try std.testing.expect(cleanup.platform_cleanup_precedes_driver_remove);
+    try std.testing.expect(cleanup.driver_remove_precedes_watchdog_unregister);
+    try std.testing.expect(cleanup.cleanup_reuses_parent_linkage);
+    try std.testing.expect(cleanup.blocked_on_platform_cleanup_callback);
+    try std.testing.expect(cleanup.blocked_on_platform_driver_remove);
+    try std.testing.expect(cleanup.blocked_on_watchdog_core_unregister);
+    try std.testing.expect(cleanup.blocked_on_host_shutdown_execution);
+
+    var guarded = try GpioWatchdogLab.init(.level, 64, true);
+    _ = try guarded.start();
+    const guarded_cleanup = guarded.platformCleanupCheckpointSummary(true);
+
+    try std.testing.expect(guarded_cleanup.always_running);
+    try std.testing.expect(guarded_cleanup.nowayout);
+    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, guarded_cleanup.stop_disposition);
+    try std.testing.expect(guarded_cleanup.request_stop_reviewable);
+    try std.testing.expect(guarded_cleanup.register_device_failure_reviewable);
+    try std.testing.expect(guarded_cleanup.reboot_glue_checkpoint_reviewable);
+    try std.testing.expect(guarded_cleanup.platform_cleanup_precedes_driver_remove);
+    try std.testing.expect(guarded_cleanup.driver_remove_precedes_watchdog_unregister);
 }
 
 test "remove handoff summary stays bounded before live unregister behavior" {
