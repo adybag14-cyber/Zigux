@@ -55,6 +55,10 @@ FORBIDDEN_WORKFLOW_FRAGMENTS = (
     "python3 scripts/zigux/check-phase1-parity.py",
     "zig build test --build-file zigux/tests/build.zig",
     "zig build bench --build-file zigux/tests/build.zig",
+    "make -C zigux phase1-validate",
+    "make -C zigux phase1-test",
+    "make -C zigux phase1-bench",
+    "make -C zigux phase1",
 )
 
 
