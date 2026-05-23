@@ -300,14 +300,23 @@ test "phase1 host-tools smoke exercises live helper behavior" {
         .{ .key = 5, .serial = 1 },
         .{ .key = 15, .serial = 2 },
     };
+    var cached_replacement = RbtreeSmokeEntry{ .key = 10, .serial = 4 };
     var cached_root = rbtree.RootCached.init();
+    var cached_root_transition_serials: [4]i32 = undefined;
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.addCached(&cached_entries[0].node, &cached_root, RbtreeSmokeEntry.less));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.addCached(&cached_entries[1].node, &cached_root, RbtreeSmokeEntry.less));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.firstCached(&cached_root));
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&cached_entries[2].node, &cached_root, RbtreeSmokeEntry.less));
-    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.eraseCached(&cached_entries[1].node, &cached_root));
-    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
+    cached_root_transition_serials[0] = returnedSerial(rbtree.eraseCached(&cached_entries[1].node, &cached_root));
+    cached_root_transition_serials[1] = returnedSerial(rbtree.firstCached(&cached_root));
+    rbtree.replaceNodeCached(&cached_entries[0].node, &cached_replacement.node, &cached_root);
+    cached_root_transition_serials[2] = returnedSerial(rbtree.firstCached(&cached_root));
+    rbtree.eraseInitCached(&cached_replacement.node, &cached_root);
+    cached_root_transition_serials[3] = returnedSerial(rbtree.firstCached(&cached_root));
+    try std.testing.expectEqualSlices(i32, &.{ 0, 0, 4, 2 }, &cached_root_transition_serials);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[2].node), rbtree.firstCached(&cached_root));
+    try std.testing.expect(rbtree.emptyNode(&cached_replacement.node));
 }
 
 test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {
