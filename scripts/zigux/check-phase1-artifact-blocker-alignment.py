@@ -24,11 +24,39 @@ EXPECTED_ARTIFACT_MARKERS = (
     'print("ARTIFACT_DIFF_SELF_TEST=pass")',
 )
 
+EXPECTED_HELPERS = (
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+)
+
 EXPECTED_MANIFEST_PATH = "zigux/tests/fixtures/phase1_helper_manifest.json"
 EXPECTED_REPLAY_PATH = "zigux/tests/phase1_helpers.zig"
 EXPECTED_REPLAY_BLOCKER_ID = "phase1_helpers_zig_slab_zero_after_kmalloc"
+EXPECTED_REPLAY_BLOCKER_KIND = "fixture_mismatch"
+EXPECTED_REPLAY_BLOCKER_SOURCE_PATH = "tools/lib/slab.zig"
+EXPECTED_REPLAY_BLOCKER_FIELD = "slab.zero_after_kmalloc"
+EXPECTED_REPLAY_BLOCKER_EVIDENCE = (
+    "Focused 2026-05-17 scratch replay of `zig build test --build-file "
+    "zigux/tests/build.zig --summary all` failed at `phase1_helpers.zig:595` because the "
+    "committed fixture expects `true` while `tools/lib/slab.zig` still produced `false`."
+)
 EXPECTED_C_HARNESS_PATH = "zigux/tests/fixtures/phase1_helpers_c_harness.c"
 EXPECTED_C_HARNESS_BLOCKER_ID = "phase1_helpers_c_harness_missing_c_sources"
+EXPECTED_C_HARNESS_REASON = (
+    "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that "
+    "current master no longer ships beside the Phase 1 `.zig` ports."
+)
 
 EXPECTED_SHARED_HELPERS = (
     "tools/lib/argv_split.zig",
@@ -47,6 +75,12 @@ EXPECTED_DIRECT_HELPERS = (
     "tools/lib/find_bit.zig",
     "tools/lib/rbtree.zig",
     "tools/lib/string.zig",
+)
+
+EXPECTED_RULE_SUMMARY = (
+    "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, "
+    "while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local "
+    "follow-up anchors on current master."
 )
 
 EXPECTED_ANTI_OVERLAP_RULE = (
@@ -121,10 +155,18 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(issue("blockers_type", "dict", type(blockers).__name__))
         return failures
 
-    for key, expected in (("phase", "Phase 1"), ("status", "closed"), ("helper_count", 13)):
+    for key, expected in (
+        ("phase", "Phase 1"),
+        ("status", "closed"),
+        ("helper_count", len(EXPECTED_HELPERS)),
+    ):
         actual = manifest.get(key)
         if actual != expected:
             failures.append(issue(f"manifest:{key}", expected, actual))
+
+    manifest_helpers = tuple(manifest.get("helpers", []))
+    if manifest_helpers != EXPECTED_HELPERS:
+        failures.append(issue("manifest_helpers", EXPECTED_HELPERS, manifest_helpers))
 
     manifest_lane = manifest.get("lane_sequencing")
     blocker_lane = blockers.get("lane_sequencing")
@@ -157,6 +199,10 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(issue("blocker_shared_helpers", EXPECTED_SHARED_HELPERS, blocker_shared))
     if blocker_direct != EXPECTED_DIRECT_HELPERS:
         failures.append(issue("blocker_direct_helpers", EXPECTED_DIRECT_HELPERS, blocker_direct))
+    if manifest_lane.get("rule_summary") != EXPECTED_RULE_SUMMARY:
+        failures.append(
+            issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, manifest_lane.get("rule_summary"))
+        )
 
     if manifest_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
         failures.append(
@@ -212,31 +258,44 @@ def collect_failures(root: Path) -> list[str]:
     if not isinstance(replay_blockers, list) or not replay_blockers:
         failures.append(issue("replay_blockers", "non-empty list", replay_blockers))
     else:
+        if len(replay_blockers) != 1:
+            failures.append(issue("replay_blocker_count", 1, len(replay_blockers)))
         first = replay_blockers[0]
         if not isinstance(first, dict):
             failures.append(issue("replay_first_type", "dict", type(first).__name__))
         else:
             if first.get("id") != EXPECTED_REPLAY_BLOCKER_ID:
                 failures.append(issue("replay_blocker_id", EXPECTED_REPLAY_BLOCKER_ID, first.get("id")))
-            if first.get("field") != "slab.zero_after_kmalloc":
-                failures.append(issue("replay_blocker_field", "slab.zero_after_kmalloc", first.get("field")))
+            if first.get("kind") != EXPECTED_REPLAY_BLOCKER_KIND:
+                failures.append(issue("replay_blocker_kind", EXPECTED_REPLAY_BLOCKER_KIND, first.get("kind")))
+            if first.get("path") != EXPECTED_REPLAY_BLOCKER_SOURCE_PATH:
+                failures.append(
+                    issue("replay_blocker_source_path", EXPECTED_REPLAY_BLOCKER_SOURCE_PATH, first.get("path"))
+                )
+            if first.get("field") != EXPECTED_REPLAY_BLOCKER_FIELD:
+                failures.append(issue("replay_blocker_field", EXPECTED_REPLAY_BLOCKER_FIELD, first.get("field")))
+            if first.get("expected") is not True:
+                failures.append(issue("replay_blocker_expected", True, first.get("expected")))
+            if first.get("actual") is not False:
+                failures.append(issue("replay_blocker_actual", False, first.get("actual")))
+            if first.get("evidence") != EXPECTED_REPLAY_BLOCKER_EVIDENCE:
+                failures.append(
+                    issue("replay_blocker_evidence", EXPECTED_REPLAY_BLOCKER_EVIDENCE, first.get("evidence"))
+                )
 
     if c_harness.get("path") != EXPECTED_C_HARNESS_PATH:
         failures.append(issue("c_harness_path", EXPECTED_C_HARNESS_PATH, c_harness.get("path")))
     if c_harness.get("state") != "blocked":
         failures.append(issue("c_harness_state", "blocked", c_harness.get("state")))
-    if c_harness.get("helper_count") != len(EXPECTED_SHARED_HELPERS) + len(EXPECTED_DIRECT_HELPERS):
-        failures.append(
-            issue(
-                "c_harness_helper_count",
-                len(EXPECTED_SHARED_HELPERS) + len(EXPECTED_DIRECT_HELPERS),
-                c_harness.get("helper_count"),
-            )
-        )
+    if c_harness.get("reason") != EXPECTED_C_HARNESS_REASON:
+        failures.append(issue("c_harness_reason", EXPECTED_C_HARNESS_REASON, c_harness.get("reason")))
+    if c_harness.get("helper_count") != len(EXPECTED_HELPERS):
+        failures.append(issue("c_harness_helper_count", len(EXPECTED_HELPERS), c_harness.get("helper_count")))
+    c_harness_helpers = tuple(c_harness.get("helpers", []))
+    if c_harness_helpers != EXPECTED_HELPERS:
+        failures.append(issue("c_harness_helpers", EXPECTED_HELPERS, c_harness_helpers))
     if c_harness.get("blocker_id") != EXPECTED_C_HARNESS_BLOCKER_ID:
-        failures.append(
-            issue("c_harness_blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID, c_harness.get("blocker_id"))
-        )
+        failures.append(issue("c_harness_blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID, c_harness.get("blocker_id")))
 
     return failures
 
@@ -263,10 +322,12 @@ def sample_manifest() -> dict[str, object]:
     return {
         "phase": "Phase 1",
         "status": "closed",
-        "helper_count": 13,
+        "helper_count": len(EXPECTED_HELPERS),
+        "helpers": list(EXPECTED_HELPERS),
         "lane_sequencing": {
             "shared_replay_parked_helpers": list(EXPECTED_SHARED_HELPERS),
             "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_HELPERS),
+            "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
     }
@@ -289,14 +350,21 @@ def sample_blockers() -> dict[str, object]:
             "blockers": [
                 {
                     "id": EXPECTED_REPLAY_BLOCKER_ID,
-                    "field": "slab.zero_after_kmalloc",
+                    "kind": EXPECTED_REPLAY_BLOCKER_KIND,
+                    "path": EXPECTED_REPLAY_BLOCKER_SOURCE_PATH,
+                    "field": EXPECTED_REPLAY_BLOCKER_FIELD,
+                    "expected": True,
+                    "actual": False,
+                    "evidence": EXPECTED_REPLAY_BLOCKER_EVIDENCE,
                 }
             ],
         },
         "c_harness": {
             "path": EXPECTED_C_HARNESS_PATH,
             "state": "blocked",
-            "helper_count": len(EXPECTED_SHARED_HELPERS) + len(EXPECTED_DIRECT_HELPERS),
+            "reason": EXPECTED_C_HARNESS_REASON,
+            "helper_count": len(EXPECTED_HELPERS),
+            "helpers": list(EXPECTED_HELPERS),
             "blocker_id": EXPECTED_C_HARNESS_BLOCKER_ID,
         },
     }
@@ -325,6 +393,20 @@ def run_self_test() -> int:
             lambda root: write_text(root, "scripts/zigux/artifact_diff.py", "#!/usr/bin/env python3\n"),
         ),
         (
+            "manifest_helpers_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data.__setitem__("helpers", ["drift"]),
+            ),
+        ),
+        (
+            "manifest_rule_summary_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["lane_sequencing"].__setitem__("rule_summary", "drift"),
+            ),
+        ),
+        (
             "manifest_shared_drift",
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -343,6 +425,20 @@ def run_self_test() -> int:
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_replay_blockers.json",
                 lambda data: data["replay"]["blockers"][0].__setitem__("id", "drift"),
+            ),
+        ),
+        (
+            "replay_evidence_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["replay"]["blockers"][0].__setitem__("evidence", "drift"),
+            ),
+        ),
+        (
+            "c_harness_reason_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["c_harness"].__setitem__("reason", "drift"),
             ),
         ),
         (
