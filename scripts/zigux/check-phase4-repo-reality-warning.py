@@ -162,6 +162,7 @@ def check(root: Path) -> None:
     require(read(root, DOCS_README), DOCS_README_PHASE4_REQ, DOCS_README.as_posix())
     require(read(root, CHECKLIST), CHECKLIST_PHASE4_REQ, CHECKLIST.as_posix())
     require(read(root, SCRIPTS_README), SCRIPTS_README_PHASE4_REQ, SCRIPTS_README.as_posix())
+    require(read(root, SELF), ("EXPECTED_PIN_SELF_TEST_CASES = 19",), SELF.as_posix())
 
 def _baseline_note() -> str:
     return "\n".join(
@@ -200,7 +201,12 @@ def _baseline_scripts_readme() -> str:
 def _baseline_tests_readme() -> str:
     return "# zigux/tests\nThis directory is the home of reusable Zigux parity and differential validation harnesses.\n## Phase 5 sample packet\n"
 
+def _baseline_self() -> str:
+    return "#!/usr/bin/env python3\nEXPECTED_PIN_SELF_TEST_CASES = 19\n"
+
 def _baseline_other(path: Path) -> str:
+    if path == SELF:
+        return _baseline_self()
     return f"placeholder for {path.as_posix()}\n"
 
 def _build_baseline_tree(root: Path) -> None:
@@ -232,7 +238,12 @@ def run_self_test() -> int:
         root = Path(tmp)
         _build_baseline_tree(root)
         check(root)
-        cases += _expect_failure(root, NOTE, "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`\n", "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`\n")
+        cases += _expect_failure(
+            root,
+            NOTE,
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`\n",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`\n",
+        )
         cases += _expect_failure(root, NOTE, "scripts/zigux/check-phase4-tests-readme-packet.py", "scripts/zigux/old-phase4-tests-readme-packet.py")
         cases += _expect_failure(root, DOCS_README, DOCS_README_PHASE4_REQ[0], "docs drift")
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[0], "checklist drift")
@@ -251,7 +262,12 @@ def run_self_test() -> int:
         cases += _expect_failure(root, RUNTIME_ATOMIC64_DIFF, None, None)
         cases += _expect_failure(root, VALIDATOR, None, None)
         cases += _expect_failure(root, BUILD, None, None)
-        cases += _expect_failure(root, BITMAP_DIFF, None, None)
+        cases += _expect_failure(
+            root,
+            SELF,
+            "EXPECTED_PIN_SELF_TEST_CASES = 19\n",
+            "EXPECTED_PIN_SELF_TEST_CASES = 18\n",
+        )
     if cases != EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES:
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=fail")
         print(f"expected {EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES} self-test cases, saw {cases}")
