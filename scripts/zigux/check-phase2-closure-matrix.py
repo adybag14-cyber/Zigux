@@ -16,6 +16,12 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
 EXTRA_REQUIRED_FILES = (
     Path("scripts/zigux/artifact_diff.py"),
+    Path("scripts/zigux/check-lane05-install-zig-archive-verification.py"),
+    Path("scripts/zigux/check-lane05-stage-helper-contract.py"),
+    Path("scripts/zigux/check-lane05-stage-helper-selftest.py"),
+    Path("scripts/zigux/stage-pinned-zig-archive.py"),
+    Path("scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"),
+    Path("zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json"),
 )
 VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),
@@ -29,6 +35,7 @@ VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
 DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
     "bootstrap_helpers": (
         "scripts/zigux/install-zig.py",
+        "scripts/zigux/stage-pinned-zig-archive.py",
     ),
     "archive_support": (
         "third_party/README.md",
@@ -42,6 +49,14 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
         "scripts/zigux/artifact_diff.py",
         "scripts/zigux/check-phase2-artifact-tools-manifest.py",
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    ),
+    "checkers": (
+        "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+        "scripts/zigux/check-lane05-stage-helper-contract.py",
+        "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    ),
+    "bridge_helpers": (
+        "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     ),
     "fixdep_support": (
         "scripts/basic/fixdep.c",
@@ -102,6 +117,9 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
         "zigux/tests/fixtures/fixdep/sample_expected.txt",
         "zigux/tests/fixtures/fixdep/shared#config.h",
         "zigux/tests/fixtures/fixdep/shared:config.h",
+    ),
+    "fixture_roster": (
+        "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     ),
     "make_wrappers": (
         "zigux/Makefile",
@@ -182,8 +200,6 @@ def collect_direct_manifest_issues(module, root: Path) -> list[tuple[str, str]]:
 
     issues: list[tuple[str, str]] = []
     for key, expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.items():
-        if key in validator_expected_keys(module):
-            continue
         value = surfaces.get(key)
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             issues.append(("INVALID_MANIFEST_SHAPE", key))
@@ -299,6 +315,16 @@ def augment_self_test_seed_root(module, root: Path) -> None:
         raise AssertionError("self-test manifest present_surfaces must stay a dict")
     for key, expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.items():
         surfaces.setdefault(key, list(expected))
+        if key in {
+            "checkers",
+            "bridge_helpers",
+            "fixture_roster",
+            "bootstrap_helpers",
+        }:
+            existing = surfaces[key]
+            if not isinstance(existing, list):
+                raise AssertionError(f"self-test surface must stay list[str]: {key}")
+            surfaces[key] = list(dict.fromkeys([*existing, *expected]))
     write_json(manifest_path, payload)
 
 
