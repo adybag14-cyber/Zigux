@@ -327,7 +327,12 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", help="override the repository root used for checks")
+    parser.add_argument(
+        "--repo-root",
+        "--root",
+        dest="repo_root",
+        help="override the repository root used for checks",
+    )
     parser.add_argument(
         "--self-test",
         action="store_true",
