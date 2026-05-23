@@ -19,6 +19,7 @@ Keep this slice aligned with:
 Current `master` keeps the bounded core helper packet explicit through:
 - the direct `drivers/virtio/virtio.zig` helper for status sequencing, feature negotiation narrowing, queue-shape bookkeeping, config-generation bookkeeping, interrupt acknowledgements, lifecycle guards, and reset replay in memory only
 - the direct `drivers/virtio/virtio_verify.zig` replay for wrapper-facing lifecycle checkpoints, narrowed-feature summaries, failed-status teardown, and reset replay review
+- the direct `drivers/virtio/virtio_driver_id.zig` helper plus the focused `zigux/tests/phase10_virtio_driver_id.zig` replay for exact, wildcard, and unmatched driver-id coverage reviewable beside the same bounded core packet
 - the focused `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, and `zigux/tests/phase10_virtio_core_reset_queue.zig` replays
 - the dedicated survey packet through `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `Documentation/zigux/phase10-virtio-core-survey.md`
 - the shared `zigux/tests/phase10_build.zig`, `scripts/zigux/validate-phase10.py`, `make -C zigux phase10-test`, and `make -C zigux phase10` replay routes
@@ -27,7 +28,6 @@ That keeps the Phase 10 roadmap destination family explicit through `drivers/vir
 ## Boundary
 This slice is still lab-only driver validation evidence.
 It does not claim:
-- landed `virtio_driver_id` helper or replay coverage on current `master` while those exact paths stay unreadable as shipped evidence in this runtime
 - dual implementations for risky transport-facing paths
 - transport-backed probe, full remove, or reset lifecycle parity
 - real virtqueue wrappers from `virtio_ring.c`
