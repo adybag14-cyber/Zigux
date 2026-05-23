@@ -27,6 +27,7 @@ REQUIRED_NOTE_MARKERS = (
     "scripts/zigux/check-phase3-abi-support-packet.py",
     "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "scripts/zigux/check-phase3-shared-tests-routes.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
@@ -49,6 +50,8 @@ REQUIRED_NOTE_MARKERS = (
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
@@ -166,6 +169,10 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _remove_all_occurrences(path: Path, marker: str) -> None:
+    _write(path, _read(path).replace(marker, ""))
 
 
 def _append_duplicate_list_entry_issues(label: str, values: list[object], issues: list[str]) -> None:
@@ -290,10 +297,13 @@ def run_self_test() -> int:
             "scripts/zigux/run-phase3-checks.py",
             "scripts/zigux/validate_phase3_selftest.py",
             "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
+            "scripts/zigux/check-phase3-selftest-surface.py",
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
             "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
             "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+            "python3 scripts/zigux/check-phase3-selftest-surface.py",
             "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
             "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
             "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
@@ -306,7 +316,7 @@ def run_self_test() -> int:
         for marker in note_cases:
             _populate_repo(root)
             note_path = root / NOTE_PATH
-            _write(note_path, _read(note_path).replace(marker, "", 1))
+            _remove_all_occurrences(note_path, marker)
             issues = validate_repo(root)
             expected = f"missing {NOTE_PATH.as_posix()} marker: {marker}"
             if expected not in issues:
