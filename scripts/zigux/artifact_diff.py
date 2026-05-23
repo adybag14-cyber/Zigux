@@ -63,6 +63,9 @@ SELF_TEST_CASES = [
     "bytes_missing_expected",
     "bytes_missing_actual",
     "bytes_missing_both",
+    "text_expected_directory",
+    "text_actual_directory",
+    "text_both_directories",
     "legacy_sha256_alias",
     "missing_mode_value_rejected",
     "missing_positional_arguments_rejected",
@@ -101,6 +104,17 @@ def missing_lines(expected: Path, actual: Path) -> list[str] | None:
     return [
         f"EXPECTED_EXISTS={expected_exists}",
         f"ACTUAL_EXISTS={actual_exists}",
+    ]
+
+
+def non_file_lines(expected: Path, actual: Path) -> list[str] | None:
+    expected_is_file = expected.is_file()
+    actual_is_file = actual.is_file()
+    if expected_is_file and actual_is_file:
+        return None
+    return [
+        f"EXPECTED_IS_FILE={expected_is_file}",
+        f"ACTUAL_IS_FILE={actual_is_file}",
     ]
 
 
@@ -151,6 +165,9 @@ def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
     missing = missing_lines(expected, actual)
     if missing is not None:
         return ComparisonResult(ok=False, extra_lines=missing)
+    non_file = non_file_lines(expected, actual)
+    if non_file is not None:
+        return ComparisonResult(ok=False, extra_lines=non_file)
     if mode == "text":
         return compare_text(expected, actual)
     if mode == "json":
@@ -199,6 +216,8 @@ def run_self_test() -> int:
         invalid_actual_json = root / "invalid-actual.json"
         blob_a = root / "blob-a.bin"
         blob_b = root / "blob-b.bin"
+        expected_dir = root / "expected-dir"
+        actual_dir = root / "actual-dir"
 
         expected.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
         actual.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
@@ -314,6 +333,27 @@ def run_self_test() -> int:
             "bytes_missing_both",
         )
         covered.append("bytes_missing_both")
+
+        expected_dir.mkdir()
+        actual_dir.mkdir()
+
+        assert_case(
+            compare("text", expected_dir, actual).extra_lines == ["EXPECTED_IS_FILE=False", "ACTUAL_IS_FILE=True"],
+            "text_expected_directory",
+        )
+        covered.append("text_expected_directory")
+
+        assert_case(
+            compare("text", expected, actual_dir).extra_lines == ["EXPECTED_IS_FILE=True", "ACTUAL_IS_FILE=False"],
+            "text_actual_directory",
+        )
+        covered.append("text_actual_directory")
+
+        assert_case(
+            compare("text", expected_dir, actual_dir).extra_lines == ["EXPECTED_IS_FILE=False", "ACTUAL_IS_FILE=False"],
+            "text_both_directories",
+        )
+        covered.append("text_both_directories")
 
         legacy_alias = run_parser_probe(["--mode", "sha256", str(blob_a), str(blob_a)])
         assert_case(legacy_alias.returncode == 0, "legacy_sha256_alias")
