@@ -173,3 +173,73 @@ test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
     );
 }
+
+test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {
+    const survey = try readRepoFile("Documentation/zigux/phase8-libbpf-segment-survey.md");
+    defer std.testing.allocator.free(survey);
+
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
+    );
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
+    );
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
+    );
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/type_names_verify.zig`",
+    );
+
+    const aggregate_verify = try readRepoFile("tools/lib/bpf/zigux_segments/verify.zig");
+    defer std.testing.allocator.free(aggregate_verify);
+
+    try expectContains(
+        aggregate_verify,
+        "const ready_buffer_attempt_verify = @import(\"ready_buffer_attempt_verify.zig\");",
+    );
+    try expectContains(
+        aggregate_verify,
+        "const ready_buffer_fd_verify = @import(\"ready_buffer_fd_verify.zig\");",
+    );
+    try expectContains(
+        aggregate_verify,
+        "const ready_buffer_window_verify = @import(\"ready_buffer_window_verify.zig\");",
+    );
+    try expectContains(
+        aggregate_verify,
+        "const type_names_verify = @import(\"type_names_verify.zig\");",
+    );
+
+    const attempt_verify = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig");
+    defer std.testing.allocator.free(attempt_verify);
+    try expectContains(
+        attempt_verify,
+        "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
+    );
+
+    const fd_verify = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig");
+    defer std.testing.allocator.free(fd_verify);
+    try expectContains(
+        fd_verify,
+        "phase8 ready-buffer fd helpers keep errno-shaped outputs stable",
+    );
+
+    const window_verify = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig");
+    defer std.testing.allocator.free(window_verify);
+    try expectContains(
+        window_verify,
+        "phase8 ready-buffer window helpers keep lookup-return outputs stable",
+    );
+
+    const type_verify = try readRepoFile("tools/lib/bpf/zigux_segments/type_names_verify.zig");
+    defer std.testing.allocator.free(type_verify);
+    try expectContains(
+        type_verify,
+        "phase8 libbpf type-name formatters still fail closed on short buffers",
+    );
+}
