@@ -86,8 +86,10 @@ REQUIRED_MARKERS = {
         "Run focused Phase 8 exec-cmd tests",
     ),
     PHASE8_VALIDATE_PATH: (
+        'EXEC_CMD_HELPER = Path("tools/lib/subcmd/exec-cmd.zig")',
         'EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")',
         'EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")',
+        "Run focused Phase 8 exec-cmd tests",
         "phase8-exec-cmd",
     ),
 }
