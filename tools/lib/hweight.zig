@@ -92,3 +92,36 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers count each in-range single bit exactly once" {
+    for (0..8) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        try std.testing.expectEqual(@as(u32, 1), swHweight8(bit));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight8(bit));
+    }
+
+    for (0..16) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        try std.testing.expectEqual(@as(u32, 1), swHweight16(bit));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight16(bit));
+    }
+
+    for (0..32) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        try std.testing.expectEqual(@as(u32, 1), swHweight32(bit));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight32(bit));
+    }
+
+    for (0..64) |shift| {
+        const bit: u64 = @as(u64, 1) << @intCast(shift);
+        try std.testing.expectEqual(@as(u64, 1), swHweight64(bit));
+        try std.testing.expectEqual(@as(u64, 1), __sw_hweight64(bit));
+    }
+
+    const long_bits = @sizeOf(usize) * 8;
+    for (0..long_bits) |shift| {
+        const bit: usize = @as(usize, 1) << @intCast(shift);
+        try std.testing.expectEqual(@as(usize, 1), hweightLong(bit));
+        try std.testing.expectEqual(@as(usize, 1), hweight_long(bit));
+    }
+}
