@@ -16,6 +16,7 @@ REQUIRED_FILES = (
     "scripts/zigux/artifact_diff.py",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/fixtures/phase1_replay_blockers.json",
+    "zigux/tests/fixtures/phase1_helpers.json",
 )
 
 EXPECTED_ARTIFACT_MARKERS = (
@@ -40,7 +41,40 @@ EXPECTED_HELPERS = (
     "tools/lib/zalloc.zig",
 )
 
+EXPECTED_FIXTURE_KEYS = (
+    "argv_split",
+    "bitmap",
+    "cmdline",
+    "ctype",
+    "find_bit",
+    "hweight",
+    "list_sort",
+    "rbtree",
+    "slab",
+    "str_error_r",
+    "string",
+    "vsprintf",
+    "zalloc",
+)
+
+EXPECTED_HELPER_FIXTURE_MAP = {
+    "tools/lib/argv_split.zig": "argv_split",
+    "tools/lib/bitmap.zig": "bitmap",
+    "tools/lib/cmdline.zig": "cmdline",
+    "tools/lib/ctype.zig": "ctype",
+    "tools/lib/find_bit.zig": "find_bit",
+    "tools/lib/hweight.zig": "hweight",
+    "tools/lib/list_sort.zig": "list_sort",
+    "tools/lib/rbtree.zig": "rbtree",
+    "tools/lib/slab.zig": "slab",
+    "tools/lib/str_error_r.zig": "str_error_r",
+    "tools/lib/string.zig": "string",
+    "tools/lib/vsprintf.zig": "vsprintf",
+    "tools/lib/zalloc.zig": "zalloc",
+}
+
 EXPECTED_MANIFEST_PATH = "zigux/tests/fixtures/phase1_helper_manifest.json"
+EXPECTED_FIXTURE_PATH = "zigux/tests/fixtures/phase1_helpers.json"
 EXPECTED_REPLAY_PATH = "zigux/tests/phase1_helpers.zig"
 EXPECTED_REPLAY_BLOCKER_ID = "phase1_helpers_zig_slab_zero_after_kmalloc"
 EXPECTED_REPLAY_BLOCKER_KIND = "fixture_mismatch"
@@ -116,6 +150,15 @@ def read_json(root: Path, relative_path: str, *, failures: list[str], label: str
         return None
 
 
+def resolve_field_path(payload: dict[str, object], field_path: str) -> object | None:
+    current: object = payload
+    for segment in field_path.split("."):
+        if not isinstance(current, dict) or segment not in current:
+            return None
+        current = current[segment]
+    return current
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -146,13 +189,22 @@ def collect_failures(root: Path) -> list[str]:
         failures=failures,
         label="blockers",
     )
-    if manifest is None or blockers is None:
+    fixture = read_json(
+        root,
+        "zigux/tests/fixtures/phase1_helpers.json",
+        failures=failures,
+        label="fixture",
+    )
+    if manifest is None or blockers is None or fixture is None:
         return failures
     if not isinstance(manifest, dict):
         failures.append(issue("manifest_type", "dict", type(manifest).__name__))
         return failures
     if not isinstance(blockers, dict):
         failures.append(issue("blockers_type", "dict", type(blockers).__name__))
+        return failures
+    if not isinstance(fixture, dict):
+        failures.append(issue("fixture_type", "dict", type(fixture).__name__))
         return failures
 
     for key, expected in (
@@ -167,6 +219,16 @@ def collect_failures(root: Path) -> list[str]:
     manifest_helpers = tuple(manifest.get("helpers", []))
     if manifest_helpers != EXPECTED_HELPERS:
         failures.append(issue("manifest_helpers", EXPECTED_HELPERS, manifest_helpers))
+
+    fixture_keys = tuple(sorted(fixture.keys()))
+    if fixture_keys != tuple(sorted(EXPECTED_FIXTURE_KEYS)):
+        failures.append(issue("fixture_keys", tuple(sorted(EXPECTED_FIXTURE_KEYS)), fixture_keys))
+
+    for helper_path, fixture_key in EXPECTED_HELPER_FIXTURE_MAP.items():
+        if helper_path not in manifest_helpers:
+            failures.append(f"helper_missing_from_manifest_for_fixture:{helper_path}")
+        if fixture_key not in fixture:
+            failures.append(f"fixture_key_missing_for_helper:{helper_path}:{fixture_key}")
 
     manifest_lane = manifest.get("lane_sequencing")
     blocker_lane = blockers.get("lane_sequencing")
@@ -283,6 +345,13 @@ def collect_failures(root: Path) -> list[str]:
                     issue("replay_blocker_evidence", EXPECTED_REPLAY_BLOCKER_EVIDENCE, first.get("evidence"))
                 )
 
+            expected_fixture_value = first.get("expected")
+            fixture_value = resolve_field_path(fixture, EXPECTED_REPLAY_BLOCKER_FIELD)
+            if fixture_value != expected_fixture_value:
+                failures.append(issue("fixture_blocked_field_value", expected_fixture_value, fixture_value))
+            if replay.get("fixture") not in (None, EXPECTED_FIXTURE_PATH):
+                failures.append(issue("replay_fixture_path", EXPECTED_FIXTURE_PATH, replay.get("fixture")))
+
     if c_harness.get("path") != EXPECTED_C_HARNESS_PATH:
         failures.append(issue("c_harness_path", EXPECTED_C_HARNESS_PATH, c_harness.get("path")))
     if c_harness.get("state") != "blocked":
@@ -347,6 +416,7 @@ def sample_blockers() -> dict[str, object]:
         "replay": {
             "path": EXPECTED_REPLAY_PATH,
             "state": "blocked",
+            "fixture": EXPECTED_FIXTURE_PATH,
             "blockers": [
                 {
                     "id": EXPECTED_REPLAY_BLOCKER_ID,
@@ -370,6 +440,159 @@ def sample_blockers() -> dict[str, object]:
     }
 
 
+def sample_fixture() -> dict[str, object]:
+    return {
+        "find_bit": {
+            "bits_per_long": 64,
+            "first": 5,
+            "next_after_6": 67,
+            "next_after_word": 135,
+            "first_zero": 3,
+            "next_zero": 68,
+            "first_and": 9,
+            "next_and": 66,
+            "last": 135,
+            "inclusive_boundary_next": 63,
+            "inclusive_boundary_zero": 63,
+            "inclusive_boundary_and": 63,
+            "tail_inclusive_boundary_next": 68,
+            "tail_inclusive_boundary_zero": 68,
+            "tail_inclusive_boundary_and": 68,
+            "past_nbits_next": 7,
+            "past_nbits_zero": 7,
+            "past_nbits_and": 7,
+            "tail_clamped_first": 67,
+            "tail_clamped_next": 69,
+            "tail_zero_clamped_first": 69,
+            "tail_zero_clamped_next": 69,
+            "tail_and_clamped_first": 67,
+            "tail_and_clamped_next": 69,
+            "tail_clamped_last": 67,
+            "tail_clamped_empty_last": 69,
+        },
+        "bitmap": {
+            "weight": 3,
+            "scnprintf": "1-3,7,10-11",
+            "truncated_scnprintf_len": 7,
+            "truncated_scnprintf": "1-3,7,1",
+            "terminator_only_scnprintf_len": 0,
+            "terminator_only_nul": 0,
+            "zero_length_scnprintf_len": 0,
+            "alloc_words": 2,
+            "zalloc_words": 2,
+            "zalloc_values": [0, 0],
+            "copy_values": [18446744073709551615, 18446744073709551615],
+            "copy_clear_tail_values": [18446744073709551615, 31],
+            "copy_and_extend_values": [18446744073709551615, 31, 0],
+            "and_result": True,
+            "and_values": [10, 0],
+            "andnot_result": True,
+            "andnot_values": [4, 0],
+            "or_values": [14, 0],
+            "xor_values": [4, 0],
+            "partial_xor_nbits": 4,
+            "partial_xor_masked_values": [14],
+            "equal": True,
+            "intersects": True,
+            "subset": True,
+            "range_after_set": [14, 12, 0],
+            "range_after_clear": [0, 0, 0],
+            "full_after_fill": True,
+            "empty_after_zero": True,
+        },
+        "string": {
+            "strtobool_y": True,
+            "strtobool_on": True,
+            "strtobool_zero": False,
+            "strtobool_off": False,
+            "strtobool_invalid": 184,
+            "strlcpy_len": 5,
+            "strlcpy_buffer": "hel",
+            "skip_spaces": "hello",
+            "trim_spaces": "hi",
+            "remove_spaces": "abc",
+            "replace_char": "a_b",
+            "replace_char_end": 3,
+            "replace_char_cstr_end": 2,
+            "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+            "memchr_inv_index": 4,
+            "memchr_inv_none": True,
+        },
+        "rbtree": {
+            "empty_root": True,
+            "insert_order": [5, 10, 15, 20, 25],
+            "reverse_order": [25, 20, 15, 10, 5],
+            "replace_order": [5, 10, 15, 25],
+            "erase_init_order": [5, 15, 25],
+            "postorder_count": 3,
+            "erase_init_node_empty": True,
+            "cleared_node_empty": True,
+            "find_found_key": 15,
+            "find_missing": True,
+            "find_first_serial": 0,
+            "next_match_serials": [0, 2, 4],
+            "match_iterator_serials": [0, 2, 4],
+            "cached_leftmost_return_serials": [0, -1, 2, -1],
+            "next_match_terminal_null": True,
+        },
+        "argv_split": {"argc": 3, "argv": ["alpha", "beta", "gamma"], "blank_argc": 0},
+        "cmdline": {
+            "decimal_k": {"value": 65536, "rest": " rest"},
+            "hex_m": {"value": 33554432, "rest": ""},
+            "octal_k": {"value": 8192, "rest": ""},
+            "invalid": {"value": 0, "rest": "xyz"},
+        },
+        "ctype": {
+            "mask_A": 65,
+            "mask_a": 66,
+            "mask_space": 160,
+            "isalnum_A": True,
+            "isalpha_z": True,
+            "isdigit_7": True,
+            "isspace_tab": True,
+            "isxdigit_f": True,
+            "ispunct_bang": True,
+            "tolower_A": 97,
+            "toupper_z": 90,
+            "isodigit_7": True,
+            "isodigit_8": False,
+        },
+        "hweight": {"w8": 4, "w16": 8, "w32": 16, "w64": 32, "wlong": 8},
+        "list_sort": {
+            "tri_sorted_keys": [1, 1, 2, 3, 3],
+            "tri_sorted_ordinals": [1, 3, 0, 2, 4],
+            "bool_sorted_keys": [1, 1, 2, 3, 3],
+            "bool_sorted_ordinals": [1, 3, 0, 2, 4],
+        },
+        "zalloc": {
+            "zeroed": True,
+            "freed_is_null": True,
+            "value_zeroed": True,
+            "value_freed_is_null": True,
+        },
+        "str_error_r": {
+            "enoent": "No such file or directory",
+            "unknown": "INTERNAL ERROR: strerror_r(4096, [buf], 64)=22",
+        },
+        "slab": {
+            "null_without_reclaim": True,
+            "alloc_count_after_kmalloc": 1,
+            "zero_after_kmalloc": True,
+            "alloc_count_after_kmalloc_free": 0,
+            "array_zeroed": True,
+            "alloc_count_after_kmalloc_array": 1,
+            "alloc_count_after_kmalloc_array_free": 0,
+            "slab_is_available": True,
+        },
+        "vsprintf": {
+            "scnprintf_text": "zigux:7",
+            "scnprintf_len": 7,
+            "pad_text": "id=7    ",
+            "pad_len": 7,
+        },
+    }
+
+
 def build_sample_root(root: Path) -> None:
     write_text(root, "scripts/zigux/artifact_diff.py", sample_artifact_diff())
     write_text(
@@ -381,6 +604,11 @@ def build_sample_root(root: Path) -> None:
         root,
         "zigux/tests/fixtures/phase1_replay_blockers.json",
         json.dumps(sample_blockers(), indent=2) + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/fixtures/phase1_helpers.json",
+        json.dumps(sample_fixture(), separators=(",", ":")) + "\n",
     )
 
 
@@ -411,6 +639,20 @@ def run_self_test() -> int:
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helper_manifest.json",
                 lambda data: data["lane_sequencing"].__setitem__("shared_replay_parked_helpers", ["drift"]),
+            ),
+        ),
+        (
+            "fixture_keys_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helpers.json",
+                lambda data: data.__setitem__("unexpected", True),
+            ),
+        ),
+        (
+            "fixture_blocked_field_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helpers.json",
+                lambda data: data["slab"].__setitem__("zero_after_kmalloc", False),
             ),
         ),
         (
@@ -453,6 +695,10 @@ def run_self_test() -> int:
         (
             "blockers_invalid_json",
             lambda root: write_text(root, "zigux/tests/fixtures/phase1_replay_blockers.json", "{\n"),
+        ),
+        (
+            "fixture_invalid_json",
+            lambda root: write_text(root, "zigux/tests/fixtures/phase1_helpers.json", "{\n"),
         ),
     )
 
@@ -504,6 +750,8 @@ def main() -> int:
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SHARED_HELPER_COUNT={len(EXPECTED_SHARED_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_DIRECT_HELPER_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
+    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_FIXTURE_HELPER_COUNT={len(EXPECTED_FIXTURE_KEYS)}")
+    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER_FIELD}")
     return 0
 
 
