@@ -54,6 +54,7 @@ HELPER_PATHS = (
 VALIDATOR_PATHS = (
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/check-phase3-abi.py"),
+    Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py"),
     Path("scripts/zigux/check-phase3-abi-support-packet.py"),
     Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
@@ -95,6 +96,8 @@ COMMANDS = (
     "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
