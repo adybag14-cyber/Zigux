@@ -34,6 +34,13 @@ REQUIRED_NOTE_MARKERS = (
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/tests/phase3_policy_dump.zig",
+    "zigux/tests/phase3_policy_dump_build.zig",
+    "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+    "scripts/zigux/check-phase3-policy-dump.py",
+    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-dump.py",
+    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -50,6 +57,7 @@ REQUIRED_NOTE_MARKERS = (
     "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and it also directly serves `scripts/zigux/phase3_catalog.py` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support or shared replay packet has returned beyond that bounded survey-plus-next-step companion packet already enumerated here.",
     "Current `master` also keeps this note's dedicated packet-local validator explicit through `scripts/zigux/validate-phase3-validator-support-surface.py`, and that validator should stay aligned with this note rather than being left implicit behind the broader shared `scripts/zigux/validate-phase3.py` entrypoint.",
     "Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.",
+    "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
@@ -81,13 +89,13 @@ REQUIRED_SHARED_GAP_MARKERS = (
 
 SELF_TEST_NOTE_MARKERS = (
     REQUIRED_NOTE_MARKERS[0],
-    REQUIRED_NOTE_MARKERS[27],
-    REQUIRED_NOTE_MARKERS[28],
-    REQUIRED_NOTE_MARKERS[34],
-    REQUIRED_NOTE_MARKERS[35],
-    REQUIRED_NOTE_MARKERS[37],
-    REQUIRED_NOTE_MARKERS[48],
-    REQUIRED_NOTE_MARKERS[49],
+    "one focused helper-local `xarray_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage",
+    "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.",
+    "Current `master` also keeps this note's dedicated packet-local validator explicit through `scripts/zigux/validate-phase3-validator-support-surface.py`, and that validator should stay aligned with this note rather than being left implicit behind the broader shared `scripts/zigux/validate-phase3.py` entrypoint.",
+    "That adjacent low-level-wrapper packet now keeps `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test` directly readable on current `master`, but those returned wrapper-local surfaces should stay adjacent here instead of being promoted into broader validator support.",
+    "`Documentation/zigux/README.md` now keeps the validator-support, `err_ptr` / `xarray`, `xarray_slot`, shared catalog companion, and bounded export/UAPI plus header-family reminder surfaces explicit beside the starter, policy, low-level-wrapper, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
+    "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
+    "records the separately landed header-family survey follow-through without promoting it into broader validator support",
 )
 
 SELF_TEST_GAP_MARKERS = REQUIRED_SHARED_GAP_MARKERS
