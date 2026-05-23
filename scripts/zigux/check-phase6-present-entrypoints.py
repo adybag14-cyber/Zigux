@@ -136,16 +136,22 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
+EXPECTED_HEXDUMP_EVIDENCE_RERUN_ROUTES = [
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
+EXPECTED_HEXDUMP_PARITY_RERUN_ROUTES = [
+    "make -C zigux phase6-hexdump-review",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
 EXPECTED_HEXDUMP_PERF_CASES = [
     {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
     {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
     {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
     {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
-]
-EXPECTED_HEXDUMP_RERUN_ROUTES = [
-    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-    "make -C zigux phase6-hexdump-perf",
-    "make -C zigux phase6-perf",
 ]
 EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
@@ -318,8 +324,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 hexdump perf evidence missing")
     if hexdump_perf.get("cases") != EXPECTED_HEXDUMP_PERF_CASES:
         raise ValidationError("phase6 hexdump perf cases mismatch")
-    if hexdump_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
-        raise ValidationError("phase6 hexdump rerun routes mismatch")
+    if hexdump_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_EVIDENCE_RERUN_ROUTES:
+        raise ValidationError("phase6 hexdump evidence rerun routes mismatch")
 
     hexdump_parity = get_helper(parity_helpers, "hexdump")
     if hexdump_parity.get("checker_surfaces") != EXPECTED_HEXDUMP_CHECKER_SURFACES:
@@ -327,7 +333,7 @@ def validate(repo_root: Path) -> None:
     hexdump_parity_perf = hexdump_parity.get("current_perf_evidence")
     if not isinstance(hexdump_parity_perf, dict):
         raise ValidationError("phase6 parity hexdump perf evidence missing")
-    if hexdump_parity_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_RERUN_ROUTES:
+    if hexdump_parity_perf.get("linux_style_rerun_routes") != EXPECTED_HEXDUMP_PARITY_RERUN_ROUTES:
         raise ValidationError("phase6 parity hexdump rerun routes mismatch")
 
     require_list_contains(
@@ -388,7 +394,7 @@ def scaffold_repo(root: Path) -> None:
                         "perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig",
                         "current_perf_evidence": {
                             "cases": EXPECTED_HEXDUMP_PERF_CASES,
-                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES,
+                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_EVIDENCE_RERUN_ROUTES,
                         },
                     },
                 ],
@@ -434,7 +440,7 @@ def scaffold_repo(root: Path) -> None:
                         "key": "hexdump",
                         "checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES,
                         "current_perf_evidence": {
-                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES,
+                            "linux_style_rerun_routes": EXPECTED_HEXDUMP_PARITY_RERUN_ROUTES,
                         },
                     },
                 ],
@@ -489,7 +495,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2].update({"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]})))
         cases_run += 1
-        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"].update({"linux_style_rerun_routes": EXPECTED_HEXDUMP_RERUN_ROUTES[:-1]})))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"].update({"linux_style_rerun_routes": EXPECTED_HEXDUMP_EVIDENCE_RERUN_ROUTES[:-1]})))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
@@ -501,7 +507,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS[:1]})))
         cases_run += 1
-        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3].update({"checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES[:1]})))
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"].update({"linux_style_rerun_routes": EXPECTED_HEXDUMP_PARITY_RERUN_ROUTES[:-1]})))
         cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
