@@ -129,6 +129,18 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
     try std.testing.expectEqualStrings("--stdio", deferred_execl.argv[3].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.argv[4]);
 
+    var deferred_execl_command_only = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{null},
+    );
+    defer deferred_execl_command_only.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 3), deferred_execl_command_only.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred_execl_command_only.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execl_command_only.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl_command_only.argv[2]);
+
     var deferred_execv = try exec_cmd.buildDeferredExecvCall(
         std.testing.allocator,
         config,
