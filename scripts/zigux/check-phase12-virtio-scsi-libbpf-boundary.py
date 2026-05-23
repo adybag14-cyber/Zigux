@@ -95,6 +95,12 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    LIBBPF_HEAVY_CONSUMER_PATH: {
+        "The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.": 1,
+    },
+}
+
 FORBIDDEN_MARKERS = {
     COMPLEX_DRIVER_NOTE_PATH: [
         "current `master` now directly rematerializes the bounded `virtio_scsi` rollback-lab packet through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`",
@@ -136,6 +142,16 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
         for marker in markers:
             if marker not in text:
                 errors.append(f"missing marker in {rel_path}: {marker}")
+
+    for rel_path, marker_counts in EXACT_COUNT_MARKERS.items():
+        text = read_text(root / rel_path)
+        for marker, expected_count in marker_counts.items():
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                errors.append(
+                    f"wrong count in {rel_path}: {marker} "
+                    f"(expected {expected_count}, found {actual_count})"
+                )
 
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = read_text(root / rel_path)
@@ -207,6 +223,22 @@ def run_self_test() -> int:
             raise SystemExit("expected heavy-consumer marker failure")
 
         write_fixture_tree(tmp_root)
+        heavy_consumer_guard_marker = next(
+            iter(EXACT_COUNT_MARKERS[LIBBPF_HEAVY_CONSUMER_PATH])
+        )
+        write_text(
+            tmp_root / LIBBPF_HEAVY_CONSUMER_PATH,
+            read_text(tmp_root / LIBBPF_HEAVY_CONSUMER_PATH)
+            + heavy_consumer_guard_marker
+            + "\n",
+        )
+        if not any(
+            "wrong count in" in error and LIBBPF_HEAVY_CONSUMER_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected heavy-consumer exact-count failure")
+
+        write_fixture_tree(tmp_root)
         write_text(tmp_root / LIBBPF_REVIEWABILITY_GATE_PATH, read_text(tmp_root / LIBBPF_REVIEWABILITY_GATE_PATH).replace("P12-L16", "P12-X16", 1))
         if not any("missing marker in" in error and LIBBPF_REVIEWABILITY_GATE_PATH in error for error in check(tmp_root, source_text=MARKER)):
             raise SystemExit("expected libbpf reviewability gate marker failure")
@@ -214,7 +246,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=6")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=7")
     return 0
 
 
