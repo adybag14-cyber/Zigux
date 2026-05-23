@@ -131,19 +131,37 @@ def collect_failures(root: Path) -> list[str]:
         if field not in review_process:
             failures.append(f"review-process note is missing stay-in-C closeout field: {field}")
         if field not in decision_record_template:
-            failures.append(f"decision-record template is missing stay-in-C closeout field: {field}")
+            failures.append(
+                f"decision-record template is missing stay-in-C closeout field: {field}"
+            )
 
     for field in manifest["reopen_evidence_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing reopen-evidence field: {field}")
         if field not in decision_record_template:
-            failures.append(f"decision-record template is missing reopen-evidence field: {field}")
+            failures.append(
+                f"decision-record template is missing reopen-evidence field: {field}"
+            )
 
     for field in manifest.get("supporting_context_fields", []):
         if field not in review_process:
             failures.append(f"review-process note is missing supporting context field: {field}")
         if field not in decision_record_template:
-            failures.append(f"decision-record template is missing supporting context field: {field}")
+            failures.append(
+                f"decision-record template is missing supporting context field: {field}"
+            )
+
+    for field in manifest.get("review_outcome_fields", []):
+        if field not in review_process:
+            failures.append(f"review-process note is missing review outcome field: {field}")
+        if field not in decision_record_template:
+            failures.append(
+                f"decision-record template is missing review outcome field: {field}"
+            )
+
+    for marker in manifest.get("review_outcome_markers", []):
+        if marker not in review_process:
+            failures.append(f"review-process note is missing review outcome marker: {marker}")
 
     for marker in manifest.get("study_only_anchor_review_markers", []):
         if marker not in review_process:
@@ -258,6 +276,16 @@ def _sample_manifest() -> str:
                 "governance lane sequencing link or explicit scope note",
                 "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
             ],
+            "review_outcome_fields": [
+                "closeout result",
+                "follow-up owner",
+                "next bounded step",
+            ],
+            "review_outcome_markers": [
+                "keep the anchor in `freeze_in_c`",
+                "reopen review later with narrower evidence",
+                "approve a status-bucket change in a separately linked decision record",
+            ],
             "indefinite_c_policy_required_markers": [
                 "required approver set",
                 "automatic return-to-blocked trigger",
@@ -284,31 +312,45 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-architecture-council-review-process.md`",
                 "`Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "`Documentation/zigux/phase15-shared-summary-gap.md`",
+                "`zigux/tests/phase15_freeze_map_governance.zig`",
+                "`zigux/tests/phase15_parity_scorecard.json`",
+                "`zigux/tests/phase15_parity_scorecard.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+                "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing.zig`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
+                "`scripts/zigux/validate-phase15.py`",
+                "one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
             ],
             "shared_gap_expected_present_paths": [
+                "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
                 "`Documentation/zigux/phase15-readiness-gate-survey.md`",
                 "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
                 "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+                "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`zigux/tests/phase15_freeze_map_governance.zig`",
+                "`zigux/tests/phase15_parity_scorecard.json`",
                 "`zigux/tests/phase15_parity_scorecard.zig`",
                 "`zigux/tests/phase15_indefinite_c_policy.json`",
                 "`zigux/tests/phase15_indefinite_c_policy.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing.zig`",
+                "`zigux/tests/phase15_readiness_gate_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
@@ -364,6 +406,16 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 Study-only freeze-map anchors stay outside this Architecture Council status-review packet until the freeze map itself changes.
 
 `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, not candidates for a freeze-in-C status review through this note, unless the freeze map and supporting governance packet are explicitly updated first.
+
+The Architecture Council may close a request only in one of these bounded ways:
+- keep the anchor in `freeze_in_c`
+- reopen review later with narrower evidence
+- approve a status-bucket change in a separately linked decision record
+
+Every closeout record must also keep all of the following explicit in the linked decision record:
+- closeout result
+- follow-up owner
+- next bounded step
 
 If a freeze-in-C review closes without a status change, the closeout record must keep all of the following explicit:
 - the retained `freeze_in_c` decision
@@ -424,6 +476,10 @@ This is a review packet template, not approval by itself.
 - explicit non-goals:
 - written rationale:
 
+- closeout result:
+- follow-up owner:
+- next bounded step:
+
 - the retained `freeze_in_c` decision:
 - the current blocker:
 - the required approver set:
@@ -475,16 +531,23 @@ def _sample_handoff_note() -> str:
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.json`
+- `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker
+- `scripts/zigux/validate-phase15.py`
+- one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 """
 
@@ -492,19 +555,26 @@ def _sample_handoff_note() -> str:
 def _sample_gap_note() -> str:
     return """# Phase 15 Shared Summary Gap
 
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
@@ -584,314 +654,43 @@ def run_self_test() -> int:
         _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace(
-                "`Documentation/zigux/phase15-indefinite-c-policy.md`, ", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != ["review-process note is missing the indefinite-C policy companion path"]:
-            raise AssertionError(f"unexpected indefinite-C policy path failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace(
-                "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
-                "`Documentation/zigux/phase15-handoff-next-step-survey.md`",
+                "- closeout result\n",
+                "",
                 1,
             ),
         )
         failures = collect_failures(root)
-        if failures != ["review-process note is missing the handoff note path"]:
-            raise AssertionError(f"unexpected handoff-path failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace(
-                "`Documentation/zigux/phase15-shared-summary-gap.md`",
-                "`Documentation/zigux/phase15-shared-summary-gap-note.md`",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != ["review-process note is missing the shared-summary gap note path"]:
-            raise AssertionError(f"unexpected shared-gap-path failure: {failures}")
+        if failures != ["review-process note is missing review outcome field: closeout result"]:
+            raise AssertionError(f"unexpected review-outcome-note failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
             root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace("- rollback owner:\n", "", 1),
+            _sample_decision_record_template().replace("- follow-up owner:\n", "", 1),
         )
         failures = collect_failures(root)
-        if failures != ["decision-record template is missing required review field: rollback owner"]:
-            raise AssertionError(f"unexpected rollback-owner template failure: {failures}")
-
-        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
-        _write(
-            root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace("exact-head provenance exception note:\n", "", 1),
-        )
-        failures = collect_failures(root)
-        if failures != ["decision-record template is missing required marker: exact-head provenance exception note:"]:
-            raise AssertionError(f"unexpected decision-template marker failure: {failures}")
+        if failures != ["decision-record template is missing review outcome field: follow-up owner"]:
+            raise AssertionError(f"unexpected review-outcome-template failure: {failures}")
 
         _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace(
-                "- the automatic return-to-blocked trigger\n", "", 1
+                "- approve a status-bucket change in a separately linked decision record\n",
+                "",
+                1,
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "review-process note is missing stay-in-C closeout field: the automatic return-to-blocked trigger"
+            "review-process note is missing review outcome marker: approve a status-bucket change in a separately linked decision record"
         ]:
-            raise AssertionError(f"unexpected stay-in-C closeout failure: {failures}")
+            raise AssertionError(f"unexpected review-outcome-marker failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace(
-                "- governance lane sequencing link or explicit scope note\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "review-process note is missing supporting context field: governance lane sequencing link or explicit scope note"
-        ]:
-            raise AssertionError(f"unexpected supporting-context note failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(
-            root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace(
-                "- study-only anchor accounting link or explicit freeze-map-anchor confirmation:\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "decision-record template is missing supporting context field: study-only anchor accounting link or explicit freeze-map-anchor confirmation"
-        ]:
-            raise AssertionError(f"unexpected supporting-context template failure: {failures}")
-
-        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
-        _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace("`kernel/workqueue.c` and ", "", 1),
-        )
-        failures = collect_failures(root)
-        if failures != ["review-process note is missing study-only boundary marker: `kernel/workqueue.c`"]:
-            raise AssertionError(f"unexpected study-only marker failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(
-            root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace(
-                "- Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != ["decision-record template is missing the study-only anchor boundary rule"]:
-            raise AssertionError(f"unexpected study-only template-rule failure: {failures}")
-
-        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
-        _write(
-            root / INDEFINITE_C_POLICY_PATH,
-            _sample_indefinite_c_policy().replace("required approver set, ", "", 1),
-        )
-        failures = collect_failures(root)
-        if failures != ["indefinite-C policy note is missing required marker: required approver set"]:
-            raise AssertionError(f"unexpected indefinite-C marker failure: {failures}")
-
-        _write(root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
-        _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace(
-                "- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != ["review-process note is missing the review-checklist boundary rule"]:
-            raise AssertionError(f"unexpected checklist-boundary failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n\n  * some other review prompt\n")
-        failures = collect_failures(root)
-        if failures != [
-            "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
-        ]:
-            raise AssertionError(f"unexpected checklist-prompt failure: {failures}")
-
-        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
-        _write(
-            root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace(
-                " and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "review checklist entry prompt is missing required boundary marker: Documentation/zigux/phase15-architecture-council-decision-record-template.md"
-        ]:
-            raise AssertionError(f"unexpected checklist-boundary-marker failure: {failures}")
-
-        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
-        _write(
-            root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace(
-                " and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "review checklist entry prompt is missing required stay-in-C policy boundary marker"
-        ]:
-            raise AssertionError(f"unexpected checklist-stay-in-c-boundary failure: {failures}")
-
-        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
-        _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing the decision-record template path",
-        ]:
-            raise AssertionError(f"unexpected decision-template handoff failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("- `Documentation/zigux/review-checklist.md`\n", "", 1),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing required marker: `Documentation/zigux/review-checklist.md`"
-        ]:
-            raise AssertionError(f"unexpected handoff failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing required marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`"
-        ]:
-            raise AssertionError(f"unexpected tests-readme handoff failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `zigux/tests/phase15_handoff_next_steps.zig`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing required marker: `zigux/tests/phase15_handoff_next_steps.zig`"
-        ]:
-            raise AssertionError(f"unexpected handoff-replay failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing required marker: `scripts/zigux/check-phase15-handoff-note-alignment.py`"
-        ]:
-            raise AssertionError(f"unexpected handoff-note-checker failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-readiness-gate-packet.py`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "handoff note is missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`"
-        ]:
-            raise AssertionError(f"unexpected readiness-gate-checker failure: {failures}")
-
-        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / SHARED_GAP_NOTE_PATH,
-            _sample_gap_note().replace(
-                "- `zigux/tests/phase15_architecture_council_review_process.zig`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_architecture_council_review_process.zig`"
-        ]:
-            raise AssertionError(f"unexpected shared-gap failure: {failures}")
-
-        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        _write(
-            root / SHARED_GAP_NOTE_PATH,
-            _sample_gap_note().replace(
-                "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_handoff_next_steps_manifest.json`"
-        ]:
-            raise AssertionError(f"unexpected handoff-manifest shared-gap failure: {failures}")
-
-        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        _write(
-            root / SHARED_GAP_NOTE_PATH,
-            _sample_gap_note().replace(
-                "- `zigux/tests/phase15_handoff_next_steps.zig`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_handoff_next_steps.zig`"
-        ]:
-            raise AssertionError(f"unexpected handoff-replay shared-gap failure: {failures}")
-
-        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        _write(
-            root / SHARED_GAP_NOTE_PATH,
-            _sample_gap_note().replace(
-                "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n", "", 1
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-handoff-note-alignment.py`"
-        ]:
-            raise AssertionError(f"unexpected handoff-note shared-gap failure: {failures}")
-
-        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        _write(
-            root / SHARED_GAP_NOTE_PATH,
-            _sample_gap_note().replace(
                 "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n",
                 "",
                 1,
@@ -899,34 +698,39 @@ def run_self_test() -> int:
         )
         failures = collect_failures(root)
         if failures != [
-            "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`"
+            "handoff note is missing required marker: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`"
         ]:
-            raise AssertionError(f"unexpected checklist-study-only shared-gap failure: {failures}")
+            raise AssertionError(f"unexpected handoff-checklist-study-only failure: {failures}")
 
-        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(
             root / SHARED_GAP_NOTE_PATH,
             _sample_gap_note().replace(
-                "- `scripts/zigux/validate-phase15.py`\n",
+                "- `zigux/tests/phase15_governance_lane_sequencing.zig`\n",
                 "",
                 1,
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "shared-summary gap note is missing newly landed path: `scripts/zigux/validate-phase15.py`"
+            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_governance_lane_sequencing.zig`"
         ]:
-            raise AssertionError(f"unexpected validator shared-gap failure: {failures}")
+            raise AssertionError(f"unexpected shared-gap-governance-replay failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        (root / TEST_PATH).unlink()
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `scripts/zigux/check-phase15-readiness-gate-packet.py`\n",
+                "",
+                1,
+            ),
+        )
         failures = collect_failures(root)
-        expected = [
-            "shared-summary gap note claims materialized path is missing from repo: `zigux/tests/phase15_architecture_council_review_process.zig`",
-            "focused review-process Zig replay is missing from repo: `zigux/tests/phase15_architecture_council_review_process.zig`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-path failure: {failures}")
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-readiness-gate-packet.py`"
+        ]:
+            raise AssertionError(f"unexpected shared-gap-readiness-checker failure: {failures}")
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
     return 0
