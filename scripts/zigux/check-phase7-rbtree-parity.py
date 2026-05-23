@@ -189,7 +189,6 @@ def run_self_test() -> None:
         write_fixture_root(root)
         direct_anchor_path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
         direct_anchor_marker = DIRECT_BUILD_READBACK_MARKER
-        direct_anchor_path.writeText = None
         direct_anchor_path.write_text(
             read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
             encoding="utf-8",
