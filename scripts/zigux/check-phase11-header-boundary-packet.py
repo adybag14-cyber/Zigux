@@ -19,11 +19,13 @@ SURVEY_REQUIRED_MARKERS = (
     "`zigux/tests/phase11_uapi_header_parity_survey.zig`",
     "`zigux/tests/phase11_build.zig`",
     "`zigux/helpers/layout_assert.zig`",
+    "`drivers/tty/hvc/hvc_console.zig`",
     "returned `zigux/helpers/layout_assert.zig` substrate",
     "no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet",
     "returned header-boundary checker now only guards the narrower current-head note packet",
     "`phase11-header-boundary-checker`",
     "`phase11-build-inventory-adjunct`",
+    "keeps imported `Winsize` and `HvOps` field types tied to that current module",
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` as the current adjunct build trio",
 )
 
@@ -113,6 +115,7 @@ def run_self_test() -> int:
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
   - `zigux/helpers/layout_assert.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
+  - `drivers/tty/hvc/hvc_console.zig`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - the older shared header-packet companions named by earlier continuity still do not read back at their former paths on current `master`:
   - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -122,12 +125,14 @@ def run_self_test() -> int:
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
   - `zigux/helpers/layout_assert.zig`
+  - `drivers/tty/hvc/hvc_console.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - that narrower proof packet remains `layout_assert`-backed through the returned `zigux/helpers/layout_assert.zig` substrate.
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet, and the returned header-boundary checker now only guards the narrower current-head note packet.
 - `phase11-build-inventory-adjunct`: `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` remain the current adjunct build trio beside the narrower note-side packet.
 ## Current-Head Boundary
+- `phase11-hvc-export-surface-layout-proof-tests`: `drivers/tty/hvc/hvc_console.zig` stays a direct proof input for that replay and keeps imported `Winsize` and `HvOps` field types tied to that current module.
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the note-side packet only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
 """
 
@@ -161,8 +166,8 @@ def run_self_test() -> int:
         survey_missing = tmpdir / "survey_missing"
         shutil.copytree(fixture_root, survey_missing, dirs_exist_ok=True)
         path = survey_missing / SURVEY_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[8]), encoding="utf-8")
-        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[8])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[9]), encoding="utf-8")
+        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[9])
         case_count += 1
 
         survey_forbidden = tmpdir / "survey_forbidden"
