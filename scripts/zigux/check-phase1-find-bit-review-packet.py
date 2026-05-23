@@ -18,6 +18,17 @@ CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 EXPECTED_SOURCE_SYMBOLS = [
     "pub fn find_first_bit(addr: []const Word, nbits: usize) usize {",
     "pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {",
@@ -183,8 +194,30 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json_with_duplicate_tracking(text: str) -> Any:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
 def load_json(root: Path, relative_path: Path) -> Any:
-    return json.loads(load_text(root, relative_path))
+    return load_json_with_duplicate_tracking(load_text(root, relative_path))
+
+
+def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
+    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
@@ -208,8 +241,27 @@ def collect_failures(root: Path) -> list[str]:
     helper_text = load_text(root, HELPER_REL)
     lane_text = load_text(root, LANE_NOTE_REL)
     closure_text = load_text(root, CLOSURE_NOTE_REL)
-    manifest = load_json(root, MANIFEST_REL)
-    fixture = load_json(root, FIXTURE_REL)
+    try:
+        manifest = load_json(root, MANIFEST_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("manifest", exc)]
+
+    try:
+        fixture = load_json(root, FIXTURE_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("fixture", exc)]
+
+    if not isinstance(manifest, dict):
+        return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_manifest_paths]
+
+    if not isinstance(fixture, dict):
+        return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
+    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
+    if duplicate_fixture_paths:
+        return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
 
     for symbol in EXPECTED_SOURCE_SYMBOLS:
         failures.extend(require_exact_occurrence(helper_text, f"helper_symbol:{symbol}", symbol))
@@ -271,6 +323,20 @@ def build_sample_repo(root: Path) -> None:
     )
 
 
+def insert_duplicate_json_line(
+    root: Path,
+    relative_path: Path,
+    needle: str,
+    duplicate_line: str,
+) -> None:
+    json_path = root / relative_path
+    text = json_path.read_text(encoding="utf-8")
+    json_path.write_text(
+        text.replace(needle, duplicate_line + "\n" + needle, 1),
+        encoding="utf-8",
+    )
+
+
 def run_self_test() -> int:
     cases = [
         ("missing_helper", "missing_file:tools/lib/find_bit.zig"),
@@ -283,6 +349,22 @@ def run_self_test() -> int:
         ("manifest_tail_anchor_drift", "manifest:single_word_tail_inclusive_boundary_anchor:expected_current_packet"),
         ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
         ("duplicate_anchor", 'helper_anchor:test "clump8 past-end scans return without reading bitmap words":expected=1:actual=2'),
+        (
+            "manifest_invalid_json",
+            "manifest:invalid_json:Expecting property name enclosed in double quotes:line=1:column=2",
+        ),
+        (
+            "fixture_invalid_json",
+            "fixture:invalid_json:Expecting property name enclosed in double quotes:line=1:column=2",
+        ),
+        (
+            "manifest_duplicate_review_packet_summary",
+            "manifest:duplicate_json_key:review_anchors.tools/lib/find_bit.zig.review_packet_summary",
+        ),
+        (
+            "fixture_duplicate_tail_clamped_first",
+            "fixture:duplicate_json_key:find_bit.tail_clamped_first",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -352,8 +434,38 @@ def run_self_test() -> int:
         if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_anchor")
 
+        build_sample_repo(tmp_root)
+        write_text(tmp_root, MANIFEST_REL, "{\n")
+        if cases[10][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_invalid_json")
+
+        build_sample_repo(tmp_root)
+        write_text(tmp_root, FIXTURE_REL, "{\n")
+        if cases[11][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:fixture_invalid_json")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            MANIFEST_REL,
+            '      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",',
+            '      "review_packet_summary": "drifted duplicate summary",',
+        )
+        if cases[12][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_duplicate_review_packet_summary")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            FIXTURE_REL,
+            '    "tail_clamped_first": 67,',
+            '    "tail_clamped_first": 0,',
+        )
+        if cases[13][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:fixture_duplicate_tail_clamped_first")
+
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
