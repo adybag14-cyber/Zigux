@@ -239,6 +239,34 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        (root / IOMAP_NOTE_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing_file:{IOMAP_NOTE_PATH.as_posix()}"],
+            "missing_iomap_note_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(
+                marker
+                for marker in SURVEY_MARKERS
+                if marker != "blocked `phase13-devres-missing-devm-of-iomap-surface`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "survey:missing_marker:blocked `phase13-devres-missing-devm-of-iomap-surface`",
+            ],
+            "missing_survey_iomap_gap_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(
             root / IOUNMAP_MANIFEST_PATH,
             "\n".join(
@@ -282,6 +310,15 @@ def run_self_test() -> int:
             validate(root),
             [f"missing_file:{IOMAP_MANIFEST_PATH.as_posix()}"],
             "missing_iomap_manifest_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / HELPER_PATH, "\n".join(HELPER_REQUIRED_MARKERS + ["devm_iounmap("]) + "\n")
+        assert_only(
+            validate(root),
+            ["helper_mmio_absence:unexpected_marker:devm_iounmap("],
+            "unexpected_live_iounmap_failed",
         )
         case_count += 1
 
