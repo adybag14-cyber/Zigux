@@ -153,7 +153,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "broader timeout-sensitive routing behavior",
     ),
     LIBBPF_SEGMENT_MANIFEST: (
-        '"lane_key": "P8-L15"',
+        '"lane_key": "P8-L13"',
         '"phase": "Phase 8"',
         '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
         '"slug": "map-reuse-compatibility", "status": "starter_landed"',
