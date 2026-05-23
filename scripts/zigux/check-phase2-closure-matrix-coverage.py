@@ -185,7 +185,6 @@ EXPECTED_MANIFEST_VALIDATORS = ("scripts/zigux/validate-phase2.py",)
 EXPECTED_MANIFEST_CHECKERS = ("check-base.py",)
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig",)
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json",)
-EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase2-closure.md"),
     Path("scripts/zigux/validate-phase2-closure.py"),
@@ -202,7 +201,6 @@ VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("checkers", "EXPECTED_MANIFEST_CHECKERS"),
     ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),
     ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),
-    ("policy", "EXPECTED_MANIFEST_POLICY"),
 )
 DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {
     "bootstrap_helpers": (
@@ -211,6 +209,9 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {
     ),
     "checkers": (
         "scripts/zigux/check-extra.py",
+    ),
+    "policy": (
+        "policy-a.json",
     ),
 }
 EXTRA_REQUIRED_FILES = (
@@ -312,6 +313,13 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["policy"].remove("policy-a.json")
+        write_json(manifest_path, payload)
+        assert ("MISSING_MATRIX_COVERED_ITEM", "policy:policy-a.json") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         write_json(manifest_path, [])
         assert_system_exit_contains(
             lambda: collect_issues(root),
@@ -343,15 +351,15 @@ def run_self_test() -> int:
         validator_text = validator_path.read_text(encoding="utf-8")
         validator_path.write_text(
             validator_text.replace(
-                'EXPECTED_MANIFEST_POLICY = ("policy-a.json",)\n',
-                'EXPECTED_MANIFEST_POLICY = ["policy-a.json"]\n',
+                'EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json",)\n',
+                'EXPECTED_MANIFEST_FIXTURE_ROSTER = ["fixture-a.json"]\n',
                 1,
             ),
             encoding="utf-8",
         )
         assert_system_exit_contains(
             lambda: collect_issues(root),
-            "validator.EXPECTED_MANIFEST_POLICY must stay tuple[str, ...]",
+            "validator.EXPECTED_MANIFEST_FIXTURE_ROSTER must stay tuple[str, ...]",
         )
         checks_run += 1
 
@@ -366,7 +374,6 @@ def run_self_test() -> int:
                 '    ("checkers", "EXPECTED_MANIFEST_CHECKERS"),\n'
                 '    ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),\n'
                 '    ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),\n'
-                '    ("policy", "EXPECTED_MANIFEST_POLICY"),\n'
                 ")\n",
                 'VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = "drifted"\n',
                 1,
@@ -383,8 +390,8 @@ def run_self_test() -> int:
         matrix_text = matrix_path.read_text(encoding="utf-8")
         matrix_path.write_text(
             matrix_text.replace(
-                '    ("policy", "EXPECTED_MANIFEST_POLICY"),\n',
-                '    "policy",\n',
+                '    ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),\n',
+                '    "fixture_roster",\n',
                 1,
             ),
             encoding="utf-8",
@@ -406,6 +413,9 @@ def run_self_test() -> int:
                 "    ),\n"
                 '    "checkers": (\n'
                 '        "scripts/zigux/check-extra.py",\n'
+                "    ),\n"
+                '    "policy": (\n'
+                '        "policy-a.json",\n'
                 "    ),\n"
                 "}\n",
                 'DIRECT_MANIFEST_SURFACE_EXPECTATIONS = "drifted"\n',
