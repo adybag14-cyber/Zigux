@@ -601,6 +601,19 @@ test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fit
     try std.testing.expectEqual(@as(u8, 0), line[written]);
 }
 
+test "hexDumpToBuffer keeps the rowsize-32 group-2 ASCII packet when the caller buffer fits exactly" {
+    const expected = if (builtin.cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C..."
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...";
+    var line: [114]u8 = undefined;
+
+    const written = hexDumpToBuffer(test_data_b[0..32], 32, 2, line[0..], true);
+    try std.testing.expectEqual(@as(usize, 113), written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(line[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), line[written]);
+}
+
 test "hexDumpToBuffer follows kernel fixture normalization cases" {
     const Case = struct {
         len: usize,
