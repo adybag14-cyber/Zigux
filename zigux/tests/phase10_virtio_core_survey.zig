@@ -4,6 +4,32 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn stripAsciiWhitespace(allocator: std.mem.Allocator, input: []const u8) ![]u8 {
+    var kept: usize = 0;
+    for (input) |byte| {
+        switch (byte) {
+            ' ', '\n', '\r', '\t' => {},
+            else => kept += 1,
+        }
+    }
+
+    const output = try allocator.alloc(u8, kept);
+    errdefer allocator.free(output);
+
+    var index: usize = 0;
+    for (input) |byte| {
+        switch (byte) {
+            ' ', '\n', '\r', '\t' => {},
+            else => {
+                output[index] = byte;
+                index += 1;
+            },
+        }
+    }
+
+    return output;
+}
+
 fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]u8 {
     const io = std.testing.io;
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
@@ -26,6 +52,8 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
         "zigux/tests/phase10_closure_manifest.json",
     );
     defer allocator.free(closure_manifest);
+    const compact_closure_manifest = try stripAsciiWhitespace(allocator, closure_manifest);
+    defer allocator.free(compact_closure_manifest);
 
     try expectContains(survey_note, "drivers/virtio/virtio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig");
@@ -37,11 +65,11 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
     try expectContains(build_file, "run_phase10_virtio_core_verify_tests.step");
     try expectContains(build_file, "run_phase10_virtio_core_reset_queue_tests.step");
     try expectContains(build_file, "run_phase10_virtio_core_interrupt_compound_ack_tests.step");
-    try expectContains(closure_manifest, "\"drivers/virtio/virtio_verify.zig\"");
-    try expectContains(closure_manifest, "\"zigux/tests/phase10_virtio_core_reset_queue.zig\"");
-    try expectContains(closure_manifest, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
-    try expectContains(closure_manifest, "\"phase10-lifecycle-guard-bookkeeping-helper\"");
-    try expectContains(closure_manifest, "\"phase10-reset-replay-bookkeeping-helper\"");
+    try expectContains(compact_closure_manifest, "\"drivers/virtio/virtio_verify.zig\"");
+    try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_reset_queue.zig\"");
+    try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
+    try expectContains(compact_closure_manifest, "\"phase10-lifecycle-guard-bookkeeping-helper\"");
+    try expectContains(compact_closure_manifest, "\"phase10-reset-replay-bookkeeping-helper\"");
 }
 
 test "phase10 virtio core survey gate keeps slice-local review surfaces and blockers explicit" {
@@ -58,20 +86,22 @@ test "phase10 virtio core survey gate keeps slice-local review surfaces and bloc
         "zigux/tests/phase10_virtio_core_manifest.json",
     );
     defer allocator.free(manifest);
+    const compact_manifest = try stripAsciiWhitespace(allocator, manifest);
+    defer allocator.free(compact_manifest);
 
     try expectContains(slice_note, "drivers/virtio/virtio_verify.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_core_reset_queue.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_core_survey.zig");
-    try expectContains(manifest, "\"lane_key\": \"P10-L01\"");
-    try expectContains(manifest, "\"id\": \"phase10-build-gate\"");
-    try expectContains(manifest, "\"id\": \"phase10-virtio-core-slice-note\"");
-    try expectContains(manifest, "\"id\": \"phase10-virtio-core-survey-note\"");
-    try expectContains(manifest, "\"id\": \"phase10-queue-shape-bookkeeping-helper\"");
-    try expectContains(manifest, "\"id\": \"phase10-config-generation-bookkeeping-helper\"");
-    try expectContains(manifest, "\"id\": \"phase10-interrupt-ack-bookkeeping-helper\"");
-    try expectContains(manifest, "\"id\": \"phase10-lifecycle-guard-bookkeeping-helper\"");
-    try expectContains(manifest, "\"id\": \"phase10-reset-replay-bookkeeping-helper\"");
-    try expectContains(manifest, "\"id\": \"phase10-core-dual-implementation-bridge\"");
-    try expectContains(manifest, "\"id\": \"phase10-core-probe-remove-lifecycle\"");
+    try expectContains(compact_manifest, "\"lane_key\":\"P10-L01\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-build-gate\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-virtio-core-slice-note\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-virtio-core-survey-note\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-queue-shape-bookkeeping-helper\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-config-generation-bookkeeping-helper\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-interrupt-ack-bookkeeping-helper\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-lifecycle-guard-bookkeeping-helper\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-reset-replay-bookkeeping-helper\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-core-dual-implementation-bridge\"");
+    try expectContains(compact_manifest, "\"id\":\"phase10-core-probe-remove-lifecycle\"");
 }
