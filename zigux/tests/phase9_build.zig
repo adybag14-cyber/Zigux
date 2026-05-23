@@ -245,6 +245,24 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+    const runtime_first_loadable_parity_behavior_module = b.createModule(.{
+        .root_source_file = b.path("runtime_first_loadable_parity_behavior.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_first_loadable_parity_behavior_module.addImport(
+        "runtime_atomic64_sample",
+        runtime_atomic64_sample_module,
+    );
+    runtime_first_loadable_parity_behavior_module.addImport(
+        "runtime_bitmap_sample",
+        runtime_bitmap_sample_module,
+    );
+
+    const runtime_first_loadable_parity_behavior_tests = b.addTest(.{
+        .name = "phase9-first-loadable-runtime-module-parity-behavior-tests",
+        .root_module = runtime_first_loadable_parity_behavior_module,
+    });
 
     const run_runtime_atomic64_diff_tests = b.addRunArtifact(runtime_atomic64_diff_tests);
     const run_runtime_atomic64_module_tests = b.addRunArtifact(runtime_atomic64_module_tests);
@@ -283,6 +301,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_first_loadable_parity_survey_tests = b.addRunArtifact(
         runtime_first_loadable_parity_survey_tests,
+    );
+    const run_runtime_first_loadable_parity_behavior_tests = b.addRunArtifact(
+        runtime_first_loadable_parity_behavior_tests,
     );
 
     const phase9_runtime_atomic64_diff = b.step(
@@ -411,5 +432,13 @@ pub fn build(b: *std.Build) void {
     );
     phase9_first_loadable_runtime_module_parity.dependOn(
         &run_runtime_first_loadable_parity_survey_tests.step,
+    );
+
+    const phase9_first_loadable_runtime_module_parity_behavior = b.step(
+        "phase9-first-loadable-runtime-module-parity-behavior-tests",
+        "Run the Phase 9 first-loadable runtime-module parity behavior tests.",
+    );
+    phase9_first_loadable_runtime_module_parity_behavior.dependOn(
+        &run_runtime_first_loadable_parity_behavior_tests.step,
     );
 }
