@@ -24,6 +24,14 @@ pub const DeviceStatusSummary = struct {
     selected_queue: ?u16,
 };
 
+pub const FeatureBitSummary = struct {
+    anchor: []const u8,
+    device_features: u64,
+    driver_features: u64,
+    negotiated_features: u64,
+    features_negotiated: bool,
+};
+
 pub const QueueBookkeepingSummary = struct {
     anchor: []const u8,
     queue_count: u16,
@@ -143,6 +151,9 @@ pub const VirtioCoreLab = struct {
     config_generation: u8 = 0,
     status: u8 = 0,
     features_negotiated: bool = false,
+    device_features: u64 = 0,
+    driver_features: u64 = 0,
+    negotiated_features: u64 = 0,
     pending_interrupts: u8 = 0,
 
     pub fn init(device_id: u32, queue_count: u16) !Self {
@@ -165,16 +176,36 @@ pub const VirtioCoreLab = struct {
         self.status &= ~bits;
         if ((bits & status_features_ok) != 0) {
             self.features_negotiated = false;
+            self.negotiated_features = 0;
         }
     }
 
     pub fn noteFeaturesNegotiated(self: *Self) void {
+        self.noteNegotiatedFeatures(self.device_features & self.driver_features);
+    }
+
+    pub fn noteNegotiatedFeatures(self: *Self, negotiated_features: u64) void {
+        self.negotiated_features = negotiated_features;
         self.features_negotiated = true;
         self.status |= status_features_ok;
     }
 
     pub fn setVendorId(self: *Self, vendor_id: u32) void {
         self.vendor_id = vendor_id;
+    }
+
+    pub fn setDeviceFeatures(self: *Self, bits: u64) void {
+        self.device_features = bits;
+    }
+
+    pub fn setDriverFeatures(self: *Self, bits: u64) void {
+        self.driver_features = bits;
+    }
+
+    pub fn driverValidationNarrow(self: *Self, allowed_mask: u64) u64 {
+        const negotiated = self.device_features & self.driver_features & allowed_mask;
+        self.noteNegotiatedFeatures(negotiated);
+        return negotiated;
     }
 
     pub fn selectQueue(self: *Self, queue_index: u16) !QueueBookkeepingSummary {
@@ -209,6 +240,8 @@ pub const VirtioCoreLab = struct {
         self.selected_queue = null;
         self.status = 0;
         self.features_negotiated = false;
+        self.driver_features = 0;
+        self.negotiated_features = 0;
         self.pending_interrupts = 0;
         self.bumpConfigGeneration();
         return self.queueBookkeepingSummary();
@@ -233,6 +266,32 @@ pub const VirtioCoreLab = struct {
             .failed = failed,
             .selected_queue = self.selected_queue,
         };
+    }
+
+    pub fn featureBitSummary(self: *const Self) FeatureBitSummary {
+        return .{
+            .anchor = anchor_path,
+            .device_features = self.device_features,
+            .driver_features = self.driver_features,
+            .negotiated_features = self.negotiated_features,
+            .features_negotiated = self.features_negotiated,
+        };
+    }
+
+    pub fn statusShow(self: *const Self, buffer: []u8) ![]const u8 {
+        return std.fmt.bufPrint(buffer, "0x{x:0>8}\n", .{self.status});
+    }
+
+    pub fn deviceFeaturesShow(self: *const Self, buffer: []u8) ![]const u8 {
+        return writeFeatureBits(buffer, self.device_features);
+    }
+
+    pub fn driverFeaturesShow(self: *const Self, buffer: []u8) ![]const u8 {
+        return writeFeatureBits(buffer, self.driver_features);
+    }
+
+    pub fn negotiatedFeaturesShow(self: *const Self, buffer: []u8) ![]const u8 {
+        return writeFeatureBits(buffer, self.negotiated_features);
     }
 
     pub fn queueBookkeepingSummary(self: *const Self) QueueBookkeepingSummary {
@@ -396,6 +455,10 @@ pub const VirtioCoreLab = struct {
     }
 };
 
+fn writeFeatureBits(buffer: []u8, bits: u64) ![]const u8 {
+    return std.fmt.bufPrint(buffer, "0x{x:0>16}\n", .{bits});
+}
+
 test "phase10 virtio core status summary keeps lab-only driver readiness bounded to shared status bookkeeping" {
     var core = try VirtioCoreLab.init(71, 2);
 
@@ -415,6 +478,33 @@ test "phase10 virtio core status summary keeps lab-only driver readiness bounded
     try std.testing.expect(!summary.failed);
     try std.testing.expect(!summary.needs_reset);
     try std.testing.expectEqual(@as(u8, status_acknowledge | status_driver | status_features_ok | status_driver_ok), summary.status);
+}
+
+test "phase10 virtio core attribute summaries render status and feature bitstrings through driver-validation narrowing" {
+    var core = try VirtioCoreLab.init(77, 2);
+    core.setDeviceFeatures(0x00f0_00ff_0000_000f);
+    core.setDriverFeatures(0x00f0_00f0_0000_00ff);
+    core.setStatusBits(status_acknowledge | status_driver);
+    const negotiated = core.driverValidationNarrow(0x00f0_0000_0000_00ff);
+    core.setStatusBits(status_driver_ok);
+
+    try std.testing.expectEqual(@as(u64, 0x00f0_0000_0000_000f), negotiated);
+
+    const feature_summary = core.featureBitSummary();
+    try std.testing.expect(feature_summary.features_negotiated);
+    try std.testing.expectEqual(@as(u64, 0x00f0_00ff_0000_000f), feature_summary.device_features);
+    try std.testing.expectEqual(@as(u64, 0x00f0_00f0_0000_00ff), feature_summary.driver_features);
+    try std.testing.expectEqual(@as(u64, 0x00f0_0000_0000_000f), feature_summary.negotiated_features);
+
+    var status_buffer: [11]u8 = undefined;
+    var device_buffer: [19]u8 = undefined;
+    var driver_buffer: [19]u8 = undefined;
+    var negotiated_buffer: [19]u8 = undefined;
+
+    try std.testing.expectEqualStrings("0x0000000f\n", try core.statusShow(&status_buffer));
+    try std.testing.expectEqualStrings("0x00f000ff0000000f\n", try core.deviceFeaturesShow(&device_buffer));
+    try std.testing.expectEqualStrings("0x00f000f0000000ff\n", try core.driverFeaturesShow(&driver_buffer));
+    try std.testing.expectEqualStrings("0x00f000000000000f\n", try core.negotiatedFeaturesShow(&negotiated_buffer));
 }
 
 test "phase10 virtio core queue bookkeeping keeps queue count stable across selection and reset-local replay" {
