@@ -252,6 +252,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, ".provides_selftest_hook = true");
     try expectContains(survey_note, "initialized, selftest_complete, and exited lifecycle tracking");
     try expectContains(survey_note, "The direct sample also now keeps initialized-stage clean exit explicit");
+    try expectContains(survey_note, "The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay");
     try expectContains(survey_note, "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
     try expectContains(survey_note, "direct family-local `zigux/tests/runtime_*` witness");
     try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
@@ -268,6 +269,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(module_slice_note, ".provides_selftest_hook = true");
     try expectContains(module_slice_note, "initialized, selftest_complete, and exited lifecycle tracking");
     try expectContains(module_slice_note, "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`");
+    try expectContains(module_slice_note, "The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay");
     try expectContains(module_slice_note, "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
     try expectContains(module_slice_note, "sample-local pilot-module reviewability");
     try expectContains(module_slice_note, "broader shared runtime-loader packet");
