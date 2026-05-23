@@ -100,6 +100,8 @@ REQUIRED_SNIPPETS = {
         ".max_slowdown_pct = 175,",
         ".max_slowdown_pct = 550,",
         ".max_slowdown_pct = 600,",
+        "if (!std.mem.eql(u8, want.expected_text.little, actual.expected_text.little)) {",
+        "if (!std.mem.eql(u8, want.expected_text.big, actual.expected_text.big)) {",
         'test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {',
     ],
     FIXTURES_PATH: [
@@ -218,6 +220,16 @@ SELF_TEST_CASES = [
         PERF_MATRIX_PATH,
         '.label = "16B-ascii-g8",',
         '.label = "16B-ascii-g16",',
+    ),
+    (
+        PERF_MATRIX_PATH,
+        "if (!std.mem.eql(u8, want.expected_text.little, actual.expected_text.little)) {",
+        "if (!std.mem.eql(u8, expected[idx].expected_text.little, actual.expected_text.little)) {",
+    ),
+    (
+        PERF_MATRIX_PATH,
+        "if (!std.mem.eql(u8, want.expected_text.big, actual.expected_text.big)) {",
+        "if (!std.mem.eql(u8, expected[idx].expected_text.big, actual.expected_text.big)) {",
     ),
     (
         FIXTURES_PATH,
