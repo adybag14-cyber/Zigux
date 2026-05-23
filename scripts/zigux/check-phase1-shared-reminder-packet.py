@@ -120,9 +120,10 @@ MARKERS = {
         "phase6-validate:",
         "phase8-validate:",
         "phase10-validate:",
+        "phase12-validate:",
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
         "phase14-validate:",
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
