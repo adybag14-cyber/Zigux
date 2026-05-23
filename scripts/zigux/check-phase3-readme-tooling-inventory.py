@@ -25,6 +25,12 @@ LOW_LEVEL_WRAPPER_REPLAY_FILE = Path("zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_BUILD_FILE = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 EXPORT_UAPI_LAYOUT_REPLAY_FILE = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD_FILE = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+EXPORT_UAPI_C_HEADER_SMOKE_CHECK_FILE = Path(
+    "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"
+)
+EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_FILE = Path(
+    "zigux/tests/phase3_export_uapi_c_header_smoke.c"
+)
 WORKFLOW_FILE = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 POLICY_DUMP_REPLAY_FILE = Path("zigux/tests/phase3_policy_dump.zig")
@@ -104,6 +110,15 @@ EXPORT_UAPI_LAYOUT_BUILD_MARKER = "zigux/tests/phase3_export_uapi_layout_build.z
 EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER = (
     "zig build phase3-export-uapi-layout-test --build-file "
     "zigux/tests/phase3_export_uapi_layout_build.zig"
+)
+EXPORT_UAPI_C_HEADER_SMOKE_CHECK_MARKER = (
+    "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"
+)
+EXPORT_UAPI_C_HEADER_SMOKE_ROUTE_MARKER = (
+    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"
+)
+EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_MARKER = (
+    "zigux/tests/phase3_export_uapi_c_header_smoke.c"
 )
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
 EXPORT_UAPI_SURVEY_NOTE_MARKER = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
@@ -189,6 +204,7 @@ REQUIRED_FILES = (
     POLICY_DUMP_CHECK_FILE,
     LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
     EXPORT_UAPI_SURVEY_VALIDATOR_FILE,
+    EXPORT_UAPI_C_HEADER_SMOKE_CHECK_FILE,
     POLICY_UNSAFE_SURVEY_VALIDATOR_FILE,
     BINDING_FILE,
     Path("zigux/bindings/version.zig"),
@@ -222,6 +238,7 @@ REQUIRED_FILES = (
     LOW_LEVEL_WRAPPER_BUILD_FILE,
     EXPORT_UAPI_LAYOUT_REPLAY_FILE,
     EXPORT_UAPI_LAYOUT_BUILD_FILE,
+    EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_FILE,
     WORKFLOW_FILE,
 )
 
@@ -240,6 +257,9 @@ REQUIRED_MARKERS = (
     "scripts/zigux/check-phase3-shared-tests-routes.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    EXPORT_UAPI_C_HEADER_SMOKE_CHECK_MARKER,
+    EXPORT_UAPI_C_HEADER_SMOKE_ROUTE_MARKER,
+    EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_MARKER,
     POLICY_UNSAFE_SURVEY_VALIDATOR_MARKER,
     HEADER_GOVERNANCE_VALIDATOR_SELFTEST_MARKER,
     HEADER_GOVERNANCE_VALIDATOR_MARKER,
@@ -364,6 +384,18 @@ README_MARKER_CASES = (
     (
         HEADER_GOVERNANCE_VALIDATOR_MARKER,
         "expected missing header-governance validator README marker was not reported",
+    ),
+    (
+        EXPORT_UAPI_C_HEADER_SMOKE_CHECK_MARKER,
+        "expected missing export-uapi c-header smoke checker README marker was not reported",
+    ),
+    (
+        EXPORT_UAPI_C_HEADER_SMOKE_ROUTE_MARKER,
+        "expected missing export-uapi c-header smoke route README marker was not reported",
+    ),
+    (
+        EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_MARKER,
+        "expected missing export-uapi c-header smoke replay README marker was not reported",
     ),
     (MMIO_HELPER_MARKER, "expected missing MMIO helper README marker was not reported"),
     (
@@ -536,6 +568,14 @@ FILE_CASES = (
     (
         EXPORT_UAPI_LAYOUT_BUILD_FILE,
         "expected missing export-uapi-layout build file was not reported",
+    ),
+    (
+        EXPORT_UAPI_C_HEADER_SMOKE_CHECK_FILE,
+        "expected missing export-uapi c-header smoke checker file was not reported",
+    ),
+    (
+        EXPORT_UAPI_C_HEADER_SMOKE_REPLAY_FILE,
+        "expected missing export-uapi c-header smoke replay file was not reported",
     ),
     (WORKFLOW_FILE, "expected missing workflow file was not reported"),
     (
