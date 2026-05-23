@@ -80,12 +80,13 @@ DOCS_ROOT_MARKERS = [
     "* keep the degraded-read fallback split explicit here too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.",
 ]
 REVIEW_CHECKLIST_MARKERS = [
-    "still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
+    "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree that current `zigux/Makefile` ships `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while the directly readable scripts-side support packet stays explicit as shared reminder evidence rather than as broader driver-delivery proof",
     "keep `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` explicit beside the smoke-first and rollback-lab `virtio_scsi` packet",
 ]
 RELEASE_SEQUENCING_MARKERS = [
-    "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
-    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the shipped `make -C zigux phase12-validate` wrapper explicit ahead of the shipped wrapper reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface.",
+    "Current repo-reality override: the route story on current `master` is now fully returned rather than split. `zigux/Makefile` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrappers again",
+    "The active smoke-first direct shard set on current `master` is `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig`",
+    "keep the shipped `make -C zigux phase12-validate` wrapper explicit ahead of the attached-Zig reruns",
 ]
 RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "- shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
@@ -93,14 +94,12 @@ RELEASE_CLOSURE_CHECKLIST_MARKERS = [
 ]
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
-    "- keep the repo-local `.zig-toolchain` then attached-Zig degraded rerun order explicit here too: rely on the Makefile fallback first, then keep `make -C zigux phase12-validate` explicit as shipped current-route proof before naming `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` only as last-resort rerun vocabulary if that local fallback is also absent",
+    "`make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
 ]
 TESTS_README_MARKERS = [
-    "Keep `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py` explicit as the shipped shared support bundle so the tests-root summary does not undercount the dedicated release-readiness checker.",
-    "Current `master` keeps the shared Phase 12 rerun story returned rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, so keep `make -C zigux phase12-validate` explicit as shipped wrapper evidence beside the returned smoke-and-test routes.",
-    "Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.",
-    "Keep `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` explicit as the shared anti-overlap companion so the tests-root reminder stays aligned with the same complex-driver packet boundary already named by the release-order, closure, coordination, and fallback notes.",
-    "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate, while `virtio_net` remains the split-helper queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate shared packet, `virtio_scsi` remains the driver-local rollback-lab packet outside the shared smoke-and-test route, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.",
+    "Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.",
+    "Keep the active shared build packet explicit too: `zigux/tests/phase12_build.zig` keeps `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` wired through the shared `smoke` and `test` route, so keep that six-file `virtio_net` packet explicit instead of widening it into deeper queue, DMA, throughput, or recovery claims.",
+    "Keep the adjacent driver-local split explicit too: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` stay the rollback-lab `virtio_scsi` packet outside the shared route, `Documentation/zigux/phase12-nvme-pci-survey.md` plus `zigux/tests/phase12_nvme_pci_manifest.json` stay the bounded driver-local NVMe foothold, and `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keep the parked libbpf packet explicit without promoting any of them into shared build outputs.",
 ]
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
@@ -250,12 +249,22 @@ FORBIDDEN_MARKERS = {
     WORKFLOW_PATH: [*STALE_SHARED_ROUTE_MARKERS],
 }
 
-EXACT_LINE_MARKER_PATHS = {WORKFLOW_PATH}
+EXACT_LINE_MARKER_PATHS = {WORKFLOW_PATH, SCRIPTS_README_PATH}
+
+
+def normalize_exact_line(text: str) -> str:
+    normalized = text.lstrip()
+    if normalized.startswith("- "):
+        return normalized[2:]
+    return normalized
 
 
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
-        return marker.lstrip() in [line.lstrip() for line in text.splitlines()]
+        normalized_marker = normalize_exact_line(marker)
+        return normalized_marker in [
+            normalize_exact_line(line) for line in text.splitlines()
+        ]
     return marker in text
 
 
@@ -570,12 +579,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         scripts_readme_path = base / SCRIPTS_README_PATH
-        scripts_readme_path.write_text(
-            scripts_readme_path.read_text(encoding="utf-8").replace(
-                SCRIPTS_README_MARKERS[1], "", 1
-            ),
-            encoding="utf-8",
-        )
+        remove_marker(scripts_readme_path, SCRIPTS_README_MARKERS[1])
         expect_failure(
             base,
             "missing_marker:" f"{SCRIPTS_README_PATH}:{SCRIPTS_README_MARKERS[1]}",
@@ -585,13 +589,13 @@ def run_self_test() -> int:
         tests_readme_path = base / TESTS_README_PATH
         tests_readme_path.write_text(
             tests_readme_path.read_text(encoding="utf-8").replace(
-                TESTS_README_MARKERS[4], "", 1
+                TESTS_README_MARKERS[2], "", 1
             ),
             encoding="utf-8",
         )
         expect_failure(
             base,
-            "missing_marker:" f"{TESTS_README_PATH}:{TESTS_README_MARKERS[4]}",
+            "missing_marker:" f"{TESTS_README_PATH}:{TESTS_README_MARKERS[2]}",
         )
 
         write_fixture_tree(base)
