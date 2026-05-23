@@ -97,6 +97,7 @@ MARKERS = {
         "Treat `samples/zigux/kobject_example.zig` as current direct sample-root evidence inside the mixed kobject packet recorded by `Documentation/zigux/phase5-kobject-current-readback-note.md`, while `zigux/tests/phase5_kobject_example_survey.zig` remains the public-tree-backed companion in this runtime and `zigux/tests/phase5_build.zig` stays directly readable as the shared build-route companion.",
         "Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.",
         "Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.",
+        "Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.",
     ),
     SAMPLE_ROOT_PATH: (
         "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `samples/zigux/kobject_example.zig` and `zigux/tests/phase5_kobject_example.zig` are direct authenticated reminder or packet evidence again, `zigux/tests/phase5_build.zig` is the current directly readable shared build-route companion for that packet, and `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly again.",
@@ -209,7 +210,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 23
+    expected_case_count = 24
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -402,6 +403,20 @@ def run_self_test() -> int:
             "lane_sequencing_trace_events_marker",
             collect_failures(mutated),
             [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][3]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_lane_sequencing_runtime_bitmap_boundary_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            LANE_SEQUENCING_PATH,
+            placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][4], ""),
+        )
+        expect_exact(
+            "lane_sequencing_runtime_bitmap_boundary_marker",
+            collect_failures(mutated),
+            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][4]}"],
         )
         checks_run += 1
 
