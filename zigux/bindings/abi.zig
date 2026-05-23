@@ -185,6 +185,70 @@ pub fn defaultInteropPolicy() InteropPolicy {
     };
 }
 
+pub fn panicModeFromByte(mode: u8) ?PanicMode {
+    return switch (mode) {
+        PANIC_ABORT => .abort,
+        PANIC_BUG => .bug,
+        PANIC_WARN => .warn,
+        else => null,
+    };
+}
+
+pub fn allocatorModeFromByte(mode: u8) ?AllocatorMode {
+    return switch (mode) {
+        ALLOC_CALLER_PROVIDED => .caller_provided,
+        ALLOC_KERNEL_HEAP => .kernel_heap,
+        ALLOC_ARENA => .arena,
+        else => null,
+    };
+}
+
+pub fn unsafeScopeFromByte(scope: u8) ?UnsafeScope {
+    return switch (scope) {
+        UNSAFE_NONE => .none,
+        UNSAFE_VOLATILE_MMIO => .volatile_mmio,
+        UNSAFE_RAW_POINTER_BRIDGE => .raw_pointer_bridge,
+        else => null,
+    };
+}
+
+pub fn panicModeIsKnown(mode: u8) bool {
+    return panicModeFromByte(mode) != null;
+}
+
+pub fn allocatorModeIsKnown(mode: u8) bool {
+    return allocatorModeFromByte(mode) != null;
+}
+
+pub fn unsafeScopeIsKnown(scope: u8) bool {
+    return unsafeScopeFromByte(scope) != null;
+}
+
+pub fn interopPolicyReservedClear(policy: InteropPolicy) bool {
+    return policy.reserved == 0;
+}
+
+pub fn panicModeFromInteropPolicy(policy: InteropPolicy) ?PanicMode {
+    if (!interopPolicyReservedClear(policy)) return null;
+    return panicModeFromByte(policy.panic_mode);
+}
+
+pub fn allocatorModeFromInteropPolicy(policy: InteropPolicy) ?AllocatorMode {
+    if (!interopPolicyReservedClear(policy)) return null;
+    return allocatorModeFromByte(policy.allocator_mode);
+}
+
+pub fn unsafeScopeFromInteropPolicy(policy: InteropPolicy) ?UnsafeScope {
+    if (!interopPolicyReservedClear(policy)) return null;
+    return unsafeScopeFromByte(policy.unsafe_scope);
+}
+
+pub fn interopPolicyIsRecognized(policy: InteropPolicy) bool {
+    return panicModeFromInteropPolicy(policy) != null and
+        allocatorModeFromInteropPolicy(policy) != null and
+        unsafeScopeFromInteropPolicy(policy) != null;
+}
+
 pub fn makeStatus(code: i32, facility: Facility) ExportStatus {
     return .{
         .code = code,
@@ -266,6 +330,83 @@ test "abi binding default interop policy stays safe by default" {
     try std.testing.expectEqual(@as(u8, @intFromEnum(AllocatorMode.caller_provided)), policy.allocator_mode);
     try std.testing.expectEqual(@as(u8, @intFromEnum(UnsafeScope.none)), policy.unsafe_scope);
     try std.testing.expectEqual(@as(u8, 0), policy.reserved);
+    try std.testing.expect(interopPolicyReservedClear(policy));
+    try std.testing.expect(interopPolicyIsRecognized(policy));
+}
+
+test "abi binding interop-policy byte decoders stay explicit" {
+    try std.testing.expectEqual(@as(?PanicMode, .abort), panicModeFromByte(PANIC_ABORT));
+    try std.testing.expectEqual(@as(?PanicMode, .bug), panicModeFromByte(PANIC_BUG));
+    try std.testing.expectEqual(@as(?PanicMode, .warn), panicModeFromByte(PANIC_WARN));
+    try std.testing.expectEqual(@as(?PanicMode, null), panicModeFromByte(9));
+    try std.testing.expect(panicModeIsKnown(PANIC_ABORT));
+    try std.testing.expect(!panicModeIsKnown(9));
+
+    try std.testing.expectEqual(@as(?AllocatorMode, .caller_provided), allocatorModeFromByte(ALLOC_CALLER_PROVIDED));
+    try std.testing.expectEqual(@as(?AllocatorMode, .kernel_heap), allocatorModeFromByte(ALLOC_KERNEL_HEAP));
+    try std.testing.expectEqual(@as(?AllocatorMode, .arena), allocatorModeFromByte(ALLOC_ARENA));
+    try std.testing.expectEqual(@as(?AllocatorMode, null), allocatorModeFromByte(9));
+    try std.testing.expect(allocatorModeIsKnown(ALLOC_CALLER_PROVIDED));
+    try std.testing.expect(!allocatorModeIsKnown(9));
+
+    try std.testing.expectEqual(@as(?UnsafeScope, .none), unsafeScopeFromByte(UNSAFE_NONE));
+    try std.testing.expectEqual(@as(?UnsafeScope, .volatile_mmio), unsafeScopeFromByte(UNSAFE_VOLATILE_MMIO));
+    try std.testing.expectEqual(@as(?UnsafeScope, .raw_pointer_bridge), unsafeScopeFromByte(UNSAFE_RAW_POINTER_BRIDGE));
+    try std.testing.expectEqual(@as(?UnsafeScope, null), unsafeScopeFromByte(9));
+    try std.testing.expect(unsafeScopeIsKnown(UNSAFE_NONE));
+    try std.testing.expect(!unsafeScopeIsKnown(9));
+}
+
+test "abi binding interop-policy recognition stays explicit" {
+    const valid = InteropPolicy{
+        .panic_mode = PANIC_BUG,
+        .allocator_mode = ALLOC_KERNEL_HEAP,
+        .unsafe_scope = UNSAFE_VOLATILE_MMIO,
+        .reserved = 0,
+    };
+    const unknown_panic = InteropPolicy{
+        .panic_mode = 9,
+        .allocator_mode = ALLOC_KERNEL_HEAP,
+        .unsafe_scope = UNSAFE_VOLATILE_MMIO,
+        .reserved = 0,
+    };
+    const unknown_allocator = InteropPolicy{
+        .panic_mode = PANIC_BUG,
+        .allocator_mode = 9,
+        .unsafe_scope = UNSAFE_VOLATILE_MMIO,
+        .reserved = 0,
+    };
+    const unknown_scope = InteropPolicy{
+        .panic_mode = PANIC_BUG,
+        .allocator_mode = ALLOC_KERNEL_HEAP,
+        .unsafe_scope = 9,
+        .reserved = 0,
+    };
+    const reserved = InteropPolicy{
+        .panic_mode = PANIC_WARN,
+        .allocator_mode = ALLOC_ARENA,
+        .unsafe_scope = UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 1,
+    };
+
+    try std.testing.expect(interopPolicyReservedClear(valid));
+    try std.testing.expect(!interopPolicyReservedClear(reserved));
+
+    try std.testing.expectEqual(@as(?PanicMode, .bug), panicModeFromInteropPolicy(valid));
+    try std.testing.expectEqual(@as(?AllocatorMode, .kernel_heap), allocatorModeFromInteropPolicy(valid));
+    try std.testing.expectEqual(@as(?UnsafeScope, .volatile_mmio), unsafeScopeFromInteropPolicy(valid));
+    try std.testing.expect(interopPolicyIsRecognized(valid));
+
+    try std.testing.expectEqual(@as(?PanicMode, null), panicModeFromInteropPolicy(unknown_panic));
+    try std.testing.expectEqual(@as(?AllocatorMode, null), allocatorModeFromInteropPolicy(unknown_allocator));
+    try std.testing.expectEqual(@as(?UnsafeScope, null), unsafeScopeFromInteropPolicy(unknown_scope));
+    try std.testing.expectEqual(@as(?PanicMode, null), panicModeFromInteropPolicy(reserved));
+    try std.testing.expectEqual(@as(?AllocatorMode, null), allocatorModeFromInteropPolicy(reserved));
+    try std.testing.expectEqual(@as(?UnsafeScope, null), unsafeScopeFromInteropPolicy(reserved));
+    try std.testing.expect(!interopPolicyIsRecognized(unknown_panic));
+    try std.testing.expect(!interopPolicyIsRecognized(unknown_allocator));
+    try std.testing.expect(!interopPolicyIsRecognized(unknown_scope));
+    try std.testing.expect(!interopPolicyIsRecognized(reserved));
 }
 
 test "abi binding status helper mirrors the exported status flag contract" {
