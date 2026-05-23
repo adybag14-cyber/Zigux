@@ -74,6 +74,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     TOOLING_LANE_SEQUENCE: (
         "`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only",
         "current authenticated 2026-05-15 contents readback still returns `404` for `tools/lib/symbol/kallsyms.zig`, so the live symbol lane remains parked on reminder-and-build truthfulness even while the focused test note and mixed help-plus-kallsyms build shard stay readable",
+        "`Documentation/zigux/phase8-kallsyms-slice.md` is directly readable again, so shared reminder surfaces should keep help-local output or command-source drift in the dedicated help lane and reserve symbol follow-through for parser, truncation, or callback-wrapper truthfulness until the helper path itself is readable again",
     ),
     CHECKLIST: (
         "if the change touches the parked Phase 8 `help` packet",
