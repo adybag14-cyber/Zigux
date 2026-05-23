@@ -231,7 +231,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 class ValidationError(RuntimeError):
@@ -394,6 +394,7 @@ def run_self_test() -> None:
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
             (BUILD_PATH, "phase7-string-helpers-sample-boundary", "phase7-string-helpers-sample-gap"),
+            (BUILD_PATH, "phase7-cmdline-survey", "phase7-cmdline-gap"),
             (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
             (BUILD_PATH, "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)", "argv_split_survey_step.dependOn(&run_argv_split_tests.step)"),
             (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
