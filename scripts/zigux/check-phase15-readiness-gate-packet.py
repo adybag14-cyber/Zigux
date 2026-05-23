@@ -9,6 +9,7 @@ from pathlib import Path
 READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 SELF_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
+SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -74,9 +75,23 @@ def _workflow_has_phase15_route(root: Path) -> bool:
 
 
 def collect_failures(root: Path) -> list[str]:
+    failures: list[str] = []
+    for rel in (
+        READINESS_NOTE_PATH,
+        MANIFEST_PATH,
+        SELF_PATH,
+        SCRIPTS_CHECKER_PATH,
+        VALIDATOR_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ):
+        if not (root / rel).exists():
+            failures.append(f"missing_required_path:{rel}")
+    if failures:
+        return failures
+
     note = _read_text(root / READINESS_NOTE_PATH)
     manifest = _read_manifest(root / MANIFEST_PATH)
-    failures: list[str] = []
 
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         failures.append(f"readiness manifest lane key drifted from {EXPECTED_LANE_KEY}: {manifest.get('lane_key', '')}")
@@ -131,6 +146,7 @@ def collect_failures(root: Path) -> list[str]:
         "phase15_readiness_packet_checker_present": (root / SELF_PATH).exists(),
         "phase15_validator_script_present": (root / VALIDATOR_PATH).exists(),
         "phase15_docs_readme_checker_present": True,
+        "phase15_scripts_readme_checker_present": (root / SCRIPTS_CHECKER_PATH).exists(),
         "phase15_tests_readme_checker_present": True,
         "phase15_review_checklist_study_only_alignment_checker_present": True,
         "phase15_handoff_note_checker_present": True,
@@ -197,24 +213,25 @@ def _sample_manifest() -> str:
             "zigux/tests/phase15_build.zig"
         ],
         "repo_evidence": {
-            "phase15_readiness_packet_checker_present": true,
-            "phase15_validator_script_present": true,
-            "phase15_docs_readme_checker_present": true,
-            "phase15_tests_readme_checker_present": true,
-            "phase15_review_checklist_study_only_alignment_checker_present": true,
-            "phase15_handoff_note_checker_present": true,
-            "phase15_governance_lane_manifest_present": true,
-            "phase15_governance_lane_replay_present": true,
-            "phase15_handoff_manifest_present": true,
-            "phase15_review_process_build_replay_present": true,
-            "phase15_build_zig_present": false,
-            "phase15_indefinite_c_lane_owner_alignment_present": true,
-            "phase15_makefile_present": true,
-            "phase15_validate_target_present": false,
-            "phase15_test_target_present": false,
-            "phase15_aggregate_target_present": false,
-            "shared_ci_phase15_present": false,
-            "phase15_replay_green_on_current_master": false
+            "phase15_readiness_packet_checker_present": True,
+            "phase15_validator_script_present": True,
+            "phase15_docs_readme_checker_present": True,
+            "phase15_scripts_readme_checker_present": True,
+            "phase15_tests_readme_checker_present": True,
+            "phase15_review_checklist_study_only_alignment_checker_present": True,
+            "phase15_handoff_note_checker_present": True,
+            "phase15_governance_lane_manifest_present": True,
+            "phase15_governance_lane_replay_present": True,
+            "phase15_handoff_manifest_present": True,
+            "phase15_review_process_build_replay_present": True,
+            "phase15_build_zig_present": False,
+            "phase15_indefinite_c_lane_owner_alignment_present": True,
+            "phase15_makefile_present": True,
+            "phase15_validate_target_present": False,
+            "phase15_test_target_present": False,
+            "phase15_aggregate_target_present": False,
+            "shared_ci_phase15_present": False,
+            "phase15_replay_green_on_current_master": False
         },
         "phase15_validate_checkers": [
             "scripts/zigux/check-phase15-docs-readme-alignment.py",
@@ -231,6 +248,7 @@ def _seed_repo(root: Path) -> None:
     _write(root / READINESS_NOTE_PATH, _sample_note())
     _write(root / MANIFEST_PATH, _sample_manifest())
     _write(root / SELF_PATH, "#!/usr/bin/env python3\n")
+    _write(root / SCRIPTS_CHECKER_PATH, "#!/usr/bin/env python3\n")
     _write(root / VALIDATOR_PATH, "#!/usr/bin/env python3\n")
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
     _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
@@ -243,6 +261,14 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+
+        scripts_checker_root = root / "scripts_checker"
+        _seed_repo(scripts_checker_root)
+        (scripts_checker_root / SCRIPTS_CHECKER_PATH).unlink()
+        failures = collect_failures(scripts_checker_root)
+        expected = [f"missing_required_path:{SCRIPTS_CHECKER_PATH}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected scripts-checker failure: {failures}")
 
         lane_drift_root = root / "lane_drift"
         _seed_repo(lane_drift_root)
