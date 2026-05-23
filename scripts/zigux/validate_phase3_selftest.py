@@ -140,6 +140,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"),
+        ("--self-test",),
+        (
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass",
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
         ("--self-test",),
         (
@@ -320,19 +328,20 @@ def run_self_test() -> int:
             (13, "expected runner omission was not reported"),
             (14, "expected validator-support script omission was not reported"),
             (15, "expected export-uapi survey script omission was not reported"),
-            (16, "expected abi-header-family survey script omission was not reported"),
-            (17, "expected policy-unsafe survey script omission was not reported"),
-            (18, "expected low-level-wrapper script omission was not reported"),
-            (19, "expected linux-zigux header governance validator omission was not reported"),
-            (20, "expected wrapper-generator script omission was not reported"),
-            (21, "expected missing trailing script was not reported"),
+            (16, "expected export-uapi c-header smoke script omission was not reported"),
+            (17, "expected abi-header-family survey script omission was not reported"),
+            (18, "expected policy-unsafe survey script omission was not reported"),
+            (19, "expected low-level-wrapper script omission was not reported"),
+            (20, "expected linux-zigux header governance validator omission was not reported"),
+            (21, "expected wrapper-generator script omission was not reported"),
+            (22, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[18][0]
+        failing_path = root / SELFTEST_COMMANDS[19][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
@@ -369,7 +378,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_generator_pass_path = root / SELFTEST_COMMANDS[20][0]
+        missing_generator_pass_path = root / SELFTEST_COMMANDS[21][0]
         _write_synthetic_script(
             missing_generator_pass_path,
             None,
@@ -381,7 +390,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_generator_count_path = root / SELFTEST_COMMANDS[20][0]
+        missing_generator_count_path = root / SELFTEST_COMMANDS[21][0]
         _write_synthetic_script(
             missing_generator_count_path,
             "PHASE3_WRAPPER_SELF_TEST=pass",
@@ -502,7 +511,31 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_header_family_pass_path = root / SELFTEST_COMMANDS[16][0]
+        missing_export_uapi_c_header_smoke_pass_path = root / SELFTEST_COMMANDS[16][0]
+        _write_synthetic_script(
+            missing_export_uapi_c_header_smoke_pass_path,
+            None,
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing export-uapi c-header smoke pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_export_uapi_c_header_smoke_count_path = root / SELFTEST_COMMANDS[16][0]
+        _write_synthetic_script(
+            missing_export_uapi_c_header_smoke_count_path,
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing export-uapi c-header smoke count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_header_family_pass_path = root / SELFTEST_COMMANDS[17][0]
         _write_synthetic_script(
             missing_header_family_pass_path,
             None,
@@ -514,7 +547,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_header_family_count_path = root / SELFTEST_COMMANDS[16][0]
+        missing_header_family_count_path = root / SELFTEST_COMMANDS[17][0]
         _write_synthetic_script(
             missing_header_family_count_path,
             "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
@@ -526,7 +559,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_unsafe_pass_path = root / SELFTEST_COMMANDS[17][0]
+        missing_policy_unsafe_pass_path = root / SELFTEST_COMMANDS[18][0]
         _write_synthetic_script(
             missing_policy_unsafe_pass_path,
             None,
@@ -538,7 +571,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_unsafe_count_path = root / SELFTEST_COMMANDS[17][0]
+        missing_policy_unsafe_count_path = root / SELFTEST_COMMANDS[18][0]
         _write_synthetic_script(
             missing_policy_unsafe_count_path,
             "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
@@ -550,7 +583,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_governance_pass_path = root / SELFTEST_COMMANDS[19][0]
+        missing_governance_pass_path = root / SELFTEST_COMMANDS[20][0]
         _write_synthetic_script(
             missing_governance_pass_path,
             None,
@@ -564,7 +597,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 20}"
+        f"{len(missing_cases) + 22}"
     )
     return 0
 
