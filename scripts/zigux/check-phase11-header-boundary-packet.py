@@ -18,6 +18,8 @@ SURVEY_REQUIRED_MARKERS = (
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
     "`zigux/tests/phase11_uapi_header_parity_survey.zig`",
     "`zigux/tests/phase11_build.zig`",
+    "`zigux/helpers/layout_assert.zig`",
+    "returned `zigux/helpers/layout_assert.zig` substrate",
     "no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet",
     "returned header-boundary checker now only guards the narrower current-head note packet",
     "`phase11-header-boundary-checker`",
@@ -36,6 +38,9 @@ MATRIX_REQUIRED_MARKERS = (
     "- `zigux/tests/phase11_uapi_header_parity_manifest.json`",
     "- `zigux/tests/phase11_uapi_header_parity_survey.zig`",
     "- `zigux/tests/phase11_build.zig`",
+    "`zigux/helpers/layout_assert.zig`",
+    "returned `zigux/helpers/layout_assert.zig` substrate",
+    "shared `layout_assert` helper",
     "keep the returned header-boundary checker framed as note-side evidence only",
     "current direct contents reads in this lane do not rematerialize:",
 )
@@ -103,6 +108,7 @@ def run_self_test() -> int:
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+  - `zigux/helpers/layout_assert.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - the older shared header-packet companions named by earlier continuity still do not read back at their former paths on current `master`:
@@ -112,8 +118,10 @@ def run_self_test() -> int:
 - current shared reminder and machine-checked HVC header-boundary evidence therefore still lives in the newer focused proof packet and its adjacent current-head companion stack:
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+  - `zigux/helpers/layout_assert.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
+- that narrower proof packet remains `layout_assert`-backed through the returned `zigux/helpers/layout_assert.zig` substrate.
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet, and the returned header-boundary checker now only guards the narrower current-head note packet.
 ## Current-Head Boundary
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the note-side packet only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
@@ -125,6 +133,7 @@ def run_self_test() -> int:
 - current direct-readback packet:
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `zigux/helpers/layout_assert.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - current direct contents reads in this lane do not rematerialize:
@@ -132,7 +141,7 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_uapi_header_parity_survey.zig`
   - `zigux/tests/phase11_build.zig`
 ## Current-Head Matrix
-| older shared replay family | the returned header-boundary checker now keeps the smaller note packet honest while the broader shared replay family still lacks a directly readable manifest, survey source, and shared build route | keep the returned header-boundary checker framed as note-side evidence only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py` | if any one of those shared packet anchors rematerializes, refresh this matrix in the same pass that restores the corresponding survey wording | claiming shared replay, manifest, survey-source, or build-route coverage as current-head evidence from historical wording alone |
+| exported-header proof shard | the returned `zigux/helpers/layout_assert.zig` substrate keeps the narrower proof packet explicit through the shared `layout_assert` helper | keep the returned header-boundary checker framed as note-side evidence only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py` | if any one of those shared packet anchors rematerializes, refresh this matrix in the same pass that restores the corresponding survey wording | claiming shared replay, manifest, survey-source, or build-route coverage as current-head evidence from historical wording alone |
 """
 
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_header_boundary_"))
@@ -148,8 +157,8 @@ def run_self_test() -> int:
         survey_missing = tmpdir / "survey_missing"
         shutil.copytree(fixture_root, survey_missing, dirs_exist_ok=True)
         path = survey_missing / SURVEY_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[2]), encoding="utf-8")
-        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[2])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[8]), encoding="utf-8")
+        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[8])
         case_count += 1
 
         survey_forbidden = tmpdir / "survey_forbidden"
@@ -169,8 +178,8 @@ def run_self_test() -> int:
         matrix_missing = tmpdir / "matrix_missing"
         shutil.copytree(fixture_root, matrix_missing, dirs_exist_ok=True)
         path = matrix_missing / MATRIX_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[2]), encoding="utf-8")
-        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[2])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[8]), encoding="utf-8")
+        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[8])
         case_count += 1
 
         matrix_forbidden = tmpdir / "matrix_forbidden"
