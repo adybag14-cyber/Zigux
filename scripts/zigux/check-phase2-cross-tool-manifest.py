@@ -43,6 +43,10 @@ EXPECTED_WRAPPER_PREFIX = (
     "make -C zigux phase2-cross",
 )
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+EXPECTED_REVIEW_STATUS = {
+    "x86_64-linux": "pinned bootstrap archive",
+    "aarch64-linux": "route contract only",
+}
 ROUTE = "make -C zigux phase2-cross"
 WORKFLOW_ROUTE_LINE = "run: make -C zigux phase2-cross"
 MAKEFILE_LINES = (
@@ -243,6 +247,7 @@ def collect_fixture_issues(root: Path, expected_scope: list[str], expected_modes
         return issues
 
     actual_modes: dict[str, str] = {}
+    actual_targets: list[str] = []
     for entry in cross_targets:
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", type(entry).__name__))
@@ -255,6 +260,7 @@ def collect_fixture_issues(root: Path, expected_scope: list[str], expected_modes
             issues.append(("INVALID_CROSS_TARGET_ENTRY", "target"))
             continue
         target = target.strip()
+        actual_targets.append(target)
         if target in actual_modes:
             issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
         if not isinstance(mode, str) or not mode.strip():
@@ -262,10 +268,14 @@ def collect_fixture_issues(root: Path, expected_scope: list[str], expected_modes
             continue
         if not isinstance(review_status, str) or not review_status.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+        elif target in EXPECTED_REVIEW_STATUS and review_status != EXPECTED_REVIEW_STATUS[target]:
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
         if route != ROUTE:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
         actual_modes[target] = mode.strip()
 
+    if actual_targets != list(SUPPORTED_CROSS_TARGETS):
+        issues.append(("CROSS_TARGET_ORDER_MISMATCH", json.dumps(actual_targets)))
     if actual_modes != expected_modes:
         issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_modes, sort_keys=True)))
     return issues
@@ -378,13 +388,13 @@ def build_self_test_root(root: Path) -> None:
             "cross_targets": [
                 {
                     "target": "x86_64-linux",
-                    "review_status": "pinned bootstrap archive",
+                    "review_status": EXPECTED_REVIEW_STATUS["x86_64-linux"],
                     "validation_mode": "archive_required",
                     "route": ROUTE,
                 },
                 {
                     "target": "aarch64-linux",
-                    "review_status": "route contract only",
+                    "review_status": EXPECTED_REVIEW_STATUS["aarch64-linux"],
                     "validation_mode": "route_contract_only",
                     "route": ROUTE,
                 },
@@ -400,7 +410,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = 32
+    expected_case_count = 34
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -550,6 +560,22 @@ def run_self_test() -> int:
         fixture["cross_targets"][0]["review_status"] = ""
         write_json(resolve_path(root, CROSS_TARGETS), fixture)
         assert ("INVALID_CROSS_TARGET_ENTRY", "x86_64-linux:review_status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
+        assert isinstance(fixture, dict)
+        fixture["cross_targets"][1]["review_status"] = "archive required"
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "aarch64-linux:archive required") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
+        assert isinstance(fixture, dict)
+        fixture["cross_targets"][0], fixture["cross_targets"][1] = fixture["cross_targets"][1], fixture["cross_targets"][0]
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
+        assert ("CROSS_TARGET_ORDER_MISMATCH", json.dumps(["aarch64-linux", "x86_64-linux"])) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
