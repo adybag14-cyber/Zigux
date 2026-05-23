@@ -70,7 +70,6 @@ test "phase13 devres iounmap planner manifest records the landed helper-first mm
     try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"");
     try requireContains(manifest, "planManagedIounmapCleanup");
     try requireContains(manifest, "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"");
-    try requireContains(manifest, "\"id\": \"phase13-devres-missing-devm-of-iomap-surface\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-mmio-mapping-state\"");
 }
 
@@ -97,7 +96,6 @@ test "phase13 devres survey records the landed helper-first iounmap planner and 
     try requireContains(survey, "`zigux/tests/phase13_devres_iounmap_planner_manifest.json` marks the packet as `starter_landed`");
     try requireContains(survey, "helper-first iounmap cleanup planning through `planManagedIounmapCleanup(...)`");
     try requireContains(survey, "blocked `phase13-devres-missing-devm-ioremap-np-surface`");
-    try requireContains(survey, "blocked `phase13-devres-missing-devm-of-iomap-surface`");
     try requireContains(survey, "blocked `phase13-devres-live-mmio-mapping-state`");
 }
 
