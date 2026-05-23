@@ -143,6 +143,15 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'expectEqualStrings("startup_64\\r", symbols.items[0].name)',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
+    KALLSYMS_SOURCE: (
+        "pub const KSYM_NAME_LEN: usize = 512;",
+        "pub fn parseLine(",
+        "pub fn kallsymsParseFile(",
+        "pub fn forEachParsedPath(",
+        'test "weak object symbol classes keep the current C helper classification" {',
+        'test "parseLine truncates oversized names without keeping a parser-local error surface" {',
+        'test "reader, path, and callback wrappers preserve raw carriage returns before newline" {',
+    ),
 }
 
 
