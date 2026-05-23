@@ -17,6 +17,8 @@ VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 BRIDGE_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
+BRIDGE_BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
+BRIDGE_MANIFEST_SYNC_PATH = "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 
 LANDED_SLUGS = [
@@ -48,6 +50,8 @@ REQUIRED_FILES = [
     BUILD_PATH,
     BRIDGE_TEST_PATH,
     BRIDGE_BUILD_PATH,
+    BRIDGE_BOUNDARY_GUARD_PATH,
+    BRIDGE_MANIFEST_SYNC_PATH,
     MANIFEST_PATH,
     VERIFY_PATH,
     BRIDGE_HELPER_PATH,
@@ -88,6 +92,19 @@ BRIDGE_BUILD_MARKERS = [
     "phase8-file-path-handle-bridge-tests",
     "Run focused Phase 8 file-path-handle bridge tests",
 ]
+BRIDGE_BOUNDARY_GUARD_MARKERS = [
+    'test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {',
+    '"slug": "fdinfo-map-info-helpers"',
+    '"slug": "map-reuse-compatibility"',
+    '"slug": "file-path-and-handle-bridge"',
+    "planTokenPreparation",
+]
+BRIDGE_MANIFEST_SYNC_MARKERS = [
+    'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
+    '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+    '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+    '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+]
 BRIDGE_HELPER_MARKERS = [
     "pub fn resolveReusePinnedMapAttempt(",
     "pub fn planTokenPreparation(",
@@ -118,6 +135,8 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
         VERIFY_PATH: VERIFY_MARKERS,
         BRIDGE_TEST_PATH: BRIDGE_TEST_MARKERS,
         BRIDGE_BUILD_PATH: BRIDGE_BUILD_MARKERS,
+        BRIDGE_BOUNDARY_GUARD_PATH: BRIDGE_BOUNDARY_GUARD_MARKERS,
+        BRIDGE_MANIFEST_SYNC_PATH: BRIDGE_MANIFEST_SYNC_MARKERS,
         BRIDGE_HELPER_PATH: BRIDGE_HELPER_MARKERS,
     }.items():
         text = read_text(root, rel_path)
@@ -222,6 +241,8 @@ def clone_fixture(root: Path) -> None:
     write(root, BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const libbpf_segment_verify_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const libbpf_segment_verify_tests = b.addTest(.{\n        .name = "phase8-libbpf-segment-verify-tests",\n        .root_module = libbpf_segment_verify_module,\n    });\n    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);\n    const test_step = b.step("test", "Run focused Phase 8 libbpf segment verify build");\n    test_step.dependOn(&run_libbpf_segment_verify_tests.step);\n}\n')
     write(root, BRIDGE_TEST_PATH, "\n".join(BRIDGE_TEST_MARKERS) + "\n")
     write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
+    write(root, BRIDGE_BOUNDARY_GUARD_PATH, "\n".join(BRIDGE_BOUNDARY_GUARD_MARKERS) + "\n")
+    write(root, BRIDGE_MANIFEST_SYNC_PATH, "\n".join(BRIDGE_MANIFEST_SYNC_MARKERS) + "\n")
     write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\n')
     write(root, BRIDGE_HELPER_PATH, "\n".join(BRIDGE_HELPER_MARKERS) + "\n")
     write(root, MANIFEST_PATH, fixture_manifest())
@@ -300,6 +321,34 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_build_marker")
         bridge_build_path.write_text(original_bridge_build, encoding="utf-8")
 
+        boundary_guard_path = root / BRIDGE_BOUNDARY_GUARD_PATH
+        original_boundary_guard = boundary_guard_path.read_text(encoding="utf-8")
+        boundary_guard_path.write_text(
+            original_boundary_guard.replace(
+                '"slug": "map-reuse-compatibility"',
+                '"slug": "map-reuse-contract"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f'{BRIDGE_BOUNDARY_GUARD_PATH}:"slug": "map-reuse-compatibility"' not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:boundary_guard_marker")
+        boundary_guard_path.write_text(original_boundary_guard, encoding="utf-8")
+
+        manifest_sync_path = root / BRIDGE_MANIFEST_SYNC_PATH
+        original_manifest_sync = manifest_sync_path.read_text(encoding="utf-8")
+        manifest_sync_path.write_text(
+            original_manifest_sync.replace(
+                '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+                '"slug": "file-path-and-handle-bridge", "status": "ready_next", "kind": "resource_boundary"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f'{BRIDGE_MANIFEST_SYNC_PATH}:"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"' not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:manifest_sync_marker")
+        manifest_sync_path.write_text(original_manifest_sync, encoding="utf-8")
+
         bridge_helper_path = root / BRIDGE_HELPER_PATH
         original_bridge_helper = bridge_helper_path.read_text(encoding="utf-8")
         bridge_helper_path.write_text(
@@ -323,7 +372,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -359,7 +408,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
+        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
 
