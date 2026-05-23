@@ -41,8 +41,20 @@ var compare_calls: usize = 0;
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
+    std.debug.print("PHASE6_BSEARCH_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});
+    std.debug.print("PHASE6_BSEARCH_PERF_QUERY_COUNT={d}\n", .{fixtures.query_count});
+
     for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_LEN={d}\n", .{ case.label, case.len });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_REPS={d}\n", .{ case.label, case.reps });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_NS_PER_LOOKUP={d}\n", .{ case.label, result.ns_per_lookup });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_AVG_COMPARE_CALLS={d:.2}\n", .{ case.label, result.avg_compare_calls });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_MAX_COMPARE_CALLS={d}\n", .{ case.label, result.max_compare_calls });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_MAX_COMPARE_BUDGET={d}\n", .{ case.label, result.max_compare_budget });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_WITNESS_MAX_COMPARE_CALLS={d}\n", .{ case.label, result.witness_max_compare_calls });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}_WITNESS_CASE_COUNT={d}\n", .{ case.label, result.witness_case_count });
+        std.debug.print("PHASE6_BSEARCH_PERF_{s}=pass\n", .{case.label});
         std.debug.print(
             "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={} witness_max_compare_calls={} witness_case_count={}\n",
             .{
@@ -58,6 +70,8 @@ pub fn main(init: std.process.Init) !void {
             },
         );
     }
+
+    std.debug.print("PHASE6_BSEARCH_PERF=pass\n", .{});
 }
 
 fn compareCounted(key: *const u32, item: *const u32) i32 {
