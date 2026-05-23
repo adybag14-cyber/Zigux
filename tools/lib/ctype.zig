@@ -163,3 +163,27 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype whitespace and control-byte sets stay exact" {
+    var control_count: usize = 0;
+    var whitespace_count: usize = 0;
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expected_control = byte < 0x20 or byte == 0x7f;
+        const expected_whitespace = switch (byte) {
+            ' ', '\t', '\n', '\r', 0x0b, 0x0c, 0xa0 => true,
+            else => false,
+        };
+
+        try std.testing.expectEqual(expected_control, iscntrl(byte));
+        try std.testing.expectEqual(expected_whitespace, isspace(byte));
+
+        control_count += @intFromBool(iscntrl(byte));
+        whitespace_count += @intFromBool(isspace(byte));
+    }
+
+    try std.testing.expectEqual(@as(usize, 33), control_count);
+    try std.testing.expectEqual(@as(usize, 7), whitespace_count);
+}
