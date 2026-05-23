@@ -248,6 +248,32 @@ test "releaseWithoutSubstrate preserves the waiting snapshot on drift" {
     try std.testing.expect(keepsLoadPlanExplicit(request.prepared_plan, stable));
     try std.testing.expect(keepsLoadPlanExplicit(pending, stable));
     try std.testing.expect(!keepsLoadPlanExplicit(request.plan, stable));
+
+    const initialized = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+
+    var initialized_request = try prepareRequest(initialized);
+    const initialized_pending = try initialized_request.requestRuntimeLoad();
+    initialized_request.plan.module_name = "runtime_bitmap_drift";
+
+    try std.testing.expectError(error.PreparedPlanDrift, initialized_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, initialized_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(initialized_request.prepared_plan, initialized));
+    try std.testing.expect(keepsLoadPlanExplicit(initialized_pending, initialized));
+    try std.testing.expect(!keepsLoadPlanExplicit(initialized_request.plan, initialized));
 }
 
 test "PreparedRequest.requestRuntimeLoad rejects invalid lifecycle states without disturbing snapshots" {
