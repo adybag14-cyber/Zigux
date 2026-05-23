@@ -57,6 +57,12 @@ Keep these cues explicit:
 
 ## Direct Validation Routes
 
+Keep the direct sample-owned validation cues explicit too:
+
+- `zig test samples/zigux/kobject_example.zig` stays the sample-owned self-check for the ownership-and-lifetime packet
+- `zig test --dep kobject_example_sample -Mroot=zigux/tests/phase5_kobject_example.zig -Mkobject_example_sample=samples/zigux/kobject_example.zig` stays the focused replay route for the same packet
+- `zig test zigux/tests/phase5_kobject_example_survey.zig` stays the survey-packet guard for the sample-owned replay, the public-tree-backed manifest-and-survey split, and the shared build-route companion in this runtime
+
 Keep the direct attr-group validation cues explicit too:
 
 - `zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the sample-owned self-check for the bounded attr-group companion
