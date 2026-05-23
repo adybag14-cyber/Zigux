@@ -24,7 +24,7 @@ ALIGNMENT_NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
 ]
@@ -113,7 +113,7 @@ PM_SCAFFOLD_MARKERS = [
     "try std.testing.expectEqual(ResumeDisposition.blocked_on_live_mmio, resume_report.disposition);",
 ]
 
-EXPECTED_MANIFEST_LANE = "P11-L05"
+EXPECTED_MANIFEST_LANE = "P11-L10"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
@@ -315,9 +315,9 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_lane_case)
         manifest_path = manifest_lane_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
-        data["lane_key"] = "P11-L10"
+        data["lane_key"] = "P11-L05"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        expect_failure(manifest_lane_case, "manifest_lane_key:'P11-L10'")
+        expect_failure(manifest_lane_case, "manifest_lane_key:'P11-L05'")
         case_count += 1
 
         manifest_registration_order_flag_case = root / "manifest_registration_order_flag_case"
