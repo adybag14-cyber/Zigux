@@ -63,6 +63,7 @@ Keep that kretprobe packet framed as the approved in-memory handler and teardown
 
 * `runAnchorReplay()` keeps skipped kernel-thread handling, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, and replay `maxactive = 20` explicit
 * pre-init `retargetSymbol("do_sys_openat2")` and `retargetMaxactive(3)` stay explicit as in-memory choices, with empty-symbol and zero-value rejection, rather than as `module_param` or runtime registration parity
+* `instanceBudgetContract()` keeps the `func` parameter name, `0o644` mode, default `kernel_clone`, one-word private-data shape, return-value and duration reporting, skipped-kernel-thread handling, and the `nmissed`-suggests-increasing-`maxactive` cue explicit for contributors reading the sample root
 * the focused test pair keeps outstanding-instance exit rejection, recovered duration `60`, `entry_stamp_ns = -1` reset, and post-exit `recordMissedInstance()` rejection explicit
 * `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` stay explicit as the sample-owned self-check, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence only
 * keep `register_kretprobe`, `unregister_kretprobe`, `pt_regs or regs_return_value`, and loadable module wiring out of scope
