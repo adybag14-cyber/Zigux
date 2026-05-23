@@ -18,6 +18,15 @@ companion notes keep explicit:
   later live registration work.
 - `descriptorRequestSummary()` keeps the `devm_gpiod_get()` flag choice
   reviewable without claiming live descriptor acquisition.
+- `descriptorPreflightSummary()` keeps the direct descriptor-preflight alias
+  reviewable at the same bounded checkpoint before timeout parsing,
+  drvdata-binding, reboot glue, or registration execution claims.
+- `zigux/tests/phase11_gpio_wdt_preflight_review.zig` keeps
+  `descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
+  `platformDrvdataCheckpointSummary()`, and
+  `watchdogDrvdataCheckpointSummary()` directly reviewable as one bounded
+  preflight chain without claiming live GPIO acquisition, reboot glue
+  execution, or watchdog-core registration.
 - `timeoutPropertyCheckpointSummary()` keeps the timeout-property ordering
   reviewable before later live execution claims.
 - `platformDrvdataCheckpointSummary()` keeps the early
