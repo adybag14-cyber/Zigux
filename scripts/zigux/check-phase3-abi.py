@@ -50,6 +50,10 @@ REQUIRED_MARKERS = {
         "struct zigux_boundary_header {",
         "struct zigux_export_status {",
         "struct zigux_interop_policy {",
+        "struct zigux_notifier_block {",
+        "typedef struct zigux_notifier_chain_priority_increase {",
+        "zigux_notifier_chain_has_nonincreasing_priority(",
+        "zigux_notifier_first_chain_priority_increase(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline zigux_boundary_header zigux_compatible_header(",
         "static inline uint32_t zigux_header_requested_extra_bytes(",
@@ -433,6 +437,11 @@ def run_self_test() -> int:
                 "missing zigux/kernel/export_shim.zig marker: pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
             ),
             (
+                ABI_HEADER,
+                "zigux_notifier_chain_has_nonincreasing_priority(\n",
+                "missing include/zigux/abi.h marker: zigux_notifier_chain_has_nonincreasing_priority(",
+            ),
+            (
                 ABI_SLICE_NOTE,
                 ".github/workflows/zigux-bootstrap.yml\n",
                 "missing Documentation/zigux/phase3-abi-slice.md marker: .github/workflows/zigux-bootstrap.yml",
@@ -641,7 +650,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=22")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
