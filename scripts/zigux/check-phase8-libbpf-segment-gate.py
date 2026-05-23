@@ -16,6 +16,7 @@ BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+BRIDGE_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
 
 LANDED_SLUGS = [
@@ -46,6 +47,7 @@ REQUIRED_FILES = [
     "zigux/tests/README.md",
     BUILD_PATH,
     BRIDGE_TEST_PATH,
+    BRIDGE_BUILD_PATH,
     MANIFEST_PATH,
     VERIFY_PATH,
     BRIDGE_HELPER_PATH,
@@ -80,6 +82,12 @@ BRIDGE_TEST_MARKERS = [
     "planning-only `planTokenPreparation()` gating",
     'try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);',
 ]
+BRIDGE_BUILD_MARKERS = [
+    "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "phase8_file_path_handle_bridge.zig",
+    "phase8-file-path-handle-bridge-tests",
+    "Run focused Phase 8 file-path-handle bridge tests",
+]
 BRIDGE_HELPER_MARKERS = [
     "pub fn resolveReusePinnedMapAttempt(",
     "pub fn planTokenPreparation(",
@@ -109,6 +117,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
         BUILD_PATH: BUILD_MARKERS,
         VERIFY_PATH: VERIFY_MARKERS,
         BRIDGE_TEST_PATH: BRIDGE_TEST_MARKERS,
+        BRIDGE_BUILD_PATH: BRIDGE_BUILD_MARKERS,
         BRIDGE_HELPER_PATH: BRIDGE_HELPER_MARKERS,
     }.items():
         text = read_text(root, rel_path)
@@ -212,6 +221,7 @@ def clone_fixture(root: Path) -> None:
     write(root, MAKEFILE_PATH, "phase8-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py\n\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n")
     write(root, BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const libbpf_segment_verify_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const libbpf_segment_verify_tests = b.addTest(.{\n        .name = "phase8-libbpf-segment-verify-tests",\n        .root_module = libbpf_segment_verify_module,\n    });\n    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);\n    const test_step = b.step("test", "Run focused Phase 8 libbpf segment verify build");\n    test_step.dependOn(&run_libbpf_segment_verify_tests.step);\n}\n')
     write(root, BRIDGE_TEST_PATH, "\n".join(BRIDGE_TEST_MARKERS) + "\n")
+    write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
     write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\n')
     write(root, BRIDGE_HELPER_PATH, "\n".join(BRIDGE_HELPER_MARKERS) + "\n")
     write(root, MANIFEST_PATH, fixture_manifest())
@@ -276,6 +286,20 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_test_marker")
         bridge_test_path.write_text(original_bridge_test, encoding="utf-8")
 
+        bridge_build_path = root / BRIDGE_BUILD_PATH
+        original_bridge_build = bridge_build_path.read_text(encoding="utf-8")
+        bridge_build_path.write_text(
+            original_bridge_build.replace(
+                "phase8-file-path-handle-bridge-tests",
+                "phase8-file-path-handle-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{BRIDGE_BUILD_PATH}:phase8-file-path-handle-bridge-tests" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_build_marker")
+        bridge_build_path.write_text(original_bridge_build, encoding="utf-8")
+
         bridge_helper_path = root / BRIDGE_HELPER_PATH
         original_bridge_helper = bridge_helper_path.read_text(encoding="utf-8")
         bridge_helper_path.write_text(
@@ -299,7 +323,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -335,7 +359,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
+        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
 
