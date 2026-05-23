@@ -24,6 +24,7 @@ CURRENT_DIRECT_PACKET = (
     "Documentation/zigux/phase4-artifact-diff-tooling-survey.md",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/artifact-diff.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
@@ -33,9 +34,7 @@ CURRENT_DIRECT_PACKET = (
     "scripts/zigux/check-artifact-diff-contract.py",
 )
 
-AUTH_MISSING_BROADER_COMPANIONS = (
-    "Documentation/zigux/artifact-diff.md",
-)
+AUTH_MISSING_BROADER_COMPANIONS = ()
 
 EXPECTED_SELF_TEST_CASES = (
     "round_trip",
@@ -53,18 +52,18 @@ EXPECTED_SELF_TEST_CASES = (
 )
 
 SURVEY_MARKERS = (
-    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_contract_and_validator_direct_readback_aligned_but_broader_note_still_partial_on_current_master",
-    "current direct-readback helper-contract-and-validator packet:",
-    "authenticated contents reads on current `master` still return missing for this broader artifact-diff companion:",
-    "public raw GitHub fallback still reaches `Documentation/zigux/artifact-diff.md`, so the owner-and-rollback note remains reviewable even while authenticated contents reads still fail closed for that path",
-    "Current `master` now keeps the directly readable helper, contract checker, determinism checker, validator-replay checker, and shared validator packet aligned around the same bytes-capable artifact-diff contract.",
-    "The broader `Documentation/zigux/artifact-diff.md` note now matches the current 23-case helper packet, the current 25-base-case / 30-case contract packet, and the current 12-case determinism self-test packet, but it still remains outside authenticated current-head reads in this runtime.",
+    "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_contract_validator_and_owner_note_direct_readback_aligned_on_current_master",
+    "current direct-readback helper-contract-validator-and-owner-note packet:",
+    "Current `master` now keeps the directly readable helper, contract checker, determinism checker, validator-replay checker, shared validator packet, and broader owner-and-rollback note aligned around the same bytes-capable artifact-diff contract.",
+    "The broader `Documentation/zigux/artifact-diff.md` note is directly readable on current `master` again and now matches the current 23-case helper packet, the current 25-base-case / 30-case contract packet, and the current 12-case determinism self-test packet.",
     "`scripts/zigux/check-phase4-artifact-diff-determinism.py` now exact-requires the broader `Documentation/zigux/artifact-diff.md` note to keep the refreshed helper, contract, and determinism anchor lines whenever that file is present in the checked tree.",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=25`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
+    "No remaining owner-and-rollback note readback caveat is left inside this lane on current `master`, so the same lane should stay parked unless the broader note or exact packet drifts again.",
+    "this survey now treats `Documentation/zigux/artifact-diff.md` as direct current-head evidence on current `master`",
 )
 
 NOTE_MARKERS = (
@@ -81,8 +80,8 @@ ARTIFACT_DIFF_NOTE_MARKERS = (
     "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23`",
     "`ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`, and `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30`",
     "`PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12`",
-    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=10`",
-    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=1`",
+    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11`",
+    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0`",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -373,8 +372,8 @@ def self_test() -> None:
         write(
             root / SURVEY,
             read(root, SURVEY).replace(
-                "current direct-readback helper-contract-and-validator packet",
-                "current helper-contract-and-validator packet",
+                "current direct-readback helper-contract-validator-and-owner-note packet",
+                "current helper-contract-validator-and-owner-note packet",
                 1,
             ),
         )
