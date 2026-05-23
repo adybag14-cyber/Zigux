@@ -5,9 +5,10 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 
 This guard keeps the release-boundary packet honest around the exact manifest-
 backed compile-shard counts, the dedicated compile-shard matrix survey, the
-returned manifest posture in the shared smoke survey, and the still-unreadable
-build-side or broader executable-layer gap while cross-reading the shared smoke
-survey markers that define the current Phase 14 route split.
+returned manifest posture in the shared smoke survey, the new validator-side
+skbuff compile-route packet, and the still-unreadable build-side or broader
+executable-layer gap while cross-reading the shared smoke survey markers that
+define the current Phase 14 route split.
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -26,6 +29,9 @@ COMPILE_SHARD_MATRIX_SURVEY_PATH = Path(
     "Documentation/zigux/phase14-compile-shard-matrix-survey.md"
 )
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+SKBUFF_COMPILE_ROUTE_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase14-skbuff-compile-route.py"
+)
 
 EXACT_COUNT_MARKERS = [
     "- `PHASE14_COMPILE_SHARD_TOTAL=6`",
@@ -54,6 +60,7 @@ COMPILE_SHARD_MATRIX_MARKERS = [
     "- focused raw build-file shard: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
     "- machine-readable source: `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
     "- shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)",
 ]
 
@@ -203,6 +210,23 @@ def require_compile_shards(errors: list[str], manifest: object) -> None:
         )
 
 
+def run_subchecker(root: Path, rel: Path, *, self_test: bool) -> list[str]:
+    command = [sys.executable, str(root / rel)]
+    if self_test:
+        command.append("--self-test")
+    else:
+        command.extend(["--root", str(root)])
+
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode == 0:
+        return []
+
+    output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
+    if not output:
+        output = ["checker exited with no output"]
+    return [f"subcheck_fail:{rel.as_posix()}:{line}" for line in output]
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -214,6 +238,7 @@ def check(root: Path) -> list[str]:
         SURVEY_PATH,
         COMPILE_SHARD_MATRIX_SURVEY_PATH,
         MANIFEST_PATH,
+        SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
     ]
     for rel in required_paths:
         if not (root / rel).exists():
@@ -248,6 +273,7 @@ def check(root: Path) -> list[str]:
 
     require_manifest_values(errors, manifest)
     require_compile_shards(errors, manifest)
+    errors.extend(run_subchecker(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, self_test=False))
     return errors
 
 
@@ -309,6 +335,21 @@ def fixture_manifest() -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def fixture_skbuff_compile_route_checker() -> str:
+    return """#!/usr/bin/env python3
+import sys
+
+if "--self-test" in sys.argv:
+    print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass")
+    print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=4")
+    raise SystemExit(0)
+
+print("PHASE14_SKBUFF_COMPILE_ROUTE=pass")
+print("PHASE14_SKBUFF_COMPILE_ROUTE_NOTE_MARKER_COUNT=6")
+print("PHASE14_SKBUFF_COMPILE_ROUTE_BUILD_MARKER_COUNT=6")
+"""
+
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
@@ -320,6 +361,7 @@ def write_fixture_tree(root: Path) -> None:
         fixture_compile_shard_matrix_survey(),
     )
     write_text(root, MANIFEST_PATH, fixture_manifest())
+    write_text(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, fixture_skbuff_compile_route_checker())
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -351,6 +393,11 @@ def run_self_test() -> int:
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             for error in errors:
                 print(error)
+            return 1
+
+        if run_subchecker(base, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, self_test=True):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected skbuff compile-route checker self-test to pass")
             return 1
 
         remove_line(base, RELEASE_BOUNDARY_PATH, EXACT_COUNT_MARKERS[0])
@@ -396,10 +443,10 @@ def run_self_test() -> int:
         remove_line(
             base,
             COMPILE_SHARD_MATRIX_SURVEY_PATH,
-            COMPILE_SHARD_MATRIX_MARKERS[4],
+            COMPILE_SHARD_MATRIX_MARKERS[5],
         )
         if not any(
-            COMPILE_SHARD_MATRIX_MARKERS[4] in error for error in check(base)
+            COMPILE_SHARD_MATRIX_MARKERS[5] in error for error in check(base)
         ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected compile-shard survey checker marker drift to fail")
@@ -429,8 +476,24 @@ def run_self_test() -> int:
             print("expected compile-shard coverage mismatch to fail")
             return 1
 
+        write_fixture_tree(base)
+        write_text(
+            base,
+            SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+            "#!/usr/bin/env python3\nimport sys\nprint('PHASE14_SKBUFF_COMPILE_ROUTE=fail')\nraise SystemExit(1)\n",
+        )
+        if not any(
+            error.startswith(
+                f"subcheck_fail:{SKBUFF_COMPILE_ROUTE_CHECKER_PATH.as_posix()}:PHASE14_SKBUFF_COMPILE_ROUTE=fail"
+            )
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected skbuff compile-route subcheck failure to surface")
+            return 1
+
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=8")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
