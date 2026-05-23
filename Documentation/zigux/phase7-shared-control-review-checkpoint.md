@@ -4,7 +4,7 @@ This note keeps the current Phase 7 shared-control packet reviewable at the docs
 
 ## Current Packet
 
-- The current shared-control reminder packet is carried by `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-shared-control-review-checkpoint.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/validate-phase7.py`, `.github/workflows/zigux-bootstrap.yml`, and the readable non-owner `zigux/Makefile` plus `zigux/tests/phase7_build.zig`.
+- The current shared-control reminder packet is carried by `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md`, `Documentation/zigux/phase7-shared-control-review-checkpoint.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/validate-phase7.py`, `.github/workflows/zigux-bootstrap.yml`, and the readable non-owner `zigux/Makefile` plus `zigux/tests/phase7_build.zig`.
 - Keep the shared-control packet focused on reminder, checker, workflow, readable non-owner build evidence, and narrow validation-foothold truthfulness only. The helper-local `argv_split`, `cmdline`, `rbtree`, and `string_helpers` packets remain separate owners for direct helper behavior and survey drift.
 
 ## Parked Reminders
@@ -14,6 +14,7 @@ This note keeps the current Phase 7 shared-control packet reviewable at the docs
 - Keep `scripts/zigux/validate-phase7.py` and `phase7-validate` framed as a returned narrow validation foothold only; they do not by themselves prove that the broader shared Phase 7 build shard, helper-local wrapper routes, or workflow-backed test route have returned.
 - Keep `phase7-test` and `phase7` framed as absent wrapper-route vocabulary while the readable `zigux/Makefile` still omits those routes on current `master`.
 - Keep workflow truthfulness anchored to the shipped `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` hooks while `.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate` and `make -C zigux phase7-test` steps.
+- Keep `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md` framed as the roadmap-vs-bootstrap gap note: it can claim the four roadmap-backed helper anchors and the narrow `phase7-validate` foothold, but it must not promote absent `phase7-test`, `phase7`, or workflow-backed Phase 7 test routes into current proof.
 
 ## Review Prompt
 
