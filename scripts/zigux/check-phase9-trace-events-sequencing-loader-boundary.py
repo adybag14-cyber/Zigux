@@ -16,8 +16,8 @@ REQUIRED_MARKERS = [
     "`zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`, which keeps the shared request-contract boundary tied to the same loader shard instead of drifting into the trace-events family-local packet",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig` keeps the command/environment guard reviewable on current `master` by fail-closing when argv or environment control markers bleed into `zigux/kernel/runtime_loader.zig` or `zigux/kernel/runtime_loader_contract.zig`",
     "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
-    "current `master` therefore still supports only a partial runtime bitmap reminder packet, and that partial bitmap visibility must not be used to imply that the broader bitmap family or blocked publication boundaries returned",
-    "3. the bitmap side is still only partially materialized on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned",
+    "current `master` therefore still supports a bounded runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned",
+    "3. the bitmap side now keeps a broader direct packet on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned",
 ]
 
 FORBIDDEN_MARKERS = [
