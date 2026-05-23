@@ -23,6 +23,26 @@ EXTRA_REQUIRED_FILES = (
     Path("scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"),
     Path("zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json"),
 )
+DIRECT_REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+)
+DIRECT_REQUIRED_MAKEFILE_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py --self-test",
+)
 VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),
     ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),
@@ -258,13 +278,48 @@ def collect_direct_manifest_issues(module, root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+def collect_direct_line_issues(
+    issues: list[tuple[str, str]],
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> None:
+    for marker in markers:
+        count = sum(1 for line in text.splitlines() if line.strip() == marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+
+
+def has_exact_line(text: str, marker: str) -> bool:
+    return any(line.strip() == marker for line in text.splitlines())
+
+
 def collect_checker_issues(module, root: Path) -> list[tuple[str, str]]:
     issues = list(module.collect_issues(root))
     for rel in EXTRA_REQUIRED_FILES:
         if not module.resolve(root, rel).exists():
             issues.append(("MISSING_REQUIRED_FILE", rel.as_posix()))
-    if any(code == "MISSING_REQUIRED_FILE" and value == module.MANIFEST_REL.as_posix() for code, value in issues):
+    if any(code == "MISSING_REQUIRED_FILE" for code, _ in issues):
         return issues
+    workflow_text = module.resolve(root, module.WORKFLOW_REL).read_text(encoding="utf-8")
+    makefile_text = module.resolve(root, module.MAKEFILE_REL).read_text(encoding="utf-8")
+    collect_direct_line_issues(
+        issues,
+        workflow_text,
+        DIRECT_REQUIRED_WORKFLOW_LINES,
+        "MISSING_WORKFLOW_LINE",
+        "DUPLICATE_WORKFLOW_LINE",
+    )
+    collect_direct_line_issues(
+        issues,
+        makefile_text,
+        DIRECT_REQUIRED_MAKEFILE_LINES,
+        "MISSING_MAKEFILE_LINE",
+        "DUPLICATE_MAKEFILE_LINE",
+    )
     issues.extend(collect_direct_manifest_issues(module, root))
     return issues
 
@@ -354,6 +409,20 @@ def augment_self_test_seed_root(module, root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("present\n", encoding="utf-8")
 
+    workflow_path = module.resolve(root, module.WORKFLOW_REL)
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+    for marker in DIRECT_REQUIRED_WORKFLOW_LINES:
+        if not has_exact_line(workflow_text, marker):
+            workflow_text += f"{marker}\n"
+    workflow_path.write_text(workflow_text, encoding="utf-8")
+
+    makefile_path = module.resolve(root, module.MAKEFILE_REL)
+    makefile_text = makefile_path.read_text(encoding="utf-8")
+    for marker in DIRECT_REQUIRED_MAKEFILE_LINES:
+        if not has_exact_line(makefile_text, marker):
+            makefile_text += f"{marker}\n"
+    makefile_path.write_text(makefile_text, encoding="utf-8")
+
     manifest_path = module.resolve(root, module.MANIFEST_REL)
     payload = load_json(manifest_path)
     if not isinstance(payload, dict):
@@ -381,8 +450,9 @@ def run_matrix(module, seed_root) -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_") as tmp_dir:
         root = Path(tmp_dir)
         seed_root(root)
-        if collect_checker_issues(module, root) != []:
-            raise AssertionError("expected clean baseline self-test root")
+        baseline_issues = collect_checker_issues(module, root)
+        if baseline_issues != []:
+            raise AssertionError(f"expected clean baseline self-test root; saw {baseline_issues!r}")
         checks_run += 1
 
         for marker in module.REQUIRED_CLOSURE_MARKERS:
@@ -392,7 +462,7 @@ def run_matrix(module, seed_root) -> int:
             assert_issue(module, root, ("MISSING_CLOSURE_MARKER", marker))
             checks_run += 1
 
-        for marker in module.REQUIRED_WORKFLOW_LINES:
+        for marker in (*module.REQUIRED_WORKFLOW_LINES, *DIRECT_REQUIRED_WORKFLOW_LINES):
             seed_root(root)
             path = module.resolve(root, module.WORKFLOW_REL)
             path.write_text(
@@ -408,7 +478,7 @@ def run_matrix(module, seed_root) -> int:
             assert_issue(module, root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
             checks_run += 1
 
-        for marker in module.REQUIRED_MAKEFILE_LINES:
+        for marker in (*module.REQUIRED_MAKEFILE_LINES, *DIRECT_REQUIRED_MAKEFILE_LINES):
             seed_root(root)
             path = module.resolve(root, module.MAKEFILE_REL)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
