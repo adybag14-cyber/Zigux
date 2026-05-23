@@ -9,6 +9,7 @@ Current starter:
 - `VirtioNetProbeLab.planMergeableReceiveBuffer()` now mirrors the bounded `get_mergeable_buf_len()` and `add_recvbuf_mergeable()` planning rules from `drivers/net/virtio_net.c` without entering DMA, page-pool allocation, skb ownership, NAPI poll, or netdev registration work
 - the new helper records aligned room, requested receive-buffer length, requested allocation length, and whether the plan is using recycled room from a prior mergeable refill step
 - `VirtioNetProbeLab.summarizeReceiveQueueRefill()` now turns the last bounded mergeable-buffer plan into an explicit refill-path summary so the lab slice can distinguish fresh mergeable allocation from recycled-room reuse without widening into page ownership or receive completion
+- `VirtioNetProbeLab.planReceiveQueueRefillBatch()` now turns that same bounded refill summary into queue-slot and byte counts for one refill pass, including a clampable batch limit and a fail-closed overfill guard, without widening into DMA submission, kicks, or receive completion
 
 Validation:
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
