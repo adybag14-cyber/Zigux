@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts moving from earlier standalone helper ports into reusable in-kernel runtime helper families.
 
-The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader device-managed follow-ons stay deliberately out of scope.
+The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader user-buffer and device-managed follow-ons stay deliberately out of scope.
 
 This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion plus the shared `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` reminder under the non-runtime `trace_events` anchor. The dedicated boundary replay should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
 
@@ -122,10 +122,10 @@ This expanded starter slice does not yet claim:
 
 - reopening already-landed starter coverage as if `stringIsTerminated()`, the quotable helpers, or the parse-int-array starter were still absent on current `master`
 - the broader shared-control packet that earlier runs described through validator, Makefile, workflow, or shared-build-route reminders
-- the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet
+- the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on, and reopen only when that helper-local non-goal lands or the no-sample boundary drifts on current `master`.
+Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.
 Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master`.
