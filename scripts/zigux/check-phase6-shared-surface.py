@@ -105,7 +105,41 @@ EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
 ]
-SELF_TEST_CASE_COUNT = 33
+EXPECTED_EVIDENCE_HELPER_DIRECT_C_PARITY = {
+    "base64": {
+        "focused_direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-base64-c-parity.py"],
+    },
+    "bsearch": {
+        "direct_c_parity_replay": "zigux/tests/phase6_bsearch_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-bsearch-c-parity.py"],
+    },
+    "checksum": {
+        "direct_c_parity_replay": "zigux/tests/phase6_checksum_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
+    },
+}
+EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
+    "base64": {
+        "focused_direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-base64-c-parity.py"],
+    },
+    "bsearch": {
+        "direct_c_parity_replay": "zigux/tests/phase6_bsearch_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-bsearch-c-parity.py"],
+    },
+    "checksum": {
+        "direct_c_parity_replay": "zigux/tests/phase6_checksum_c_parity.zig",
+        "direct_c_parity_harness": "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+        "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
+    },
+}
+SELF_TEST_CASE_COUNT = 39
 
 
 class ValidationError(RuntimeError):
@@ -140,6 +174,43 @@ def require_text_snippets(name: str, content: object, snippets: list[str]) -> No
             raise ValidationError(f"{name} drifted: {snippet}")
 
 
+def require_helper_fields(
+    packet_name: str,
+    helpers: object,
+    expected_helpers: dict[str, dict[str, object]],
+) -> None:
+    if not isinstance(helpers, list):
+        raise ValidationError(f"{packet_name} helpers missing")
+
+    helper_map: dict[str, dict[str, object]] = {}
+    for helper in helpers:
+        if not isinstance(helper, dict):
+            raise ValidationError(f"{packet_name} helper entry malformed")
+        key = helper.get("key")
+        if not isinstance(key, str):
+            raise ValidationError(f"{packet_name} helper key missing")
+        helper_map[key] = helper
+
+    for key, expected_fields in expected_helpers.items():
+        helper = helper_map.get(key)
+        if helper is None:
+            raise ValidationError(f"{packet_name} missing helper entry: {key}")
+        for field_name, expected_value in expected_fields.items():
+            actual_value = helper.get(field_name)
+            if isinstance(expected_value, list):
+                if not isinstance(actual_value, list):
+                    raise ValidationError(f"{packet_name} {key} {field_name} missing")
+                for item in expected_value:
+                    if item not in actual_value:
+                        raise ValidationError(
+                            f"{packet_name} {key} {field_name} missing {item}"
+                        )
+            elif actual_value != expected_value:
+                raise ValidationError(
+                    f"{packet_name} {key} {field_name} drifted: {expected_value}"
+                )
+
+
 def validate(repo_root: Path) -> None:
     evidence = read_json(repo_root / HELPER_EVIDENCE_MANIFEST_PATH)
     parity = read_json(repo_root / HELPER_PARITY_MANIFEST_PATH)
@@ -162,6 +233,16 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity public companion mismatch")
     if parity.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper-parity follow-through gaps drift")
+    require_helper_fields(
+        "phase6 helper-evidence manifest",
+        evidence.get("helpers"),
+        EXPECTED_EVIDENCE_HELPER_DIRECT_C_PARITY,
+    )
+    require_helper_fields(
+        "phase6 helper-parity manifest",
+        parity.get("helpers"),
+        EXPECTED_PARITY_HELPER_DIRECT_C_PARITY,
+    )
 
     require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_README_SNIPPETS)
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
@@ -190,6 +271,12 @@ def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_EVIDENCE_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_PARITY_CATALOG_PATH, "\n".join(REQUIRED_PARITY_CATALOG_SNIPPETS) + "\n")
+    evidence_helpers = [
+        {"key": key, **value} for key, value in EXPECTED_EVIDENCE_HELPER_DIRECT_C_PARITY.items()
+    ]
+    parity_helpers = [
+        {"key": key, **value} for key, value in EXPECTED_PARITY_HELPER_DIRECT_C_PARITY.items()
+    ]
     write(
         root / HELPER_EVIDENCE_MANIFEST_PATH,
         json.dumps(
@@ -199,6 +286,7 @@ def scaffold_repo(root: Path) -> None:
                 "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
+                "helpers": evidence_helpers,
             },
             indent=2,
         )
@@ -215,6 +303,7 @@ def scaffold_repo(root: Path) -> None:
                 "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
                 "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
                 "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
+                "helpers": parity_helpers,
             },
             indent=2,
         )
@@ -288,6 +377,12 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
         cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].pop("focused_direct_c_parity_replay")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].pop("direct_c_parity_harness")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
+        cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
@@ -309,6 +404,12 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"coverage_verification_note": "coverage drift"})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"perf_evidence_readback_note": "perf drift"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].pop("direct_c_parity_harness")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].pop("direct_c_parity_replay")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
         cases_run += 1
         expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
