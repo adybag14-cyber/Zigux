@@ -1,6 +1,65 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
 
+fn dumpNotifierSection(stdout: anytype) !void {
+    try stdout.writeAll("  \"notifier\": {\n");
+    try stdout.print("    \"done\": {},\n", .{abi.NOTIFIER_DONE});
+    try stdout.print("    \"ok\": {},\n", .{abi.NOTIFIER_OK});
+    try stdout.print("    \"stop\": {},\n", .{abi.NOTIFIER_STOP});
+    try stdout.print("    \"block_size\": {},\n", .{@sizeOf(abi.NotifierBlock)});
+    try stdout.print("    \"block_align\": {},\n", .{@alignOf(abi.NotifierBlock)});
+    try stdout.writeAll("    \"fields\": {\n");
+    try stdout.print("      \"notifier_call_offset\": {},\n", .{@offsetOf(abi.NotifierBlock, "notifier_call")});
+    try stdout.print("      \"next_offset\": {},\n", .{@offsetOf(abi.NotifierBlock, "next")});
+    try stdout.print("      \"priority_offset\": {}\n", .{@offsetOf(abi.NotifierBlock, "priority")});
+    try stdout.writeAll("    },\n");
+    try stdout.writeAll("    \"priority_increase\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.NotifierChainPriorityIncrease)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.NotifierChainPriorityIncrease)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"previous_index_offset\": {},\n", .{@offsetOf(abi.NotifierChainPriorityIncrease, "previous_index")});
+    try stdout.print("        \"current_index_offset\": {},\n", .{@offsetOf(abi.NotifierChainPriorityIncrease, "current_index")});
+    try stdout.print("        \"previous_priority_offset\": {},\n", .{@offsetOf(abi.NotifierChainPriorityIncrease, "previous_priority")});
+    try stdout.print("        \"current_priority_offset\": {}\n", .{@offsetOf(abi.NotifierChainPriorityIncrease, "current_priority")});
+    try stdout.writeAll("      }\n    },\n");
+    try stdout.writeAll("    \"list_head\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.ListHead)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.ListHead)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"next_offset\": {},\n", .{@offsetOf(abi.ListHead, "next")});
+    try stdout.print("        \"prev_offset\": {}\n", .{@offsetOf(abi.ListHead, "prev")});
+    try stdout.writeAll("      }\n    },\n");
+    try stdout.writeAll("    \"hlist_head\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.HListHead)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.HListHead)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"first_offset\": {}\n", .{@offsetOf(abi.HListHead, "first")});
+    try stdout.writeAll("      }\n    },\n");
+    try stdout.writeAll("    \"hlist_node\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.HListNode)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.HListNode)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"next_offset\": {},\n", .{@offsetOf(abi.HListNode, "next")});
+    try stdout.print("        \"pprev_offset\": {}\n", .{@offsetOf(abi.HListNode, "pprev")});
+    try stdout.writeAll("      }\n    },\n");
+    try stdout.writeAll("    \"list_break\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.ListBackLinkBreak)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.ListBackLinkBreak)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"current_index_offset\": {},\n", .{@offsetOf(abi.ListBackLinkBreak, "current_index")});
+    try stdout.print("        \"expected_prev_offset\": {},\n", .{@offsetOf(abi.ListBackLinkBreak, "expected_prev")});
+    try stdout.print("        \"actual_prev_offset\": {}\n", .{@offsetOf(abi.ListBackLinkBreak, "actual_prev")});
+    try stdout.writeAll("      }\n    },\n");
+    try stdout.writeAll("    \"hlist_break\": {\n");
+    try stdout.print("      \"size\": {},\n", .{@sizeOf(abi.HListPrevLinkBreak)});
+    try stdout.print("      \"align\": {},\n", .{@alignOf(abi.HListPrevLinkBreak)});
+    try stdout.writeAll("      \"fields\": {\n");
+    try stdout.print("        \"current_index_offset\": {},\n", .{@offsetOf(abi.HListPrevLinkBreak, "current_index")});
+    try stdout.print("        \"expected_pprev_offset\": {},\n", .{@offsetOf(abi.HListPrevLinkBreak, "expected_pprev")});
+    try stdout.print("        \"actual_pprev_offset\": {}\n", .{@offsetOf(abi.HListPrevLinkBreak, "actual_pprev")});
+    try stdout.writeAll("      }\n    }\n  }\n}\n");
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
@@ -109,53 +168,6 @@ pub fn main(init: std.process.Init) !void {
             @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
         },
     );
-    try stdout.print(
-        "  \"facility\": {{\n    \"kernel\": {},\n    \"helpers\": {},\n    \"drivers\": {}\n  }},\n",
-        .{
-            @intFromEnum(abi.Facility.kernel),
-            @intFromEnum(abi.Facility.helpers),
-            @intFromEnum(abi.Facility.drivers),
-        },
-    );
-    try stdout.print(
-        "  \"notifier\": {{\n    \"done\": {},\n    \"ok\": {},\n    \"stop\": {},\n    \"block_size\": {},\n    \"block_align\": {},\n    \"fields\": {{\n      \"notifier_call_offset\": {},\n      \"next_offset\": {},\n      \"priority_offset\": {}\n    }},\n    \"priority_increase\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"previous_index_offset\": {},\n        \"current_index_offset\": {},\n        \"previous_priority_offset\": {},\n        \"current_priority_offset\": {}\n      }}\n    }},\n    \"list_head\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"next_offset\": {},\n        \"prev_offset\": {}\n      }}\n    }},\n    \"hlist_head\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"first_offset\": {}\n      }}\n    }},\n    \"hlist_node\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"next_offset\": {},\n        \"pprev_offset\": {}\n      }}\n    }},\n    \"list_break\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"current_index_offset\": {},\n        \"expected_prev_offset\": {},\n        \"actual_prev_offset\": {}\n      }}\n    }},\n    \"hlist_break\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"current_index_offset\": {},\n        \"expected_pprev_offset\": {},\n        \"actual_pprev_offset\": {}\n      }}\n    }}\n  }}\n}}\n",
-        .{
-            abi.NOTIFIER_DONE,
-            abi.NOTIFIER_OK,
-            abi.NOTIFIER_STOP,
-            @sizeOf(abi.NotifierBlock),
-            @alignOf(abi.NotifierBlock),
-            @offsetOf(abi.NotifierBlock, "notifier_call"),
-            @offsetOf(abi.NotifierBlock, "next"),
-            @offsetOf(abi.NotifierBlock, "priority"),
-            @sizeOf(abi.NotifierChainPriorityIncrease),
-            @alignOf(abi.NotifierChainPriorityIncrease),
-            @offsetOf(abi.NotifierChainPriorityIncrease, "previous_index"),
-            @offsetOf(abi.NotifierChainPriorityIncrease, "current_index"),
-            @offsetOf(abi.NotifierChainPriorityIncrease, "previous_priority"),
-            @offsetOf(abi.NotifierChainPriorityIncrease, "current_priority"),
-            @sizeOf(abi.ListHead),
-            @alignOf(abi.ListHead),
-            @offsetOf(abi.ListHead, "next"),
-            @offsetOf(abi.ListHead, "prev"),
-            @sizeOf(abi.HListHead),
-            @alignOf(abi.HListHead),
-            @offsetOf(abi.HListHead, "first"),
-            @sizeOf(abi.HListNode),
-            @alignOf(abi.HListNode),
-            @offsetOf(abi.HListNode, "next"),
-            @offsetOf(abi.HListNode, "pprev"),
-            @sizeOf(abi.ListBackLinkBreak),
-            @alignOf(abi.ListBackLinkBreak),
-            @offsetOf(abi.ListBackLinkBreak, "current_index"),
-            @offsetOf(abi.ListBackLinkBreak, "expected_prev"),
-            @offsetOf(abi.ListBackLinkBreak, "actual_prev"),
-            @sizeOf(abi.HListPrevLinkBreak),
-            @alignOf(abi.HListPrevLinkBreak),
-            @offsetOf(abi.HListPrevLinkBreak, "current_index"),
-            @offsetOf(abi.HListPrevLinkBreak, "expected_pprev"),
-            @offsetOf(abi.HListPrevLinkBreak, "actual_pprev"),
-        },
-    );
+    try dumpNotifierSection(stdout);
     try stdout.flush();
 }
