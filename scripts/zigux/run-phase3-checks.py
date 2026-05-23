@@ -518,6 +518,14 @@ def run_self_test() -> int:
             print("expected missing linux-zigux header-governance output marker to fail the runner")
             return 1
 
+        selftest_surface_path = root / CHECK_COMMANDS[20][0]
+        populate_repo()
+        _write_synthetic_script(selftest_surface_path, ())
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing selftest-surface output marker to fail the runner")
+            return 1
+
         manifest_replay_routes_path = root / CHECK_COMMANDS[21][0]
         populate_repo()
         _write_synthetic_script(manifest_replay_routes_path, ())
@@ -529,7 +537,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 16}"
+            f"{len(SELF_TEST_MISSING_CASES) + 17}"
         )
         return 0
 
