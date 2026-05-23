@@ -54,6 +54,7 @@ test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" 
 
     try expectContains(survey_doc, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`");
     try expectContains(companion_doc, "`zigux/tests/phase11_hvc_console_manifest.json`");
+    try expectContains(companion_doc, "proof-backed HVC continuity packet remains reviewable");
     try expectContains(matrix_doc, "repo-reality gaps instead of returned fallback evidence");
 }
 
