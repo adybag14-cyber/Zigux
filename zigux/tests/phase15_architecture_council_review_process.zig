@@ -88,8 +88,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
     try std.testing.expectEqual(@as(usize, 18), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 25), manifest.shared_gap_expected_present_paths.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.shared_gap_expected_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 26), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.shared_gap_expected_missing_paths.len);
 
     try expectSliceContains(manifest.supporting_context_fields, "governance lane sequencing link or explicit scope note");
     try expectSliceContains(manifest.supporting_context_fields, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
@@ -126,6 +126,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/validate-phase15.py`");
     try expectSliceContains(manifest.shared_gap_expected_missing_paths, "`zigux/tests/phase15_build.zig`");
 }
 
@@ -255,5 +256,6 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(gap_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(gap_note, "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`");
     try expectContains(gap_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
+    try expectContains(gap_note, "`scripts/zigux/validate-phase15.py`");
     try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
