@@ -396,6 +396,44 @@ def split_predecessor_workflow(root: Path) -> None:
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
 
 
+def split_core_tail_workflow(root: Path) -> None:
+    tail_index = len(WORKFLOW_PACKET_STEPS) - 1
+    blocks = [workflow_step_block(*PREDECESSOR_STEP)]
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in LEAD_IN_WORKFLOW_STEPS
+    )
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in WORKFLOW_PACKET_STEPS[:tail_index]
+    )
+    blocks.append(
+        workflow_step_block(
+            "Synthetic unrelated insertion",
+            "python3 scripts/zigux/synthetic-unrelated-insertion.py --self-test",
+        )
+    )
+    blocks.append(workflow_step_block(*WORKFLOW_PACKET_STEPS[tail_index]))
+    blocks.append(workflow_step_block(*SUCCESSOR_STEP))
+    write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
+
+
+def split_successor_workflow(root: Path) -> None:
+    blocks = [workflow_step_block(*PREDECESSOR_STEP)]
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in LEAD_IN_WORKFLOW_STEPS + WORKFLOW_PACKET_STEPS
+    )
+    blocks.append(
+        workflow_step_block(
+            "Synthetic unrelated insertion",
+            "python3 scripts/zigux/synthetic-unrelated-insertion.py --self-test",
+        )
+    )
+    blocks.append(workflow_step_block(*SUCCESSOR_STEP))
+    write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
+
+
 def add_forbidden_workflow_line(root: Path, line: str) -> None:
     text = load_text(root, WORKFLOW_REL)
     write_text(root, WORKFLOW_REL, text + "        " + line + "\n")
@@ -447,6 +485,8 @@ def run_self_test() -> int:
             ("workflow_reordered", ("reorder_workflow",)),
             ("workflow_split_predecessor", ("split_predecessor_workflow",)),
             ("workflow_split_lead_in", ("split_lead_in_workflow",)),
+            ("workflow_split_core_tail", ("split_core_tail_workflow",)),
+            ("workflow_split_successor", ("split_successor_workflow",)),
             ("workflow_forbidden_bench_run", ("forbidden_workflow", FORBIDDEN_WORKFLOW_LINES[0])),
             ("workflow_forbidden_generic_test_run", ("forbidden_workflow", FORBIDDEN_WORKFLOW_LINES[1])),
         ]
@@ -474,6 +514,10 @@ def run_self_test() -> int:
                     split_predecessor_workflow(root)
                 elif kind == "split_lead_in_workflow":
                     split_lead_in_workflow(root)
+                elif kind == "split_core_tail_workflow":
+                    split_core_tail_workflow(root)
+                elif kind == "split_successor_workflow":
+                    split_successor_workflow(root)
                 elif kind == "forbidden_workflow":
                     add_forbidden_workflow_line(root, mutation[1])
 
