@@ -74,6 +74,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
         '"python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"',
         '"python3 scripts/zigux/check-phase3-shared-tests-routes.py"',
+        '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-selftest-surface.py"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py"',
         '"python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test"',
@@ -260,6 +262,16 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"',
             "expected missing catalog shared-tests selftest route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
+            "expected missing catalog selftest-surface selftest route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"python3 scripts/zigux/check-phase3-selftest-surface.py"',
+            "expected missing catalog selftest-surface route marker was not reported",
         ),
         (
             CATALOG_PATH,
