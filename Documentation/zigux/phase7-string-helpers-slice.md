@@ -120,7 +120,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 
 This expanded starter slice does not yet claim:
 
-- the older parked missing-helper gap
+- reopening already-landed starter coverage as if `stringIsTerminated()`, the quotable helpers, or the parse-int-array starter were still absent on current `master`
 - the broader shared-control packet that earlier runs described through validator, Makefile, workflow, or shared-build-route reminders
 - the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
