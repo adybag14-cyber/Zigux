@@ -125,21 +125,26 @@ fn skipLeadingSpaces(text: []const u8, start: usize) usize {
     return idx;
 }
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 pub fn nextArg(args: []const u8) ?NextArgResult {
-    const start = skipLeadingSpaces(args, 0);
-    if (start >= args.len) {
+    const current = cStringPrefix(args);
+    const start = skipLeadingSpaces(current, 0);
+    if (start >= current.len) {
         return null;
     }
 
-    const quoted_prefix = args[start] == '"';
+    const quoted_prefix = current[start] == '"';
     const token_start = if (quoted_prefix) start + 1 else start;
 
     var idx = token_start;
     var equals_idx: ?usize = null;
     var in_quote = quoted_prefix;
 
-    while (idx < args.len) : (idx += 1) {
-        const ch = args[idx];
+    while (idx < current.len) : (idx += 1) {
+        const ch = current[idx];
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
@@ -151,30 +156,30 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         }
     }
 
-    const remaining_start = skipLeadingSpaces(args, idx);
-    const token_end = if (quoted_prefix and idx > token_start and args[idx - 1] == '"') idx - 1 else idx;
+    const remaining_start = skipLeadingSpaces(current, idx);
+    const token_end = if (quoted_prefix and idx > token_start and current[idx - 1] == '"') idx - 1 else idx;
 
     if (equals_idx) |eq| {
         var value_start = eq + 1;
         var value_end = token_end;
-        if (value_start < value_end and args[value_start] == '"') {
+        if (value_start < value_end and current[value_start] == '"') {
             value_start += 1;
-            if (value_end > value_start and args[value_end - 1] == '"') {
+            if (value_end > value_start and current[value_end - 1] == '"') {
                 value_end -= 1;
             }
         }
 
         return .{
-            .param = args[token_start..eq],
-            .value = args[value_start..value_end],
-            .remaining = args[remaining_start..],
+            .param = current[token_start..eq],
+            .value = current[value_start..value_end],
+            .remaining = current[remaining_start..],
         };
     }
 
     return .{
-        .param = args[token_start..token_end],
+        .param = current[token_start..token_end],
         .value = null,
-        .remaining = args[remaining_start..],
+        .remaining = current[remaining_start..],
     };
 }
 
@@ -293,11 +298,22 @@ test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
 
+test "nextArg treats a leading nul byte as blank input" {
+    try std.testing.expect(nextArg("\x00ignored tail") == null);
+}
+
 test "nextArg parses bare parameters and keeps the remaining text" {
     const first = nextArg(" debug nohlt") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("debug", first.param);
     try std.testing.expect(first.value == null);
     try std.testing.expectEqualStrings("nohlt", first.remaining);
+}
+
+test "nextArg stops at the first embedded nul byte" {
+    const first = nextArg("debug\x00 nohlt") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("debug", first.param);
+    try std.testing.expect(first.value == null);
+    try std.testing.expectEqualStrings("", first.remaining);
 }
 
 test "nextArg parses key value pairs and quoted values" {
