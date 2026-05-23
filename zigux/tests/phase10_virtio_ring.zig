@@ -1,6 +1,50 @@
 const std = @import("std");
 const virtio_ring = @import("../../drivers/virtio/virtio_ring.zig");
 
+test "phase10 virtio ring queue registration replay keeps active queue count and definition discipline explicit" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try std.testing.expectEqual(@as(usize, 0), ring.registeredQueueCount());
+
+    try std.testing.expectError(error.QueueNotDefined, ring.queueRegistrationSummary(0));
+    try std.testing.expectError(error.EmptyDescriptorCount, ring.defineQueue(0, 0, .split, true, false));
+    try std.testing.expectEqual(@as(usize, 0), ring.registeredQueueCount());
+    try std.testing.expectError(
+        error.DescriptorCountMustBePowerOfTwo,
+        ring.defineQueue(0, 6, .split, true, false),
+    );
+    try std.testing.expectEqual(@as(usize, 0), ring.registeredQueueCount());
+    try std.testing.expectError(
+        error.QueueIndexOutOfRange,
+        ring.defineQueue(virtio_ring.queue_capacity, 8, .split, true, false),
+    );
+    try std.testing.expectEqual(@as(usize, 0), ring.registeredQueueCount());
+
+    try ring.defineQueue(0, 8, .split, true, false);
+    var summary = try ring.queueRegistrationSummary(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try std.testing.expect(summary.uses_event_idx);
+    try std.testing.expect(!summary.uses_indirect_descriptors);
+    try std.testing.expectEqual(@as(usize, 1), summary.registered_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), ring.registeredQueueCount());
+
+    try ring.defineQueue(2, 16, .packed_ring, false, true);
+    summary = try ring.queueRegistrationSummary(2);
+    try std.testing.expectEqual(@as(u16, 2), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 16), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try std.testing.expect(!summary.uses_event_idx);
+    try std.testing.expect(summary.uses_indirect_descriptors);
+    try std.testing.expectEqual(@as(usize, 2), summary.registered_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), ring.registeredQueueCount());
+
+    try std.testing.expectError(error.QueueAlreadyDefined, ring.defineQueue(2, 16, .packed_ring, false, true));
+    try std.testing.expectEqual(@as(usize, 2), ring.registeredQueueCount());
+    try std.testing.expectError(error.QueueNotDefined, ring.queueRegistrationSummary(1));
+}
+
 test "phase10 virtio ring broader replay keeps queue-local publish notification and reset flow aligned" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(1, 8, .packed_ring, true, true);
