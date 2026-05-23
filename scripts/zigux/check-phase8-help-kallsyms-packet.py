@@ -72,9 +72,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
     ),
     TOOLING_LANE_SEQUENCE: (
+        "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the shared owner map should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays a shared validation route instead of turning help-local and symbol-local follow-through into one owner",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig` and `make -C zigux phase8-help-kallsyms-test` are still shared smoke coverage only",
-        "current authenticated 2026-05-15 contents readback still returns `404` for `tools/lib/symbol/kallsyms.zig`, so the live symbol lane remains parked on reminder-and-build truthfulness even while the focused test note and mixed help-plus-kallsyms build shard stay readable",
-        "`Documentation/zigux/phase8-kallsyms-slice.md` is directly readable again, so shared reminder surfaces should keep help-local output or command-source drift in the dedicated help lane and reserve symbol follow-through for parser, truncation, or callback-wrapper truthfulness until the helper path itself is readable again",
+        "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the live symbol lane should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays shared smoke coverage instead of turning help-local and symbol-local follow-through into one owner",
+        "`Documentation/zigux/phase8-kallsyms-slice.md` and the public raw helper path are both readable again, so shared reminder surfaces should keep help-local output or command-source drift in the dedicated help lane and reserve symbol follow-through for parser, truncation, or callback-wrapper truthfulness instead of replaying older unreadable-helper assumptions",
+        "When the mixed `phase8-help-kallsyms` smoke route reopens, treat it as shared validation only: help-local output or command-source drift stays in the help lane, while parser, truncation, or callback-wrapper drift stays in the symbol lane even though `tools/lib/symbol/kallsyms.zig` is publicly readable again.",
+        "The earlier symbol-lane visible cue is no longer reopened: current public default-branch raw readback already serves `tools/lib/symbol/kallsyms.zig`, so shared sequencing should keep the mixed help-and-kallsyms build shard classified as validation overlap only while reserving parser follow-through for the dedicated `kallsyms` lane without replaying unreadable-helper assumptions.",
     ),
     CHECKLIST: (
         "if the change touches the parked Phase 8 `help` packet",
