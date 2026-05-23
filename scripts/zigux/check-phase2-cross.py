@@ -23,13 +23,14 @@ MAKEFILE_LINES = (
 
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
+SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 EXPECTED_REVIEW_STATUS_BY_MODE = {
     "archive_required": "pinned bootstrap archive",
     "route_contract_only": "route contract only",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(path: Path) -> str:
@@ -82,6 +83,14 @@ def load_archive_target_scope(root: Path) -> list[str]:
                 f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
             )
         target = value.strip()
+        if value != target:
+            raise SystemExit(
+                f"whitespace-padded archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        if target not in SUPPORTED_CROSS_TARGETS:
+            raise SystemExit(
+                f"unsupported archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
         if target in seen_targets:
             raise SystemExit(
                 f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
@@ -144,6 +153,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if exact_target != normalized_target:
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}:target"))
             continue
+        if normalized_target not in SUPPORTED_CROSS_TARGETS:
+            issues.append(("UNSUPPORTED_CROSS_TARGET", normalized_target))
+            continue
         if normalized_target in seen_targets:
             issues.append(("DUPLICATE_CROSS_TARGET", normalized_target))
         seen_targets.add(normalized_target)
@@ -163,6 +175,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if validation_mode == "archive_required":
             archive_required_targets.add(normalized_target)
 
+    if seen_targets != set(SUPPORTED_CROSS_TARGETS):
+        issues.append(("CROSS_TARGET_SET_MISMATCH", ",".join(sorted(seen_targets))))
     if archive_required_targets != set(archive_target_scope):
         issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(archive_required_targets))))
 
@@ -346,6 +360,56 @@ def run_self_test() -> int:
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ENTRY", "index=1:target") in collect_issues(root)
         checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"] = [fixture["cross_targets"][0]]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("CROSS_TARGET_SET_MISMATCH", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"].append(
+            {
+                "target": "riscv64-linux",
+                "review_status": "route contract only",
+                "validation_mode": "route_contract_only",
+                "route": ROUTE,
+            }
+        )
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("UNSUPPORTED_CROSS_TARGET", "riscv64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux "]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "whitespace-padded archive_target_scope entry" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("whitespace-padded archive_target_scope did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "unsupported archive_target_scope entry" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("unsupported archive_target_scope did not abort")
 
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
