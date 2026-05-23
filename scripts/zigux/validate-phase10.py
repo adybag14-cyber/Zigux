@@ -25,6 +25,11 @@ REQUIRED_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_driver_id.zig",
+    "drivers/virtio/virtio_mmio.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_publish_readiness.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_verify.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase10-bootstrap-route.py",
@@ -48,8 +53,17 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
 )
 
 
@@ -189,15 +203,29 @@ def run_self_test() -> int:
                 "phase10-validate-self-test:baseline_failed:" + ",".join(baseline_issues)
             )
 
-        missing = root / REQUIRED_PATHS[0]
-        missing.unlink()
-        issues = collect_issues(root)
-        expected_missing = f"missing_required_path:{REQUIRED_PATHS[0]}"
-        if expected_missing not in issues:
-            raise SystemExit(
-                "phase10-validate-self-test:missing_required_path_not_detected:"
-                + ",".join(issues or ["none"])
-            )
+        def assert_missing_required_path(path_rel: str, failure_label: str) -> None:
+            build_sample_repo(root)
+            (root / path_rel).unlink()
+            issues = collect_issues(root)
+            expected_missing = f"missing_required_path:{path_rel}"
+            if expected_missing not in issues:
+                raise SystemExit(
+                    f"phase10-validate-self-test:{failure_label}_not_detected:"
+                    + ",".join(issues or ["none"])
+                )
+
+        assert_missing_required_path(
+            REQUIRED_PATHS[0],
+            "missing_required_path",
+        )
+        assert_missing_required_path(
+            "drivers/virtio/virtio_ring_publish_readiness.zig",
+            "missing_ring_publish_readiness_path",
+        )
+        assert_missing_required_path(
+            "zigux/tests/phase10_virtio_mmio_survey.zig",
+            "missing_mmio_survey_path",
+        )
 
         def assert_subcommand_failure(
             script_rel: str,
@@ -267,7 +295,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
