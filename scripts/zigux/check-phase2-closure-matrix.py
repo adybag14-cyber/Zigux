@@ -351,6 +351,14 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        payload["repo_reality_gaps"] = "drifted-gap"
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "'drifted-gap'"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
         write_json(manifest_path, [])
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
         checks_run += 1
@@ -379,6 +387,36 @@ def run_matrix(module, seed_root) -> int:
                 f"invalid json in required file: {path}:",
             )
             checks_run += 1
+
+        seed_root(root)
+        cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
+        write_json(cases_path, [])
+        assert_issue(module, root, ("KCONFIG_CASE_PACKET_MISMATCH", "root"))
+        checks_run += 1
+
+        seed_root(root)
+        conf_manifest_path = module.resolve(root, module.CONF_MANIFEST_REL)
+        write_json(conf_manifest_path, [])
+        assert_issue(module, root, ("CONF_MANIFEST_MISMATCH", "root"))
+        checks_run += 1
+
+        seed_root(root)
+        confdata_manifest_path = module.resolve(root, module.CONFDATA_MANIFEST_REL)
+        write_json(confdata_manifest_path, [])
+        assert_issue(module, root, ("CONFDATA_MANIFEST_MISMATCH", "root"))
+        checks_run += 1
+
+        seed_root(root)
+        genksyms_cases_path = module.resolve(root, module.GENKSYMS_CASES_REL)
+        write_json(genksyms_cases_path, {})
+        assert_issue(module, root, ("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
+        checks_run += 1
+
+        seed_root(root)
+        genksyms_manifest_path = module.resolve(root, module.GENKSYMS_MANIFEST_REL)
+        write_json(genksyms_manifest_path, [])
+        assert_issue(module, root, ("GENKSYMS_MANIFEST_MISMATCH", "root"))
+        checks_run += 1
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
@@ -415,12 +453,6 @@ def run_matrix(module, seed_root) -> int:
                 write_json(manifest_path, payload)
                 assert_issue(module, root, ("MISSING_MANIFEST_SURFACE", f"{key}:{marker}"))
                 checks_run += 1
-
-        seed_root(root)
-        cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
-        write_json(cases_path, [])
-        assert_issue(module, root, ("KCONFIG_CASE_PACKET_MISMATCH", "root"))
-        checks_run += 1
 
         seed_root(root)
         cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
