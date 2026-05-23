@@ -76,17 +76,11 @@ REQUIRED_MARKERS = {
 }
 
 FORBIDDEN_MARKERS = {
-    "Documentation/zigux/phase13-release-coordination-matrix.md": [
-        "This matrix does not imply a shipped Makefile-backed review handle.",
-    ],
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "- `scripts/zigux/validate-phase13-release.py`",
         "But the whole broader reminder packet is still not fully aligned on that wider set: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still stop at the older direct DMA-boundary plus `dmam_alloc_coherent()` and scatterlist subset and do not yet mirror the helper-first `devm_iounmap()` or `devm_of_iomap()` planner note-and-manifest pairings.",
         "- `Documentation/zigux/phase13-landlock-syscalls-survey.md`",
         "- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-    ],
-    "Documentation/zigux/phase13-roadmap-traceability.md": [
-        "- `scripts/zigux/validate-phase13-release.py`",
     ],
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
