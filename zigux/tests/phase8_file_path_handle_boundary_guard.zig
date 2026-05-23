@@ -10,9 +10,12 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {
+test "phase 8 file-path-handle boundary guard keeps the deferred bridge aligned across the manifest, slice, survey, and shared replay" {
     const manifest_json = @embedFile("../../tools/lib/bpf/zigux_segments/manifest.json");
     const bridge_test_source = @embedFile("phase8_file_path_handle_bridge.zig");
+    const bridge_slice = @embedFile("../../Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
+    const boundary_survey = @embedFile("../../Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
+    const shared_build = @embedFile("phase8_build.zig");
 
     const fdinfo_window = try segmentWindow(manifest_json, "\"slug\": \"fdinfo-map-info-helpers\"");
     try expectContains(fdinfo_window, "\"status\": \"starter_landed\"");
@@ -41,4 +44,24 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
     try expectContains(bridge_test_source, "isMapReuseCompatible");
     try expectContains(bridge_test_source, "resolveReusePinnedMapAttempt");
     try expectContains(bridge_test_source, "planTokenPreparation");
+
+    try expectContains(bridge_slice, "scope: helper-local fdinfo parsing, reuse-planning, and deferred bridge-boundary truthfulness only");
+    try expectContains(bridge_slice, "planning-only `resolveReusePinnedMapAttempt()` gating");
+    try expectContains(bridge_slice, "planning-only `planTokenPreparation()` gating");
+    try expectContains(bridge_slice, "no direct procfs reads");
+    try expectContains(bridge_slice, "no live bpffs opens");
+    try expectContains(bridge_slice, "no `bpf_obj_get()` reopen flow");
+    try expectContains(bridge_slice, "no token materialization");
+    try expectContains(bridge_slice, "no descriptor replacement, transfer, or close ownership semantics");
+
+    try expectContains(boundary_survey, "keep the landed helper-local bridge packet");
+    try expectContains(boundary_survey, "Current `master` still keeps the mixed-source bridge packet reviewable through");
+    try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
+    try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`");
+    try expectContains(boundary_survey, "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior");
+
+    try expectContains(shared_build, "phase8_file_path_handle_boundary_guard.zig");
+    try expectContains(shared_build, "phase8-file-path-handle-boundary-guard-tests");
+    try expectContains(shared_build, "phase8_file_path_handle_bridge_manifest_sync.zig");
+    try expectContains(shared_build, "phase8-file-path-handle-bridge-manifest-sync-tests");
 }
