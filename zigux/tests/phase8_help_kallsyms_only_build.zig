@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
     const run_help_tests = b.addRunArtifact(help_tests);
     const run_kallsyms_tests = b.addRunArtifact(kallsyms_tests);
 
-    const test_step = b.step("test", "Run focused Phase 8 help and kallsyms tests");
+    const test_step = b.step("test", "Run the focused Phase 8 help and kallsyms shared tests.");
     test_step.dependOn(&run_help_tests.step);
     test_step.dependOn(&run_kallsyms_tests.step);
 }
