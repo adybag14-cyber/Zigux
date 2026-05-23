@@ -26,6 +26,22 @@ test "phase 8 file-path handle bridge manifest keeps the landed helper wording e
 
     try expectContains(
         manifest,
+        "\"lane_key\": \"P8-L13\"",
+    );
+    try expectContains(
+        manifest,
+        "\"id\": \"P8-L13-S05\"",
+    );
+    try expectContains(
+        manifest,
+        "\"id\": \"P8-L13-S06\"",
+    );
+    try expectContains(
+        manifest,
+        "\"id\": \"P8-L13-S07\"",
+    );
+    try expectContains(
+        manifest,
         "\"surveyed_commit\": \"17fd5f8e2b234738428770e192346d040aff13ce\"",
     );
     try expectContains(
