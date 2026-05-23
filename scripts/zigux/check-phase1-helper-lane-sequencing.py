@@ -134,11 +134,26 @@ def read_text(root: Path, rel: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f"duplicate_json_key:{key}")
+        payload[key] = value
+    return payload
+
+
 def load_manifest(root: Path) -> dict:
     path = root / MANIFEST
     if path.is_dir():
         raise IsADirectoryError(MANIFEST.as_posix())
-    return json.loads(path.read_text(encoding="utf-8"))
+    manifest = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_keys,
+    )
+    if not isinstance(manifest, dict):
+        raise ValueError("manifest_not_object")
+    return manifest
 
 
 def count_exact(text: str, marker: str) -> int:
@@ -214,7 +229,7 @@ def collect_failures(root: Path) -> list[str]:
     try:
         failures.extend(collect_marker_failures(root))
         failures.extend(collect_manifest_failures(root))
-    except (KeyError, json.JSONDecodeError, IsADirectoryError) as exc:
+    except (KeyError, json.JSONDecodeError, IsADirectoryError, ValueError) as exc:
         failures.append(f"exception:{type(exc).__name__}:{exc}")
     return failures
 
@@ -287,6 +302,7 @@ def run_self_test() -> int:
     cases.append(("manifest_shared_helpers_drift", ("manifest", ("lane_sequencing", "shared_replay_parked_helpers"), ["tools/lib/slab.zig"])))
     cases.append(("manifest_string_note_drift", ("manifest", ("review_anchors", "tools/lib/string.zig", "next_safe_step_note"), "drift")))
     cases.append(("manifest_invalid_json", ("raw_manifest", "{not json\n")))
+    cases.append(("manifest_duplicate_json_key", ("raw_manifest", '{\n  "lane_sequencing": {},\n  "lane_sequencing": {}\n}\n')))
 
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-helper-lane-") as tmpdir:
