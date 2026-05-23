@@ -91,6 +91,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'try expectContains(slice_note, "queue ownership");',
         'try expectContains(slice_note, "kernel/workqueue.c");',
         'try expectContains(slice_note, "Phase 14");',
+        'try expectNotContains(validate_phase8, "expectMissingPath(\\"tools/lib/subcmd/exec-cmd.zig\\")");',
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
