@@ -79,6 +79,21 @@ pub fn build(b: *std.Build) void {
         virtio_net_throughput_parity_module,
     );
 
+    const nvme_pci_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/nvme/host/pci.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const nvme_pci_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_nvme_pci.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    nvme_pci_root_module.addImport(
+        "nvme_pci",
+        nvme_pci_module,
+    );
+
     const virtio_net_survey_root_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_net_survey.zig"),
         .target = target,
@@ -125,6 +140,15 @@ pub fn build(b: *std.Build) void {
         phase12_virtio_net_throughput_parity_tests,
     );
 
+    const phase12_nvme_pci_direct_tests = b.addTest(.{
+        .name = "phase12-nvme-pci-direct-tests",
+        .root_module = nvme_pci_root_module,
+    });
+    const run_phase12_nvme_pci_direct_tests = b.addRunArtifact(
+        phase12_nvme_pci_direct_tests,
+    );
+    run_phase12_nvme_pci_direct_tests.setCwd(b.path("../.."));
+
     const phase12_virtio_net_survey_tests = b.addTest(.{
         .name = "phase12-virtio-net-survey-tests",
         .root_module = virtio_net_survey_root_module,
@@ -135,23 +159,25 @@ pub fn build(b: *std.Build) void {
 
     const smoke_step = b.step(
         "smoke",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate smoke tests",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, NVMe direct replay, and survey-gate smoke tests",
     );
     smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
     smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+    smoke_step.dependOn(&run_phase12_nvme_pci_direct_tests.step);
     smoke_step.dependOn(&run_virtio_net_survey_tests.step);
 
     const test_step = b.step(
         "test",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, NVMe direct replay, and survey-gate tests",
     );
     test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
     test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);
     test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+    test_step.dependOn(&run_phase12_nvme_pci_direct_tests.step);
     test_step.dependOn(&run_virtio_net_survey_tests.step);
 }
