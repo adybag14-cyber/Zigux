@@ -81,6 +81,8 @@ FILE_EXPECTATIONS = {
         WITNESS_BUILD_PATH,
         "standalone targetless-unregister witness",
         "separate failure-mode replay",
+        "build-inventory checker",
+        "shared inventory-backed proof routes",
     ),
     VALIDATION_MATRIX_PATH: (
         VERIFY_BOUNDARY_PATH,
@@ -98,6 +100,8 @@ FILE_EXPECTATIONS = {
     SURVEY_PATH: (
         CLEANUP_COMPANION_PATH,
         CLEANUP_CHECKER_PATH,
+        "scripts/zigux/check-phase11-build-inventory.py",
+        INVENTORY_PATH,
         SELF_PATH,
         WITNESS_PATH,
         WITNESS_BUILD_PATH,
@@ -385,6 +389,14 @@ def run_self_test() -> int:
                 "standalone targetless-unregister witness",
             ),
             (
+                CLEANUP_COMPANION_PATH,
+                "build-inventory checker",
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
+                "shared inventory-backed proof routes",
+            ),
+            (
                 VALIDATION_MATRIX_PATH,
                 VERIFY_BOUNDARY_PATH,
             ),
@@ -407,6 +419,14 @@ def run_self_test() -> int:
             (
                 VALIDATION_MATRIX_PATH,
                 "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
+            ),
+            (
+                SURVEY_PATH,
+                "scripts/zigux/check-phase11-build-inventory.py",
+            ),
+            (
+                SURVEY_PATH,
+                INVENTORY_PATH,
             ),
             (
                 SURVEY_PATH,
