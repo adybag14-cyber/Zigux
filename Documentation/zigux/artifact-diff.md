@@ -51,8 +51,8 @@ Current exact Phase 4 contract replay markers are:
 Current exact Phase 4 determinism replay markers are:
 - `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12`
 - `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=round_trip,survey_marker_drift,survey_packet_drift,review_checklist_drift,note_marker_drift,broader_note_marker_drift,broader_note_stale_packet_drift,repo_warning_drift,helper_mode_drift,helper_catalog_drift,contract_catalog_drift,direct_packet_missing`
-- `PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=10`
-- `PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=1`
+- `PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11`
+- `PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0`
 
 Current exact Phase 4 validator replay markers are:
 - `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`
