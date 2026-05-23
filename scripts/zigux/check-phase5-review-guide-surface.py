@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent
 GUIDE_PATH = Path("Documentation/zigux/phase5-sample-review-guide.md")
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 APPROVED_IDIOM_PATH = Path("Documentation/zigux/phase5-trace-events-approved-idiom-gap.md")
+KOBJECT_SURVEY_PATH = Path("Documentation/zigux/phase5-kobject-sample-survey.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_ROOT_PATH = Path("scripts/zigux/README.md")
 TESTS_ROOT_PATH = Path("zigux/tests/README.md")
@@ -53,6 +54,12 @@ PUBLIC_TREE_COMPANION_PATHS = (
     "zigux/tests/phase5_trace_events_sample_survey.zig",
 )
 
+KOBJECT_DIRECT_PACKET_PATHS = (
+    "samples/zigux/kobject_example_attr_group_contract.zig",
+    "zigux/tests/phase5_kobject_attr_group_contract.zig",
+    "zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
+)
+
 MARKERS = {
     GUIDE_PATH: (
         "Treat those four anchors as the approved Phase 5 destination set unless the roadmap changes.",
@@ -84,11 +91,16 @@ MARKERS = {
         "- `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`",
         "- `phase 5 trace-events formatting companion keeps bounded destination failures explicit`",
     ),
+    KOBJECT_SURVEY_PATH: (
+        "`samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample",
+        "`zig test --dep kobject_attr_group_contract -Mroot=zigux/tests/phase5_kobject_attr_group_contract.zig -Mkobject_attr_group_contract=samples/zigux/kobject_example_attr_group_contract.zig` stays the focused replay route for the same attr-group packet",
+        "`zig test zigux/tests/phase5_kobject_attr_group_contract_survey.zig` stays the survey-guard route that checks the companion, focused replay, and shared build-route markers together",
+    ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet,",
         "keep `samples/zigux/trace_events_string_formatting_sample.zig` framed only as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample,",
         "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording,",
-        "keep `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `samples/zigux/kobject_example_attr_group_contract.zig` explicit as the current direct sample-root, focused-test, and bounded attr-group companion evidence in this runtime, keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` framed as current public-tree-backed companion evidence until a fresh reread proves broader direct authenticated proof again, keep `zigux/tests/phase5_build.zig` explicit as the current directly readable shared build-route companion for that packet,",
+        "keep `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` explicit as the current direct sample-root, focused-test, bounded attr-group companion, focused attr-group replay, and attr-group survey-guard evidence in this runtime, keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` framed as current public-tree-backed companion evidence until a fresh reread proves broader direct authenticated proof again, keep `zigux/tests/phase5_build.zig` explicit as the current directly readable shared build-route companion for that packet,",
     ),
     SCRIPTS_ROOT_PATH: (
         "`python3 scripts/zigux/check-phase5-review-guide-surface.py --self-test` replays the shipped shared Phase 5 scripts-root reminder guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording",
@@ -146,6 +158,8 @@ def placeholder(path: Path) -> str:
     if path == GUIDE_PATH:
         lines.extend(f"`{rel}`" for rel in DIRECT_PACKET_PATHS)
         lines.extend(f"`{rel}`" for rel in PUBLIC_TREE_COMPANION_PATHS)
+    if path == KOBJECT_SURVEY_PATH:
+        lines.extend(f"`{rel}`" for rel in KOBJECT_DIRECT_PACKET_PATHS)
     if path == APPROVED_IDIOM_PATH:
         lines.extend(
             f"`{rel}`"
@@ -168,7 +182,7 @@ def seed(root: Path) -> None:
     tracked = set(MARKERS)
     for path in MARKERS:
         write_text(root, path, placeholder(path))
-    for rel in DIRECT_PACKET_PATHS + PUBLIC_TREE_COMPANION_PATHS + (
+    for rel in DIRECT_PACKET_PATHS + PUBLIC_TREE_COMPANION_PATHS + KOBJECT_DIRECT_PACKET_PATHS + (
         "samples/trace_events/trace-events-sample.c",
     ):
         rel_path = Path(rel)
@@ -189,6 +203,7 @@ def collect_failures(root: Path) -> list[str]:
 
     guide = texts[GUIDE_PATH]
     approved = texts[APPROVED_IDIOM_PATH]
+    kobject_survey = texts[KOBJECT_SURVEY_PATH]
     for rel in DIRECT_PACKET_PATHS:
         if f"`{rel}`" not in guide and rel not in guide:
             failures.append(f"guide:missing_path:{rel}")
@@ -200,6 +215,12 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"packet:missing_companion_path:{rel}")
         if not (root / rel).exists():
             failures.append(f"repo:missing_companion_path:{rel}")
+
+    for rel in KOBJECT_DIRECT_PACKET_PATHS:
+        if f"`{rel}`" not in kobject_survey and rel not in kobject_survey:
+            failures.append(f"kobject_survey:missing_path:{rel}")
+        if not (root / rel).exists():
+            failures.append(f"repo:missing_path:{rel}")
 
     for rel in (
         "samples/trace_events/trace-events-sample.c",
@@ -223,7 +244,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 31
+    expected_case_count = 35
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -268,6 +289,36 @@ def run_self_test() -> int:
             "guide_kobject_attr_group_validation_route_marker",
             collect_failures(mutated),
             [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][6]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_kobject_survey_attr_group_packet_marker"
+        seed(mutated)
+        write_text(mutated, KOBJECT_SURVEY_PATH, placeholder(KOBJECT_SURVEY_PATH).replace(MARKERS[KOBJECT_SURVEY_PATH][0], ""))
+        expect_exact(
+            "kobject_survey_attr_group_packet_marker",
+            collect_failures(mutated),
+            [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_kobject_survey_attr_group_replay_marker"
+        seed(mutated)
+        write_text(mutated, KOBJECT_SURVEY_PATH, placeholder(KOBJECT_SURVEY_PATH).replace(MARKERS[KOBJECT_SURVEY_PATH][1], ""))
+        expect_exact(
+            "kobject_survey_attr_group_replay_marker",
+            collect_failures(mutated),
+            [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][1]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_kobject_survey_attr_group_survey_guard_marker"
+        seed(mutated)
+        write_text(mutated, KOBJECT_SURVEY_PATH, placeholder(KOBJECT_SURVEY_PATH).replace(MARKERS[KOBJECT_SURVEY_PATH][2], ""))
+        expect_exact(
+            "kobject_survey_attr_group_survey_guard_marker",
+            collect_failures(mutated),
+            [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}"],
         )
         checks_run += 1
 
@@ -537,6 +588,12 @@ def run_self_test() -> int:
         expect_exact("missing_direct_path", collect_failures(mutated), [f"repo:missing_path:{DIRECT_PACKET_PATHS[8]}"])
         checks_run += 1
 
+        mutated = root / "missing_kobject_direct_path"
+        seed(mutated)
+        (mutated / KOBJECT_DIRECT_PACKET_PATHS[2]).unlink()
+        expect_exact("missing_kobject_direct_path", collect_failures(mutated), [f"repo:missing_path:{KOBJECT_DIRECT_PACKET_PATHS[2]}"])
+        checks_run += 1
+
         mutated = root / "missing_phase5_build_direct_path"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace("`zigux/tests/phase5_build.zig`", ""))
@@ -595,6 +652,7 @@ def main() -> int:
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_COMPANION_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PACKET_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     return 0
 
 
