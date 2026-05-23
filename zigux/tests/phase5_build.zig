@@ -108,6 +108,20 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase5_bytestream_fifo_sample_selfcheck_tests = b.addTest(.{
+        .name = "phase5-bytestream-fifo-sample-selfcheck-tests",
+        .root_module = bytestream_fifo_sample_module,
+    });
+    const run_phase5_bytestream_fifo_sample_selfcheck_tests =
+        b.addRunArtifact(phase5_bytestream_fifo_sample_selfcheck_tests);
+    const phase5_bytestream_fifo_sample_selfcheck_step = b.step(
+        "phase5-bytestream-fifo-sample-selfcheck",
+        "Run the Phase 5 bytestream FIFO sample-owned self-checks",
+    );
+    phase5_bytestream_fifo_sample_selfcheck_step.dependOn(
+        &run_phase5_bytestream_fifo_sample_selfcheck_tests.step,
+    );
+
     const phase5_bytestream_fifo_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-tests",
         .root_module = phase5_bytestream_fifo_module,
@@ -197,6 +211,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
+    test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
