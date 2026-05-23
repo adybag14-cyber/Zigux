@@ -39,6 +39,24 @@ test "phase2 genksyms wrapper replay preserves mixed version counts before inval
     }
 }
 
+test "phase2 genksyms wrapper replay preserves mixed version counts before invalid short failures" {
+    const args = [_][]const u8{
+        "--version",
+        "-Vx",
+    };
+    const outcome = try genksyms.parseArgs(std.testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try std.testing.expectEqual(@as(usize, 2), failure.version_count);
+            switch (failure.reason) {
+                .invalid_option => |option| try std.testing.expectEqualStrings("x", option),
+                else => return error.ExpectedInvalidShortOptionFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "phase2 genksyms wrapper replay preserves mixed version counts before missing short arguments" {
     const args = [_][]const u8{
         "-V",
