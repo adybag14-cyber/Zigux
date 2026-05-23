@@ -15,17 +15,19 @@ Lane: `P2-L01`
 - The live `zigux/Makefile` still exposes `phase2-fixdep` with the dedicated fixdep gate self-test, fixdep gate run, fixdep diff self-test, fixdep diff run, and `zig test scripts/zigux/fixdep.zig` replay.
 - The live `.github/workflows/zigux-bootstrap.yml` still replays the same fixdep packet on current `master` through the dedicated gate self-test and run, the fixdep diff self-test and run, `make -C zigux phase2-fixdep`, and the direct `zig test scripts/zigux/fixdep.zig` step.
 - The shared reminder packet in `Documentation/zigux/phase2-closure.md` and `zigux/tests/README.md` now also treats the fixdep helper, parity checker, fixture roster, and wrapper route as current repo evidence.
-- Repeated exact-path contents reads still return missing for both `scripts/basic/fixdep.c` and `Documentation/zigux/artifact-diff.md`, so the remaining same-family gaps are now narrower than the dual-implementation packet itself: one readable-C-anchor question for the diff checker and one absent reminder-side companion.
+- Current `master` now directly serves `Documentation/zigux/artifact-diff.md`, so the older reminder-side companion gap recorded in this survey is no longer live.
+- Repeated exact-path contents reads still return missing for `scripts/basic/fixdep.c`, so the remaining narrow same-family limitation is the readable C-anchor question rather than any missing Zigux-side fixdep packet.
 
 ## Survey result
 
 - The roadmap-backed dual-implementation gap for `scripts/zigux/fixdep.zig` is currently closed on `master`.
 - The live repo no longer supports the older survey claim that the fixdep fixture packet stops at twelve external cases. The bounded fixdep packet is now thirteen cases wide and already includes the later dependency-continuation, comment-continuation, and double-backslash-comment parity paths.
-- The honest remaining same-family follow-through is smaller than the roadmap survey question: direct contents reads still miss `scripts/basic/fixdep.c` and `Documentation/zigux/artifact-diff.md`, but those misses do not reopen the Phase 2 dual-implementation scaffold gap.
-- The honest lane result is therefore a survey-note correction and parking pass, not a new fixdep behavior, fixture, or route implementation.
+- The live repo also no longer supports the older survey claim that `Documentation/zigux/artifact-diff.md` is missing: current authenticated contents readback now returns that reminder-side companion directly on `master`.
+- The honest remaining same-family follow-through is smaller than the roadmap survey question: exact-path contents reads still miss `scripts/basic/fixdep.c`, but that miss does not reopen the Phase 2 dual-implementation scaffold gap.
+- The honest lane result is therefore a survey-note truthfulness refresh and parking pass, not a new fixdep behavior, fixture, or route implementation.
 
 ## Next bounded same-family step
 
 1. Keep `P2-L01` parked unless a fresh current-`master` reread finds new repo-versus-roadmap drift inside the fixdep helper, checker, fixture, or route packet.
-2. If the fixdep family reopens, keep the follow-through on a directly coupled non-survey lane: either restore a readable current-`master` C anchor for `scripts/zigux/check-fixdep-diff.py` or re-materialize `Documentation/zigux/artifact-diff.md` as the remaining reminder-surface companion.
+2. If the fixdep family reopens from reminder drift only, keep the follow-through on the directly coupled non-survey lane that owns it, such as a future checker-anchor truthfulness repair rather than new survey-only churn.
 3. Do not widen from this survey into genksyms, kconfig, parser behavior, or shared Phase 2 reminder maintenance.
