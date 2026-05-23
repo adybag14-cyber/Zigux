@@ -77,6 +77,24 @@ fn expectContainsWithoutBackticks(haystack: []const u8, needle: []const u8) !voi
     try expectContains(normalized.items, needle);
 }
 
+fn expectGovernanceInventorySnippet(governance_note: []const u8, blocker_ownership: BlockerOwnership) !void {
+    const snippet = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "- `{s}`: owner `{s}`; phase `{s}`; status bucket `{s}`; required approver set `{s}`; validation gate `{s}`; rollback owner `{s}`",
+        .{
+            blocker_ownership.anchor,
+            blocker_ownership.owner,
+            blocker_ownership.phase,
+            blocker_ownership.status_bucket,
+            blocker_ownership.required_approver_set,
+            blocker_ownership.validation_gate,
+            blocker_ownership.rollback_owner,
+        },
+    );
+    defer std.testing.allocator.free(snippet);
+    try expectContains(governance_note, snippet);
+}
+
 fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     for (gaps) |gap| {
         if (std.mem.eql(u8, gap.id, id)) return gap;
@@ -199,6 +217,9 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     }
     for (parsed.value.maintenance_handoff.reopen_conditions) |condition| {
         try expectContainsWithoutBackticks(governance_note, condition);
+    }
+    for (parsed.value.blocker_ownership) |blocker_ownership| {
+        try expectGovernanceInventorySnippet(governance_note, blocker_ownership);
     }
     try expectContains(governance_note, "the dedicated validator-first companion `scripts/zigux/validate-phase15.py` is directly readable again");
     try expectContains(governance_note, "the same current read path still returns not-found for `zigux/tests/phase15_build.zig`");
