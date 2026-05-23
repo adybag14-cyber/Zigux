@@ -178,6 +178,20 @@ test "argvSplit keeps non-whitespace control bytes inside a token" {
     try std.testing.expectEqualStrings("gamma\x1fdelta", result.argv[1]);
 }
 
+test "argvSplit keeps quotes backslashes and equals literal inside tokens" {
+    var result = try argvSplit(
+        std.testing.allocator,
+        "alpha=\"beta\" 'gamma' path\\with\\slashes key=value\x00tail ignored",
+    );
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 4), result.argc());
+    try std.testing.expectEqualStrings("alpha=\"beta\"", result.argv[0]);
+    try std.testing.expectEqualStrings("'gamma'", result.argv[1]);
+    try std.testing.expectEqualStrings("path\\with\\slashes", result.argv[2]);
+    try std.testing.expectEqualStrings("key=value", result.argv[3]);
+}
+
 test "countArgc stops at the first embedded nul byte" {
     try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
     try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
