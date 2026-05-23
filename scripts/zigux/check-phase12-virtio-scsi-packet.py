@@ -78,8 +78,8 @@ TEXT_MARKERS = {
         '"missing_on_master"',
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
-        '"rollback owner: `P12-L13` keeps the active virtio_scsi survey packet"',
-        '"survey-gate tests"',
+        '"phase12 virtio scsi survey note stays aligned with rollback evidence"',
+        '"phase12 virtio scsi survey gate keeps present files present and missing files absent"',
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
@@ -198,9 +198,9 @@ def check(root: Path) -> list[str]:
         forbid_markers(errors, rel_path, text, FORBIDDEN_MARKERS)
 
     survey_note_text = read_text(root / SURVEY_NOTE_PATH)
-    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") != 1:
+    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") != 2:
         errors.append("survey note fixture manifest boundary drift")
-    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") != 1:
+    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") != 2:
         errors.append("survey note survey manifest boundary drift")
 
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
