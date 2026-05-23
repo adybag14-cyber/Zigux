@@ -144,6 +144,11 @@
             "max_slowdown_pct": 100
           },
           {
+            "label": "IPV4_20B_UPDATED",
+            "iterations": 600000,
+            "max_slowdown_pct": 100
+          },
+          {
             "label": "IPV4_24B",
             "iterations": 500000,
             "max_slowdown_pct": 100
@@ -156,6 +161,7 @@
         ],
         "ipv4_fast_path_case_labels": [
           "IPV4_20B",
+          "IPV4_20B_UPDATED",
           "IPV4_24B",
           "IPV4_60B"
         ],
