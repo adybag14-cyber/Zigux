@@ -228,6 +228,18 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
     else:
         raise AssertionError("expected missing phase10 manifest-count command failure")
 
+    bad_makefile_missing_tests_readme = good_makefile.replace(
+        MAKE_TESTS_README_CMD,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_tests_readme)
+    except SystemExit as exc:
+        assert "ordered markers for phase10 make route order" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 tests-readme route failure")
+
     bad_makefile_missing_validate = good_makefile.replace(
         MAKE_VALIDATE_CMD,
         "",
@@ -239,6 +251,18 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
         assert "phase10 make validate command" in str(exc)
     else:
         raise AssertionError("expected missing phase10 validate route failure")
+
+    bad_makefile_missing_closure = good_makefile.replace(
+        MAKE_CLOSURE_CMD,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_closure)
+    except SystemExit as exc:
+        assert "phase10 make closure command" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 closure route failure")
 
     bad_makefile_reordered = good_makefile.replace(
         f"{MAKE_COUNTS_CMD}{MAKE_VALIDATE_CMD}",
@@ -285,7 +309,7 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
         raise AssertionError("expected missing note route phrase failure")
 
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
