@@ -141,7 +141,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 22
 
 
 class ValidationError(RuntimeError):
@@ -155,6 +155,10 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker.strip())
+
+
 def require_snippets(path: Path, snippets: list[str]) -> None:
     content = read_text(path)
     for snippet in snippets:
@@ -163,10 +167,13 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 
 def require_exact_lines(path: Path, lines: list[str]) -> None:
-    content_lines = {line.strip() for line in read_text(path).splitlines()}
+    content = read_text(path)
     for line in lines:
-        if line.strip() not in content_lines:
+        count = count_exact_lines(content, line)
+        if count == 0:
             raise ValidationError(f"missing expected line in {path.as_posix()}: {line}")
+        if count != 1:
+            raise ValidationError(f"duplicate expected line in {path.as_posix()}: {line}")
 
 
 def require_absent_markers(path: Path, markers: list[str]) -> None:
@@ -250,18 +257,18 @@ def run_self_test() -> None:
 
         cases_run = 0
         cases = [
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "recurring helper-local lane `P7-Y99`",),
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[6], "Current lane evidence also keeps `P7-L04` and `P7-Y01` inside this same helper-local family rather than treating them as two separate helper packets.",),
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[11], "Treat recurring lane `P7-L04` as helper-local drift.",),
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[12], "treat recurring helper-local lanes `P7-L04` and `P7-Y01` as same-family sublanes of that one packet rather than as separate helper families",),
-            (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow",),
-            (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`",),
-            (CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS[0], "PHASE7_LANE_KEY=P7-L10",),
-            (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true",),
-            (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n",),
-            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n",),
-            (MAKEFILE_PATH, "", "phase7-test:\n",),
-            (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7",),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "recurring helper-local lane `P7-Y99`"),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[6], "Current lane evidence also keeps `P7-L04` and `P7-Y01` inside this same helper-local family rather than treating them as two separate helper packets."),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[11], "Treat recurring lane `P7-L04` as helper-local drift."),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[12], "treat recurring helper-local lanes `P7-L04` and `P7-Y01` as same-family sublanes of that one packet rather than as separate helper families"),
+            (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow"),
+            (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`"),
+            (CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS[0], "PHASE7_LANE_KEY=P7-L10"),
+            (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true"),
+            (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n"),
+            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n"),
+            (MAKEFILE_PATH, "", "phase7-test:\n"),
+            (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7"),
         ]
         for rel, old, new in cases:
             scaffold_repo(root)
@@ -277,6 +284,24 @@ def run_self_test() -> None:
                 cases_run += 1
             else:
                 raise AssertionError("expected validation failure")
+
+        scaffold_repo(root)
+        write(root / WORKFLOW_PATH, read_text(root / WORKFLOW_PATH) + REQUIRED_WORKFLOW_LINES[0] + "\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
+
+        scaffold_repo(root)
+        write(root / MAKEFILE_PATH, read_text(root / MAKEFILE_PATH) + "\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+        try:
+            validate(root)
+        except ValidationError:
+            cases_run += 1
+        else:
+            raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
         write(root / PARKED_SHARED_CONTROL_PATHS[0], "# unexpectedly returned parked path\n")
