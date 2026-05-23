@@ -41,6 +41,9 @@ CONF_BRIDGE_REL = Path("scripts/zigux/kconfig/conf_bridge.zig")
 CONFDATA_BRIDGE_REL = Path("scripts/zigux/kconfig/confdata_bridge.zig")
 GENKSYMS_BRIDGE_REL = Path("scripts/zigux/genksyms.zig")
 GENKSYMS_VERSION_PROOF_REL = Path("scripts/zigux/genksyms_version_before_invalid_long_option_test.zig")
+GENKSYMS_AMBIGUOUS_VERSION_PROOF_REL = Path(
+    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
+)
 FIXDEP_BRIDGE_REL = Path("scripts/zigux/fixdep.zig")
 MAKEFILE_REL = Path("zigux/Makefile")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
@@ -61,6 +64,9 @@ GENKSYMS_QUIET_REL = Path("zigux/tests/fixtures/genksyms_bridge/quiet_overrides_
 GENKSYMS_TERMINATOR_REL = Path("zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json")
 GENKSYMS_POSITIONAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json")
 GENKSYMS_LONE_DASH_REL = Path("zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json")
+GENKSYMS_DASH_PREFIXED_REL = Path(
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json"
+)
 GENKSYMS_PROCESS_OUTPUT_RELS = (
     Path("zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json"),
     Path("zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json"),
@@ -109,6 +115,7 @@ REQUIRED_FILES = (
     CONFDATA_BRIDGE_REL,
     GENKSYMS_BRIDGE_REL,
     GENKSYMS_VERSION_PROOF_REL,
+    GENKSYMS_AMBIGUOUS_VERSION_PROOF_REL,
     FIXDEP_BRIDGE_REL,
     ARCHIVE_README_REL,
     ARCHIVE_PAYLOAD_REL,
@@ -131,6 +138,7 @@ REQUIRED_FILES = (
     GENKSYMS_TERMINATOR_REL,
     GENKSYMS_POSITIONAL_REL,
     GENKSYMS_LONE_DASH_REL,
+    GENKSYMS_DASH_PREFIXED_REL,
     *GENKSYMS_PROCESS_OUTPUT_RELS,
 )
 
@@ -154,6 +162,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`",
+    "`scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`",
     "`scripts/zigux/fixdep.zig`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
@@ -173,6 +182,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`",
@@ -343,6 +353,7 @@ EXPECTED_MANIFEST_BRIDGE_HELPERS = (
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
 )
 EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
@@ -359,6 +370,7 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
@@ -403,6 +415,11 @@ EXPECTED_GENKSYMS_CASES = [
         "expected_file": "positional_passthrough_expected.json",
     },
     {"name": "lone_dash_passthrough", "args": ["-", "-d"], "expected_file": "lone_dash_passthrough_expected.json"},
+    {
+        "name": "dash_prefixed_long_option_arguments_as_data",
+        "args": ["--reference", "--debug", "--dump-types", "--types"],
+        "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
+    },
 ]
 
 EXPECTED_GENKSYMS_MANIFEST = {
@@ -411,7 +428,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
     "mode": "bounded wrapper-first dual-implementation bridge",
     "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
     "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
-    "case_count": 8,
+    "case_count": 9,
     "cases": [
         "minimal",
         "debug_reference_types",
@@ -421,6 +438,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "explicit_option_terminator",
         "positional_passthrough",
         "lone_dash_passthrough",
+        "dash_prefixed_long_option_arguments_as_data",
     ],
     "bridge_expected_packet": [
         "minimal_expected.json",
@@ -431,6 +449,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "explicit_option_terminator_expected.json",
         "positional_passthrough_expected.json",
         "lone_dash_passthrough_expected.json",
+        "dash_prefixed_long_option_arguments_as_data_expected.json",
     ],
     "help_packet": ["help_expected.json"],
     "standalone_proof_packet": ["scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"],
@@ -463,8 +482,8 @@ EXPECTED_CONF_CASE_DETAILS = [
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
-    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
-    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
+    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
+    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
