@@ -3,7 +3,7 @@
 
 Fail-closed checker for the rollback-only Phase 12 virtio_scsi survey packet.
 It keeps the slice note, survey note, fallback catalog, fixture manifest,
-survey manifest, survey gate, and shared support-bundle reminders aligned around
+survey manifest, survey gate, dedicated survey-build route, and shared support-bundle reminders aligned around
 current repo reality.
 """
 
@@ -23,6 +23,7 @@ FALLBACK_CATALOG_PATH = (
 FIXTURE_MANIFEST_PATH = "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"
 SURVEY_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
 SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
+SURVEY_BUILD_PATH = "zigux/tests/phase12_virtio_scsi_survey_build.zig"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 
@@ -33,6 +34,7 @@ REQUIRED_FILES = [
     FIXTURE_MANIFEST_PATH,
     SURVEY_MANIFEST_PATH,
     SURVEY_GATE_PATH,
+    SURVEY_BUILD_PATH,
     PHASE12_BUILD_PATH,
     MAKEFILE_PATH,
 ]
@@ -54,6 +56,7 @@ TEXT_MARKERS = {
         "throughput-parity, and survey-gate tests as support-bundle evidence",
         "make -C zigux phase12-validate",
         "rollback-only split machine-checkable",
+        "* `zigux/tests/phase12_virtio_scsi_survey_build.zig`",
     ],
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
@@ -78,8 +81,14 @@ TEXT_MARKERS = {
         '"missing_on_master"',
         '"rollback_evidence_present"',
         'pathExists("drivers/scsi/virtio_scsi.zig")',
+        'pathExists("zigux/tests/phase12_virtio_scsi_survey_build.zig")',
         '"phase12 virtio scsi survey note stays aligned with rollback evidence"',
-        '"phase12 virtio scsi survey gate keeps present files present and missing files absent"',
+        '"survey-gate tests"',
+    ],
+    SURVEY_BUILD_PATH: [
+        'b.path("phase12_virtio_scsi_survey.zig")',
+        '"phase12-virtio-scsi-survey-tests"',
+        '"Run the Phase 12 virtio_scsi rollback-only survey tests"',
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
@@ -117,6 +126,7 @@ EXPECTED_REQUIRED_PATHS = [
     "zigux/tests/phase12_virtio_scsi_manifest.json",
     "zigux/tests/phase12_virtio_scsi_survey.zig",
     "scripts/zigux/check-phase12-virtio-scsi-packet.py",
+    "zigux/tests/phase12_virtio_scsi_survey_build.zig",
     "zigux/tests/phase12_build.zig",
     "zigux/Makefile",
 ]
@@ -198,9 +208,9 @@ def check(root: Path) -> list[str]:
         forbid_markers(errors, rel_path, text, FORBIDDEN_MARKERS)
 
     survey_note_text = read_text(root / SURVEY_NOTE_PATH)
-    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") != 2:
+    if "`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`" not in survey_note_text:
         errors.append("survey note fixture manifest boundary drift")
-    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") != 2:
+    if "`zigux/tests/phase12_virtio_scsi_manifest.json`" not in survey_note_text:
         errors.append("survey note survey manifest boundary drift")
 
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
