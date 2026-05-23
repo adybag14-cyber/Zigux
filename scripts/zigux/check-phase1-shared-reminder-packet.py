@@ -19,6 +19,7 @@ REQUIRED_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
@@ -43,6 +44,7 @@ MARKERS = {
         "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
         "Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane non-Phase-1 routes across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.",
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
+        "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
         "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
         "A current helper-family tie-breaker inside that packet is the `bitmap` direct-anchor route: keep `tools/lib/bitmap.zig` parked unless a fresh reread finds new direct-anchor drift inside the manifest-backed fill-tail clamp, copy-alias, cross-word `scnprintf()`, exact-word-boundary equality fast-path masking, empty-buffer, allocator-reset, zero-bit logical short-circuit, Linux-style alias mirror, caller-window or multiword-tail `xorBits()`/`orBits()` clamp witnesses, or weighted tail-count clamp, or drift in the already-committed bitmap replay fields summarized by the manifest; do not reopen older closure-side or validator-route cue names by default. Current `master` still spells those bitmap-local anchors in `tools/lib/bitmap.zig`, the committed helper manifest, and `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and the helper-local zero-bit logical test body no longer carries the one-argument `std.testing.expectEqual(...)` compile break that had briefly reopened this packet, so leave the helper parked unless one of those direct anchors or committed replay fields drifts.",
@@ -63,6 +65,7 @@ MARKERS = {
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
         "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`",
         "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, shared-reminder, and closure-validator packet explicit from the scripts root",
+        "`scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `.github/workflows/zigux-bootstrap.yml` keep the adjacent Phase 1 route-summary guard explicit beside the narrower reminder packet, so scripts-root follow-through can verify the returned non-Phase-1 Makefile route inventory without promoting the older Phase 1 wrappers back into shipped proof",
         "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks",
         "`zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded returned `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
         "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
@@ -74,6 +77,11 @@ MARKERS = {
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
         'print("phase1-direct-owner-markers:ok")',
+    ),
+    "scripts/zigux/check-phase1-route-summary-counts.py": (
+        '"""Guard the current Phase 1 route-summary packet across closure, Makefile, and workflow."""',
+        'print("PHASE1_ROUTE_SUMMARY_COUNTS=pass")',
+        'print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-shared-reminder-packet.py": (
         '"""Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow."""',
@@ -113,6 +121,7 @@ MARKERS = {
         '"rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master."',
     ),
     "zigux/Makefile": (
+        "phase1-route-summary:",
         "phase2-toolchain:",
         "phase2-tools:",
         "phase2-kconfig:",
@@ -146,6 +155,8 @@ MARKERS = {
         "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
         "run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-string-review-packet.py",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
