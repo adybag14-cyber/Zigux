@@ -62,7 +62,6 @@
       "zigux/tests/fixtures/phase2_cross_targets.json"
     ],
     "fixdep_support": [
-      "scripts/basic/fixdep.c",
       "scripts/zigux/check-phase2-fixdep-gate.py",
       "scripts/zigux/check-fixdep-diff.py",
       "scripts/zigux/fixdep.zig",
