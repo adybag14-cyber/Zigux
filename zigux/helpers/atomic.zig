@@ -70,11 +70,23 @@ pub fn loadOrderAllowed(order: Ordering) bool {
     };
 }
 
+pub fn validateLoadOrder(comptime order: Ordering) LoadError!void {
+    if (comptime !loadOrderAllowed(order)) {
+        return error.InvalidLoadOrdering;
+    }
+}
+
 pub fn storeOrderAllowed(order: Ordering) bool {
     return switch (order) {
         .monotonic, .release, .seq_cst => true,
         .unordered, .acquire, .acq_rel => false,
     };
+}
+
+pub fn validateStoreOrder(comptime order: Ordering) StoreError!void {
+    if (comptime !storeOrderAllowed(order)) {
+        return error.InvalidStoreOrdering;
+    }
 }
 
 pub fn rmwOrderAllowed(order: Ordering) bool {
@@ -84,18 +96,27 @@ pub fn rmwOrderAllowed(order: Ordering) bool {
     };
 }
 
-pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
-    if (comptime !loadOrderAllowed(order)) {
-        return error.InvalidLoadOrdering;
+pub fn validateRmwOrder(comptime order: Ordering) RmwError!void {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
     }
-    return @atomicLoad(T, ptr, order);
+}
+
+pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
+    if (comptime loadOrderAllowed(order)) {
+        try validateLoadOrder(order);
+        return @atomicLoad(T, ptr, order);
+    }
+    return error.InvalidLoadOrdering;
 }
 
 pub fn store(comptime T: type, ptr: *T, value: T, comptime order: Ordering) StoreError!void {
-    if (comptime !storeOrderAllowed(order)) {
-        return error.InvalidStoreOrdering;
+    if (comptime storeOrderAllowed(order)) {
+        try validateStoreOrder(order);
+        @atomicStore(T, ptr, value, order);
+        return;
     }
-    @atomicStore(T, ptr, value, order);
+    return error.InvalidStoreOrdering;
 }
 
 pub fn exchange(
@@ -104,10 +125,11 @@ pub fn exchange(
     value: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Xchg, value, order);
     }
-    return @atomicRmw(T, ptr, .Xchg, value, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn compareExchangeStrong(
@@ -144,10 +166,11 @@ pub fn fetchAdd(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Add, operand, order);
     }
-    return @atomicRmw(T, ptr, .Add, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchSub(
@@ -156,10 +179,11 @@ pub fn fetchSub(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Sub, operand, order);
     }
-    return @atomicRmw(T, ptr, .Sub, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchNand(
@@ -168,10 +192,11 @@ pub fn fetchNand(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Nand, operand, order);
     }
-    return @atomicRmw(T, ptr, .Nand, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchOr(
@@ -180,10 +205,11 @@ pub fn fetchOr(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Or, operand, order);
     }
-    return @atomicRmw(T, ptr, .Or, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchAnd(
@@ -192,10 +218,11 @@ pub fn fetchAnd(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .And, operand, order);
     }
-    return @atomicRmw(T, ptr, .And, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchXor(
@@ -204,10 +231,11 @@ pub fn fetchXor(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Xor, operand, order);
     }
-    return @atomicRmw(T, ptr, .Xor, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchMin(
@@ -216,10 +244,11 @@ pub fn fetchMin(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Min, operand, order);
     }
-    return @atomicRmw(T, ptr, .Min, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 pub fn fetchMax(
@@ -228,10 +257,11 @@ pub fn fetchMax(
     operand: T,
     comptime order: Ordering,
 ) RmwError!T {
-    if (comptime !rmwOrderAllowed(order)) {
-        return error.InvalidRmwOrdering;
+    if (comptime rmwOrderAllowed(order)) {
+        try validateRmwOrder(order);
+        return @atomicRmw(T, ptr, .Max, operand, order);
     }
-    return @atomicRmw(T, ptr, .Max, operand, order);
+    return error.InvalidRmwOrdering;
 }
 
 test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
@@ -288,6 +318,16 @@ test "phase3 atomic helper keeps load ordering rules explicit" {
     try std.testing.expect(!loadOrderAllowed(.acq_rel));
 }
 
+test "phase3 atomic helper exposes reusable load order validation" {
+    try validateLoadOrder(.monotonic);
+    try validateLoadOrder(.acquire);
+    try validateLoadOrder(.seq_cst);
+
+    try std.testing.expectError(error.InvalidLoadOrdering, validateLoadOrder(.unordered));
+    try std.testing.expectError(error.InvalidLoadOrdering, validateLoadOrder(.release));
+    try std.testing.expectError(error.InvalidLoadOrdering, validateLoadOrder(.acq_rel));
+}
+
 test "phase3 atomic helper keeps store ordering rules explicit" {
     try std.testing.expect(storeOrderAllowed(.monotonic));
     try std.testing.expect(storeOrderAllowed(.release));
@@ -298,6 +338,16 @@ test "phase3 atomic helper keeps store ordering rules explicit" {
     try std.testing.expect(!storeOrderAllowed(.acq_rel));
 }
 
+test "phase3 atomic helper exposes reusable store order validation" {
+    try validateStoreOrder(.monotonic);
+    try validateStoreOrder(.release);
+    try validateStoreOrder(.seq_cst);
+
+    try std.testing.expectError(error.InvalidStoreOrdering, validateStoreOrder(.unordered));
+    try std.testing.expectError(error.InvalidStoreOrdering, validateStoreOrder(.acquire));
+    try std.testing.expectError(error.InvalidStoreOrdering, validateStoreOrder(.acq_rel));
+}
+
 test "phase3 atomic helper keeps RMW ordering rules explicit" {
     try std.testing.expect(rmwOrderAllowed(.monotonic));
     try std.testing.expect(rmwOrderAllowed(.acquire));
@@ -306,6 +356,16 @@ test "phase3 atomic helper keeps RMW ordering rules explicit" {
     try std.testing.expect(rmwOrderAllowed(.seq_cst));
 
     try std.testing.expect(!rmwOrderAllowed(.unordered));
+}
+
+test "phase3 atomic helper exposes reusable RMW order validation" {
+    try validateRmwOrder(.monotonic);
+    try validateRmwOrder(.acquire);
+    try validateRmwOrder(.release);
+    try validateRmwOrder(.acq_rel);
+    try validateRmwOrder(.seq_cst);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, validateRmwOrder(.unordered));
 }
 
 test "phase3 atomic helper wraps atomic loads without widening ordering semantics" {
