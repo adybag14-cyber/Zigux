@@ -32,9 +32,14 @@ instead of returned fallback evidence.
 
 The returned HVC validation matrix and build-inventory checker stay explicit
 inside that smaller current-head packet. The standalone targetless-unregister
-witness likewise stays directly readable as a separate failure-mode replay, and
-the smaller proof-backed HVC continuity packet remains reviewable through the
-shared inventory-backed proof routes.
+witness likewise stays directly readable as a separate failure-mode replay, the
+dedicated modem-control proof pair through
+`zigux/tests/phase11_hvc_modem_control_proof.zig` and
+`zigux/tests/phase11_hvc_modem_control_proof_build.zig` likewise stays directly
+readable as a focused teardown-adjacent proof route without promoting itself
+into the shared three-entry build inventory, and the smaller proof-backed HVC
+continuity packet remains reviewable through the shared inventory-backed proof
+routes.
 
 ## Drift Kept Explicit
 
@@ -59,7 +64,7 @@ This companion does not claim:
 - host-backed teardown or transport parity
 
 It only records that current `master` keeps the direct starter, the verify
-boundary reminder, the standalone targetless-unregister witness pair, and the
-smaller proof-backed continuity packet reviewable while the older helper,
-survey-replay, manifest, teardown-note, and survey-checker anchors remain
-absent on current head.
+boundary reminder, the standalone targetless-unregister witness pair, the
+dedicated modem-control proof pair, and the smaller proof-backed continuity
+packet reviewable while the older helper, survey-replay, manifest,
+teardown-note, and survey-checker anchors remain absent on current head.
