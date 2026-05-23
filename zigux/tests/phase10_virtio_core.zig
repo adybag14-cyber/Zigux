@@ -31,6 +31,33 @@ test "phase10 virtio core summary replay keeps status and feature bookkeeping re
     try std.testing.expect(!summary.failed);
 }
 
+test "phase10 virtio core attribute replay keeps status_show and features_show bitstrings explicit" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1041, 4);
+    core.setDeviceFeatures(0x0000_0000_0000_1037);
+    core.setDriverFeatures(0x0000_0000_0000_1013);
+    core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
+    const negotiated = core.driverValidationNarrow(0x0000_0000_0000_1011);
+    core.setStatusBits(virtio_core.status_driver_ok);
+
+    try std.testing.expectEqual(@as(u64, 0x0000_0000_0000_1011), negotiated);
+
+    const feature_summary = core.featureBitSummary();
+    try std.testing.expect(feature_summary.features_negotiated);
+    try std.testing.expectEqual(@as(u64, 0x0000_0000_0000_1037), feature_summary.device_features);
+    try std.testing.expectEqual(@as(u64, 0x0000_0000_0000_1013), feature_summary.driver_features);
+    try std.testing.expectEqual(@as(u64, 0x0000_0000_0000_1011), feature_summary.negotiated_features);
+
+    var status_buffer: [11]u8 = undefined;
+    var device_buffer: [19]u8 = undefined;
+    var driver_buffer: [19]u8 = undefined;
+    var negotiated_buffer: [19]u8 = undefined;
+
+    try std.testing.expectEqualStrings("0x0000000f\n", try core.statusShow(&status_buffer));
+    try std.testing.expectEqualStrings("0x0000000000001037\n", try core.deviceFeaturesShow(&device_buffer));
+    try std.testing.expectEqualStrings("0x0000000000001013\n", try core.driverFeaturesShow(&driver_buffer));
+    try std.testing.expectEqualStrings("0x0000000000001011\n", try core.negotiatedFeaturesShow(&negotiated_buffer));
+}
+
 test "phase10 virtio core queue bookkeeping replay keeps queue selection and config generation aligned" {
     var core = try virtio_core.VirtioCoreLab.init(0x1042, 3);
 
@@ -110,6 +137,10 @@ test "phase10 virtio core reset replay clears interrupt debt and drops driver re
     try std.testing.expect(!status.driver_ready);
     try std.testing.expect(!status.needs_reset);
     try std.testing.expectEqual(@as(?u16, null), status.selected_queue);
+
+    const feature_summary = core.featureBitSummary();
+    try std.testing.expectEqual(@as(u64, 0), feature_summary.driver_features);
+    try std.testing.expectEqual(@as(u64, 0), feature_summary.negotiated_features);
 
     const ack = core.ackInterrupt(0xff);
     try std.testing.expectEqual(@as(u8, 0), ack.pending_before);
