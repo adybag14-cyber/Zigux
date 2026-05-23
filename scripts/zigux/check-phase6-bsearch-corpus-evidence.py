@@ -69,6 +69,7 @@ REQUIRED_SNIPPETS = {
         '"len64"',
         '"len1024"',
         '"query_count": 16',
+        '"budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
         '"zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"',
         '"make -C zigux phase6-bsearch-perf"',
     ],
@@ -76,7 +77,7 @@ REQUIRED_SNIPPETS = {
         '"key": "bsearch"',
         '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
         '"budget_model": "comparison_budget"',
-        '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
+        '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
         '"runtime_selected_c_abi_replays": [',
         '"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"',
         '"zigux/tests/phase6_bsearch_c_abi_budget.zig"',
@@ -214,9 +215,14 @@ SELF_TEST_CASES = [
         '"query_count": 8',
     ),
     (
+        HELPER_EVIDENCE_MANIFEST_PATH,
+        '"budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
+        '"budget_formula": "std.math.log2_int_ceil(len) + 1"',
+    ),
+    (
         HELPER_PARITY_MANIFEST_PATH,
+        '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
         '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
-        '"bound_budget_formula": "std.math.log2_int_floor(len) + 1"',
     ),
     (
         LOWER_BOUND_TEST_PATH,
