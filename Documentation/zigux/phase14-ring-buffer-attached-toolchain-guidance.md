@@ -27,6 +27,15 @@ If the run has the attached archive but no checkout-capable Zigux tree, stop at 
 Passing those checks confirms that the attached compiler bundle is usable in the scheduled builder runtime.
 Do not treat them as ring-buffer replay evidence without a checkout-capable Zigux tree in the same run.
 
+## Environment-only recording rule
+If a run stops after `zig version` and `zig env`, record the result as environment context only:
+- capture the exact `zig version` output line
+- capture that `zig env` reported an `x86_64-linux` target environment
+- capture that `zig env` exposed the extracted bundle paths for `lib_dir`, `std_dir`, `global_cache_dir`, and `local_cache_dir`
+- capture that no checkout-capable Zigux tree was present, so no packet-local replay was claimed
+
+Keep those notes as run-log facts, not as survey replay evidence.
+
 ## Replay boundary
 Keep the packet-local replay vocabulary subordinate to that environment rule:
 - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
