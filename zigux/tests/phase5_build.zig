@@ -52,6 +52,11 @@ pub fn build(b: *std.Build) void {
         "kobject_attr_group_contract",
         kobject_attr_group_contract_module,
     );
+    const phase5_kobject_attr_group_contract_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase5_kobject_attr_group_contract_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const kretprobe_example_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/kretprobe_example.zig"),
@@ -158,6 +163,20 @@ pub fn build(b: *std.Build) void {
     );
     phase5_kobject_attr_group_contract_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
 
+    const phase5_kobject_attr_group_contract_survey_tests = b.addTest(.{
+        .name = "phase5-kobject-attr-group-contract-survey-tests",
+        .root_module = phase5_kobject_attr_group_contract_survey_module,
+    });
+    const run_phase5_kobject_attr_group_contract_survey_tests =
+        b.addRunArtifact(phase5_kobject_attr_group_contract_survey_tests);
+    const phase5_kobject_attr_group_contract_survey_step = b.step(
+        "phase5-kobject-attr-group-contract-survey",
+        "Run the Phase 5 kobject attr-group contract survey guard",
+    );
+    phase5_kobject_attr_group_contract_survey_step.dependOn(
+        &run_phase5_kobject_attr_group_contract_survey_tests.step,
+    );
+
     const phase5_kretprobe_example_tests = b.addTest(.{
         .name = "phase5-kretprobe-example-tests",
         .root_module = phase5_kretprobe_example_module,
@@ -217,6 +236,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
+    test_step.dependOn(&run_phase5_kobject_attr_group_contract_survey_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_instance_budget_contract_tests.step);
