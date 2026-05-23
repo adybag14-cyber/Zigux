@@ -81,10 +81,10 @@ The more accurate same-lane state on 2026-05-22 is:
 - the roadmap-backed trace-events anchor still has a directly readable bounded formatting companion and aligned shared reminder surfaces
 - the broader non-runtime sample-local packet is not currently re-readable through the authenticated contents route used in this run, but a fresh public current-`master` reread did surface `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` again through their live GitHub blob pages
 - the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
-- the focused survey gate `zigux/tests/phase5_trace_events_sample_survey.zig` now checks the approved-idiom reminder route through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` alongside the shared checklist, so same-lane follow-through should not keep carrying the older checklist-only drift claim after a fresh reread
+- the focused survey gate `zigux/tests/phase5_trace_events_sample_survey.zig` now exact-checks both the shared checklist-owned packet cues and the approved-idiom owner note, so the selected-string plus `iter=%d` reminder and the `runStringFormattingCycleReplay()` cue stay tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` without dropping the broader checklist-backed packet inventory
 - same-lane documentation should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support references instead of calling it repo absence or directly readable proof, while keeping the returned shared build route classified separately from that still-missing authenticated sample-local set
 
-So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again.
+So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again and while keeping the approved-idiom-owner wording aligned with the shipped survey gate.
 
 ## Non-goals
 This survey does not claim:
@@ -96,6 +96,6 @@ This survey does not claim:
 ## Next bounded step
 Leave this lane parked unless a fresh same-packet reread finds a new exact trace-events-local drift to close.
 
-Current public `master`, the current shared reminder packet, and the directly readable `zigux/tests/phase5_trace_events_sample_survey.zig` gate now agree on the approved-idiom reminder route: the survey gate checks `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` directly alongside the shared checklist, keeps the selected-string plus `iter=%d` cue explicit, and still treats the broader sample-local packet as public-tree-backed companion evidence rather than direct authenticated proof.
+The older next-step pointer is no longer accurate on current `master`: the dedicated survey gate already reads `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` directly and already keeps the approved selected-string plus `iter=%d` reminder, the `runStringFormattingCycleReplay()` cue, and the no-extra-formatting-sample boundary aligned beside the shared checklist packet.
 
-If this packet reopens, keep the next step to one newly observed reminder-surface, survey-note, or survey-gate truthfulness drift inside the same bounded trace-events packet, and keep broader shared guide work, sample behavior changes, the formatting-only companion lane, and the separate Phase 9 runtime trace-events family out of scope.
+If this packet reopens soon, keep the next step to one same-packet reminder, survey-note, tests-root, or checker truthfulness repair that current reread can still prove, then leave broader shared guide work, the formatting-only companion lane, and the separate Phase 9 runtime trace-events family out of scope.
