@@ -18,6 +18,10 @@ That means the note has to keep the landed helper-local bridge packet, the helpe
 ## Current mixed-source bridge packet
 Current `master` still keeps the mixed-source bridge packet reviewable through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8`.
 
+That helper-first packet now keeps the config-side bridge helpers explicit through `buildProcFdinfoPath()`, `parseFdinfoLine()`, `applyFdinfoMapInfoLine()`, `parseFdinfoMapInfo()`, `summarizeFdinfoMapInfo()`, `mapReuseObservationFromFdinfo()`, `resolveReusedMapName()`, `summarizeMapReuseCompatibility()`, `isMapReuseCompatible()`, and `resolveReusePinnedMapAttempt()`.
+
+The same packet keeps the capability-planning edge explicit by stopping at `classifyTokenPreparationFailure()` and `planTokenPreparation()`, with the current planning-only outcomes still bounded to `skip_optional_missing_delegation`, `skip_optional`, and mandatory `fail` rather than token materialization or descriptor ownership.
+
 That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.
 
 ## Helper-local online-CPU routing evidence
