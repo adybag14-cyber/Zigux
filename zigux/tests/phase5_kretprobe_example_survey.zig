@@ -46,7 +46,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L22", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
@@ -227,7 +227,7 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
     defer std.testing.allocator.free(scripts_root_readme);
 
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_STATUS=restored-direct-sample-packet`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_LANE_KEY=P5-L18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_LANE_KEY=P5-L22`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_SLICE=kretprobe-sample-reviewability-packet`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.sample_path) != null);
