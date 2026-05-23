@@ -25,6 +25,8 @@ REQUIRED_MARKERS = {
         "`zigux/kernel/runtime_loader.zig`",
         "`zigux/kernel/runtime_loader_contract.zig`",
         "`phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence",
+        "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
+        "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
     ],
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 9 runtime-pilot packet",
@@ -242,11 +244,12 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Check that the current Phase 9 build-only packet keeps the shared "
             "runtime-loader allocator/init-flow shard, the command/environment "
-            "boundary guard, the scripts-root reminder, the blocked depmod-boundary "
-            "contract, the live loader facade, the dedicated allocator/init-flow "
-            "replay, and the aligned docs and checklist reminders explicit across "
-            "the docs, scripts, review checklist, lane sequencing note, contract, "
-            "facade, replay, and phase9_build rerun surface."
+            "boundary guard, the returned runtime bitmap cold-stage guard wording, "
+            "the scripts-root reminder, the blocked depmod-boundary contract, the "
+            "live loader facade, the dedicated allocator/init-flow replay, and the "
+            "aligned docs and checklist reminders explicit across the docs, scripts, "
+            "review checklist, lane sequencing note, contract, facade, replay, and "
+            "phase9_build rerun surface."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
