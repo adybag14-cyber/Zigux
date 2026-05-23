@@ -254,6 +254,7 @@ DELEGATED_CHECKERS = (
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
     (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
     (BENCH_CHECKER_REL, "phase1-bench"),
+    (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
 )
 
