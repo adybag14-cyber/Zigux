@@ -8,6 +8,7 @@
   "direct_packet_paths": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "zigux/tests/phase15_parity_scorecard.json",
