@@ -70,6 +70,26 @@ REQUIRED_MARKERS = {
         "current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set",
         "if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`",
     ),
+    EXEC_CMD_SLICE_PATH: (
+        "buildDeferredExeclCall()",
+        "buildDeferredExecvCall()",
+        "make -C zigux phase8-validate",
+    ),
+    EXEC_CMD_TEST_PATH: (
+        "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
+        "scripts/zigux/validate-phase8.py",
+        "Run focused Phase 8 exec-cmd tests",
+    ),
+    EXEC_CMD_BUILD_PATH: (
+        "phase8_exec_cmd.zig",
+        "phase8-exec-cmd-tests",
+        "Run focused Phase 8 exec-cmd tests",
+    ),
+    PHASE8_VALIDATE_PATH: (
+        'EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")',
+        'EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")',
+        "phase8-exec-cmd",
+    ),
 }
 
 
@@ -114,11 +134,8 @@ def make_fixture_root(root: Path) -> None:
     write_text(root, SCRIPT_PATH, script_text)
     for rel_path, markers in REQUIRED_MARKERS.items():
         write_text(root, rel_path, "\n".join(markers) + "\n")
-    write_text(root, EXEC_CMD_SLICE_PATH, "# Phase 8 Exec-Cmd Slice\n")
-    write_text(root, EXEC_CMD_HELPER_PATH, "pub fn placeholder() void {}\n")
-    write_text(root, EXEC_CMD_TEST_PATH, "test \"placeholder\" {}\n")
-    write_text(root, EXEC_CMD_BUILD_PATH, "pub fn build() void {}\n")
-    write_text(root, PHASE8_VALIDATE_PATH, "print('phase8 validate placeholder')\n")
+    if EXEC_CMD_HELPER_PATH not in REQUIRED_MARKERS:
+        write_text(root, EXEC_CMD_HELPER_PATH, "pub fn placeholder() void {}\n")
 
 
 def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
@@ -126,7 +143,10 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     if marker not in text:
         raise SystemExit(f"self-test-fixture-missing:{rel_path}:{marker}")
 
-    (root / rel_path).write_text(text.replace(marker, "", 1), encoding="utf-8")
+    stripped = text.replace(marker, "")
+    if stripped == text:
+        raise SystemExit(f"self-test-strip-failed:{rel_path}:{marker}")
+    (root / rel_path).write_text(stripped, encoding="utf-8")
     result = run_validator(root)
     expected = f"missing-marker:{rel_path}:{marker}"
     output = result.stdout.strip() or result.stderr.strip() or "no_output"
