@@ -155,7 +155,20 @@ EXACT_ONCE_MARKERS = {
     ],
 }
 
-FORBIDDEN_PHASE9_MAKE_ROUTES = ["phase9", "phase9-test", "phase9-runtime-trace-events-sample-tests"]
+CURRENT_PHASE9_MAKE_ROUTES = [
+    "phase9-runtime-atomic64-test",
+    "phase9-runtime-bitmap-test",
+    "phase9-runtime-loader-shared-test",
+    "phase9-runtime-trace-events-test",
+    "phase9-first-loadable-runtime-module-parity-test",
+    "phase9-test",
+]
+
+FORBIDDEN_PHASE9_MAKE_ROUTES = [
+    "phase9",
+    "phase9-validate",
+    "phase9-runtime-trace-events-sample-tests",
+]
 
 
 def infer_repo_root() -> Path:
@@ -196,6 +209,23 @@ def find_makefile_phase9_routes(text: str) -> list[str]:
     return routes
 
 
+def remove_makefile_route_definition(content: str, route: str) -> str:
+    lines = content.splitlines()
+    kept: list[str] = []
+    skipping = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(f"{route}:"):
+            skipping = True
+            continue
+        if skipping:
+            if line.startswith("\t"):
+                continue
+            skipping = False
+        kept.append(line)
+    return "\n".join(kept) + "\n"
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path in [*REQUIRED_MARKERS, MAKEFILE_PATH]:
@@ -218,8 +248,13 @@ def validate(root: Path) -> list[str]:
                 failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
 
     makefile = read_text(root, MAKEFILE_PATH)
-    for route in find_makefile_phase9_routes(makefile):
-        failures.append(f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
+    makefile_routes = find_makefile_phase9_routes(makefile)
+    for route in CURRENT_PHASE9_MAKE_ROUTES:
+        if route not in makefile_routes:
+            failures.append(f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
+    for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
+        if route in makefile_routes:
+            failures.append(f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
 
     return failures
 
@@ -241,10 +276,27 @@ jobs:
 ZIG ?= zig
 ZIGUX_ROOT := ..
 
-.PHONY: phase8-test phase10-test phase12-test
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
+
+phase9-runtime-atomic64-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-bitmap-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-loader-shared-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-trace-events-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-first-loadable-runtime-module-parity-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
@@ -292,6 +344,12 @@ def run_self_test() -> int:
                 write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
                 expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
 
+        for route in CURRENT_PHASE9_MAKE_ROUTES:
+            seed_fixture_tree(base)
+            current = read_text(base, MAKEFILE_PATH)
+            write_text(base / MAKEFILE_PATH, remove_makefile_route_definition(current, route))
+            expect_failure(base, f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
+
         for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
             seed_fixture_tree(base)
             current = read_text(base, MAKEFILE_PATH)
@@ -316,6 +374,10 @@ def run_self_test() -> int:
         f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
     )
     print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_ROUTE_COUNT="
+        f"{len(CURRENT_PHASE9_MAKE_ROUTES)}"
+    )
+    print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
         f"{len(FORBIDDEN_PHASE9_MAKE_ROUTES)}"
     )
@@ -328,7 +390,7 @@ def main() -> int:
             "Check that the current Phase 9 reviewer-facing packet keeps the surviving "
             "trace-events runtime family, the returned shared loader packet, the "
             "command/environment boundary guard, the blocked-publication contract "
-            "boundary, and the no-Phase-9-Makefile-route boundary explicit across the "
+            "boundary, and the bounded current Makefile route packet explicit across the "
             "key reviewer-facing surfaces without making neighboring bitmap reminder "
             "details the responsibility of this shared-loader lane."
         )
@@ -354,6 +416,10 @@ def main() -> int:
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_EXACT_ONCE_MARKER_COUNT="
         f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_ROUTE_COUNT="
+        f"{len(CURRENT_PHASE9_MAKE_ROUTES)}"
     )
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
