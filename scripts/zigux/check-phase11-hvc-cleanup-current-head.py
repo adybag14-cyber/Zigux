@@ -138,6 +138,16 @@ PROOF_MARKERS = (
     'try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");',
 )
 
+TARGETLESS_WITNESS_CHECKER_MARKERS = (
+    "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass",
+    'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");',
+    'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");',
+    'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");',
+    'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");',
+    'try expectContains(companion, "separate failure-mode replay");',
+    'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -167,7 +177,7 @@ def run_check(root: Path) -> None:
         root,
         TARGETLESS_WITNESS_CHECKER_PATH,
         "targetless witness checker",
-        ("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass",),
+        TARGETLESS_WITNESS_CHECKER_MARKERS,
     )
 
     payload = json.loads(read_text(root / INVENTORY_PATH))
@@ -263,6 +273,10 @@ def run_self_test() -> int:
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {'),
             (PROOF_PATH, 'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass"),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");'),
             (BUILD_PATH, 'phase11-hvc-cleanup-packet-proof'),
         ]
 
