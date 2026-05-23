@@ -24,6 +24,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
     '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
     '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
+    '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"',
+    '"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"',
     '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
     '"python3 scripts/zigux/check-phase3-policy-dump.py"',
     '"python3 scripts/zigux/validate_phase3_selftest.py"',
@@ -46,6 +48,8 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "zigux/tests/phase3_policy_dump.zig",
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
@@ -66,6 +70,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
+    "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
@@ -139,32 +145,9 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 
 def _sample_validator() -> str:
-    lines = [
-        "#!/usr/bin/env python3",
-        "REQUIRED_MANIFEST_REPLAY_ROUTES = (",
-        '    "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",',
-        '    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",',
-        '    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",',
-        '    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",',
-        '    "python3 scripts/zigux/check-phase3-selftest-surface.py",',
-        '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",',
-        '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",',
-        '    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",',
-        '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",',
-        '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",',
-        '    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",',
-        '    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",',
-        '    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",',
-        '    "python3 scripts/zigux/check-phase3-policy-dump.py",',
-        '    "python3 scripts/zigux/validate_phase3_selftest.py",',
-        '    "python3 scripts/zigux/run-phase3-checks.py",',
-        '    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",',
-        '    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",',
-        '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",',
-        '    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",',
-        ")",
-        "",
-    ]
+    lines = ["#!/usr/bin/env python3", "REQUIRED_MANIFEST_REPLAY_ROUTES = ("]
+    lines.extend(f"    {marker}," for marker in REQUIRED_VALIDATOR_MARKERS)
+    lines.extend([")", ""])
     return "\n".join(lines)
 
 
@@ -184,6 +167,20 @@ def _populate_repo(root: Path) -> None:
     _write(root / MANIFEST_PATH, _sample_manifest())
 
 
+def _remove_validator_marker(repo_root: Path, marker: str) -> None:
+    validator_path = repo_root / VALIDATOR_PATH
+    current = _read(validator_path)
+    needle = f"    {marker},\n"
+    _write(validator_path, current.replace(needle, "", 1))
+
+
+def _expect_issue(issues: list[str], expected: str, failure_message: str) -> None:
+    if expected not in issues:
+        print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+        print(failure_message)
+        raise SystemExit(1)
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_manifest_routes_") as temp_dir:
         repo_root = Path(temp_dir)
@@ -195,523 +192,91 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        validator_path = repo_root / VALIDATOR_PATH
+        validator_cases = (
+            ('"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator packet-file marker drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"', "expected validator self-test route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-selftest-surface.py"', "expected validator-route drift was not reported"),
+            ('"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"', "expected export-shim validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"', "expected policy-unsafe self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"', "expected policy-unsafe direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"', "expected low-level-wrapper self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"', "expected low-level-wrapper direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"', "expected header-governance self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py"', "expected header-governance direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"', "expected policy-dump self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-policy-dump.py"', "expected policy-dump direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate_phase3_selftest.py"', "expected selftest-driver validator-route drift was not reported"),
+            ('"python3 scripts/zigux/run-phase3-checks.py"', "expected runner validator-route drift was not reported"),
+            ('"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"', "expected policy-dump build validator-route drift was not reported"),
+        )
+        for marker, failure_message in validator_cases:
+            _populate_repo(repo_root)
+            _remove_validator_marker(repo_root, marker)
+            issues = validate_repo(repo_root)
+            expected = f"missing {VALIDATOR_PATH.as_posix()} marker: {marker}"
+            _expect_issue(issues, expected, failure_message)
+
+        packet_file_cases = (
+            ("scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker packet-file drift was not reported"),
+            ("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md", "expected policy-unsafe note packet-file drift was not reported"),
+            ("scripts/zigux/validate-phase3-policy-unsafe-survey.py", "expected policy-unsafe validator packet-file drift was not reported"),
+            ("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md", "expected low-level-wrapper note packet-file drift was not reported"),
+            ("scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper validator packet-file drift was not reported"),
+            ("Documentation/zigux/phase3-linux-zigux-header-governance.md", "expected header-governance note packet-file drift was not reported"),
+            ("scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected header-governance validator packet-file drift was not reported"),
+            ("zigux/tests/phase3_policy_dump.zig", "expected policy-dump packet-file drift was not reported"),
+            ("scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver packet-file drift was not reported"),
+            ("scripts/zigux/run-phase3-checks.py", "expected runner packet-file drift was not reported"),
+        )
         manifest_path = repo_root / MANIFEST_PATH
+        for entry, failure_message in packet_file_cases:
+            _populate_repo(repo_root)
+            manifest = json.loads(_read(manifest_path))
+            manifest["packet_files"].remove(entry)
+            _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+            issues = validate_repo(repo_root)
+            expected = f"phase3_abi_manifest.json missing packet_files entry: {entry}"
+            _expect_issue(issues, expected, failure_message)
 
-        current = _read(validator_path)
-        needle = '    "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"'
+        replay_route_cases = (
+            ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected checker self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-selftest-surface.py", "expected selftest-surface direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test", "expected policy-unsafe self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test", "expected low-level-wrapper self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test", "expected header-governance self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py", "expected header-governance direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-policy-dump.py", "expected policy-dump direct route drift was not reported"),
+            ("python3 scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver route drift was not reported"),
+            ("python3 scripts/zigux/run-phase3-checks.py", "expected runner route drift was not reported"),
+            ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
         )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected validator packet-file marker drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected validator self-test route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected validator direct route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-surface self-test validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-selftest-surface.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-selftest-surface.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected export-shim validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-unsafe self-test validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-unsafe direct validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper self-test validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper direct validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump self-test validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/check-phase3-policy-dump.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/check-phase3-policy-dump.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump direct validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/validate_phase3_selftest.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/validate_phase3_selftest.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-driver validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "python3 scripts/zigux/run-phase3-checks.py",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"python3 scripts/zigux/run-phase3-checks.py"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected runner validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        current = _read(validator_path)
-        needle = '    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",\n'
-        _write(validator_path, current.replace(needle, "", 1))
-        issues = validate_repo(repo_root)
-        expected = (
-            "missing scripts/zigux/validate-phase3.py marker: "
-            '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"'
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump build validator-route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "scripts/zigux/check-phase3-abi-manifest-replay-routes.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected checker packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove(
-            "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-unsafe note packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("scripts/zigux/validate-phase3-policy-unsafe-survey.py")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-unsafe validator packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove(
-            "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper note packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper validator packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("zigux/tests/phase3_policy_dump.zig")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "zigux/tests/phase3_policy_dump.zig"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("scripts/zigux/validate_phase3_selftest.py")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "scripts/zigux/validate_phase3_selftest.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-driver packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["packet_files"].remove("scripts/zigux/run-phase3-checks.py")
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            "scripts/zigux/run-phase3-checks.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected runner packet-file drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected checker self-test route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected checker direct route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-surface self-test route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-selftest-surface.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-selftest-surface.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-surface direct route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-unsafe self-test route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper self-test route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected low-level-wrapper direct route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-policy-dump.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-policy-dump.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump direct route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/validate_phase3_selftest.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/validate_phase3_selftest.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected selftest-driver route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/run-phase3-checks.py"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/run-phase3-checks.py"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected runner route drift was not reported")
-            return 1
-
-        _populate_repo(repo_root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected policy-dump build route drift was not reported")
-            return 1
+        for route, failure_message in replay_route_cases:
+            _populate_repo(repo_root)
+            manifest = json.loads(_read(manifest_path))
+            manifest["replay_routes"].remove(route)
+            _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+            issues = validate_repo(repo_root)
+            expected = f"phase3_abi_manifest.json missing replay route: {route}"
+            _expect_issue(issues, expected, failure_message)
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
         manifest["slug"] = "stale-slug"
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
-        expected = "phase3_abi_manifest.json wrong slug: 'stale-slug' != 'phase3-abi-packet'"
-        if expected not in issues:
-            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected slug drift was not reported")
-            return 1
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json wrong slug: 'stale-slug' != 'phase3-abi-packet'",
+            "expected slug drift was not reported",
+        )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=35")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
