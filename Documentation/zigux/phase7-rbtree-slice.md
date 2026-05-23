@@ -70,7 +70,7 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 - path truthfulness keeps the returned helper rooted at `lib/rbtree.zig` while the readable legacy companion `tools/lib/rbtree.zig` stays explicit as shared runtime-family evidence rather than helper-local ownership
 - same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, manifest, JSON fixture, and C harness explicit
 - build-graph truthfulness keeps readable non-owner evidence such as `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` separate from this helper-local packet
-- public-fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads in this slot
+- public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field in `zigux/tests/phase7_rbtree_manifest.json`, because `zigux/tests/phase7_build.zig` and the other listed legacy or shared non-owner surfaces all rematerialized through authenticated rereads in this slot
 
 ## Non-goals
 
