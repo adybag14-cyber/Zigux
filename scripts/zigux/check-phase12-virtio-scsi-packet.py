@@ -77,18 +77,17 @@ TEXT_MARKERS = {
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
-        '"phase12-virtio-scsi-driver-starter"',
-        '"missing_on_master"',
-        '"rollback_evidence_present"',
-        'pathExists("drivers/scsi/virtio_scsi.zig")',
-        'pathExists("zigux/tests/phase12_virtio_scsi_survey_build.zig")',
-        '"phase12 virtio scsi survey note stays aligned with rollback evidence"',
-        '"survey-gate tests"',
+        "\"phase12-virtio-scsi-driver-starter\"",
+        "\"missing_on_master\"",
+        "\"rollback_evidence_present\"",
+        "pathExists(\"drivers/scsi/virtio_scsi.zig\")",
+        "\"phase12 virtio scsi survey note stays aligned with rollback evidence\"",
+        "\"phase12 virtio scsi survey gate keeps present files present and missing files absent\"",
     ],
     SURVEY_BUILD_PATH: [
-        'b.path("phase12_virtio_scsi_survey.zig")',
-        '"phase12-virtio-scsi-survey-tests"',
-        '"Run the Phase 12 virtio_scsi rollback-only survey tests"',
+        "b.path(\"phase12_virtio_scsi_survey.zig\")",
+        "\"phase12-virtio-scsi-survey-tests\"",
+        "\"Run the Phase 12 virtio_scsi rollback-only survey tests\"",
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
@@ -146,6 +145,7 @@ EXPECTED_SUMMARY_FLAGS = {
     "preexisting_phase12_survey_note_present": True,
     "preexisting_phase12_fallback_catalog_present": True,
     "preexisting_phase12_survey_gate_present": True,
+    "preexisting_phase12_survey_build_present": True,
 }
 
 EXPECTED_ROADMAP_GAP_STATUSES = {
@@ -163,6 +163,7 @@ EXPECTED_GAP_STATUSES = {
     "phase12-virtio-scsi-repeated-rollback-gate": "missing_on_master",
     "phase12-build-gate": "shared_support_bundle_present",
     "phase12-make-target": "shared_make_targets_present",
+    "phase12-virtio-scsi-survey-build-route": "rollback_evidence_present",
     "phase12-virtio-scsi-survey-gate": "rollback_evidence_present",
     "phase12-virtio-scsi-survey-note": "rollback_evidence_present",
     "phase12-virtio-scsi-runtime-request-flow": "blocked_on_driver_return_dma_scsi_host_runtime",
