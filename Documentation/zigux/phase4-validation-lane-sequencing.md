@@ -16,13 +16,16 @@ Treat the current Phase 4 validation packet as the shipped rollback-readiness an
 
 ## Current repo reality
 
-Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` as the current direct-readback handoff before widening beyond the exact packet that handoff already names.
+Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` as the current direct-readback handoff before widening beyond the exact packet that handoff already names.
 
 - current direct-readback shared handoff:
   - `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+  - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/README.md`
+  - `scripts/zigux/README.md`
   - `scripts/zigux/check-phase4-repo-reality-warning.py`
+  - `scripts/zigux/check-phase4-tests-readme-packet.py`
   - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 - directly readable dedicated local-only perf packet that still stays adjacent to the shared handoff:
   - `scripts/zigux/check-phase4-perf-baseline-packet.py`
@@ -58,7 +61,7 @@ That means current Phase 4 work is no longer about inventing a missing validatio
 
 ### Shared exact-readback lane
 
-Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the shared side of the current direct-readback owner map for Phase 4 wording that spans more than one validation packet, while `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
+Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the shared side of the current direct-readback owner map for Phase 4 wording that spans more than one validation packet, while `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
 
 This shared lane owns only:
 - wording that keeps the current direct-readback handoff explicit instead of reconstructing the broader shared packet from older route names alone
@@ -108,7 +111,7 @@ Do not use a parked starter-gap lane to reopen the current direct-readback hando
 ## Anti-overlap rules
 
 When a Phase 4 validation change is proposed, choose the narrowest owner first.
-- If a change only repairs the current direct-readback warning or reminder packet, keep it inside `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, or `scripts/zigux/check-phase4-reversible-delivery-pins.py` before reopening older broader companions.
+- If a change only repairs the current direct-readback warning or reminder packet, keep it inside `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, or `scripts/zigux/check-phase4-reversible-delivery-pins.py` before reopening older broader companions.
 - If a change only repairs one starter-gap survey note, one starter-gap manifest, one starter-gap survey gate, one direct validation entrypoint reminder, or one parked next-step handoff, keep it inside that single parked starter packet.
 - Even while both parked starter-gap manifests still carry the historical `P4-L19` label, reopen only the one parked packet that drifted; do not repair the sibling parked packet in the same run unless the shared exact-readback lane needs a later post-publication catch-up.
 - If the drift is limited to the matrix-side or sequencing-note reminder surfaces around `scripts/zigux/check-phase4-remaining-gap-matrix.py`, keep it in the live `P4-L24` matrix reminder lane; if the drift is limited to the dedicated remaining-gap checker falling behind those already-landed markers, keep it in the live `P4-L19` checker-maintenance lane before reopening either parked starter-gap packet.
