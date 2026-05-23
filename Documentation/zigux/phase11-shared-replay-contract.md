@@ -89,8 +89,19 @@ or `zigux/tests/phase11_build.zig` routes.
   proof replays, 3 adjunct build replays, and 8 HVC current-head exact command
   markers, while `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
-  keep the broader matrix-gap, targetless-unregister, and DesignWare checker
-  chain explicit beside that narrower inventory packet
+  keep the broader matrix-gap, targetless-unregister, DesignWare, bcm2835, and
+  gpio checker chain explicit beside that narrower inventory packet.
+  The same shared validator and Makefile route now fan out through
+  `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
+  `zigux/tests/phase11_dw_wdt_build.zig`,
+  `zigux/tests/phase11_dw_wdt_pm_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
+  `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
+  `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
+  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, and
+  `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, so keep that
+  eight-route proof fan-out explicit instead of reducing the current shared gate
+  to the narrower HVC inventory alone.
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
 
@@ -119,6 +130,10 @@ deterministic and reviewable:
 - shared validator route: `python3 scripts/zigux/validate-phase11.py`
 - shared Makefile route: `make -C zigux phase11-validate`
 - current `phase11-validate` proof fan-out:
+  `zig build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
+  `zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig`,
+  `zig build test --build-file zigux/tests/phase11_dw_wdt_pm_build.zig`,
+  `zig build test --build-file zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
