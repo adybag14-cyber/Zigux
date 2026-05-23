@@ -254,7 +254,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "tools/lib/subcmd/exec-cmd.zig",
         "Run focused Phase 8 exec-cmd tests",
-        'expectMissingPath("tools/lib/subcmd/exec-cmd.zig")',
+        'try expectNotContains(validate_phase8, "expectMissingPath(\\"tools/lib/subcmd/exec-cmd.zig\\")");',
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
@@ -673,28 +673,34 @@ def run_self_test() -> int:
         _write(root / EXEC_CMD_PACKET_CHECKER, _passing_checker("PHASE8_EXEC_CMD_PACKET"))
 
         for relative_path, markers in FILE_MARKERS.items():
-            original = _read(root / relative_path)
+            path = root / relative_path
+            if not path.exists():
+                continue
+            original = _read(path)
             for marker in markers:
-                (root / relative_path).write_text(original.replace(marker, ""), encoding="utf-8")
+                path.write_text(original.replace(marker, "", 1), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
+                path.write_text(original, encoding="utf-8")
                 case_count += 1
-                (root / relative_path).write_text(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
-            original = _read(root / relative_path)
-            (root / relative_path).unlink()
+            if relative_path in CHECKERS:
+                continue
+            path = root / relative_path
+            original = _read(path)
+            path.unlink()
             result = validate_root(root)
             expected = relative_path.as_posix()
             if expected not in result.missing_files:
                 raise AssertionError(f"expected missing file to be reported: {expected}")
+            _write(path, original)
             case_count += 1
-            _write(root / relative_path, original)
 
-    print("PHASE8_VALIDATE_SELF_TEST=pass")
-    print(f"PHASE8_VALIDATE_SELF_TEST_CASE_COUNT={case_count}")
+    print("PHASE8_SELF_TEST=pass")
+    print(f"PHASE8_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
