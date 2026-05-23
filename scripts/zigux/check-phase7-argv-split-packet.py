@@ -57,6 +57,7 @@ REQUIRED_MARKERS = {
         "test \"blank-input deinit on one caller keeps the shared sentinel views usable for another\" {",
         "test \"argvFree resets released non-blank results to the shared empty exported views\" {",
         "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {",
+        "test \"argv_split aliases preserve helper-local count, split, and free behavior\" {",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "const argv_split = @import(\"argv_split\");",
@@ -110,7 +111,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 54
+SELF_TEST_CASE_COUNT = 55
 
 
 def read_text(path: Path) -> str:
@@ -468,6 +469,13 @@ def run_self_test() -> None:
         helper_marker = "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_non_blank_teardown_isolation_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"argv_split aliases preserve helper-local count, split, and free behavior\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_alias_parity_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
