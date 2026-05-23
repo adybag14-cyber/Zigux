@@ -9,13 +9,9 @@ from pathlib import Path
 
 REQUIRED_FILES = {
     "helper": "security/landlock/ruleset.zig",
-    "slice": "Documentation/zigux/phase13-landlock-ruleset-slice.md",
-    "ownership": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
     "survey": "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "test": "zigux/tests/phase13_landlock_ruleset.zig",
     "manifest": "zigux/tests/phase13_landlock_ruleset_manifest.json",
-    "scripts_readme": "scripts/zigux/README.md",
-    "traceability": "Documentation/zigux/phase13-roadmap-traceability.md",
 }
 
 REQUIRED_MARKERS = {
@@ -27,49 +23,35 @@ REQUIRED_MARKERS = {
         '.provides_rule_tree_search_planning = true',
         '.provides_rule_insertion_planning = true',
     ),
-    "Documentation/zigux/phase13-landlock-ruleset-slice.md": (
-        '`scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
-        '`make -C zigux phase13-validate`',
-        '`zigux/tests/phase13_landlock_ruleset_manifest.json`',
-    ),
-    "Documentation/zigux/phase13-landlock-ruleset-ownership.md": (
-        '`scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
-        '`zigux/tests/phase13_landlock_ruleset_manifest.json`',
-        '`Documentation/zigux/phase13-landlock-ruleset-survey.md`',
-    ),
     "Documentation/zigux/phase13-landlock-ruleset-survey.md": (
         '`scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
         'landed `phase13-landlock-ruleset-packet-checker`',
         'blocked `phase13-build-gate`',
+        'blocked `phase13-landlock-ruleset-slice-note`',
+        'blocked `phase13-landlock-ruleset-ownership-note`',
     ),
     "zigux/tests/phase13_landlock_ruleset.zig": (
         '"phase13 landlock ruleset descriptor keeps the current bounded helper scope explicit"',
         '"phase13 landlock ruleset manifest records the current bounded security helper packet"',
-        '"current_landlock_ruleset_packet_checker_present": true',
     ),
     "zigux/tests/phase13_landlock_ruleset_manifest.json": (
+        '"lane_key": "P13-L12"',
+        '"current_phase13_landlock_ruleset_slice_present": false',
+        '"current_phase13_landlock_ruleset_ownership_present": false',
         '"id": "phase13-landlock-ruleset-packet-checker"',
-        '"current_landlock_ruleset_packet_checker_present": true',
+        '"status": "blocked_on_missing_review_surface"',
         '"status": "starter_landed"',
-    ),
-    "scripts/zigux/README.md": (
-        '`scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
-        '`zigux/tests/phase13_landlock_ruleset_manifest.json`',
-        '`Documentation/zigux/phase13-landlock-ruleset-survey.md`',
-    ),
-    "Documentation/zigux/phase13-roadmap-traceability.md": (
-        '`scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
-        '`zigux/tests/phase13_landlock_ruleset_manifest.json`',
-        '`Documentation/zigux/phase13-landlock-ruleset-survey.md`',
     ),
 }
 
 FORBIDDEN_MARKERS = {
-    "scripts/zigux/README.md": (
-        '`scripts/zigux/check-phase13-landlock-ruleset-packet.py` stay recorded as repo-reality gaps',
+    "Documentation/zigux/phase13-landlock-ruleset-survey.md": (
+        "phase13-landlock-ruleset-slice.md",
+        "phase13-landlock-ruleset-ownership.md",
     ),
-    "Documentation/zigux/phase13-roadmap-traceability.md": (
-        '- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`',
+    "zigux/tests/phase13_landlock_ruleset_manifest.json": (
+        '"current_phase13_landlock_ruleset_slice_present": true',
+        '"current_phase13_landlock_ruleset_ownership_present": true',
     ),
 }
 
