@@ -25,12 +25,24 @@ README_SELF_TEST_STEP = "- name: Self-test current Lane 05 local archive README 
 README_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test"
 README_CHECK_STEP = "- name: Check current Lane 05 local archive README packet"
 README_CHECK_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py"
+RETAINED_SELF_TEST_STEP = "- name: Self-test current Lane 05 retained bootstrap step checker"
+RETAINED_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py --self-test"
+RETAINED_CHECK_STEP = "- name: Check current Lane 05 retained bootstrap step packet"
+RETAINED_CHECK_CMD = "python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py"
 INDEX_FALLBACK_SELF_TEST_STEP = "- name: Self-test current Lane 05 install-zig index fallback checker"
 INDEX_FALLBACK_SELF_TEST_CMD = (
     "python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test"
 )
 INDEX_FALLBACK_CHECK_STEP = "- name: Check current Lane 05 install-zig index fallback packet"
 INDEX_FALLBACK_CHECK_CMD = "python3 scripts/zigux/check-lane05-install-zig-index-fallback.py"
+ARCHIVE_VERIFICATION_SELF_TEST_STEP = "- name: Self-test current Lane 05 install-zig archive verification checker"
+ARCHIVE_VERIFICATION_SELF_TEST_CMD = (
+    "python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test"
+)
+ARCHIVE_VERIFICATION_CHECK_STEP = "- name: Check current Lane 05 install-zig archive verification packet"
+ARCHIVE_VERIFICATION_CHECK_CMD = (
+    "python3 scripts/zigux/check-lane05-install-zig-archive-verification.py"
+)
 NEXT_PHASE_STEP = "- name: Self-test current Zig installer helper"
 PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP = "- name: Self-test current Phase 1 route summary checker"
 PHASE1_ROUTE_SUMMARY_CHECK_STEP = "- name: Check current Phase 1 route summary packet"
@@ -145,6 +157,10 @@ def check_workflow(text: str) -> None:
     require_marker(text, README_SELF_TEST_CMD, "workflow readme-checker self-test command")
     require_marker(text, README_CHECK_STEP, "workflow readme-checker step name")
     require_marker(text, README_CHECK_CMD, "workflow readme-checker command")
+    require_marker(text, RETAINED_SELF_TEST_STEP, "workflow retained-step self-test step name")
+    require_marker(text, RETAINED_SELF_TEST_CMD, "workflow retained-step self-test command")
+    require_marker(text, RETAINED_CHECK_STEP, "workflow retained-step check step name")
+    require_marker(text, RETAINED_CHECK_CMD, "workflow retained-step check command")
     require_marker(
         text,
         INDEX_FALLBACK_SELF_TEST_STEP,
@@ -157,6 +173,26 @@ def check_workflow(text: str) -> None:
     )
     require_marker(text, INDEX_FALLBACK_CHECK_STEP, "workflow index-fallback step name")
     require_marker(text, INDEX_FALLBACK_CHECK_CMD, "workflow index-fallback command")
+    require_marker(
+        text,
+        ARCHIVE_VERIFICATION_SELF_TEST_STEP,
+        "workflow archive-verification self-test step name",
+    )
+    require_marker(
+        text,
+        ARCHIVE_VERIFICATION_SELF_TEST_CMD,
+        "workflow archive-verification self-test command",
+    )
+    require_marker(
+        text,
+        ARCHIVE_VERIFICATION_CHECK_STEP,
+        "workflow archive-verification step name",
+    )
+    require_marker(
+        text,
+        ARCHIVE_VERIFICATION_CHECK_CMD,
+        "workflow archive-verification command",
+    )
     require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
     require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
 
@@ -178,6 +214,10 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(text, f"run: {README_SELF_TEST_CMD}", 1, "workflow run line")
     require_exact_count(text, README_CHECK_STEP, 1, "workflow step name")
     require_exact_line_count(text, f"run: {README_CHECK_CMD}", 1, "workflow run line")
+    require_exact_count(text, RETAINED_SELF_TEST_STEP, 1, "workflow step name")
+    require_exact_line_count(text, f"run: {RETAINED_SELF_TEST_CMD}", 1, "workflow run line")
+    require_exact_count(text, RETAINED_CHECK_STEP, 1, "workflow step name")
+    require_exact_line_count(text, f"run: {RETAINED_CHECK_CMD}", 1, "workflow run line")
     require_exact_count(text, INDEX_FALLBACK_SELF_TEST_STEP, 1, "workflow step name")
     require_exact_line_count(
         text,
@@ -189,6 +229,20 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(
         text,
         f"run: {INDEX_FALLBACK_CHECK_CMD}",
+        1,
+        "workflow run line",
+    )
+    require_exact_count(text, ARCHIVE_VERIFICATION_SELF_TEST_STEP, 1, "workflow step name")
+    require_exact_line_count(
+        text,
+        f"run: {ARCHIVE_VERIFICATION_SELF_TEST_CMD}",
+        1,
+        "workflow run line",
+    )
+    require_exact_count(text, ARCHIVE_VERIFICATION_CHECK_STEP, 1, "workflow step name")
+    require_exact_line_count(
+        text,
+        f"run: {ARCHIVE_VERIFICATION_CHECK_CMD}",
         1,
         "workflow run line",
     )
@@ -220,19 +274,23 @@ def check_workflow(text: str) -> None:
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
     require_order(text, CHECK_STEP, README_SELF_TEST_STEP, "workflow step order")
     require_order(text, README_SELF_TEST_STEP, README_CHECK_STEP, "workflow step order")
+    require_order(text, README_CHECK_STEP, RETAINED_SELF_TEST_STEP, "workflow step order")
+    require_order(text, RETAINED_SELF_TEST_STEP, RETAINED_CHECK_STEP, "workflow step order")
+    require_order(text, RETAINED_CHECK_STEP, INDEX_FALLBACK_SELF_TEST_STEP, "workflow step order")
+    require_order(text, INDEX_FALLBACK_SELF_TEST_STEP, INDEX_FALLBACK_CHECK_STEP, "workflow step order")
     require_order(
         text,
-        README_CHECK_STEP,
-        INDEX_FALLBACK_SELF_TEST_STEP,
-        "workflow step order",
-    )
-    require_order(
-        text,
-        INDEX_FALLBACK_SELF_TEST_STEP,
         INDEX_FALLBACK_CHECK_STEP,
+        ARCHIVE_VERIFICATION_SELF_TEST_STEP,
         "workflow step order",
     )
-    require_order(text, INDEX_FALLBACK_CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
+    require_order(
+        text,
+        ARCHIVE_VERIFICATION_SELF_TEST_STEP,
+        ARCHIVE_VERIFICATION_CHECK_STEP,
+        "workflow step order",
+    )
+    require_order(text, ARCHIVE_VERIFICATION_CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
     require_order(text, SCRIPTS_PATH, THIRD_PARTY_PATH, "workflow pull_request path order")
     require_order(text, THIRD_PARTY_PATH, TOOLS_PATH, "workflow pull_request path order")
 
@@ -373,10 +431,18 @@ jobs:
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
+      - name: Self-test current Lane 05 retained bootstrap step checker
+        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py --self-test
+      - name: Check current Lane 05 retained bootstrap step packet
+        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py
       - name: Self-test current Lane 05 install-zig index fallback checker
         run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test
       - name: Check current Lane 05 install-zig index fallback packet
         run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py
+      - name: Self-test current Lane 05 install-zig archive verification checker
+        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test
+      - name: Check current Lane 05 install-zig archive verification packet
+        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
       - name: Self-test current Phase 1 route summary checker
@@ -482,6 +548,19 @@ jobs:
     else:
         raise AssertionError("expected missing README checker self-test failure")
 
+    missing_retained_step = good_workflow.replace(
+        f"      {RETAINED_SELF_TEST_STEP}\n        run: {RETAINED_SELF_TEST_CMD}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_retained_step)
+    except SystemExit as exc:
+        assert RETAINED_SELF_TEST_STEP in str(exc) or RETAINED_SELF_TEST_CMD in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing retained-step self-test failure")
+
     missing_index_fallback_step = good_workflow.replace(
         f"      {INDEX_FALLBACK_SELF_TEST_STEP}\n        run: {INDEX_FALLBACK_SELF_TEST_CMD}\n",
         "",
@@ -495,24 +574,59 @@ jobs:
     else:
         raise AssertionError("expected missing index fallback self-test failure")
 
-    reordered_index_fallback = good_workflow.replace(
-        "      - name: Check current Lane 05 local archive README packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-archive-readme.py\n"
+    missing_archive_verification_step = good_workflow.replace(
+        f"      {ARCHIVE_VERIFICATION_SELF_TEST_STEP}\n        run: {ARCHIVE_VERIFICATION_SELF_TEST_CMD}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_archive_verification_step)
+    except SystemExit as exc:
+        assert (
+            ARCHIVE_VERIFICATION_SELF_TEST_STEP in str(exc)
+            or ARCHIVE_VERIFICATION_SELF_TEST_CMD in str(exc)
+        )
+        case_count += 1
+    else:
+        raise AssertionError("expected missing archive verification self-test failure")
+
+    reordered_retained_and_index = good_workflow.replace(
+        "      - name: Check current Lane 05 retained bootstrap step packet\n"
+        "        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py\n"
         "      - name: Self-test current Lane 05 install-zig index fallback checker\n"
         "        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test\n",
         "      - name: Self-test current Lane 05 install-zig index fallback checker\n"
         "        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test\n"
-        "      - name: Check current Lane 05 local archive README packet\n"
-        "        run: python3 scripts/zigux/check-lane05-local-archive-readme.py\n",
+        "      - name: Check current Lane 05 retained bootstrap step packet\n"
+        "        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py\n",
         1,
     )
     try:
-        check_workflow(reordered_index_fallback)
+        check_workflow(reordered_retained_and_index)
     except SystemExit as exc:
         assert "workflow step order" in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected reordered index fallback failure")
+        raise AssertionError("expected reordered retained/index fallback failure")
+
+    reordered_archive_verification = good_workflow.replace(
+        "      - name: Check current Lane 05 install-zig index fallback packet\n"
+        "        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py\n"
+        "      - name: Self-test current Lane 05 install-zig archive verification checker\n"
+        "        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test\n",
+        "      - name: Self-test current Lane 05 install-zig archive verification checker\n"
+        "        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test\n"
+        "      - name: Check current Lane 05 install-zig index fallback packet\n"
+        "        run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py\n",
+        1,
+    )
+    try:
+        check_workflow(reordered_archive_verification)
+    except SystemExit as exc:
+        assert "workflow step order" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected reordered archive verification failure")
 
     missing_tool_manifest_step = good_workflow.replace(
         f"      {PHASE2_TOOL_MANIFEST_SELF_TEST_STEP}\n"
@@ -542,19 +656,19 @@ jobs:
     else:
         raise AssertionError("expected missing Phase 2 artifact tools manifest check failure")
 
-    missing_retained_step = good_workflow.replace(
+    missing_retained_bootstrap_step = good_workflow.replace(
         f"      {PHASE9_FREEZE_MAP_SELF_TEST_STEP}\n"
         "        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test\n",
         "",
         1,
     )
     try:
-        check_workflow(missing_retained_step)
+        check_workflow(missing_retained_bootstrap_step)
     except SystemExit as exc:
         assert PHASE9_FREEZE_MAP_SELF_TEST_STEP in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected missing retained step failure")
+        raise AssertionError("expected missing retained bootstrap step failure")
 
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
