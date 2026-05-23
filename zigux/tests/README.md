@@ -267,28 +267,3 @@ Keep the Phase 8 and earlier non-owner boundaries explicit too: `tools/lib/subcm
 
 Tests-root reviewer prompt:
 - Does the bounded Phase 9 reminder keep the shared checker trio, the narrow trace-events sample family, the returned shared loader and command/environment boundary packet, the partial runtime bitmap reminder packet including the returned module and diff witnesses, the bounded build rerun surface, and the study-only freeze-map routing aligned without promoting blocked publication, install-root, or broader runtime-substrate completion claims?
-
-## Phase 12 release packet
-
-Keep the current shared Phase 12 packet explicit through `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
-
-Keep the directly readable validator-side support bundle explicit from the tests root too:
-
-- `scripts/zigux/validate-phase12.py`
-- `scripts/zigux/check-build-only-phase12-surface.py`
-- `scripts/zigux/check-phase12-release-readiness-packet.py`
-- `.github/workflows/zigux-bootstrap.yml`
-- `zigux/tests/phase12_build.zig`
-- `zigux/Makefile`
-- `make -C zigux phase12-validate`
-
-Keep the degraded rerun order honest here too: rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` before attached-Zig rerun vocabulary, and if that local fallback is absent keep `make -C zigux phase12-validate` explicit as shipped current-route proof ahead of the attached-Zig rerun vocabulary `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`.
-
-Keep the degraded-read fallback split explicit too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.
-
-Keep the bounded driver-family split explicit too: the shared route stays the six-file `virtio_net` smoke-and-test sextet in `zigux/tests/phase12_build.zig` through `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig`, `virtio_scsi` remains the rollback-lab packet through its dedicated survey companions outside the shared route, `nvme_pci` remains the bounded driver-local foothold outside the shared route, and the parked libbpf packet stays tied to `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` rather than being promoted into a focused shared replay claim.
-
-Keep the docs-root Phase 12 note bounded below DMA-safe receive ownership, queue-restart parity, throughput delivery, recovery, deeper transport lifecycle, `net/core/skbuff.c`, `kernel/workqueue.c`, and `kernel/trace/ring_buffer.c` claims until fresh current-`master` proof lands for those deeper surfaces.
-
-Tests-root reviewer prompt:
-- Does the bounded Phase 12 reminder keep the release sequencing, readiness, closure, coordination, shared validator support bundle, degraded rerun order, raw-GitHub fallback split, and bounded driver-family split aligned without promoting deeper transport, DMA-safe receive, or study-only anchor claims into current release packet proof?
