@@ -36,6 +36,7 @@ REQUIRED_MARKERS = {
         "current public raw-file readback now recovers both `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`",
         "keep those two routes as ring-buffer-local replay vocabulary only",
         "returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence",
+        "reader-page import, consume-or-extract serialization, `reader_page` handoff, or mapped-reader lifetime teardown wording",
     ],
     MANIFEST_PATH: [
         '"lane_key": "P14-L08"',
@@ -44,6 +45,10 @@ REQUIRED_MARKERS = {
         '"phase14-ring-buffer-zig-port-blocker"',
         '"zig test zigux/tests/phase14_ring_buffer_survey.zig"',
         '"zig build test --build-file zigux/tests/phase14_build.zig --summary all"',
+        '"head-page-reader-handoff"',
+        '"remote-reader-metadata"',
+        '"tracefs-mapping-limitations"',
+        '"read-page-extraction-boundary"',
     ],
     SURVEY_TEST_PATH: [
         'try std.testing.expectEqualStrings("P14-L08", manifest.lane_key);',
@@ -51,6 +56,9 @@ REQUIRED_MARKERS = {
         'try std.testing.expect(std.mem.indexOf(u8, note, "phase14-ring-buffer-maintenance-handoff") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, note, "public raw-file readback now recovers both `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, note, "returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence") != null);',
+        'try std.testing.expect(hasDecisionChecklist(manifest, "head-page-reader-handoff", "stay_in_c", "reader-page extraction", "rb_set_head_page", "page handoff semantics"));',
+        'try std.testing.expect(hasDecisionChecklist(manifest, "remote-reader-metadata", "stay_in_c", "remote-reader metadata", "__rb_get_reader_page_from_remote", "reader-page import rules"));',
+        'try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-mapping-limitations", "stay_in_c", "shared tracefs lockout boundary", "ring_buffer_map_get_reader", "mapped reader pins `resize_disabled`"));',
     ],
     PRODUCTIZATION_GAP_PATH: [
         "`zigux/tests/phase14_ring_buffer_survey.zig` now returns through the current contents path as a directly readable ring-buffer survey companion",
@@ -71,6 +79,10 @@ REQUIRED_MARKERS = {
         "`kernel/trace/ring_buffer.c`: `Study / Boundary Only`",
         "the dedicated `P14-L08` survey note and manifest remain ring-buffer-local study evidence",
         "the focused `zigux/tests/phase14_ring_buffer_survey.zig` companion is directly readable again through the shared smoke packet",
+        "`cmpxchg()`-guarded `reader_page` handoff",
+        "`ring_buffer_alloc_read_page()` import and guarded remote-reader metadata setup",
+        "`ring_buffer_read_page()` consume or extract serialization",
+        "`rb_remove_pages()` mapped-reader lifetime teardown",
     ],
 }
 
@@ -107,7 +119,7 @@ def fixture_text(rel_path: Path) -> str:
     titles = {
         SURVEY_PATH: "# Phase 14 Ring Buffer Survey",
         MANIFEST_PATH: "{",
-        SURVEY_TEST_PATH: "const std = @import(\"std\");",
+        SURVEY_TEST_PATH: 'const std = @import("std");',
         PRODUCTIZATION_GAP_PATH: "# Phase 14 Productization Gap Survey",
         SHARED_SMOKE_GAP_PATH: "# Phase 14 Shared Smoke Current-Master Gap",
         SMOKE_SURVEY_PATH: "# Phase 14 End-to-End Smoke Survey",
@@ -173,10 +185,11 @@ def run_self_test() -> int:
             expect_failure(base, f"missing_file:{rel_path.as_posix()}")
 
         marker_cases = [
-            (SURVEY_PATH, REQUIRED_MARKERS[SURVEY_PATH][5]),
-            (MANIFEST_PATH, REQUIRED_MARKERS[MANIFEST_PATH][1]),
+            (SURVEY_PATH, REQUIRED_MARKERS[SURVEY_PATH][8]),
+            (MANIFEST_PATH, REQUIRED_MARKERS[MANIFEST_PATH][6]),
             (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][2]),
-            (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][1]),
+            (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
+            (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][6]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
