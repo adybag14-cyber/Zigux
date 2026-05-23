@@ -314,9 +314,9 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+                "`scripts/zigux/validate-phase15.py`",
             ],
             "shared_gap_expected_missing_paths": [
-                "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
             ],
         },
@@ -558,6 +558,7 @@ def run_self_test() -> int:
         _write(root / Path("scripts/zigux/check-phase15-readiness-gate-packet.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-scripts-readme-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/validate-phase15.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
         _write(root / BUILD_GATE_PATH, _sample_build_gate())
         sample_manifest = json.loads(_sample_manifest())
@@ -901,6 +902,21 @@ def run_self_test() -> int:
             "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`"
         ]:
             raise AssertionError(f"unexpected checklist-study-only shared-gap failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `scripts/zigux/validate-phase15.py`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `scripts/zigux/validate-phase15.py`"
+        ]:
+            raise AssertionError(f"unexpected validator shared-gap failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         (root / TEST_PATH).unlink()
