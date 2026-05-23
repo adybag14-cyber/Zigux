@@ -340,7 +340,7 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_test_marker")
         bridge_test_path.write_text(original_bridge_test, encoding="utf-8")
 
-        bridge_test_path.writeText(
+        bridge_test_path.write_text(
             original_bridge_test.replace(
                 'test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {',
                 'test "phase 8 file-path handle bridge helper stays wired into the replay routes" {',
