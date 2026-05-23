@@ -191,6 +191,20 @@ pub fn build(b: *std.Build) void {
         &run_phase5_kobject_attr_group_contract_survey_tests.step,
     );
 
+    const phase5_kretprobe_example_sample_selfcheck_tests = b.addTest(.{
+        .name = "phase5-kretprobe-example-sample-selfcheck-tests",
+        .root_module = kretprobe_example_sample_module,
+    });
+    const run_phase5_kretprobe_example_sample_selfcheck_tests =
+        b.addRunArtifact(phase5_kretprobe_example_sample_selfcheck_tests);
+    const phase5_kretprobe_example_sample_selfcheck_step = b.step(
+        "phase5-kretprobe-example-sample-selfcheck",
+        "Run the Phase 5 kretprobe example sample-owned self-checks",
+    );
+    phase5_kretprobe_example_sample_selfcheck_step.dependOn(
+        &run_phase5_kretprobe_example_sample_selfcheck_tests.step,
+    );
+
     const phase5_kretprobe_example_tests = b.addTest(.{
         .name = "phase5-kretprobe-example-tests",
         .root_module = phase5_kretprobe_example_module,
@@ -252,6 +266,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
     test_step.dependOn(&run_phase5_kobject_attr_group_contract_survey_tests.step);
+    test_step.dependOn(&run_phase5_kretprobe_example_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_instance_budget_contract_tests.step);
