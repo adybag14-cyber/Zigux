@@ -79,6 +79,10 @@ TESTS_ALIGNMENT_MARKERS = (
 )
 
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+EXPECTED_REVIEW_STATUS_BY_TARGET = {
+    "x86_64-linux": "pinned bootstrap archive",
+    "aarch64-linux": "route contract only",
+}
 ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
 
@@ -173,8 +177,11 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
             f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
         )
 
-    expected_modes = {
-        target: ("archive_required" if target in seen_scope else "route_contract_only")
+    expected_cross_targets = {
+        target: {
+            "review_status": EXPECTED_REVIEW_STATUS_BY_TARGET[target],
+            "validation_mode": "archive_required" if target in seen_scope else "route_contract_only",
+        }
         for target in SUPPORTED_CROSS_TARGETS
     }
 
@@ -183,12 +190,14 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
         "status": "active",
         "route": ROUTE,
         "archive_target_scope": normalized_scope,
-        "cross_targets": expected_modes,
+        "cross_targets": expected_cross_targets,
     }
 
 
 def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]:
     expected_fixture = load_expected_fixture(root)
+    expected_cross_targets = expected_fixture["cross_targets"]
+    assert isinstance(expected_cross_targets, dict)
     issues: list[tuple[str, str]] = []
     if not isinstance(payload, dict):
         return [("INVALID_CROSS_TARGET_FIXTURE", type(payload).__name__)]
@@ -206,28 +215,38 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets"))
         return issues
 
-    actual_modes: dict[str, str] = {}
+    actual_targets: dict[str, dict[str, str]] = {}
     for entry in cross_targets:
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", type(entry).__name__))
             continue
         target = entry.get("target")
+        review_status = entry.get("review_status")
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
-        if not isinstance(target, str) or not target:
+        if not isinstance(target, str) or not target or target != target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", "target"))
             continue
-        if not isinstance(validation_mode, str) or not validation_mode:
+        if not isinstance(review_status, str) or not review_status or review_status != review_status.strip():
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+            continue
+        if not isinstance(validation_mode, str) or not validation_mode or validation_mode != validation_mode.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:validation_mode"))
             continue
         if route != expected_fixture["route"]:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
-        if target in actual_modes:
+        if target in actual_targets:
             issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
-        actual_modes[target] = validation_mode
+        expected_entry = expected_cross_targets.get(target)
+        if isinstance(expected_entry, dict) and review_status != expected_entry["review_status"]:
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
+        actual_targets[target] = {
+            "review_status": review_status,
+            "validation_mode": validation_mode,
+        }
 
-    if actual_modes != expected_fixture["cross_targets"]:
-        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_modes, sort_keys=True)))
+    if actual_targets != expected_cross_targets:
+        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_targets, sort_keys=True)))
     return issues
 
 
@@ -401,7 +420,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 19
+        + 22
         + 10
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -624,6 +643,32 @@ def run_self_test() -> int:
         payload["cross_targets"][0]["target"] = ""
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ENTRY", "target") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["review_status"] = ""
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:review_status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["review_status"] = "route contract only"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "x86_64-linux:route contract only") in issues
+        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["review_status"] = " route contract only "
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:review_status") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
