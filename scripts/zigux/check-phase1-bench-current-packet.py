@@ -231,6 +231,18 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         case_count += 1
 
+    with tempfile.TemporaryDirectory(prefix="lane16-current-packet-json-gap-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        section = extract_section(
+            read_text(root, BENCH_CHECKER_REL),
+            'if kind == "expectations_json_error":',
+        )
+        updated = section[:4] + ["helper_line = exc.msg"] + section[4:]
+        replace_section(root, BENCH_CHECKER_REL, section[0], updated)
+        assert collect_issues(root) == []
+        case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="lane16-current-packet-missing-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -244,6 +256,22 @@ def run_self_test() -> int:
         assert len(issues) == 1
         assert issues[0].startswith(
             "scripts/zigux/check-phase1-bench.py:ordered_section:status_mismatch_output = ok_output.replace("
+        )
+        case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="lane16-current-packet-json-missing-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        section = extract_section(
+            read_text(root, BENCH_CHECKER_REL),
+            'if kind == "expectations_json_error":',
+        )
+        updated = [line for line in section if line != 'print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")']
+        replace_section(root, BENCH_CHECKER_REL, section[0], updated)
+        issues = collect_issues(root)
+        assert len(issues) == 1
+        assert issues[0].startswith(
+            'scripts/zigux/check-phase1-bench.py:ordered_section:if kind == "expectations_json_error":'
         )
         case_count += 1
 
