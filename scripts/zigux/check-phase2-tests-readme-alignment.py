@@ -49,7 +49,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
-    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "keep the repo-local pinned archive contract explicit through `third_party/README.md`, the pinned `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` filename plus digest and size contract, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers while the payload itself remains absent on current `master`",
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
@@ -91,12 +91,13 @@ REQUIRED_TESTS_README_MARKERS = (
     "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder",
     "keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
+
 EXACT_COUNT_TESTS_README_MARKERS = (
     "Keep the current toolchain self-check and replay surface explicit through `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase2-cross.py --self-test`.",
     "Keep the rematerialized make-wrapper packet explicit through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
     "current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
-    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "keep the repo-local pinned archive contract explicit through `third_party/README.md`, the pinned `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` filename plus digest and size contract, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers while the payload itself remains absent on current `master`",
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
@@ -104,6 +105,7 @@ EXACT_COUNT_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-lane05-local-archive-readme.py`",
     "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
 )
+
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`",
@@ -118,6 +120,7 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "keep the fixture-backed tool-manifest and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
     "`zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` stay framed as historical packet members rather than shipped current-`master` evidence",
 )
+
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
@@ -143,6 +146,7 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`zigux/Makefile`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
+
 REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
@@ -157,7 +161,6 @@ REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/install-zig.py",
@@ -165,9 +168,6 @@ REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
-    "scripts/zigux/genksyms.zig",
-    "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     "zigux/Makefile",
     "make -C zigux phase2-toolchain",
     "make -C zigux phase2-tools",
@@ -178,36 +178,17 @@ REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "third_party/README.md",
-    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
-    "zigux/tests/fixtures/genksyms_bridge/cases.json",
-    "zigux/tests/fixtures/genksyms_bridge/manifest.json",
-    "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/fixdep/cases.json",
 )
 
+REQUIRED_PHASE2_TOOL_MANIFEST_GAPS = (
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+)
 
 def read_text(path: Path) -> str:
     try:
@@ -215,13 +196,11 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def read_json(path: Path) -> object:
     try:
         return json.loads(read_text(path))
     except json.JSONDecodeError as exc:
         raise SystemExit(f"required json invalid: {path}: {exc}") from exc
-
 
 def read_manifest(path: Path) -> dict[str, object]:
     payload = read_json(path)
@@ -229,14 +208,12 @@ def read_manifest(path: Path) -> dict[str, object]:
         raise SystemExit(f"required json has invalid top-level shape: {path}")
     return payload
 
-
 def resolve_path(root: Path, path: Path) -> Path:
     try:
         rel = path.relative_to(ROOT)
     except ValueError:
         rel = path
     return root / rel
-
 
 def collect_manifest_strings(value: object) -> set[str]:
     if isinstance(value, str):
@@ -253,14 +230,11 @@ def collect_manifest_strings(value: object) -> set[str]:
         return strings
     return set()
 
-
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
 
-
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
-
 
 def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -270,14 +244,12 @@ def collect_exact_count_markers(text: str, markers: tuple[str, ...], code: str) 
             issues.append((code, f"{count}::{marker}"))
     return issues
 
-
 def collect_missing_manifest_surfaces(strings: set[str]) -> list[tuple[str, str]]:
     return [
         ("MISSING_PHASE2_TOOL_MANIFEST_SURFACES", surface)
         for surface in REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES
         if surface not in strings
     ]
-
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
@@ -289,10 +261,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_forbidden_markers(tests_readme_text, FORBIDDEN_TESTS_README_MARKERS, "FORBIDDEN_TESTS_README_MARKERS"))
     issues.extend(collect_missing_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"))
     issues.extend(collect_missing_manifest_surfaces(manifest_strings))
-    if phase2_tool_manifest.get("repo_reality_gaps") != []:
-        issues.append(("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(phase2_tool_manifest.get("repo_reality_gaps"), sort_keys=True)))
+    if phase2_tool_manifest.get("repo_reality_gaps") != list(REQUIRED_PHASE2_TOOL_MANIFEST_GAPS):
+        issues.append(("PHASE2_TOOL_MANIFEST_GAPS_MISMATCH", json.dumps(phase2_tool_manifest.get("repo_reality_gaps"), sort_keys=True)))
     return issues
-
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
@@ -306,11 +277,9 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
@@ -321,7 +290,7 @@ def build_self_test_root(root: Path) -> None:
             {
                 "phase": "Phase 2",
                 "present_surfaces": {"all": list(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)},
-                "repo_reality_gaps": [],
+                "repo_reality_gaps": list(REQUIRED_PHASE2_TOOL_MANIFEST_GAPS),
             },
             indent=2,
             sort_keys=True,
@@ -329,12 +298,10 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
 
-
 def remove_all(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, "")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -403,10 +370,10 @@ def run_self_test() -> int:
             manifest = read_manifest(manifest_path)
             checks_run += 1
 
-        manifest["repo_reality_gaps"] = ["gap"]
+        manifest["repo_reality_gaps"] = []
         write_text(manifest_path, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
         issues = collect_issues(root)
-        assert ("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(["gap"])) in issues, issues
+        assert ("PHASE2_TOOL_MANIFEST_GAPS_MISMATCH", json.dumps([], sort_keys=True)) in issues, issues
         checks_run += 1
 
         if checks_run != expected_case_count:
@@ -417,7 +384,6 @@ def run_self_test() -> int:
     print("PHASE2_TESTS_README_ALIGNMENT=self-test-pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASES={checks_run}")
     return 0
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -434,7 +400,6 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
 def main() -> int:
     args = parse_args()
     if args.self_test:
@@ -446,7 +411,6 @@ def main() -> int:
 
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
