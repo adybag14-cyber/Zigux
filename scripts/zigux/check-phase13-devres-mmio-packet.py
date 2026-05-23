@@ -52,7 +52,6 @@ SURVEY_MARKERS = [
     "`zigux/tests/phase13_devres_iomap_planner_manifest.json` marks the packet as `starter_landed`",
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
-    "blocked `phase13-devres-missing-devm-of-iomap-surface`",
     "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
     "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
     "blocked `phase13-devres-live-mmio-mapping-state`",
@@ -78,7 +77,6 @@ IOUNMAP_MANIFEST_MARKERS = [
     "\"iounmap_cleanup_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"",
     "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"",
     "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
-    "\"id\": \"phase13-devres-missing-devm-of-iomap-surface\"",
     "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
     "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
     "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
@@ -253,16 +251,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SURVEY_MARKERS
-                if marker != "blocked `phase13-devres-missing-devm-of-iomap-surface`"
+                if marker != "blocked `phase13-devres-live-device-tree-walks`"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "survey:missing_marker:blocked `phase13-devres-missing-devm-of-iomap-surface`",
+                "survey:missing_marker:blocked `phase13-devres-live-device-tree-walks`",
             ],
-            "missing_survey_iomap_gap_failed",
+            "missing_survey_device_tree_gap_failed",
         )
         case_count += 1
 
