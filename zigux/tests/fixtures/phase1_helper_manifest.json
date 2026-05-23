@@ -100,6 +100,24 @@
         "terminator_only_nul",
         "zero_length_scnprintf_len"
       ],
+      "shared_logical_fixture_keys": [
+        "weight",
+        "and_result",
+        "and_values",
+        "andnot_result",
+        "andnot_values",
+        "or_values",
+        "xor_values",
+        "equal",
+        "intersects",
+        "subset"
+      ],
+      "shared_range_fixture_keys": [
+        "range_after_set",
+        "range_after_clear",
+        "full_after_fill",
+        "empty_after_zero"
+      ],
       "partial_xor_review_fields": [
         "partial_xor_nbits",
         "partial_xor_masked_values"
