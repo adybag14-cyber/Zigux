@@ -33,13 +33,17 @@ Treat the current matrix packet as:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
 Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
 exposes a dedicated `make -C zigux phase11-hvc-survey` step. The witness shard
-now rereads the live starter and the boundary note together, and keep the
+now rereads the live starter and the boundary note together, keep the
+modem-control proof pair directly readable through its focused build route
+without promoting it into the shared build inventory yet, and keep the
 targetless-unregister witness explicitly separate from the smaller proof-backed
 continuity packet.
 
@@ -65,6 +69,10 @@ continuity packet.
   `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as repo-reality gaps instead of returned fallback evidence.
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps helper-local
   failure-mode edges reviewable through the verify helper boundary note.
+- `zigux/tests/phase11_hvc_modem_control_proof.zig` and
+  `zigux/tests/phase11_hvc_modem_control_proof_build.zig` keep the bounded
+  `tiocmget`, `tiocmset`, `dtr_rts`, and `hupcl` teardown distinction explicit
+  without promoting the lane to live modem-control execution.
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` keep the
   targetless-unregister witness explicit as standalone direct-readback coverage.
@@ -75,6 +83,9 @@ continuity packet.
 - keep the dedicated survey route absent until `zigux/Makefile` grows it
 - keep helper-local failure-mode edges reviewable through the verify boundary
   note and the current companion stack
+- keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
+  explicit as a focused direct-readback proof route outside the shared
+  inventory-backed replay contract for now
 - keep `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
