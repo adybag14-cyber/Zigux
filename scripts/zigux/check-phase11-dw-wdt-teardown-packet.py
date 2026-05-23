@@ -102,6 +102,9 @@ PM_MARKERS = [
 
 PM_SCAFFOLD_MARKERS = [
     'pub const anchor_path = "drivers/watchdog/dw_wdt.c";',
+    'test "phase11 dw_wdt pm scaffold keeps idle suspend and resume explicit" {',
+    "try std.testing.expectEqual(SuspendDisposition.idle_noop, suspend_report.disposition);",
+    "try std.testing.expectEqual(ResumeDisposition.idle_noop, resume_report.disposition);",
     'test "phase11 dw_wdt pm scaffold quiesces a stoppable watchdog before suspend" {',
     "try std.testing.expectEqual(SuspendDisposition.quiesce_before_suspend, suspend_report.disposition);",
     'test "phase11 dw_wdt pm scaffold keeps no-way-out hardware running across suspend and resume" {',
@@ -297,7 +300,8 @@ def run_self_test() -> None:
             ("restart", RESTART_MARKERS[5]),
             ("pm", PM_MARKERS[8]),
             ("pm", PM_MARKERS[13]),
-            ("pm_scaffold", PM_SCAFFOLD_MARKERS[5]),
+            ("pm_scaffold", PM_SCAFFOLD_MARKERS[1]),
+            ("pm_scaffold", PM_SCAFFOLD_MARKERS[8]),
         ]
         for index, (label, marker) in enumerate(marker_cases, start=1):
             case_root = root / f"marker_case_{index}"
