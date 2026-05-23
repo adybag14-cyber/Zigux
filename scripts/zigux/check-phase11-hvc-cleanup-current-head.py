@@ -20,6 +20,8 @@ MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md
 DRIVER_PATH = Path("drivers/tty/hvc/hvc_console.zig")
 PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
 BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
+MODEM_CONTROL_PROOF_PATH = Path("zigux/tests/phase11_hvc_modem_control_proof.zig")
+MODEM_CONTROL_BUILD_PATH = Path("zigux/tests/phase11_hvc_modem_control_proof_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 TARGETLESS_WITNESS_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")
 TARGETLESS_WITNESS_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap.zig")
@@ -34,6 +36,8 @@ SURVEY_MARKERS = (
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "repo-reality gaps or archival vocabulary",
     "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`",
     "`make -C zigux phase11-validate`",
@@ -56,8 +60,11 @@ MATRIX_MARKERS = (
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "`make -C zigux phase11-validate`",
     "`make -C zigux phase11-hvc-survey`",
+    "`zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "repo-reality gaps instead of returned fallback evidence",
     "flush intent",
     "`hvc_install()` ownership",
@@ -144,6 +151,21 @@ PROOF_MARKERS = (
     'try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");',
 )
 
+MODEM_CONTROL_PROOF_MARKERS = (
+    'test "phase11 hvc console keeps full modem control callback surfaces reviewable" {',
+    'const summary = hvc_console.summarizeModemControlHandoff(.{',
+    'try std.testing.expect(summary.get_surface_visible);',
+    'test "phase11 hvc console keeps hupcl teardown distinct from callback-backed modem control" {',
+    'try std.testing.expect(teardown.dtr_rts_shutdown);',
+    'try std.testing.expect(modem.set_surface_visible);',
+)
+
+MODEM_CONTROL_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_modem_control_proof.zig"),',
+    '.name = "phase11-hvc-modem-control-proof",',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");',
+)
+
 TARGETLESS_WITNESS_CHECKER_MARKERS = (
     "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass",
     'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");',
@@ -197,6 +219,8 @@ def run_check(root: Path) -> None:
     require_markers(root, MATRIX_PATH, "matrix", MATRIX_MARKERS)
     require_markers(root, DRIVER_PATH, "driver", DRIVER_MARKERS)
     require_markers(root, PROOF_PATH, "proof", PROOF_MARKERS)
+    require_markers(root, MODEM_CONTROL_PROOF_PATH, "modem-control proof", MODEM_CONTROL_PROOF_MARKERS)
+    require_markers(root, MODEM_CONTROL_BUILD_PATH, "modem-control build", MODEM_CONTROL_BUILD_MARKERS)
     require_markers(
         root,
         TARGETLESS_WITNESS_CHECKER_PATH,
@@ -241,6 +265,8 @@ def build_fixture(root: Path) -> None:
     write(root / DRIVER_PATH, copy(DRIVER_PATH))
     write(root / PROOF_PATH, copy(PROOF_PATH))
     write(root / BUILD_PATH, '.name = "phase11-hvc-cleanup-packet-proof"\n')
+    write(root / MODEM_CONTROL_PROOF_PATH, copy(MODEM_CONTROL_PROOF_PATH))
+    write(root / MODEM_CONTROL_BUILD_PATH, copy(MODEM_CONTROL_BUILD_PATH))
     write(root / TARGETLESS_WITNESS_CHECKER_PATH, copy(TARGETLESS_WITNESS_CHECKER_PATH))
     write(root / TARGETLESS_WITNESS_PATH, copy(TARGETLESS_WITNESS_PATH))
     write(root / TARGETLESS_WITNESS_BUILD_PATH, copy(TARGETLESS_WITNESS_BUILD_PATH))
@@ -288,8 +314,10 @@ def run_self_test() -> int:
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (SURVEY_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
+            (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
+            (MATRIX_PATH, "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`"),
             (MATRIX_PATH, "`hvc_hangup()` disconnect"),
             (MATRIX_PATH, "`hvc_remove()` handoff"),
             (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
@@ -309,6 +337,9 @@ def run_self_test() -> int:
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {'),
             (PROOF_PATH, 'try expectContains(driver, ") error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {");'),
             (PROOF_PATH, 'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");'),
+            (MODEM_CONTROL_PROOF_PATH, 'test "phase11 hvc console keeps full modem control callback surfaces reviewable" {'),
+            (MODEM_CONTROL_PROOF_PATH, 'try std.testing.expect(summary.get_surface_visible);'),
+            (MODEM_CONTROL_BUILD_PATH, '.name = "phase11-hvc-modem-control-proof",'),
             (TARGETLESS_WITNESS_CHECKER_PATH, "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass"),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");'),
