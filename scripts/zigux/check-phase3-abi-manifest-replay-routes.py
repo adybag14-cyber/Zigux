@@ -17,9 +17,14 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
     '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
     '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+    '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
+    '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
+    '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-policy-dump.py"',
     '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
     '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+    '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -124,9 +129,14 @@ def _sample_validator() -> str:
         '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",',
         '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",',
         '    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",',
+        '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",',
+        '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",',
+        '    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",',
+        '    "python3 scripts/zigux/check-phase3-policy-dump.py",',
         '    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",',
         '    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",',
         '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",',
+        '    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",',
         ")",
         "",
     ]
@@ -188,6 +198,76 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
             print("expected export-shim validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-unsafe self-test validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-unsafe direct validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump self-test validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/check-phase3-policy-dump.py",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/check-phase3-policy-dump.py"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump direct validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump build validator-route drift was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -294,7 +374,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
