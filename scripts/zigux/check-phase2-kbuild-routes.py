@@ -80,8 +80,10 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-validate",
 )
 
 README_REQUIRED_LINES = (
