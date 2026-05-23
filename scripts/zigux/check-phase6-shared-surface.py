@@ -64,7 +64,7 @@ EXPECTED_EVIDENCE_CURRENT_GAPS = [
     "zigux/tests/phase6_base64_c_casegen.zig",
 ]
 REQUIRED_DOCS_README_SNIPPETS = [
-    "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/review-checklist.md` - `scripts/zigux/README.md` - `zigux/tests/README.md` - `zigux/tests/phase6_build.zig` - `zigux/tests/phase6_helper_evidence_manifest.json` - `zigux/tests/phase6_helper_parity_manifest.json` - `scripts/zigux/check-phase6-shared-surface.py` - `scripts/zigux/check-phase6-present-entrypoints.py` - `zigux/Makefile` keep the bounded Phase 6 docs-root packet explicit through the shared helper-evidence and helper-parity catalogs, the current scripts-root and tests-root reminders, the shared build foothold, the shared machine-readable manifests, the present-entrypoint guard, and the returned Makefile wrapper surface instead of leaving the active leaf-helper tranche implicit from neighboring reminder surfaces alone.",
+    "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/phase6-perf-gate-survey.md` - `Documentation/zigux/review-checklist.md` - `scripts/zigux/README.md` - `zigux/tests/README.md` - `zigux/tests/phase6_build.zig` - `zigux/tests/phase6_helper_evidence_manifest.json` - `zigux/tests/phase6_helper_parity_manifest.json` - `scripts/zigux/check-phase6-shared-surface.py` - `scripts/zigux/check-phase6-present-entrypoints.py` - `zigux/Makefile` keep the bounded Phase 6 docs-root packet explicit through the shared helper-evidence and helper-parity catalogs, the current scripts-root and tests-root reminders, the shared build foothold, the shared machine-readable manifests, the present-entrypoint guard, and the returned Makefile wrapper surface instead of leaving the active leaf-helper tranche implicit from neighboring reminder surfaces alone.",
     "authenticated current-master rereads now directly recover both `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep both note surfaces inside the current docs-root evidence packet beside the shared manifests instead of framing the broader perf-note surface as public-tree-backed companion evidence.",
     "`python3 scripts/zigux/check-phase6-shared-surface.py --self-test`, `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test`, `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-perf` replay the bounded current Phase 6 reminder packet without widening it into missing parity companions or helper-local implementation follow-through.",
 ]
@@ -139,7 +139,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 39
+SELF_TEST_CASE_COUNT = 40
 
 
 class ValidationError(RuntimeError):
@@ -338,6 +338,8 @@ def run_self_test() -> None:
             write(path, json.dumps(data, indent=2) + "\n")
 
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_DOCS_README_SNIPPETS[0] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace("`Documentation/zigux/phase6-perf-gate-survey.md`", "`Documentation/zigux/phase6-perf-route-survey.md`", 1)))
         cases_run += 1
         expect_failure(root, root / DOCS_README_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_DOCS_README_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
