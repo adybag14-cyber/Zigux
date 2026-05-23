@@ -39,6 +39,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
     "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
     "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
@@ -100,6 +101,14 @@ CHECKS = (
     CheckSpec(
         "phase11-build-inventory",
         ("python", "scripts/zigux/check-phase11-build-inventory.py"),
+    ),
+    CheckSpec(
+        "phase11-shared-replay-contract-counts-self-test",
+        ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-shared-replay-contract-counts",
+        ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py"),
     ),
     CheckSpec(
         "phase11-matrix-gap-survey-self-test",
@@ -379,6 +388,7 @@ def run_self_test() -> int:
             "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
+            "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -417,6 +427,8 @@ def run_self_test() -> int:
             ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
+            ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts-self-test"),
+            ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts"),
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey-self-test"),
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey"),
             ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey-self-test"),
@@ -435,7 +447,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
+            expect_issue(f"live_failed:{spec.name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
