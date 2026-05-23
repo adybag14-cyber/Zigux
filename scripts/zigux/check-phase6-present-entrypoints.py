@@ -122,6 +122,7 @@ EXPECTED_CHECKSUM_PAYLOAD_CASES = [
 ]
 EXPECTED_CHECKSUM_FAST_PATH_CASES = [
     {"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100},
+    {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100},
     {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100},
     {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100},
 ]
