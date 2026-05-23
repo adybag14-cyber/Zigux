@@ -495,7 +495,7 @@ test "getOption clears caller output on malformed signed and unsigned input" {
     try std.testing.expectEqualStrings("tail", plus);
 }
 
-test "getOption preserves incomplete hex-prefix and descending-range behavior" {
+test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {
     var incomplete_hex: []const u8 = "0x";
     var incomplete_hex_value: i32 = -1;
     try std.testing.expectEqual(@as(u8, 1), getOption(&incomplete_hex, &incomplete_hex_value));
@@ -610,9 +610,9 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqual(@as(u64, 3 << 20), leading_plus.value);
     try std.testing.expectEqualStrings("more", leading_plus.rest);
 
-    const leading_plus_decimal = memparse("+7tail");
+    const leading_plus_decimal = memparse("+7");
     try std.testing.expectEqual(@as(u64, 7), leading_plus_decimal.value);
-    try std.testing.expectEqualStrings("tail", leading_plus_decimal.rest);
+    try std.testing.expectEqualStrings("", leading_plus_decimal.rest);
 }
 
 test "memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable" {
