@@ -17,6 +17,7 @@ SLICE_PATH = Path("Documentation/zigux/phase6-base64-slice.md")
 FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_base64.zig")
 PERF_TEST_PATH = Path("zigux/tests/phase6_base64_perf.zig")
+C_PARITY_TEST_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
 
 EXPECTED_COUNTS = {
     "standard_cases": 22,
@@ -71,7 +72,17 @@ EXPECTED_PERF_TEST_SNIPPETS = [
     "try validatePerfMatrix();",
 ]
 
-SELF_TEST_CASES = 10
+EXPECTED_C_PARITY_SNIPPETS = [
+    'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+    '.input = fixtures.standard_cases[17].input',
+    '.input = fixtures.variant_cases[2].input',
+    '.input = fixtures.variant_decode_cases[14].input',
+    '.input = fixtures.invalid_decode_cases[11].input',
+    'fn fixtureVariant(name: []const u8) base64.Variant {',
+    'const bytes_result = base64.bytes(case.input, case.padding, case.variant);',
+]
+
+SELF_TEST_CASES = 11
 
 
 def read_text(path: Path) -> str:
@@ -172,6 +183,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SLICE_PATH, EXPECTED_SLICE_SNIPPETS)
     require_snippets(repo_root / HELPER_TEST_PATH, EXPECTED_HELPER_TEST_SNIPPETS)
     require_snippets(repo_root / PERF_TEST_PATH, EXPECTED_PERF_TEST_SNIPPETS)
+    require_snippets(repo_root / C_PARITY_TEST_PATH, EXPECTED_C_PARITY_SNIPPETS)
 
     fixtures_content = read_text(repo_root / FIXTURES_PATH)
     validate_fixture_counts(fixtures_content)
@@ -206,6 +218,10 @@ def scaffold_repo(root: Path) -> None:
     write(
         root / PERF_TEST_PATH,
         "\n".join(EXPECTED_PERF_TEST_SNIPPETS) + "\n",
+    )
+    write(
+        root / C_PARITY_TEST_PATH,
+        "\n".join(EXPECTED_C_PARITY_SNIPPETS) + "\n",
     )
     write(
         root / FIXTURES_PATH,
@@ -354,6 +370,12 @@ def run_self_test() -> None:
             FIXTURES_PATH,
             '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
             '.{ .input = "Zg==", .padding = false, .variant_name = "std" },',
+        )
+        expect_failure(
+            root,
+            C_PARITY_TEST_PATH,
+            EXPECTED_C_PARITY_SNIPPETS[0],
+            'const fixtures = @import("fixtures/phase6_base64_c_parity_vectors.zig");',
         )
 
     print("PHASE6_BASE64_CORPUS_DETERMINISM_SELF_TEST=pass")
