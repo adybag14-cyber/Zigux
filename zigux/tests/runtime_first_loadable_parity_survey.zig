@@ -158,15 +158,15 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         atomic64_manifest,
         "\"landed_pilot_state\": \"starter_landed_with_visible_shared_loader_packet\"",
     );
-    try expectContains(atomic64_manifest, "runtime-atomic64-loader-scaffold");
-    try expectContains(atomic64_manifest, "samples/zigux/runtime_atomic64_loader.zig");
+    try expectContains(atomic64_manifest, "runtime-bitmap-loader-companion");
+    try expectContains(atomic64_manifest, "samples/zigux/runtime_bitmap_loader.zig");
     try expectContains(atomic64_manifest, "runtime-atomic64-family-make-route");
     try expectContains(atomic64_manifest, "\"path\": \"zigux/Makefile\"");
     try expectContains(atomic64_manifest, "runtime-atomic64-shared-build-boundary");
     try expectContains(atomic64_manifest, "runtime-atomic64-live-loader-binding");
     try expectContains(
         atomic64_manifest,
-        "the loader scaffold and survey gate remain direct packet evidence outside standalone shared-build route names",
+        "the direct survey gate and visible shared-loader reminder packet stay family-local evidence outside standalone shared-build route names",
     );
 
     try expectContains(
