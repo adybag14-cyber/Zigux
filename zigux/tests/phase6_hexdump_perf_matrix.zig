@@ -83,6 +83,12 @@ pub fn validatePerfMatrix() !void {
         if (want.ascii != actual.ascii) return error.HexdumpPerfMatrixMismatch;
         if (want.reps != actual.reps) return error.HexdumpPerfMatrixMismatch;
         if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.HexdumpPerfMatrixMismatch;
+        if (!std.mem.eql(u8, want.expected_text.little, actual.expected_text.little)) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, want.expected_text.big, actual.expected_text.big)) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
     }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
