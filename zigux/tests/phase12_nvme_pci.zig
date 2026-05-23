@@ -278,3 +278,67 @@ test "phase12 nvme pci direct replay keeps dropped backlog retirement blocked un
     try std.testing.expectEqual(@as(usize, 0), blocked.remaining_io_queue_count);
     try std.testing.expect(!blocked.can_retire_dropped_io_backlog);
 }
+
+test "phase12 nvme pci dropped backlog retirement stays idle before any reset backlog exists" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(24, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+
+    const summary = lab.summarizeDroppedIoRetirement();
+    try std.testing.expectEqual(RecoveryState.running, summary.state);
+    try std.testing.expectEqual(@as(u32, 0), summary.reset_generation);
+    try std.testing.expect(summary.admin_queue_replayed_after_reset);
+    try std.testing.expect(!summary.admin_queue_must_be_replayed);
+    try std.testing.expectEqual(@as(usize, 0), summary.dropped_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.rebuilt_io_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.remaining_io_queue_count);
+    try std.testing.expect(!summary.queue_numbering_restarted);
+    try std.testing.expect(!summary.can_retire_dropped_io_backlog);
+}
+
+test "phase12 nvme pci direct replay keeps stale reservation replay blocked until admin queue is replanned" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(4, 4);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const debt = try lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 4);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", debt.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.admin_queue_replay, debt.replay_blocker);
+    try std.testing.expect(debt.cached_queue_reservation_stale);
+    try std.testing.expect(debt.admin_queue_must_be_replanned);
+    try std.testing.expect(!debt.replay_preflight_ready);
+
+    try std.testing.expectError(error.AdminQueueReplayRequired, lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 4));
+
+    _ = try lab.planAdminQueue(32, 64, false);
+    const ready = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 4);
+    try std.testing.expectEqual(@as(usize, 4), ready.replayable_reserved_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), ready.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 4), ready.last_queue_id);
+    try std.testing.expect(ready.queue_numbering_restarted);
+    try std.testing.expect(!ready.admin_queue_must_be_replanned);
+}
