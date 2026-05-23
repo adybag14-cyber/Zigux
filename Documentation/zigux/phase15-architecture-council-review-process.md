@@ -137,7 +137,6 @@ If a future lane reopens it, prefer one of these equally bounded follow-ups:
 - keep the landed shared tests-root Phase 15 governance reminder in `zigux/tests/README.md` aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py`, this note, and `Documentation/zigux/phase15-shared-summary-gap.md` before widening into broader Phase 15 prose
 - keep `Documentation/zigux/phase15-architecture-council-decision-record-template.md` aligned with this note before widening into broader Phase 15 prose
 - keep the dedicated review-process manifest, the focused Zig replay, the focused build-file replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
-- keep the shared tests-root Phase 15 governance reminder aligned with this note and `Documentation/zigux/phase15-shared-summary-gap.md` before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
 - if the broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
 
