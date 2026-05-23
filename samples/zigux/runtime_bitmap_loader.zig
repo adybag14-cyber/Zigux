@@ -261,6 +261,35 @@ test "runtime bitmap loader rejects re-init after a loaded payload without distu
     try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
 }
 
+test "runtime bitmap loader rejects re-init after selftest without disturbing the selftested summary" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(load_plan.source_bit_list);
+    _ = try module.runSelftest();
+
+    const before_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_reinit.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initFromBitList("5, 6"));
+
+    const after_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try expectSummaryStable(before_reinit, after_reinit);
+    try std.testing.expectEqual(before_reinit.selftest_runs, after_reinit.selftest_runs);
+    try std.testing.expectEqual(before_reinit.exit_runs, after_reinit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 63), module.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, 64), module.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+}
+
 test "runtime bitmap loader rejects re-init after exit without disturbing the exited summary" {
     var module = RuntimeBitmapSample{};
     try module.initFromBitList(load_plan.source_bit_list);
