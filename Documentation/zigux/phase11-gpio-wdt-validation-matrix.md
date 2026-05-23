@@ -18,6 +18,8 @@ Zigux Phase 11 simple-driver packet.
 The current gpio watchdog matrix packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
@@ -44,6 +46,8 @@ Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof
 packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
@@ -54,12 +58,12 @@ packet below:
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver, focused register-device glue proof, focused nowayout
-policy proof, dedicated bounded replay routes, plus the paired module slice,
-teardown note, and remove-handoff note keep the bounded
+The returned driver, focused preflight proof, focused register-device glue
+proof, focused nowayout policy proof, dedicated bounded replay routes, plus the
+paired module slice, teardown note, and remove-handoff note keep the bounded
 `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `probeSummary()`, `descriptorRequestSummary()`,
-`timeoutPropertyCheckpointSummary()`,
+`descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`,
 `registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
@@ -68,6 +72,11 @@ teardown note, and remove-handoff note keep the bounded
 `nowayoutPolicySummary()`, `requestStop()`, `summarizeTeardown()`, and
 `summarizeRemoveHandoff()` checkpoint names directly reviewable as
 driver-backed teardown and failure-mode surfaces.
+
+The direct preflight proof keeps `descriptorPreflightSummary()` matched to the
+existing descriptor request packet while also machine-checking the timeout
+property, `platform_set_drvdata()`, and `watchdog_set_drvdata()` ordering
+through one bounded preflight route.
 
 The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
 across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
@@ -83,6 +92,10 @@ summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
   reboot-glue handoff, nowayout policy, registration, register-device failure,
   and teardown checkpoint names directly readable without claiming live side
   effects.
+- direct preflight proof anchor:
+  `zigux/tests/phase11_gpio_wdt_preflight_review.zig` keeps the descriptor
+  preflight alias, timeout-property ordering, and platform/watchdog drvdata
+  ordering explicit before reboot glue or register-device execution claims.
 - direct proof anchor: `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
   keeps the first bounded `devm_watchdog_register_device()` request surface,
   the paired register-device failure summary, and the teardown-facing
@@ -93,7 +106,8 @@ summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
   and kept-running packet without claiming live watchdog-core registration or
   reboot-backed teardown execution.
 - dedicated replay routes:
-  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig` and
+  `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`, and
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` keep focused
   `zig build` validation paths available for the returned proof packet without
   pretending the older shared `phase11_build.zig` surface has returned.
