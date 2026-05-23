@@ -8,8 +8,8 @@ The Phase 13 roadmap still keeps `security/landlock/syscalls.c` inside bounded s
 
 Current `master` keeps the helper packet intentionally narrow:
 
-- `security/landlock/syscalls.zig` keeps the create-ruleset, ABI-version query, restrict-self, add-rule, ruleset-fd lookup, ruleset-fd install, ruleset-fd stub, and `fop_ruleset_release()` planners explicit as helper data
-- the helper keeps handled-access, attr-size, flag, incoming-layer, and tree-walk validation reviewable, delegates ruleset creation plus rule-tree search plus rule insertion planning into `security/landlock/ruleset.zig`, and keeps the create-handle path separate from the ABI-version query path before anon-inode installation planning
+- `security/landlock/syscalls.zig` keeps the create-ruleset, ABI-version query, ERRATA query, restrict-self, add-rule, ruleset-fd lookup, ruleset-fd install, ruleset-fd stub, and `fop_ruleset_release()` planners explicit as helper data
+- the helper keeps handled-access, attr-size, flag, incoming-layer, and tree-walk validation reviewable, delegates ruleset creation plus rule-tree search plus rule insertion planning into `security/landlock/ruleset.zig`, and keeps the create-handle path separate from the ABI-version and ERRATA query paths before anon-inode installation planning
 - the helper still does not claim live FD installation, file-buffer handling, credential replacement, task synchronization side effects, or full Landlock enforcement as shipped Zigux behavior
 
 ## Materialized Survey Packet
