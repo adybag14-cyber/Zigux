@@ -4,6 +4,7 @@
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards, the primary artifact_diff helper, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
+    "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
     "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
   ],
   "phase": "Phase 2",
@@ -18,7 +19,8 @@
       "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
     ],
     "bootstrap_helpers": [
-      "scripts/zigux/install-zig.py"
+      "scripts/zigux/install-zig.py",
+      "scripts/zigux/stage-pinned-zig-archive.py"
     ],
     "bridge_helpers": [
       "scripts/zigux/kconfig/conf_bridge.zig",
@@ -31,6 +33,9 @@
       "scripts/zigux/check-zig-toolchain.py",
       "scripts/zigux/check-lane05-local-first-archive-workflow.py",
       "scripts/zigux/check-lane05-local-archive-readme.py",
+      "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+      "scripts/zigux/check-lane05-stage-helper-contract.py",
+      "scripts/zigux/check-lane05-stage-helper-selftest.py",
       "scripts/zigux/check-kconfig-bridge.py",
       "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
       "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
