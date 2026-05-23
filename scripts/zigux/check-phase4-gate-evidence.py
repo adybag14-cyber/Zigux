@@ -151,6 +151,13 @@ MATRIX_MARKERS = (
     "next bounded evidence step: keep the dedicated parked survey packet",
 )
 
+DOCS_README_MARKERS = (
+    "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
+    "the current docs-root Phase 4 reminder packet should stay parked on the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair",
+    "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
+    "current `master` keeps the broader Phase 4 packet in a split-readback state rather than the missing bucket:",
+)
+
 WORKFLOW_MARKERS = (
     "- name: Validate Phase 4 rollback routes",
     "run: make -C zigux phase4-validate",
@@ -211,34 +218,28 @@ MISSING_FILE_CASES = (
     ("missing_note_file", NOTE),
 )
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
-
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(old)
     return text.replace(old, new, 1)
 
-
 def require_markers(text: str, markers: tuple[str, ...], label: str, missing: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
-
 
 def extract_note_values(text: str, marker_label: str) -> list[str]:
     needle = f"`{marker_label}="
@@ -255,7 +256,6 @@ def extract_note_values(text: str, marker_label: str) -> list[str]:
         values.append(text[value_start:value_end])
         start = value_end + 1
 
-
 def require_exact_value(text: str, marker_label: str, expected: int, label: str, missing: list[str]) -> None:
     matches = extract_note_values(text, marker_label)
     if not matches:
@@ -265,12 +265,10 @@ def require_exact_value(text: str, marker_label: str, expected: int, label: str,
     if any(value != expected for value in parsed):
         missing.append(f"{label}:{marker_label}:expected={expected}:actual={matches}")
 
-
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("utf-8")
     return hashlib.sha1(header + data).hexdigest()
-
 
 def require_blob_pins(root: Path, note_text: str, missing: list[str]) -> None:
     for marker_label, rel in BLOB_TARGETS:
@@ -282,66 +280,43 @@ def require_blob_pins(root: Path, note_text: str, missing: list[str]) -> None:
         if matches[0] != actual:
             missing.append(f"note:{marker_label}:expected={actual}:actual={matches[0]}")
 
-
 def required_files() -> tuple[Path, ...]:
     return (
-        NOTE,
-        MATRIX,
-        DOCS_README,
-        SCRIPTS_README,
-        TESTS_README,
-        REVIEW_CHECKLIST,
-        WORKFLOW,
-        MAKEFILE,
-        VALIDATOR,
-        ARTIFACT_DIFF_DOC,
-        ARTIFACT_DIFF_HELPER,
-        ARTIFACT_DIFF_CONTRACT_CHECKER,
-        WORKFLOW_ROUTE_CHECKER,
-        ATOMIC64_DIFF,
-        RUNTIME_ATOMIC64_DIFF,
-        ATOMIC64_MANIFEST,
-        RUNTIME_ATOMIC64_SURVEY,
-        BITMAP_SURVEY,
-        PERF_SURVEY,
-        KPROBE_MANIFEST,
-        TEST_FSMOUNT_SURVEY,
-        PHASE4_BUILD,
-        PHASE9_BUILD,
-        REVERSIBLE_DELIVERY_EVIDENCE,
-        SELF,
+        NOTE, MATRIX, DOCS_README, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST,
+        WORKFLOW, MAKEFILE, VALIDATOR, ARTIFACT_DIFF_DOC, ARTIFACT_DIFF_HELPER,
+        ARTIFACT_DIFF_CONTRACT_CHECKER, WORKFLOW_ROUTE_CHECKER, ATOMIC64_DIFF,
+        RUNTIME_ATOMIC64_DIFF, ATOMIC64_MANIFEST, RUNTIME_ATOMIC64_SURVEY,
+        BITMAP_SURVEY, PERF_SURVEY, KPROBE_MANIFEST, TEST_FSMOUNT_SURVEY,
+        PHASE4_BUILD, PHASE9_BUILD, REVERSIBLE_DELIVERY_EVIDENCE, SELF,
     )
-
 
 def build_fixture_tree(root: Path) -> None:
     fixtures = {
-        MATRIX.as_posix(): "\n".join(
-            [
-                "scripts/zigux/check-phase4-gate-evidence.py",
-                "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-                "scripts/zigux/check-phase4-workflow-route-counts.py",
-                "zigux/tests/phase4_perf_baseline_manifest.json",
-                "zigux/tests/phase4_perf_baseline_survey.zig",
-                "explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
-                "dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
-                "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-                "survey owner: `Validation and Perf Team`",
-                "rollback owner: `Validation and Perf Team`",
-                "local-only benchmark commands and acceptable limits are approved today",
-                "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
-                "shared CI perf promotion pending",
-                "current measurable status: absent on current `master`",
-                "reviewability-only no-perf-threshold posture",
-                "validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
-                "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-                "survey owner: `Validation and Perf Team`",
-                "rollback owner: `Validation and Perf Team`",
-                "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
-                "next bounded evidence step: keep the dedicated parked survey packet",
-                "",
-            ]
-        ),
-        DOCS_README.as_posix(): "sample docs readme\n",
+        MATRIX.as_posix(): "\n".join([
+            "scripts/zigux/check-phase4-gate-evidence.py",
+            "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+            "scripts/zigux/check-phase4-workflow-route-counts.py",
+            "zigux/tests/phase4_perf_baseline_manifest.json",
+            "zigux/tests/phase4_perf_baseline_survey.zig",
+            "explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`",
+            "dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`",
+            "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+            "survey owner: `Validation and Perf Team`",
+            "rollback owner: `Validation and Perf Team`",
+            "local-only benchmark commands and acceptable limits are approved today",
+            "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+            "shared CI perf promotion pending",
+            "current measurable status: absent on current `master`",
+            "reviewability-only no-perf-threshold posture",
+            "validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+            "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+            "survey owner: `Validation and Perf Team`",
+            "rollback owner: `Validation and Perf Team`",
+            "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
+            "next bounded evidence step: keep the dedicated parked survey packet",
+            "",
+        ]),
+        DOCS_README.as_posix(): "\n".join(DOCS_README_MARKERS) + "\n",
         SCRIPTS_README.as_posix(): "\n".join(SCRIPTS_README_MARKERS) + "\n",
         TESTS_README.as_posix(): "\n".join(TESTS_README_MARKERS) + "\n",
         REVIEW_CHECKLIST.as_posix(): "\n".join(CHECKLIST_MARKERS) + "\n",
@@ -365,38 +340,33 @@ def build_fixture_tree(root: Path) -> None:
         REVERSIBLE_DELIVERY_EVIDENCE.as_posix(): "reversible delivery evidence placeholder\n",
         SELF.as_posix(): "fixture gate evidence checker\n",
     }
-
     for rel, content in fixtures.items():
         write_text(root / rel, content)
-
     note_lines = ["# Phase 4 Gate Evidence", "", "## Status"]
     for marker_label, rel in BLOB_TARGETS:
         note_lines.append(f"  * `{marker_label}={git_blob_sha(root / rel)}`")
-    note_lines.extend(
-        [
-            f"  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_TARGET_COUNT}`",
-            f"  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}`",
-            "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
-            "  * `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
-            "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
-            "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-            f"  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_TARGET_COUNT}`",
-            f"  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}`",
-            "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
-            "  * `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
-            "  * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
-            "  * `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
-            "",
-            "## Exact Readback Evidence",
-            "  * `scripts/zigux/check-phase4-gate-evidence.py` now recomputes the broader packet blob pins from live file contents so stale readback evidence fails closed.",
-            "  * The runtime atomic64 handoff remains reviewable through `phase4-runtime-atomic64-diff-survey-tests`, `make -C zigux phase4-runtime-atomic64-diff-survey`, two `inc_not_zero` checks, and three `dec_if_positive` checks.",
-            "  * The adjacent local-only perf packet remains explicit through `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and the shared posture that local-only benchmark commands and acceptable limits are approved today while shared CI perf promotion pending remains unchanged.",
-            "  * The parked starter-gap packet keeps `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix` explicit beside the current `make -C zigux phase4-kprobe-example-survey` and `make -C zigux phase4-test-fsmount-survey` wrappers.",
-            "",
-        ]
-    )
+    note_lines.extend([
+        f"  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={EXPECTED_TARGET_COUNT}`",
+        f"  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}`",
+        "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
+        "  * `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
+        "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
+        "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
+        f"  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_TARGET_COUNT}`",
+        f"  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}`",
+        "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
+        "  * `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
+        "  * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
+        "  * `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
+        "",
+        "## Exact Readback Evidence",
+        "  * `scripts/zigux/check-phase4-gate-evidence.py` now recomputes the broader packet blob pins from live file contents so stale readback evidence fails closed.",
+        "  * The runtime atomic64 handoff remains reviewable through `phase4-runtime-atomic64-diff-survey-tests`, `make -C zigux phase4-runtime-atomic64-diff-survey`, two `inc_not_zero` checks, and three `dec_if_positive` checks.",
+        "  * The adjacent local-only perf packet remains explicit through `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and the shared posture that local-only benchmark commands and acceptable limits are approved today while shared CI perf promotion pending remains unchanged.",
+        "  * The parked starter-gap packet keeps `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix` explicit beside the current `make -C zigux phase4-kprobe-example-survey` and `make -C zigux phase4-test-fsmount-survey` wrappers.",
+        "",
+    ])
     write_text(root / NOTE, "\n".join(note_lines))
-
 
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
@@ -405,31 +375,22 @@ def validate_root(root: Path) -> list[str]:
             missing.append(f"file:{rel.as_posix()}")
     if missing:
         return missing
-
     note_text = read_text(root / NOTE)
     require_markers(note_text, NOTE_MARKERS, "note", missing)
-    require_markers(
-        note_text,
-        ("`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",),
-        "note",
-        missing,
-    )
+    require_markers(note_text, ("`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",), "note", missing)
     require_blob_pins(root, note_text, missing)
     for marker_label, expected in COUNT_MARKERS:
         require_exact_value(note_text, marker_label, expected, "note", missing)
-
     require_markers(read_text(root / MATRIX), MATRIX_MARKERS, "matrix", missing)
-    require_markers(read_text(root / DOCS_README), ("sample docs readme",), "docs_readme", missing)
+    require_markers(read_text(root / DOCS_README), DOCS_README_MARKERS, "docs_readme", missing)
     require_markers(read_text(root / SCRIPTS_README), SCRIPTS_README_MARKERS, "scripts_readme", missing)
     require_markers(read_text(root / TESTS_README), TESTS_README_MARKERS, "tests_readme", missing)
     require_markers(read_text(root / REVIEW_CHECKLIST), CHECKLIST_MARKERS, "checklist", missing)
     require_markers(read_text(root / WORKFLOW), WORKFLOW_MARKERS, "workflow", missing)
     return missing
 
-
 def mutate_file(root: Path, rel: Path) -> None:
     write_text(root / rel, read_text(root / rel) + "drift\n")
-
 
 def run_self_test() -> None:
     cases = 0
@@ -439,217 +400,42 @@ def run_self_test() -> None:
         if validate_root(root):
             raise AssertionError("baseline fixture failed")
         cases += 1
-
         mutators = {
-            "shipped_target_count_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-                    "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=18`",
-                ),
-            ),
-            "missing_exact_readback_heading": lambda r: write_text(
-                r / NOTE,
-                replace_once(read_text(r / NOTE), "## Exact Readback Evidence", "## Evidence"),
-            ),
-            "forbidden_gate_evidence_checker_self_pin": lambda r: write_text(
-                r / NOTE,
-                read_text(r / NOTE) + "  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=duplicate`\n",
-            ),
+            "shipped_target_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`", "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=18`")),
+            "missing_exact_readback_heading": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "## Exact Readback Evidence", "## Evidence")),
+            "forbidden_gate_evidence_checker_self_pin": lambda r: write_text(r / NOTE, read_text(r / NOTE) + "  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=duplicate`\n"),
             "validator_blob_pin_drift": lambda r: mutate_file(r, VALIDATOR),
             "phase4_build_manifest_blob_pin_drift": lambda r: mutate_file(r, REVERSIBLE_DELIVERY_EVIDENCE),
             "phase4_build_survey_blob_pin_drift": lambda r: mutate_file(r, RUNTIME_ATOMIC64_SURVEY),
             "phase9_build_manifest_blob_pin_drift": lambda r: mutate_file(r, PHASE9_BUILD),
-            "phase9_build_survey_blob_pin_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "phase4-runtime-atomic64-diff-survey-tests",
-                    "phase9-runtime-atomic64-diff-survey-tests",
-                ),
-            ),
-            "doc_readme_blob_pin_drift": lambda r: mutate_file(r, DOCS_README),
+            "phase9_build_survey_blob_pin_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "phase4-runtime-atomic64-diff-survey-tests", "phase9-runtime-atomic64-diff-survey-tests")),
+            "doc_readme_blob_pin_drift": lambda r: write_text(r / DOCS_README, replace_once(read_text(r / DOCS_README), DOCS_README_MARKERS[0], "Phase 4 notes - `Documentation/zigux/phase4-legacy-note.md`")),
             "script_readme_blob_pin_drift": lambda r: mutate_file(r, SCRIPTS_README),
             "tests_readme_blob_pin_drift": lambda r: mutate_file(r, TESTS_README),
-            "gate_evidence_self_test_case_count_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
-                    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`",
-                ),
-            ),
-            "gate_evidence_self_test_cases_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(read_text(r / NOTE), ",".join(SELF_TEST_CASES), ",".join(SELF_TEST_CASES[:-1])),
-            ),
-            "shared_validator_reruns_gate_evidence_check_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
-                    "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`",
-                ),
-            ),
-            "shared_validator_reruns_gate_evidence_self_test_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-                    "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false`",
-                ),
-            ),
-            "shared_validator_expected_target_count_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-                    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`",
-                ),
-            ),
-            "shared_validator_expected_self_test_case_count_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
-                    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`",
-                ),
-            ),
-            "runtime_atomic64_survey_packet_presence_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
-                    "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`",
-                ),
-            ),
-            "bitmap_diff_survey_replay_marker_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "zigux/tests/phase4_perf_baseline_survey.zig",
-                    "zigux/tests/phase4_perf_survey.zig",
-                ),
-            ),
-            "workflow_route_checker_matrix_presence_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(read_text(r / MATRIX), "scripts/zigux/check-phase4-workflow-route-counts.py\n", ""),
-            ),
-            "kprobe_gap_packet_presence_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
-                    "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`",
-                ),
-            ),
-            "kprobe_owner_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "survey owner: `Validation and Perf Team`",
-                    "survey owner: `Shared Subsystems Pod`",
-                ),
-            ),
-            "kprobe_validation_entrypoint_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-                    "validation entrypoint: `zig test zigux/tests/kprobe_example_survey.zig`",
-                ),
-            ),
-            "kprobe_next_step_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "next bounded evidence step: keep the dedicated parked survey packet",
-                    "next bounded evidence step: revisit later",
-                ),
-            ),
-            "perf_baseline_packet_presence_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
-                    "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
-                ),
-            ),
-            "perf_baseline_note_split_marker_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "local-only benchmark commands and acceptable limits are approved today",
-                    "local-only benchmark commands are approved today",
-                ),
-            ),
-            "perf_baseline_owner_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
-                    "gate owners: `ABI and Replay Team` and `Shared Subsystems Pod`",
-                ),
-            ),
-            "perf_baseline_shared_promotion_status_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "shared CI perf promotion pending",
-                    "shared CI perf promotion landed",
-                ),
-            ),
-            "test_fsmount_gap_packet_presence_drift": lambda r: write_text(
-                r / NOTE,
-                replace_once(
-                    read_text(r / NOTE),
-                    "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
-                    "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
-                ),
-            ),
-            "test_fsmount_threshold_posture_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "reviewability-only no-perf-threshold posture",
-                    "landed perf-threshold posture",
-                ),
-            ),
-            "test_fsmount_owner_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`\nsurvey owner: `Validation and Perf Team`",
-                    "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`\nsurvey owner: `Shared Subsystems Pod`",
-                ),
-            ),
-            "test_fsmount_validation_entrypoint_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
-                    "validation entrypoint: `zig test zigux/tests/phase4_test_fsmount_survey.zig`",
-                ),
-            ),
-            "test_fsmount_linux_style_wrapper_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-                    "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount`",
-                ),
-            ),
-            "test_fsmount_next_step_drift": lambda r: write_text(
-                r / MATRIX,
-                replace_once(
-                    read_text(r / MATRIX),
-                    "current measurable status: absent on current `master`",
-                    "current measurable status: landed on current `master`",
-                ),
-            ),
+            "gate_evidence_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`")),
+            "gate_evidence_self_test_cases_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), ",".join(SELF_TEST_CASES), ",".join(SELF_TEST_CASES[:-1]))),
+            "shared_validator_reruns_gate_evidence_check_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`")),
+            "shared_validator_reruns_gate_evidence_self_test_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false`")),
+            "shared_validator_expected_target_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`")),
+            "shared_validator_expected_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`")),
+            "runtime_atomic64_survey_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`")),
+            "bitmap_diff_survey_replay_marker_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_perf_baseline_survey.zig", "zigux/tests/phase4_perf_survey.zig")),
+            "workflow_route_checker_matrix_presence_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "scripts/zigux/check-phase4-workflow-route-counts.py\n", "")),
+            "kprobe_gap_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`")),
+            "kprobe_owner_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "survey owner: `Validation and Perf Team`", "survey owner: `Shared Subsystems Pod`")),
+            "kprobe_validation_entrypoint_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`", "validation entrypoint: `zig test zigux/tests/kprobe_example_survey.zig`")),
+            "kprobe_next_step_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "next bounded evidence step: keep the dedicated parked survey packet", "next bounded evidence step: revisit later")),
+            "perf_baseline_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`")),
+            "perf_baseline_note_split_marker_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands are approved today")),
+            "perf_baseline_owner_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`", "gate owners: `ABI and Replay Team` and `Shared Subsystems Pod`")),
+            "perf_baseline_shared_promotion_status_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "shared CI perf promotion pending", "shared CI perf promotion landed")),
+            "test_fsmount_gap_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`")),
+            "test_fsmount_threshold_posture_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "reviewability-only no-perf-threshold posture", "landed perf-threshold posture")),
+            "test_fsmount_owner_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`\nsurvey owner: `Validation and Perf Team`", "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`\nsurvey owner: `Shared Subsystems Pod`")),
+            "test_fsmount_validation_entrypoint_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`", "validation entrypoint: `zig test zigux/tests/phase4_test_fsmount_survey.zig`")),
+            "test_fsmount_linux_style_wrapper_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`", "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount`")),
+            "test_fsmount_next_step_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "current measurable status: absent on current `master`", "current measurable status: landed on current `master`")),
         }
-
         for case_name in SELF_TEST_CASES[1:]:
             build_fixture_tree(root)
             if case_name in mutators:
@@ -666,10 +452,8 @@ def run_self_test() -> None:
             if not validate_root(root):
                 raise AssertionError(case_name)
             cases += 1
-
         if cases != EXPECTED_SELF_TEST_CASE_COUNT:
             raise AssertionError(cases)
-
 
 def main() -> int:
     args = parse_args()
@@ -677,16 +461,13 @@ def main() -> int:
         run_self_test()
         print(f"phase4 gate evidence self-test: PASS ({EXPECTED_SELF_TEST_CASE_COUNT} cases)")
         return 0
-
     failures = validate_root(Path(args.root).resolve())
     if failures:
         for failure in failures:
             print(f"phase4 gate evidence check failed: {failure}")
         return 1
-
     print("phase4 gate evidence check passed")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
