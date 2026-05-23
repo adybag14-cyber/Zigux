@@ -149,8 +149,8 @@ BOOTSTRAP_PRESENT_MARKERS = (
 )
 
 BOOTSTRAP_GAP_MARKERS = (
-    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, or returned fixdep packet on current `master`.",
-    "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer, local-first archive, or direct cross-route surfaces from the current packet.",
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, returned archive-verification and staged-archive helper packet, or returned fixdep packet on current `master`.",
+    "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer, local-first archive, archive-verification, staged-helper, or direct cross-route surfaces from the current packet.",
 )
 
 PHASE2_CLOSURE_MARKERS = (
