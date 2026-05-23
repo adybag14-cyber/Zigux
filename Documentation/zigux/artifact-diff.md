@@ -8,7 +8,13 @@ Phase 1 still uses `scripts/zigux/artifact_diff.py` as the shared host-side comp
 
 ## Current Phase 2 use
 
-Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep`, `genksyms`, and the kconfig bridge packet.
+Phase 2 keeps the shared helper explicit through the current direct-readback host-tool packets instead of leaving this note at a generic family summary.
+
+- `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, and `zigux/tests/fixtures/fixdep/cases.json` keep `scripts/zigux/artifact_diff.py` on the current `fixdep` parity path.
+- `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, and `zigux/tests/fixtures/genksyms_bridge/manifest.json` keep the same helper explicit on the current `genksyms` bridge packet.
+- `scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` keep the same helper explicit on the current kconfig bridge packet.
+
+Keep broader Phase 2 closure-side, make-wrapper, and shared reminder claims routed through `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and `scripts/zigux/README.md` so this note stays bounded to the helper contract and the current direct-readback consumer packet.
 
 ## Current Phase 3 use
 
