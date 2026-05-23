@@ -93,6 +93,7 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
+    try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`");
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
