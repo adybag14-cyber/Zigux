@@ -39,6 +39,19 @@ EXPECTED_EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
+EXPECTED_PROOF_FANOUT_MARKERS = (
+    "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
+    "zigux/tests/phase11_dw_wdt_build.zig",
+    "zigux/tests/phase11_dw_wdt_restart_build.zig",
+    "zigux/tests/phase11_dw_wdt_pm_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+)
+
 REQUIRED_CONTRACT_MARKERS = (
     "3 build test names",
     "0 shared `test_step.dependOn(...)` edges",
@@ -105,6 +118,7 @@ def run_check(root: Path) -> None:
 
     require_markers(str(CONTRACT_PATH), contract, REQUIRED_CONTRACT_MARKERS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_EXACT_CURRENT_CHECKS)
+    require_markers(str(CONTRACT_PATH), contract, EXPECTED_PROOF_FANOUT_MARKERS)
 
 
 def write(path: Path, text: str) -> None:
@@ -140,6 +154,7 @@ def build_fixture(root: Path) -> None:
                 "10 HVC current-head exact command markers",
                 "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
+                *EXPECTED_PROOF_FANOUT_MARKERS,
             ]
         )
         + "\n",
@@ -169,15 +184,12 @@ def run_self_test() -> int:
         write(
             wrong_contract / CONTRACT_PATH,
             read_text(wrong_contract / CONTRACT_PATH).replace(
-                "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
-                "`make -C zigux phase11-validate` wrapper now cover eight focused proof builds through",
+                "10 HVC current-head exact command markers",
+                "8 HVC current-head exact command markers",
                 1,
             ),
         )
-        expect_failure(
-            wrong_contract,
-            "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
-        )
+        expect_failure(wrong_contract, "10 HVC current-head exact command markers")
         case_count += 1
 
         missing_contract_check = tmpdir / "missing_contract_check"
@@ -193,6 +205,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_contract_check,
             "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+        )
+        case_count += 1
+
+        missing_proof_fanout_marker = tmpdir / "missing_proof_fanout_marker"
+        shutil.copytree(fixture, missing_proof_fanout_marker, dirs_exist_ok=True)
+        write(
+            missing_proof_fanout_marker / CONTRACT_PATH,
+            read_text(missing_proof_fanout_marker / CONTRACT_PATH).replace(
+                "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_proof_fanout_marker,
+            "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
         )
         case_count += 1
 
