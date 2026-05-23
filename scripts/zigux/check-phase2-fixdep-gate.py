@@ -60,10 +60,12 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
     'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
     'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
     "validate_tool_source(ZIG_FIXDEP)",
+    "EXPECTED_SELF_TEST_CASE_COUNT = 15",
     'print("FIXDEP_SELF_TEST=pass")',
-    'print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")',
+    'print(f"FIXDEP_SELF_TEST_CASE_COUNT={checks_run}")',
     'print("FIXDEP_DIFF=pass")',
     'print("FIXDEP_DETERMINISM=pass")',
+    "assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT",
 )
 
 REQUIRED_FIXDEP_CASE_NAMES = (
