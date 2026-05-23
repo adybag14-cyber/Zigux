@@ -102,6 +102,12 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
+EXACT_ONCE_MARKERS = {
+    SCRIPTS_README_PATH: [
+        "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
+    ],
+}
+
 
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
@@ -120,6 +126,14 @@ def read_text(root: Path, rel_path: str) -> str:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def count_exact_line_occurrences(content: str, marker: str) -> int:
+    return sum(1 for line in content.splitlines() if line == marker)
+
+
+def duplicate_marker_occurrence(content: str, marker: str) -> str:
+    return content.replace(marker, f"{marker}\n{marker}", 1)
 
 
 def build_fixture_text(rel_path: str) -> str:
@@ -142,6 +156,13 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in EXACT_ONCE_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            count = count_exact_line_occurrences(text, marker)
+            if count != 1:
+                failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
 
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = read_text(root, rel_path)
@@ -178,6 +199,13 @@ def run_self_test() -> int:
                 write_text(base / rel_path, current.replace(marker, "", 1))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
+        for rel_path, markers in EXACT_ONCE_MARKERS.items():
+            for marker in markers:
+                seed_fixture_tree(base)
+                current = read_text(base, rel_path)
+                write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
+                expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
+
         for rel_path, markers in FORBIDDEN_MARKERS.items():
             for marker in markers:
                 seed_fixture_tree(base)
@@ -197,6 +225,10 @@ def run_self_test() -> int:
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_BUILD_ONLY_SURFACE_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
     )
     print(
         "PHASE9_BUILD_ONLY_SURFACE_FORBIDDEN_MARKER_COUNT="
@@ -237,6 +269,10 @@ def main() -> int:
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_BUILD_ONLY_SURFACE_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
     )
     print(
         "PHASE9_BUILD_ONLY_SURFACE_FORBIDDEN_MARKER_COUNT="
