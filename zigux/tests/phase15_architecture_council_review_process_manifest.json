@@ -98,14 +98,18 @@
     "`zigux/tests/phase15_parity_scorecard.zig`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+    "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+    "`zigux/tests/phase15_governance_lane_sequencing.zig`",
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-    "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
+    "`scripts/zigux/validate-phase15.py`",
+    "one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
   ],
   "shared_gap_expected_present_paths": [
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
