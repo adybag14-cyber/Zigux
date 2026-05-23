@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
+GENKSYMS_ZIG = ROOT / "scripts" / "zigux" / "genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig"
 CASES_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json"
 MANIFEST_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "manifest.json"
@@ -126,6 +127,10 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def helper_anchor_test_marker(anchor: str) -> str:
+    return f'test "{anchor}" {{'
+
+
 def extract_literal_from_module(module: ast.Module, const_name: str, *, source_path: Path) -> object:
     for node in module.body:
         if isinstance(node, ast.Assign):
@@ -230,6 +235,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(root / MAKEFILE.relative_to(ROOT))
     bridge_checker_path = root / BRIDGE_CHECKER.relative_to(ROOT)
     bridge_checker_text = read_text(bridge_checker_path)
+    genksyms_text = read_text(root / GENKSYMS_ZIG.relative_to(ROOT))
     version_side_effect_text = read_text(root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT))
 
     for marker in WORKFLOW_LINES:
@@ -274,6 +280,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
+
+    for anchor in helper_local_anchors:
+        marker = helper_anchor_test_marker(anchor)
+        count = count_exact_lines(genksyms_text, marker)
+        if count == 0:
+            issues.append(("MISSING_HELPER_LOCAL_ANCHOR", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_HELPER_LOCAL_ANCHOR", f"{marker}:count={count}"))
 
     cases_payload, cases_issue = read_json(root / CASES_FIXTURE.relative_to(ROOT), "INVALID_CASES_JSON")
     if cases_issue is not None:
@@ -347,10 +361,23 @@ def render_bridge_checker_stub() -> str:
     )
 
 
+def render_genksyms_stub() -> str:
+    return "\n".join(
+        (
+            helper_anchor_test_marker("genksyms bridge treats pure version requests as version command"),
+            "}",
+            helper_anchor_test_marker("genksyms bridge preserves repeated pure version invocations"),
+            "}",
+            "",
+        )
+    )
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(root / WORKFLOW.relative_to(ROOT), "\n".join(WORKFLOW_LINES) + "\n")
     write_text(root / MAKEFILE.relative_to(ROOT), "\n".join(MAKEFILE_LINES) + "\n")
     write_text(root / BRIDGE_CHECKER.relative_to(ROOT), render_bridge_checker_stub())
+    write_text(root / GENKSYMS_ZIG.relative_to(ROOT), render_genksyms_stub())
     write_text(
         root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
         'test "genksyms bridge preserves version side effect before invalid long option" {\n'
@@ -490,6 +517,37 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        genksyms_path = root / GENKSYMS_ZIG.relative_to(ROOT)
+        genksyms_path.write_text(
+            genksyms_path.read_text(encoding="utf-8").replace(
+                helper_anchor_test_marker("genksyms bridge treats pure version requests as version command") + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MISSING_HELPER_LOCAL_ANCHOR",
+            helper_anchor_test_marker("genksyms bridge treats pure version requests as version command"),
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        genksyms_path = root / GENKSYMS_ZIG.relative_to(ROOT)
+        genksyms_path.write_text(
+            duplicate_exact_line(
+                genksyms_path.read_text(encoding="utf-8"),
+                helper_anchor_test_marker("genksyms bridge preserves repeated pure version invocations"),
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_HELPER_LOCAL_ANCHOR",
+            helper_anchor_test_marker("genksyms bridge preserves repeated pure version invocations") + ":count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         manifest_path = root / MANIFEST_FIXTURE.relative_to(ROOT)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["standalone_proof_packet"] = []
@@ -592,6 +650,9 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
+    + 1
+    + 1
+    + 1
     + 2
     + 2
     + 1
@@ -617,6 +678,7 @@ def main() -> int:
     print(f"PHASE2_GENKSYMS_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
     print(f"PHASE2_GENKSYMS_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
     print(f"PHASE2_GENKSYMS_ALIGNMENT_CASE_COUNT=derived")
+    print(f"PHASE2_GENKSYMS_ALIGNMENT_HELPER_ANCHOR_COUNT=derived")
     return 0
 
 
