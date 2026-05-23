@@ -165,3 +165,58 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
     );
 }
+
+test "phase 8 verify routing witness records the current mixed-source bridge reminder packet" {
+    const survey = try readRepoFile("Documentation/zigux/phase8-libbpf-segment-survey.md");
+    defer std.testing.allocator.free(survey);
+
+    try expectContains(
+        survey,
+        "That same reminder-side bridge test packet in `zigux/tests/phase8_file_path_handle_bridge.zig` now also keeps the Linux-style replay route, the manifest-backed split between the landed `fdinfo-map-info-helpers` and `map-reuse-compatibility` helpers versus the deferred `file-path-and-handle-bridge` resource boundary, and the source-level ban on `bpf_obj_get(`, `F_DUPFD_CLOEXEC`, and direct file-open bridge-heavy calls explicit on current `master`.",
+    );
+    try expectContains(
+        survey,
+        "`tools/lib/bpf/zigux_segments/manifest.json` has since advanced both `fdinfo-map-info-helpers` and `map-reuse-compatibility` as landed helper-first slices with the newer shared bridge rationale, so the smallest same-family reminder drift is now whether sibling reminder surfaces continue to reflect those same landed `why_now` strings whenever they restate the focused bridge packet.",
+    );
+    try expectContains(
+        survey,
+        "That focused libbpf-segment shard is currently carried by `zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`, which keep the bounded online-CPU route CPU-index witness explicit without widening into setup-side routing, reopen-flow, or bridge-heavy claims.",
+    );
+
+    const manifest = try readRepoFile("tools/lib/bpf/zigux_segments/manifest.json");
+    defer std.testing.allocator.free(manifest);
+
+    try expectContains(
+        manifest,
+        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"why_now\": \"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"why_now\": \"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+    );
+
+    const bridge_test = try readRepoFile("zigux/tests/phase8_file_path_handle_bridge.zig");
+    defer std.testing.allocator.free(bridge_test);
+
+    try expectContains(
+        bridge_test,
+        "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
+    );
+    try expectContains(
+        bridge_test,
+        "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes",
+    );
+    try expectContains(bridge_test, "planning-only `planTokenPreparation()` gating");
+}
