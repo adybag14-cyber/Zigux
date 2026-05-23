@@ -55,23 +55,26 @@ packet below:
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 The returned driver, focused register-device glue proof, focused nowayout
-policy proof, dedicated replay routes, plus the paired module slice, teardown
-note, and remove-handoff note keep the bounded
+policy proof, dedicated bounded replay routes, plus the paired module slice,
+teardown note, and remove-handoff note keep the bounded
 `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `probeSummary()`, `descriptorRequestSummary()`,
 `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
-`watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
+`watchdogDrvdataCheckpointSummary()`,
+`registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `registrationHandoffSummary()`, `registrationPlanSummary()`,
 `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
-`nowayoutPolicySummary()`, `requestStop()`, and `summarizeTeardown()`
-checkpoint names directly reviewable as driver-backed teardown and failure-mode
-surfaces.
+`nowayoutPolicySummary()`, `requestStop()`, `summarizeTeardown()`, and
+`summarizeRemoveHandoff()` checkpoint names directly reviewable as
+driver-backed teardown and failure-mode surfaces.
 
 The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
 across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
-while the existing register-device glue proof still carries the stop-policy
-split through `requestStop()` and `summarizeTeardown()`.
+while the existing register-device glue proof still carries the
+registration-intent ordering, stop-policy split, and dedicated remove-handoff
+summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
+`summarizeTeardown()`, and `summarizeRemoveHandoff()`.
 
 ## Teardown And Failure-Mode Review Surface
 
