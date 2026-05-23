@@ -24,6 +24,7 @@ PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoin
 BASE64_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-base64-corpus-determinism.py")
 BASE64_C_PARITY_CHECKER = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 BSEARCH_CORPUS_CHECKER = Path("scripts/zigux/check-phase6-bsearch-corpus-evidence.py")
+BSEARCH_C_PARITY_CHECKER = Path("scripts/zigux/check-phase6-bsearch-c-parity.py")
 BASE64_BSEARCH_PERF_MARKERS_CHECKER = Path(
     "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"
 )
@@ -42,6 +43,7 @@ CHECKER_INVOCATIONS = [
     (BASE64_CORPUS_CHECKER, "--repo-root"),
     (BASE64_C_PARITY_CHECKER, None),
     (BSEARCH_CORPUS_CHECKER, "--repo-root"),
+    (BSEARCH_C_PARITY_CHECKER, None),
     (BASE64_BSEARCH_PERF_MARKERS_CHECKER, "--repo-root"),
     (CHECKSUM_CORPUS_CHECKER, "--repo-root"),
     (CHECKSUM_C_PARITY_CHECKER, None),
@@ -204,12 +206,17 @@ REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
 ]
 
+EXPECTED_BSEARCH_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "scripts/zigux/check-phase6-bsearch-c-parity.py",
+]
+
 EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 55
 
 
 class ValidationError(RuntimeError):
@@ -356,6 +363,12 @@ def validate(root: Path) -> None:
     require_helper_checker_surfaces(
         helper_evidence_manifest,
         "phase6 helper evidence manifest",
+        "bsearch",
+        EXPECTED_BSEARCH_CHECKER_SURFACES,
+    )
+    require_helper_checker_surfaces(
+        helper_evidence_manifest,
+        "phase6 helper evidence manifest",
         "checksum",
         EXPECTED_CHECKSUM_CHECKER_SURFACES,
     )
@@ -365,6 +378,12 @@ def validate(root: Path) -> None:
         "base64",
         "still_missing_direct_companions",
         EXPECTED_BASE64_DIRECT_GAPS,
+    )
+    require_helper_checker_surfaces(
+        helper_parity_manifest,
+        "phase6 helper parity manifest",
+        "bsearch",
+        EXPECTED_BSEARCH_CHECKER_SURFACES,
     )
     require_helper_checker_surfaces(
         helper_parity_manifest,
@@ -445,6 +464,10 @@ def scaffold_repo(root: Path) -> None:
                 "still_missing_direct_companions": EXPECTED_BASE64_DIRECT_GAPS,
             },
             {
+                "key": "bsearch",
+                "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES,
+            },
+            {
                 "key": "checksum",
                 "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
             }
@@ -464,7 +487,7 @@ def scaffold_repo(root: Path) -> None:
                 "still_missing_direct_companions": EXPECTED_BASE64_DIRECT_GAPS,
                 "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]},
             },
-            {"key": "bsearch", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "bsearch", "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "checksum", "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "hexdump", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
         ],
@@ -585,7 +608,13 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
-        manifest["helpers"][1]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
+        manifest["helpers"][1]["checker_surfaces"] = ["scripts/zigux/check-phase6-bsearch-corpus-evidence.py"]
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["helpers"][2]["checker_surfaces"] = ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -594,6 +623,12 @@ def run_self_test() -> None:
         parity_manifest["helpers"][0]["still_missing_direct_companions"] = [
             "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
         ]
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["helpers"][1]["checker_surfaces"] = ["scripts/zigux/check-phase6-bsearch-corpus-evidence.py"]
         write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -654,6 +689,10 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
+        (root / BSEARCH_C_PARITY_CHECKER).unlink()
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
         (root / BASE64_BSEARCH_PERF_MARKERS_CHECKER).unlink()
         expect_failure(lambda: validate(root))
         cases_run += 1
@@ -683,6 +722,10 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
         write(root / SHARED_SURFACE_CHECKER, make_checker_stub("--root"))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / BSEARCH_C_PARITY_CHECKER, make_checker_stub("--repo-root"))
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
