@@ -41,9 +41,9 @@ wording drifted ahead of current contents reads.
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig` and
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 - remaining unported work is still direct focused replay or manifest recovery,
-  platform-driver registration reviewability, watchdog-core registration
-  reviewability, live remove-hook execution, reboot-backed teardown execution,
-  and hardware-backed validation
+  live platform-driver registration execution, live watchdog-core registration
+  execution, live remove-hook execution, reboot-backed teardown execution, and
+  hardware-backed validation
 
 ## Current-Head Packet
 
@@ -67,11 +67,18 @@ bounded `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `probeSummary()`, `descriptorRequestSummary()`,
 `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
-`watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
-`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
-`registrationPlanSummary()`, `registerDeviceCallSummary()`,
-`registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()`
+`watchdogDrvdataCheckpointSummary()`,
+`registrationIntentCheckpointSummary()`,
+`rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`,
+`registrationHandoffSummary()`, `registrationPlanSummary()`,
+`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
+`requestStop()`, `summarizeTeardown()`, and `summarizeRemoveHandoff()`
 checkpoint names reviewable as the current packet.
+
+That means the roadmap-facing simple-driver template, bounded teardown parity,
+and bounded failure-mode parity are already reviewable in the returned packet,
+while live execution and hardware-backed validation stay outside the current
+claim.
 
 The direct nowayout proof now exercises `nowayoutPolicySummary()` across the
 bounded stopped, blocked-by-nowayout, and kept-running dispositions without
