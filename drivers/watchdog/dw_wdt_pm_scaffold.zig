@@ -103,6 +103,41 @@ pub fn resumeSummary(request: PmTransitionRequest) ResumeSummary {
     };
 }
 
+test "phase11 dw_wdt pm scaffold keeps idle suspend and resume explicit" {
+    const request = PmTransitionRequest{
+        .watchdog_running = false,
+        .nowayout = true,
+        .reset_control_available = false,
+        .state_snapshot_available = false,
+        .mmio_window_available = false,
+        .pretimeout_irq_present = true,
+    };
+
+    const suspend_report = suspendSummary(request);
+    try std.testing.expectEqualStrings(anchor_path, suspend_report.anchor);
+    try std.testing.expectEqual(SuspendDisposition.idle_noop, suspend_report.disposition);
+    try std.testing.expect(suspend_report.suspend_requested);
+    try std.testing.expect(!suspend_report.stop_requested);
+    try std.testing.expect(!suspend_report.reset_assert_requested);
+    try std.testing.expect(!suspend_report.register_snapshot_requested);
+    try std.testing.expect(!suspend_report.pretimeout_mask_requested);
+    try std.testing.expect(suspend_report.enters_low_power_ready_state);
+    try std.testing.expect(!suspend_report.keeps_hardware_running);
+    try std.testing.expect(!suspend_report.blocked_on_live_mmio);
+
+    const resume_report = resumeSummary(request);
+    try std.testing.expectEqualStrings(anchor_path, resume_report.anchor);
+    try std.testing.expectEqual(ResumeDisposition.idle_noop, resume_report.disposition);
+    try std.testing.expect(resume_report.resume_requested);
+    try std.testing.expect(!resume_report.clock_enable_requested);
+    try std.testing.expect(!resume_report.register_restore_requested);
+    try std.testing.expect(!resume_report.restart_requested);
+    try std.testing.expect(!resume_report.pretimeout_restore_requested);
+    try std.testing.expect(!resume_report.returns_watchdog_to_running_state);
+    try std.testing.expect(!resume_report.blocked_on_live_mmio);
+    try std.testing.expect(!resume_report.preserves_running_hardware_without_restore);
+}
+
 test "phase11 dw_wdt pm scaffold quiesces a stoppable watchdog before suspend" {
     const request = PmTransitionRequest{
         .watchdog_running = true,
