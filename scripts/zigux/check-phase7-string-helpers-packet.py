@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 50
+SELF_TEST_CASE_COUNT = 51
 
 
 def read_text(path: Path) -> str:
@@ -567,6 +567,12 @@ def run_self_test() -> None:
         samples_readme_marker = "* `*rbtree*`"
         remove_once(samples_readme_path, samples_readme_marker)
         expect_missing_marker("missing_samples_readme_rbtree_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        samples_readme_marker = "* `*kasprintf*`"
+        remove_once(samples_readme_path, samples_readme_marker)
+        expect_missing_marker("missing_samples_readme_kasprintf_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
