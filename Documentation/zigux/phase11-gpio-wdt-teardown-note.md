@@ -8,7 +8,7 @@ surfaces that already describe the host-free teardown and stop-policy packet.
 ## Status
 
 - `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`
-- teardown evidence remains bounded to the returned gpio driver, direct proof,
+- teardown evidence remains bounded to the returned gpio driver, direct proofs,
   and coupled docs packet
 - remaining follow-through is still wider focused replay or manifest recovery,
   live GPIO descriptor lookup, platform-driver registration, watchdog-core
@@ -21,12 +21,13 @@ The current teardown-facing GPIO packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-These returned driver, direct proof, and documentation surfaces keep the
+These returned driver, direct proofs, and documentation surfaces keep the
 teardown packet readable without promoting absent wider replay, survey,
 manifest, or shared-build files into current-head evidence.
 
@@ -37,9 +38,10 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `summarizeTeardown()` and the bounded stop-request outcomes it records
 - `requestStop()` and the split between watchdog-core stop policy and hardware
   `always-running` behavior
-- `nowayoutPolicySummary()` as a driver-local checkpoint that matches the same
-  bounded stop-policy split already proved directly through `requestStop()` and
-  `summarizeTeardown()`, rather than through a standalone nowayout-only replay
+- `nowayoutPolicySummary()` as a directly replayed checkpoint through
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`, keeping the
+  bounded stopped, blocked-by-nowayout, and kept-running split explicit without
+  needing a wider shared replay packet
 - `registerDeviceFailureSummary()` and the teardown-facing failure-mode cues
   that stay reviewable without claiming live remove-hook or reboot-backed
   shutdown execution
@@ -60,17 +62,17 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - the teardown handoff after descriptor preflight and the first bounded
   register-device request surface
 
-The returned driver-backed packet also keeps the stop-transition,
-reboot-glue handoff, remove-handoff boundary, and teardown-ownership boundaries
-visible without claiming live `watchdog_set_drvdata()` execution, live
-`watchdog_stop_on_reboot()` execution, live GPIO execution, live platform
-cleanup callbacks, platform cleanup callbacks, or host-backed shutdown
-behavior.
+The returned driver-backed packet also keeps the stop-transition, direct
+nowayout-policy proof, reboot-glue handoff, remove-handoff boundary, and
+teardown-ownership boundaries visible without claiming live
+`watchdog_set_drvdata()` execution, live `watchdog_stop_on_reboot()`
+execution, live GPIO execution, live platform cleanup callbacks, platform
+cleanup callbacks, or host-backed shutdown behavior.
 
 ## Bounded Meaning
 
-This note records the returned teardown summaries and direct proof only. It does
-not claim live GPIO descriptor acquisition, `platform_set_drvdata()`
+This note records the returned teardown summaries and direct proofs only. It
+does not claim live GPIO descriptor acquisition, `platform_set_drvdata()`
 execution, `watchdog_set_drvdata()` execution,
 `watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration, live
