@@ -185,9 +185,33 @@ test "post reset replay keeps probe snapshot refresh explicit before queue resum
     try std.testing.expect(!summary.can_resume_queues);
 }
 
-test "post reset replay clears once all bounded replay cues are satisfied" {
+test "post reset replay skips optional replay gates when the packet marks them absent" {
     const summary = try summarizePostResetReplay(.{
         .reset_generation = 7,
+        .receive_queue_pairs = 6,
+        .control_queue_restored = false,
+        .receive_refill_replayed = false,
+        .transmit_recycle_ready = false,
+        .probe_snapshot_replayed = false,
+        .requires_control_queue_restore = false,
+        .requires_receive_refill_replay = false,
+        .requires_transmit_recycle = false,
+        .requires_probe_snapshot_replay = false,
+    });
+
+    try std.testing.expectEqual(PostResetReplayBlocker.none, summary.blocker);
+    try std.testing.expectEqual(PostResetReplayCheckpoint.queues_may_resume, summary.next_checkpoint);
+    try std.testing.expect(!summary.requires_control_queue_restore);
+    try std.testing.expect(!summary.requires_receive_refill_replay);
+    try std.testing.expect(!summary.requires_transmit_recycle);
+    try std.testing.expect(!summary.requires_probe_snapshot_replay);
+    try std.testing.expect(summary.replay_complete);
+    try std.testing.expect(summary.can_resume_queues);
+}
+
+test "post reset replay clears once all bounded replay cues are satisfied" {
+    const summary = try summarizePostResetReplay(.{
+        .reset_generation = 8,
         .receive_queue_pairs = 8,
         .control_queue_restored = true,
         .receive_refill_replayed = true,
@@ -215,7 +239,7 @@ test "post reset replay rejects packets without receive queues" {
 
 test "post reset ownership keeps queue submission under recovery until replay completes" {
     const summary = try summarizePostResetOwnership(.{
-        .reset_generation = 8,
+        .reset_generation = 9,
         .receive_queue_pairs = 4,
         .control_queue_restored = true,
         .receive_refill_replayed = true,
@@ -231,9 +255,30 @@ test "post reset ownership keeps queue submission under recovery until replay co
     try std.testing.expect(!summary.queues_ready_for_driver_ownership);
 }
 
+test "post reset ownership returns queue submission to the driver once optional gates are parked" {
+    const summary = try summarizePostResetOwnership(.{
+        .reset_generation = 10,
+        .receive_queue_pairs = 4,
+        .control_queue_restored = false,
+        .receive_refill_replayed = false,
+        .transmit_recycle_ready = false,
+        .probe_snapshot_replayed = false,
+        .requires_control_queue_restore = false,
+        .requires_receive_refill_replay = false,
+        .requires_transmit_recycle = false,
+        .requires_probe_snapshot_replay = false,
+    });
+
+    try std.testing.expectEqual(PostResetReplayBlocker.none, summary.blocker);
+    try std.testing.expectEqual(PostResetReplayCheckpoint.queues_may_resume, summary.next_checkpoint);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.transmit_submission_owner);
+    try std.testing.expect(summary.queues_ready_for_driver_ownership);
+}
+
 test "post reset ownership returns queue submission to the driver once replay clears" {
     const summary = try summarizePostResetOwnership(.{
-        .reset_generation = 9,
+        .reset_generation = 11,
         .receive_queue_pairs = 4,
         .control_queue_restored = true,
         .receive_refill_replayed = true,
