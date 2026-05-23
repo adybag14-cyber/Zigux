@@ -368,6 +368,18 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/rbtree.zig"].pop("cached_root_alias_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/rbtree.zig:cached_root_alias_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"].remove(
                         'test "strcmp mirrors C-string lexical ordering"'
                     ),
@@ -438,6 +450,22 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["lane_sequencing"].__setitem__("direct_anchor_followup_helpers", [
+                        "tools/lib/bitmap.zig",
+                        "tools/lib/find_bit.zig",
+                        "tools/lib/rbtree.zig",
+                    ]),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:lane_sequencing.direct_anchor_followup_helpers",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["lane_sequencing"].__setitem__("rule_summary", "drifted rule summary"),
                     write_manifest(root, manifest),
                 )
@@ -456,6 +484,7 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
+        manifest_path.writeText if False else None
         manifest_path.write_text("{\n", encoding="utf-8")
         try:
             load_manifest(root)
