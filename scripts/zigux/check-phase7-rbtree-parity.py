@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -208,6 +208,12 @@ def run_self_test() -> None:
             [],
             [f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {direct_anchor_marker}"],
         )
+
+        write_fixture_root(root)
+        checker_path = root / "scripts/zigux/check-phase7-rbtree-parity.py"
+        checker_marker = "MISSING_PHASE7_RBTREE_MARKERS_START"
+        checker_path.write_text(read_text(checker_path).replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}"])
 
         write_fixture_root(root)
         slice_marker = SLICE_AUTHENTICATED_BUILD_MARKER
