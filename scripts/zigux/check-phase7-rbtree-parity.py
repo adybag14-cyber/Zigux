@@ -28,6 +28,11 @@ NEXT_STEP_WRAPPER_MARKER = (
     "`phase7-rbtree-test:` or `phase7-rbtree-survey:` wrappers materialize on current `master`"
 )
 
+DIRECT_BUILD_READBACK_MARKER = (
+    "`zigux/tests/phase7_build.zig` now rematerialized through the same authenticated reread path in this slot, "
+    "so keep it explicit as returned shared non-owner build evidence without treating it as helper-local ownership."
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`",
@@ -40,9 +45,10 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`zigux/tests/fixtures/phase7_rbtree.json`",
-        "Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths`",
         "Fresh authenticated GitHub reread in this slot directly returned:",
+        "Fresh current-master reread in this slot also directly returned these shared, legacy, or roadmap-adjacent non-owner surfaces:",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
+        DIRECT_BUILD_READBACK_MARKER,
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         "PHASE7_RBTREE_PARITY=pass",
@@ -55,6 +61,7 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_rbtree.json": [',
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c": [',
         "NEXT_STEP_WRAPPER_MARKER = (",
+        "DIRECT_BUILD_READBACK_MARKER = (",
     ],
     "lib/rbtree.zig": [
         "pub const Node = struct {",
@@ -153,7 +160,7 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         direct_anchor_path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
-        direct_anchor_marker = "Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths`"
+        direct_anchor_marker = DIRECT_BUILD_READBACK_MARKER
         direct_anchor_path.write_text(
             read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
             encoding="utf-8",
