@@ -374,6 +374,20 @@ def run_self_test() -> int:
 
         broken = dict(original)
         broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "python3 scripts/zigux/validate-phase10.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'python3 scripts/zigux/validate-phase10.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
             item for item in broken["exact_checks"] if item != "python3 scripts/zigux/validate-phase10-closure.py"
         ]
         write_manifest(broken)
