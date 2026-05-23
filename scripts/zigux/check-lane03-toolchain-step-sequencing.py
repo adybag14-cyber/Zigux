@@ -209,7 +209,7 @@ def build_self_test_root(root: Path) -> None:
                     "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"
                 },
                 "upgrade_policy": {
-                    "channel_minimum_lockstep": true,
+                    "channel_minimum_lockstep": True,
                     "archive_target_scope": EXPECTED_ARCHIVE_TARGET_SCOPE,
                     "required_make_routes": EXPECTED_REQUIRED_MAKE_ROUTES,
                 },
