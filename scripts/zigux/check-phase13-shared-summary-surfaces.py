@@ -313,8 +313,7 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         notifier_gap_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
-        notifier_gap_path.writeText = notifier_gap_path.write_text
-        notifier_gap_path.writeText(
+        notifier_gap_path.write_text(
             notifier_gap_path.read_text(encoding="utf-8")
             + "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`\n",
             encoding="utf-8",
