@@ -48,6 +48,18 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     "bridge options parser rejects duplicate mode specific options",
 ]
 
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES = [
+    "allmodconfig",
+    "randconfig",
+]
+
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = [
+    "allmodconfig",
+    "allnoconfig",
+    "allyesconfig",
+    "randconfig",
+]
+
 REQUIRED_CONFDATA_CASES = [
     "sample",
     "escaped_strings",
@@ -164,7 +176,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 6
+EXPECTED_SELF_TEST_CASE_COUNT = 7
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -336,6 +348,8 @@ def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf
         "allconfig_override_packet": expected_allconfig_override_packet,
         "randconfig_env_packet": expected_randconfig_env_packet,
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
+        "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
+        "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
     }
     for field_name, expected_values in sequence_fields.items():
         if manifest.get(field_name) != expected_values:
@@ -567,6 +581,8 @@ def build_conf_manifest() -> dict[str, object]:
         "syncconfig_env_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if "nosilentupdate" in case],
         "allconfig_sentinel_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES],
         "allconfig_override_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if "allconfig" in case],
+        "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
+        "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
         "randconfig_env_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if "seed" in case or "probability" in case],
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
     }
@@ -611,6 +627,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir_str)
         fixture_root = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
         cases_path = fixture_root / "cases.json"
+        conf_manifest_path = fixture_root / "conf_manifest.json"
         confdata_manifest_path = fixture_root / "confdata_manifest.json"
         confdata_bridge_path = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 
@@ -636,6 +653,14 @@ def run_self_test() -> int:
         write_text(confdata_bridge_path, source)
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_allconfig_explicit_override_modes"] = REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES[:-1]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
