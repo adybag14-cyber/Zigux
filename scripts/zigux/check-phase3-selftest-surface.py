@@ -207,6 +207,8 @@ VALIDATOR_SUPPORT_EXACT_ONCE_MARKERS = (
 
 SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
+    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
+    "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-shared-tests-routes.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
@@ -607,6 +609,16 @@ def run_self_test() -> int:
             VALIDATOR_SUPPORT_PATH,
             "make -C zigux phase3-low-level-wrappers-test",
             "validator-support note",
+        ),
+        (
+            SCRIPTS_README_PATH,
+            "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
+            "scripts README",
+        ),
+        (
+            SCRIPTS_README_PATH,
+            "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
+            "scripts README",
         ),
         (
             SCRIPTS_README_PATH,
