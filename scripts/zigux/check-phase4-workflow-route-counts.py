@@ -10,6 +10,8 @@ Phase 4 review surface.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import re
 import sys
 from pathlib import Path
@@ -625,6 +627,33 @@ def run_selftest() -> None:
 
         write_baseline()
         run_check()
+        emitted_self_test = io.StringIO()
+        with contextlib.redirect_stdout(emitted_self_test):
+            emit_status(self_test=True)
+        if emitted_self_test.getvalue().splitlines() != [
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+            f"PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT={len(SELFTEST_CASES)}",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + ",".join(SELFTEST_CASES),
+            f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}",
+            f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}",
+            f"PHASE4_WORKFLOW_ORDER_MARKER_COUNT={len(REQUIRED_WORKFLOW_ORDER_MARKERS)}",
+            f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={required_file_count()}",
+            f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT={required_check_count()}",
+        ]:
+            raise AssertionError("workflow-route self-test status output drifted")
+        emitted_live = io.StringIO()
+        with contextlib.redirect_stdout(emitted_live):
+            emit_status(self_test=False)
+        if emitted_live.getvalue().splitlines() != [
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
+            f"PHASE4_WORKFLOW_ROUTE_COUNT={len(EXPECTED_MAKE_TARGETS)}",
+            f"PHASE4_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}",
+            f"PHASE4_WORKFLOW_ORDER_MARKER_COUNT={len(REQUIRED_WORKFLOW_ORDER_MARKERS)}",
+            f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={required_file_count()}",
+            f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT={required_check_count()}",
+        ]:
+            raise AssertionError("workflow-route live status output drifted")
         covered_cases.append("baseline_round_trip")
 
         write_baseline()
