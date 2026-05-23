@@ -8,7 +8,7 @@
 - scope: `drivers/watchdog/dw_wdt` verify-alignment and adjacent PM-truthfulness evidence
 - current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet
 - the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note
-- `zigux/tests/phase11_dw_wdt_manifest.json` still records archival continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`
+- `zigux/tests/phase11_dw_wdt_manifest.json` now records deeper platform-registration scaffold continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`
 - the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape
 - `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge
 - `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope
@@ -20,13 +20,13 @@
 
 The Phase 11 roadmap still keeps this watchdog family inside bounded lifecycle parity, teardown parity, and validation truthfulness around `drivers/watchdog/*.zig`. Keeping one closed-gap note for the current `P11-L12` verify-alignment family is still useful, but it has to describe the current packet honestly.
 
-This note therefore no longer treats the retained manifest lane key `P11-L05` as the active continuity owner. Instead it records that `P11-L05` is archival continuity inside the manifest while current note-only truthfulness stays parked on `P11-Y03`, survey-only follow-through stays on `P11-L09`, and deeper platform-registration scaffold work stays on `P11-L10`.
+This note therefore no longer treats the manifest lane key as archived continuity. Instead it records that current manifest continuity now stays on `P11-L10` while current note-only truthfulness stays parked on `P11-Y03`, survey-only follow-through stays on `P11-L09`, and the same deeper platform-registration scaffold work remains on `P11-L10`.
 
 This note also no longer treats the broader validation-matrix, survey, slice, teardown-note, direct verify-helper, or direct replay stack as same-bridge proof in this environment. Instead it records the smaller packet that current authenticated contents still make directly reviewable, keeps the active manifest continuity explicit, and leaves future reopening to a fail-closed checker if the manifest, platform-plan note, manifest-routed teardown-parity ownership, or PM helper drift again.
 
 ## Observed Current-Head Evidence
 
-- `zigux/tests/phase11_dw_wdt_manifest.json` matches archival continuity `P11-L05` and surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`
+- `zigux/tests/phase11_dw_wdt_manifest.json` matches deeper platform-registration scaffold continuity `P11-L10` and surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`
 - `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt_manifest.json` still marks `phase11-dw-wdt-live-platform-pm` as `starter_landed` at `drivers/watchdog/dw_wdt_pm.zig`
 - `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`
