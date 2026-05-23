@@ -17,6 +17,8 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"lane_key\": \"P13-L18\"");
     try requireContains(manifest_text, "\"anchor\": \"drivers/tty/hvc/hvc_console.h\"");
+    try requireContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-22\"");
+    try requireContains(manifest_text, "\"exact_current_evidence\": {");
     try requireContains(manifest_text, "\"current_notifier_packet_checker_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_manifest_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_reviewability_present\": true");
@@ -29,6 +31,19 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
         manifest_text,
         "make -C zigux phase13-validate or make -C zigux phase13 as shipped adjacent-packet routes.",
     );
+    try requireContains(manifest_text, "\"zigux/bindings/notifier_abi.zig\": {");
+    try requireContains(manifest_text, "NotifierChainPriorityIncrease");
+    try requireContains(manifest_text, "listHasConsistentBacklinks()");
+    try requireContains(manifest_text, "hlistHasConsistentPrevLinks()");
+    try requireContains(manifest_text, "\"zigux/helpers/list_view.zig\": {");
+    try requireContains(manifest_text, "read-only circular list_head view");
+    try requireContains(manifest_text, "firstBrokenBacklink()");
+    try requireContains(manifest_text, "\"zigux/helpers/hlist_view.zig\": {");
+    try requireContains(manifest_text, "tailNextIsNull()");
+    try requireContains(manifest_text, "\"include/zigux/abi.h\": {");
+    try requireContains(manifest_text, "zigux_hlist_has_consistent_prev_links()");
+    try requireContains(manifest_text, "\"drivers/tty/hvc/hvc_console.h\": {");
+    try requireContains(manifest_text, "notifier_hangup_irq");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-list-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-hlist-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-focused-packet-checker\"");
