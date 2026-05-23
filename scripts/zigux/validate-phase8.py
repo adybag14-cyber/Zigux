@@ -19,10 +19,12 @@ def _default_root() -> Path:
 ROOT = _default_root()
 TESTS_ALIGNMENT_CHECKER = Path("scripts/zigux/check-phase8-tests-readme-alignment.py")
 HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")
+HELP_KALLSYMS_BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
 EXEC_CMD_PACKET_CHECKER = Path("scripts/zigux/check-phase8-exec-cmd-packet.py")
+VALIDATOR = Path("scripts/zigux/validate-phase8.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 LIBBPF_SEGMENT_MANIFEST = Path("tools/lib/bpf/zigux_segments/manifest.json")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
@@ -66,6 +68,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/README.md"),
     TESTS_ALIGNMENT_CHECKER,
     HELP_KALLSYMS_PACKET_CHECKER,
+    HELP_KALLSYMS_BUILD_SHARD_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
     LIBBPF_SEGMENT_GATE_CHECKER,
@@ -442,11 +445,18 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"): (
         "file_path_handle_bridge",
     ),
+    VALIDATOR: (
+        'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
+        'HELP_KALLSYMS_BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")',
+        "HELP_KALLSYMS_PACKET_CHECKER,",
+        "HELP_KALLSYMS_BUILD_SHARD_CHECKER,",
+    ),
 }
 
 CHECKERS = (
     TESTS_ALIGNMENT_CHECKER,
     HELP_KALLSYMS_PACKET_CHECKER,
+    HELP_KALLSYMS_BUILD_SHARD_CHECKER,
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
     LIBBPF_SEGMENT_GATE_CHECKER,
@@ -571,6 +581,10 @@ def _passing_fixture(root: Path) -> None:
             _write(root / path, f"{path.as_posix()}\n")
     _write(root / TESTS_ALIGNMENT_CHECKER, _passing_checker("PHASE8_TESTS_README_ALIGNMENT"))
     _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+    _write(
+        root / HELP_KALLSYMS_BUILD_SHARD_CHECKER,
+        _passing_checker("PHASE8_HELP_KALLSYMS_BUILD_SHARD"),
+    )
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
     _write(root / LIBBPF_SEGMENT_GATE_CHECKER, _passing_checker("PHASE8_LIBBPF_SEGMENT_GATE"))
@@ -608,6 +622,30 @@ def run_self_test() -> int:
             raise AssertionError("expected failing help-kallsyms checker output to be reported")
         case_count += 1
         _write(root / HELP_KALLSYMS_PACKET_CHECKER, _passing_checker("PHASE8_HELP_KALLSYMS_PACKET"))
+
+        _write(
+            root / HELP_KALLSYMS_BUILD_SHARD_CHECKER,
+            _failing_checker(
+                "PHASE8_HELP_KALLSYMS_BUILD_SHARD",
+                "missing-marker:zigux/tests/phase8_help_kallsyms_only_build.zig:test_step.dependOn(&run_kallsyms_tests.step);",
+            ),
+        )
+        failing_help_kallsyms_build_shard_checker = validate_root(root)
+        help_kallsyms_build_shard_output = failing_help_kallsyms_build_shard_checker.checker_failures.get(
+            HELP_KALLSYMS_BUILD_SHARD_CHECKER.as_posix()
+        )
+        if (
+            help_kallsyms_build_shard_output is None
+            or "PHASE8_HELP_KALLSYMS_BUILD_SHARD=fail" not in help_kallsyms_build_shard_output
+            or "missing-marker:zigux/tests/phase8_help_kallsyms_only_build.zig:test_step.dependOn(&run_kallsyms_tests.step);"
+            not in help_kallsyms_build_shard_output
+        ):
+            raise AssertionError("expected failing help-kallsyms build shard output to be reported")
+        case_count += 1
+        _write(
+            root / HELP_KALLSYMS_BUILD_SHARD_CHECKER,
+            _passing_checker("PHASE8_HELP_KALLSYMS_BUILD_SHARD"),
+        )
 
         _write(
             root / PERF_BUFFER_POLL_GATE_CHECKER,
