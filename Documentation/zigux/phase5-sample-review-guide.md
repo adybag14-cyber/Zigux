@@ -140,6 +140,7 @@ Authenticated contents readback now directly returns these kobject packet member
 The same authenticated route also directly returns the shared build-route companion `zigux/tests/phase5_build.zig` for this packet.
 
 The same reread also directly returns the bounded attr-group companion `samples/zigux/kobject_example_attr_group_contract.zig` for this packet.
+The same reread also directly returns the focused attr-group replay `zigux/tests/phase5_kobject_attr_group_contract.zig` and the survey-guard companion `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` for that bounded packet.
 
 Fresh public current-`master` fallback still carries these companion paths:
 
