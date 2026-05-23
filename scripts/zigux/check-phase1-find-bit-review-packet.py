@@ -365,6 +365,10 @@ def run_self_test() -> int:
             "fixture_duplicate_tail_clamped_first",
             "fixture:duplicate_json_key:find_bit.tail_clamped_first",
         ),
+        (
+            "manifest_andnot_contract_drift",
+            "manifest:andnot_scan_entrypoint_contract:expected_current_packet",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -464,8 +468,15 @@ def run_self_test() -> int:
         if cases[13][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_duplicate_tail_clamped_first")
 
+        build_sample_repo(tmp_root)
+        manifest = load_json(tmp_root, MANIFEST_REL)
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoint_contract"] = "drift"
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[14][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_andnot_contract_drift")
+
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=14")
+    print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
 
