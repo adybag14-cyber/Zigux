@@ -76,6 +76,13 @@ MARKERS = {
         "Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.",
         "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
         "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
+        "## Exact checks run on 2026-05-20",
+        "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
+        "The exact checks that passed were:",
+        "- `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`",
+        "- `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`",
+        "- `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`",
+        "- `phase 5 trace-events formatting companion keeps bounded destination failures explicit`",
     ),
     REVIEW_CHECKLIST_PATH: (
         "if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet,",
@@ -214,7 +221,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 28
+    expected_case_count = 29
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -423,6 +430,20 @@ def run_self_test() -> int:
             "approved_idiom_cycle_marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][4]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_approved_idiom_exact_checks_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            APPROVED_IDIOM_PATH,
+            placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][11], ""),
+        )
+        expect_exact(
+            "approved_idiom_exact_checks_marker",
+            collect_failures(mutated),
+            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][11]}"],
         )
         checks_run += 1
 
