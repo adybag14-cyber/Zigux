@@ -28,7 +28,7 @@ NEXT_GAP_ID = "phase11-dw-wdt-live-mmio-validation"
 
 NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
-    "- lane family: `P11-L10`",
+    "- lane family: `P11-L12`",
     "- active current-head continuity: `P11-L05`",
     "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
