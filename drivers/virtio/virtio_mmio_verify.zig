@@ -304,6 +304,36 @@ test "phase10 virtio mmio verify keeps config-write apply observation wrapper pl
     try std.testing.expectError(error.ConfigWritePlanUnavailable, summarizeConfigWriteApplyObservation(&device));
 }
 
+test "phase10 virtio mmio verify clears stale apply-observation wrapper state after config bytes are restaged" {
+    var device = try virtio_mmio.VirtioMmioLab.init(91, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0907);
+    var summary = try summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
+    try std.testing.expect(configWriteObservationTouchesFullWord(summary));
+    try std.testing.expectEqual(@as(u4, 0b0011), summary.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 2), applyObservationChangedByteCount(summary));
+    try std.testing.expect(configWriteWouldApply(summary));
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), summary.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0907), summary.planned_value);
+
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
+    try std.testing.expectError(
+        error.ConfigWritePlanUnavailable,
+        summarizeConfigWriteApplyObservation(&device),
+    );
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0506_0709);
+    summary = try summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expect(configWriteObservationTouchesFullWord(summary));
+    try std.testing.expectEqual(@as(u4, 0b0001), summary.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 1), applyObservationChangedByteCount(summary));
+    try std.testing.expect(configWriteWouldApply(summary));
+    try std.testing.expectEqual(@as(u32, 0x0506_0708), summary.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0506_0709), summary.planned_value);
+}
+
 test "phase10 virtio mmio verify keeps interrupt-ack disposition below IRQ-delivery claims" {
     var device = try virtio_mmio.VirtioMmioLab.init(82, &[_]u16{ 8, 16 });
     device.stageInterruptStatus(0b111);
