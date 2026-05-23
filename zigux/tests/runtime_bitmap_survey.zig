@@ -3,6 +3,8 @@ const std = @import("std");
 const present_bitmap_family_files = [_][]const u8{
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+    "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+    "samples/zigux/README.md",
     "zigux/tests/runtime_bitmap_manifest.json",
     "zigux/tests/runtime_bitmap_survey.zig",
     "zigux/tests/runtime_bitmap_module.zig",
@@ -49,6 +51,18 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
         32 * 1024,
     );
     defer std.testing.allocator.free(module_slice_note);
+
+    const lane_sequencing_note = try readRepoFileAlloc(
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(lane_sequencing_note);
+
+    const samples_readme = try readRepoFileAlloc(
+        "samples/zigux/README.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(samples_readme);
 
     const manifest = try readRepoFileAlloc(
         "zigux/tests/runtime_bitmap_manifest.json",
@@ -112,6 +126,18 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(module_slice_note, "none on the trusted current-tree read path");
+
+    try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
+    try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
+    try expectContains(lane_sequencing_note, "the returned bitmap module gate and diff gate now stay inside that same bounded packet instead of the older repo-reality-gap bucket");
+    try expectContains(lane_sequencing_note, "no shared reminder surface should present the bounded runtime bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned");
+
+    try expectContains(samples_readme, "Fresh trusted mixed reread on 2026-05-22 also confirms a broader runtime bitmap sample-side packet on current `master`");
+    try expectContains(samples_readme, "`zigux/tests/runtime_bitmap_module.zig`");
+    try expectContains(samples_readme, "`zigux/tests/runtime_bitmap_diff.zig`");
+    try expectContains(samples_readme, "Keep `zigux/tests/runtime_bitmap_module.zig` explicit as the module-side descriptor and lifecycle replay packet for the same runtime bitmap starter.");
+    try expectContains(samples_readme, "Keep `zigux/tests/runtime_bitmap_diff.zig` explicit as the bounded diff-side summary replay packet for the same runtime bitmap starter.");
+    try expectContains(samples_readme, "Keep that broader bitmap-side visibility from being used to imply that the broader shared runtime-loader packet returned or that blocked publication boundaries are complete.");
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
