@@ -91,6 +91,7 @@ EXPECTED_C_HARNESS_REASON = (
     "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that "
     "current master no longer ships beside the Phase 1 `.zig` ports."
 )
+EXPECTED_C_HARNESS_PRESENT = False
 
 EXPECTED_SHARED_HELPERS = (
     "tools/lib/argv_split.zig",
@@ -365,6 +366,10 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(issue("c_harness_helpers", EXPECTED_HELPERS, c_harness_helpers))
     if c_harness.get("blocker_id") != EXPECTED_C_HARNESS_BLOCKER_ID:
         failures.append(issue("c_harness_blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID, c_harness.get("blocker_id")))
+
+    c_harness_present = (root / EXPECTED_C_HARNESS_PATH).exists()
+    if c_harness_present != EXPECTED_C_HARNESS_PRESENT:
+        failures.append(issue("c_harness_present", EXPECTED_C_HARNESS_PRESENT, c_harness_present))
 
     return failures
 
@@ -684,6 +689,10 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "c_harness_present_drift",
+            lambda root: write_text(root, EXPECTED_C_HARNESS_PATH, "legacy harness\n"),
+        ),
+        (
             "helper_set_overlap",
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -752,6 +761,7 @@ def main() -> int:
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_DIRECT_HELPER_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_FIXTURE_HELPER_COUNT={len(EXPECTED_FIXTURE_KEYS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER_FIELD}")
+    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_C_HARNESS_PRESENT={EXPECTED_C_HARNESS_PRESENT}")
     return 0
 
 
