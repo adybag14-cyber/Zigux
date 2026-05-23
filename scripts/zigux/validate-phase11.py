@@ -59,6 +59,9 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt.zig",
     "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
+    "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
+    "zigux/tests/phase11_dw_wdt_build.zig",
+    "zigux/tests/phase11_dw_wdt_pm_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
@@ -142,6 +145,22 @@ CHECKS = (
     CheckSpec(
         "phase11-dw-wdt-verify-alignment",
         ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
+    ),
+    CheckSpec(
+        "phase11-bcm2835-wdt-manifest-packet-survey-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-dw-wdt-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-dw-wdt-pm-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_pm_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-gpio-wdt-register-device-glue-review-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig"),
     ),
     CheckSpec(
         "phase11-hvc-hv-ops-layout-build",
@@ -405,6 +424,10 @@ def run_self_test() -> int:
             case_count += 1
 
         for build_file, spec_name in (
+            ("zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig", "phase11-bcm2835-wdt-manifest-packet-survey-build"),
+            ("zigux/tests/phase11_dw_wdt_build.zig", "phase11-dw-wdt-build"),
+            ("zigux/tests/phase11_dw_wdt_pm_build.zig", "phase11-dw-wdt-pm-build"),
+            ("zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig", "phase11-gpio-wdt-register-device-glue-review-build"),
             ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
             ("zigux/tests/phase11_hvc_export_surface_layout_build.zig", "phase11-hvc-export-surface-layout-build"),
             ("zigux/tests/phase11_hvc_cleanup_packet_build.zig", "phase11-hvc-cleanup-packet-build"),
