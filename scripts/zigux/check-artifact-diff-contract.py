@@ -63,6 +63,9 @@ HELPER_SELF_TEST_CASES = [
     "bytes_missing_expected",
     "bytes_missing_actual",
     "bytes_missing_both",
+    "text_expected_directory",
+    "text_actual_directory",
+    "text_both_directories",
     "legacy_sha256_alias",
     "missing_mode_value_rejected",
     "missing_positional_arguments_rejected",
@@ -88,6 +91,9 @@ BASE_CONTRACT_CASES = [
     "text_missing_expected",
     "text_missing_actual",
     "text_missing_both",
+    "text_expected_directory",
+    "text_actual_directory",
+    "text_both_directories",
     "json_pass",
     "json_mismatch",
     "json_missing_expected",
@@ -339,6 +345,8 @@ def run_check(root: Path) -> int:
         invalid_actual_json = tmp / "actual-invalid.json"
         blob_a = tmp / "blob-a.bin"
         blob_b = tmp / "blob-b.bin"
+        expected_dir = tmp / "expected-dir"
+        actual_dir = tmp / "actual-dir"
 
         write_text(expected, "alpha\nbeta\n")
         write_text(actual, "alpha\nbeta\n")
@@ -443,6 +451,48 @@ def run_check(root: Path) -> int:
                 f"ACTUAL={other_missing}",
                 "EXPECTED_EXISTS=False",
                 "ACTUAL_EXISTS=False",
+            ],
+        )
+
+        expected_dir.mkdir()
+        actual_dir.mkdir()
+        run_case(
+            root,
+            ["--mode", "text", str(expected_dir), str(actual)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={expected_dir}",
+                f"ACTUAL={actual}",
+                "EXPECTED_IS_FILE=False",
+                "ACTUAL_IS_FILE=True",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "text", str(expected), str(actual_dir)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={expected}",
+                f"ACTUAL={actual_dir}",
+                "EXPECTED_IS_FILE=True",
+                "ACTUAL_IS_FILE=False",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "text", str(expected_dir), str(actual_dir)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={expected_dir}",
+                f"ACTUAL={actual_dir}",
+                "EXPECTED_IS_FILE=False",
+                "ACTUAL_IS_FILE=False",
             ],
         )
 
