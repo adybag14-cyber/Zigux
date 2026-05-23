@@ -23,10 +23,12 @@ SURVEY_REQUIRED_MARKERS = (
     "no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet",
     "returned header-boundary checker now only guards the narrower current-head note packet",
     "`phase11-header-boundary-checker`",
+    "`phase11-build-inventory-adjunct`",
+    "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` as the current adjunct build trio",
 )
 
 SURVEY_FORBIDDEN_MARKERS = (
-    "  - `scripts/zigux/check-phase11-header-boundary-packet.py`\n- current shared reminder and machine-checked HVC header-boundary evidence therefore still lives",
+    "  - `scripts/zigux/check-phase11-header-boundary-packet.py`\\n- current shared reminder and machine-checked HVC header-boundary evidence therefore still lives",
     "no directly readable shared survey source, manifest, checker, or shared Phase 11 build route currently rematerializes the older cross-driver packet",
 )
 
@@ -42,11 +44,12 @@ MATRIX_REQUIRED_MARKERS = (
     "returned `zigux/helpers/layout_assert.zig` substrate",
     "shared `layout_assert` helper",
     "keep the returned header-boundary checker framed as note-side evidence only",
+    "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig` and `zigux/tests/phase11_hvc_export_surface_layout_build.zig` together",
     "current direct contents reads in this lane do not rematerialize:",
 )
 
 MATRIX_FORBIDDEN_MARKERS = (
-    "- `zigux/tests/phase11_build.zig`\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`",
+    "- `zigux/tests/phase11_build.zig`\\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`",
     "without reviving missing shared replay, manifest, or checker paths",
 )
 
@@ -84,7 +87,7 @@ def run_check(root: Path) -> None:
 
 
 def remove_marker(text: str, marker: str) -> str:
-    pattern = r"\s+".join(re.escape(part) for part in marker.split())
+    pattern = r"\\s+".join(re.escape(part) for part in marker.split())
     updated, count = re.subn(pattern, "", text, count=1, flags=re.MULTILINE)
     if count != 1:
         raise AssertionError(marker)
@@ -123,6 +126,7 @@ def run_self_test() -> int:
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - that narrower proof packet remains `layout_assert`-backed through the returned `zigux/helpers/layout_assert.zig` substrate.
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet, and the returned header-boundary checker now only guards the narrower current-head note packet.
+- `phase11-build-inventory-adjunct`: `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` remain the current adjunct build trio beside the narrower note-side packet.
 ## Current-Head Boundary
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the note-side packet only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
 """
@@ -141,7 +145,7 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_uapi_header_parity_survey.zig`
   - `zigux/tests/phase11_build.zig`
 ## Current-Head Matrix
-| exported-header proof shard | the returned `zigux/helpers/layout_assert.zig` substrate keeps the narrower proof packet explicit through the shared `layout_assert` helper | keep the returned header-boundary checker framed as note-side evidence only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py` | if any one of those shared packet anchors rematerializes, refresh this matrix in the same pass that restores the corresponding survey wording | claiming shared replay, manifest, survey-source, or build-route coverage as current-head evidence from historical wording alone |
+| exported-header proof shard | the returned `zigux/helpers/layout_assert.zig` substrate keeps the narrower proof packet explicit through the shared `layout_assert` helper | keep the returned header-boundary checker framed as note-side evidence only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`, with `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` and `zigux/tests/phase11_hvc_export_surface_layout_build.zig` together still treated as the focused proof-build pair | if any one of those shared packet anchors rematerializes, refresh this matrix in the same pass that restores the corresponding survey wording | claiming shared replay, manifest, survey-source, or build-route coverage as current-head evidence from historical wording alone |
 """
 
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_header_boundary_"))
@@ -166,8 +170,8 @@ def run_self_test() -> int:
         path = survey_forbidden / SURVEY_PATH
         path.write_text(
             path.read_text(encoding="utf-8").replace(
-                "- `zigux/tests/phase11_build.zig`\n",
-                "- `zigux/tests/phase11_build.zig`\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`\n",
+                "- `zigux/tests/phase11_build.zig`\\n",
+                "- `zigux/tests/phase11_build.zig`\\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`\\n",
                 1,
             ),
             encoding="utf-8",
@@ -187,8 +191,8 @@ def run_self_test() -> int:
         path = matrix_forbidden / MATRIX_PATH
         path.write_text(
             path.read_text(encoding="utf-8").replace(
-                "- `zigux/tests/phase11_build.zig`\n",
-                "- `zigux/tests/phase11_build.zig`\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`\n",
+                "- `zigux/tests/phase11_build.zig`\\n",
+                "- `zigux/tests/phase11_build.zig`\\n  - `scripts/zigux/check-phase11-header-boundary-packet.py`\\n",
                 1,
             ),
             encoding="utf-8",
