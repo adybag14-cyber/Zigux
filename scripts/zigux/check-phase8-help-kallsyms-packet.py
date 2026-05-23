@@ -106,8 +106,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`make -C zigux phase8-help-kallsyms-test`",
     ),
     HELP_KALLSYMS_BUILD: (
-        "phase8_help.zig",
-        "phase8_kallsyms.zig",
+        "../../tools/lib/subcmd/help.zig",
+        "../../tools/lib/symbol/kallsyms.zig",
         "Run the focused Phase 8 help and kallsyms shared tests.",
     ),
     HELP_BUILD: (
