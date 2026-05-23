@@ -230,6 +230,47 @@ test "phase11 HVC exported helper proof keeps exported helper signatures exact" 
     }
 }
 
+test "phase11 HVC exported helper proof keeps imported exported helper declarations tied to current module" {
+    comptime {
+        assertExactType(
+            @TypeOf(hvc_console.hvc_instantiate),
+            fn (u32, c_int, *const hvc_console.HvOps) callconv(.c) c_int,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.hvc_alloc),
+            fn (u32, c_int, *const hvc_console.HvOps, c_int) callconv(.c) ?*hvc_console.HvcStruct,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.hvc_remove),
+            fn (*hvc_console.HvcStruct) callconv(.c) void,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.hvc_poll),
+            fn (*hvc_console.HvcStruct) callconv(.c) c_int,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.hvc_kick),
+            fn () callconv(.c) void,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.__hvc_resize),
+            fn (*hvc_console.HvcStruct, hvc_console.Winsize) callconv(.c) void,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.notifier_add_irq),
+            fn (*hvc_console.HvcStruct, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.notifier_del_irq),
+            fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @TypeOf(hvc_console.notifier_hangup_irq),
+            fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+    }
+}
+
 test "phase11 HVC exported helper proof keeps exported HVC constants exact" {
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 32 * 1024);
     defer std.testing.allocator.free(hvc_header);
