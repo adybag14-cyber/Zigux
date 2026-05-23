@@ -253,14 +253,15 @@ Current `master` does materialize `zigux/tests/phase15_parity_scorecard.json`, s
 
 Current `master` now directly materializes `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep that focused lane-owner replay in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
 
-Current `master` still does not materialize `scripts/zigux/validate-phase15.py` or `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build-route companions framed as repo-reality gaps rather than shipped tests-root evidence.
-- `scripts/zigux/validate-phase15.py`
+Current `master` now directly materializes `scripts/zigux/validate-phase15.py`, so keep that validator-first maintenance gate explicit beside the directly readable governance packet instead of carrying it as a broader repo-reality gap.
+
+Current `master` still does not materialize `zigux/tests/phase15_build.zig`, so keep that broader dedicated-build companion framed as a repo-reality gap rather than shipped tests-root evidence.
 - `zigux/tests/phase15_build.zig`
 
 Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned review-process build replay, the returned readiness and handoff survey packet members, the returned focused handoff replay, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, and build-level surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
+- Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned review-process build replay, the returned readiness and handoff survey packet members, the returned focused handoff replay, the shared-summary gap note, the active-governance replay entrypoints, the returned validator-first maintenance gate, and the still-missing route-level and build-level surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned dedicated-build packet?
 
 ## Phase 9 runtime packet
 
