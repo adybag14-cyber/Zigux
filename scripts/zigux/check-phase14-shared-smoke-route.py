@@ -285,6 +285,22 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         write_text(
             base,
+            MAKEFILE_PATH,
+            fixture_makefile().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py\n",
+                "",
+                1,
+            ),
+        )
+        if not any("check-phase14-release-boundary-exact-counts.py --self-test" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected release-boundary checker marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
             WORKFLOW_PATH,
             fixture_workflow() + "      - name: Wrong smoke route\n        run: make -C zigux phase14-smoke\n",
         )
@@ -312,7 +328,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=7")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
