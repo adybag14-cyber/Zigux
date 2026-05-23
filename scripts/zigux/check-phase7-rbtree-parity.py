@@ -64,6 +64,8 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree survey keeps the returned json fixture and direct helper packet truthful",
         'try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");',
         'try expectSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
+        'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
+        'try expectContains(makefile, "phase7-validate:");',
         'try expectContains(fixture, "\\"packet\\": \\\"phase7-rbtree-parity-fixture\\\"");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
@@ -84,7 +86,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 2
+SELF_TEST_CASE_COUNT = 3
 
 
 def read_text(path: Path) -> str:
@@ -130,6 +132,12 @@ def run_self_test() -> None:
         marker = "`PHASE7_LANE_KEY=P7-L13`"
         marker_path.write_text(read_text(marker_path).replace(marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"Documentation/zigux/phase7-rbtree-slice.md: {marker}"])
+
+        write_fixture_root(root)
+        survey_path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        survey_marker = 'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
 
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
     print(f"PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
