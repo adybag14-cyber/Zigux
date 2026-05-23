@@ -55,6 +55,15 @@ Keep these cues explicit:
 - the exit split stays explicit as `abandoned_before_registration` for the initialized-only exit path and `tore_down_registered_attributes` for the registered teardown path
 - `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample
 
+## Direct Validation Routes
+
+Keep the direct attr-group validation cues explicit too:
+
+- `zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the sample-owned self-check for the bounded attr-group companion
+- `zig test --dep kobject_attr_group_contract -Mroot=zigux/tests/phase5_kobject_attr_group_contract.zig -Mkobject_attr_group_contract=samples/zigux/kobject_example_attr_group_contract.zig` stays the focused replay route for the same attr-group packet
+- `zig test zigux/tests/phase5_kobject_attr_group_contract_survey.zig` stays the survey-guard route that checks the companion, focused replay, and shared build-route markers together
+- `zigux/tests/phase5_build.zig` remains the broader directly readable shared build-route companion for this packet rather than sample-local proof
+
 ## Contributor refresh prompts
 
 When a same-lane change touches this anchor or one of its shared reminder surfaces, keep these questions explicit:
