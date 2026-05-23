@@ -78,7 +78,7 @@ REQUIRED_MARKERS = {
     ],
     REVIEW_CHECKLIST_PATH: [
         "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
-        "keep the repo-local `.zig-toolchain` fallback before the attached-Zig degraded rerun order explicit",
+        "keep `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` explicit beside the smoke-first and rollback-lab `virtio_scsi` packet",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
         "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
@@ -119,7 +119,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
     ],
     VALIDATOR_PATH: [
-        "BUILD_ONLY_CHECKER_PATH = \"scripts/zigux/check-build-only-phase12-surface.py\"",
+        'BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"',
         "RELEASE_READINESS_CHECKER_PATH = (",
         "make -C zigux phase12-validate",
         "scripts-side support packet",
