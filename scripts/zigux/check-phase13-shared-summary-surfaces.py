@@ -187,7 +187,6 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
-        contributor_guide_path.writeText = None
         contributor_guide_path.write_text(
             contributor_guide_path.read_text(encoding="utf-8").replace(
                 "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.\n",
