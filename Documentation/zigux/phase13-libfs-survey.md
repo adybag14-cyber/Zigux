@@ -1,0 +1,72 @@
+# Phase 13 libfs Survey
+
+This document records the bounded Phase 13 survey lane around `fs/libfs.c`.
+
+## Status
+
+- `PHASE13_STATUS=active`
+- `PHASE13_SLICE=libfs-helper-filesystem-boundary-survey`
+- reviewed against live `master` `master-readback-2026-05-15`
+- scope: the shipped `fs/libfs.zig` helper lab, the direct `zigux/tests/phase13_libfs.zig` and `zigux/tests/phase13_libfs_reviewability.zig` replays, and the manifest-backed survey packet that keeps the filesystem-helper boundary truthful without widening into other shared-helper families
+- product boundary:
+  - `fs/libfs.zig`
+  - `Documentation/zigux/phase13-libfs-survey.md`
+  - `zigux/tests/phase13_libfs.zig`
+  - `zigux/tests/phase13_libfs_reviewability.zig`
+  - `zigux/tests/phase13_libfs_manifest.json`
+  - `zigux/tests/phase13_build.zig`
+
+## Why this slice exists
+
+The Phase 13 roadmap explicitly names `fs/libfs.c` as a shared subsystem-helper anchor.
+
+That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can easily be overstated as live filesystem behavior when the honest near-term product boundary is still helper-first planning. Zigux already ships a real `fs/libfs.zig` foothold, so the highest-value bounded work in this lane is to record exactly which helper slices are present and which live filesystem behaviors remain blocked.
+
+## Survey findings
+
+- `fs/libfs.zig` still models positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, and simple transaction release planning as pure helper surfaces.
+- the helper lab now also ships bounded `simple_offset_add()` planning, keeping the prepopulated-dentry guard, the allocator-busy to `-ENOSPC` remap, and managed-offset recording explicit without claiming live maple-tree mutation or directory ownership.
+- the helper lab now also ships bounded `simple_offset_remove()` planning, keeping the zero-offset no-op, recorded-slot classification, map erase, and recorded-offset clearing explicit without claiming live directory-map teardown or dentry lifetime ownership.
+- the helper lab also ships bounded transaction acquire planning around `simple_transaction_get()`, keeping the page-bounded write limit, zeroed page allocation, one-write-per-open staging, and private-data handoff explicit without claiming live readback or pseudo-filesystem execution.
+- the helper lab also ships bounded transaction publish planning around `simple_transaction_set()`, keeping the response-size limit, required private-data handoff, publish barrier, and published-size bookkeeping explicit without claiming live readback or file-lifecycle execution.
+- the helper lab also ships bounded addressability planning around `generic_check_addressable()`, keeping blocksize-window validation, zero-block short-circuiting, sector-limit checks, and page-index overflow checks explicit without claiming live inode, buffer-head, or page-cache ownership.
+- the helper lab also ships bounded offset-directory seek and readdir planners that keep the real-entry window, emit-dots gate, and end-of-directory sentinel explicit without claiming live iteration side effects.
+- the current helper packet already includes offset-based rename and rename-exchange planners that keep managed slots, missing offsets, reserved dot-window offsets, and end-of-directory sentinels explicit without mutating live directory maps.
+- current `master` ships the direct `zigux/tests/phase13_libfs.zig` replay, the dedicated `zigux/tests/phase13_libfs_reviewability.zig` gate, the manifest-backed survey packet, and the shared `zigux/tests/phase13_build.zig` route, so the helper starter plus its offset-add, transaction acquire, transaction release, transaction publish, and addressability follow-ups are both directly re-readable and wired into the broader Phase 13 shared-helper build packet.
+- exact helper readback on current `master` shows no live dcache entry insertion, no inode lifetime management, no page-cache-backed state changes, and no broader filesystem runtime ownership; the current packet stays at helper-only planning.
+
+## Recorded gaps
+
+The current lane state is:
+
+- helper-local governance for this packet is tracked under `P13-Y01`, while the separate verification-only replay lane remains parked under `P13-L03`
+- landed `phase13-libfs-helper-starter`
+- landed `phase13-libfs-offset-add-planner`
+- landed `phase13-libfs-offset-remove-planner`
+- landed `phase13-libfs-offset-rename-planner`
+- landed `phase13-libfs-transaction-acquire-helper`
+- landed `phase13-libfs-transaction-release-helper`
+- landed `phase13-libfs-transaction-publish-helper`
+- landed `phase13-libfs-addressability-helper`
+- landed `phase13-libfs-reviewability-gate`
+- landed `phase13-libfs-survey-note`
+- landed `phase13-build-gate`
+- blocked `phase13-libfs-live-dcache-mutation`
+- blocked `phase13-libfs-live-inode-state`
+
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first libfs foothold for reviewable directory, offset-add, offset-remove, lookup, transaction acquire, transaction release, transaction publish, addressability, and offset-based rename planning, and that packet is now also wired through the shared Phase 13 build route without claiming any live dcache or inode state transitions.
+
+## Non-goals
+
+This slice does not claim:
+
+- live dcache entry insertion or removal side effects
+- live inode lifetime or inode locking behavior
+- page-cache-backed filesystem state
+- live directory-map mutation, maple-tree mutation, or rename application
+- broader superblock or filesystem registration behavior
+- shared release-surface ownership for unrelated Phase 13 helpers
+
+## Next bounded step
+
+Leave `P13-Y01` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, or `zigux/tests/phase13_build.zig`; if the libfs family reopens for code later, prefer the next equally small offset-map lifecycle helper such as destroy planning, and keep the non-goals explicit before claiming it. Keep verification-only published-tree replays on `P13-L03`.
