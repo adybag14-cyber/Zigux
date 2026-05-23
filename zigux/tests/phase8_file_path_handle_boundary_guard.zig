@@ -53,12 +53,18 @@ test "phase 8 file-path-handle boundary guard keeps the deferred bridge aligned 
     try expectContains(bridge_slice, "no `bpf_obj_get()` reopen flow");
     try expectContains(bridge_slice, "no token materialization");
     try expectContains(bridge_slice, "no descriptor replacement, transfer, or close ownership semantics");
+    try expectContains(bridge_slice, "`scripts/zigux/validate-phase8.py`");
+    try expectContains(bridge_slice, "`make -C zigux phase8-file-path-handle-bridge-test`");
+    try expectContains(bridge_slice, "`make -C zigux phase8`");
 
     try expectContains(boundary_survey, "keep the landed helper-local bridge packet");
     try expectContains(boundary_survey, "Current `master` still keeps the mixed-source bridge packet reviewable through");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`");
     try expectContains(boundary_survey, "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior");
+    try expectContains(boundary_survey, "`scripts/zigux/validate-phase8.py`");
+    try expectContains(boundary_survey, "`make -C zigux phase8-file-path-handle-bridge-test`");
+    try expectContains(boundary_survey, "`make -C zigux phase8`");
 
     try expectContains(shared_build, "phase8_file_path_handle_boundary_guard.zig");
     try expectContains(shared_build, "phase8-file-path-handle-boundary-guard-tests");
